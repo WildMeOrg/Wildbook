@@ -5,7 +5,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 
 export const ReportEncounterSpeciesSection = observer(
-  ({ reportEncounterStore }) => {
+  ({ store }) => {
     const { data } = useGetSiteSettings();
     let speciesList =
       data?.siteTaxonomies?.map((item) => {
@@ -20,7 +20,7 @@ export const ReportEncounterSpeciesSection = observer(
       <div>
         <h5>
           <FormattedMessage id="SPECIES" />
-          {reportEncounterStore.speciesSection.required && <span>*</span>}
+          {store.speciesSection.required && <span>*</span>}
         </h5>
         <p className="fs-6">
           <FormattedMessage id="SPECIES_REQUIRED_IA_WARNING" />
@@ -29,17 +29,17 @@ export const ReportEncounterSpeciesSection = observer(
         <Form.Group>
           <Form.Label>
             <FormattedMessage id="SPECIES" />
-            {reportEncounterStore.speciesSection.required && <span>*</span>}
+            {store.speciesSection.required && <span>*</span>}
           </Form.Label>
           <div className="position-relative d-inline-block w-100">
             <Form.Control
               as="select"
               required="true"
               style={{ paddingRight: "30px" }}
-              value={reportEncounterStore.speciesSection.value}
+              value={store.speciesSection.value}
               onChange={(e) => {
-                reportEncounterStore.setSpeciesSectionValue(e.target.value);
-                reportEncounterStore.setSpeciesSectionError(
+                store.setSpeciesSectionValue(e.target.value);
+                store.setSpeciesSectionError(
                   e.target.value ? false : true,
                 );
               }}
@@ -59,7 +59,7 @@ export const ReportEncounterSpeciesSection = observer(
               style={{ right: "10px", pointerEvents: "none" }}
             ></i>
           </div>
-          {reportEncounterStore.speciesSection.error && (
+          {store.speciesSection.error && (
             <Alert
               variant="danger"
               style={{

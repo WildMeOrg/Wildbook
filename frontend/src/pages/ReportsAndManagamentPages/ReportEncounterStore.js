@@ -17,6 +17,7 @@ export class ReportEncounterStore {
   _success;
   _finished;
   _signInModalShow;
+  _exifDateTime;
 
   constructor() {
     this._imageSectionSubmissionId = null;
@@ -26,8 +27,9 @@ export class ReportEncounterStore {
     this._imageCount = 0;
     this._imagePreview = [];
     this._dateTimeSection = {
-      value: "",
+      value: null,
       error: false,
+      required: true,
     };
     this._speciesSection = {
       value: "",
@@ -56,6 +58,7 @@ export class ReportEncounterStore {
     this._success = false;
     this._finished = false;
     this._signInModalShow = false;
+    this._exifDateTime = []; 
     makeAutoObservable(this);
   }
 
@@ -116,6 +119,10 @@ export class ReportEncounterStore {
     return this._additionalCommentsSection;
   }
 
+  get exifDateTime() {
+    return this._exifDateTime; 
+  }
+
   // Actions
   setImageSectionSubmissionId(value) {
     this._imageSectionSubmissionId = value;
@@ -144,7 +151,20 @@ export class ReportEncounterStore {
       this._imageSectionFileNames = this._imageSectionFileNames.filter(
         (name) => name !== fileName,
       );
+      // delete this._exifDateTime[fileName];
     }
+  }
+
+  setDateTimeSectionValue(value) {
+    this._dateTimeSection.value = value;
+  }
+
+  setDateTimeSectionError(error) {
+    this._dateTimeSection.error = error;
+  }
+
+  setExifDateTime(exifData) {
+    this._exifDateTime.push(exifData); 
   }
 
   setSpeciesSectionValue(value) {
@@ -235,6 +255,11 @@ export class ReportEncounterStore {
       this._imageSectionError = true;
       isValid = false;
 
+    if(!this._dateTimeSection.value && this._dateTimeSection.required) {
+      this._dateTimeSection.error = true;
+      isValid = false;
+    } 
+
       // Uncomment the place section validation if needed
       // if (!this._placeSection.value) {
       //   this._placeSection.error = true;
@@ -251,14 +276,11 @@ export class ReportEncounterStore {
     const readyCaseone =
       this.validateFields() && this._imageSectionFileNames.length > 0;
     const readyCasetwo = this.validateFields() && !this._imageRequired;
-    console.log(readyCaseone, readyCasetwo);
     if (readyCaseone || readyCasetwo) {
-      console.log("Report submitted, calling api", this._speciesSection.value);
-      // Call the API here
       const response = await axios.post("/api/v3/encounters", {
         submissionId: this._imageSectionSubmissionId,
         assetFilenames: this._imageSectionFileNames,
-        dateTime: "2001-04-30T00:00",
+        dateTime: this._dateTimeSection.value,
         taxonomy: this._speciesSection.value,
         locationId: "TG",
         // followUp: this._followUpSection.value,
