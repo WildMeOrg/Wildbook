@@ -290,5 +290,16 @@
     "EMPTY_REQUIRED_WARNING": "This field cannot be empty",
     "FILE_SIZE_EXCEEDED" : "Images exceeding the limit will not be uploaded",
     "ADD_MORE_FILES" : "Add more files",
-    "UPLOAD_FAILED" : "Upload failed"
+    "UPLOAD_FAILED" : "Upload failed",
+    "SUBMISSION_SUCCESSFUL" : "Submission Successful",
+    "SUBMISSION_SUCCESS_ALERT" : "Thank you for submitting your encounter!",
+    "ENCOUNTER" : "Encounter",
+    "SUBMISSION_SUCCESS_LOCATION_ID" : "Location ID:",
+    "SUBMISSION_SUCCESS_SUBMITTED_ON" : "Submitted on:",
+    "CONTACT_MESSAGE" : "For questions or concerns, contact us at ",
+    "VIEW_ENCOUNTER" : "View Encounter",
+    "SUBMIT_NEXT_ENCOUNTER" : "Submit Next Encounter",
+    "INVALID_FILES": "Invalid Files",
+    "INVALID_FILES_MESSAGE": "The following files could not be uploaded. Check the {link} and try uploading again.",
+    "IMAGE_REQUIREMENTS": "image requirements"
 }
