@@ -12,13 +12,13 @@ export const ReportConfirm = () => {
 
   return (
     <div style={{ marginLeft: "-100px", width: "720px" }}>
-      <h2>
+      <h2 className="mt-3">
         <FormattedMessage id="SUBMISSION_SUCCESSFUL" />
       </h2>
       <p className="fs-5 lh-lg m-0">
         <FormattedMessage id="SUBMISSION_SUCCESS_ALERT" />
       </p>
-      {!responseData.invalidFiles.length && (
+      {responseData.invalidFiles.length && (
         <Alert variant="warning" dismissible>
           <p className="fs-5 fw-semibold">
             <FormattedMessage id="INVALID_FILES" />
@@ -64,7 +64,8 @@ export const ReportConfirm = () => {
             <img
               className="img-fluid"
               style={{ width: "150px", height: "150px" }}
-              src={asset.url} // NOTE: Assuming we will get correct image url else use this 'asset.url.replace('localhost', window.location.hostname'
+              // NOTE: Assuming we will get correct image url else use this 'asset.url.replace('localhost', window.location.hostname)'
+              src={asset.url}
               alt={`img${index + 1}`}
             />
             <div
@@ -81,7 +82,7 @@ export const ReportConfirm = () => {
         <FormattedMessage id="CONTACT_MESSAGE" />
         <a href="https://community.wildme.org">community.wildme.org</a>
       </p>
-      <Row style={{ width: "60%" }}>
+      <Row className="mb-5" style={{ width: "60%" }}>
         <Col className="ps-0">
           <MainButton
             borderColor={themeColor.wildMeColors.cyan600}
