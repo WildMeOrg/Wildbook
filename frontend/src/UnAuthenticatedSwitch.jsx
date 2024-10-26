@@ -7,12 +7,15 @@ import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import Unauthorized from "./pages/errorPages/Unauthorized";
 import Citation from "./pages/Citation";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
+import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   const [header, setHeader] = React.useState(true);
   const location = useLocation();
 
-  const redirParam = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`);
+  const redirParam = encodeURIComponent(
+    `${location.pathname}${location.search}${location.hash}`,
+  );
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -44,12 +47,13 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
             element={<Unauthorized setHeader={setHeader} />}
           />
           <Route path="/citation" element={<Citation />} />
-          <Route path="/report" element={<ReportEncounter/>}/>
+          <Route path="/report" element={<ReportEncounter />} />
+          <Route path="/reportConfirm" element={<ReportConfirm />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
           <Route
-            path = "*"
-            element={<Navigate to={`/login?redirect=${redirParam}`}/>}
+            path="*"
+            element={<Navigate to={`/login?redirect=${redirParam}`} />}
           />
         </Routes>
       </div>

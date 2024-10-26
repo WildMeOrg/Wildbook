@@ -236,7 +236,7 @@ export class ReportEncounterStore {
         assetFilenames: this._imageSectionFileNames,
         dateTime: "2001-04-30T00:00",
         taxonomy: this._speciesSection.value,
-        locationId: "Mpala.North",
+        locationId: "TG",
         // followUp: this._followUpSection.value,
         // images: this._imageSectionFileNames,
       });
@@ -255,6 +255,7 @@ export class ReportEncounterStore {
         this._finished = true;
 
         console.log(this._finished);
+        return response.data;
       } else {
         this._finished = true;
         this._success = false;
