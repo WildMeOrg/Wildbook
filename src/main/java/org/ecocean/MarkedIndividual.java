@@ -7,6 +7,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -44,7 +47,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     private static HashMap<Integer, String> NAMES_KEY_CACHE = new HashMap<Integer, String>();
 
     private String alternateid;
-    private String legacyIndividualID; 
+    private String legacyIndividualID;
 
     // additional comments added by researchers
     private String comments = "None";
@@ -1832,7 +1835,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         // process encounters
         for (int i = 0; i < numEncounters; i++) {
             Encounter enc = (Encounter)encounters.get(i);
-
             List<User> allUsers = new ArrayList<User>();
             if (enc.getSubmitters() != null) allUsers.addAll(enc.getSubmitters());
             if (enc.getPhotographers() != null) allUsers.addAll(enc.getPhotographers());
@@ -2593,11 +2595,49 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void opensearchIndexDeep()
     throws IOException {
-        if (this.encounters != null)
-            for (Encounter enc : this.encounters) {
-                enc.opensearchIndex();
-            }
         this.opensearchIndex();
+
+        final String indivId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("MarkedIndividual.opensearchIndexDeep");
+                bgShepherd.beginDBTransaction();
+                try {
+                    MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
+                    if ((indiv == null) || (indiv.getEncounters() == null)) {
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    int total = indiv.getNumEncounters();
+                    int ct = 0;
+                    for (Encounter enc : indiv.getEncounters()) {
+                        ct++;
+                        System.out.println("opensearchIndexDeep() background indexing " +
+                            enc.getId() + " via " + indivId + " [" + ct + "/" + total + "]");
+                        try {
+                            enc.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                enc.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                System.out.println("opensearchIndexDeep() backgrounding MarkedIndividual " +
+                    indivId + " finished.");
+                executor.shutdown();
+            }
+        };
+        System.out.println("opensearchIndexDeep() begin backgrounding " + this.getNumEncounters() +
+            " encs for " + this);
+        executor.execute(rn);
+        System.out.println("opensearchIndexDeep() [foreground] finished for MarkedIndividual " +
+            indivId);
     }
 
     public String toString() {

@@ -1130,6 +1130,7 @@ public class Util {
     }
 
     public static String getISO8601Date(final String date) {
+        if (date == null) return null;
         String iso8601 = date.replace(" ", "T");
 
         if (iso8601.length() == 10) iso8601 += "T00:00:00";
