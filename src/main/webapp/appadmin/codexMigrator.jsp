@@ -1020,6 +1020,102 @@ private static void migratePendingSightings(JspWriter out, Shepherd myShepherd, 
     out.println("</ol>");
 }
 
+/*
+seal_codex=> select collaboration_guid, user_guid, read_approval_state, edit_approval_state from collaboration_user_associations limit 4;
+          collaboration_guid          |              user_guid               | read_approval_state | edit_approval_state 
+--------------------------------------+--------------------------------------+---------------------+---------------------
+ 5b2ab089-fa8e-447d-bcc7-467cfb26a7fe | 15ec5d1b-562a-491c-a0e0-9c1e0f1603c3 | approved            | approved
+ 0071c641-ba33-4b37-b467-2f0d5da9a5b8 | 315a9bca-d9d9-4f9b-bf40-a0210e9aff38 | approved            | not_initiated
+ 5b2ab089-fa8e-447d-bcc7-467cfb26a7fe | 46b609dc-7d0d-41fb-b73b-783ab52aa146 | approved            | approved
+
+ approved    not_initiated
+ revoked     approved
+ pending
+
+
+seal_codex=> select guid, initiator_guid, edit_initiator_guid from collaboration limit 20;
+                 guid                 |            initiator_guid            |         edit_initiator_guid          
+--------------------------------------+--------------------------------------+--------------------------------------
+ ae4f5280-e16e-4951-874b-9a3723d92649 |                                      | 
+ 1ebc6a41-63a2-4bc8-9b59-cd8a182b45d1 |                                      | 
+ fb959ecd-eec5-45ea-88b1-765298107811 |                                      | 
+ 222af3cd-fd97-4e54-8e6d-645370450ac5 |                                      | 
+ 79a2310a-32f3-45f5-946c-8d7111ee2243 |                                      | 
+ 6f343622-f058-4f72-9df0-7e415405a7c7 |                                      | 
+ fb780ee5-01f1-4fe7-83bb-27ae4078f37f | 46b609dc-7d0d-41fb-b73b-783ab52aa146 | 
+ 1673aa79-8b62-43a6-bedf-1c2b55d90c9a | 58003dde-a6bb-47cf-8880-6b34d41633a9 | 
+ 38ebe266-5786-4660-b711-089043039adf | 46b609dc-7d0d-41fb-b73b-783ab52aa146 | 46b609dc-7d0d-41fb-b73b-783ab52aa146
+
+
+ approved
+ initialized
+ edit_pending
+ edit
+ rejected
+
+
+wildbook=> select * from "COLLABORATIONS" ;
+                   ID                    | DATETIMECREATED |    STATE     |      USERNAME1       |         USERNAME2          |    EDITINITIATOR     
+-----------------------------------------+-----------------+--------------+----------------------+----------------------------+----------------------
+ hpastrp:laura jim                       |   1614126385095 | initialized  | hpastrp              | laura jim                  | hpastrp
+ colinwkingen:public                     |   1614880080726 | approved     | colinwkingen         | public                     | colinwkingen
+ E.Germanov:unud                         |   1615048167822 | initialized  | E.Germanov           | unud                       | E.Germanov
+ E.Germanov:Indo Ocean Project           |   1648799301591 | edit         | Indo Ocean Project   | E.Germanov                 | E.Germanov
+
+
+*/
+
+private static void migrateCollaborations(JspWriter out, Shepherd myShepherd, Connection conn, HttpServletRequest request) throws SQLException, IOException {
+    out.println("<h2>Collaborations</h2><ol>");
+    Statement st = conn.createStatement();
+    Statement st2 = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT * FROM collaboration ORDER BY guid");
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        String guid = res.getString("guid");
+        String initiatorGuid = res.getString("initiator_guid");
+        User initUser = myShepherd.getUserByUUID(initiatorGuid);
+        String editInitiatorGuid = res.getString("edit_initiator_guid");
+        User editUser = myShepherd.getUserByUUID(editInitiatorGuid);
+        out.println("<li>[" + guid + "] init=" + initUser + "; edit=" + editUser + "<ul>");
+        String state = "initialized";
+        ResultSet res2 = st2.executeQuery("SELECT * FROM collaboration_user_associations WHERE collaboration_guid='" + guid + "' ORDER BY updated");
+        String[] reads = new String[2];
+        String[] edits = new String[2];
+        User[] users = new User[2];
+        int offset = 0;
+        while (res2.next()) {
+            String userId = res2.getString("user_guid");
+            User user = myShepherd.getUserByUUID(userId);
+            if (user == null) {
+                out.println("<li><b>UNKNOWN USER ID " + userId + "</b></li>");
+                continue;
+            }
+            users[offset] = user;
+            String readState = res2.getString("read_approval_state");
+            reads[offset] = readState;
+            String editState = res2.getString("edit_approval_state");
+            edits[offset] = editState;
+            out.println("<li><b>" + user + "</b>:<br />read=" + readState + "; edit=" + editState + "</li>");
+            offset++;
+        }
+        if (reads[0].equals("approved") && reads[1].equals("approved")) state = "approved";
+        if (edits[0].equals("approved") && edits[1].equals("approved")) state = "edit";
+        if (reads[0].equals("revoked") || reads[1].equals("revoked")) state = "rejected";
+        out.println("</ul>");
+
+        Timestamp ts = res.getTimestamp("created");
+        Collaboration collab = Collaboration.create(users[0].getUsername(), users[1].getUsername());
+        if (ts != null) collab.setDateTimeCreated(ts.getTime());
+        collab.setState(state);
+        if (editUser != null) collab.setEditInitiator(editUser.getUsername());
+        myShepherd.storeNewCollaboration(collab);
+        out.println("<span style=\"color: blue\">STATE: " + state + " (" + ts + ")</span> => " + collab + "</li>");
+    }
+    out.println("</ol>");
+}
 
 private static void fixAutogenNames(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
     Object ss = siteSetting("autogenerated_names", conn);
@@ -1094,6 +1190,8 @@ if (locJson != null) Util.writeToFile(locJson.toString(4), "/usr/local/tomcat/we
 /*
 migrateUsers(out, myShepherd, conn);
 
+migrateCollaborations(out, myShepherd, conn, request);
+
 migrateMediaAssets(out, myShepherd, conn, request, new File(dataDir, assetGroupDir));
 
 migrateAnnotations(out, myShepherd, conn);
@@ -1111,9 +1209,10 @@ migrateRelationships(out, myShepherd, conn);
 fixAutogenNames(out, myShepherd, conn);
 
 migrateSocialGroups(out, myShepherd, conn);
-*/
 
-migratePendingSightings(out, myShepherd, conn, request);
+///migratePendingSightings(out, myShepherd, conn, request);
+
+*/
 
 
 myShepherd.commitDBTransaction();
