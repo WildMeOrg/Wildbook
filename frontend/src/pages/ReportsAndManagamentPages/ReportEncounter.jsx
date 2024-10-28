@@ -29,7 +29,10 @@ export const ReportEncounter = observer(() => {
       return;
     }
     console.log("Fields validated successfully. Submitting report.");
-    await store.submitReport();
+    const responseData = await store.submitReport();
+    if (store.finished && store.success) {
+      Navigate("/reportConfirm", { state: { responseData } });
+    }
   };
 
   useEffect(() => {
