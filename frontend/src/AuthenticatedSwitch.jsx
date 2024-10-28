@@ -11,11 +11,13 @@ import AlertBanner from "./components/AlertBanner";
 import EncounterSearch from "./pages/EncounterSearch";
 import Citation from "./pages/Citation";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
+import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const { data } = useGetMe();
   const username = data?.username;
-  const avatar = data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
+  const avatar =
+    data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
   const [header, setHeader] = React.useState(true);
 
   return (
@@ -51,7 +53,8 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/profile" element={<Profile />} />
           <Route path="/citation" element={<Citation />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/report" element={<ReportEncounter />}/>
+          <Route path="/report" element={<ReportEncounter />} />
+          <Route path="/reportConfirm" element={<ReportConfirm />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
