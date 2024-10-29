@@ -1521,14 +1521,11 @@ public class IBEISIA {
                     myShepherd.storeNewTask(subParentTask);
                     myShepherd.updateDBTransaction();
                     
-                    Task task = IA.intakeAnnotations(myShepherd2, annots, subParentTask, false);
-                    // Here is a place we check downstream. IA.intakeAnnotations() will check the anns vs the identification classes in IA.properties,
-                    // and return null if nobody was valid.
-                    if (task != null) {
-                        rtn.put("identificationTaskId", task.getId());
-                        if (subParentTask != null) subParentTask.addChild(task);
-                        myShepherd2.storeNewTask(task);
-                    }
+                    Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask, false);
+  	              	myShepherd.storeNewTask(childTask);
+  	              	myShepherd.updateDBTransaction();
+  	              	subParentTask.addChild(childTask);
+  	              	myShepherd.updateDBTransaction();
             		
             	}
 
@@ -1539,7 +1536,7 @@ public class IBEISIA {
                     "[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
                 myShepherd2.rollbackDBTransaction();
             }
-            myShepherd2.closeDBTransaction();
+            myShepherd2.rollbackAndClose();
         }
         return rtn;
     }
