@@ -1480,20 +1480,59 @@ public class IBEISIA {
                 }
             }
             if (needIdentifying.size() > 0) {
-                Task task = IA.intakeAnnotations(myShepherd2, needIdentifying, parentTask, false);
-                // Here is a place we check downstream. IA.intakeAnnotations() will check the anns vs the identification classes in IA.properties,
-                // and return null if nobody was valid.
-                if (task != null) {
-                    rtn.put("identificationTaskId", task.getId());
-                    if (parentTask != null) parentTask.addChild(task);
-                    myShepherd2.storeNewTask(task);
-                }
-            } else {
+            	
+            	//split the results into encounters
+            	HashMap<String,ArrayList<Annotation>> needIdentifyingMap = new HashMap<String,ArrayList<Annotation>>();
+            	for(Annotation annot:needIdentifying) {
+            		Encounter enc=annot.findEncounter(myShepherd2);
+            		if(enc!=null) {
+            			if(needIdentifyingMap.containsKey(enc.getCatalogNumber())) {
+            				ArrayList<Annotation> annots = needIdentifyingMap.get(enc.getCatalogNumber());
+            				annots.add(annot);
+            				needIdentifyingMap.put(enc.getCatalogNumber(), annots);
+            			}
+            			else {
+            				ArrayList<Annotation> annots = new ArrayList<Annotation>();
+            				annots.add(annot);
+            				needIdentifyingMap.put(enc.getCatalogNumber(), annots);
+            			}
+            		}
+            	}
+            	
+            	
+            	//send to ID by Encounter
+            	for(String encUUID:needIdentifyingMap.keySet()) {
+            		
+            		ArrayList<Annotation> annots = needIdentifyingMap.get(encUUID);
+
+                    JSONObject j = new JSONObject();
+               		JSONObject taskParameters = j.optJSONObject("taskParameters");
+               		if (taskParameters == null) taskParameters = new JSONObject();
+               		JSONObject tp = new JSONObject();
+                    JSONObject mf = new JSONObject();
+                    taskParameters.put("matchingSetFilter", mf);
+            		
+                	Task subParentTask = new Task();  
+                    subParentTask.setParameters(taskParameters);
+                    myShepherd2.storeNewTask(subParentTask);
+                    myShepherd2.updateDBTransaction();
+                    
+                    Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask, false);
+  	              	myShepherd2.storeNewTask(childTask);
+  	              	myShepherd2.updateDBTransaction();
+  	              	subParentTask.addChild(childTask);
+  	              	myShepherd2.updateDBTransaction();
+            		
+            	}
+
+
+            } 
+            else {
                 System.out.println(
                     "[INFO]: No annotations were suitable for identification. Check resulting identification class(es).");
                 myShepherd2.rollbackDBTransaction();
             }
-            myShepherd2.closeDBTransaction();
+            myShepherd2.rollbackAndClose();
         }
         return rtn;
     }
