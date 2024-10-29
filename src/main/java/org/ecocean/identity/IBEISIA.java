@@ -1518,14 +1518,14 @@ public class IBEISIA {
             		
                 	Task subParentTask = new Task();  
                     subParentTask.setParameters(taskParameters);
-                    myShepherd.storeNewTask(subParentTask);
-                    myShepherd.updateDBTransaction();
+                    myShepherd2.storeNewTask(subParentTask);
+                    myShepherd2.updateDBTransaction();
                     
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask, false);
-  	              	myShepherd.storeNewTask(childTask);
-  	              	myShepherd.updateDBTransaction();
+  	              	myShepherd2.storeNewTask(childTask);
+  	              	myShepherd2.updateDBTransaction();
   	              	subParentTask.addChild(childTask);
-  	              	myShepherd.updateDBTransaction();
+  	              	myShepherd2.updateDBTransaction();
             		
             	}
 
