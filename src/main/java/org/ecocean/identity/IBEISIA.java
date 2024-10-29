@@ -2068,13 +2068,9 @@ public class IBEISIA {
             		}
             	}
             	
-            	//check number of encounters
-            	System.out.println("ZZZZ Sending "+needIdentifyingMap.keySet().size() +" encounters to ID.");
             	
             	//send to ID by Encounter
             	for(String encUUID:needIdentifyingMap.keySet()) {
-            		
-            		System.out.println("ZZZZ Sending enc "+encUUID+" to ID.");
             		
             		ArrayList<Annotation> annots = needIdentifyingMap.get(encUUID);
 
