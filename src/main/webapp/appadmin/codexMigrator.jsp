@@ -4,6 +4,7 @@ org.ecocean.tag.MetalTag,
 org.ecocean.social.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.social.Relationship,
+org.ecocean.genetics.TissueSample,
 org.joda.time.DateTime,
 java.io.IOException,
 javax.servlet.jsp.JspWriter,
@@ -448,6 +449,8 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
     ResultSet res = st.executeQuery("SELECT encounter.*, complex_date_time.datetime, complex_date_time.timezone, complex_date_time.specificity FROM encounter JOIN complex_date_time ON (time_guid = complex_date_time.guid) ORDER BY guid");
     int ct = 0;
 
+    Map<String, JSONObject> encCfData = new HashMap<String, JSONObject>();
+
     while (res.next()) {
         ct++;
         if (ct > batchMax()) break;
@@ -503,25 +506,44 @@ System.out.println("TIME: ts=" + ts);
             // custom fields, oof
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
+            encCfData.put(enc.getId(), cfData);
             Double age = cfDouble(cfData, "e44351df-44f7-4f4f-9c4e-204be927114a");
-            String behavior = cfArrayFlattenString(cfData, "37b9877c-0f66-4613-ab6c-bc622f3c8c6b");
             Double direction = cfDouble(cfData, "3c896984-11b6-4b18-bde6-6e5e3c6241c6");
             Double distance = cfDouble(cfData, "f322597e-dbc3-48f6-9abe-e405b7fe1d6c");
-            String femaleRepro = cfString(cfData, "c26d13c2-359e-48a7-977c-5b7b5db6c81f");
-            String maleRepro = cfString(cfData, "0b1117cd-27f3-46e2-8884-d789bc9f4967");
+
+            String behavior = cfArrayFlattenString(cfData, "37b9877c-0f66-4613-ab6c-bc622f3c8c6b");
             String lifeStage = cfString(cfData, "48030bb6-2e6a-4e70-a3fc-07dce63e6c78");
             String livingStatus = cfString(cfData, "c6a10ee5-4921-4701-a996-4f104b160f03");
             String sampleId = cfString(cfData, "fe330c83-562b-4bac-8a98-3c957fd4c3d2");
-            ////
-            //String occRemarks = cfString(cfData, "0d9a3764-f872-4320-ba03-bde268ce1513");
-            //String researcherComments = cfString(cfData, "b230a670-ee2e-44c4-89a1-6b1dffe2cda3");
-            //String unidentIndiv = cfString(cfData, "0f48fdc5-6a5e-4a01-aeff-2f1bebf4864d");
-            enc.setLifeStage(lifeStage);
-            enc.setLivingStatus(livingStatus);
-            //enc.setOccurrenceRemarks(occRemarks);
-            //enc.addComments(researcherComments);
-            //if (unidentIndiv != null) enc.setDynamicProperty("unidentified_individual", unidentIndiv);
+            //String femaleRepro = cfString(cfData, "c26d13c2-359e-48a7-977c-5b7b5db6c81f");
+            //String maleRepro = cfString(cfData, "0b1117cd-27f3-46e2-8884-d789bc9f4967");
 
+            if (!stringEmpty(sampleId)) {
+                TissueSample sample = new TissueSample(enc.getId(), sampleId);
+                enc.addTissueSample(sample);
+Util.mark("on " + enc.getId() + ": tissue sample " + sample);
+            }
+
+            if (!stringEmpty(behavior)) enc.setBehavior(behavior);
+            if (!stringEmpty(lifeStage)) enc.setLifeStage(lifeStage);
+            if (!stringEmpty(livingStatus)) enc.setLivingStatus(livingStatus);
+
+            if (age != null) {
+                Measurement meas = new Measurement(enc.getId(), "Age", age, "years", null);
+                enc.setMeasurement(meas, myShepherd);
+Util.mark("on " + enc.getId() + ": measurement " + meas);
+            }
+            if (direction != null) {
+                Measurement meas = new Measurement(enc.getId(), "Direction to group", direction, "degrees", null);
+                enc.setMeasurement(meas, myShepherd);
+Util.mark("on " + enc.getId() + ": measurement " + meas);
+            }
+            if (distance != null) {
+                Measurement meas = new Measurement(enc.getId(), "Distance to group", distance, "meters", null);
+                enc.setMeasurement(meas, myShepherd);
+Util.mark("on " + enc.getId() + ": measurement " + meas);
+            }
+ 
             myShepherd.storeNewEncounter(enc, guid);
 
             String msg = "created encounter [" + ct + "] " + enc;
@@ -546,6 +568,25 @@ System.out.println("TIME: ts=" + ts);
         }
         ct++;
         enc.addAnnotation(ann);
+        MediaAsset ma = ann.getMediaAsset();
+
+        String femaleRepro = null;
+        String maleRepro = null;
+        if (encCfData.get(encGuid) != null) {
+            femaleRepro = cfString(encCfData.get(encGuid), "c26d13c2-359e-48a7-977c-5b7b5db6c81f");
+            maleRepro = cfString(encCfData.get(encGuid), "0b1117cd-27f3-46e2-8884-d789bc9f4967");
+Util.mark("on " + enc.getId() + " ===> " + femaleRepro + ", " + maleRepro);
+        }
+        if (!stringEmpty(femaleRepro)) {
+            LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword("Female reproductive status", femaleRepro, false);
+            ma.addKeyword(kw);
+Util.mark("on " + enc.getId() + ": " + kw + " on: " + ma);
+        }
+        if (!stringEmpty(maleRepro)) {
+            LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword("Male reproductive status", maleRepro, false);
+            ma.addKeyword(kw);
+Util.mark("on " + enc.getId() + ": " + kw + " on: " + ma);
+        }
     }
     out.println("<p>joined " + ct + " enc/ann pairs</p>");
 }
