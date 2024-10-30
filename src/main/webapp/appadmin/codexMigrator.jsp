@@ -136,6 +136,41 @@ private static Integer cfInteger(JSONObject cfData, String key) {
     return null;
 }
 
+private static Double cfDouble(JSONObject cfData, String key) {
+    if (cfData == null) return null;
+    if (!cfData.has(key)) return null;
+    if (cfData.isNull(key)) return null;
+    try {
+        return cfData.getDouble(key);
+    } catch (Exception ex) {}
+    return null;
+}
+
+private static String cfArrayFlattenString(JSONObject cfData, String key) {
+    if (cfData == null) return null;
+    if (!cfData.has(key)) return null;
+    if (cfData.isNull(key)) return null;
+    JSONArray arr = null;
+    try {
+        arr = cfData.getJSONArray(key);
+    } catch (Exception ex) {}
+    // sometimes its just stored as a string (not array) SIGH
+    if (arr == null) {
+        try {
+            String one = cfData.getString(key);
+            if (stringEmpty(one)) return null;
+            return one;
+        } catch (Exception ex) {}
+    }
+    if ((arr == null) || (arr.length() < 1)) return null;
+    List<String> all = new ArrayList<String>();
+    for (int i = 0 ; i < arr.length() ; i++) {
+        String val = arr.optString(i, null);
+        if (val != null) all.add(val);
+    }
+    return String.join(", ", all);
+}
+
 private static Map<String,String> relationshipMeta(Connection conn) throws SQLException, IOException {
     Object ss = siteSetting("relationship_type_roles", conn);
     Map<String,String> rtn = new HashMap<String,String>();
@@ -468,16 +503,24 @@ System.out.println("TIME: ts=" + ts);
             // custom fields, oof
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
-            String lifeStage = cfString(cfData, "344792fc-7910-45cd-867b-cb9c927677e1");
-            String livingStatus = cfString(cfData, "b9eb55f4-ebc6-47b7-9991-9339084c8639");
-            String occRemarks = cfString(cfData, "0d9a3764-f872-4320-ba03-bde268ce1513");
-            String researcherComments = cfString(cfData, "b230a670-ee2e-44c4-89a1-6b1dffe2cda3");
-            String unidentIndiv = cfString(cfData, "0f48fdc5-6a5e-4a01-aeff-2f1bebf4864d");
+            Double age = cfDouble(cfData, "e44351df-44f7-4f4f-9c4e-204be927114a");
+            String behavior = cfArrayFlattenString(cfData, "37b9877c-0f66-4613-ab6c-bc622f3c8c6b");
+            Double direction = cfDouble(cfData, "3c896984-11b6-4b18-bde6-6e5e3c6241c6");
+            Double distance = cfDouble(cfData, "f322597e-dbc3-48f6-9abe-e405b7fe1d6c");
+            String femaleRepro = cfString(cfData, "c26d13c2-359e-48a7-977c-5b7b5db6c81f");
+            String maleRepro = cfString(cfData, "0b1117cd-27f3-46e2-8884-d789bc9f4967");
+            String lifeStage = cfString(cfData, "48030bb6-2e6a-4e70-a3fc-07dce63e6c78");
+            String livingStatus = cfString(cfData, "c6a10ee5-4921-4701-a996-4f104b160f03");
+            String sampleId = cfString(cfData, "fe330c83-562b-4bac-8a98-3c957fd4c3d2");
+            ////
+            //String occRemarks = cfString(cfData, "0d9a3764-f872-4320-ba03-bde268ce1513");
+            //String researcherComments = cfString(cfData, "b230a670-ee2e-44c4-89a1-6b1dffe2cda3");
+            //String unidentIndiv = cfString(cfData, "0f48fdc5-6a5e-4a01-aeff-2f1bebf4864d");
             enc.setLifeStage(lifeStage);
             enc.setLivingStatus(livingStatus);
-            enc.setOccurrenceRemarks(occRemarks);
-            enc.addComments(researcherComments);
-            if (unidentIndiv != null) enc.setDynamicProperty("unidentified_individual", unidentIndiv);
+            //enc.setOccurrenceRemarks(occRemarks);
+            //enc.addComments(researcherComments);
+            //if (unidentIndiv != null) enc.setDynamicProperty("unidentified_individual", unidentIndiv);
 
             myShepherd.storeNewEncounter(enc, guid);
 
