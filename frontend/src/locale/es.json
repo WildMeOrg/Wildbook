@@ -251,7 +251,7 @@
     "LOADING": "Cargando",
     "REPORT_PAGE_TITLE": "Página para informar de un encuentro",
     "REPORT_PAGE_DESCRIPTION": "Háblenos del animal que vio y sea lo más específico posible. Al enviar datos e imágenes, usted autoriza el uso ilimitado de estos materiales únicamente con fines de investigación y conservación.",
-    "SIGNIN_REMINDER_BANNER": "No has iniciado sesión. Si quieres que este encuentro se asocie con tu cuenta, asegúrate de",
+    "SIGNIN_REMINDER_BANNER": "Para asociar el encuentro con tu cuenta, por favor inicia sesión. Si deseas continuar de forma anónima, completa el captcha.",
     "REQUIRED_FIELDS_KEY": "* Campos obligatorios",
     "PHOTOS_SECTION": "Fotos",
     "DATETIME_SECTION": "Fecha y hora",
@@ -289,5 +289,16 @@
     "EMPTY_REQUIRED_WARNING": "Este campo no puede estar vacío",
     "FILE_SIZE_EXCEEDED": "Las imágenes que superen el límite no se subirán",
     "ADD_MORE_FILES": "Añadir más archivos",
-    "UPLOAD_FAILED" : "Error al subir el archivo"
+    "UPLOAD_FAILED" : "Error al subir el archivo",
+    "SUBMISSION_SUCCESSFUL": "Envío Exitoso",
+    "SUBMISSION_SUCCESS_ALERT": "¡Gracias por enviar tu encuentro!",
+    "ENCOUNTER": "Encuentro",
+    "SUBMISSION_SUCCESS_LOCATION_ID": "ID de Ubicación:",
+    "SUBMISSION_SUCCESS_SUBMITTED_ON": "Enviado el:",
+    "CONTACT_MESSAGE": "Para preguntas o inquietudes, contáctanos en ",
+    "VIEW_ENCOUNTER": "Ver Encuentro",
+    "SUBMIT_NEXT_ENCOUNTER": "Enviar el Siguiente Encuentro",
+    "INVALID_FILES": "Archivos Inválidos",
+    "INVALID_FILES_MESSAGE": "Los siguientes archivos no se pudieron cargar. Consulta los {link} y vuelve a intentar la carga.",
+    "IMAGE_REQUIREMENTS": "requisitos de la imagen"
 }

@@ -251,7 +251,7 @@
     "LOADING" : "Caricamento",
     "REPORT_PAGE_TITLE": "Pagina di segnalazione di un incontro",
     "REPORT_PAGE_DESCRIPTION": "Raccontaci dell'animale che hai visto e sii il più specifico possibile. Inviando dati e immagini, si concede l'uso illimitato di questi materiali solo per scopi di ricerca e conservazione.",
-    "SIGNIN_REMINDER_BANNER": "Non hai effettuato l'accesso. Se desideri che questo incontro sia associato al tuo account, assicurati di",
+    "SIGNIN_REMINDER_BANNER": "Per associare l'incontro al tuo account, accedi. Se vuoi continuare in modalità anonima, completa il captcha.",
     "REQUIRED_FIELDS_KEY": "* Campi obbligatori",
     "PHOTOS_SECTION": "Foto",
     "DATETIME_SECTION": "Data e ora",
@@ -289,6 +289,17 @@
     "EMPTY_REQUIRED_WARNING": "Questo campo non può essere vuoto",
     "FILE_SIZE_EXCEEDED": "Le immagini che superano il limite non saranno caricate",
     "ADD_MORE_FILES" : "Aggiungi altri file",
-    "UPLOAD_FAILED" : "Caricamento fallito"
+    "UPLOAD_FAILED" : "Caricamento fallito",
+    "SUBMISSION_SUCCESSFUL": "Invio Riuscito",
+    "SUBMISSION_SUCCESS_ALERT": "Grazie per aver inviato il tuo incontro!",
+    "ENCOUNTER": "Incontro",
+    "SUBMISSION_SUCCESS_LOCATION_ID": "ID della Posizione:",
+    "SUBMISSION_SUCCESS_SUBMITTED_ON": "Inviato il:",
+    "CONTACT_MESSAGE": "Per domande o problemi, contattaci a ",
+    "VIEW_ENCOUNTER": "Visualizza Incontro",
+    "SUBMIT_NEXT_ENCOUNTER": "Invia il Prossimo Incontro",
+    "INVALID_FILES": "File Non Validi",
+    "INVALID_FILES_MESSAGE": "I seguenti file non sono stati caricati. Controlla i {link} e riprova a caricarli.",
+    "IMAGE_REQUIREMENTS": "requisiti delle immagini"
     
 }

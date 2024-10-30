@@ -252,7 +252,7 @@
     "LOADING": "Loading",
     "REPORT_PAGE_TITLE": "Report an Encounter Page",
     "REPORT_PAGE_DESCRIPTION": "Tell us about the animal you saw and be as specific as you can. By submitting data and images, you are granting unlimited usage of these materials for research and conservation purposes only.",
-    "SIGNIN_REMINDER_BANNER": "You are not signed in. If you want this encounter associated with your account, be sure to",
+    "SIGNIN_REMINDER_BANNER": "To associate encounter with your account, please sign in. If you want to continue anonymously, complete the captcha.",
     "REQUIRED_FIELDS_KEY": "* Required fields",
     "PHOTOS_SECTION": "Photos",
     "DATETIME_SECTION": "Date and Time",
