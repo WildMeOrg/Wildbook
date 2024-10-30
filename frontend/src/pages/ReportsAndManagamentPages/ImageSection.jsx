@@ -300,47 +300,50 @@ export const FileUploader = observer(({ store }) => {
             <a
               href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
               onClick={() => {
-                localStorage.setItem(
-                  "species",
-                  store.speciesSection.value,
-                );
-                localStorage.setItem(
-                  "followUpSection.submitter.name",
-                  store.followUpSection.submitter.name,
-                );
-                localStorage.setItem(
-                  "followUpSection.submitter.email",
-                  store.followUpSection.submitter.email,
-                );
-                localStorage.setItem(
-                  "followUpSection.photographer.name",
-                  store.followUpSection.photographer.name,
-                );
-                localStorage.setItem(
-                  "followUpSection.photographer.email",
-                  store.followUpSection.photographer.email,
-                );
-                localStorage.setItem(
-                  "followUpSection.additionalEmails",
-                  store.followUpSection.additionalEmails,
-                );
-                localStorage.setItem(
-                  "additionalCommentsSection",
-                  store.additionalCommentsSection.value,
-                );
-                localStorage.setItem(
-                  "uploadedFiles",
-                  JSON.stringify(store.imagePreview),
-                );
-                // localStorage.setItem("placeSection", store.placeSection.value);
-                localStorage.setItem(
-                  "submissionId",
-                  store.imageSectionSubmissionId,
-                );
-                localStorage.setItem(
-                  "fileNames",
-                  JSON.stringify(store.imageSectionFileNames),
-                );
+                localStorage.setItem("species", store.speciesSection.value);
+                  localStorage.setItem(
+                    "followUpSection.submitter.name",
+                    store.followUpSection.submitter.name,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.submitter.email",
+                    store.followUpSection.submitter.email,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.photographer.name",
+                    store.followUpSection.photographer.name,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.photographer.email",
+                    store.followUpSection.photographer.email,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.additionalEmails",
+                    store.followUpSection.additionalEmails,
+                  );
+                  localStorage.setItem(
+                    "additionalCommentsSection",
+                    store.additionalCommentsSection.value,
+                  );
+                  localStorage.setItem(
+                    "uploadedFiles",
+                    JSON.stringify(store.imagePreview),
+                  );
+                  // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
+                  // localStorage.setItem("placeSection", store.placeSection.value);
+                  localStorage.setItem(
+                    "submissionId",
+                    store.imageSectionSubmissionId,
+                  );
+                  localStorage.setItem(
+                    "fileNames",
+                    JSON.stringify(store.imageSectionFileNames),
+                  );
+                  localStorage.setItem(
+                    "datetime",
+                    store.dateTimeSection.value?.toISOString(),
+                  );
+                  localStorage.setItem("exifDateTime", store.exifDateTime);
               }}
             >
               <FormattedMessage id="LOGIN_SIGN_IN" />
