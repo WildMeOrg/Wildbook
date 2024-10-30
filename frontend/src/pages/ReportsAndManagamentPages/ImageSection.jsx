@@ -253,7 +253,7 @@ export const FileUploader = observer(({ store }) => {
             ),
           );
           console.error(`File upload timed out: ${file.name}`);
-        }, 30000);
+        }, 300000);
 
         flow.on("fileSuccess", (uploadedFile) => {
           if (uploadedFile.name === file.name) {
