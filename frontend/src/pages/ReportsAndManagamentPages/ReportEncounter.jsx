@@ -5,7 +5,7 @@ import MainButton from "../../components/MainButton";
 import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
 import ImageSection from "./ImageSection";
-import { DateTimeSection } from "./DateTimeSection";
+import DateTimeSection from "./DateTimeSection";
 import PlaceSection from "../../components/PlaceSection";
 import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
 import { FollowUpSection } from "../../components/FollowUpSection";
@@ -14,7 +14,6 @@ import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
-import { Button } from "react-bootstrap";
 import "./recaptcha.css";
 
 export const ReportEncounter = observer(() => {
@@ -65,9 +64,10 @@ export const ReportEncounter = observer(() => {
       JSON.parse(localStorage.getItem("fileNames")).forEach((fileName) => {
         store.setImageSectionFileNames(fileName, "add");
       });
-    localStorage.getItem("datetime") && store.setDateTimeSectionValue(new Date(localStorage.getItem("datetime")));
-    localStorage.getItem("exifDateTime") && store.setExifDateTime(localStorage.getItem("exifDateTime"));
-
+    localStorage.getItem("datetime") &&
+      store.setDateTimeSectionValue(new Date(localStorage.getItem("datetime")));
+    localStorage.getItem("exifDateTime") &&
+      store.setExifDateTime(localStorage.getItem("exifDateTime"));
 
     localStorage.removeItem("species");
     localStorage.removeItem("followUpSection.submitter.name");
@@ -332,26 +332,29 @@ export const ReportEncounter = observer(() => {
         </p>
         {!isLoggedIn ? (
           <Alert variant="warning">
-            <div className="d-flex flex-row justify-content-center align-items-center">
+            <div className="d-flex flex-row ">
               <i
                 className="bi bi-info-circle-fill"
                 style={{
                   marginRight: "8px",
-                  color: themeColor.statusColors.red600,
+                  color: themeColor.statusColors.yellow800,
                 }}
               ></i>
-              <FormattedMessage id="SIGNIN_REMINDER_BANNER" /> {"!"}
+              <FormattedMessage id="SIGNIN_REMINDER_BANNER" />
             </div>
             <Row
-              className="d-flex flex-row justify-content-center align-items-center"
+              className="d-flex flex-row"
               style={{
-                padding: "10px",
+                padding: "10px 10px 0 10px",
                 marginTop: "10px",
               }}
             >
-              <Button
-                style={{ width: "100px", height: "40px" }}
-                href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
+              <MainButton
+                style={{ width: "100px", height: "40px", marginBottom: 0 }}
+                link={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
+                noArrow={true}
+                color="white"
+                backgroundColor={themeColor.wildMeColors.cyan600}
                 onClick={() => {
                   localStorage.setItem("species", store.speciesSection.value);
                   localStorage.setItem(
@@ -394,13 +397,13 @@ export const ReportEncounter = observer(() => {
                   );
                   localStorage.setItem(
                     "datetime",
-                    store.dateTimeSection.value.toISOString(),
+                    store.dateTimeSection.value?.toISOString(),
                   );
                   localStorage.setItem("exifDateTime", store.exifDateTime);
                 }}
               >
                 <FormattedMessage id="LOGIN_SIGN_IN" />
-              </Button>
+              </MainButton>
               <div
                 id="procaptcha-container"
                 ref={captchaRef}

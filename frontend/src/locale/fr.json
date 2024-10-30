@@ -251,7 +251,7 @@
     "LOADING" : "Chargement",
     "REPORT_PAGE_TITLE": "Page Signaler une rencontre",
     "REPORT_PAGE_DESCRIPTION": "Parlez-nous de l'animal que vous avez vu et soyez aussi précis que possible. En soumettant des données et des images, vous autorisez l'utilisation illimitée de ce matériel à des fins de recherche et de conservation uniquement.",
-    "SIGNIN_REMINDER_BANNER": "Vous n'êtes pas connecté. Si vous souhaitez que cette rencontre soit associée à votre compte, assurez-vous de",
+    "SIGNIN_REMINDER_BANNER": "Pour associer la rencontre avec votre compte, veuillez vous connecter. Si vous souhaitez continuer anonymement, veuillez compléter le captcha.",
     "REQUIRED_FIELDS_KEY": "* Champs obligatoires",
     "PHOTOS_SECTION": "Photos",
     "DATETIME_SECTION": "Date et heure",
@@ -289,5 +289,16 @@
     "EMPTY_REQUIRED_WARNING": "Ce champ ne peut pas être vide",
     "FILE_SIZE_EXCEEDED": "Les images dépassant la limite ne seront pas téléchargées",
     "ADD_MORE_FILES": "Ajouter plus de fichiers",
-    "UPLOAD_FAILED" : "Échec du téléchargement"
+    "UPLOAD_FAILED" : "Échec du téléchargement",
+    "SUBMISSION_SUCCESSFUL": "Soumission Réussie",
+    "SUBMISSION_SUCCESS_ALERT": "Merci d'avoir soumis votre rencontre !",
+    "ENCOUNTER": "Rencontre",
+    "SUBMISSION_SUCCESS_LOCATION_ID": "ID de Lieu :",
+    "SUBMISSION_SUCCESS_SUBMITTED_ON": "Soumis le :",
+    "CONTACT_MESSAGE": "Pour toute question ou préoccupation, contactez-nous à ",
+    "VIEW_ENCOUNTER": "Voir la Rencontre",
+    "SUBMIT_NEXT_ENCOUNTER": "Soumettre la Prochaine Rencontre",
+    "INVALID_FILES": "Fichiers Invalides",
+    "INVALID_FILES_MESSAGE": "Les fichiers suivants n'ont pas pu être téléchargés. Consultez les {link} et réessayez.",
+    "IMAGE_REQUIREMENTS": "exigences d'image"
 }
