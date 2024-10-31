@@ -665,7 +665,7 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
             //occCfData.put(occ.getId(), cfData);
             String behavior = cfArrayFlattenString(cfData, "665cc563-4ec4-4f1e-afcb-5617e1768312");
-            if (!stringEmpty(behavior) occ.setGroupBehavior(behavior);
+            if (!stringEmpty(behavior)) occ.setGroupBehavior(behavior);
 /*
             Map<String,String> cfMap = new HashMap<String,String>();
             cfMap.put("Seen in Artificial Nest", cfString(cfData, "34a8f03e-d282-4fef-b1ed-9eeebaaa887e"));
@@ -809,6 +809,7 @@ private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd,
                 }
             }
 
+/*
             // same note as occurrences on needing encs attached first :(
             res2 = st2.executeQuery("SELECT guid FROM encounter WHERE individual_guid='" + guid + "' ORDER BY guid");
             while (res2.next()) {
@@ -818,65 +819,20 @@ private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd,
                     enc.setIndividual(indiv);
                 }
             }
+*/
 
             // custom fields, oof
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
 
-            String dateOfBirth = cfString(cfData, "87d08929-2133-4053-911a-8740f7fa8dd5");
-            if (!stringEmpty(dateOfBirth)) try {
-                indiv.setTimeOfBirth(Util.getVersionFromModified(dateOfBirth));
-            } catch (Exception ex) {}
-            String dateOfDeath = cfString(cfData, "ed537aa9-5d68-45e5-9236-f701d95a8bdd");
-            if (!stringEmpty(dateOfDeath)) try {
-                indiv.setTimeOfDeath(Util.getVersionFromModified(dateOfDeath));
-            } catch (Exception ex) {}
-            String notes = cfString(cfData, "8ac7286d-3290-41d3-8497-17b3f7aa5184");
+            String notes = cfString(cfData, "e1986d15-647b-4526-9b96-89b2c4d80ab1");
             if (!stringEmpty(notes)) indiv.addComments(notes);
-
-            // these require more complex stuff
-            String withPup = cfString(cfData, "6428357e-8965-45f6-8f53-d17df08c4316");
-            String lifeStatus = cfString(cfData, "854a9755-1909-464b-b024-7608045309a7");
-            String flipperTag = cfString(cfData, "7bb54bb8-f148-47b5-91b3-286b8851e461");
-            String entanglement = cfString(cfData, "e9ecaaac-54c9-4c94-bf2e-0989f467c1d1");
-
-            if (!stringEmpty(withPup)) {
-                indiv.addComments("<p><b>With Pup:</b> " + withPup + "</p>");
-                for (Encounter enc : indiv.getEncounters()) {
-System.out.println(">>>>> ??? " + withPup + " on " + enc);
-                    enc.setDynamicProperty("with_pup", withPup);
-                }
-            }
-            if (!stringEmpty(flipperTag)) {
-                indiv.addComments("<p><b>Flipper Tag:</b> " + flipperTag + "</p>");
-                MetalTag tag = new MetalTag(flipperTag, "flipper");
-                for (Encounter enc : indiv.getEncounters()) {
-System.out.println(">>>>> ??? " + tag + " on " + enc);
-                    enc.addMetalTag(tag);
-                }
-            }
-            if (!stringEmpty(lifeStatus)) {
-                indiv.addComments("<p><b>Life Status:</b> " + lifeStatus + "</p>");
-                Encounter[] recent = indiv.getDateSortedEncounters(true, 1);
-                if ((recent != null) && (recent.length > 0)) recent[0].setLifeStage(lifeStatus);
-System.out.println(">>>>> ??? " + lifeStatus + " on " + indiv);
-            }
-            if (!stringEmpty(entanglement)) {
-                indiv.addComments("<p><b>Entanglement:</b> " + entanglement + "</p>");
-                LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword("Entanglement", entanglement, false);
-                for (Encounter enc : indiv.getEncounters()) {
-                    for (MediaAsset ma : enc.getMedia()) {
-System.out.println(">>>>> ??? " + kw + " on " + enc);
-                        ma.addKeyword(kw);
-                    }
-                }
-            }
 
             myShepherd.storeNewMarkedIndividual(indiv);
 
             String msg = "created indiv [" + ct + "] " + indiv;
             out.println("<b>" + msg + "</b>");
-            System.out.println(msg);
+            System.out.println("MARK: " + msg);
         }
         out.println("</li>");
     }
