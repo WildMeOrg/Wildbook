@@ -300,5 +300,7 @@
     "SUBMIT_NEXT_ENCOUNTER": "Soumettre la Prochaine Rencontre",
     "INVALID_FILES": "Fichiers Invalides",
     "INVALID_FILES_MESSAGE": "Les fichiers suivants n'ont pas pu être téléchargés. Consultez les {link} et réessayez.",
-    "IMAGE_REQUIREMENTS": "exigences d'image"
+    "IMAGE_REQUIREMENTS": "exigences d'image",
+    "INVALID_DATETIME_WARNING": "Saisir une date valide. Les formats acceptés incluent YYYY, YYYY-MM, YYYY-MM-DD et les formats date-heure comme YYYY-MM-DD HH:MM."
+
 }
