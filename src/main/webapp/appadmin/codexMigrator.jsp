@@ -61,6 +61,28 @@ System.out.println(">>>>>> ++++++ " + kw + " on " + ma);
     }
 }
 
+private static void encAddMeasurement(Shepherd myShepherd, Encounter enc, JSONObject cfData, String cfKey, String mType, String mUnit) {
+    if ((enc == null) || (cfData == null)) return;
+    Double value = cfDouble(cfData, cfKey);
+    if (value == null) return;
+    Measurement meas = new Measurement(enc.getId(), mType, value, mUnit, null);
+    enc.setMeasurement(meas, myShepherd);
+Util.mark("on " + enc.getId() + ": measurement " + meas);
+}
+
+private static void encAddLabeledKeyword(Shepherd myShepherd, Encounter enc, JSONObject cfData, String cfKey, String label) {
+    if ((enc == null) || (cfData == null) || (label == null)) return;
+    if (enc.numAnnotations() < 1) return;
+    String value = cfString(cfData, cfKey);
+    if (stringEmpty(value)) return;
+    LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, value, false);
+    for (MediaAsset ma : enc.getMedia()) {
+        ma.addKeyword(kw);
+Util.mark("on " + enc.getId() + ": " + kw + " on: " + ma);
+    }
+}
+
+
 private static String cleanJsonString(String json) {
     if (json == null) return null;
     json = json.replaceAll("\\\\", "");
@@ -442,6 +464,7 @@ private static void migrateAnnotations(JspWriter out, Shepherd myShepherd, Conne
 }
 
 private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    long startTime = System.currentTimeMillis();
     out.println("<h2>Encounters</h2><ol>");
     Map<String,String> txmap = taxonomyMap(conn);
     Statement st = conn.createStatement();
@@ -548,11 +571,12 @@ Util.mark("on " + enc.getId() + ": measurement " + meas);
 
             String msg = "created encounter [" + ct + "] " + enc;
             out.println("<b>" + msg + "</b>");
-            System.out.println(msg);
+            System.out.println("MARK: " + msg);
         }
         out.println("</li>");
     }
     out.println("</ol>");
+Util.mark("TIME MID", startTime);
 
     // annotation joins after
     ct = 0;
@@ -589,6 +613,7 @@ Util.mark("on " + enc.getId() + ": " + kw + " on: " + ma);
         }
     }
     out.println("<p>joined " + ct + " enc/ann pairs</p>");
+Util.mark("TIME COMPLETE", startTime);
 }
 
 
@@ -598,6 +623,7 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
     Statement st2 = conn.createStatement();
     ResultSet res = st.executeQuery("SELECT sighting.*, complex_date_time.datetime, complex_date_time.timezone, complex_date_time.specificity FROM sighting JOIN complex_date_time ON (time_guid = complex_date_time.guid) ORDER BY guid");
     int ct = 0;
+    //Map<String, JSONObject> occCfData = new HashMap<String, JSONObject>();
 
     while (res.next()) {
         ct++;
@@ -637,6 +663,10 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             // custom fields, oof
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
+            //occCfData.put(occ.getId(), cfData);
+            String behavior = cfArrayFlattenString(cfData, "665cc563-4ec4-4f1e-afcb-5617e1768312");
+            if (!stringEmpty(behavior) occ.setGroupBehavior(behavior);
+/*
             Map<String,String> cfMap = new HashMap<String,String>();
             cfMap.put("Seen in Artificial Nest", cfString(cfData, "34a8f03e-d282-4fef-b1ed-9eeebaaa887e"));
             cfMap.put("Observation Type", cfString(cfData, "736d8b8f-7abb-404f-9da8-0c1507185baa"));
@@ -646,6 +676,7 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             cfMap.put("Seen with Unknown Pup", cfString(cfData, "d0f2cc9e-0845-4608-8754-3d1f70eec699"));
             String photogName = cfString(cfData, "305b50df-7f21-4d8d-aeb6-45ab1869f5ba");
             String photogEmail = cfString(cfData, "ecc6f017-057c-4821-b07a-f82cd60aa31d");
+*/
 
             // we have to link encounters here due to customField needs :(
             //  this makes the joining code below kinda redundant but leaving it to catch stuff that missed
@@ -655,23 +686,64 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
                 if (enc == null) continue;
                 occ.addEncounter(enc);
                 enc.setOccurrenceID(occ.getId());
-                if (!stringEmpty(photogName)) enc.setPhotographerName(photogName);
-                if (!stringEmpty(photogEmail)) enc.setPhotographerEmail(photogEmail);
+
+                encAddMeasurement(myShepherd, enc, cfData, "660d3519-3adc-4e4c-80ab-41e217025936", "cloudCover", "percent");
+                encAddMeasurement(myShepherd, enc, cfData, "213ba304-592c-4b5b-9b54-6998fcca28d3", "countThickBushes", null);
+                encAddMeasurement(myShepherd, enc, cfData, "785ea4e1-acaf-4fc8-9448-7e981e47da52", "distanceNearestZebra", "meters");
+                encAddMeasurement(myShepherd, enc, cfData, "899cfa95-1cb1-4db4-b5a7-f35427f40fd5", "individualCount", null);
+                encAddMeasurement(myShepherd, enc, cfData, "9ae750a5-37dd-45be-85e7-a43072477d93", "numberAgonism", null);
+                encAddMeasurement(myShepherd, enc, cfData, "f3611d23-6670-403e-8d72-96f2e5ecebb1", "numberDrinking", null);
+                encAddMeasurement(myShepherd, enc, cfData, "3177d25e-cfd6-48a3-bdf2-5c67fcfc567f", "numberGeophagy", null);
+                encAddMeasurement(myShepherd, enc, cfData, "eac2dff0-507c-4f9a-b76d-47e7dbf10209", "numberGrassSpecies", null);
+                encAddMeasurement(myShepherd, enc, cfData, "800e6950-2806-4e1a-a48a-85a9140cfe4a", "numberGrazing", null);
+                encAddMeasurement(myShepherd, enc, cfData, "2fb2ac8e-bdae-4527-a90a-61d7b3b32153", "numberGrooming", null);
+                encAddMeasurement(myShepherd, enc, cfData, "b41a203a-4ba3-472c-b5fc-d5aef41b1955", "numberHealth", null);
+                encAddMeasurement(myShepherd, enc, cfData, "558ccf92-d7e5-40f8-8cb1-281f7f32e891", "numberLying", null);
+                encAddMeasurement(myShepherd, enc, cfData, "39832492-530d-4c0d-be0d-ad122b919ec9", "numberNotVisible", null);
+                encAddMeasurement(myShepherd, enc, cfData, "13df8e88-39fd-491e-8a0f-42e623b16a3f", "numberNurseSuckle", null);
+                encAddMeasurement(myShepherd, enc, cfData, "f90faaf0-8fcc-43e5-8aef-f33628ca4e12", "numberOtherSpecies1", null);
+                encAddMeasurement(myShepherd, enc, cfData, "ce262053-19e3-482c-af37-f41c039b8cb5", "numberOtherSpecies2", null);
+                encAddMeasurement(myShepherd, enc, cfData, "5ad52894-9979-4f90-bdce-17c29ad563f5", "numberOtherSpecies3", null);
+                encAddMeasurement(myShepherd, enc, cfData, "768a5aee-766c-456a-94d8-cb6bfa95fede", "numberPlaying", null);
+                encAddMeasurement(myShepherd, enc, cfData, "d1c6da62-659e-4eb4-9442-d5abb3e6c142", "numberResting", null);
+                encAddMeasurement(myShepherd, enc, cfData, "6e60ce75-96d7-4acf-833f-d7fdb6ffdd7b", "numberRunning", null);
+                encAddMeasurement(myShepherd, enc, cfData, "c55e00fd-04bd-4fbc-bba0-8e004977e85e", "numberSalting", null);
+                encAddMeasurement(myShepherd, enc, cfData, "1ff5ff65-b3b3-4517-9c17-2125468343ca", "numberSexual", null);
+                encAddMeasurement(myShepherd, enc, cfData, "05110f89-7162-4461-8b33-f252bf56188d", "numberSocializing", null);
+                encAddMeasurement(myShepherd, enc, cfData, "8378401d-5a71-4e46-a787-220911be1feb", "numberStanding", null);
+                encAddMeasurement(myShepherd, enc, cfData, "d57aa220-8691-4c3c-b598-c8485017088e", "numberVigilant", null);
+                encAddMeasurement(myShepherd, enc, cfData, "ebe8bf2b-1496-493b-b97f-cf9cf4230e64", "numberWalking", null);
+
+                encAddLabeledKeyword(myShepherd, enc, cfData, "ac8b14e4-e284-4cc3-b021-8de4a77977c0", "Bush type");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "d6adae96-b892-4e12-aaca-270b71c9d98c", "Grass height");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "817e749f-0468-4d26-bccb-f3c2e00351cc", "Grass color");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "0db01770-961d-4fca-8217-159704ab1aed", "Grass species 1");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "6fd91781-6100-4ccf-b16c-ea821fe1186a", "Grass species 2");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "95c6131a-281a-4883-b676-e313766a8c15", "Grass species 3");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "308bad8e-ab79-4c29-aa73-bbff34f6967f", "Habitat obscurity");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "f8854f1c-774d-4fb9-8e60-1d2e2e1f1fde", "Other species 1");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "861b6411-d9ee-44b5-8a4c-0e7dcbb3596f", "Other species 2");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "157db683-354b-4eca-937d-eaca7547b3da", "Other species 3");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "6392ae9f-0b35-44df-8b87-7bd2b733d83d", "Rain");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "27b96f1c-fe13-4aba-9fb5-6f99fee1ca10", "Soil");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "d983c468-4693-4603-8820-1c9c6034d254", "Sun");
+                encAddLabeledKeyword(myShepherd, enc, cfData, "a2c3ca2c-8dac-4baf-a794-21132cf32ffc", "Wind");
             }
 
             // now we can do this, since it needs encs
-            cfOccurrence(myShepherd, occ, cfMap);
+            ////cfOccurrence(myShepherd, occ, cfMap);
 
             myShepherd.storeNewOccurrence(occ);
 
             String msg = "created occurrence [" + ct + "] " + occ;
             out.println("<b>" + msg + "</b>");
-            System.out.println(msg);
+            System.out.println("MARK: " + msg);
         }
         out.println("</li>");
     }
     out.println("</ol>");
 
+/*
     ct = 0;
     res = st.executeQuery("SELECT guid, sighting_guid FROM encounter ORDER BY sighting_guid");
     while (res.next()) {
@@ -689,6 +761,7 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
         }
     }
     out.println("<p>joined " + ct + " occ/enc pairs</p>");
+*/
 
 }
 
