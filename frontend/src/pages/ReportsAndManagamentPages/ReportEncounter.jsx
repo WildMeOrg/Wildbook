@@ -21,7 +21,6 @@ export const ReportEncounter = observer(() => {
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
   const { data } = useGetSiteSettings();
-  // const reCAPTCHAEnterpriseSiteKey = data?.reCAPTCHAEnterpriseSiteKey;
   const procaptchaSiteKey = data?.procaptchaSiteKey;
   const store = useLocalObservable(() => new ReportEncounterStore());
 
@@ -223,21 +222,6 @@ export const ReportEncounter = observer(() => {
       console.error("Error submitting captcha: ", error);
     }
   };
-
-  // another way to implement procaptcha, recommended by the author
-  // useEffect(() => {
-  //   if (!window.procaptcha) return;
-  //   let isCaptchaRendered = false;
-  //   if (isCaptchaRendered || !captchaRef.current) return;
-  // if (procaptchaSiteKey) {
-  //   window.procaptcha.render(captchaRef.current, {
-  //     siteKey: procaptchaSiteKey,
-  //     callback: onCaptchaVerified,
-  //   });
-
-  //   isCaptchaRendered = true;
-  //  }
-  //   }, [window.procaptcha, procaptchaSiteKey]);
 
   return (
     <Container>
