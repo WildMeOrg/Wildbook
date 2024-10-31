@@ -6,6 +6,7 @@ export class ReportEncounterStore {
   _imageSectionSubmissionId;
   _imageRequired;
   _imageCount;
+  _imagePreview;
   _imageSectionError;
   _imageSectionFileNames;
   _dateTimeSection;
@@ -15,14 +16,20 @@ export class ReportEncounterStore {
   _additionalCommentsSection;
   _success;
   _finished;
+  _signInModalShow;
+  _exifDateTime;
 
   constructor() {
     this._imageSectionSubmissionId = null;
     this._imageRequired = true;
     this._imageSectionFileNames = [];
+    this._imageSectionError = false;
+    this._imageCount = 0;
+    this._imagePreview = [];
     this._dateTimeSection = {
-      value: "",
+      value: null,
       error: false,
+      required: true,
     };
     this._speciesSection = {
       value: "",
@@ -48,11 +55,10 @@ export class ReportEncounterStore {
       additionalEmails: "",
       error: false,
     };
-    this._imageRequired = true;
-    this._imageSectionError = false;
-    this._imageCount = 0;
     this._success = false;
     this._finished = false;
+    this._signInModalShow = false;
+    this._exifDateTime = []; 
     makeAutoObservable(this);
   }
 
@@ -75,6 +81,10 @@ export class ReportEncounterStore {
 
   get imageCount() {
     return this._imageCount;
+  }
+
+  get imagePreview() {
+    return this._imagePreview;
   }
 
   get dateTimeSection() {
@@ -101,6 +111,18 @@ export class ReportEncounterStore {
     return this._finished;
   }
 
+  get signInModalShow() {
+    return this._signInModalShow;
+  }
+
+  get additionalCommentsSection() {
+    return this._additionalCommentsSection;
+  }
+
+  get exifDateTime() {
+    return this._exifDateTime; 
+  }
+
   // Actions
   setImageSectionSubmissionId(value) {
     this._imageSectionSubmissionId = value;
@@ -114,8 +136,12 @@ export class ReportEncounterStore {
     this._imageSectionError = value;
   }
 
-  SetImageCount(value) {
+  setImageCount(value) {
     this._imageCount = value;
+  }
+
+  setImagePreview(value) {
+    this._imagePreview = value;
   }
 
   setImageSectionFileNames(fileName, action = "add") {
@@ -125,7 +151,20 @@ export class ReportEncounterStore {
       this._imageSectionFileNames = this._imageSectionFileNames.filter(
         (name) => name !== fileName,
       );
+      // delete this._exifDateTime[fileName];
     }
+  }
+
+  setDateTimeSectionValue(value) {
+    this._dateTimeSection.value = value;
+  }
+
+  setDateTimeSectionError(error) {
+    this._dateTimeSection.error = error;
+  }
+
+  setExifDateTime(exifData) {
+    this._exifDateTime.push(exifData); 
   }
 
   setSpeciesSectionValue(value) {
@@ -166,6 +205,10 @@ export class ReportEncounterStore {
 
   setAdditionalEmails(value) {
     this._followUpSection.additionalEmails = value;
+  }
+
+  setSignInModalShow(value) {
+    this._signInModalShow = value;
   }
 
   validateEmails() {
@@ -212,6 +255,11 @@ export class ReportEncounterStore {
       this._imageSectionError = true;
       isValid = false;
 
+    if(!this._dateTimeSection.value && this._dateTimeSection.required) {
+      this._dateTimeSection.error = true;
+      isValid = false;
+    } 
+
       // Uncomment the place section validation if needed
       // if (!this._placeSection.value) {
       //   this._placeSection.error = true;
@@ -220,6 +268,7 @@ export class ReportEncounterStore {
       //   this._placeSection.error = false;
       // }
     }
+    console.log("Validation result", isValid);
     return isValid;
   }
   async submitReport() {
@@ -227,14 +276,11 @@ export class ReportEncounterStore {
     const readyCaseone =
       this.validateFields() && this._imageSectionFileNames.length > 0;
     const readyCasetwo = this.validateFields() && !this._imageRequired;
-    console.log(readyCaseone, readyCasetwo);
     if (readyCaseone || readyCasetwo) {
-      console.log("Report submitted, calling api", this._speciesSection.value);
-      // Call the API here
       const response = await axios.post("/api/v3/encounters", {
         submissionId: this._imageSectionSubmissionId,
         assetFilenames: this._imageSectionFileNames,
-        dateTime: "2001-04-30T00:00",
+        dateTime: this._dateTimeSection.value,
         taxonomy: this._speciesSection.value,
         locationId: "TG",
         // followUp: this._followUpSection.value,
@@ -248,7 +294,7 @@ export class ReportEncounterStore {
         this._followUpSection.value = "";
         this._dateTimeSection.value = "";
         this._imageSectionFileNames = [];
-        this._imageSectionSubmissionId = "";
+        this._imageSectionSubmissionId = null;
         this._imageCount = 0;
         this._imageSectionError = false;
         this._success = true;

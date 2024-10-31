@@ -5,7 +5,7 @@ import { observer } from "mobx-react-lite";
 import { useIntl } from "react-intl";
 
 export const AdditionalCommentsSection = observer(
-  ({ reportEncounterStore }) => {
+  ({ store }) => {
     const intl = useIntl();
     return (
       <div>
@@ -19,8 +19,9 @@ export const AdditionalCommentsSection = observer(
             maxLength={5000}
             placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
             onChange={(e) => {
-              reportEncounterStore.setCommentsSectionValue(e.target.value);
+              store.setCommentsSectionValue(e.target.value);
             }}
+            value={store.additionalCommentsSection?.value}
           />
         </Form.Group>
       </div>
