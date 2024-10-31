@@ -8,7 +8,6 @@ import moment from "moment";
 import ThemeContext from "../../ThemeColorProvider";
 
 export const DateTimeSection = observer(({ store }) => {
-
   const theme = useContext(ThemeContext);
 
   return (
@@ -48,6 +47,7 @@ export const DateTimeSection = observer(({ store }) => {
           dateFormat={"YYYY-MM-DD"}
           closeOnSelect={true}
           value={store.dateTimeSection.value}
+          timeFormat="HH:mm"
           onChange={(e) => {
             store.setDateTimeSectionValue(e);
             store.setDateTimeSectionError(e ? false : true);
@@ -62,9 +62,10 @@ export const DateTimeSection = observer(({ store }) => {
           >
             <i
               className="bi bi-info-circle-fill"
-              style={{ 
-                marginRight: "8px", 
-                color: theme.statusColors.red800 }}
+              style={{
+                marginRight: "8px",
+                color: theme.statusColors.red800,
+              }}
             ></i>
             <FormattedMessage id="INVALID_DATETIME_WARNING" />
           </Alert>
