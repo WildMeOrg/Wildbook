@@ -252,7 +252,7 @@
     "LOADING" : "Laden",
     "REPORT_PAGE_TITLE": "Seite Begegnungen melden",
     "REPORT_PAGE_DESCRIPTION": "Erzählen Sie uns von dem Tier, das Sie gesehen haben, und seien Sie so genau wie möglich. Mit der Übermittlung von Daten und Bildern erklären Sie sich mit der uneingeschränkten Nutzung dieser Materialien für Forschungs- und Erhaltungszwecke einverstanden.",
-    "SIGNIN_REMINDER_BANNER": "Sie sind nicht angemeldet. Wenn Sie möchten, dass dieses Treffen mit Ihrem Konto verknüpft wird, stellen Sie sicher, dass",
+    "SIGNIN_REMINDER_BANNER": "Um das Treffen mit Ihrem Konto zu verknüpfen, melden Sie sich bitte an. Wenn Sie anonym fortfahren möchten, vervollständigen Sie das Captcha.",
     "REQUIRED_FIELDS_KEY": "* Erforderliche Felder",
     "PHOTOS_SECTION": "Fotos",
     "DATETIME_SECTION": "Datum und Uhrzeit",
@@ -290,6 +290,17 @@
     "EMPTY_REQUIRED_WARNING": "Dieses Feld darf nicht leer sein",
     "FILE_SIZE_EXCEEDED": "Bilder, die das Limit überschreiten, werden nicht hochgeladen",
     "ADD_MORE_FILES": "Weitere Dateien hinzufügen",
-    "UPLOAD_FAILED" : "Hochladen fehlgeschlagen"
+    "UPLOAD_FAILED" : "Hochladen fehlgeschlagen",
+    "SUBMISSION_SUCCESSFUL": "Einreichung Erfolgreich",
+    "SUBMISSION_SUCCESS_ALERT": "Vielen Dank für die Einreichung Ihres Treffens!",
+    "ENCOUNTER": "Begegnung",
+    "SUBMISSION_SUCCESS_LOCATION_ID": "Standort-ID:",
+    "SUBMISSION_SUCCESS_SUBMITTED_ON": "Eingereicht am:",
+    "CONTACT_MESSAGE": "Bei Fragen oder Bedenken kontaktieren Sie uns unter ",
+    "VIEW_ENCOUNTER": "Begegnung Ansehen",
+    "SUBMIT_NEXT_ENCOUNTER": "Nächste Begegnung Einreichen",
+    "INVALID_FILES": "Ungültige Dateien",
+    "INVALID_FILES_MESSAGE": "Die folgenden Dateien konnten nicht hochgeladen werden. Überprüfen Sie die {link} und versuchen Sie es erneut.",
+    "IMAGE_REQUIREMENTS": "Bildanforderungen"
 
 }

@@ -8,12 +8,12 @@ import { v4 as uuidv4 } from "uuid";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import { Alert } from "react-bootstrap";
+import EXIF from "exif-js";
 
-export const FileUploader = observer(({ reportEncounterStore }) => {
+export const FileUploader = observer(({ store }) => {
   const [files, setFiles] = useState([]);
   const [flow, setFlow] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [fileActivity, setFileActivity] = useState(false);
   const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
   const { data } = useGetSiteSettings();
@@ -25,10 +25,20 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const submissionId = useRef(uuidv4()).current;
 
   useEffect(() => {
-    reportEncounterStore.SetImageCount(
-      previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024).length,
+    store.setImageCount(
+      previewData.filter((file) => file.fileSize <= maxSize * 1024 * 1024)
+        .length,
     );
-
+    const data = previewData.filter(
+      (file) => file.fileSize <= maxSize * 1024 * 1024,
+    );
+    store.setImagePreview(data);
+    // store.setImageSectionError(
+    //   store.imageRequired &&
+    //   previewData.length === 0
+    //     ? true
+    //     : false,
+    // );
     handleUploadClick();
   }, [previewData]);
 
@@ -38,14 +48,26 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     }
   }, [flow, fileInputRef]);
 
+  useEffect(() => {
+    const savedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
+    if (savedFiles) {
+      setPreviewData(savedFiles);
+    }
+    localStorage.getItem("submissionId") &&
+      store.setImageSectionSubmissionId(
+        localStorage.getItem("submissionId"),
+      );
+    localStorage.removeItem("submissionId");
+    localStorage.removeItem("uploadedFiles");
+  }, []);
+
   const initializeFlow = () => {
     const flowInstance = new Flow({
       target: "/ResumableUpload",
       forceChunkSize: true,
       testChunks: false,
       query: {
-        submissionId: reportEncounterStore.imageSectionSubmissionId,
-        // Add any additional query parameters here
+        submissionId: store.imageSectionSubmissionId,
       },
     });
 
@@ -65,7 +87,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         return false;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > maxSize * 1024 * 1024) {
         console.warn("File size exceeds limit:", file.name);
         return false;
       }
@@ -78,7 +100,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Update preview data, avoiding duplicates
         setPreviewData((prevPreviewData) => [
           ...prevPreviewData.filter((p) => p.fileName !== file.name),
           {
@@ -89,9 +110,26 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           },
         ]);
       };
-      reader.readAsDataURL(file.file);
-      setFileActivity(true);
-      return true;
+
+      EXIF.getData(file.file, function () {
+        const exifData = EXIF.getAllTags(this);
+        const dateTime = exifData.DateTime;
+        // const latitude = EXIF.getTag(this, "GPSLatitude");
+        // const longitude = EXIF.getTag(this, "GPSLongitude");
+
+        if (dateTime) {
+          const f = dateTime.split(/\D+/);
+          let datetime1;
+          if (f.length == 3) datetime1 = f.join('-');
+          if ((f.length == 5) || (f.length == 6)) datetime1 = f.slice(0, 3).join('-') + ' ' + f.slice(3, 6).join(':');
+          store.setExifDateTime(datetime1);
+            // geo: latitude && longitude ? { latitude, longitude } : null,
+          
+        } else {
+          console.warn("EXIF data not available for:", file.name);
+        }
+      });
+      reader.readAsDataURL(file.file);      
     });
 
     flowInstance.on("fileProgress", (file) => {
@@ -107,8 +145,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileSuccess", (file) => {
       setUploading(false);
-      console.log("File uploaded successfully", file.name);
-      reportEncounterStore.setImageSectionFileNames(file.name, "add");
+      store.setImageSectionFileNames(file.name, "add");
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
@@ -120,7 +157,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileError", (file, message) => {
       setUploading(false);
-      reportEncounterStore.setStartUpload(false);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
@@ -129,9 +165,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         ),
       );
       console.error("Upload error:", message);
-      reportEncounterStore.setImageSectionUploadSuccess(false);
     });
-
     setupDragAndDropListeners(flowInstance);
   };
 
@@ -190,27 +224,27 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     }
   };
 
-  console.log(
-    "file names",
-    JSON.stringify(reportEncounterStore.imageSectionFileNames),
-  );
-
   const handleUploadClick = () => {
     const validFiles = flow?.files
-      ?.filter((file) => file.size <= 5 * 1024 * 1024)
+      ?.filter((file) => file.size <= maxSize * 1024 * 1024)
       .filter(
         (file) =>
-          !reportEncounterStore.imageSectionFileNames?.includes(file.name),
+          !store.imageSectionFileNames?.includes(file.name),
       );
 
     if (validFiles?.length > 0) {
       setUploading(true);
-      reportEncounterStore.setImageSectionSubmissionId(submissionId);
-      flow.opts.query.submissionId = submissionId;
+      if (store.imageSectionSubmissionId) {
+        flow.opts.query.submissionId =
+          store.imageSectionSubmissionId;
+      } else {
+        store.setImageSectionSubmissionId(submissionId);
+        flow.opts.query.submissionId = submissionId;
+      }
       validFiles.forEach((file) => {
         const timeout = setTimeout(() => {
           flow.removeFile(file);
-          reportEncounterStore.setImageSectionFileNames(file.name, "remove");
+          store.setImageSectionFileNames(file.name, "remove");
           setPreviewData((prevPreviewData) =>
             prevPreviewData.map((preview) =>
               preview.fileName === file.name
@@ -219,7 +253,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
             ),
           );
           console.error(`File upload timed out: ${file.name}`);
-        }, 2000);
+        }, 300000);
 
         flow.on("fileSuccess", (uploadedFile) => {
           if (uploadedFile.name === file.name) {
@@ -232,7 +266,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
             clearTimeout(timeout);
           }
         });
-        console.log("Uploading file", file);
         flow.upload(file);
       });
     }
@@ -243,7 +276,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       <Row>
         <h5 style={{ fontWeight: "600" }}>
           <FormattedMessage id="PHOTOS_SECTION" />{" "}
-          {reportEncounterStore.imageRequired && "*"}
+          {store.imageRequired && "*"}
         </h5>
         <p>
           <FormattedMessage id="SUPPORTED_FILETYPES" />
@@ -251,7 +284,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         </p>
       </Row>
       <Row>
-        {reportEncounterStore.imageSectionError && (
+        {store.imageSectionError && (
           <Alert
             variant="danger"
             className="w-100 mt-1 mb-1 ms-2 me-4"
@@ -264,7 +297,55 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
               style={{ marginRight: "8px", color: theme.statusColors.red600 }}
             ></i>
             <FormattedMessage id="IMAGES_REQUIRED_ANON_WARNING" />{" "}
-            <a href="login">
+            <a
+              href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
+              onClick={() => {
+                localStorage.setItem("species", store.speciesSection.value);
+                  localStorage.setItem(
+                    "followUpSection.submitter.name",
+                    store.followUpSection.submitter.name,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.submitter.email",
+                    store.followUpSection.submitter.email,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.photographer.name",
+                    store.followUpSection.photographer.name,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.photographer.email",
+                    store.followUpSection.photographer.email,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.additionalEmails",
+                    store.followUpSection.additionalEmails,
+                  );
+                  localStorage.setItem(
+                    "additionalCommentsSection",
+                    store.additionalCommentsSection.value,
+                  );
+                  localStorage.setItem(
+                    "uploadedFiles",
+                    JSON.stringify(store.imagePreview),
+                  );
+                  // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
+                  // localStorage.setItem("placeSection", store.placeSection.value);
+                  localStorage.setItem(
+                    "submissionId",
+                    store.imageSectionSubmissionId,
+                  );
+                  localStorage.setItem(
+                    "fileNames",
+                    JSON.stringify(store.imageSectionFileNames),
+                  );
+                  localStorage.setItem(
+                    "datetime",
+                    store.dateTimeSection.value?.toISOString(),
+                  );
+                  localStorage.setItem("exifDateTime", store.exifDateTime);
+              }}
+            >
               <FormattedMessage id="LOGIN_SIGN_IN" />
             </a>
           </Alert>
@@ -303,7 +384,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                     files.find((f) => f.name === preview.fileName),
                   );
 
-                  reportEncounterStore.setImageSectionFileNames(
+                  store.setImageSectionFileNames(
                     preview.fileName,
                     "remove",
                   );
@@ -314,7 +395,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                 src={preview.src}
                 style={{ width: "100%", height: "120px", objectFit: "fill" }}
                 alt={`Preview ${index + 1}`}
-                // thumbnail
+              // thumbnail
               />
               <div
                 className="mt-2 "
@@ -333,7 +414,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                   )}
                 </div>
                 <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
-                {(preview.fileSize / (1024 * 1024)).toFixed(2) > 5 && (
+                {(preview.fileSize / (1024 * 1024)).toFixed(2) > maxSize && (
                   <div style={{ color: theme.statusColors.red500 }}>
                     <FormattedMessage id="FILE_SIZE_EXCEEDED" />
                   </div>
@@ -352,7 +433,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           </Col>
         ))}
 
-        <Col md={8} style={{ width: fileActivity ? "200px" : "100%" }}>
+        <Col md={8} style={{ width: previewData.length ? "200px" : "100%" }}>
           <div
             id="drop-area"
             className="d-flex flex-column align-items-center justify-content-center p-4"
@@ -362,11 +443,11 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
               backgroundColor: theme.primaryColors.primary50,
               textAlign: "center",
               cursor: "pointer",
-              height: fileActivity ? "120px" : "300px",
+              height: previewData.length ? "120px" : "300px",
               boxSizing: "border-box",
             }}
           >
-            {fileActivity ? (
+            {previewData.length ? (
               <div onClick={() => fileInputRef.current.click()}>
                 <i
                   className="bi bi-images"
@@ -394,7 +475,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
                 <MainButton
                   onClick={() => fileInputRef.current.click()}
-                  disabled={uploading}
+                  // disabled={uploading}
                   backgroundColor={theme.wildMeColors.cyan700}
                   color={theme.defaultColors.white}
                   noArrow={true}
