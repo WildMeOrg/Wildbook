@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Form, Alert } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import moment from "moment";
+import ThemeContext from "../../ThemeColorProvider";
 
 export const DateTimeSection = observer(({ store }) => {
+
+  const theme = useContext(ThemeContext);
+
   return (
     <div>
       <h5>
@@ -58,7 +62,9 @@ export const DateTimeSection = observer(({ store }) => {
           >
             <i
               className="bi bi-info-circle-fill"
-              style={{ marginRight: "8px", color: "#560f14" }}
+              style={{ 
+                marginRight: "8px", 
+                color: theme.statusColors.red800 }}
             ></i>
             <FormattedMessage id="INVALID_DATETIME_WARNING" />
           </Alert>
