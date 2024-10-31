@@ -534,12 +534,12 @@ Util.mark("on " + enc.getId() + ": tissue sample " + sample);
 Util.mark("on " + enc.getId() + ": measurement " + meas);
             }
             if (direction != null) {
-                Measurement meas = new Measurement(enc.getId(), "Direction to group", direction, "degrees", null);
+                Measurement meas = new Measurement(enc.getId(), "DirectionToGroup", direction, "degrees", null);
                 enc.setMeasurement(meas, myShepherd);
 Util.mark("on " + enc.getId() + ": measurement " + meas);
             }
             if (distance != null) {
-                Measurement meas = new Measurement(enc.getId(), "Distance to group", distance, "meters", null);
+                Measurement meas = new Measurement(enc.getId(), "DistanceToGroup", distance, "meters", null);
                 enc.setMeasurement(meas, myShepherd);
 Util.mark("on " + enc.getId() + ": measurement " + meas);
             }
