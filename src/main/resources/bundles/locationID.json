@@ -1,114 +1,369 @@
 {
-	"description": "Hierarchical Encounter.locationID list in Wildbook",
-	"source": "http://en.wikipedia.org/wiki/List_of_seas",
-	"locationID": [
-		{
-			"name": "Klufterbach",
-			"id": "KB",
-			"geospatialInfo": {
-				"lat": 50.686688,
-				"long": 7.127002
-			},
-			"locationID": []
-		},
-		{
-			"name": "Venner Bach",
-			"id": "VB",
-			"geospatialInfo": {
-				"lat": 50.670721,
-				"long": 7.129955
-			},
-			"locationID": []
-		},
-		{
-			"name": "Katzenlochbach/Villiper Bach",
-			"id": "KOB",
-			"geospatialInfo": {
-				"lat": 50.667533,
-				"long": 7.083178
-			},
-			"locationID": []
-		},
-		{
-			"name": "Marienforster Bach/Keltersbaumbach",
-			"id": "MB",
-			"geospatialInfo": {
-				"lat": 50.675925,
-				"long": 7.136618
-			},
-			"locationID": []
-		},
-		{
-			"name": "Annaberger Bach",
-			"id": "AB",
-			"geospatialInfo": {
-				"lat": 50.684203,
-				"long": 7.116158
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpel KoVK",
-			"id": "KoVK",
-			"geospatialInfo": {
-				"lat": 50.660984,
-				"long": 7.034919
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpelgraben TG",
-			"id": "TG",
-			"geospatialInfo": {
-				"lat": 50.681499,
-				"long": 7.118652
-			},
-			"locationID": []
-		},
-		{
-			"name": "Seitengraben SG",
-			"id": "SG",
-			"geospatialInfo": {
-				"lat": 50.682431,
-				"long": 7.116877
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpel TT",
-			"id": "TT",
-			"geospatialInfo": {
-				"lat": 50.681057,
-				"long": 7.121233
-			},
-			"locationID": []
-		},
-		{
-			"name": "Schutzhütte",
-			"id": "hut",
-			"geospatialInfo": {
-				"lat": 50.682028,
-				"long": 7.118937
-			},
-			"locationID": []
-		},
-		{
-			"name": "Kernlebensraum",
-			"id": "KLR",
-			"geospatialInfo": {
-				"lat": 51.923413,
-				"long": 8.872099
-			},
-			"locationID": []
-		},
-		{
-			"name": "Paderborner Dorf",
-			"id": "PD",
-			"geospatialInfo": {
-				"lat": 51.917119,
-				"long": 8.880677
-			},
-			"locationID": []
-		},
-	]
+    "_prev_id": null,
+    "locationID": [
+        {
+            "name": "Rwanda",
+            "id": "873ab21c-88a0-4ecd-b481-b29413ba101c"
+        },
+        {
+            "geospatialInfo": null,
+            "_prev_id": "Kenya",
+            "locationID": [
+                {
+                    "name": "Lewa",
+                    "id": "5d3b2024-51ee-4391-ac60-6a87145e37ad"
+                },
+                {
+                    "name": "Karisia",
+                    "id": "f0dbe22d-298a-4826-b7a3-ecdbfa946d9e"
+                },
+                {
+                    "name": "Elkarama",
+                    "id": "ca3dab05-6f13-40db-a767-cbc4a50c89e5"
+                },
+                {
+                    "name": "Suyian",
+                    "id": "f91d6a39-8b0a-4539-8f3c-74395fb50a32"
+                },
+                {
+                    "name": "Kipepeo",
+                    "id": "350ce7de-f057-40e8-b9b8-9f20297917da"
+                },
+                {
+                    "name": "Borana",
+                    "id": "01a63187-a922-48a8-948d-2c4371904a89"
+                },
+                {
+                    "name": "S.Shaba",
+                    "id": "7d26f888-4069-479d-885d-165af1df7c0c"
+                },
+                {
+                    "name": "Loisaba",
+                    "id": "65164945-69f2-4bc9-a286-bd306237fd3b"
+                },
+                {
+                    "name": "BSNR",
+                    "id": "426991dd-fa14-4db5-bdd9-d12b4e08522d"
+                },
+                {
+                    "name": "Evans",
+                    "id": "1ab65c70-54ce-49a7-9fa8-1df9b4030bb5"
+                },
+                {
+                    "name": "Sosian",
+                    "id": "78f43be1-42fa-43e0-ae96-0671f0a84d9b"
+                },
+                {
+                    "name": "Ol Maisor",
+                    "id": "e0e878b8-b88f-420c-b3db-48b9ef7a427f"
+                },
+                {
+                    "name": "SNR",
+                    "id": "bc33b7d4-ca2a-4f86-ac1f-03d485f0a3c8"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Mpala",
+                    "locationID": [
+                        {
+                            "geospatialInfo": null,
+                            "_prev_id": "Mpala.North",
+                            "locationID": [],
+                            "prefix": null,
+                            "name": "Mpala.North",
+                            "description": null,
+                            "prefixDigitPadding": null,
+                            "timeZone": null,
+                            "id": "5acdeca8-7b32-4429-a075-563736ffb1d0"
+                        },
+                        {
+                            "geospatialInfo": null,
+                            "_prev_id": "Mpala.Central",
+                            "locationID": [],
+                            "prefix": null,
+                            "name": "Mpala.Central",
+                            "description": null,
+                            "prefixDigitPadding": null,
+                            "timeZone": null,
+                            "id": "c8471df7-c52e-42f4-b588-f88dda409970"
+                        },
+                        {
+                            "geospatialInfo": null,
+                            "_prev_id": "Mpala.South",
+                            "locationID": [],
+                            "prefix": null,
+                            "name": "Mpala.South",
+                            "description": null,
+                            "prefixDigitPadding": null,
+                            "timeZone": null,
+                            "id": "5f05d34a-e160-4bc4-b474-065f30495d96"
+                        }
+                    ],
+                    "prefix": null,
+                    "name": "Mpala",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "533d2da2-f230-485c-bb58-d0b2d967d708"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Ol Pejeta",
+                    "locationID": [
+                        {
+                            "geospatialInfo": null,
+                            "_prev_id": "Ol Pejeta.East",
+                            "locationID": [],
+                            "prefix": null,
+                            "name": "Ol Pejeta.East",
+                            "description": null,
+                            "prefixDigitPadding": null,
+                            "timeZone": null,
+                            "id": "66d1e5f8-0e3b-43ad-af51-24a30badb4f5"
+                        },
+                        {
+                            "geospatialInfo": null,
+                            "_prev_id": "Ol Pejeta.West",
+                            "locationID": [],
+                            "prefix": null,
+                            "name": "Ol Pejeta.West",
+                            "description": null,
+                            "prefixDigitPadding": null,
+                            "timeZone": null,
+                            "id": "4efa29c9-e375-4eb1-a8a9-36bc0d0fa958"
+                        }
+                    ],
+                    "prefix": null,
+                    "name": "Ol Pejeta",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "6554855e-18ab-412c-974c-95e1e1c5d716"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Ol Jogi",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Ol Jogi",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "b0a0cced-22f9-460f-8d45-11ce6c891ac7"
+                }
+            ],
+            "prefix": null,
+            "name": "Kenya",
+            "description": null,
+            "prefixDigitPadding": null,
+            "timeZone": null,
+            "id": "71524d9b-7f73-4b40-b6c7-b390cbaca1e0"
+        },
+        {
+            "geospatialInfo": null,
+            "_prev_id": "South Africa",
+            "locationID": [
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Elandsberg Nature Reserve",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Elandsberg Nature Reserve",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "fe2fb509-6140-489b-8457-8db5785c754b"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Kosierskraal",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Kosierskraal",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "ff7cbd0a-314d-4090-82dd-0f330e21be6e"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "KwaZulu-Natal",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "KwaZulu-Natal",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "9a7013c3-4f71-4250-9f09-f49dd10f44db"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Nelson Mandela University Nature Reserve",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Nelson Mandela University Nature Reserve",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "06eeb8d2-7260-4fcb-aecc-1a82d821b91b"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Nuwejaars Wetland SMA",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Nuwejaars Wetland SMA",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "36f73552-4fa1-46f3-84c3-65dda2d6c335"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Pilanesberg National Park",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Pilanesberg National Park",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "aaec3a87-c990-4781-8c03-e8a8f2b8951f"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Pampoenvlei",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Pampoenvlei",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "926971f3-959f-4b15-818d-ced7760fd21b"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Groote Post",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Groote Post",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "8148be1d-e1de-4406-add7-71c4d75845ab"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Vlakkenhuiwel",
+                    "locationID": [],
+                    "prefix": null,
+                    "name": "Vlakkenhuiwel",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "699b2900-69dc-4b44-bcea-d07e2a19976b"
+                }
+            ],
+            "prefix": null,
+            "name": "South Africa",
+            "description": null,
+            "prefixDigitPadding": null,
+            "timeZone": null,
+            "id": "ec89e322-8b65-477f-bf7d-2bddfd2e3a69"
+        },
+        {
+            "geospatialInfo": null,
+            "_prev_id": "_unknown_",
+            "locationID": [
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Pyramid",
+                    "prefix": null,
+                    "name": "Pyramid",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "9e68e661-3c86-4c9a-beba-96f0fd32805e"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "0209, Pilanesberg National Park",
+                    "prefix": null,
+                    "name": "0209, Pilanesberg National Park",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "d24a7197-6761-4c84-9142-f13ef9bdd2fa"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Oljogi",
+                    "prefix": null,
+                    "name": "Oljogi",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "5b06d89e-805f-414d-97b4-70e3b74cca78"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Mpala central",
+                    "prefix": null,
+                    "name": "Mpala central",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "e1ef8370-03ee-40da-bc6d-645e08cf22df"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Tanzania",
+                    "prefix": null,
+                    "name": "Tanzania",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "3143f80d-7b9c-476c-b773-0fc53885f967"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "0207, Pilanesberg National Park",
+                    "prefix": null,
+                    "name": "0207, Pilanesberg National Park",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "94140d85-f7ee-4ca7-a69b-6a1e39c6ea71"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "207.0",
+                    "prefix": null,
+                    "name": "207.0",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "adadb40d-b930-4208-827c-f3f0308bccbf"
+                },
+                {
+                    "geospatialInfo": null,
+                    "_prev_id": "Karisa",
+                    "prefix": null,
+                    "name": "Karisa",
+                    "description": null,
+                    "prefixDigitPadding": null,
+                    "timeZone": null,
+                    "id": "514e4475-e337-4e05-b20d-4d3b55dd3a4f"
+                }
+            ],
+            "prefix": null,
+            "name": "Unknown / Unsorted",
+            "description": null,
+            "prefixDigitPadding": null,
+            "timeZone": null,
+            "id": "cd9f76fe-fd22-461d-88a4-00fade6890ea"
+        }
+    ],
+    "description": "Hierarchical Encounter.locationID list in Wildbook",
+    "source": "http://en.wikipedia.org/wiki/List_of_seas",
+    "id": "ffacd3f4-2ef5-4837-9115-41c24912b822"
 }
