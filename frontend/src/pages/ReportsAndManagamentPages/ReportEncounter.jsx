@@ -5,7 +5,7 @@ import MainButton from "../../components/MainButton";
 import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
 import ImageSection from "./ImageSection";
-import DateTimeSection from "./DateTimeSection";
+import { DateTimeSection } from "./DateTimeSection";
 import PlaceSection from "../../components/PlaceSection";
 import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
 import { FollowUpSection } from "../../components/FollowUpSection";
