@@ -300,5 +300,7 @@
     "SUBMIT_NEXT_ENCOUNTER": "Enviar el Siguiente Encuentro",
     "INVALID_FILES": "Archivos Inválidos",
     "INVALID_FILES_MESSAGE": "Los siguientes archivos no se pudieron cargar. Consulta los {link} y vuelve a intentar la carga.",
-    "IMAGE_REQUIREMENTS": "requisitos de la imagen"
+    "IMAGE_REQUIREMENTS": "requisitos de la imagen",
+    "INVALID_DATETIME_WARNING": "Por favor, introduzca una fecha válida. Los formatos admitidos incluyen YYYY, YYYY-MM, YYYY-MM-DD y formatos de fecha y hora como YYYY-MM-DD HH:MM."
+
 }

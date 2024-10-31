@@ -301,6 +301,7 @@
     "SUBMIT_NEXT_ENCOUNTER": "Nächste Begegnung Einreichen",
     "INVALID_FILES": "Ungültige Dateien",
     "INVALID_FILES_MESSAGE": "Die folgenden Dateien konnten nicht hochgeladen werden. Überprüfen Sie die {link} und versuchen Sie es erneut.",
-    "IMAGE_REQUIREMENTS": "Bildanforderungen"
+    "IMAGE_REQUIREMENTS": "Bildanforderungen",
+    "INVALID_DATETIME_WARNING": "Bitte geben Sie ein gültiges Datum ein. Unterstützte Formate sind YYYY, YYYY-MM, YYYY-MM-DD und Datumsformate wie YYYY-MM-DD HH:MM."
 
 }
