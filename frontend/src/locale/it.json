@@ -300,6 +300,7 @@
     "SUBMIT_NEXT_ENCOUNTER": "Invia il Prossimo Incontro",
     "INVALID_FILES": "File Non Validi",
     "INVALID_FILES_MESSAGE": "I seguenti file non sono stati caricati. Controlla i {link} e riprova a caricarli.",
-    "IMAGE_REQUIREMENTS": "requisiti delle immagini"
+    "IMAGE_REQUIREMENTS": "requisiti delle immagini",
+    "INVALID_DATETIME_WARNING": "Inserisci una data valida. I formati supportati includono YYYY, YYYY-MM, YYYY-MM-DD e formati data-ora come YYYY-MM-DD HH:MM."
     
 }

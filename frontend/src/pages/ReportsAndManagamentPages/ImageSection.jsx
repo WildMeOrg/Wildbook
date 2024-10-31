@@ -294,7 +294,7 @@ export const FileUploader = observer(({ store }) => {
           >
             <i
               className="bi bi-info-circle-fill"
-              style={{ marginRight: "8px", color: theme.statusColors.red600 }}
+              style={{ marginRight: "8px", color: theme.statusColors.red800 }}
             ></i>
             <FormattedMessage id="IMAGES_REQUIRED_ANON_WARNING" />{" "}
             <a
