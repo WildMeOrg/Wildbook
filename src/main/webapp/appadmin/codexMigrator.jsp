@@ -275,7 +275,7 @@ private static Map<String,String> locationMap(JSONObject data, Map<String,String
 
 
 private static int batchMax() {
-    return 00;
+    return 10;
 }
 
 private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
@@ -580,7 +580,7 @@ Util.mark("TIME MID", startTime);
 
     // annotation joins after
     ct = 0;
-    res = st.executeQuery("SELECT guid, encounter_guid FROM annotation ORDER BY encounter_guid, guid");
+    res = st.executeQuery("SELECT guid, encounter_guid FROM annotation WHERE encounter_guid IS NOT NULL ORDER BY encounter_guid, guid");
     while (res.next()) {
         String annGuid = res.getString("guid");
         String encGuid = res.getString("encounter_guid");
@@ -844,12 +844,14 @@ private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd,
         String encGuid = res.getString("guid");
         String indivGuid = res.getString("individual_guid");
         Encounter enc = myShepherd.getEncounter(encGuid);
+        if ((enc != null) && enc.hasMarkedIndividual()) continue;
         MarkedIndividual indiv = myShepherd.getMarkedIndividual(indivGuid);
         if ((enc == null) || (indiv == null)) {
             System.out.println("migrateMarkedIndividuals: cannot join due to null; enc=" + enc + "; indiv=" + indiv);
             continue;
         }
         ct++;
+        indiv.addEncounter(enc);
         enc.setIndividual(indiv);
     }
     out.println("<p>joined " + ct + " enc/indiv pairs</p>");
