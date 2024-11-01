@@ -346,6 +346,15 @@
 								"locationID": []
 							},
 							{
+								"name": "Tweed Heads",
+								"id": "Tweed Heads",
+								"geospatialInfo":{
+									"lat": -28.16175095880648,
+									"long": 153.56529707505752
+								},
+								"locationID":[]
+							},
+							{
 								"name": "Wreck Bay",
 								"id": "WB",
 								"geospatialInfo": {
