@@ -15,6 +15,7 @@
   "_default": "@Equus.quagga",
 
   "Equus": {
+
     "grevyi": {
       "_detect_conf": [
         {
@@ -31,6 +32,7 @@
       "zebra": "@Equus.quagga.zebra",
       "zebra_grevys": "@Equus.grevyi.zebra"
     },
+
     "quagga": {
       "_detect_conf": [
         {
@@ -56,6 +58,43 @@
           }
         ]
       }
+    },
+
+    "quagga+quagga": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://kaiju.dyn.wildme.io:5010/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "zebra_v1",
+          "model_tag": "ggr2",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.4
+        }
+      ],
+      "_common_name": "Plains zebra",
+      "_default": "@Equus.quagga.zebra",
+      "zebra": "@Equus.quagga.zebra",
+      "zebra_grevys": "@Equus.grevyi.zebra"
+    }
+
+  },
+
+  "PzGz": {
+    "Hybrid": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://kaiju.dyn.wildme.io:5010/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "zebra_v1",
+          "model_tag": "ggr2",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.4
+        }
+      ],
+      "_common_name": "Plains zebra",
+      "_default": "@Equus.quagga.zebra",
+      "zebra": "@Equus.quagga.zebra",
+      "zebra_grevys": "@Equus.grevyi.zebra"
     }
   }
 
