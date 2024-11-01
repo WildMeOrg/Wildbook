@@ -76,8 +76,5 @@ out.println(res.toString(4));
 myShepherd.rollbackAndClose();
 
 
-myShepherd.rollbackAndClose();
-
-
 
 %>
