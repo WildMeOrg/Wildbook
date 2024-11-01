@@ -23,6 +23,14 @@ if ("".equals(fstr)) {
 
 if (forceNum == 0) forceNum = 999999;
 
+String sstr = request.getParameter("startNum");
+int startNum = -1;
+if (sstr != null) {
+    try {
+        startNum = Integer.parseInt(sstr);
+    } catch (Exception ex) {}
+}
+
 Shepherd myShepherd = new Shepherd(request);
 OpenSearch os = new OpenSearch();
 
@@ -45,10 +53,19 @@ if (forceNum > 0) {
     while (itr.hasNext()) {
             Encounter enc = (Encounter)itr.next();
             if (!Util.stringExists(enc.getId())) continue;
-            //System.out.println(enc.getId() + ": " + enc.getVersion());
-            enc.opensearchIndex();
-            if (ct % 100 == 0) System.out.println("opensearchSync.jsp: count " + ct);
             ct++;
+            if (startNum > 0) {
+                if (ct < startNum) continue;
+                if (ct == startNum) System.out.println("opensearchSync.jsp: starting at " + startNum);
+            }
+            //System.out.println(enc.getId() + ": " + enc.getVersion());
+            try {
+                enc.opensearchIndex();
+            } catch (Exception ex) {
+                System.out.println("opensearchSync.jsp: exception failure on " + enc);
+                ex.printStackTrace();
+            }
+            if (ct % 100 == 0) System.out.println("opensearchSync.jsp: count " + ct);
             if (ct > forceNum) break;
     }
 
