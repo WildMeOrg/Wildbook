@@ -1,0 +1,62 @@
+{
+  "_README": "A value starting with '@' indicates an absolute path from the top of this config file, and parsing that @-link results in the value of that absolute path. The first half of this file (top-level _detectors and _identifiers) defines the various algorithms we use, including the configs we send to SAGE and some metadata about each config. Each algo config is under a name-key, e.g. the african_terrestrial detector.  \n The second half of the file defines the pipeline for each species by referencing the previously-defined algorithms, in the hierachy genus->species->detectors, and genus->species->iaClass->identifiers. The values of these species configurations should be @-links but literals are also supported by the parser.",
+
+  "_global": {
+    "add_images": "https://kaiju.dyn.wildme.io:5010/api/image/json/",
+    "add_annotations": "https://kaiju.dyn.wildme.io:5010/api/annot/json/",
+    "start_identify": "https://kaiju.dyn.wildme.io:5010/api/engine/query/graph/",
+    "identify_review": "https://kaiju.dyn.wildme.io:5010/api/review/query/graph/",
+    "start_detect": "https://kaiju.dyn.wildme.io:5010/api/engine/detect/cnn/lightnet/",
+    "detect_review": "https://kaiju.dyn.wildme.io:5010/api/review/detect/cnn/yolo/",
+    "get_job_status": "https://kaiju.dyn.wildme.io:5010/api/engine/job/status/",
+    "get_job_result": "https://kaiju.dyn.wildme.io:5010/api/engine/job/result/"
+  },
+
+  "_default": "@Equus.quagga",
+
+  "Equus": {
+    "grevyi": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://kaiju.dyn.wildme.io:5010/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "zebra_v1",
+          "model_tag": "ggr2",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.4
+        }
+      ],
+      "_common_name": "Grevy's zebra",
+      "_default": "@Equus.quagga.zebra",
+      "zebra": "@Equus.quagga.zebra",
+      "zebra_grevys": "@Equus.grevyi.zebra"
+    },
+    "quagga": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://kaiju.dyn.wildme.io:5010/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "zebra_v1",
+          "model_tag": "ggr2",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.4
+        }
+      ],
+      "_common_name": "Plains zebra",
+      "_default": "@Equus.quagga.zebra",
+      "zebra_grevys": "@Equus.grevyi.zebra",
+      "zebra": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": true
+          }
+        ]
+      }
+    }
+  }
+
+}

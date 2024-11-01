@@ -198,7 +198,9 @@ h2.vidcap {
   	
   	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
+<!--
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/seal-annotation.png" />
+-->
 		  	
   	
   	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
