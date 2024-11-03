@@ -4106,6 +4106,9 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("organizations", keywordNormalType);
         map.put("otherCatalogNumbers", keywordNormalType);
         map.put("lifeStage", keywordNormalType);
+        map.put("submitters", keywordNormalType);
+        map.put("photographers", keywordNormalType);
+        map.put("informOthers", keywordNormalType);
 
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
