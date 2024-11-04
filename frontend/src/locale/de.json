@@ -248,5 +248,9 @@
     "SESSION_EXTEND" : "Verlängern",
     "SESSION_LOGIN" : "Anmelden",
     "SESSION_CLOSE" : "Schließen",
-    "LOADING" : "Laden"
+    "LOADING" : "Laden",
+    "USER_ACCESS_LOG": "Benutzerzugriffsprotokoll",
+    "ENCOUNTER_SUBMISSION_LOG": "Begegnungseinreichungsprotokoll",
+    "DELETED_ENCOUNTERS_LOG": "Protokoll gelöschter Begegnungen",
+    "EMAIL_LOG": "E-Mail-Protokoll"
 }

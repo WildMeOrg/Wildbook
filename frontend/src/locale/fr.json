@@ -247,5 +247,9 @@
     "SESSION_EXTEND" : "Prolonger",
     "SESSION_LOGIN" : "Connexion",
     "SESSION_CLOSE" : "Fermer",
-    "LOADING" : "Chargement"
+    "LOADING" : "Chargement",
+    "USER_ACCESS_LOG": "Journal d'accès utilisateur",
+    "ENCOUNTER_SUBMISSION_LOG": "Journal des soumissions de rencontres",
+    "DELETED_ENCOUNTERS_LOG": "Journal des rencontres supprimées",
+    "EMAIL_LOG": "Journal des e-mails"
 }

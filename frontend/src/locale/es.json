@@ -247,5 +247,9 @@
     "SESSION_EXTEND": "Extender",
     "SESSION_LOGIN": "Iniciar sesión",
     "SESSION_CLOSE": "Cerrar",
-    "LOADING": "Cargando"
+    "LOADING": "Cargando",
+    "USER_ACCESS_LOG": "Registro de acceso de usuario",
+    "ENCOUNTER_SUBMISSION_LOG": "Registro de envío de encuentros",
+    "DELETED_ENCOUNTERS_LOG": "Registro de encuentros eliminados",
+    "EMAIL_LOG": "Registro de correos electrónicos"
 }
