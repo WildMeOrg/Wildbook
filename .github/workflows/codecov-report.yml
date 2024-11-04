@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Set up Java for backend tests
       - name: Set up Java
@@ -22,7 +22,7 @@ jobs:
 
       # Set up Node.js for frontend tests
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '16'
 
@@ -35,7 +35,7 @@ jobs:
       # Run backend tests with coverage
       - name: Run backend tests
         run: mvn test -e
-        working-directory: .
+        working-directory: ./
         continue-on-error: true
 
       # Install dependencies for frontend
@@ -46,7 +46,7 @@ jobs:
 
       # Run frontend tests with coverage
       - name: Run frontend tests
-        run: npm run test -- --coverage
+        run: npm run test --coverage
         working-directory: frontend
         continue-on-error: true
 
