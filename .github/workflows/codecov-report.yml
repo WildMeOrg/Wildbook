@@ -34,7 +34,7 @@ jobs:
 
       # Run backend tests with coverage
       - name: Run backend tests
-        run: mvn test
+        run: mvn test -e
         working-directory: src
         continue-on-error: true
 
