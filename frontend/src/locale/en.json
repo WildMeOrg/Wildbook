@@ -248,5 +248,9 @@
     "SESSION_EXTEND" : "Extend",
     "SESSION_LOGIN" : "Login",
     "SESSION_CLOSE" : "Close",
-    "LOADING" : "Loading"
+    "LOADING" : "Loading",
+    "USER_ACCESS_LOG": "User Access Log",
+    "ENCOUNTER_SUBMISSION_LOG": "Encounter Submission Log",
+    "DELETED_ENCOUNTERS_LOG": "Deleted Encounters Log",
+    "EMAIL_LOG": "Email Log"
 }
