@@ -29,13 +29,13 @@ jobs:
       # Install dependencies for backend
       - name: Install backend dependencies
         run: |
-          cd src/test
+          #cd src/test
           mvn clean install
 
       # Run backend tests with coverage
       - name: Run backend tests
         run: mvn test -e
-        working-directory: src/test
+        working-directory: .
         continue-on-error: true
 
       # Install dependencies for frontend
