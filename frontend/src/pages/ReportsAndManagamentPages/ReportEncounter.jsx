@@ -6,7 +6,7 @@ import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
 import ImageSection from "./ImageSection";
 import { DateTimeSection } from "./DateTimeSection";
-import PlaceSection from "../../components/PlaceSection";
+import PlaceSection from "./PlaceSection";
 import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
 import { FollowUpSection } from "../../components/FollowUpSection";
 import { observer, useLocalObservable } from "mobx-react-lite";
@@ -89,23 +89,14 @@ export const ReportEncounter = observer(() => {
       return;
     } else {
       console.log("Fields validated successfully. Submitting report.");
-      await store.submitReport();
-    }
-    console.log("Fields validated successfully. Submitting report.");
-    const responseData = await store.submitReport();
-    if (store.finished && store.success) {
-      Navigate("/reportConfirm", { state: { responseData } });
+      const responseData = await store.submitReport();
+      if (store.finished && store.success) {
+        Navigate("/reportConfirm", { state: { responseData } });
+      } else if (store.finished && !store.success) {
+        alert("Report submission failed");
+      }
     }
   };
-
-  useEffect(() => {
-    if (store.success && store.finished) {
-      alert("Report submitted successfully.");
-      Navigate("/home");
-    } else if (!store.success && store.finished) {
-      alert("Report submission failed");
-    }
-  }, [store.success, store.finished]);
 
   // Categories for sections
   const encounterCategories = [

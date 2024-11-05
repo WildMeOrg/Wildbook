@@ -39,6 +39,7 @@ export class ReportEncounterStore {
     this._placeSection = {
       value: "",
       error: false,
+      required: true,
     };
     this._additionalCommentsSection = {
       value: "",
@@ -58,7 +59,7 @@ export class ReportEncounterStore {
     this._success = false;
     this._finished = false;
     this._signInModalShow = false;
-    this._exifDateTime = []; 
+    this._exifDateTime = [];
     makeAutoObservable(this);
   }
 
@@ -120,7 +121,7 @@ export class ReportEncounterStore {
   }
 
   get exifDateTime() {
-    return this._exifDateTime; 
+    return this._exifDateTime;
   }
 
   // Actions
@@ -164,7 +165,7 @@ export class ReportEncounterStore {
   }
 
   setExifDateTime(exifData) {
-    this._exifDateTime.push(exifData); 
+    this._exifDateTime.push(exifData);
   }
 
   setSpeciesSectionValue(value) {
@@ -175,8 +176,12 @@ export class ReportEncounterStore {
     this._speciesSection.error = error;
   }
 
-  setPlaceSection(value) {
-    this._placeSection.value = value;
+  setLocationId(value) {
+    this._placeSection.locationId = value;
+  }
+
+  setLocationError(error) {
+    this._placeSection.error = error;
   }
 
   setFollowUpSection(value) {
@@ -255,18 +260,16 @@ export class ReportEncounterStore {
       this._imageSectionError = true;
       isValid = false;
 
-    if(!this._dateTimeSection.value && this._dateTimeSection.required) {
-      this._dateTimeSection.error = true;
-      isValid = false;
-    } 
+      if (!this._dateTimeSection.value && this._dateTimeSection.required) {
+        this._dateTimeSection.error = true;
+        isValid = false;
+      }
 
-      // Uncomment the place section validation if needed
-      // if (!this._placeSection.value) {
-      //   this._placeSection.error = true;
-      //   isValid = false;
-      // } else {
-      //   this._placeSection.error = false;
-      // }
+      if (!this._placeSection.locationId && this._placeSection.required) {
+        this._placeSection.error = true;
+        isValid = false;
+      }
+
     }
     console.log("Validation result", isValid);
     return isValid;
@@ -282,7 +285,7 @@ export class ReportEncounterStore {
         assetFilenames: this._imageSectionFileNames,
         dateTime: this._dateTimeSection.value,
         taxonomy: this._speciesSection.value,
-        locationId: "TG",
+        locationId: this._placeSection.locationId,
         // followUp: this._followUpSection.value,
         // images: this._imageSectionFileNames,
       });
@@ -299,8 +302,7 @@ export class ReportEncounterStore {
         this._imageSectionError = false;
         this._success = true;
         this._finished = true;
-
-        console.log(this._finished);
+        this._placeSection.value = "";
         return response.data;
       } else {
         this._finished = true;
@@ -308,7 +310,6 @@ export class ReportEncounterStore {
         console.error("Report submission failed");
       }
 
-      // Additional logic for report submission can be added here.
     } else {
       console.error("Validation failed");
     }
