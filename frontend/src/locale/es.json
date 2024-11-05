@@ -19,7 +19,7 @@
     "MENU_LEARN_TERMSOFUSE": "Términos de uso",
     "MENU_LEARN_LEARNMORE": "Aprender más sobre Wildbook",
     "MENU_LEARN_REPORTENCOUNTER": "Reportar un avistamiento",
-    "MENU_LEARN_REPORTENCOUNTER_CLASSIC" : "Reportar un avistamiento (clásico)",
+    "MENU_LEARN_REPORTENCOUNTER_CLASSIC": "Reportar un avistamiento (clásico)",
     "MENU_LEARN_BULKIMPORT": "Importación masiva",
     "MENU_LEARN_MYENCOUNTERS": "Mis encuentros",
     "MENU_LEARN_APPROVEDANIMALS": "Mis animales aprobados",
@@ -289,7 +289,7 @@
     "EMPTY_REQUIRED_WARNING": "Este campo no puede estar vacío",
     "FILE_SIZE_EXCEEDED": "Las imágenes que superen el límite no se subirán",
     "ADD_MORE_FILES": "Añadir más archivos",
-    "UPLOAD_FAILED" : "Error al subir el archivo",
+    "UPLOAD_FAILED": "Error al subir el archivo",
     "SUBMISSION_SUCCESSFUL": "Envío Exitoso",
     "SUBMISSION_SUCCESS_ALERT": "¡Gracias por enviar tu encuentro!",
     "ENCOUNTER": "Encuentro",
@@ -301,6 +301,8 @@
     "INVALID_FILES": "Archivos Inválidos",
     "INVALID_FILES_MESSAGE": "Los siguientes archivos no se pudieron cargar. Consulta los {link} y vuelve a intentar la carga.",
     "IMAGE_REQUIREMENTS": "requisitos de la imagen",
-    "INVALID_DATETIME_WARNING": "Introduzca una fecha válida. Los formatos admitidos incluyen YYYY, YYYY-MM, YYYY-MM-DD y formatos de fecha y hora como YYYY-MM-DD HH:MM."
-
+    "INVALID_DATETIME_WARNING": "Introduzca una fecha válida. Los formatos admitidos incluyen YYYY, YYYY-MM, YYYY-MM-DD y formatos de fecha y hora como YYYY-MM-DD HH:MM.",
+    "FILTER_BY_MAP": "Filtrar por mapa",
+    "LOCATION_ID_DESCRIPTION": "Encuentra el ID de ubicación utilizando el texto o el mapa. Intenta ser lo más específico posible.",
+    "LOCATION_ID_REQUIRED_WARNING": "Se requiere el ID de ubicación para establecer conjuntos de coincidencias."
 }

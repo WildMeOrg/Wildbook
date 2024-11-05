@@ -4,7 +4,7 @@ import BrutalismButton from "./BrutalismButton";
 import ThemeContext from "../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
 
-const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
+const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds = () => {} }) => {
   const theme = useContext(ThemeContext);
 
   const [rectangle, setRectangle] = useState(null);
@@ -74,13 +74,13 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
     drawingRef.current = !drawingRef.current;
   };
 
-  const [key, setKey] = useState(null);
+  const [key, setKey] = useState("AIzaSyBp0XgdcCh6jF9B2OJtsL1JtYvT5zdrllk");
 
-  useEffect(() => {
-    if (window?.wildbookGlobals?.gMapKey) {
-      setKey(window?.wildbookGlobals?.gMapKey);
-    }
-  }, [window?.wildbookGlobals]);
+  // useEffect(() => {
+  //   if (window?.wildbookGlobals?.gMapKey) {
+  //     setKey(window?.wildbookGlobals?.gMapKey);
+  //   }
+  // }, [window?.wildbookGlobals]);
 
   return (
     <div style={{ height: "400px", width: "100%" }}>
@@ -110,7 +110,7 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
       </BrutalismButton>
       {key ? (
         <GoogleMapReact
-          key={key}
+          key={"AIzaSyBp0XgdcCh6jF9B2OJtsL1JtYvT5zdrllk"}
           bootstrapURLKeys={{ key: key }}
           defaultCenter={center}
           defaultZoom={zoom}
