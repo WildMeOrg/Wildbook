@@ -56,10 +56,10 @@ jobs:
         with:
           name: test-results
           path: |
-            mkdir -p /src/surefire-reports
-            mkdir -p /frontend/coverage
-            /src/surefire-reports
-            /frontend/coverage
+            mkdir -p src/surefire-reports
+            mkdir -p frontend/coverage
+            src/surefire-reports
+            frontend/coverage
 
       # Upload to Codecov
       - name: Upload coverage to Codecov
@@ -67,8 +67,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # Add Codecov token as a secret in GitHub
           files: |
-            /src/site/jacoco.xml
-            /frontend/lcov.info
+            src/site/jacoco.xml
+            frontend/lcov.info
           flags: backend,frontend
           name: codecov-coverage-report
           fail_ci_if_error: false # Does not block merge if there’s an error
