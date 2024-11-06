@@ -46,7 +46,7 @@ jobs:
 
       # Run frontend tests with coverage
       - name: Run frontend tests
-        run: npm run test 
+        run: npm run test --coverage
         working-directory: frontend
         continue-on-error: true
 
