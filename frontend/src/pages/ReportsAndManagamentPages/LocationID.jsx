@@ -6,7 +6,6 @@ import { TreeSelect, Tag } from "antd";
 import MainButton from "../../components/MainButton";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { LocationFilterByMap } from "./LocationFilterByMap";
-import { set } from "date-fns";
 
 const customTagRender = (props) => {
   const { label } = props;
@@ -43,7 +42,37 @@ export const LocationID = observer(
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [modalShow, setModalShow] = useState(false);
     const theme = React.useContext(ThemeColorContext);
-    const [ showFilterByMap, setShowFilterByMap ] = useState(false);
+    const [showFilterByMap, setShowFilterByMap] = useState(false);
+    const [expandedKeys, setExpandedKeys] = useState([]);
+
+    const handleSearch = (inputValue) => {
+      if (inputValue) {
+        const keys = [];
+        const searchTree = (nodes, ancestors = []) => {
+          nodes.forEach((node) => {
+            const currentPath = [...ancestors, node.value];
+            if (node.title.toLowerCase().includes(inputValue.toLowerCase())) {
+              currentPath.forEach((key) => {
+                if (!keys.includes(key)) {
+                  keys.push(key);
+                }
+              });
+            }
+            if (node.children) {
+              searchTree(node.children, currentPath);
+            }
+          });
+        };
+        searchTree(treeData);
+        setExpandedKeys(keys);
+      } else {
+        setExpandedKeys([]);
+      }
+    };
+
+    const handleExpand = (newExpandedKeys) => {
+      setExpandedKeys(newExpandedKeys);
+    };
 
     useEffect(() => {
       if (locationData) {
@@ -85,9 +114,6 @@ export const LocationID = observer(
               value={store.placeSection.locationId}
               treeCheckStrictly
               treeNodeFilterProp="title"
-              // filterTreeNode={(input, node) =>
-              //   node.name.toLowerCase().includes(input.toLowerCase())
-              // }
               onChange={(selectedValues) => {
                 const singleSelection =
                   selectedValues.length > 0
@@ -95,7 +121,9 @@ export const LocationID = observer(
                     : null;
                 store.setLocationId(singleSelection?.value || null);
               }}
-              treeDefaultExpandAll
+              treeExpandedKeys={expandedKeys}
+              onSearch={handleSearch}
+              onTreeExpand={handleExpand}
               showSearch
               style={{ width: "100%" }}
               placeholder={<FormattedMessage id="LOCATIONID_INSTRUCTION" />}
@@ -137,9 +165,9 @@ export const LocationID = observer(
                         setModalShow(true);
                       }}
                     >
-                      {
-                      showFilterByMap && <FormattedMessage id="FILTER_BY_MAP" />
-                    }
+                      {showFilterByMap && (
+                        <FormattedMessage id="FILTER_BY_MAP" />
+                      )}
                     </a>
                     <div className="d-flex flex-row">
                       <MainButton
