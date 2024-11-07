@@ -51,6 +51,7 @@ public class SiteSettings extends ApiBase {
         settings.put("mapCenterLat", CommonConfiguration.getCenterLat(context));
         settings.put("mapCenterLon", CommonConfiguration.getCenterLong(context));
         settings.put("mapZoom", CommonConfiguration.getMapZoom(context));
+        settings.put("googleMapsKey", CommonConfiguration.getGoogleMapsKey(context));
 
         JSONArray txArr = new JSONArray();
         for (String sciName : myShepherd.getAllTaxonomyNames()) {
