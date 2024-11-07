@@ -124,26 +124,25 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		defaultSelectItemId = null;
 		loggedOutDefaultDesired = false;
 	}
-	// if(options.length<1){
-	// 	isVisible=false;
-	// }
+	if(options.length<1){
+	 	isVisible=false;
+	}
 		let projectNameHtml = '';
-		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		if(loggedOutDefaultDesired){
+
+		if(isVisible){
+			projectNameHtml += '<div class="col-xs-6 col-md-4"><label class="control-label"><%=props.getProperty("projectMultiSelectLabel") %></label></div><div class="col-xs-6 col-lg-8"><select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}
+
+		//options
+    if(loggedOutDefaultDesired){
 			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
 			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
 		}
-		if(isVisible){
-			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
-			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
-		}else{
-			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
-		}
-		projectNameHtml += '<option value=""></option>';
-		if(defaultSelectItem){
+    if(defaultSelectItem){
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 			options = options.remove(defaultSelectItem);
 		}
+    projectNameHtml += '<option value=""></option>';
 		for(let i=0; i<options.length; i++){
 			if(options[i] === selectedOption){
 				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
@@ -151,7 +150,8 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
 			}
 		}
-		projectNameHtml += '</div>';
+    
+		projectNameHtml += '</div></div>';
 		$("#proj-id-dropdown-container").empty();
 		$("#proj-id-dropdown-container").append(projectNameHtml);
 }
@@ -988,7 +988,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
   <fieldset>
 
-		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		<div class="form-group" id="proj-id-dropdown-container">
 		</div>
 
     <div class="form-group">
