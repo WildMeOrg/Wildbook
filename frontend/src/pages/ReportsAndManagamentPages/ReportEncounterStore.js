@@ -18,6 +18,8 @@ export class ReportEncounterStore {
   _finished;
   _signInModalShow;
   _exifDateTime;
+  _showSubmissionFailedAlert;
+  _error;
 
   constructor() {
     this._imageSectionSubmissionId = null;
@@ -60,6 +62,12 @@ export class ReportEncounterStore {
     this._finished = false;
     this._signInModalShow = false;
     this._exifDateTime = [];
+    this._showSubmissionFailedAlert = false;
+    this._error = {
+      message: "",
+      status: "",
+    };
+
     makeAutoObservable(this);
   }
 
@@ -122,6 +130,14 @@ export class ReportEncounterStore {
 
   get exifDateTime() {
     return this._exifDateTime;
+  }
+
+  get showSubmissionFailedAlert() {
+    return this._showSubmissionFailedAlert;
+  }
+
+  get error() {
+    return this._error;
   }
 
   // Actions
@@ -216,6 +232,10 @@ export class ReportEncounterStore {
     this._signInModalShow = value;
   }
 
+  setShowSubmissionFailedAlert(value) {
+    this._showSubmissionFailedAlert = value;
+  }
+
   validateEmails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -257,59 +277,67 @@ export class ReportEncounterStore {
     }
 
     if (this._imageRequired && this._imageSectionFileNames.length === 0) {
+      console.log("1");
       this._imageSectionError = true;
       isValid = false;
+    }
+    console.log(isValid);
 
-      if (!this._dateTimeSection.value && this._dateTimeSection.required) {
-        this._dateTimeSection.error = true;
-        isValid = false;
-      }
+    if (!this._dateTimeSection.value && this._dateTimeSection.required) {
+      console.log(JSON.stringify(this._dateTimeSection));
+      this._dateTimeSection.error = true;
+      isValid = false;
+    }
 
-      if (!this._placeSection.locationId && this._placeSection.required) {
-        this._placeSection.error = true;
-        isValid = false;
-      }
-
+    if (!this._placeSection.locationId && this._placeSection.required) {
+      console.log("3");
+      this._placeSection.error = true;
+      isValid = false;
     }
     console.log("Validation result", isValid);
     return isValid;
   }
   async submitReport() {
     console.log("submitting");
+    this._loading = true;
     const readyCaseone =
       this.validateFields() && this._imageSectionFileNames.length > 0;
     const readyCasetwo = this.validateFields() && !this._imageRequired;
+    console.log(readyCaseone, readyCasetwo);
     if (readyCaseone || readyCasetwo) {
-      const response = await axios.post("/api/v3/encounters", {
-        submissionId: this._imageSectionSubmissionId,
-        assetFilenames: this._imageSectionFileNames,
-        dateTime: this._dateTimeSection.value,
-        taxonomy: this._speciesSection.value,
-        locationId: this._placeSection.locationId,
-        // followUp: this._followUpSection.value,
-        // images: this._imageSectionFileNames,
-      });
+      try {
+        const response = await axios.post("/api/v3/encounters", {
+          submissionId: this._imageSectionSubmissionId,
+          assetFilenames: this._imageSectionFileNames,
+          dateTime: this._dateTimeSection.value,
+          taxonomy: this._speciesSection.value,
+          locationId: this._placeSection.locationId,
+          // followUp: this._followUpSection.value,
+          // images: this._imageSectionFileNames,
+        });
 
-      if (response.status === 200) {
-        console.log("Report submitted successfully.", response);
-        this._speciesSection.value = "";
-        this._placeSection.value = "";
-        this._followUpSection.value = "";
-        this._dateTimeSection.value = "";
-        this._imageSectionFileNames = [];
-        this._imageSectionSubmissionId = null;
-        this._imageCount = 0;
-        this._imageSectionError = false;
-        this._success = true;
-        this._finished = true;
-        this._placeSection.value = "";
-        return response.data;
-      } else {
-        this._finished = true;
-        this._success = false;
-        console.error("Report submission failed");
+        if (response.status === 200) {
+          console.log("Report submitted successfully.", response);
+          this._speciesSection.value = "";
+          this._placeSection.value = "";
+          this._followUpSection.value = "";
+          this._dateTimeSection.value = "";
+          this._imageSectionFileNames = [];
+          this._imageSectionSubmissionId = null;
+          this._imageCount = 0;
+          this._imageSectionError = false;
+          this._success = true;
+          this._finished = true;
+
+          console.log(this._finished);
+          return response.data;
+        }
+      } catch (error) {
+        console.error("Error submitting report", error);
+        this._showSubmissionFailedAlert = true;
+        this._error.code = error.response.status;
+        this._error.message = error.response.data.message;
       }
-
     } else {
       console.error("Validation failed");
     }
