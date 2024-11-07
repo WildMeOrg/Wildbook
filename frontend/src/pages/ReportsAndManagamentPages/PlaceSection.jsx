@@ -31,8 +31,6 @@ export const PlaceSection = observer(({ store }) => {
   const key = data?.googleMapsKey;
   const locationData = data?.locationData.locationID;
 
-  console.log(key, "key");
-
   return (
     <div>
       <LocationID
