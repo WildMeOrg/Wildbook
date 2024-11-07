@@ -17,7 +17,6 @@ import java.net.UnknownHostException;
 public final class ImageProcessor implements Runnable {
     private static Logger log = LoggerFactory.getLogger(ImageProcessor.class);
 
-
     private String context = "context0";
     private String command = null;
     private String imageSourcePath = null;
@@ -95,7 +94,7 @@ public final class ImageProcessor implements Runnable {
             return;
         }
         String comment = CommonConfiguration.getProperty("imageComment", this.context);
-        if (comment == null) comment = "%year All rights reserved. | wildbook.org";
+        if (comment == null) comment = "%year All rights reserved. | wildme.org";
         String cname = ContextConfiguration.getNameForContext(this.context);
         if (cname != null) comment += " | " + cname;
         String maId = "unknown";
