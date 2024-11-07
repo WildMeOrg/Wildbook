@@ -302,5 +302,10 @@
     "INVALID_FILES": "Invalid Files",
     "INVALID_FILES_MESSAGE": "The following files could not be uploaded. Check the {link} and try uploading again.",
     "IMAGE_REQUIREMENTS": "image requirements",
-    "INVALID_DATETIME_WARNING": "Enter a valid date. Supported formats include YYYY, YYYY-MM, YYYY-MM-DD, and date-time formats like YYYY-MM-DD HH:MM."
+    "INVALID_DATETIME_WARNING": "Enter a valid date. Supported formats include YYYY, YYYY-MM, YYYY-MM-DD, and date-time formats like YYYY-MM-DD HH:MM.",
+    "FILTER_BY_MAP": "Filter by Map",
+    "LOCATION_ID_DESCRIPTION" : "Find the location id using the text or the map. Try to be as specific as possible.",
+    "LOCATION_ID_REQUIRED_WARNING" : "Location ID is required to establish match sets."
+
+
 }

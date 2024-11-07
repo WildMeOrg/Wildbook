@@ -18,7 +18,7 @@ export const ReportConfirm = () => {
       <p className="fs-5 lh-lg m-0">
         <FormattedMessage id="SUBMISSION_SUCCESS_ALERT" />
       </p>
-      {responseData.invalidFiles.length > 0 && (
+      {responseData.invalidFiles?.length > 0 && (
         <Alert variant="warning" dismissible>
           <p className="fs-5 fw-semibold">
             <FormattedMessage id="INVALID_FILES" />

@@ -5,6 +5,7 @@
   "dependencies": {
     "@flowjs/flow.js": "^2.14.1",
     "@testing-library/user-event": "^13.5.0",
+    "antd": "^5.21.5",
     "autoprefixer": "^10.4.18",
     "axios": "^1.7.4",
     "bootstrap": "^5.3.2",
