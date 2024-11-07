@@ -4758,7 +4758,17 @@ public class Encounter extends Base implements java.io.Serializable {
                 error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
                 throw new ApiException(exMessage, error);
             }
-            // FIXME validate taxonomy
+            // this is throwaway read-only shepherd
+            Shepherd myShepherd = new Shepherd("context0");
+            myShepherd.setAction("Encounter.validateFieldValue");
+            myShepherd.beginDBTransaction();
+            boolean validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
+            myShepherd.rollbackDBTransaction();
+            if (!validTaxonomy) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
             break;
 
         case "photographerEmail":

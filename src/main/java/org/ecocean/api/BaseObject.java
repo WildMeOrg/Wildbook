@@ -167,6 +167,7 @@ public class BaseObject extends ApiBase {
                 " [errors=" + apiEx.getErrors() + "] on payload " + payload);
             rtn.put("statusCode", 400);
             rtn.put("errors", apiEx.getErrors());
+            rtn.put("debug", apiEx.toString());
         }
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
             System.out.println("BaseObject.processPost() success (200) creating " + obj +
