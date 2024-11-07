@@ -104,7 +104,7 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds = () => {} }
       </BrutalismButton>
       {key ? (
         <GoogleMapReact
-          key={"AIzaSyBp0XgdcCh6jF9B2OJtsL1JtYvT5zdrllk"}
+          key={key}
           bootstrapURLKeys={{ key: key }}
           defaultCenter={center}
           defaultZoom={zoom}
