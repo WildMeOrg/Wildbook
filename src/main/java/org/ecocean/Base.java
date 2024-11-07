@@ -22,7 +22,6 @@ import org.json.JSONObject;
  */
 @JsonSerialize(using = BaseSerializer.class) @JsonDeserialize(using =
     BaseDeserializer.class) public abstract class Base {
-
     /**
      * Retrieves Id, such as:
      *
@@ -191,12 +190,14 @@ import org.json.JSONObject;
         return rtn;
     }
 
-    public static Base createFromApi(JSONObject payload, List<File> files) throws ApiException {
+    public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
+    throws ApiException {
         throw new ApiException("not yet supported");
     }
 
     // TODO should this be an abstract? will we need some base stuff?
-    public static Object validateFieldValue(String fieldName, JSONObject data) throws ApiException {
+    public static Object validateFieldValue(String fieldName, JSONObject data)
+    throws ApiException {
         return null;
     }
 
