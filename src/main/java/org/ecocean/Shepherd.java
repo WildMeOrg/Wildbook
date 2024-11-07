@@ -2683,6 +2683,17 @@ public class Shepherd {
         return null;
     }
 
+    // note: if existing user is found *and* fullName is set, user will get updated with new name!
+    // (this is to replicate legacy behavior of creating users during encounter submission)
+    public User getOrCreateUserByEmailAddress(String email, String fullName) {
+        if (Util.stringIsEmptyOrNull(email)) return null;
+        User user = getUserByEmailAddress(email);
+        if (user == null) user = new User(email, Util.generateUUID());
+        if (!Util.stringIsEmptyOrNull(fullName)) user.setFullName(fullName);
+        getPM().makePersistent(user);
+        return user;
+    }
+
     public List<User> getUsersWithEmailAddresses() {
         ArrayList<User> users = new ArrayList<User>();
         String filter = "SELECT FROM org.ecocean.User WHERE emailAddress != null";
