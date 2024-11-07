@@ -52,7 +52,7 @@ export const LocationID = observer(
           nodes.forEach((node) => {
             const currentPath = [...ancestors, node.value];
             if (node.title.toLowerCase().includes(inputValue.toLowerCase())) {
-              currentPath.forEach((key) => {
+              ancestors.forEach((key) => {
                 if (!keys.includes(key)) {
                   keys.push(key);
                 }
