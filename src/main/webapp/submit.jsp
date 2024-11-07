@@ -96,7 +96,7 @@ $(document).ready( function() {
    $('#locationID').select2({width: '100%', height:'50px'});
    $('#country').select2({width: '100%', height:'50px'});
 
-	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	populateProjectNameDropdown([],[],"", false);
 	<%
 	if(user != null){
 		%>
@@ -115,15 +115,11 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
-	if(useCustomStyle){
-		//do nothing unusual
-	}else{
-		defaultSelectItem = null;
-		defaultSelectItemId = null;
-		loggedOutDefaultDesired = false;
-	}
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId){
+
+	defaultSelectItem = null;
+	defaultSelectItemId = null;
+	
 	if(options.length<1){
 	 	isVisible=false;
 	}
@@ -134,10 +130,6 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		}
 
 		//options
-    if(loggedOutDefaultDesired){
-			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
-			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
-		}
     if(defaultSelectItem){
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 			options = options.remove(defaultSelectItem);
@@ -167,26 +159,6 @@ Array.prototype.remove = function() {
     return this;
 };
 
-function getDefaultSelectedProject(){
-	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
-	return defaultProject;
-}
-
-function getDefaultProjectOrganizationParameter(){
-	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
-	return defaultProjectOrganizationParameter;
-}
-
-function getDefaultSelectedProjectId(){
-	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
-	return defaultProjectId;
-}
-
-function getLoggedOutDefaultDesired(){
-	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
-	return loggedOutDefaultDesired;
-}
-
 function doAjaxForProject(requestJSON,userId){
 	$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -200,7 +172,7 @@ function doAjaxForProject(requestJSON,userId){
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
 					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
-					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true);
 				}
 			},
 			error: function(x,y,z) {
