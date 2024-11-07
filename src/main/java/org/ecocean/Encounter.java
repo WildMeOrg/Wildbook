@@ -4657,7 +4657,8 @@ public class Encounter extends Base implements java.io.Serializable {
         return rtn;
     }
 
-    public static Base createFromApi(org.json.JSONObject payload, List<File> files)
+    public static Base createFromApi(org.json.JSONObject payload, List<File> files,
+        Shepherd myShepherd)
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
         User user = (User)payload.opt("_currentUser");
@@ -4666,23 +4667,52 @@ public class Encounter extends Base implements java.io.Serializable {
         String locationID = (String)validateFieldValue("locationId", payload);
         String dateTime = (String)validateFieldValue("dateTime", payload);
         String txStr = (String)validateFieldValue("taxonomy", payload);
-
+        String submitterEmail = (String)validateFieldValue("submitterEmail", payload);
+        String photographerEmail = (String)validateFieldValue("photographerEmail", payload);
+        String additionalEmailsValue = payload.optString("additionalEmails", null);
+        String[] additionalEmails = null;
+        if (!Util.stringIsEmptyOrNull(additionalEmailsValue))
+            additionalEmails = additionalEmailsValue.split("[,\\s]+");
+        if (additionalEmails != null) {
+            org.json.JSONObject error = new org.json.JSONObject();
+            error.put("fieldName", "additionalEmails");
+            for (String email : additionalEmails) {
+                if (!Util.isValidEmailAddress(email)) {
+                    error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                    error.put("value", email);
+                    throw new ApiException("invalid email address", error);
+                }
+            }
+        }
         Encounter enc = new Encounter(false);
-
         if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
         enc.setLocationID(locationID);
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
         enc.setComments(payload.optString("comments", null));
-
         if (user == null) {
             enc.setSubmitterID("public"); // this seems to be what EncounterForm servlet does so...
         } else {
             enc.setSubmitterID(user.getUsername());
             enc.addSubmitter(user);
         }
-
-        // FIXME apply values etc set owner etc
+        if (!Util.stringIsEmptyOrNull(submitterEmail)) {
+            User submitterUser = myShepherd.getOrCreateUserByEmailAddress(submitterEmail,
+                payload.optString("submitterName", null));
+            // set this after the owner-submitter being set
+            enc.addSubmitter(submitterUser);
+        }
+        if (!Util.stringIsEmptyOrNull(photographerEmail)) {
+            User photographerUser = myShepherd.getOrCreateUserByEmailAddress(photographerEmail,
+                payload.optString("photographerName", null));
+            enc.addPhotographer(photographerUser);
+        }
+        if (additionalEmails != null) {
+            for (String email : additionalEmails) {
+                User addlUser = myShepherd.getOrCreateUserByEmailAddress(email, null);
+                enc.addInformOther(addlUser);
+            }
+        }
         return enc;
     }
 
@@ -4693,9 +4723,7 @@ public class Encounter extends Base implements java.io.Serializable {
         error.put("fieldName", fieldName);
         String exMessage = "invalid value for " + fieldName;
         Object returnValue = null;
-
         switch (fieldName) {
-
         case "locationId":
             returnValue = data.optString(fieldName, null);
             if (returnValue == null) {
@@ -4733,12 +4761,21 @@ public class Encounter extends Base implements java.io.Serializable {
             // FIXME validate taxonomy
             break;
 
-        default:
-            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" + fieldName);
-        }
+        case "photographerEmail":
+        case "submitterEmail":
+            returnValue = data.optString(fieldName, null);
+            if ((returnValue != null) && !Util.isValidEmailAddress((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
 
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" +
+                fieldName);
+        }
         // must be okay!
         return returnValue;
     }
-
 }
