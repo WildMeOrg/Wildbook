@@ -48,6 +48,11 @@ public class SiteSettings extends ApiBase {
         settings.put("siteName", CommonConfiguration.getHTMLTitle(context));
         settings.put("locationData", LocationID.getLocationIDStructure());
 
+        settings.put("mapCenterLat", CommonConfiguration.getCenterLat(context));
+        settings.put("mapCenterLon", CommonConfiguration.getCenterLong(context));
+        settings.put("mapZoom", CommonConfiguration.getMapZoom(context));
+        settings.put("googleMapsKey", CommonConfiguration.getGoogleMapsKey(context));
+
         JSONArray txArr = new JSONArray();
         for (String sciName : myShepherd.getAllTaxonomyNames()) {
             JSONObject txj = new JSONObject();
@@ -159,15 +164,15 @@ public class SiteSettings extends ApiBase {
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
             context);
         if (recaptchaProps != null) {
-            settings.put("reCAPTCHAEnterpriseSiteKey", recaptchaProps.getProperty("enterpriseSiteKey"));
+            settings.put("reCAPTCHAEnterpriseSiteKey",
+                recaptchaProps.getProperty("enterpriseSiteKey"));
             settings.put("reCAPTCHASiteKey", recaptchaProps.getProperty("siteKey"));
         }
-
-        Properties captchaProps = ShepherdProperties.getProperties("captcha.properties", "", context);
+        Properties captchaProps = ShepherdProperties.getProperties("captcha.properties", "",
+            context);
         if (captchaProps != null) {
             settings.put("procaptchaSiteKey", captchaProps.getProperty("procaptchaSiteKey"));
         }
-
         // these are sensitive settings, that anon users should not get (e.g. user lists)
         if (currentUser != null) {
             JSONArray jarr = new JSONArray();
