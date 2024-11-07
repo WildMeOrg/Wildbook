@@ -2053,4 +2053,4 @@ function selectedProjectContainsEncounter(acmId) {
 
 }
 
-</script> -->
+</script>
