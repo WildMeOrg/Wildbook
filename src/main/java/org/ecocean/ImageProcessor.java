@@ -17,7 +17,6 @@ import java.net.UnknownHostException;
 public final class ImageProcessor implements Runnable {
     private static Logger log = LoggerFactory.getLogger(ImageProcessor.class);
 
-
     private String context = "context0";
     private String command = null;
     private String imageSourcePath = null;
