@@ -1,4 +1,4 @@
-<!-- <%@ page contentType="text/html; charset=iso-8859-1" language="java"
+<%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
@@ -2053,4 +2053,4 @@ function selectedProjectContainsEncounter(acmId) {
 
 }
 
-</script> -->
+</script>
