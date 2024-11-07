@@ -2126,6 +2126,8 @@ public class Shepherd {
         return (Util.count(taxis));
     }
 
+    // tragically this mixes Taxonomy (class, via db) with commonConfiguration-based values. SIGH
+    // TODO when property files go away (yay) this should become just db
     public List<String> getAllTaxonomyNames() {
         Iterator<Taxonomy> allTaxonomies = getAllTaxonomies();
         Set<String> allNames = new HashSet<String>();
@@ -2140,8 +2142,11 @@ public class Shepherd {
 
         List<String> allNamesList = new ArrayList<String>(allNames);
         java.util.Collections.sort(allNamesList);
-        // return (allNamesList);
-        return (configNames);
+        return allNamesList;
+    }
+
+    public boolean isValidTaxonomyName(String sciName) {
+        return getAllTaxonomyNames().contains(sciName);
     }
 
     public Iterator<Survey> getAllSurveysNoQuery() {
