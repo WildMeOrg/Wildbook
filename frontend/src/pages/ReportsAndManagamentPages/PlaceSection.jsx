@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Form } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
-import GoogleMapReact from "google-map-react";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import "./reportEncounter.css";
 import { LocationID } from "./LocationID";
@@ -29,23 +28,8 @@ export const PlaceSection = observer(({ store }) => {
   const mapCenterLat = data?.mapCenterLat;
   const mapCenterLon = data?.mapCenterLon;
   const mapZoom = data?.mapZoom;
+  const key = data?.googleMapsKey;
   const locationData = data?.locationData.locationID;
-
-
-  const [key, setKey] = useState(null);
-
-  const handleMapClick = ({ lat, lng }) => {
-    console.log("Map clicked", lat, lng);
-    store.setLat(lat);
-    store.setLon(lng);
-  };
-
-  useEffect(() => {
-    if (window?.wildbookGlobals?.gMapKey) {
-      console.log(window?.wildbookGlobals?.gMapKey, "key");
-      setKey(window?.wildbookGlobals?.gMapKey);
-    }
-  }, [window?.wildbookGlobals]);
 
   console.log(key, "key");
 
@@ -57,7 +41,6 @@ export const PlaceSection = observer(({ store }) => {
         mapCenterLat={mapCenterLat}
         mapCenterLon={mapCenterLon}
         mapZoom={mapZoom}
-        key={key}
       />      
     </div>
   );
