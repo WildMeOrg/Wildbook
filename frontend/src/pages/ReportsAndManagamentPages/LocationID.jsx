@@ -115,6 +115,7 @@ export const LocationID = observer(
               treeCheckStrictly
               treeNodeFilterProp="title"
               onChange={(selectedValues) => {
+                store.setLocationError(selectedValues ? false : true);
                 const singleSelection =
                   selectedValues.length > 0
                     ? selectedValues[selectedValues.length - 1]

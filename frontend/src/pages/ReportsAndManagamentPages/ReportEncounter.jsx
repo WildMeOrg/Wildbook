@@ -1,12 +1,12 @@
 import React, { useContext, useState, useRef, useEffect } from "react";
-import { Container, Row, Col, Form, Alert } from "react-bootstrap";
+import { Container, Row, Col, Form, Alert, Modal } from "react-bootstrap";
 import ThemeColorContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
 import ImageSection from "./ImageSection";
 import { DateTimeSection } from "./DateTimeSection";
-import PlaceSection from "./PlaceSection";
+import { PlaceSection } from "./PlaceSection";
 import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
 import { FollowUpSection } from "../../components/FollowUpSection";
 import { observer, useLocalObservable } from "mobx-react-lite";
@@ -23,6 +23,8 @@ export const ReportEncounter = observer(() => {
   const { data } = useGetSiteSettings();
   const procaptchaSiteKey = data?.procaptchaSiteKey;
   const store = useLocalObservable(() => new ReportEncounterStore());
+  const [missingField, setMissingField] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   store.setImageRequired(!isLoggedIn);
 
@@ -84,16 +86,23 @@ export const ReportEncounter = observer(() => {
   }, []);
 
   const handleSubmit = async () => {
+    setLoading(true);
     if (!store.validateFields()) {
       console.log("Field validation failed.");
+      store.setShowSubmissionFailedAlert(true);
+      setMissingField(true);
+      setLoading(false);
       return;
     } else {
       console.log("Fields validated successfully. Submitting report.");
       const responseData = await store.submitReport();
+      console.log("Response data: ", responseData);
       if (store.finished && store.success) {
+        setLoading(false);
         Navigate("/reportConfirm", { state: { responseData } });
       } else if (store.finished && !store.success) {
-        alert("Report submission failed");
+        setLoading(false);
+        store.setShowSubmissionFailedAlert(true);
       }
     }
   };
@@ -216,6 +225,27 @@ export const ReportEncounter = observer(() => {
 
   return (
     <Container>
+      <Modal
+        dialogClassName="modal-90w"
+        show={store.showSubmissionFailedAlert}
+        size="lg"
+        onHide={() => store.setShowSubmissionFailedAlert(false)}
+        keyboard
+        centered
+        animation
+      >
+        <Modal.Header
+          closeButton
+          style={{
+            border: "none",
+            paddingBottom: "0px",
+          }}
+        ></Modal.Header>
+        <div className="d-flex flex-row pb-4 ps-4">
+          {missingField && <FormattedMessage id="REQUIRED_FIELD_MISSING" />}
+          submission failed.
+        </div>
+      </Modal>
       <Row>
         <h3 className="pt-4">
           <FormattedMessage id="REPORT_AN_ENCOUNTER" />
@@ -373,6 +403,16 @@ export const ReportEncounter = observer(() => {
               onClick={handleSubmit}
             >
               <FormattedMessage id="SUBMIT_ENCOUNTER" />
+              {loading && (
+                <div
+                  className="spinner-border spinner-border-sm ms-1"
+                  role="status"
+                >
+                  <span className="visually-hidden">
+                    <FormattedMessage id="LOADING" />
+                  </span>
+                </div>
+              )}
             </MainButton>
           </div>
         </Col>
