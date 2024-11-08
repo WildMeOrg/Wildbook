@@ -2131,6 +2131,11 @@ public class Shepherd {
     // tragically this mixes Taxonomy (class, via db) with commonConfiguration-based values. SIGH
     // TODO when property files go away (yay) this should become just db
     public List<String> getAllTaxonomyNames() {
+        return getAllTaxonomyNames(false);
+    }
+
+    // forceSpaces will turn `Foo bar_bar` into `Foo bar bar` - use with caution!
+    public List<String> getAllTaxonomyNames(boolean forceSpaces) {
         Iterator<Taxonomy> allTaxonomies = getAllTaxonomies();
         Set<String> allNames = new HashSet<String>();
 
@@ -2144,11 +2149,18 @@ public class Shepherd {
 
         List<String> allNamesList = new ArrayList<String>(allNames);
         java.util.Collections.sort(allNamesList);
+        if (forceSpaces) {
+            List<String> spacey = new ArrayList<String>();
+            for (String tx : allNamesList) {
+                spacey.add(tx.replaceAll("_", " "));
+            }
+            return spacey;
+        }
         return allNamesList;
     }
 
     public boolean isValidTaxonomyName(String sciName) {
-        return getAllTaxonomyNames().contains(sciName);
+        return getAllTaxonomyNames(true).contains(sciName.replaceAll("_", " "));
     }
 
     public Iterator<Survey> getAllSurveysNoQuery() {
