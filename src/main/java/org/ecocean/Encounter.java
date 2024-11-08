@@ -2612,8 +2612,25 @@ public class Encounter extends Base implements java.io.Serializable {
         this.dateInMilliseconds = ms;
     }
 
+    // also supports YYYY and YYYY-MM
     public void setDateFromISO8601String(String iso8601) {
-        if (iso8601 == null) return;
+        if (!validISO8601String(iso8601)) return;
+        if (iso8601.length() == 4) { // assume year
+            try {
+                this.year = Integer.parseInt(iso8601);
+            } catch (Exception ex) {}
+            resetDateInMilliseconds();
+            return;
+        }
+        // this should already be validated so we can trust it (flw)
+        if (iso8601.length() == 7) {
+            try {
+                this.year = Integer.parseInt(iso8601.substring(0, 4));
+                this.month = Integer.parseInt(iso8601.substring(5, 7));
+            } catch (Exception ex) {}
+            resetDateInMilliseconds();
+            return;
+        }
         try {
             String adjusted = Util.getISO8601Date(iso8601);
             DateTime dt = new DateTime(adjusted);
@@ -2621,6 +2638,32 @@ public class Encounter extends Base implements java.io.Serializable {
         } catch (Exception ex) {
             System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
         }
+        resetDateInMilliseconds();
+    }
+
+    // also supports YYYY and YYYY-MM
+    public static boolean validISO8601String(String iso8601) {
+        if (iso8601 == null) return false;
+        if (iso8601.length() == 4) {
+            Integer yr = null;
+            try {
+                yr = Integer.parseInt(iso8601);
+            } catch (Exception ex) {}
+            return (yr != null);
+        }
+        if (iso8601.length() == 7) {
+            Integer yr = null;
+            Integer mo = null;
+            try {
+                yr = Integer.parseInt(iso8601.substring(0, 4));
+                mo = Integer.parseInt(iso8601.substring(5, 7));
+            } catch (Exception ex) {}
+            if ((yr == null) || (mo == null)) return false;
+            if ((mo < 1) || (mo > 12)) return false;
+            return true;
+        }
+        long test = Util.getVersionFromModified(iso8601);
+        return (test > 0);
     }
 
     public Long getEndDateInMilliseconds() {
@@ -4762,9 +4805,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
                 throw new ApiException(exMessage, error);
             }
-            // this is a kind of cheap test of validity of dateTime value; likely we will need to make an improved Util for this
-            long test = Util.getVersionFromModified((String)returnValue);
-            if (test < 1) {
+            if (!validISO8601String((String)returnValue)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", returnValue);
                 throw new ApiException(exMessage, error);
