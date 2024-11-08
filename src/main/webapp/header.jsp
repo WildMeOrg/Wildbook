@@ -101,7 +101,7 @@ if(request.getUserPrincipal()!=null){
     }
   }
   catch(Exception e){
-    System.out.println("Exception on indocetCheck in header.jsp:");
+    System.out.println("Exception in header.jsp:");
     e.printStackTrace();
     myShepherd.closeDBTransaction();
   }
@@ -159,7 +159,7 @@ if(request.getUserPrincipal()!=null){
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
       
-      <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
+      <!-- Icon font applied everywhere -->
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
