@@ -85,6 +85,7 @@ public class BaseObject extends ApiBase {
     throws ServletException, IOException {
         if (payload == null) throw new ServletException("empty payload");
         JSONObject rtn = new JSONObject();
+        Encounter encounterForIA = null;
         rtn.put("success", false);
         List<File> files = findFiles(request, payload);
         String context = ServletUtilities.getContext(request);
@@ -129,6 +130,7 @@ public class BaseObject extends ApiBase {
                 obj = Encounter.createFromApi(payload, files, myShepherd);
                 Encounter enc = (Encounter)obj;
                 myShepherd.getPM().makePersistent(enc);
+                encounterForIA = enc;
                 String txStr = enc.getTaxonomyString();
                 JSONArray assetsArr = new JSONArray();
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
@@ -174,7 +176,9 @@ public class BaseObject extends ApiBase {
                 " from payload " + payload);
             myShepherd.commitDBTransaction();
             MediaAsset.updateStandardChildrenBackground(context, maIds);
-// FIXME kick off detection etc
+            if (encounterForIA != null) encounterForIA.sendToIA(myShepherd);
+            // not sure what this is for, but servlet/EncounterForm did it so guessing its important
+            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         } else {
             myShepherd.rollbackDBTransaction();
         }
