@@ -312,8 +312,11 @@ export class ReportEncounterStore {
           dateTime: this._dateTimeSection.value,
           taxonomy: this._speciesSection.value,
           locationId: this._placeSection.locationId,
-          // followUp: this._followUpSection.value,
-          // images: this._imageSectionFileNames,
+          comments: this._additionalCommentsSection.value,
+          submitterName: this._followUpSection.submitter.name,
+          submitterEmail: this._followUpSection.submitter.email,
+          photographerName: this._followUpSection.photographer.name,
+          photographerEmail: this._followUpSection.photographer.email,
         });
 
         if (response.status === 200) {

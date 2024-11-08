@@ -18,7 +18,7 @@ export const ReportConfirm = () => {
       <p className="fs-5 lh-lg m-0">
         <FormattedMessage id="SUBMISSION_SUCCESS_ALERT" />
       </p>
-      {responseData.invalidFiles?.length > 0 && (
+      {responseData?.invalidFiles?.length > 0 && (
         <Alert variant="warning" dismissible>
           <p className="fs-5 fw-semibold">
             <FormattedMessage id="INVALID_FILES" />
@@ -36,7 +36,7 @@ export const ReportConfirm = () => {
             />
           </p>
 
-          {responseData.invalidFiles.map((invalidFile, index) => (
+          {responseData?.invalidFiles?.map((invalidFile, index) => (
             <p key={index} className="fs-6 mb-0">
               {invalidFile.filename}
             </p>
@@ -44,7 +44,7 @@ export const ReportConfirm = () => {
         </Alert>
       )}
       <p className="fs-5 lh-lg fw-bold m-0">
-        <FormattedMessage id="ENCOUNTER" /> {responseData.id}
+        <FormattedMessage id="ENCOUNTER" /> {responseData?.id}
       </p>
       <p className="fs-6 lh-sm fw-normal m-0">
         <FormattedMessage id="SUBMISSION_SUCCESS_LOCATION_ID" />{" "}
@@ -92,14 +92,14 @@ export const ReportConfirm = () => {
             noArrow={true}
             style={{
               width: "calc(100% - 20px)",
-              fontSize: "16px",
+              fontSize: "1rem",
               marginTop: "20px",
               marginBottom: "20px",
               fontWeight: "normal",
             }}
             onClick={() =>
               window.open(
-                `/encounters/encounter.jsp?number=${responseData.id}`,
+                `/encounters/encounter.jsp?number=${responseData?.id}`,
                 "_blank",
               )
             }
