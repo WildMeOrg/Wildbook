@@ -187,9 +187,9 @@ public class SubmitSpotsAndTransformImage extends HttpServlet {
             if (spotMAisNew)
                 spotMA.setMinimalMetadata((int)Math.round(ma.getWidth() * sizeMult),
                     (int)Math.round(ma.getHeight() * sizeMult), "image/jpeg");
-//////TODO how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
+// how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
             JSONObject params = new JSONObject();
-// what *is* the deal with sidedness here? did we flip that in js ... i forget!  TODO
+// what *is* the deal with sidedness here? did we flip that in js ... i forget!  
             String typePrefix = "org.ecocean.flukeEdge";
             if (isDorsalFin) typePrefix = "org.ecocean.dorsalEdge";
             if (refSpots.size() > 0) {
@@ -243,7 +243,7 @@ public class SubmitSpotsAndTransformImage extends HttpServlet {
             System.out.println(
                 "ERROR: SubmitSpotsAndTranform failed to generate a spot MediaAsset!");
         }
-        /////m.put("name", name);  TODO return url to MA!!
+        /////m.put("name", name);   return url to MA!!
         Gson gson = new Gson();
         out.println(gson.toJson(m));
 
