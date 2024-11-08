@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.ecocean.api.ApiException;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
@@ -4824,5 +4825,37 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         // must be okay!
         return returnValue;
+    }
+
+    // basically ripped from servlet/EncounterForm
+    public Task sendToIA(Shepherd myShepherd) {
+        Task task = null;
+
+        try {
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            if (iaConfig.hasIA(this, myShepherd)) {
+                for (MediaAsset ma : this.getMedia()) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
+                Task parentTask = null; // this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+                if (this.getLocationID() != null) {
+                    parentTask = new Task();
+                    org.json.JSONObject tp = new org.json.JSONObject();
+                    org.json.JSONObject mf = new org.json.JSONObject();
+                    mf.put("locationId", this.getLocationID());
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, this.getMedia(), parentTask);
+                myShepherd.storeNewTask(task);
+                System.out.println("sendToIA() success on " + this + " => " + task);
+            } else {
+                System.out.println("sendToIA() skipped; no config for " + this);
+            }
+        } catch (Exception ex) {
+            System.out.println("sendToIA() failed on " + this + ": " + ex);
+            ex.printStackTrace();
+        }
+        return task;
     }
 }
