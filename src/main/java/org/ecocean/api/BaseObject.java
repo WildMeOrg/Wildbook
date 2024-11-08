@@ -94,6 +94,7 @@ public class BaseObject extends ApiBase {
         myShepherd.beginDBTransaction();
         User currentUser = myShepherd.getUser(request);
         payload.put("_currentUser", currentUser); // hacky yes, but works. i am going to allow it.
+        String langCode = ServletUtilities.getLanguageCode(request);
 
         // for background child assets, which has to be after all persisted
         List<Integer> maIds = new ArrayList<Integer>();
@@ -176,7 +177,10 @@ public class BaseObject extends ApiBase {
                 " from payload " + payload);
             myShepherd.commitDBTransaction();
             MediaAsset.updateStandardChildrenBackground(context, maIds);
-            if (encounterForIA != null) encounterForIA.sendToIA(myShepherd);
+            if (encounterForIA != null) {
+                encounterForIA.sendToIA(myShepherd);
+                encounterForIA.sendCreationEmails(myShepherd, langCode);
+            }
             // not sure what this is for, but servlet/EncounterForm did it so guessing its important
             org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         } else {

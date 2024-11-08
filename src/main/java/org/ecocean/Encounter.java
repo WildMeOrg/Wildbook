@@ -4,9 +4,11 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.lang.Math;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -4857,5 +4860,67 @@ public class Encounter extends Base implements java.io.Serializable {
             ex.printStackTrace();
         }
         return task;
+    }
+
+    public Set<String> getNotificationEmailAddresses() {
+        Set<String> addrs = new HashSet<String>();
+
+        addrs.addAll(Util.getUserEmailAddresses(this.getSubmitters()));
+        addrs.addAll(Util.getUserEmailAddresses(this.getPhotographers()));
+        addrs.addAll(Util.getUserEmailAddresses(this.getInformOthers()));
+        return addrs;
+    }
+
+    // FIXME passing the langCode is dumb imho, but this is "standard practice"
+    // better would be that each recipient user's language preference would be used for their email
+    public void sendCreationEmails(Shepherd myShepherd, String langCode) {
+        String context = myShepherd.getContext();
+
+        if (!CommonConfiguration.sendEmailNotifications(context)) return;
+        myShepherd.beginDBTransaction();
+        try {
+            URI uri = CommonConfiguration.getServerURI(myShepherd);
+            if (uri == null) throw new IOException("could not find server uri");
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Properties submitProps = ShepherdProperties.getProperties("submit.properties", langCode,
+                context);
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(this);
+            tagMap.put(NotificationMailer.WILDBOOK_COMMUNITY_URL,
+                CommonConfiguration.getWildbookCommunityURL(context));
+            List<String> mailTo = NotificationMailer.splitEmails(
+                CommonConfiguration.getNewSubmissionEmail(context));
+            String mailSubj = submitProps.getProperty("newEncounter") + this.getCatalogNumber();
+            for (String emailTo : mailTo) {
+                NotificationMailer mailer = new NotificationMailer(context, emailTo, langCode,
+                    "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            // this will be empty if no locationID
+            Set<String> locEmails = myShepherd.getAllUserEmailAddressesForLocationIDAsSet(
+                this.getLocationID(), context);
+            for (String emailTo : locEmails) {
+                NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo,
+                    "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
+            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + this.getCatalogNumber());
+            // this is a mashup of: submitters, photographers, informOthers....
+            for (String emailTo : this.getNotificationEmailAddresses()) {
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, getHashOfEmailString(emailTo));
+                NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo,
+                    "newSubmission", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            es.shutdown();
+        } catch (Exception ex) {
+            System.out.println("sendCreationEmails() on " + this + " failed: " + ex);
+            ex.printStackTrace();
+        } finally {
+            myShepherd.rollbackDBTransaction();
+        }
     }
 }
