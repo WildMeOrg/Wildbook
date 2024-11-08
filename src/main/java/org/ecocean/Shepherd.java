@@ -998,6 +998,8 @@ public class Shepherd {
     }
 
     public boolean doesUserHaveRole(String username, String rolename, String context) {
+        if (username == null) return false;
+        if (rolename == null) return false;
         username = username.replaceAll("\\'", "\\\\'");
         rolename = rolename.replaceAll("\\'", "\\\\'");
         String filter = "this.username == '" + username + "' && this.rolename == '" + rolename +
@@ -2710,6 +2712,18 @@ public class Shepherd {
         return users;
     }
 
+    // this seems more what we want
+    public List<User> getUsersWithEmailAddressesWhoReceiveEmails() {
+        ArrayList<User> users = new ArrayList<User>();
+        String filter = "SELECT FROM org.ecocean.User WHERE emailAddress != null && receiveEmails";
+        Query query = getPM().newQuery(filter);
+        Collection c = (Collection)(query.execute());
+
+        if (c != null) users = new ArrayList<User>(c);
+        query.closeAll();
+        return users;
+    }
+
     public User getUserByAffiliation(String affil) {
         String filter = "SELECT FROM org.ecocean.User WHERE affiliation == \"" + affil + "\"";
         Query query = getPM().newQuery(filter);
@@ -4211,6 +4225,19 @@ public class Shepherd {
             }
         }
         return addresses;
+    }
+
+    // you probably dont like the above one, so:
+    public Set<String> getAllUserEmailAddressesForLocationIDAsSet(String locationID,
+        String context) {
+        Set<String> emails = new HashSet<String>();
+
+        if (Util.stringIsEmptyOrNull(locationID)) return emails;
+        for (User user : getUsersWithEmailAddressesWhoReceiveEmails()) {
+            if (doesUserHaveRole(user.getUsername(), locationID, context))
+                emails.add(user.getEmailAddress());
+        }
+        return emails;
     }
 
     public Iterator getAllOccurrences() {
