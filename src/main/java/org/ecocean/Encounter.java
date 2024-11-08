@@ -4669,6 +4669,18 @@ public class Encounter extends Base implements java.io.Serializable {
         String txStr = (String)validateFieldValue("taxonomy", payload);
         String submitterEmail = (String)validateFieldValue("submitterEmail", payload);
         String photographerEmail = (String)validateFieldValue("photographerEmail", payload);
+        Double decimalLatitude = (Double)validateFieldValue("decimalLatitude", payload);
+        Double decimalLongitude = (Double)validateFieldValue("decimalLongitude", payload);
+        if (((decimalLatitude == null) && (decimalLongitude != null)) ||
+            ((decimalLatitude != null) && (decimalLongitude == null))) {
+            org.json.JSONObject error = new org.json.JSONObject();
+            error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            // i guess we pick one, since both are wrong
+            error.put("fieldName", "decimalLatitude");
+            error.put("value", decimalLatitude);
+            throw new ApiException("cannot send just one of decimalLatitude and decimalLongitude",
+                    error);
+        }
         String additionalEmailsValue = payload.optString("additionalEmails", null);
         String[] additionalEmails = null;
         if (!Util.stringIsEmptyOrNull(additionalEmailsValue))
@@ -4687,6 +4699,8 @@ public class Encounter extends Base implements java.io.Serializable {
         Encounter enc = new Encounter(false);
         if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
         enc.setLocationID(locationID);
+        enc.setDecimalLatitude(decimalLatitude);
+        enc.setDecimalLongitude(decimalLongitude);
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
         enc.setComments(payload.optString("comments", null));
@@ -4723,6 +4737,7 @@ public class Encounter extends Base implements java.io.Serializable {
         error.put("fieldName", fieldName);
         String exMessage = "invalid value for " + fieldName;
         Object returnValue = null;
+        double UNSET_LATLON = 9999.99;
         switch (fieldName) {
         case "locationId":
             returnValue = data.optString(fieldName, null);
@@ -4775,6 +4790,28 @@ public class Encounter extends Base implements java.io.Serializable {
         case "submitterEmail":
             returnValue = data.optString(fieldName, null);
             if ((returnValue != null) && !Util.isValidEmailAddress((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "decimalLatitude":
+            returnValue = data.optDouble(fieldName, UNSET_LATLON);
+            if ((double)returnValue == UNSET_LATLON) {
+                returnValue = null;
+            } else if (!Util.isValidDecimalLatitude((double)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "decimalLongitude":
+            returnValue = data.optDouble(fieldName, UNSET_LATLON);
+            if ((double)returnValue == UNSET_LATLON) {
+                returnValue = null;
+            } else if (!Util.isValidDecimalLongitude((double)returnValue)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", returnValue);
                 throw new ApiException(exMessage, error);
