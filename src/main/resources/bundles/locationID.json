@@ -429,6 +429,34 @@
 			"long": -38.3546891798861
 		}
 	},
+		{
+		"name": "VIC-Cape Conran-Conran Creek Reef",
+		"id": "VIC-Cape Conran-Conran Creek Reef",
+		"locationID": [],
+		"prefix": "VIC-",
+		"prefixDigitPadding": 4
+	},
+	{
+		"name": "VIC-Cape Conran-East Cape Conran",
+		"id": "VIC-Cape Conran-East Cape Conran",
+		"locationID": [],
+		"prefix": "VIC-",
+		"prefixDigitPadding": 4
+	},
+	{
+		"name": "VIC-Cape Conran-Joiners Channel",
+		"id": "VIC-Cape Conran-Joiners Channel",
+		"locationID": [],
+		"prefix": "VIC-",
+		"prefixDigitPadding": 4
+	},
+	{
+		"name": "VIC-Cape Conran-Yeerung Reefs",
+		"id": "VIC-Cape Conran-Yeerung Reefs",
+		"locationID": [],
+		"prefix": "VIC-",
+		"prefixDigitPadding": 4
+	},
 	{ 
 		"name": "VIC-Castle Rock", 
 		"id": "VIC-Castle Rock", 
