@@ -13,13 +13,6 @@ body {
 	background-position: center;
 }
 
-.navbar-brand.indocet {
-	display: inline !important; /* display: none by default; */
-	background: url(indocet-logo-white.png) no-repeat;
-	background-position: center;
-	background-size: 76%; /* custom value that looks nice next to flukebook logo */
-}
-
 .nav-bar-wrapper {
 	background-color: #075366;
 }
@@ -195,9 +188,6 @@ h1, h2, .brand-primary, div #markedIndividualHeader {
 	color
 }
 
-/*
-Link code copied from indocet's website
-*/
 a:hover, .entry-meta span a:hover, .comments-link a:hover, body.coldisplay2 #front-columns a:active {
     color: #ffb200;
 }
