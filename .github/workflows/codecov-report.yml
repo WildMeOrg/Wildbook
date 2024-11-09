@@ -31,6 +31,8 @@ jobs:
         run: |
           #cd src/test
           mvn clean install
+          mkdir -p src/surefire-reports
+          mkdir -p frontend/coverage
 
       # Run backend tests with coverage
       - name: Run backend tests
@@ -56,8 +58,6 @@ jobs:
         with:
           name: test-results
           path: |
-            mkdir -p src/surefire-reports
-            mkdir -p frontend/coverage
             src/surefire-reports
             frontend/coverage
 
@@ -72,6 +72,13 @@ jobs:
           flags: backend,frontend
           name: codecov-coverage-report
           fail_ci_if_error: false # Does not block merge if there’s an error
+
+      - name: List files
+        run: |
+          #cd src/test
+          ls -l src/surefire-reports
+          ls -l frontend/coverage
+
 
       # Display test coverage in the summary (optional)
       - name: Display test coverage summary
