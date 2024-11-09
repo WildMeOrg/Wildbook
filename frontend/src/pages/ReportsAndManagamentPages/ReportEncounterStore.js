@@ -20,6 +20,8 @@ export class ReportEncounterStore {
   _exifDateTime;
   _showSubmissionFailedAlert;
   _error;
+  _lat;
+  _lon;
 
   constructor() {
     this._imageSectionSubmissionId = null;
@@ -63,10 +65,9 @@ export class ReportEncounterStore {
     this._signInModalShow = false;
     this._exifDateTime = [];
     this._showSubmissionFailedAlert = false;
-    this._error = {
-      message: "",
-      status: "",
-    };
+    this._error = null;
+    this._lat = null;
+    this._lon = null;
 
     makeAutoObservable(this);
   }
@@ -138,6 +139,14 @@ export class ReportEncounterStore {
 
   get error() {
     return this._error;
+  }
+
+  get lat() {
+    return this._lat;
+  }
+
+  get lon() {
+    return this._lon;
   }
 
   // Actions
@@ -236,6 +245,14 @@ export class ReportEncounterStore {
     this._showSubmissionFailedAlert = value;
   }
 
+  setLat(value) {
+    this._lat = value;
+  }
+
+  setLon(value) {
+    this._lon = value;
+  }
+
   validateEmails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -306,7 +323,8 @@ export class ReportEncounterStore {
     console.log(readyCaseone, readyCasetwo);
     if (readyCaseone || readyCasetwo) {
       try {
-        const response = await axios.post("/api/v3/encounters", {
+
+        const payload = {
           submissionId: this._imageSectionSubmissionId,
           assetFilenames: this._imageSectionFileNames,
           dateTime: this._dateTimeSection.value,
@@ -317,7 +335,16 @@ export class ReportEncounterStore {
           submitterEmail: this._followUpSection.submitter.email,
           photographerName: this._followUpSection.photographer.name,
           photographerEmail: this._followUpSection.photographer.email,
-        });
+          decimalLatitude: this._lat,
+          decimalLongitude: this._lon,
+        };
+        
+        const filteredPayload = Object.fromEntries(
+          Object.entries(payload).filter(([key, value]) => value !== null && value !== ""),
+        );
+
+        console.log("Filtered payload", filteredPayload);
+        const response = await axios.post("/api/v3/encounters", filteredPayload);
 
         if (response.status === 200) {
           console.log("Report submitted successfully.", response);
@@ -337,9 +364,9 @@ export class ReportEncounterStore {
         }
       } catch (error) {
         console.error("Error submitting report", error);
+        console.log(JSON.stringify(error));
         this._showSubmissionFailedAlert = true;
-        this._error.code = error.response.status;
-        this._error.message = error.response.data.message;
+        this._error = error.response.data.errors;
       }
     } else {
       console.error("Validation failed");
