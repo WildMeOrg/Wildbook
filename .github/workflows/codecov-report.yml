@@ -58,7 +58,7 @@ jobs:
         with:
           name: test-results
           path: |
-            src/surefire-reports
+            target/surefire-reports
             frontend/coverage
 
       # Upload to Codecov
@@ -76,7 +76,7 @@ jobs:
       - name: List files
         run: |
           #cd src/test
-          ls -l src/surefire-reports
+          ls -l target/surefire-reports
           ls -l frontend/coverage
 
 
@@ -84,6 +84,6 @@ jobs:
       - name: Display test coverage summary
         run: |
           echo "Backend Test Results:"
-          cat src/surefire-reports/*.txt || true
+          cat target/surefire-reports/*.txt || true
           echo "Frontend Test Coverage Summary:"
           cat frontend/coverage/*.* || true
