@@ -76,8 +76,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # Add Codecov token as a secret in GitHub
           files: |
-            /target/site/jacoco/jacoco.xml
-            /frontend/coverage/lcov.info
+            target/site/jacoco/jacoco.xml
+            frontend/coverage/lcov.info
           flags: backend,frontend
           name: codecov-coverage-report
           fail_ci_if_error: false # Does not block merge if there’s an error
@@ -85,8 +85,8 @@ jobs:
       - name: List files
         run: |
           #cd src/test
-          ls -l /target/surefire-reports
-          ls -l /frontend/coverage
+          ls -l target/surefire-reports
+          ls -l frontend/coverage
 
 
       # Display test coverage in the summary (optional)
