@@ -60,6 +60,15 @@ jobs:
           path: |
             target/surefire-reports
             frontend/coverage
+            
+      # List coverage files
+      - name: Verify coverage files
+        run: |
+          echo "Checking backend coverage files..."
+          ls -l target/site/jacoco/ || echo "No backend coverage files found"
+          echo "Checking frontend coverage files..."
+          ls -l frontend/coverage/ || echo "No frontend coverage files found"
+
 
       # Upload to Codecov
       - name: Upload coverage to Codecov
