@@ -67,7 +67,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # Add Codecov token as a secret in GitHub
           files: |
-            src/site/jacoco.xml
+            target/site/jacoco/jacoco.xml
             frontend/coverage/lcov.info
           flags: backend,frontend
           name: codecov-coverage-report
