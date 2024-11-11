@@ -129,7 +129,7 @@ public class SubmitSpotsAndImage extends HttpServlet {
         String speciesString = enc.getTaxonomyString();
         Annotation ann = new Annotation(speciesString, crMa);
         ann.setMatchAgainst(true);
-        String iaClass = "whalesharkCR"; // should we change this?
+        String iaClass = "shark"; // should we change this?
         ann.setIAClass(iaClass);
         if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
         enc.addAnnotation(ann);
