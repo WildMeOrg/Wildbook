@@ -186,7 +186,6 @@
 
 <div class="container maincontent">
 <%
-//TODO styles above can go in _encounter-pages.less if they don't conflict with ones already in there
   String rq = "";
   if (request.getQueryString() != null) {
     rq = request.getQueryString();
