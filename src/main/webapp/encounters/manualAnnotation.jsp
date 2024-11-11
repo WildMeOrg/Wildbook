@@ -198,9 +198,11 @@ try{
 	final String noViewpoint = "----------";
 	vlist += "<option value=\"\"" + (viewpoint == null || viewpoint.equals("") ? " selected" : "") + ">" + noViewpoint + "</option>";
 	final Set<String> results = new LinkedHashSet<>(Annotation.getAllValidViewpoints());
-	Iterator it = results.iterator();
+	List<String> sortedResults = new ArrayList<>(results);
+	Collections.sort(sortedResults);
+	Iterator<String> it = sortedResults.iterator();
 	while (it.hasNext()) {
-	    String v = (String)it.next();
+	    String v = it.next();
 	    if (!Util.stringExists(v)) continue;
 	    vlist += "<option" + (v.equals(viewpoint) ? " selected" : "") + ">" + v + "</option>";
 	}
