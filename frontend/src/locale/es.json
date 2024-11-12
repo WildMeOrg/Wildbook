@@ -252,6 +252,7 @@
     "REPORT_PAGE_TITLE": "Página para informar de un encuentro",
     "REPORT_PAGE_DESCRIPTION": "Háblenos del animal que vio y sea lo más específico posible. Al enviar datos e imágenes, usted autoriza el uso ilimitado de estos materiales únicamente con fines de investigación y conservación.",
     "SIGNIN_REMINDER_BANNER": "Para asociar el encuentro con tu cuenta, por favor inicia sesión. Si deseas continuar de forma anónima, completa el captcha.",
+    "SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER": "Gracias por verificar. Continúe con su envío anónimo o inicie sesión",
     "REQUIRED_FIELDS_KEY": "* Campos obligatorios",
     "PHOTOS_SECTION": "Fotos",
     "DATETIME_SECTION": "Fecha y hora",
@@ -304,5 +305,8 @@
     "INVALID_DATETIME_WARNING": "Introduzca una fecha válida. Los formatos admitidos incluyen YYYY, YYYY-MM, YYYY-MM-DD y formatos de fecha y hora como YYYY-MM-DD HH:MM.",
     "FILTER_BY_MAP": "Filtrar por mapa",
     "LOCATION_ID_DESCRIPTION": "Encuentra el ID de ubicación utilizando el texto o el mapa. Intenta ser lo más específico posible.",
-    "LOCATION_ID_REQUIRED_WARNING": "Se requiere el ID de ubicación para establecer conjuntos de coincidencias."
+    "LOCATION_ID_REQUIRED_WARNING": "Se requiere el ID de ubicación para establecer conjuntos de coincidencias.",
+    "MISSING_REQUIRED_FIELDS": "Faltan campos obligatorios. Revise el formulario e inténtelo de nuevo.", 
+    "INVALID_LAT": "La latitud debe estar entre -90 y 90",
+    "INVALID_LONG": "La longitud debe estar entre -180 y 180"
 }

@@ -252,6 +252,7 @@
     "REPORT_PAGE_TITLE": "Page Signaler une rencontre",
     "REPORT_PAGE_DESCRIPTION": "Parlez-nous de l'animal que vous avez vu et soyez aussi précis que possible. En soumettant des données et des images, vous autorisez l'utilisation illimitée de ce matériel à des fins de recherche et de conservation uniquement.",
     "SIGNIN_REMINDER_BANNER": "Pour associer la rencontre avec votre compte, veuillez vous connecter. Si vous souhaitez continuer anonymement, veuillez compléter le captcha.",
+    "SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER": "Merci d'avoir vérifié ! Poursuivez votre soumission anonyme ou connectez-vous.",
     "REQUIRED_FIELDS_KEY": "* Champs obligatoires",
     "PHOTOS_SECTION": "Photos",
     "DATETIME_SECTION": "Date et heure",
@@ -304,5 +305,8 @@
     "INVALID_DATETIME_WARNING": "Saisir une date valide. Les formats acceptés incluent YYYY, YYYY-MM, YYYY-MM-DD et les formats date-heure comme YYYY-MM-DD HH:MM.",
     "FILTER_BY_MAP": "Filtrer par carte",
     "LOCATION_ID_DESCRIPTION": "Trouvez l'ID de l'emplacement en utilisant le texte ou la carte. Essayez d'être aussi précis que possible.",
-    "LOCATION_ID_REQUIRED_WARNING": "L'ID de l'emplacement est requis pour établir des ensembles de correspondances."
+    "LOCATION_ID_REQUIRED_WARNING": "L'ID de l'emplacement est requis pour établir des ensembles de correspondances.",
+    "MISSING_REQUIRED_FIELDS": "Champs obligatoires manquants. Vérifiez le formulaire et réessayez.", 
+    "INVALID_LAT": "La latitude doit être comprise entre -90 et 90",
+    "INVALID_LONG": "La longitude doit être comprise entre -180 et 180"
 }
