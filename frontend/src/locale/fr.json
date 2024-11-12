@@ -308,5 +308,8 @@
     "LOCATION_ID_REQUIRED_WARNING": "L'ID de l'emplacement est requis pour établir des ensembles de correspondances.",
     "MISSING_REQUIRED_FIELDS": "Champs obligatoires manquants. Vérifiez le formulaire et réessayez.", 
     "INVALID_LAT": "La latitude doit être comprise entre -90 et 90",
-    "INVALID_LONG": "La longitude doit être comprise entre -180 et 180"
+    "INVALID_LONG": "La longitude doit être comprise entre -180 et 180",
+    "BEERROR_REQUIRED" : "Impossible de soumettre ; champ requis manquant : ",
+    "BEERROR_INVALID" : "Impossible de soumettre ; le format du champ n'est pas valide : ",
+    "BEERROR_UNKNOWN" : "Impossible de soumettre en raison d'une erreur inconnue."
 }
