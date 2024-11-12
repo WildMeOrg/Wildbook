@@ -85,7 +85,7 @@ public class IAGateway extends HttpServlet {
         try {
             String containerName = IA.getProperty("context0", "containerName");
             baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-            if (containerName != null && containerName != "") {
+            System.out.println("BASEURL: "+baseUrl);            if (containerName != null && containerName != "") {
                 baseUrl = baseUrl.replace("localhost", containerName);
             }
         } catch (Exception e) {
@@ -289,15 +289,23 @@ public class IAGateway extends HttpServlet {
         String taskId = res.optString("taskId", null);
         if (taskId == null)
             throw new RuntimeException("IAGateway._doIdentify() has no taskId passed in");
-        if (baseUrl == null) return res;
-        if (jin == null) return res;
+        if (baseUrl == null) {
+        	System.out.println("baseUrl is null -> ");
+        	baseUrl = CommonConfiguration.getServerURL(myShepherd);
+        }
+        if (jin == null) {System.out.println("jin is null -> "); return res;}
         JSONObject j = jin.optJSONObject("identify");
-        if (j == null) return res; // "should never happen"
+        if (j == null) {System.out.println("jin is null -> ");return res;} // "should never happen"
 /*
     TODO? right now this 'opt' is directly from IBEISIA.identOpts() ????? hmmmm....
     note then that for IBEIS this effectively gets mapped via queryConfigDict to usable values we also might consider incorporating j.opt (passed
        within identify:{} object itself, from the api/gateway) ???
+       
+       
+       
  */
+        System.out.println("HEEEEEEERE");
+        
         JSONObject opt = jin.optJSONObject("opt");
         ArrayList<Annotation> anns = new ArrayList<Annotation>(); // what we ultimately run on.  occurrences are irrelevant now right?
         ArrayList<String> validIds = new ArrayList<String>();
