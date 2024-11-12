@@ -19,6 +19,7 @@ import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
 import org.ecocean.Organization;
 import org.ecocean.Project;
+import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
@@ -194,6 +195,8 @@ public class SiteSettings extends ApiBase {
             }
             settings.put("projectsForUser", jp);
         }
+        settings.put("isHuman", ReCAPTCHA.sessionIsHuman(request));
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
