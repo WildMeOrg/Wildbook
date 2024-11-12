@@ -309,5 +309,8 @@
     "LOCATION_ID_REQUIRED_WARNING": "Die Standort-ID ist erforderlich, um Abgleichsgruppen zu erstellen.",
     "MISSING_REQUIRED_FIELDS": "Es fehlen erforderliche Felder. Überprüfen Sie das Formular und versuchen Sie es erneut.", 
     "INVALID_LAT": "Der Breitengrad muss zwischen -90 und 90 liegen",
-    "INVALID_LONG": "Der Längengrad muss zwischen -180 und 180 liegen"
+    "INVALID_LONG": "Der Längengrad muss zwischen -180 und 180 liegen",
+    "BEERROR_REQUIRED" : "Konnte nicht übermittelt werden; erforderliches Feld fehlt: ",
+    "BEERROR_INVALID" : "Konnte nicht übermittelt werden; Feldformat war ungültig: ",
+    "BEERROR_UNKNOWN" : "Konnte aufgrund eines unbekannten Fehlers nicht abgeschickt werden."
 }

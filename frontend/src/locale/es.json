@@ -308,5 +308,8 @@
     "LOCATION_ID_REQUIRED_WARNING": "Se requiere el ID de ubicación para establecer conjuntos de coincidencias.",
     "MISSING_REQUIRED_FIELDS": "Faltan campos obligatorios. Revise el formulario e inténtelo de nuevo.", 
     "INVALID_LAT": "La latitud debe estar entre -90 y 90",
-    "INVALID_LONG": "La longitud debe estar entre -180 y 180"
+    "INVALID_LONG": "La longitud debe estar entre -180 y 180",
+    "BEERROR_REQUIRED" : "No se ha podido enviar; falta el campo obligatorio: ",
+    "BEERROR_INVALID" : "No se pudo enviar; el formato del campo no era válido: ",
+    "BEERROR_UNKNOWN" : "No se pudo enviar debido a un error desconocido."
 }
