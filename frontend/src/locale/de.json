@@ -253,6 +253,7 @@
     "REPORT_PAGE_TITLE": "Seite Begegnungen melden",
     "REPORT_PAGE_DESCRIPTION": "Erzählen Sie uns von dem Tier, das Sie gesehen haben, und seien Sie so genau wie möglich. Mit der Übermittlung von Daten und Bildern erklären Sie sich mit der uneingeschränkten Nutzung dieser Materialien für Forschungs- und Erhaltungszwecke einverstanden.",
     "SIGNIN_REMINDER_BANNER": "Um das Treffen mit Ihrem Konto zu verknüpfen, melden Sie sich bitte an. Wenn Sie anonym fortfahren möchten, vervollständigen Sie das Captcha.",
+    "SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER": "Vielen Dank für die Überprüfung! Fahren Sie mit Ihrer anonymen Eingabe fort oder melden Sie sich an.",
     "REQUIRED_FIELDS_KEY": "* Erforderliche Felder",
     "PHOTOS_SECTION": "Fotos",
     "DATETIME_SECTION": "Datum und Uhrzeit",
@@ -305,5 +306,8 @@
     "INVALID_DATETIME_WARNING": "Geben Sie ein gültiges Datum ein. Unterstützte Formate sind YYYY, YYYY-MM, YYYY-MM-DD und Datumsformate wie YYYY-MM-DD HH:MM.",
     "FILTER_BY_MAP": "Nach Karte filtern",
     "LOCATION_ID_DESCRIPTION": "Finden Sie die Standort-ID mithilfe des Textes oder der Karte. Versuchen Sie, so spezifisch wie möglich zu sein.",
-    "LOCATION_ID_REQUIRED_WARNING": "Die Standort-ID ist erforderlich, um Abgleichsgruppen zu erstellen."
+    "LOCATION_ID_REQUIRED_WARNING": "Die Standort-ID ist erforderlich, um Abgleichsgruppen zu erstellen.",
+    "MISSING_REQUIRED_FIELDS": "Es fehlen erforderliche Felder. Überprüfen Sie das Formular und versuchen Sie es erneut.", 
+    "INVALID_LAT": "Der Breitengrad muss zwischen -90 und 90 liegen",
+    "INVALID_LONG": "Der Längengrad muss zwischen -180 und 180 liegen"
 }

@@ -253,6 +253,7 @@
     "REPORT_PAGE_TITLE": "Report an Encounter Page",
     "REPORT_PAGE_DESCRIPTION": "Tell us about the animal you saw and be as specific as you can. By submitting data and images, you are granting unlimited usage of these materials for research and conservation purposes only.",
     "SIGNIN_REMINDER_BANNER": "To associate encounter with your account, please sign in. If you want to continue anonymously, complete the captcha.",
+    "SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER": "Thank you for verifying! Continue with your anonymous submission or sign in.",
     "REQUIRED_FIELDS_KEY": "* Required fields",
     "PHOTOS_SECTION": "Photos",
     "DATETIME_SECTION": "Date and Time",
@@ -304,8 +305,10 @@
     "IMAGE_REQUIREMENTS": "image requirements",
     "INVALID_DATETIME_WARNING": "Enter a valid date. Supported formats include YYYY, YYYY-MM, YYYY-MM-DD, and date-time formats like YYYY-MM-DD HH:MM.",
     "FILTER_BY_MAP": "Filter by Map",
-    "LOCATION_ID_DESCRIPTION" : "Find the location id using the text or the map. Try to be as specific as possible.",
-    "LOCATION_ID_REQUIRED_WARNING" : "Location ID is required to establish match sets."
-
+    "LOCATION_ID_DESCRIPTION": "Find the location id using the text or the map. Try to be as specific as possible.",
+    "LOCATION_ID_REQUIRED_WARNING": "Location ID is required to establish match sets.",
+    "MISSING_REQUIRED_FIELDS": "Missing required fields. Review the form and try again.", 
+    "INVALID_LAT": "Latitude must be between -90 and 90",
+    "INVALID_LONG": "Longitude must be between -180 and 180"
 
 }
