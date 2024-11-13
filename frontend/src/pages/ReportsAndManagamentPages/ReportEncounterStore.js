@@ -22,6 +22,7 @@ export class ReportEncounterStore {
   _error;
   _lat;
   _lon;
+  _isHumanLocal;
 
   constructor() {
     this._imageSectionSubmissionId = null;
@@ -68,6 +69,7 @@ export class ReportEncounterStore {
     this._error = null;
     this._lat = null;
     this._lon = null;
+    this._isHumanLocal = false;
 
     makeAutoObservable(this);
   }
@@ -147,6 +149,10 @@ export class ReportEncounterStore {
 
   get lon() {
     return this._lon;
+  }
+
+  get isHumanLocal() {
+    return this._isHumanLocal;
   }
 
   // Actions
@@ -253,6 +259,10 @@ export class ReportEncounterStore {
     this._lon = value;
   }
 
+  setIsHumanLocal(value) {
+    this._isHumanLocal = value;
+  }
+
   validateEmails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -335,12 +345,17 @@ export class ReportEncounterStore {
           submitterEmail: this._followUpSection.submitter.email,
           photographerName: this._followUpSection.photographer.name,
           photographerEmail: this._followUpSection.photographer.email,
+          additionalEmails: this._followUpSection.additionalEmails,
           decimalLatitude: this._lat,
           decimalLongitude: this._lon,
-        };
-        
+        };        
+
         const filteredPayload = Object.fromEntries(
-          Object.entries(payload).filter(([key, value]) => value !== null && value !== ""),
+          //filter out null and empty value, 
+          Object.entries(payload).filter(([key, value]) => value !== null && value !== "")
+          // filter out invalid lat
+          .filter(([key, value]) => key !== "decimalLatitude" || (value >= -90 && value <= 90))
+          .filter(([key, value]) => key !== "decimalLongitude" || (value >= -180 && value <= 180))
         );
 
         console.log("Filtered payload", filteredPayload);
