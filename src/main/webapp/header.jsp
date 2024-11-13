@@ -437,7 +437,9 @@ if(request.getUserPrincipal()!=null){
                         <ul class="dropdown-menu" role="menu">
 
                             <li><a href="<%=urlLoc %>/react/report" ><%=props.getProperty("report")%></a></li>
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))) { %>
                             <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("reportClassic")%></a></li>
+<% } %>
 
                             <!--
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
