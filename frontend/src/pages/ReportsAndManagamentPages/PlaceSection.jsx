@@ -14,7 +14,7 @@ export const PlaceSection = observer(({ store }) => {
   const mapCenterLon = data?.mapCenterLon || 7;
   const mapZoom = data?.mapZoom || 4;
   const locationData = data?.locationData.locationID;
-  const mapKey = data?.googleMapsKey || '';
+  const mapKey = data?.googleMapsKey || "";
   const [latAlert, setLatAlert] = useState(false);
   const [lonAlert, setLonAlert] = useState(false);
 
@@ -95,7 +95,94 @@ export const PlaceSection = observer(({ store }) => {
         mapCenterLat={mapCenterLat}
         mapCenterLon={mapCenterLon}
         mapZoom={mapZoom}
-      />      
+      />
+      <Form.Group>
+        <Form.Label>
+          <FormattedMessage id="FILTER_GPS_COORDINATES" />
+        </Form.Label>
+        <div className="d-flex flex-row gap-3">
+          <div className="w-50">
+            <Form.Control
+              type="number"
+              required
+              placeholder="##.##"
+              value={
+                store.lat !== null && store.lat !== undefined ? store.lat : ""
+              }
+              onChange={(e) => {
+                setLatAlert(false);
+                let newLat = e.target.value;
+                setPan(true);
+                store.setLat(newLat);
+                if (newLat < -90 || newLat > 90) {
+                  setLatAlert(true);
+                }
+              }}
+            />
+            {latAlert && (
+              <Alert
+                variant="light"
+                className="d-inline-block p-2 mt-2"
+                style={{
+                  color: "#dc3545",
+                  width: "auto",
+                  border: "none",
+                }}
+              >
+                <strong>
+                  <FormattedMessage id="INVALID_LAT" />
+                </strong>
+              </Alert>
+            )}
+          </div>
+          <div className="w-50">
+            <Form.Control
+              type="number"
+              required
+              placeholder="##.##"
+              value={
+                store.lon !== null && store.lon !== undefined ? store.lon : ""
+              }
+              onChange={(e) => {
+                setLonAlert(false);
+                const newLon = e.target.value;
+                setPan(true);
+                store.setLon(newLon);
+                if (newLon < -180 || newLon > 180) {
+                  setLonAlert(true);
+                }
+              }}
+            />
+            {lonAlert && (
+              <Alert
+                variant="light"
+                className="d-inline-block p-2 mt-2"
+                style={{
+                  color: "#dc3545",
+                  width: "auto",
+                  border: "none",
+                }}
+              >
+                <strong>
+                  <FormattedMessage id="INVALID_LONG" />
+                </strong>
+              </Alert>
+            )}
+          </div>
+        </div>
+      </Form.Group>
+
+      <div
+        className="mt-4"
+        style={{
+          width: "100%",
+          height: "400px",
+          borderRadius: "15px",
+          overflow: "hidden",
+        }}
+      >
+        <div ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
+      </div>
     </div>
   );
 });
