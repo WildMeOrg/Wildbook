@@ -26,20 +26,14 @@ export const ReportEncounter = observer(() => {
   const store = useLocalObservable(() => new ReportEncounterStore());
   const [missingField, setMissingField] = useState(false);
   const [loading, setLoading] = useState(false);
-  const fieldsConfig = getFieldsConfig(store);
   const isHuman = data?.isHuman;
   if (isHuman) {
     store.setIsHumanLocal(true);
   }
 
-  console.log("is human", isHuman);
-  console.log("store.isHumanLocal", store.isHumanLocal);
-
-
   store.setImageRequired(!isLoggedIn);
 
   useEffect(() => {
-    console.log("Checking local storage for saved data.");
     localStorage.getItem("species") &&
       store.setSpeciesSectionValue(localStorage.getItem("species"));
     localStorage.getItem("followUpSection.submitter.name") &&
@@ -99,31 +93,18 @@ export const ReportEncounter = observer(() => {
     localStorage.removeItem("lon");
     localStorage.removeItem("submissionId");
 
-    // fieldsConfig.forEach(({ key, setter }) => {
-    //   const value = localStorage.getItem(key);
-    //   if (value !== null && value !== undefined && value !== "") {
-    //     setter(value);
-    //   }
-    // });
-
-    // fieldsConfig.forEach(({ key }) => {
-    //   localStorage.removeItem(key);
-    // });
   }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
     if (!store.validateFields()) {
-      console.log("Field validation failed.");
       store.setShowSubmissionFailedAlert(true);
       setMissingField(true);
       setLoading(false);
       return;
     } else {
       setMissingField(false);
-      console.log("Fields validated successfully. Submitting report.");
       const responseData = await store.submitReport();
-      console.log("Response data: ", responseData);
       if (store.finished && store.success) {
         setLoading(false);
         Navigate("/reportConfirm", { state: { responseData } });
@@ -202,30 +183,21 @@ export const ReportEncounter = observer(() => {
     });
   };
 
-  console.log(procaptchaSiteKey);
-
   const captchaRef = useRef(null);
   useEffect(() => {
-    console.log("isHuman", isHuman);
-    console.log("store.isHumanLocal", store.isHumanLocal);
     if (store.isHumanLocal) return;
-    console.log("Loading ProCaptcha");
 
     let isCaptchaRendered = false;
-
     const loadProCaptcha = async () => {
       if (isCaptchaRendered || !captchaRef.current) return;
-
       const { render } = await import(
         "https://js.prosopo.io/js/procaptcha.bundle.js"
       );
-
       if (procaptchaSiteKey) {
         render(captchaRef.current, {
           siteKey: procaptchaSiteKey,
           callback: onCaptchaVerified,
         });
-
         isCaptchaRendered = true;
       }
     };
@@ -241,9 +213,7 @@ export const ReportEncounter = observer(() => {
   }, [procaptchaSiteKey]);
 
   const onCaptchaVerified = async (output) => {
-    console.log("Captcha verified, output: " + JSON.stringify(output));
     const payload = { procaptchaValue: output };
-
     try {
       const res = await fetch("/ReCAPTCHA", {
         method: "POST",
@@ -252,7 +222,6 @@ export const ReportEncounter = observer(() => {
       });
       const data = await res.json();
       store.setIsHumanLocal(data.valid);
-      console.log("Response data: ", data);
     } catch (error) {
       console.error("Error submitting captcha: ", error);
     }
@@ -311,7 +280,7 @@ export const ReportEncounter = observer(() => {
                   color: themeColor.statusColors.yellow800,
                 }}
               ></i>
-              {(isHuman || isHumanLocal) ?<FormattedMessage id="SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER"/> : <FormattedMessage id="SIGNIN_REMINDER_BANNER" /> }
+              {(isHuman || store.isHumanLocal) ?<FormattedMessage id="SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER"/> : <FormattedMessage id="SIGNIN_REMINDER_BANNER" /> }
             </div>
             <Row
               className="d-flex flex-row"
@@ -327,7 +296,6 @@ export const ReportEncounter = observer(() => {
                 color="white"
                 backgroundColor={themeColor.wildMeColors.cyan600}
                 onClick={() => {
-                  console.log("Storing data in local storage");
                   localStorage.setItem("species", store.speciesSection.value);
                   localStorage.setItem(
                     "followUpSection.submitter.name",

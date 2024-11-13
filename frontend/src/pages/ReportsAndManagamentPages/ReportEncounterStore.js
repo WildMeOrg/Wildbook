@@ -183,7 +183,6 @@ export class ReportEncounterStore {
       this._imageSectionFileNames = this._imageSectionFileNames.filter(
         (name) => name !== fileName,
       );
-      // delete this._exifDateTime[fileName];
     }
   }
 
@@ -299,41 +298,32 @@ export class ReportEncounterStore {
     }
 
     if (!this.validateEmails()) {
-      console.log("email validation failed");
       isValid = false;
     }
 
     if (this._imageRequired && this._imageSectionFileNames.length === 0) {
-      console.log("1");
       this._imageSectionError = true;
       isValid = false;
     }
-    console.log(isValid);
 
     if (!this._dateTimeSection.value && this._dateTimeSection.required) {
-      console.log(JSON.stringify(this._dateTimeSection));
       this._dateTimeSection.error = true;
       isValid = false;
     }
 
     if (!this._placeSection.locationId && this._placeSection.required) {
-      console.log("3");
       this._placeSection.error = true;
       isValid = false;
     }
-    console.log("Validation result", isValid);
     return isValid;
   }
   async submitReport() {
-    console.log("submitting");
     this._loading = true;
     const readyCaseone =
       this.validateFields() && this._imageSectionFileNames.length > 0;
     const readyCasetwo = this.validateFields() && !this._imageRequired;
-    console.log(readyCaseone, readyCasetwo);
     if (readyCaseone || readyCasetwo) {
       try {
-
         const payload = {
           submissionId: this._imageSectionSubmissionId,
           assetFilenames: this._imageSectionFileNames,
@@ -351,18 +341,14 @@ export class ReportEncounterStore {
         };        
 
         const filteredPayload = Object.fromEntries(
-          //filter out null and empty value, 
           Object.entries(payload).filter(([key, value]) => value !== null && value !== "")
-          // filter out invalid lat
           .filter(([key, value]) => key !== "decimalLatitude" || (value >= -90 && value <= 90))
           .filter(([key, value]) => key !== "decimalLongitude" || (value >= -180 && value <= 180))
         );
 
-        console.log("Filtered payload", filteredPayload);
         const response = await axios.post("/api/v3/encounters", filteredPayload);
 
         if (response.status === 200) {
-          console.log("Report submitted successfully.", response);
           this._speciesSection.value = "";
           this._placeSection.value = "";
           this._followUpSection.value = "";
@@ -374,12 +360,10 @@ export class ReportEncounterStore {
           this._success = true;
           this._finished = true;
 
-          console.log(this._finished);
           return response.data;
         }
       } catch (error) {
         console.error("Error submitting report", error);
-        console.log(JSON.stringify(error));
         this._showSubmissionFailedAlert = true;
         this._error = error.response.data.errors;
       }

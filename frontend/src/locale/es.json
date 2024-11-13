@@ -311,5 +311,6 @@
     "INVALID_LONG": "La longitud debe estar entre -180 y 180",
     "BEERROR_REQUIRED" : "No se ha podido enviar; falta el campo obligatorio: ",
     "BEERROR_INVALID" : "No se pudo enviar; el formato del campo no era válido: ",
-    "BEERROR_UNKNOWN" : "No se pudo enviar debido a un error desconocido."
+    "BEERROR_UNKNOWN" : "No se pudo enviar debido a un error desconocido.",
+    "ANON_UPLOAD_IMAGE_WARNING": "No se pueden subir imágenes hasta que se complete el captcha."
 }
