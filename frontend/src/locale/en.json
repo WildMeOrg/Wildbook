@@ -312,6 +312,7 @@
     "INVALID_LONG": "Longitude must be between -180 and 180",
     "BEERROR_REQUIRED" : "Could not submit; missing required field: ",
     "BEERROR_INVALID" : "Could not submit; field format was invalid: ",
-    "BEERROR_UNKNOWN" : "Could not submit due to unknown error."
+    "BEERROR_UNKNOWN" : "Could not submit due to unknown error.",
+    "ANON_UPLOAD_IMAGE_WARNING": "Images cannot be uploaded until captcha is complete."
 
 }

@@ -311,5 +311,6 @@
     "INVALID_LONG": "La longitude doit être comprise entre -180 et 180",
     "BEERROR_REQUIRED" : "Impossible de soumettre ; champ requis manquant : ",
     "BEERROR_INVALID" : "Impossible de soumettre ; le format du champ n'est pas valide : ",
-    "BEERROR_UNKNOWN" : "Impossible de soumettre en raison d'une erreur inconnue."
+    "BEERROR_UNKNOWN" : "Impossible de soumettre en raison d'une erreur inconnue.",
+    "ANON_UPLOAD_IMAGE_WARNING": "Les images ne peuvent pas être téléchargées tant que le captcha n'est pas complété."
 }

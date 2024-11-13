@@ -7,7 +7,6 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import "./reportEncounter.css";
 import { LocationID } from "./LocationID";
 import { Alert } from "react-bootstrap";
-import { set } from "date-fns";
 
 export const PlaceSection = observer(({ store }) => {
   const { data } = useGetSiteSettings();
@@ -25,7 +24,6 @@ export const PlaceSection = observer(({ store }) => {
   const [pan, setPan] = useState(false);
 
   useEffect(() => {
-    console.log("mapKey", mapKey);
     if (!mapKey) {
       return;
     }
@@ -121,15 +119,6 @@ export const PlaceSection = observer(({ store }) => {
                   setLatAlert(true);
                 }
               }}
-              // onBlur={() => {
-              //   let validLat = parseFloat(store.lat);
-              //   if (!isNaN(validLat)) {
-              //     validLat = Math.min(Math.max(validLat, -90), 90);
-              //   } else {
-              //     validLat = "";
-              //   }
-              //   store.setLat(validLat);
-              // }}
             />
             {latAlert && <Alert
               variant="light"
@@ -162,15 +151,6 @@ export const PlaceSection = observer(({ store }) => {
                   setLonAlert(true);
                 }
               }}
-              // onBlur={() => {
-              //   let validLon = parseFloat(store.lon);
-              //   if (!isNaN(validLon)) {
-              //     validLon = Math.min(Math.max(validLon, -180), 180);
-              //   } else {
-              //     validLon = "";
-              //   }
-              //   store.setLon(validLon);
-              // }}
             />
             {lonAlert && <Alert
               variant="light"

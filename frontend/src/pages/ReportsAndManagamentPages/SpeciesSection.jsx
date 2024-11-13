@@ -14,7 +14,7 @@ export const ReportEncounterSpeciesSection = observer(
           label: item?.scientificName,
         };
       }) || [];
-    speciesList = [...speciesList, { value: "Unknown", label: "Unknown" }];
+    speciesList = [...speciesList, { value: "unknown", label: "Unknown" }];
 
     return (
       <div>

@@ -29,11 +29,9 @@ export const FileUploader = observer(({ store }) => {
       previewData.filter((file) => file.fileSize <= maxSize * 1024 * 1024)
         .length,
     );
-    console.log("previewData", previewData);
     const data = previewData.filter(
       (file) => file.fileSize <= maxSize * 1024 * 1024,
     );
-    console.log("data", data);
     store.setImagePreview(data);
     // store.setImageSectionError(
     //   store.imageRequired &&
@@ -45,7 +43,7 @@ export const FileUploader = observer(({ store }) => {
   }, [previewData]);
 
   useEffect(() => {
-    if (!flow && fileInputRef.current && store.isHumanLocal ) {
+    if (!flow && fileInputRef.current && store.isHumanLocal) {
       initializeFlow();
     }
   }, [flow, fileInputRef, store.isHumanLocal]);
@@ -77,8 +75,7 @@ export const FileUploader = observer(({ store }) => {
     setFlow(flowInstance);
 
     flowInstance.on("fileAdded", (file) => {
-      if(!store.isHumanLocal) return;
-      console.log("File added:", file);
+      if (!store.isHumanLocal) return;
       const supportedTypes = [
         "image/jpeg",
         "image/jpg",
@@ -103,21 +100,20 @@ export const FileUploader = observer(({ store }) => {
       ]);
 
       const createThumbnail = (file) => {
-        console.log(`Thumbnail creation started for: ${file.name}`);
         const reader = new FileReader();
         reader.onload = () => {
           const img = new Image();
           img.src = reader.result;
-    
+
           img.onload = () => {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
-    
+
             const MAX_WIDTH = 150;
             const MAX_HEIGHT = 150;
             let width = img.width;
             let height = img.height;
-    
+
             if (width > height) {
               if (width > MAX_WIDTH) {
                 height *= MAX_WIDTH / width;
@@ -132,12 +128,8 @@ export const FileUploader = observer(({ store }) => {
 
             canvas.width = width;
             canvas.height = height;
-    
             ctx.drawImage(img, 0, 0, width, height);
-    
             const thumbnail = canvas.toDataURL("image/jpeg", 0.7);
-            console.log(`Thumbnail size: ${Math.round((thumbnail.length * 3) / 4 / 1024)} KB`);
-    
             setPreviewData((prevPreviewData) => [
               ...prevPreviewData.filter((p) => p.fileName !== file.name),
               {
@@ -151,21 +143,8 @@ export const FileUploader = observer(({ store }) => {
         };
         reader.readAsDataURL(file.file);
       };
-    
-      createThumbnail(file);
 
-      // const reader = new FileReader();
-      // reader.onloadend = () => {
-      //   setPreviewData((prevPreviewData) => [
-      //     ...prevPreviewData.filter((p) => p.fileName !== file.name),
-      //     {
-      //       src: reader.result,
-      //       fileName: file.name,
-      //       fileSize: file.size,
-      //       progress: 0,
-      //     },
-      //   ]);
-      // };
+      createThumbnail(file);
 
       EXIF.getData(file.file, function () {
         const exifData = EXIF.getAllTags(this);
@@ -179,13 +158,12 @@ export const FileUploader = observer(({ store }) => {
           if (f.length == 3) datetime1 = f.join('-');
           if ((f.length == 5) || (f.length == 6)) datetime1 = f.slice(0, 3).join('-') + ' ' + f.slice(3, 6).join(':');
           store.setExifDateTime(datetime1);
-            // geo: latitude && longitude ? { latitude, longitude } : null,
-          
+          // geo: latitude && longitude ? { latitude, longitude } : null,
+
         } else {
           console.warn("EXIF data not available for:", file.name);
         }
       });
-      // reader.readAsDataURL(file.file);      
     });
 
     flowInstance.on("fileProgress", (file) => {
@@ -338,6 +316,15 @@ export const FileUploader = observer(({ store }) => {
           <FormattedMessage id="SUPPORTED_FILETYPES" />
           {`${" "}${maxSize} MB`}
         </p>
+        {!store.isHumanLocal && <Alert
+          variant="danger"
+          className="w-100 mt-1 mb-1 ms-2 me-4"
+          style={{
+            border: "none",
+          }}
+        >
+          <FormattedMessage id="ANON_UPLOAD_IMAGE_WARNING" />
+        </Alert>}
       </Row>
       <Row>
         {store.imageSectionError && (
@@ -357,50 +344,50 @@ export const FileUploader = observer(({ store }) => {
               href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
               onClick={() => {
                 localStorage.setItem("species", store.speciesSection.value);
-                  localStorage.setItem(
-                    "followUpSection.submitter.name",
-                    store.followUpSection.submitter.name,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.submitter.email",
-                    store.followUpSection.submitter.email,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.photographer.name",
-                    store.followUpSection.photographer.name,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.photographer.email",
-                    store.followUpSection.photographer.email,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.additionalEmails",
-                    store.followUpSection.additionalEmails,
-                  );
-                  localStorage.setItem(
-                    "additionalCommentsSection",
-                    store.additionalCommentsSection.value,
-                  );
-                  localStorage.setItem(
-                    "uploadedFiles",
-                    JSON.stringify(store.imagePreview),
-                  );
-                  localStorage.setItem(
-                    "submissionId",
-                    store.imageSectionSubmissionId,
-                  );
-                  localStorage.setItem(
-                    "fileNames",
-                    JSON.stringify(store.imageSectionFileNames),
-                  );
-                  localStorage.setItem(
-                    "datetime",
-                    store.dateTimeSection.value?.toISOString(),
-                  );
-                  localStorage.setItem("exifDateTime", store.exifDateTime);
-                  localStorage.setItem("locationID", store.placeSection.locationId);
-                  localStorage.setItem("lat", store.lat);
-                  localStorage.setItem("lon", store.lon);
+                localStorage.setItem(
+                  "followUpSection.submitter.name",
+                  store.followUpSection.submitter.name,
+                );
+                localStorage.setItem(
+                  "followUpSection.submitter.email",
+                  store.followUpSection.submitter.email,
+                );
+                localStorage.setItem(
+                  "followUpSection.photographer.name",
+                  store.followUpSection.photographer.name,
+                );
+                localStorage.setItem(
+                  "followUpSection.photographer.email",
+                  store.followUpSection.photographer.email,
+                );
+                localStorage.setItem(
+                  "followUpSection.additionalEmails",
+                  store.followUpSection.additionalEmails,
+                );
+                localStorage.setItem(
+                  "additionalCommentsSection",
+                  store.additionalCommentsSection.value,
+                );
+                localStorage.setItem(
+                  "uploadedFiles",
+                  JSON.stringify(store.imagePreview),
+                );
+                localStorage.setItem(
+                  "submissionId",
+                  store.imageSectionSubmissionId,
+                );
+                localStorage.setItem(
+                  "fileNames",
+                  JSON.stringify(store.imageSectionFileNames),
+                );
+                localStorage.setItem(
+                  "datetime",
+                  store.dateTimeSection.value?.toISOString(),
+                );
+                localStorage.setItem("exifDateTime", store.exifDateTime);
+                localStorage.setItem("locationID", store.placeSection.locationId);
+                localStorage.setItem("lat", store.lat);
+                localStorage.setItem("lon", store.lon);
               }}
             >
               <FormattedMessage id="LOGIN_SIGN_IN" />
