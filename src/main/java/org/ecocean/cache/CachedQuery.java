@@ -242,7 +242,7 @@ public class CachedQuery {
         for (Object o : coll) {
             if (o instanceof Collection) {
                 jarr.put(convertToJson((Collection)o, ec));
-            } else { // TODO can it *only* be an JSONObject-worthy object at this point?
+            } else {
                 try {
                     jarr.put(Util.toggleJSONObject(RESTUtils.getJSONObjectFromPOJO(o, ec)));
                 } catch (Exception e) {

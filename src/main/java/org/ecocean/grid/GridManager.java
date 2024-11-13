@@ -84,16 +84,6 @@ public class GridManager {
         numCollisions++;
     }
 
-    /*
-       public void setNodeTimeout(long timeout) {
-       nodeTimeout = timeout;
-       }
-     */
-
-    /*public long getNodeTimeout() {
-       return nodeTimeout;
-       }
-     */
     public void setCreationThread(boolean status) {
         creationThread = status;
     }
@@ -122,28 +112,9 @@ public class GridManager {
         return creationDeletionThreadQueueSize;
     }
 
-    /*
-       public String getSupportedAppletVersion() {
-       return appletVersion;
-       }
-     */
+
     public int getNumNodes() {
         return nodes.size();
-        // int returnValue = 0;
-        // long currenTime = System.currentTimeMillis();
-        // for (int i = 0; i < numNodes; i++) {
-        // System.out.println("gridManager: Time diff is: "+(currenTime-nodes.get(i).getLastCheckin()));
-        // if ((currenTime - nodes.get(i).getLastHeartbeat()) < nodeTimeout) {
-        // returnValue++;
-        // }
-        /*else {
-           nodes.remove(i);
-           i--;
-           numNodes--;
-           }
-         */
-        // }
-        // return returnValue;
     }
 
     public int getNumAllowedNodes() {
@@ -152,16 +123,6 @@ public class GridManager {
 
     public void setNumAllowedNodes(int num) {
         numAllowedNodes = num;
-
-        // if the current number of nodes exceeds the new allowed number
-        // then we have to remove them
-        // for now, remove them from the bottom
-        // int the future, we should consider removing them according
-        // to an algorithm determining their potential
-        // while(nodes.size()>numAllowedNodes){
-        // int size=nodes.size();
-        // nodes.remove(size-1);
-        // }
     }
 
     public boolean containsNode(String nodeID) {
@@ -175,28 +136,9 @@ public class GridManager {
         return false;
     }
 
-    /*public boolean canMakeSpace(HttpServletRequest request){
-        String nodeID=request.getParameter("nodeIdentifier");
-        int numNodes=nodes.size();
-        long currenTime=System.currentTimeMillis();
-        for(int i=0;i<numNodes;i++){
-            System.out.println("gridManager: Time diff is: "+(currenTime-nodes.get(i).getLastCheckin()));
-            if((currenTime-nodes.get(i).getLastHeartbeat())>nodeTimeout){
-                nodes.remove(i);
-                nodes.add(new gridNode(request));
-                return true;
-            }
-        }
-        return false;
-       }*/
     public synchronized boolean isGridSpaceAvailable(HttpServletRequest request, boolean targeted) {
         String nodeID = request.getParameter("nodeIdentifier");
 
-        // clean out old nodes
-        // int numNodes=nodes.size();
-        // long currenTime=System.currentTimeMillis();
-        // cleanupOldNodes();
-        // first, add the node to the queue
         if (!containsNode(nodeID)) {
             GridNode node = new GridNode(request, groupSize);
             nodes.add(node);
@@ -224,11 +166,6 @@ public class GridManager {
             if (nodes.get(i).getNodeIdentifier().equals(nodeID)) {
                 if (i <= (numAllowedNodes - 1)) return true;
             }
-            // else if((currenTime-nodes.get(i).getLastHeartbeat())>nodeTimeout){
-            // nodes.remove(i);
-            // i--;
-            // numNodes--;
-            // }
         }
         return false;
     }
@@ -269,20 +206,6 @@ public class GridManager {
         this.scanTaskLimit = limit;
     }
 
-    /*
-       private void cleanupOldNodes() {
-       int numNodes = nodes.size();
-       long currenTime = System.currentTimeMillis();
-       for (int i = 0; i < numNodes; i++) {
-        if ((currenTime - nodes.get(i).getLastHeartbeat()) > nodeTimeout) {
-          nodes.remove(i);
-          i--;
-          numNodes--;
-        }
-
-       }
-       }
-     */
     public int getPerMinuteRate() {
         int rate = 0;
         // cleanupOldNodes();
@@ -324,12 +247,6 @@ public class GridManager {
         return numScanTasks;
     }
 
-    /*
-       public int getNumWorkItems(String context) {
-       updateGridStats(context);
-       return numScanWorkItems;
-       }
-     */
     public int getNumCompletedWorkItems() {
         return numCompletedWorkItems;
     }
@@ -491,15 +408,7 @@ public class GridManager {
             } else {
                 numCollisions++;
             }
-            // if(!done.contains(swir)){done.add(swir);}
-
-            // if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
             removeWorkItem(swir.getUniqueNumberWorkItem());
-            // }
-            // else {
-            // ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
-            // swi.setDone(true);
-            // }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -664,34 +573,6 @@ public class GridManager {
         }
         return numProcessors;
     }
-
-    /*
-       public static SummaryStatistics getDTWStats(HttpServletRequest request){
-       if(dtwStats==null){dtwStats=TrainNetwork.getDTWStats(request);}
-       return dtwStats;
-       }
-
-       public static SummaryStatistics getI3SStats(HttpServletRequest request){
-       if(i3sStats==null){i3sStats=TrainNetwork.getI3SStats(request);}
-       return i3sStats;
-       }
-
-       public static SummaryStatistics getIntersectionStats(HttpServletRequest request){
-       if(intersectionStats==null){intersectionStats=TrainNetwork.getIntersectionStats(request);}
-       return intersectionStats;
-       }
-
-       public static SummaryStatistics getProportionStats(HttpServletRequest request){
-       if(proportionStats==null){proportionStats=TrainNetwork.getProportionStats(request);}
-       return proportionStats;
-       }
-     */
-
-    // public void addScanTaskSize(String scanTaskID, int size){
-    // scanTaskSizes.put(scanTaskID, new Integer(size));
-    // }
-
-    // public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
 
     public static ConcurrentHashMap<String, EncounterLite> getMatchGraph() { return matchGraph; }
     public static void addMatchGraphEntry(String elID, EncounterLite el) {

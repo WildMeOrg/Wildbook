@@ -17,10 +17,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public class ShepherdProperties {
-    public static final String[] overrideOrgsArr = { "indocet" };
-    // set for easy .contains() checking
-    public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
-
     public static Properties getProperties(String fileName) {
         return getProperties(fileName, "en");
     }
@@ -65,12 +61,6 @@ public class ShepherdProperties {
     public static String getOverwriteStringForUser(HttpServletRequest request,
         Shepherd myShepherd) {
         if (request == null) return null;
-        String manualOrgName = request.getParameter("organization");
-        // manual request params
-        if (Util.stringExists(manualOrgName)) {
-            String overwrite = getOverwriteStringForOrgName(manualOrgName);
-            if (Util.stringExists(overwrite)) return overwrite;
-        }
         // now try based on the user's organizations
         User user = myShepherd.getUser(request);
         if (user == null) return null;
@@ -94,18 +84,8 @@ public class ShepherdProperties {
             String name = org.getName();
             if (name == null) continue;
             name = name.toLowerCase();
-            if (overrideOrgs.contains(name)) return name + ".properties";
         }
         return null;
-    }
-
-    public static String getOverwriteStringForOrgName(String orgName) {
-        if (overrideOrgs.contains(orgName)) return orgName + ".properties";
-        return null;
-    }
-
-    public static boolean orgHasOverwrite(String orgName) {
-        return (getOverwriteStringForOrgName(orgName) != null);
     }
 
     public static boolean userHasOverrideString(User user) {
@@ -154,8 +134,6 @@ public class ShepherdProperties {
         }
         Properties props = loadProperties(overridePathStr, defaultProps);
         if (!Util.stringExists(overridePrefix)) return (Properties)props;
-        // todo: now actually load the override string
-        // we Do have an overridePrefix so we need to load it now
         String customUserPathString = "webapps/" + shepherdDataDir + "/WEB-INF/classes/bundles/" +
             overridePrefix;
         return (Properties)loadProperties(customUserPathString, props);

@@ -1,14 +1,13 @@
-name: Development Build
+name: Production Build
 
 on:
-  push:
-      branches:
-          - main
-      tags-ignore:
-          - v*
+  release:
+    types: [published]
+
+
 jobs:
   build:
-    name: Maven build and deploy
+    name: Maven build , deploy and release
     runs-on: ubuntu-latest
 
     steps:
@@ -33,10 +32,10 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t wildme/wildbook:main  -f devops/development/Dockerfile devops/development/
+        docker build -t wildme/wildbook:${{ github.event.release.tag_name }}  -f devops/deploy/Dockerfile devops/deploy/
 
     - name: Push Docker image
       run: |
-        docker push wildme/wildbook:main  
+        docker push wildme/wildbook:${{ github.event.release.tag_name }}  
 
       
