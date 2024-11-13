@@ -341,13 +341,6 @@ export const ReportEncounter = observer(() => {
                   store.placeSection.locationId && localStorage.setItem("locationID", store.placeSection.locationId);
                   store.lat && localStorage.setItem("lat", store.lat);
                   store.lon && localStorage.setItem("lon", store.lon);
-
-                  // fieldsConfig.forEach(({ key, parser }) => {
-                  //   const value = store[key];
-                  //   if (value !== undefined && value !== null && value !== "") {
-                  //     localStorage.setItem(key, parser ? parser(value) : value);
-                  //   }
-                  // });
                 }}
               >
                 <FormattedMessage id="LOGIN_SIGN_IN" />
