@@ -115,6 +115,7 @@ export const LocationID = observer(
               treeCheckStrictly
               treeNodeFilterProp="title"
               onChange={(selectedValues) => {
+                store.setLocationError(selectedValues ? false : true);
                 const singleSelection =
                   selectedValues.length > 0
                     ? selectedValues[selectedValues.length - 1]
@@ -221,7 +222,7 @@ export const LocationID = observer(
                   color: theme.statusColors.red600,
                 }}
               ></i>
-              <FormattedMessage id="EMPTY_REQUIRED_WARNING" />
+              <FormattedMessage id="LOCATION_ID_REQUIRED_WARNING" />
             </Alert>
           )}
         </Form.Group>
