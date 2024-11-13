@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { ProgressBar, Image, Row, Col } from "react-bootstrap";
+import { ProgressBar, Image as BootstrapImage, Row, Col } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
 import ThemeContext from "../../ThemeColorProvider";
@@ -29,9 +29,11 @@ export const FileUploader = observer(({ store }) => {
       previewData.filter((file) => file.fileSize <= maxSize * 1024 * 1024)
         .length,
     );
+    console.log("previewData", previewData);
     const data = previewData.filter(
       (file) => file.fileSize <= maxSize * 1024 * 1024,
     );
+    console.log("data", data);
     store.setImagePreview(data);
     // store.setImageSectionError(
     //   store.imageRequired &&
@@ -43,10 +45,10 @@ export const FileUploader = observer(({ store }) => {
   }, [previewData]);
 
   useEffect(() => {
-    if (!flow && fileInputRef.current) {
+    if (!flow && fileInputRef.current && store.isHumanLocal ) {
       initializeFlow();
     }
-  }, [flow, fileInputRef]);
+  }, [flow, fileInputRef, store.isHumanLocal]);
 
   useEffect(() => {
     const savedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
@@ -75,6 +77,8 @@ export const FileUploader = observer(({ store }) => {
     setFlow(flowInstance);
 
     flowInstance.on("fileAdded", (file) => {
+      if(!store.isHumanLocal) return;
+      console.log("File added:", file);
       const supportedTypes = [
         "image/jpeg",
         "image/jpg",
@@ -98,18 +102,70 @@ export const FileUploader = observer(({ store }) => {
         file,
       ]);
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewData((prevPreviewData) => [
-          ...prevPreviewData.filter((p) => p.fileName !== file.name),
-          {
-            src: reader.result,
-            fileName: file.name,
-            fileSize: file.size,
-            progress: 0,
-          },
-        ]);
+      const createThumbnail = (file) => {
+        console.log(`Thumbnail creation started for: ${file.name}`);
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.src = reader.result;
+    
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+    
+            const MAX_WIDTH = 150;
+            const MAX_HEIGHT = 150;
+            let width = img.width;
+            let height = img.height;
+    
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+    
+            ctx.drawImage(img, 0, 0, width, height);
+    
+            const thumbnail = canvas.toDataURL("image/jpeg", 0.7);
+            console.log(`Thumbnail size: ${Math.round((thumbnail.length * 3) / 4 / 1024)} KB`);
+    
+            setPreviewData((prevPreviewData) => [
+              ...prevPreviewData.filter((p) => p.fileName !== file.name),
+              {
+                src: thumbnail,
+                fileName: file.name,
+                fileSize: file.size,
+                progress: 0,
+              },
+            ]);
+          };
+        };
+        reader.readAsDataURL(file.file);
       };
+    
+      createThumbnail(file);
+
+      // const reader = new FileReader();
+      // reader.onloadend = () => {
+      //   setPreviewData((prevPreviewData) => [
+      //     ...prevPreviewData.filter((p) => p.fileName !== file.name),
+      //     {
+      //       src: reader.result,
+      //       fileName: file.name,
+      //       fileSize: file.size,
+      //       progress: 0,
+      //     },
+      //   ]);
+      // };
 
       EXIF.getData(file.file, function () {
         const exifData = EXIF.getAllTags(this);
@@ -129,7 +185,7 @@ export const FileUploader = observer(({ store }) => {
           console.warn("EXIF data not available for:", file.name);
         }
       });
-      reader.readAsDataURL(file.file);      
+      // reader.readAsDataURL(file.file);      
     });
 
     flowInstance.on("fileProgress", (file) => {
@@ -329,8 +385,6 @@ export const FileUploader = observer(({ store }) => {
                     "uploadedFiles",
                     JSON.stringify(store.imagePreview),
                   );
-                  // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
-                  // localStorage.setItem("placeSection", store.placeSection.value);
                   localStorage.setItem(
                     "submissionId",
                     store.imageSectionSubmissionId,
@@ -344,6 +398,9 @@ export const FileUploader = observer(({ store }) => {
                     store.dateTimeSection.value?.toISOString(),
                   );
                   localStorage.setItem("exifDateTime", store.exifDateTime);
+                  localStorage.setItem("locationID", store.placeSection.locationId);
+                  localStorage.setItem("lat", store.lat);
+                  localStorage.setItem("lon", store.lon);
               }}
             >
               <FormattedMessage id="LOGIN_SIGN_IN" />
@@ -390,7 +447,7 @@ export const FileUploader = observer(({ store }) => {
                   );
                 }}
               ></i>
-              <Image
+              <BootstrapImage
                 id="thumb"
                 src={preview.src}
                 style={{ width: "100%", height: "120px", objectFit: "fill" }}

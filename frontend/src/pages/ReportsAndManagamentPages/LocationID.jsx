@@ -222,7 +222,7 @@ export const LocationID = observer(
                   color: theme.statusColors.red600,
                 }}
               ></i>
-              <FormattedMessage id="EMPTY_REQUIRED_WARNING" />
+              <FormattedMessage id="LOCATION_ID_REQUIRED_WARNING" />
             </Alert>
           )}
         </Form.Group>

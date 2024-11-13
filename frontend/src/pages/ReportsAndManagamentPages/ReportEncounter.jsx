@@ -17,6 +17,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import "./recaptcha.css";
 
 export const ReportEncounter = observer(() => {
+
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
@@ -25,10 +26,20 @@ export const ReportEncounter = observer(() => {
   const store = useLocalObservable(() => new ReportEncounterStore());
   const [missingField, setMissingField] = useState(false);
   const [loading, setLoading] = useState(false);
+  const fieldsConfig = getFieldsConfig(store);
+  const isHuman = data?.isHuman;
+  if (isHuman) {
+    store.setIsHumanLocal(true);
+  }
+
+  console.log("is human", isHuman);
+  console.log("store.isHumanLocal", store.isHumanLocal);
+
 
   store.setImageRequired(!isLoggedIn);
 
   useEffect(() => {
+    console.log("Checking local storage for saved data.");
     localStorage.getItem("species") &&
       store.setSpeciesSectionValue(localStorage.getItem("species"));
     localStorage.getItem("followUpSection.submitter.name") &&
@@ -57,8 +68,6 @@ export const ReportEncounter = observer(() => {
       );
     localStorage.getItem("uploadedFiles") &&
       store.setImagePreview(JSON.parse(localStorage.getItem("uploadedFiles")));
-    // localStorage.getItem("dateTimeSection") && (store.setDateTimeSectionValue(localStorage.getItem("dateTimeSection")));
-    // localStorage.getItem("placeSection") && (store.setPlaceSectionValue(localStorage.getItem("placeSection")));
     localStorage.getItem("submissionId") &&
       store.setImageSectionSubmissionId(localStorage.getItem("submissionId"));
     localStorage.getItem("fileNames") &&
@@ -69,6 +78,9 @@ export const ReportEncounter = observer(() => {
       store.setDateTimeSectionValue(new Date(localStorage.getItem("datetime")));
     localStorage.getItem("exifDateTime") &&
       store.setExifDateTime(localStorage.getItem("exifDateTime"));
+    localStorage.getItem("locationID") && store.setLocationId(localStorage.getItem("locationID"));
+    localStorage.getItem("lat") && store.setLat(localStorage.getItem("lat"));
+    localStorage.getItem("lon") && store.setLon(localStorage.getItem("lon"));
 
     localStorage.removeItem("species");
     localStorage.removeItem("followUpSection.submitter.name");
@@ -78,11 +90,25 @@ export const ReportEncounter = observer(() => {
     localStorage.removeItem("followUpSection.additionalEmails");
     localStorage.removeItem("additionalCommentsSection");
     localStorage.removeItem("uploadedFiles");
-    localStorage.removeItem("dateTimeSection");
     localStorage.removeItem("placeSection");
     localStorage.removeItem("fileNames");
     localStorage.removeItem("datetime");
     localStorage.removeItem("exifDateTime");
+    localStorage.removeItem("locationID");
+    localStorage.removeItem("lat");
+    localStorage.removeItem("lon");
+    localStorage.removeItem("submissionId");
+
+    // fieldsConfig.forEach(({ key, setter }) => {
+    //   const value = localStorage.getItem(key);
+    //   if (value !== null && value !== undefined && value !== "") {
+    //     setter(value);
+    //   }
+    // });
+
+    // fieldsConfig.forEach(({ key }) => {
+    //   localStorage.removeItem(key);
+    // });
   }, []);
 
   const handleSubmit = async () => {
@@ -94,6 +120,7 @@ export const ReportEncounter = observer(() => {
       setLoading(false);
       return;
     } else {
+      setMissingField(false);
       console.log("Fields validated successfully. Submitting report.");
       const responseData = await store.submitReport();
       console.log("Response data: ", responseData);
@@ -175,8 +202,15 @@ export const ReportEncounter = observer(() => {
     });
   };
 
+  console.log(procaptchaSiteKey);
+
   const captchaRef = useRef(null);
   useEffect(() => {
+    console.log("isHuman", isHuman);
+    console.log("store.isHumanLocal", store.isHumanLocal);
+    if (store.isHumanLocal) return;
+    console.log("Loading ProCaptcha");
+
     let isCaptchaRendered = false;
 
     const loadProCaptcha = async () => {
@@ -217,19 +251,21 @@ export const ReportEncounter = observer(() => {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+      store.setIsHumanLocal(data.valid);
       console.log("Response data: ", data);
     } catch (error) {
       console.error("Error submitting captcha: ", error);
     }
   };
-
   return (
     <Container>
       <Modal
-        dialogClassName="modal-90w"
         show={store.showSubmissionFailedAlert}
         size="lg"
-        onHide={() => store.setShowSubmissionFailedAlert(false)}
+        onHide={() => {
+          setLoading(false);
+          store.setShowSubmissionFailedAlert(false)
+        }}
         keyboard
         centered
         animation
@@ -242,8 +278,20 @@ export const ReportEncounter = observer(() => {
           }}
         ></Modal.Header>
         <div className="d-flex flex-row pb-4 ps-4">
-          {missingField && <FormattedMessage id="REQUIRED_FIELD_MISSING" />}
-          submission failed.
+          {missingField && <FormattedMessage id="MISSING_REQUIRED_FIELDS" />}
+          {store.error && <div className="d-flex flex-column">
+            {store.error.slice().map((error, index) => (
+              <div key={index} className="d-flex flex-column">
+                {error.code === "INVALID" && <p>
+                  <FormattedMessage id="BEERROR_INVALID" />{error.fieldName} </p>}
+                {error.code === "REQUIRED" && <p>
+                  <FormattedMessage id="BEERROR_REQUIRED" />{error.fieldName} </p>}
+                {!error.code && <p>
+                  <FormattedMessage id="BEERROR_UNKNOWN" />{error.fieldName} </p>}
+              </div>
+            ))}
+          </div>}
+          {!missingField && !store.error && <FormattedMessage id="SUBMISSION_FAILED" />}
         </div>
       </Modal>
       <Row>
@@ -263,7 +311,7 @@ export const ReportEncounter = observer(() => {
                   color: themeColor.statusColors.yellow800,
                 }}
               ></i>
-              <FormattedMessage id="SIGNIN_REMINDER_BANNER" />
+              {(isHuman || isHumanLocal) ?<FormattedMessage id="SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER"/> : <FormattedMessage id="SIGNIN_REMINDER_BANNER" /> }
             </div>
             <Row
               className="d-flex flex-row"
@@ -279,59 +327,70 @@ export const ReportEncounter = observer(() => {
                 color="white"
                 backgroundColor={themeColor.wildMeColors.cyan600}
                 onClick={() => {
+                  console.log("Storing data in local storage");
                   localStorage.setItem("species", store.speciesSection.value);
                   localStorage.setItem(
                     "followUpSection.submitter.name",
                     store.followUpSection.submitter.name,
                   );
-                  localStorage.setItem(
+                  store.followUpSection.submitter.email && localStorage.setItem(
                     "followUpSection.submitter.email",
                     store.followUpSection.submitter.email,
                   );
-                  localStorage.setItem(
+                  store.followUpSection.photographer.name && localStorage.setItem(
                     "followUpSection.photographer.name",
                     store.followUpSection.photographer.name,
                   );
-                  localStorage.setItem(
+                  store.followUpSection.photographer.email && localStorage.setItem(
                     "followUpSection.photographer.email",
                     store.followUpSection.photographer.email,
                   );
-                  localStorage.setItem(
+                  store.followUpSection.additionalEmails && localStorage.setItem(
                     "followUpSection.additionalEmails",
                     store.followUpSection.additionalEmails,
                   );
-                  localStorage.setItem(
+                  store.additionalCommentsSection.value && localStorage.setItem(
                     "additionalCommentsSection",
                     store.additionalCommentsSection.value,
                   );
-                  localStorage.setItem(
+                  store.imagePreview && localStorage.setItem(
                     "uploadedFiles",
                     JSON.stringify(store.imagePreview),
                   );
-                  // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
-                  // localStorage.setItem("placeSection", store.placeSection.value);
-                  localStorage.setItem(
+                  store.imageSectionSubmissionId && localStorage.setItem(
                     "submissionId",
                     store.imageSectionSubmissionId,
                   );
-                  localStorage.setItem(
+                  store.imageSectionFileNames && localStorage.setItem(
                     "fileNames",
                     JSON.stringify(store.imageSectionFileNames),
                   );
-                  localStorage.setItem(
+                  store.dateTimeSection.value && localStorage.setItem(
                     "datetime",
                     store.dateTimeSection.value?.toISOString(),
                   );
-                  localStorage.setItem("exifDateTime", store.exifDateTime);
+                  store.exifDateTime && localStorage.setItem("exifDateTime", store.exifDateTime);
+                  store.placeSection.locationId && localStorage.setItem("locationID", store.placeSection.locationId);
+                  store.lat && localStorage.setItem("lat", store.lat);
+                  store.lon && localStorage.setItem("lon", store.lon);
+
+                  // fieldsConfig.forEach(({ key, parser }) => {
+                  //   const value = store[key];
+                  //   if (value !== undefined && value !== null && value !== "") {
+                  //     localStorage.setItem(key, parser ? parser(value) : value);
+                  //   }
+                  // });
                 }}
               >
                 <FormattedMessage id="LOGIN_SIGN_IN" />
               </MainButton>
-              <div
-                id="procaptcha-container"
-                ref={captchaRef}
-                style={{ width: "300px", marginLeft: "30px" }}
-              ></div>
+              {store.isHumanLocal || isHuman ? null : (
+                <div
+                  id="procaptcha-container"
+                  ref={captchaRef}
+                  style={{ width: "300px", marginLeft: "30px" }}
+                ></div>
+              )}
             </Row>
           </Alert>
         ) : null}
