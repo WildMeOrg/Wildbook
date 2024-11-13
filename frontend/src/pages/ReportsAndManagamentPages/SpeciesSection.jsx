@@ -14,7 +14,7 @@ export const ReportEncounterSpeciesSection = observer(
           label: item?.scientificName,
         };
       }) || [];
-    speciesList = [...speciesList, { value: "Unknown", label: "Unknown" }];
+    speciesList = [...speciesList, { value: "unknown", label: "Unknown" }];
 
     return (
       <div>
@@ -39,9 +39,6 @@ export const ReportEncounterSpeciesSection = observer(
               value={store.speciesSection.value}
               onChange={(e) => {
                 store.setSpeciesSectionValue(e.target.value);
-                store.setSpeciesSectionError(
-                  e.target.value ? false : true,
-                );
               }}
             >
               <option value="">

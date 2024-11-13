@@ -7,10 +7,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,6 +44,7 @@ public class BaseObject extends ApiBase {
     throws ServletException, IOException {
         String uri = request.getRequestURI();
         String[] args = uri.substring(8).split("/");
+
         if (args.length < 1) throw new ServletException("Bad path");
         // System.out.println("args => " + java.util.Arrays.toString(args));
 
@@ -52,18 +53,16 @@ public class BaseObject extends ApiBase {
         if (requestMethod.equals("POST")) {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
         }
-
         if (!ReCAPTCHA.sessionIsHuman(request)) {
             response.setStatus(401);
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write("{\"success\": false}");
             return;
         }
-
 /*
         if (!(args[0].equals("encounters") || args[0].equals("individuals") || args[0].equals("occurrences")))
             throw new ServletException("Bad class");
-*/
+ */
         payload.put("_class", args[0]);
 
         JSONObject rtn = null;
@@ -86,6 +85,7 @@ public class BaseObject extends ApiBase {
     throws ServletException, IOException {
         if (payload == null) throw new ServletException("empty payload");
         JSONObject rtn = new JSONObject();
+        Encounter encounterForIA = null;
         rtn.put("success", false);
         List<File> files = findFiles(request, payload);
         String context = ServletUtilities.getContext(request);
@@ -94,10 +94,10 @@ public class BaseObject extends ApiBase {
         myShepherd.beginDBTransaction();
         User currentUser = myShepherd.getUser(request);
         payload.put("_currentUser", currentUser); // hacky yes, but works. i am going to allow it.
+        String langCode = ServletUtilities.getLanguageCode(request);
 
         // for background child assets, which has to be after all persisted
         List<Integer> maIds = new ArrayList<Integer>();
-
         Base obj = null;
         try {
             String cls = payload.optString("_class");
@@ -126,12 +126,13 @@ public class BaseObject extends ApiBase {
                     error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
                     throw new ApiException("anonymous submission requires valid files", error);
                 }
-
-                obj = Encounter.createFromApi(payload, files);
+                // might be better to create encounter first; in case it fails.
+                // or should failing file/MA above happen first and block encounter?
+                obj = Encounter.createFromApi(payload, files, myShepherd);
                 Encounter enc = (Encounter)obj;
                 myShepherd.getPM().makePersistent(enc);
+                encounterForIA = enc;
                 String txStr = enc.getTaxonomyString();
-
                 JSONArray assetsArr = new JSONArray();
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
                 for (MediaAsset ma : validMAs) {
@@ -153,10 +154,10 @@ public class BaseObject extends ApiBase {
                 rtn.put("statusCode", 200);
                 break;
             case "occurrences":
-                obj = Occurrence.createFromApi(payload, files);
+                obj = Occurrence.createFromApi(payload, files, myShepherd);
                 break;
             case "individuals":
-                obj = MarkedIndividual.createFromApi(payload, files);
+                obj = MarkedIndividual.createFromApi(payload, files, myShepherd);
                 break;
             default:
                 throw new ApiException("bad class");
@@ -164,18 +165,24 @@ public class BaseObject extends ApiBase {
             rtn.put("id", obj.getId());
             rtn.put("class", cls);
             rtn.put("success", true);
-
         } catch (ApiException apiEx) {
-            System.out.println("BaseObject.processPost() returning 400 due to " + apiEx + " [errors=" + apiEx.getErrors() + "] on payload " + payload);
+            System.out.println("BaseObject.processPost() returning 400 due to " + apiEx +
+                " [errors=" + apiEx.getErrors() + "] on payload " + payload);
             rtn.put("statusCode", 400);
             rtn.put("errors", apiEx.getErrors());
+            rtn.put("debug", apiEx.toString());
         }
-
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
-            System.out.println("BaseObject.processPost() success (200) creating " + obj + " from payload " + payload);
+            System.out.println("BaseObject.processPost() success (200) creating " + obj +
+                " from payload " + payload);
             myShepherd.commitDBTransaction();
             MediaAsset.updateStandardChildrenBackground(context, maIds);
-//FIXME kick off detection etc
+            if (encounterForIA != null) {
+                encounterForIA.sendToIA(myShepherd);
+                encounterForIA.sendCreationEmails(myShepherd, langCode);
+            }
+            // not sure what this is for, but servlet/EncounterForm did it so guessing its important
+            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         } else {
             myShepherd.rollbackDBTransaction();
         }
@@ -186,29 +193,30 @@ public class BaseObject extends ApiBase {
     protected JSONObject processGet(HttpServletRequest request, String[] args)
     throws ServletException, IOException {
         JSONObject rtn = new JSONObject();
+
         return rtn;
     }
 
     private List<File> findFiles(HttpServletRequest request, JSONObject payload)
     throws IOException {
         List<File> files = new ArrayList<File>();
+
         if (payload == null) return files;
         String submissionId = payload.optString("submissionId", null);
         if (!Util.isUUID(submissionId)) {
             System.out.println("WARNING: valid submissionId required; no files possible");
             return files;
         }
-
         Map<String, String> values = new HashMap<String, String>();
         values.put("submissionId", submissionId);
         File uploadDir = new File(UploadServlet.getUploadDir(request, values));
         System.out.println("findFiles() uploadDir=" + uploadDir);
-        if (!uploadDir.exists()) throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
-
+        if (!uploadDir.exists())
+            throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
         List<String> filenames = new ArrayList<String>();
         JSONArray fnArr = payload.optJSONArray("assetFilenames");
         if (fnArr != null) {
-            for (int i = 0 ; i < fnArr.length() ; i++) {
+            for (int i = 0; i < fnArr.length(); i++) {
                 String fn = fnArr.optString(i, null);
                 if (fn != null) filenames.add(fn);
             }
@@ -217,7 +225,7 @@ public class BaseObject extends ApiBase {
             for (File f : uploadDir.listFiles()) {
                 filenames.add(f.getName());
             }
-*/
+ */
         }
         if (filenames.size() < 1) return files;
         for (String fname : filenames) {
@@ -229,10 +237,12 @@ public class BaseObject extends ApiBase {
         return files;
     }
 
-    private Map<File, MediaAsset> makeMediaAssets(String encounterId, List<File> files, Shepherd myShepherd)
+    private Map<File, MediaAsset> makeMediaAssets(String encounterId, List<File> files,
+        Shepherd myShepherd)
     throws ApiException {
         Map<File, MediaAsset> results = new HashMap<File, MediaAsset>();
         AssetStore astore = AssetStore.getDefault(myShepherd);
+
         for (File file : files) {
             if (!AssetStore.isValidImage(file)) {
                 System.out.println("BaseObject.makeMediaAssets() failed isValidImage() on " + file);
@@ -240,7 +250,8 @@ public class BaseObject extends ApiBase {
                 continue;
             }
             String sanitizedItemName = ServletUtilities.cleanFileName(file.getName());
-            JSONObject sp = astore.createParameters(new File(Encounter.subdir(encounterId) + File.separator + sanitizedItemName));
+            JSONObject sp = astore.createParameters(new File(Encounter.subdir(encounterId) +
+                File.separator + sanitizedItemName));
             sp.put("userFilename", file.getName());
             System.out.println("makeMediaAssets(): file=" + file + " => " + sp);
             MediaAsset ma = new MediaAsset(astore, sp);
@@ -258,5 +269,4 @@ public class BaseObject extends ApiBase {
         }
         return results;
     }
-
 }

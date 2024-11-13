@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { ProgressBar, Image, Row, Col } from "react-bootstrap";
+import { ProgressBar, Image as BootstrapImage, Row, Col } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
 import ThemeContext from "../../ThemeColorProvider";
@@ -43,10 +43,10 @@ export const FileUploader = observer(({ store }) => {
   }, [previewData]);
 
   useEffect(() => {
-    if (!flow && fileInputRef.current) {
+    if (!flow && fileInputRef.current && store.isHumanLocal) {
       initializeFlow();
     }
-  }, [flow, fileInputRef]);
+  }, [flow, fileInputRef, store.isHumanLocal]);
 
   useEffect(() => {
     const savedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
@@ -75,6 +75,7 @@ export const FileUploader = observer(({ store }) => {
     setFlow(flowInstance);
 
     flowInstance.on("fileAdded", (file) => {
+      if (!store.isHumanLocal) return;
       const supportedTypes = [
         "image/jpeg",
         "image/jpg",
@@ -82,13 +83,11 @@ export const FileUploader = observer(({ store }) => {
         "image/bmp",
       ];
       if (!supportedTypes.includes(file.file.type)) {
-        console.error("Unsupported file type:", file.file.type);
         flowInstance.removeFile(file);
         return false;
       }
 
       if (file.size > maxSize * 1024 * 1024) {
-        console.warn("File size exceeds limit:", file.name);
         return false;
       }
 
@@ -98,18 +97,52 @@ export const FileUploader = observer(({ store }) => {
         file,
       ]);
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewData((prevPreviewData) => [
-          ...prevPreviewData.filter((p) => p.fileName !== file.name),
-          {
-            src: reader.result,
-            fileName: file.name,
-            fileSize: file.size,
-            progress: 0,
-          },
-        ]);
+      const createThumbnail = (file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.src = reader.result;
+
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const MAX_WIDTH = 150;
+            const MAX_HEIGHT = 150;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            const thumbnail = canvas.toDataURL("image/jpeg", 0.7);
+            setPreviewData((prevPreviewData) => [
+              ...prevPreviewData.filter((p) => p.fileName !== file.name),
+              {
+                src: thumbnail,
+                fileName: file.name,
+                fileSize: file.size,
+                progress: 0,
+              },
+            ]);
+          };
+        };
+        reader.readAsDataURL(file.file);
       };
+
+      createThumbnail(file);
 
       EXIF.getData(file.file, function () {
         const exifData = EXIF.getAllTags(this);
@@ -123,13 +156,9 @@ export const FileUploader = observer(({ store }) => {
           if (f.length == 3) datetime1 = f.join('-');
           if ((f.length == 5) || (f.length == 6)) datetime1 = f.slice(0, 3).join('-') + ' ' + f.slice(3, 6).join(':');
           store.setExifDateTime(datetime1);
-            // geo: latitude && longitude ? { latitude, longitude } : null,
-          
-        } else {
-          console.warn("EXIF data not available for:", file.name);
-        }
+          // geo: latitude && longitude ? { latitude, longitude } : null,
+        } 
       });
-      reader.readAsDataURL(file.file);      
     });
 
     flowInstance.on("fileProgress", (file) => {
@@ -155,7 +184,7 @@ export const FileUploader = observer(({ store }) => {
       );
     });
 
-    flowInstance.on("fileError", (file, message) => {
+    flowInstance.on("fileError", (file) => {
       setUploading(false);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
@@ -164,7 +193,6 @@ export const FileUploader = observer(({ store }) => {
             : preview,
         ),
       );
-      console.error("Upload error:", message);
     });
     setupDragAndDropListeners(flowInstance);
   };
@@ -252,7 +280,6 @@ export const FileUploader = observer(({ store }) => {
                 : preview,
             ),
           );
-          console.error(`File upload timed out: ${file.name}`);
         }, 300000);
 
         flow.on("fileSuccess", (uploadedFile) => {
@@ -282,6 +309,15 @@ export const FileUploader = observer(({ store }) => {
           <FormattedMessage id="SUPPORTED_FILETYPES" />
           {`${" "}${maxSize} MB`}
         </p>
+        {!store.isHumanLocal && <Alert
+          variant="danger"
+          className="w-100 mt-1 mb-1 ms-2 me-4"
+          style={{
+            border: "none",
+          }}
+        >
+          <FormattedMessage id="ANON_UPLOAD_IMAGE_WARNING" />
+        </Alert>}
       </Row>
       <Row>
         {store.imageSectionError && (
@@ -301,49 +337,50 @@ export const FileUploader = observer(({ store }) => {
               href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
               onClick={() => {
                 localStorage.setItem("species", store.speciesSection.value);
-                  localStorage.setItem(
-                    "followUpSection.submitter.name",
-                    store.followUpSection.submitter.name,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.submitter.email",
-                    store.followUpSection.submitter.email,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.photographer.name",
-                    store.followUpSection.photographer.name,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.photographer.email",
-                    store.followUpSection.photographer.email,
-                  );
-                  localStorage.setItem(
-                    "followUpSection.additionalEmails",
-                    store.followUpSection.additionalEmails,
-                  );
-                  localStorage.setItem(
-                    "additionalCommentsSection",
-                    store.additionalCommentsSection.value,
-                  );
-                  localStorage.setItem(
-                    "uploadedFiles",
-                    JSON.stringify(store.imagePreview),
-                  );
-                  // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
-                  // localStorage.setItem("placeSection", store.placeSection.value);
-                  localStorage.setItem(
-                    "submissionId",
-                    store.imageSectionSubmissionId,
-                  );
-                  localStorage.setItem(
-                    "fileNames",
-                    JSON.stringify(store.imageSectionFileNames),
-                  );
-                  localStorage.setItem(
-                    "datetime",
-                    store.dateTimeSection.value?.toISOString(),
-                  );
-                  localStorage.setItem("exifDateTime", store.exifDateTime);
+                localStorage.setItem(
+                  "followUpSection.submitter.name",
+                  store.followUpSection.submitter.name,
+                );
+                localStorage.setItem(
+                  "followUpSection.submitter.email",
+                  store.followUpSection.submitter.email,
+                );
+                localStorage.setItem(
+                  "followUpSection.photographer.name",
+                  store.followUpSection.photographer.name,
+                );
+                localStorage.setItem(
+                  "followUpSection.photographer.email",
+                  store.followUpSection.photographer.email,
+                );
+                localStorage.setItem(
+                  "followUpSection.additionalEmails",
+                  store.followUpSection.additionalEmails,
+                );
+                localStorage.setItem(
+                  "additionalCommentsSection",
+                  store.additionalCommentsSection.value,
+                );
+                localStorage.setItem(
+                  "uploadedFiles",
+                  JSON.stringify(store.imagePreview),
+                );
+                localStorage.setItem(
+                  "submissionId",
+                  store.imageSectionSubmissionId,
+                );
+                localStorage.setItem(
+                  "fileNames",
+                  JSON.stringify(store.imageSectionFileNames),
+                );
+                localStorage.setItem(
+                  "datetime",
+                  store.dateTimeSection.value?.toISOString(),
+                );
+                localStorage.setItem("exifDateTime", store.exifDateTime);
+                localStorage.setItem("locationID", store.placeSection.locationId);
+                localStorage.setItem("lat", store.lat);
+                localStorage.setItem("lon", store.lon);
               }}
             >
               <FormattedMessage id="LOGIN_SIGN_IN" />
@@ -390,7 +427,7 @@ export const FileUploader = observer(({ store }) => {
                   );
                 }}
               ></i>
-              <Image
+              <BootstrapImage
                 id="thumb"
                 src={preview.src}
                 style={{ width: "100%", height: "120px", objectFit: "fill" }}
