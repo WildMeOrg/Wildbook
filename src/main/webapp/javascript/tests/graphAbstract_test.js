@@ -1,4 +1,3 @@
-//TODO: Blacklist this entire folder
 QUnit.module('Abstract Graph Interface');
 
 let ga, gaCopy;
@@ -34,8 +33,6 @@ QUnit.module('addSvg()', {'after': () => $('#test').empty() }, () => {
 	t.ok($('.container').has('g'))
     });
 });
-
-//TODO - addLegend(), first this function needs to be implemented
 
 QUnit.module('addTooltip()', {'after': () => $('#test').empty() }, () => {
     QUnit.test('Append tooltip', t => {
@@ -147,7 +144,7 @@ QUnit.module('setNodeRadius()', () => {
 QUnit.module('calcNodeSize()', {'beforeEach': () => ga.radius = null}, () => {
     function checkRadius(test, ga) {
 	test.ok(ga.radius < ga.maxRadius);
-	test.ok(ga.radius > 0); //TODO: Consider shifting implementation to have min radius 
+	test.ok(ga.radius > 0); 
     }
 
     QUnit.test('Empty node list', t => {
@@ -291,7 +288,6 @@ QUnit.module('displayNodeTooltip()', displayNodeEventHooks, () => {
     });
 });
 
-//TODO - handleMouseOut()
 QUnit.module('handleMouseOut()', handleMouseEventHooks, () => {
     QUnit.test('Exiting node', t => {
 	ga.handleMouseOut();

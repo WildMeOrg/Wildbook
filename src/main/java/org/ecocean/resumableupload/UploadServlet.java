@@ -31,17 +31,11 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 
-/**
- *
- * This is a servlet demo, for using Flow.js to upload files.
- *
- * by fanxu123
- */
 public class UploadServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     /*
-     * In ORDER to allow CORS  to multiple domains you can set a list of valid domains here
+     * In ORDER to allow CORS to multiple domains you can set a list of valid domains here
      */
     private List<String> authorizedUrl = Arrays.asList("http://localhost", "http://example.com");
 
@@ -73,7 +67,6 @@ public class UploadServlet extends HttpServlet {
         if (request.getHeader("Access-Control-Request-Headers") != null)
             response.setHeader("Access-Control-Allow-Headers",
                 request.getHeader("Access-Control-Request-Headers"));
-        // response.setContentType("text/plain");
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -91,7 +84,6 @@ public class UploadServlet extends HttpServlet {
         if (!ServletFileUpload.isMultipartContent(request))
             throw new IOException("doPost is not multipart");
         ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
-        // upload.setHeaderEncoding("UTF-8");
         List<FileItem> multiparts = null;
         try {
             multiparts = upload.parseRequest(request);
@@ -138,10 +130,8 @@ public class UploadServlet extends HttpServlet {
         raf.seek((flowChunkNumber - 1) * info.flowChunkSize);
 
         // Save to file
-        // InputStream is = request.getInputStream();
         InputStream is = fileChunk.getInputStream();
         long readed = 0;
-        // long content_length = request.getContentLength();
         long content_length = fileChunk.getSize();
         byte[] bytes = new byte[1024 * 100];
         while (readed < content_length) {
@@ -157,8 +147,7 @@ public class UploadServlet extends HttpServlet {
         // Mark as uploaded.
         info.uploadedChunks.add(new FlowInfo.flowChunkNumber(flowChunkNumber));
         String archivoFinal = info.checkIfUploadFinished();
-        if (archivoFinal != null) { // Check if all chunks uploaded, and
-            // change filename
+        if (archivoFinal != null) { // Check if all chunks uploaded, and change filename
             FlowInfoStorage.getInstance().remove(info);
             response.getWriter().print("{\"success\": true, \"uploadComplete\": true}");
         } else {
@@ -171,7 +160,7 @@ public class UploadServlet extends HttpServlet {
         out.close();
     }
 
-/*  UGH TODO i think doGet is broken, so best skip testChunk with testChunks: false essentially, i doubt GET will be multipart -- so we need to also
+/* TODO: verifiy doGet works. skip testChunk with testChunks: false essentially, i doubt GET will be multipart -- so we need to also
    support that, esp getflowChunkNumber() and getFlowInfo() ... :(
  */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -218,8 +207,7 @@ public class UploadServlet extends HttpServlet {
         Object fcn = new FlowInfo.flowChunkNumber(flowChunkNumber);
         if (info.uploadedChunks.contains(fcn)) {
             System.out.println("Do Get arriba");
-            response.getWriter().print("Uploaded."); // This Chunk has been
-            // Uploaded.
+            response.getWriter().print("Uploaded."); // This Chunk has been Uploaded.
         } else {
             System.out.println("Do Get something is wrong");
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
