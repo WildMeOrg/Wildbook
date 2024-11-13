@@ -83,13 +83,11 @@ export const FileUploader = observer(({ store }) => {
         "image/bmp",
       ];
       if (!supportedTypes.includes(file.file.type)) {
-        console.error("Unsupported file type:", file.file.type);
         flowInstance.removeFile(file);
         return false;
       }
 
       if (file.size > maxSize * 1024 * 1024) {
-        console.warn("File size exceeds limit:", file.name);
         return false;
       }
 
@@ -159,10 +157,7 @@ export const FileUploader = observer(({ store }) => {
           if ((f.length == 5) || (f.length == 6)) datetime1 = f.slice(0, 3).join('-') + ' ' + f.slice(3, 6).join(':');
           store.setExifDateTime(datetime1);
           // geo: latitude && longitude ? { latitude, longitude } : null,
-
-        } else {
-          console.warn("EXIF data not available for:", file.name);
-        }
+        } 
       });
     });
 
@@ -189,7 +184,7 @@ export const FileUploader = observer(({ store }) => {
       );
     });
 
-    flowInstance.on("fileError", (file, message) => {
+    flowInstance.on("fileError", (file) => {
       setUploading(false);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
@@ -198,7 +193,6 @@ export const FileUploader = observer(({ store }) => {
             : preview,
         ),
       );
-      console.error("Upload error:", message);
     });
     setupDragAndDropListeners(flowInstance);
   };
@@ -286,7 +280,6 @@ export const FileUploader = observer(({ store }) => {
                 : preview,
             ),
           );
-          console.error(`File upload timed out: ${file.name}`);
         }, 300000);
 
         flow.on("fileSuccess", (uploadedFile) => {
