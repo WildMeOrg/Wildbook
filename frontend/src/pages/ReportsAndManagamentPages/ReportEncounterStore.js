@@ -39,7 +39,7 @@ export class ReportEncounterStore {
     this._speciesSection = {
       value: "",
       error: false,
-      required: true,
+      required: false,
     };
     this._placeSection = {
       value: "",
@@ -287,15 +287,12 @@ export class ReportEncounterStore {
   }
 
   validateFields() {
-    console.log("Validating fields");
     let isValid = true;
 
-    if (!this._speciesSection.value) {
+    if (this._speciesSection.required && !this._speciesSection.value) {
       this._speciesSection.error = true;
       isValid = false;
-    } else {
-      this._speciesSection.error = false;
-    }
+    } 
 
     if (!this.validateEmails()) {
       isValid = false;
@@ -344,6 +341,7 @@ export class ReportEncounterStore {
           Object.entries(payload).filter(([key, value]) => value !== null && value !== "")
           .filter(([key, value]) => key !== "decimalLatitude" || (value >= -90 && value <= 90))
           .filter(([key, value]) => key !== "decimalLongitude" || (value >= -180 && value <= 180))
+          .filter(([key, value]) => key !== "taxonomy" || value !== "unknown")
         );
 
         const response = await axios.post("/api/v3/encounters", filteredPayload);
@@ -363,13 +361,10 @@ export class ReportEncounterStore {
           return response.data;
         }
       } catch (error) {
-        console.error("Error submitting report", error);
         this._showSubmissionFailedAlert = true;
         this._error = error.response.data.errors;
       }
-    } else {
-      console.error("Validation failed");
-    }
+    } 
   }
 }
 
