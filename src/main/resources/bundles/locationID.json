@@ -52,6 +52,15 @@
 					  "locationID":[]
 				},
 				{
+					"name": "Bouba Ndjida National Park",
+					"id": "Bouba Ndjida National Park",
+					"geospatialInfo":{
+						"lat": 8.62361,
+						"long": 14.65667
+					},
+					"locationID": []
+				},
+				{
 					"name": "Faro National Park",
 					"id": "Faro National Park",
 					"geospatialInfo": {
@@ -830,6 +839,11 @@
 							"lat": -19.390667,
 							"long": 15.684802
 						},
+						"locationID": []
+					},
+					{
+						"name": "Uitkoms Farm",
+						"id": "Uitkoms Farm",
 						"locationID": []
 					}
 				]
