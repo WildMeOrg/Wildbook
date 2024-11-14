@@ -9,10 +9,13 @@ import Citation from "./pages/Citation";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
-export default function UnAuthenticatedSwitch({ showAlert, setShowAlert, showclassicsubmit }) {
+export default function UnAuthenticatedSwitch({
+  showAlert,
+  setShowAlert,
+  showclassicsubmit,
+}) {
   const [header, setHeader] = React.useState(true);
   const location = useLocation();
-  console.log("showclassicsubmit", showclassicsubmit);
 
   const redirParam = encodeURIComponent(
     `${location.pathname}${location.search}${location.hash}`,
@@ -30,7 +33,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert, showcla
         }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
-        <UnAuthenticatedAppHeader showclassicsubmit={showclassicsubmit}/>
+        <UnAuthenticatedAppHeader showclassicsubmit={showclassicsubmit} />
       </div>
 
       <div
