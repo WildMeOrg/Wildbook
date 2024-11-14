@@ -1,11 +1,13 @@
-import React, { useState, useRef, useContext, useEffect } from "react";
+import React, { useState, useRef, useContext } from "react";
 import GoogleMapReact from "google-map-react";
 import BrutalismButton from "./BrutalismButton";
 import ThemeContext from "../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
+import useGetSiteSettings from "../models/useGetSiteSettings";
 
-const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
+const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds = () => {} }) => {
   const theme = useContext(ThemeContext);
+  const key = useGetSiteSettings()?.data?.googleMapsKey;
 
   const [rectangle, setRectangle] = useState(null);
   const drawingRef = useRef(false);
@@ -73,14 +75,6 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
     }
     drawingRef.current = !drawingRef.current;
   };
-
-  const [key, setKey] = useState(null);
-
-  useEffect(() => {
-    if (window?.wildbookGlobals?.gMapKey) {
-      setKey(window?.wildbookGlobals?.gMapKey);
-    }
-  }, [window?.wildbookGlobals]);
 
   return (
     <div style={{ height: "400px", width: "100%" }}>

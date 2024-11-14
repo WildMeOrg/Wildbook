@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,8 +19,10 @@ import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
 import org.ecocean.Organization;
 import org.ecocean.Project;
+import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
@@ -28,7 +31,7 @@ import org.json.JSONObject;
 
 public class SiteSettings extends ApiBase {
     public static String[] VALUES_SEX = { "unknown", "male", "female" };
-    public static String[] VALUES_ENCOUNTER_STATES = { "unapproved", "approved", "unidentifiable"};
+    public static String[] VALUES_ENCOUNTER_STATES = { "unapproved", "approved", "unidentifiable" };
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
@@ -45,6 +48,11 @@ public class SiteSettings extends ApiBase {
         settings.put("siteFavicon", "/images/favicon.ico");
         settings.put("siteName", CommonConfiguration.getHTMLTitle(context));
         settings.put("locationData", LocationID.getLocationIDStructure());
+
+        settings.put("mapCenterLat", CommonConfiguration.getCenterLat(context));
+        settings.put("mapCenterLon", CommonConfiguration.getCenterLong(context));
+        settings.put("mapZoom", CommonConfiguration.getMapZoom(context));
+        settings.put("googleMapsKey", CommonConfiguration.getGoogleMapsKey(context));
 
         JSONArray txArr = new JSONArray();
         for (String sciName : myShepherd.getAllTaxonomyNames()) {
@@ -68,9 +76,10 @@ public class SiteSettings extends ApiBase {
         settings.put("measurement",
             CommonConfiguration.getIndexedPropertyValues("measurement", context));
 
-        // TODO: evaluate deriving this differently
-        // NOTE: historically this list was generated via CommonConfiguration using 
-        //       List<String> states = CommonConfiguration.getIndexedPropertyValues("encounterState",context)
+        // TODO: there was some discussion in slack about this being derived differently
+        // NOTE: historically this list was generated via CommonConfiguration using
+        // List<String> states = CommonConfiguration.getIndexedPropertyValues("encounterState",context)
+
         settings.put("encounterState", VALUES_ENCOUNTER_STATES);
 
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
@@ -141,12 +150,31 @@ public class SiteSettings extends ApiBase {
         }
         settings.put("bioMeasurement", biomeas);
         settings.put("showMeasurements", CommonConfiguration.showMeasurements(context));
+        settings.put("maximumMediaSizeMegabytes",
+            CommonConfiguration.getMaxMediaSizeInMegabytes(context));
 
         JSONArray loci = new JSONArray();
         for (String locus : myShepherd.getAllLoci()) {
             loci.put(locus);
         }
         settings.put("loci", loci);
+
+        settings.put("showClassicSubmit",
+            Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))
+            );
+
+        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
+            context);
+        if (recaptchaProps != null) {
+            settings.put("reCAPTCHAEnterpriseSiteKey",
+                recaptchaProps.getProperty("enterpriseSiteKey"));
+            settings.put("reCAPTCHASiteKey", recaptchaProps.getProperty("siteKey"));
+        }
+        Properties captchaProps = ShepherdProperties.getProperties("captcha.properties", "",
+            context);
+        if (captchaProps != null) {
+            settings.put("procaptchaSiteKey", captchaProps.getProperty("procaptchaSiteKey"));
+        }
         // these are sensitive settings, that anon users should not get (e.g. user lists)
         if (currentUser != null) {
             JSONArray jarr = new JSONArray();
@@ -168,6 +196,8 @@ public class SiteSettings extends ApiBase {
             }
             settings.put("projectsForUser", jp);
         }
+        settings.put("isHuman", ReCAPTCHA.sessionIsHuman(request));
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
