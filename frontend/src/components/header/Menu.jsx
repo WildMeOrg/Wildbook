@@ -5,7 +5,7 @@ import DownIcon from "../svg/DownIcon";
 import RightIcon from "../svg/RightIcon";
 import { authenticatedMenu } from "../../constants/navMenu";
 
-export default function Menu({ username }) {
+export default function Menu({ username, showclassicsubmit }) {
   const [dropdownColor, setDropdownColor] = useState("transparent");
 
   const [dropdownShows, setDropdownShows] = useState({});
@@ -21,7 +21,7 @@ export default function Menu({ username }) {
 
   return (
     <>
-      {authenticatedMenu(username).map((item, idx) => (
+      {authenticatedMenu(username, showclassicsubmit).map((item, idx) => (
         <Nav className="me-auto" key={idx}>
           <NavDropdown
             className="header-dropdown"
