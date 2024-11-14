@@ -1,7 +1,7 @@
 import React from "react";
 import { FormattedMessage } from "react-intl";
 
-const authenticatedMenu = (username) => [
+const authenticatedMenu = (username, showclassicsubmit) => [
   {
     Submit: [
       {
@@ -13,15 +13,19 @@ const authenticatedMenu = (username) => [
         ),
         href: `${process.env.PUBLIC_URL}/report`,
       },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
-            defaultMessage="Report an Encounter(Classic)"
-          />
-        ),
-        href: "/submit.jsp",
-      },
+      ...(showclassicsubmit
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
+                  defaultMessage="Report an Encounter(Classic)"
+                />
+              ),
+              href: "/submit.jsp",
+            },
+          ]
+        : []),
       {
         name: (
           <FormattedMessage
@@ -282,7 +286,7 @@ const authenticatedMenu = (username) => [
   },
 ];
 
-const unAuthenticatedMenu = [
+const unAuthenticatedMenu = (showclassicsubmit) => [
   {
     Submit: [
       {
@@ -294,15 +298,19 @@ const unAuthenticatedMenu = [
         ),
         href: `${process.env.PUBLIC_URL}/report`,
       },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
-            defaultMessage="Report an Encounter(Classic)"
-          />
-        ),
-        href: "/submit.jsp",
-      },
+      ...(showclassicsubmit
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
+                  defaultMessage="Report an Encounter(Classic)"
+                />
+              ),
+              href: "/submit.jsp",
+            },
+          ]
+        : []),
     ],
   },
   {

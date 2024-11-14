@@ -14,6 +14,7 @@ import {
   sessionWarningTime,
   sessionCountdownTime,
 } from "./constants/sessionWarning";
+import useGetSiteSettings from "./models/useGetSiteSettings";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -25,6 +26,8 @@ export default function FrontDesk() {
     Cookies.get("showAlert") === "false" ? false : true,
   );
   const [loading, setLoading] = useState(true);
+  const { data } = useGetSiteSettings();
+  const showclassicsubmit = data?.showClassicSubmit;
 
   const checkLoginStatus = () => {
     axios
@@ -89,6 +92,7 @@ export default function FrontDesk() {
         <AuthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
+          showclassicsubmit={showclassicsubmit}
         />
       </AuthContext.Provider>
     );
@@ -105,6 +109,7 @@ export default function FrontDesk() {
         <UnauthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
+          showclassicsubmit={showclassicsubmit}
         />
       </AuthContext.Provider>
     );

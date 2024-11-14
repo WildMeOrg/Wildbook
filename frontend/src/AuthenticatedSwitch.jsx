@@ -13,7 +13,7 @@ import Citation from "./pages/Citation";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
-export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
+export default function AuthenticatedSwitch({ showAlert, setShowAlert, showclassicsubmit }) {
   const { data } = useGetMe();
   const username = data?.username;
   const avatar =
@@ -37,6 +37,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
           avatar={avatar}
           showAlert={showAlert}
           setShowAlert={setShowAlert}
+          showclassicsubmit={showclassicsubmit}
         />
       </div>
 
