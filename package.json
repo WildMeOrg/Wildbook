@@ -52,11 +52,9 @@
     "lint-staged": ">=8",
     "prettier": "^3.3.3"
   },
-  {
   "jest": {
     "collectCoverage": true,
     "coverageReporters": ["lcov", "text"],
     "coverageDirectory": "./coverage"
   }
-}
 }
