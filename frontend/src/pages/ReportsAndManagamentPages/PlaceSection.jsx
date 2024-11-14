@@ -29,7 +29,6 @@ export const PlaceSection = observer(({ store }) => {
     }
     const loader = new Loader({
       apiKey: mapKey,
-      version: "weekly",
     });
 
     loader
