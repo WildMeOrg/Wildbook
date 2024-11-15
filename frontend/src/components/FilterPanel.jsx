@@ -57,8 +57,6 @@ export default function FilterPanel({
   const isScrollingByClick = useRef(false);
   const scrollTimeout = useRef(null);
 
-  console.log("safeSchemas", safeSchemas);
-
   useEffect(() => {
     safeSchemas.forEach((schema, index) => {
       if (!schemaRefs.current[index]) {
