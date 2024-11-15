@@ -14,8 +14,8 @@ const MapComponent = ({ setBounds, setTempBounds = () => {} }) => {
   const { data } = useGetSiteSettings();
   const key = data?.googleMapsKey;
   const center = {
-    lat: data?.mapCenterLat || 50,
-    lng: data?.mapCenterLon || 7,
+    lat: data?.mapCenterLat || 0,
+    lng: data?.mapCenterLon || 0,
   };
   const zoom = data?.mapZoom || 4;
 
