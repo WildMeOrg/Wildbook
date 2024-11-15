@@ -262,7 +262,7 @@ export default function FilterPanel({
                   ref={schemaRefs.current[index]}
                 >
                   <schema.FilterComponent
-                    // key={schema.id}
+                    key={schema.id}
                     labelId={schema.labelId}
                     onChange={handleFilterChange}
                     onClearFilter={clearFilter}
