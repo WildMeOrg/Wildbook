@@ -47,13 +47,59 @@ export default function FilterPanel({
   setSearchParams = () => {},
   setQueryID = "",
 }) {
-  // const [selectedChoices, setSelectedChoices] = useState({});
   const [tempFormFilters, setTempFormFilters] = useState([]);
+  const { data } = useGetSiteSettings();
+  const safeSchemas = schemas || [];
+  const [clicked, setClicked] = useState(safeSchemas[0]?.id);
+  const theme = React.useContext(ThemeContext);
+  const containerRef = useRef(null);
+  const schemaRefs = useRef([]);
+  const isScrollingByClick = useRef(false);
+  const scrollTimeout = useRef(null);
+
+  useEffect(() => {
+    safeSchemas.forEach((schema, index) => {
+      if (!schemaRefs.current[index]) {
+        schemaRefs.current[index] = React.createRef();
+      }
+    });
+  }, [safeSchemas]);
+
+  const handleClick = (id) => {
+    clearTimeout(scrollTimeout.current);
+    setClicked(id);
+    isScrollingByClick.current = true;
+
+    const index = safeSchemas.findIndex((schema) => schema.id === id);
+    if (schemaRefs.current[index]) {
+      schemaRefs.current[index].current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        scrollMode: "if-needed",
+      });
+    }
+
+    scrollTimeout.current = setTimeout(() => {
+      isScrollingByClick.current = false;
+    }, 500);
+  };
+
+  const handleScroll = () => {
+    if (isScrollingByClick.current) return;
+
+    schemaRefs.current.forEach((ref, index) => {
+      if (ref.current) {
+        const rect = ref.current.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
+          setClicked(safeSchemas[index].id);
+        }
+      }
+    });
+  };
+
   useEffect(() => {
     setTempFormFilters(formFilters);
   }, [formFilters]);
-  // const navigate = useNavigate();
-  const { data } = useGetSiteSettings();
 
   useEffect(() => {}, [tempFormFilters]);
 
@@ -73,74 +119,6 @@ export default function FilterPanel({
     setTempFormFilters(newFormFilters);
   };
 
-  const safeSchemas = schemas || [];
-
-  function debounce(func, wait) {
-    let timeout;
-    return function (...args) {
-      const context = this;
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(context, args), wait);
-    };
-  }
-
-  const [clicked, setClicked] = useState(safeSchemas[0]?.id);
-  const theme = React.useContext(ThemeContext);
-
-  const containerRef = useRef(null);
-
-  const handleWheel = (event) => {
-    event.preventDefault();
-    if (!safeSchemas.length) return;
-    const currentIndex = safeSchemas.findIndex(
-      (schema) => schema.id === clicked,
-    );
-    if (event.deltaY < 0) {
-      if (currentIndex > 0) {
-        setClicked(safeSchemas[currentIndex - 1].id);
-      }
-    } else {
-      if (currentIndex < safeSchemas.length - 1) {
-        setClicked(safeSchemas[currentIndex + 1].id);
-      }
-    }
-  };
-
-  const debouncedHandleWheel = debounce(handleWheel, 100);
-
-  useEffect(() => {
-    const div = containerRef.current;
-    if (div) {
-      div.addEventListener("wheel", debouncedHandleWheel, { passive: false });
-    }
-    return () => {
-      if (div) {
-        div.removeEventListener("wheel", debouncedHandleWheel);
-      }
-    };
-  }, [clicked, safeSchemas.length]);
-
-  useEffect(() => {
-    const preventDefault = (e) => e.preventDefault();
-
-    const handleMouseEnter = () => {
-      window.addEventListener("wheel", preventDefault, { passive: false });
-    };
-
-    const handleMouseLeave = () => {
-      window.removeEventListener("wheel", preventDefault);
-    };
-
-    const container = containerRef.current;
-    container.addEventListener("mouseenter", handleMouseEnter);
-    container.addEventListener("mouseleave", handleMouseLeave);
-
-    return () => {
-      container.removeEventListener("mouseenter", handleMouseEnter);
-      container.removeEventListener("mouseleave", handleMouseLeave);
-    };
-  }, []);
-
   return (
     <Container
       style={{
@@ -152,13 +130,14 @@ export default function FilterPanel({
         style={{ fontSize: "30px" }}
         id="ENCOUNTER_SEARCH_FILTERS"
       />
-      <Row className="p-3" style={{ alignItems: "flex-start" }}>
+      <Row className="pt-2" style={{ alignItems: "flex-start" }}>
         <Col md={3} sm={12} className="d-flex align-items-center mb-3">
           <div
             ref={containerRef}
             className="w-100 d-flex flex-column overflow-auto rounded-3 shadow-sm p-2 text-white "
             style={{
-              height: "700px",
+              minHeight: "600px",
+              height: "70vh",
               background: "rgba(255, 255, 255, 0.1)",
               backdropFilter: "blur(3px)",
               WebkitBackdropFilter: "blur(2px)",
@@ -181,6 +160,7 @@ export default function FilterPanel({
                   }}
                   onClick={() => {
                     setClicked(schema.id);
+                    handleClick(schema.id);
                   }}
                 >
                   <Text
@@ -201,7 +181,7 @@ export default function FilterPanel({
                 </div>
               );
             })}
-            <div className="mt-5 d-flex flex-wrap justify-content-center align-items-center w-100 gap-3">
+            <div className="mt-2 d-flex flex-wrap justify-content-center align-items-center w-100 gap-3">
               <BrutalismButton
                 color="white"
                 backgroundColor={theme.primaryColors.primary700}
@@ -259,7 +239,8 @@ export default function FilterPanel({
           <div
             className="w-100 d-flex flex-column rounded-3 p-3 text-white overflow-auto"
             style={{
-              minHeight: "700px",
+              height: "70vh",
+              minHeight: "600px",
               background: "rgba(255, 255, 255, 0.1)",
               backdropFilter: "blur(3px)",
               WebkitBackdropFilter: "blur(2px)",
@@ -267,26 +248,16 @@ export default function FilterPanel({
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               padding: "20px",
               color: "white",
-              overflow: "visible",
+              overflow: "auto",
             }}
+            onScroll={handleScroll}
           >
-            {safeSchemas.map((schema) => {
+            {safeSchemas.map((schema, index) => {
               return (
-                // schema.id === clicked && <schema.FilterComponent
-                //   key={schema.id}
-                //   labelId={schema.labelId}
-                //   onChange={handleFilterChange}
-                //   onClearFilter={clearFilter}
-                //   {...schema.filterComponentProps}
-                //   data={data}
-                //   filters={filters}
-                // />
                 <div
-                  key={schema.id}
-                  style={{
-                    display: schema.id === clicked ? "block" : "none",
-                    width: "100%",
-                  }}
+                  className="mb-3"
+                  key={index}
+                  ref={schemaRefs.current[index]}
                 >
                   <schema.FilterComponent
                     key={schema.id}
@@ -304,7 +275,6 @@ export default function FilterPanel({
             })}
           </div>
         </Col>
-        {/* </div> */}
       </Row>
     </Container>
   );
