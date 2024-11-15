@@ -1,6 +1,110 @@
 {
   "description": "TroutSpotter locations",
   "locationID": [
+	  	{
+			"name": "Alberta",
+			"id": "Alberta",
+			"locationID": [
+				{
+					"name": "Elk Creek",
+					"id": "Elk Creek",
+					"geospatialInfo":{
+					},
+					"locationID":[
+						{
+							"name": "E1",
+							"id": "E1",
+							"geospatialInfo":{
+								"lat": 52.04363,
+								"long": -115.833655
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E2",
+							"id": "E2",
+							"geospatialInfo":{
+								"lat": 52.04713,
+								"long": -115.828869
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E4",
+							"id": "E4",
+							"geospatialInfo":{
+								"lat": 52.05992,
+								"long": -115.783811
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E5",
+							"id": "E5",
+							"geospatialInfo":{
+								"lat": 52.06877,
+								"long": -115.748832
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E7",
+							"id": "E7",
+							"geospatialInfo":{
+								"lat": 52.08661,
+								"long": -115.723681
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E8",
+							"id": "E8",
+							"geospatialInfo":{
+								"lat": 52.08991,
+								"long": -115.716654
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E9",
+							"id": "E9",
+							"geospatialInfo":{
+								"lat": 52.07987,
+								"long": -115.683479
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E10",
+							"id": "E10",
+							"geospatialInfo":{
+								"lat": 52.06379,
+								"long": -115.669874
+							},
+							"locationID":[]
+						},
+						{
+							"name": "E12",
+							"id": "E12",
+							"geospatialInfo":{
+								"lat": 52.05692,
+								"long": -115.654749
+							},
+							"locationID": []
+						},
+						{
+							"name": "E13",
+							"id": "E13",
+							"geospatialInfo":{
+								"lat": 52.08479,
+								"long": -115.696791
+							},
+							"locationID":[]
+						}
+					]
+				}
+			]
+		},
 		{
 			"name": "Rapidan River, VA",
 			"id": "Rapidan River VA",
