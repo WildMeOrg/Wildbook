@@ -5,13 +5,19 @@ import ThemeContext from "../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
 import useGetSiteSettings from "../models/useGetSiteSettings";
 
-const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds = () => {} }) => {
+const MapComponent = ({ setBounds, setTempBounds = () => {} }) => {
   const theme = useContext(ThemeContext);
-  const key = useGetSiteSettings()?.data?.googleMapsKey;
-
   const [rectangle, setRectangle] = useState(null);
   const drawingRef = useRef(false);
   const [isDrawing, setIsDrawing] = useState(false);
+
+  const { data } = useGetSiteSettings();
+  const key = data?.googleMapsKey;
+  const center = {
+    lat: data?.mapCenterLat || 50,
+    lng: data?.mapCenterLon || 7,
+  };
+  const zoom = data?.mapZoom || 4;
 
   const handleApiLoaded = (map, maps) => {
     let rect = new maps.Rectangle({
