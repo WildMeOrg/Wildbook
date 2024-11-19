@@ -8,20 +8,24 @@ export default [
   pluginJs.configs.recommended,
   pluginReactConfig,
   {
-    files: ["**/*.{js,mjs,cjs,jsx}"],     
+    files: ["**/*.{js,mjs,cjs,jsx}"],
     plugins: {
-      "react-hooks": reactHooks,  
+      "react-hooks": reactHooks,
     },
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        process: "readonly",
+      },
       parser: babelParser,
+      
     },
     settings: {
       react: {
         version: "detect"
       }
-    },  
-      
+    },
+
     rules: {
       "semi": 2,
       "react/prop-types": 0,
@@ -54,19 +58,19 @@ export default [
       "no-param-reassign": 0,
       "no-mixed-operators": 0,
       "no-else-return": 0,
-      
+
     },
   },
   {
     files: ['frontend/babel.config.js', 'frontend/jest.config.js', 'babel.config.js'],  // Specify the config files
     languageOptions: {
       globals: {
-        require: "readonly",  
+        require: "readonly",
         module: "readonly",
-        __dirname: "readonly",  
+        __dirname: "readonly",
         process: "readonly",
       },
-    },    
+    },
   },
   {
     files: ["**/__tests__/**/*.{js,jsx}", "**/*.test.{js,jsx}"],

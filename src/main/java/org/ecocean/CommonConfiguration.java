@@ -385,22 +385,6 @@ public class CommonConfiguration {
         return getProperty("newSubmissionEmail", context).trim();
     }
 
-    public static String getDefaultSelectedProject(String context) {
-        return getProperty("defaultProjName", context).trim();
-    }
-
-    public static String getDefaultProjectOrganizationParameter(String context) {
-        return getProperty("defaultProjectOrganizationParameter", context).trim();
-    }
-
-    public static String getDefaultSelectedProjectId(String context) {
-        return getProperty("defaultProjId", context).trim();
-    }
-
-    public static boolean getLoggedOutDefaultDesired(String context) {
-        return parseBoolean(getProperty("loggedOutDefaultDesired", context), false);
-    }
-
     public static String getR(String context) {
         return getProperty("R", context).trim();
     }

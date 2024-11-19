@@ -10,7 +10,7 @@ import { FormattedMessage } from "react-intl";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader() {
+export default function AuthenticatedAppHeader({showclassicsubmit}) {
   const { visible } = useContext(FooterVisibilityContext);
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,
@@ -74,7 +74,7 @@ export default function AuthenticatedAppHeader() {
                   marginLeft: "auto",
                 }}
               >
-                {unAuthenticatedMenu.map((item, idx) => (
+                {unAuthenticatedMenu(showclassicsubmit).map((item, idx) => (
                   <Nav key={idx} className="me-auto">
                     <NavDropdown
                       title={
