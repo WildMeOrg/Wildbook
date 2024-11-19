@@ -6,6 +6,7 @@ import PassKey from "../components/svg/PassKey";
 import GalleryThumbnail from "../components/svg/GalleryThumbnail";
 import DeleteSweep from "../components/svg/DeleteSweep";
 import StackedEmail from "../components/svg/StackedEmail";
+import Card from "../components/Card";
 
 export const AdminLogs = () => {
   const themeColor = useContext(ThemeColorContext);
@@ -36,7 +37,6 @@ export const AdminLogs = () => {
   return (
     <div
       style={{
-        // eslint-disable-next-line no-undef
         backgroundImage: `url(${process.env.PUBLIC_URL}/images/List_of_Logs_Image.png)`,
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -58,33 +58,13 @@ export const AdminLogs = () => {
         <h1 className="display-1 text-white fw-bold">Logs</h1>
         <Row>
           {cards.map((card, index) => (
-            <div
+            <Card
               key={index}
-              className="bg-white d-flex flex-column align-items-center p-3 m-3 fw-semibold"
-              onClick={() => (window.location.href = card.url)}
-              style={{
-                height: "170px",
-                width: "170px",
-                color: themeColor.primaryColors.primary800,
-                borderRadius: "20px",
-                cursor: "pointer",
-              }}
-            >
-              <div className="d-flex align-items-center justify-content-center mt-2">
-                {card.icon}
-              </div>
-              <span
-                className="text-center"
-                style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: "100%",
-                }}
-                title={card.title}
-              >
-                {card.title}
-              </span>
-            </div>
+              icon={card.icon}
+              title={card.title}
+              link={card.url}
+              color={themeColor.primaryColors.primary800}
+            />
           ))}
         </Row>
       </div>
