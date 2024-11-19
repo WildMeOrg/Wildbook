@@ -364,10 +364,8 @@
 								"locationID": []
 							}
 						]
-					}
-				]
-              },
-			  {	
+					},
+					{	
 						"name": "Queensland", 
 						"id": "Queensland", 
 						"prefix": "AP-", 
@@ -441,7 +439,9 @@
 								"locationID": []
 							}
 						]
-					}	  
+					}
+				]
+              }	  
 			  ]},
 
 			  {
