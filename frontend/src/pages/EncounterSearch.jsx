@@ -12,7 +12,6 @@ import { get } from "lodash";
 
 const columns = [
   { name: "INDIVIDUAL_ID", selector: "individualDisplayName" },
-  // { name: "Encounter ID", selector: "id" },
   { name: "SIGHTING_ID", selector: "occurrenceId" },
   { name: "ALTERNATIVE_ID", selector: "otherCatalogNumbers" },
   { name: "CREATED_DATE", selector: "date" },
@@ -32,8 +31,7 @@ export default function EncounterSearch() {
   const [paramsFormFilters, setParamsFormFilters] = useState([]);
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
   const [formFilters, setFormFilters] = useState([]);
-  // const [resultPage, setResultPage] = useState(false);
-  // const [refresh, setRefresh] = useState(false);
+
   const regularQuery = searchParams.get("regularQuery");
 
   const [queryID, setQueryID] = useState(
@@ -228,10 +226,9 @@ export default function EncounterSearch() {
     <div
       className="encounter-search container-fluid"
       style={{
-        backgroundImage:
-          `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${process.env.PUBLIC_URL}/images/encounter_search_background.png')`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${process.env.PUBLIC_URL}/images/encounter_search_background.png')`,
         backgroundSize: "cover",
-        minHeight: "800px",
+        minHeight: "700px",
         width: "100%",
         padding: "20px",
         backgroundAttachment: "fixed",

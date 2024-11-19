@@ -1,6 +1,98 @@
-- name: Upload coverage reports to Codecov
-  uses: codecov/codecov-action@v3
-  with:
-    fail_ci_if_error: false
-  env:
-    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+name: CodCov, Run Backend and Frontend Tests
+
+on: 
+  push:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Java for backend tests
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '8'
+
+      # Set up Node.js for frontend tests
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      # Install dependencies for backend
+      - name: Install backend dependencies
+        run: |
+          #cd src/test
+          mvn clean install
+          mkdir -p src/surefire-reports
+          mkdir -p frontend/coverage
+
+      # Run backend tests with coverage
+      - name: Run backend tests
+        run: mvn test -e
+        working-directory: ./
+        continue-on-error: true
+
+      # Install dependencies for frontend
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      # Run frontend tests with coverage
+      - name: Run frontend tests
+        run: npm run test --coverage
+        working-directory: frontend
+        continue-on-error: true
+
+      # Upload test results and coverage
+      - name: Upload coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: |
+            target/surefire-reports
+            frontend/coverage
+            
+      # List coverage files
+      - name: Verify coverage files
+        run: |
+          echo "Checking backend coverage files..."
+          ls -l target/site/jacoco/ || echo "No backend coverage files found"
+          echo "Checking frontend coverage files..."
+          ls -l frontend/coverage/ || echo "No frontend coverage files found"
+
+
+      # Upload to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # Add Codecov token as a secret in GitHub
+          files: |
+            target/site/jacoco/jacoco.xml
+            frontend/coverage/lcov.info
+          flags: backend,frontend
+          name: codecov-coverage-report
+          fail_ci_if_error: false # Does not block merge if there’s an error
+
+      - name: List files
+        run: |
+          #cd src/test
+          ls -l target/surefire-reports
+          ls -l frontend/coverage
+
+
+      # Display test coverage in the summary (optional)
+      - name: Display test coverage summary
+        run: |
+          echo "Backend Test Results:"
+          cat target/surefire-reports/*.txt || true
+          echo "Frontend Test Coverage Summary:"
+          cat frontend/coverage/*.* || true
