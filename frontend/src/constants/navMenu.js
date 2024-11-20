@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React from "react";
 import { FormattedMessage } from "react-intl";
 
@@ -244,7 +245,7 @@ const authenticatedMenu = (username, showclassicsubmit) => [
         name: (
           <FormattedMessage id="MENU_ADMINISTER_LOGS" defaultMessage="Logs" />
         ),
-        href: "/appadmin/logs.jsp",
+        href: "/react/admin/logs",
       },
       {
         name: (
