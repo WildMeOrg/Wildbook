@@ -12,7 +12,7 @@ export default function GalleryThumbnail() {
       >
         <rect width="68" height="68" rx="34" fill="#00A5CE" fillOpacity="0.2" />
         <mask
-          id="mask0_710_10419"
+          id="mask0_2076_15"
           maskUnits="userSpaceOnUse"
           x="12"
           y="12"
