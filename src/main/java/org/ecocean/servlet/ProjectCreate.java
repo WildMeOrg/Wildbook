@@ -9,8 +9,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.json.JSONObject;
 
-import edu.stanford.nlp.util.StringUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -57,8 +55,6 @@ public class ProjectCreate extends HttpServlet {
         JSONArray orgsForUsers = null;
         String projectIdPrefix = null;
         String researchProjectName = null;
-
-        // TODO handle add users by organization
 
         try {
             res.put("success", "false");
@@ -116,7 +112,7 @@ public class ProjectCreate extends HttpServlet {
                 if (projectUserIds != null && projectUserIds.length() > 0) {
                     for (int i = 0; i < projectUserIds.length(); i++) {
                         String userIdentifier = projectUserIds.getString(i);
-                        if (!StringUtils.isNullOrEmpty(userIdentifier)) {
+                        if (!Util.stringIsEmptyOrNull(userIdentifier)) {
                             User user = null;
                             if (Util.isUUID(userIdentifier)) {
                                 user = myShepherd.getUserByUUID(userIdentifier);

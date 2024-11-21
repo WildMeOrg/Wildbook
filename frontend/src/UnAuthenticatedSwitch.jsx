@@ -1,49 +1,67 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
-import ErrorPage from "./pages/errorPages/ErrorPage";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Footer from "./components/Footer";
-import Home from "./pages/Home";
 import AlertBanner from "./components/AlertBanner";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
-import NotFound from "./pages/errorPages/NotFound";
-import Forbidden from "./pages/errorPages/Forbidden";
 import Unauthorized from "./pages/errorPages/Unauthorized";
-import ServerError from "./pages/errorPages/ServerError";
-import BadRequest from "./pages/errorPages/BadRequest";
+import Citation from "./pages/Citation";
+import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
+import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
-export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
-  console.log("UnAuthenticatedSwitch", showAlert);
+export default function UnAuthenticatedSwitch({
+  showAlert,
+  setShowAlert,
+  showclassicsubmit,
+}) {
+  const [header, setHeader] = React.useState(true);
+  const location = useLocation();
+
+  const redirParam = encodeURIComponent(
+    `${location.pathname}${location.search}${location.hash}`,
+  );
 
   return (
-    <main className="d-flex flex-column">
+    <div className="d-flex flex-column min-vh-100">
       <div
-        className="position-fixed top-0 mx-auto w-100"
-        style={{ maxWidth: "1440px", zIndex: 100 }}
+        id="header"
+        className="position-fixed top-0 w-100"
+        style={{
+          zIndex: "100",
+          height: "50px",
+          backgroundColor: "#303336",
+        }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
-        <UnAuthenticatedAppHeader
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
-        />
+        <UnAuthenticatedAppHeader showclassicsubmit={showclassicsubmit} />
       </div>
+
       <div
-        className="position-absolute top-0 start-0 justify-content-center w-100"
+        id="main-content"
+        className="flex-grow-1 d-flex justify-content-center"
         style={{
-          overflow: "hidden",
           boxSizing: "border-box",
-          minHeight: "calc(100vh - 64px)", // Assuming the header height is 64px
+          overflow: "hidden",
+          paddingTop: header ? "48px" : "0",
         }}
       >
         <Routes>
-          {/* <Route path="/about" element={<Login />} /> */}
-          <Route path="/home" element={<Unauthorized />} />
+          <Route
+            path="/home"
+            element={<Unauthorized setHeader={setHeader} />}
+          />
+          <Route path="/citation" element={<Citation />} />
+          <Route path="/report" element={<ReportEncounter />} />
+          <Route path="/reportConfirm" element={<ReportConfirm />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
+          <Route
+            path="*"
+            element={<Navigate to={`/login?redirect=${redirParam}`} />}
+          />
         </Routes>
-        <Footer />
       </div>
-    </main>
+      <Footer />
+    </div>
   );
 }

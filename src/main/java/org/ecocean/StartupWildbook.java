@@ -17,6 +17,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.media.LocalAssetStore;
+import org.ecocean.OpenSearch;
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.servlet.ServletUtilities;
@@ -44,7 +45,7 @@ public class StartupWildbook implements ServletContextListener {
     }
 
     /*
-        right now this *only* uses SERVER_URL env variable TODO: should _probably_ make this work in the more general case where it isnt e.g.
+        right now this *only* uses SERVER_URL env variable TODO: make this work in the more general case where it isnt e.g.
            CommonConfiguration.checkServerInfo(myShepherd, request)
      */
     public static void ensureServerInfo(Shepherd myShepherd) {
@@ -118,9 +119,6 @@ public class StartupWildbook implements ServletContextListener {
                 Role newRole3 = new Role("tomcat", "machinelearning");
                 newRole3.setContext("context0");
                 myShepherd.getPM().makePersistent(newRole3);
-                // Role newRole4=new Role("tomcat","destroyer");
-                // newRole4.setContext("context0");
-                // myShepherd.getPM().makePersistent(newRole4);
                 Role newRole5 = new Role("tomcat", "rest");
                 newRole5.setContext("context0");
                 myShepherd.getPM().makePersistent(newRole5);
@@ -156,7 +154,7 @@ public class StartupWildbook implements ServletContextListener {
     // these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
-        String context = "context0"; // TODO ??? how????
+        String context = "context0"; 
 
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " +
             servletContextInfo(sContext));
@@ -172,14 +170,13 @@ public class StartupWildbook implements ServletContextListener {
         if (CommonConfiguration.useSpotPatternRecognition(context)) {
             createMatchGraph();
         }
-        // TODO genericize starting "all" consumers ... configurable? how?  etc.
-        // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
-        startIAQueues(context); // TODO this should get moved to plugins!!!!  FIXME
+        // TODO: set strategy for the following (genericize starting "all" consumers, make configurable, move to WildbookIAM.startup, move to plugins, or other)
+        startIAQueues(context); 
         TwitterBot.startServices(context);
         MetricsBot.startServices(context);
         AcmIdBot.startServices(context);
-
         AnnotationLite.startup(sContext, context);
+        OpenSearch.backgroundStartup(context);
 
         try {
             startWildbookScheduledTaskThread(context);
@@ -192,9 +189,7 @@ public class StartupWildbook implements ServletContextListener {
         myShepherd.setAction("MarkedIndividual.initNamesCache");
         myShepherd.beginDBTransaction();
         try {
-            System.out.println("XXXXXXXXXX INIT NAMES CACHE sTART");
             boolean cached = org.ecocean.MarkedIndividual.initNamesCache(myShepherd);
-            System.out.println("XXXXXXXXXX INIT NAMES CACHE END: " + cached);
         } catch (Exception f) {
             f.printStackTrace();
         } finally { myShepherd.rollbackAndClose(); }
@@ -307,13 +302,12 @@ public class StartupWildbook implements ServletContextListener {
                 }
                 myShepherd.closeDBTransaction();
             }
-            // }, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing
         }, 0, 1, TimeUnit.HOURS);
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
-        String context = "context0"; ///HOW?? (see above) TODO FIXME
+        String context = "context0"; 
 
         System.out.println("* StartupWildbook destroyed called for: " +
             servletContextInfo(sContext));
@@ -333,13 +327,9 @@ public class StartupWildbook implements ServletContextListener {
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {
         ServletContext sc = sce.getServletContext();
+        
 /*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
      see:  https://octopus.com/blog/defining-tomcat-context-paths
-
-        if ("".equals(sc.getContextPath())) {
-            System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
-            return true;
-        }
  */
         String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
         boolean skip = new File(fname).exists();
@@ -349,24 +339,6 @@ public class StartupWildbook implements ServletContextListener {
         return skip;
     }
 
-/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem...
-    //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
-    private static boolean properStartupResource(ServletContextEvent sce) {
-        if (sce == null) return false;
-        ServletContext context = sce.getServletContext();
-        if (context == null) return false;
-        URL res = null;
-        try {
-            res = context.getResource("/");
-        } catch (Exception ex) {
-            System.out.println("  ERROR: StartupWildbook.properStartupResource() .getResource() threw exception: " + ex);
-            return false;
-        }
-   System.out.println("  StartupWildbook.properStartupResource() res = " + res);
-        if (res == null) return false;
-        return res.toString().equals("jndi:/localhost/uptest/");
-    }
- */
     public static String servletContextInfo(ServletContext sc) {
         if (sc == null) return null;
         try {
