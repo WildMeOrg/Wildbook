@@ -242,6 +242,10 @@
     "CITATION_CITATION_DETAILS_2": "J. Levenson, S. Gero, J. Van Oast, and J. Holmberg. 2015. Flukebook: a cloud-based photo-identification analysis tools for marine mammal research. Accessible at: https://www.flukebook.org",
     "CITATION_FORWARD": "To forward the citation of any publication / report that made use of the data / tools provided by Wild Me for inclusion in our list of references by submitting to info@wildme.org.",
     "CITATION_DISCLAIMER": "Not to hold Wild Me or the original data providers liable for errors in the data. While we have made every effort to ensure the quality of the database, we cannot guarantee the accuracy of these datasets.",
+    "USER_ACCESS_LOG": "User Access Log",
+    "ENCOUNTER_SUBMISSION_LOG": "Encounter Submission Log",
+    "DELETED_ENCOUNTERS_LOG": "Deleted Encounters Log",
+    "EMAIL_LOG": "Email Log",
     "MAP_IS_LOADING": "Map is loading",
     "SESSION_WARNING_CONTENT": "Your session is about to expire. ",
     "SESSION_WARNING_TITLE": "Session Timeout Warning",
@@ -314,5 +318,4 @@
     "BEERROR_INVALID" : "Could not submit; field format was invalid: ",
     "BEERROR_UNKNOWN" : "Could not submit due to unknown error.",
     "ANON_UPLOAD_IMAGE_WARNING": "Images cannot be uploaded until captcha is complete."
-
 }
