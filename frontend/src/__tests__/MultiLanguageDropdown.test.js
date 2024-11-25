@@ -6,6 +6,10 @@ import { localeMap, languageMap } from "../constants/locales";
 import "@testing-library/jest-dom"; // Ensure you have this installed for extended matchers
 import Cookies from "js-cookie";
 
+beforeAll(()=> {
+  process.env.PUBLIC_URL ="/react";
+});
+
 jest.mock("js-cookie", () => ({
   get: jest.fn(),
 }));

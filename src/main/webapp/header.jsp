@@ -101,7 +101,7 @@ if(request.getUserPrincipal()!=null){
     }
   }
   catch(Exception e){
-    System.out.println("Exception on indocetCheck in header.jsp:");
+    System.out.println("Exception in header.jsp:");
     e.printStackTrace();
     myShepherd.closeDBTransaction();
   }
@@ -159,7 +159,7 @@ if(request.getUserPrincipal()!=null){
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
       
-      <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
+      <!-- Icon font applied everywhere -->
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
@@ -436,7 +436,10 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                            <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("report")%></a></li>
+                            <li><a href="<%=urlLoc %>/react/report" ><%=props.getProperty("report")%></a></li>
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))) { %>
+                            <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("reportClassic")%></a></li>
+<% } %>
 
                             <!--
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
@@ -507,9 +510,9 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageMyAccounts")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("libraryAdministration")%></a></li>
-                          <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
+                          <li><a href="<%=urlLoc %>/react/admin/logs"><%=props.getProperty("logs")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
-                          <li><a href="<%=urlLoc %>/product-docs/en/wildbook/introduction/"><%=props.getProperty("softwareDocumentation")%></a></li>
+                          <li><a href="https://wildbook.docs.wildme.org"><%=props.getProperty("softwareDocumentation")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
                           <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("bulkImportLogs")%></a></li>
 

@@ -1108,8 +1108,7 @@ public class ServletUtilities {
         request.getRequestDispatcher(filename).include(request, response);
     }
 
-    // used to determine if we want to apply a custom UI style, e.g. for IndoCet or
-    // the New England Aquarium to a web page
+    // used to determine if we want to apply a custom UI style, e.g. the New England Aquarium to a web page
     public static boolean useCustomStyle(HttpServletRequest request, String orgName) {
         // check url for "organization=____" arg
         String organization = request.getParameter("organization");

@@ -912,7 +912,8 @@ public class StandardImport extends HttpServlet {
             List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues(
                 "genusSpecies", myShepherd.getContext());
             if (configuredSpecies != null && configuredSpecies.size() > 0 &&
-                configuredSpecies.toString().replaceAll("_"," ").indexOf(enc.getTaxonomyString()) < 0) {
+                configuredSpecies.toString().replaceAll("_",
+                " ").indexOf(enc.getTaxonomyString()) < 0) {
                 // if bad values
                 feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),
                     genus, row, "UNSUPPORTED VALUE: " + genus);
@@ -2529,27 +2530,12 @@ public class StandardImport extends HttpServlet {
     // returns file so you can use .getName() or .lastModified() etc
     public static File importXlsFile(String rootDir, HttpServletRequest request) {
         File dir = new File(rootDir, "import");
-        File f = null;
+        File f = new File(dir, "WildbookStandardFormat.xlsx");
 
-        if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
-            f = new File(dir, "WildbookStandardFormat_IndoCet.xlsx");
-        } else {
-            f = new File(dir, "WildbookStandardFormat.xlsx");
-        }
         if (f != null && f.isFile()) { return f; } else {
             System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + ";f is: " + f);
             return null;
         }
-        /*
-           try {
-            for (final File f : dir.listFiles()) {
-                if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
-            }
-           } catch (Exception ex) {
-            System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " + ex.toString());
-            return null;
-           }
-         */
     }
 
     // cannot put this inside CellFeedback bc java inner classes are not allowed static methods or vars (this is stupid).

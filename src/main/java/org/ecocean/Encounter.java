@@ -4,9 +4,11 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.lang.Math;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -30,8 +33,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.ecocean.api.ApiException;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
@@ -2298,6 +2303,60 @@ public class Encounter extends Base implements java.io.Serializable {
         this.dateInMilliseconds = ms;
     }
 
+    // also supports YYYY and YYYY-MM
+    public void setDateFromISO8601String(String iso8601) {
+        if (!validISO8601String(iso8601)) return;
+        if (iso8601.length() == 4) { // assume year
+            try {
+                this.year = Integer.parseInt(iso8601);
+            } catch (Exception ex) {}
+            resetDateInMilliseconds();
+            return;
+        }
+        // this should already be validated so we can trust it (flw)
+        if (iso8601.length() == 7) {
+            try {
+                this.year = Integer.parseInt(iso8601.substring(0, 4));
+                this.month = Integer.parseInt(iso8601.substring(5, 7));
+            } catch (Exception ex) {}
+            resetDateInMilliseconds();
+            return;
+        }
+        try {
+            String adjusted = Util.getISO8601Date(iso8601);
+            DateTime dt = new DateTime(adjusted);
+            this.setDateInMilliseconds(dt.getMillis());
+        } catch (Exception ex) {
+            System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
+        }
+        resetDateInMilliseconds();
+    }
+
+    // also supports YYYY and YYYY-MM
+    public static boolean validISO8601String(String iso8601) {
+        if (iso8601 == null) return false;
+        if (iso8601.length() == 4) {
+            Integer yr = null;
+            try {
+                yr = Integer.parseInt(iso8601);
+            } catch (Exception ex) {}
+            return (yr != null);
+        }
+        if (iso8601.length() == 7) {
+            Integer yr = null;
+            Integer mo = null;
+            try {
+                yr = Integer.parseInt(iso8601.substring(0, 4));
+                mo = Integer.parseInt(iso8601.substring(5, 7));
+            } catch (Exception ex) {}
+            if ((yr == null) || (mo == null)) return false;
+            if ((mo < 1) || (mo > 12)) return false;
+            return true;
+        }
+        long test = Util.getVersionFromModified(iso8601);
+        return (test > 0);
+    }
+
     public Long getEndDateInMilliseconds() {
         return endDateInMilliseconds;
     }
@@ -4106,6 +4165,9 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("organizations", keywordNormalType);
         map.put("otherCatalogNumbers", keywordNormalType);
         map.put("lifeStage", keywordNormalType);
+        map.put("submitters", keywordNormalType);
+        map.put("photographers", keywordNormalType);
+        map.put("informOthers", keywordNormalType);
 
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
@@ -4157,5 +4219,264 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
         return rtn;
+    }
+
+    public static Base createFromApi(org.json.JSONObject payload, List<File> files,
+        Shepherd myShepherd)
+    throws ApiException {
+        if (payload == null) throw new ApiException("empty payload");
+        User user = (User)payload.opt("_currentUser");
+
+        // these need validation (will throw ApiException if fail)
+        String locationID = (String)validateFieldValue("locationId", payload);
+        String dateTime = (String)validateFieldValue("dateTime", payload);
+        String txStr = (String)validateFieldValue("taxonomy", payload);
+        String submitterEmail = (String)validateFieldValue("submitterEmail", payload);
+        String photographerEmail = (String)validateFieldValue("photographerEmail", payload);
+        Double decimalLatitude = (Double)validateFieldValue("decimalLatitude", payload);
+        Double decimalLongitude = (Double)validateFieldValue("decimalLongitude", payload);
+        if (((decimalLatitude == null) && (decimalLongitude != null)) ||
+            ((decimalLatitude != null) && (decimalLongitude == null))) {
+            org.json.JSONObject error = new org.json.JSONObject();
+            error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            // i guess we pick one, since both are wrong
+            error.put("fieldName", "decimalLatitude");
+            error.put("value", decimalLatitude);
+            throw new ApiException("cannot send just one of decimalLatitude and decimalLongitude",
+                    error);
+        }
+        String additionalEmailsValue = payload.optString("additionalEmails", null);
+        String[] additionalEmails = null;
+        if (!Util.stringIsEmptyOrNull(additionalEmailsValue))
+            additionalEmails = additionalEmailsValue.split("[,\\s]+");
+        if (additionalEmails != null) {
+            org.json.JSONObject error = new org.json.JSONObject();
+            error.put("fieldName", "additionalEmails");
+            for (String email : additionalEmails) {
+                if (!Util.isValidEmailAddress(email)) {
+                    error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                    error.put("value", email);
+                    throw new ApiException("invalid email address", error);
+                }
+            }
+        }
+        Encounter enc = new Encounter(false);
+        if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
+        enc.setLocationID(locationID);
+        enc.setDecimalLatitude(decimalLatitude);
+        enc.setDecimalLongitude(decimalLongitude);
+        enc.setDateFromISO8601String(dateTime);
+        enc.setTaxonomyFromString(txStr);
+        enc.setComments(payload.optString("comments", null));
+        if (user == null) {
+            enc.setSubmitterID("public"); // this seems to be what EncounterForm servlet does so...
+        } else {
+            enc.setSubmitterID(user.getUsername());
+            enc.addSubmitter(user);
+        }
+        if (!Util.stringIsEmptyOrNull(submitterEmail)) {
+            User submitterUser = myShepherd.getOrCreateUserByEmailAddress(submitterEmail,
+                payload.optString("submitterName", null));
+            // set this after the owner-submitter being set
+            enc.addSubmitter(submitterUser);
+        }
+        if (!Util.stringIsEmptyOrNull(photographerEmail)) {
+            User photographerUser = myShepherd.getOrCreateUserByEmailAddress(photographerEmail,
+                payload.optString("photographerName", null));
+            enc.addPhotographer(photographerUser);
+        }
+        if (additionalEmails != null) {
+            for (String email : additionalEmails) {
+                User addlUser = myShepherd.getOrCreateUserByEmailAddress(email, null);
+                enc.addInformOther(addlUser);
+            }
+        }
+        return enc;
+    }
+
+    public static Object validateFieldValue(String fieldName, org.json.JSONObject data)
+    throws ApiException {
+        if (data == null) throw new ApiException("empty payload");
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("fieldName", fieldName);
+        String exMessage = "invalid value for " + fieldName;
+        Object returnValue = null;
+        double UNSET_LATLON = 9999.99;
+        switch (fieldName) {
+        case "locationId":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!LocationID.isValidLocationID((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "dateTime":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!validISO8601String((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "taxonomy":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue != null) { // null is allowed, but will not pass validity
+                // this is throwaway read-only shepherd
+                Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.setAction("Encounter.validateFieldValue");
+                myShepherd.beginDBTransaction();
+                boolean validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
+                myShepherd.rollbackDBTransaction();
+                if (!validTaxonomy) {
+                    error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                    error.put("value", returnValue);
+                    throw new ApiException(exMessage, error);
+                }
+            }
+            break;
+
+        case "photographerEmail":
+        case "submitterEmail":
+            returnValue = data.optString(fieldName, null);
+            if ((returnValue != null) && !Util.isValidEmailAddress((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "decimalLatitude":
+            returnValue = data.optDouble(fieldName, UNSET_LATLON);
+            if ((double)returnValue == UNSET_LATLON) {
+                returnValue = null;
+            } else if (!Util.isValidDecimalLatitude((double)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "decimalLongitude":
+            returnValue = data.optDouble(fieldName, UNSET_LATLON);
+            if ((double)returnValue == UNSET_LATLON) {
+                returnValue = null;
+            } else if (!Util.isValidDecimalLongitude((double)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" +
+                fieldName);
+        }
+        // must be okay!
+        return returnValue;
+    }
+
+    // basically ripped from servlet/EncounterForm
+    public Task sendToIA(Shepherd myShepherd) {
+        Task task = null;
+
+        try {
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            if (iaConfig.hasIA(this, myShepherd)) {
+                for (MediaAsset ma : this.getMedia()) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
+                Task parentTask = null; // this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+                if (this.getLocationID() != null) {
+                    parentTask = new Task();
+                    org.json.JSONObject tp = new org.json.JSONObject();
+                    org.json.JSONObject mf = new org.json.JSONObject();
+                    mf.put("locationId", this.getLocationID());
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, this.getMedia(), parentTask);
+                myShepherd.storeNewTask(task);
+                System.out.println("sendToIA() success on " + this + " => " + task);
+            } else {
+                System.out.println("sendToIA() skipped; no config for " + this);
+            }
+        } catch (Exception ex) {
+            System.out.println("sendToIA() failed on " + this + ": " + ex);
+            ex.printStackTrace();
+        }
+        return task;
+    }
+
+    public Set<String> getNotificationEmailAddresses() {
+        Set<String> addrs = new HashSet<String>();
+
+        addrs.addAll(Util.getUserEmailAddresses(this.getSubmitters()));
+        addrs.addAll(Util.getUserEmailAddresses(this.getPhotographers()));
+        addrs.addAll(Util.getUserEmailAddresses(this.getInformOthers()));
+        return addrs;
+    }
+
+    // FIXME passing the langCode is dumb imho, but this is "standard practice"
+    // better would be that each recipient user's language preference would be used for their email
+    public void sendCreationEmails(Shepherd myShepherd, String langCode) {
+        String context = myShepherd.getContext();
+
+        if (!CommonConfiguration.sendEmailNotifications(context)) return;
+        myShepherd.beginDBTransaction();
+        try {
+            URI uri = CommonConfiguration.getServerURI(myShepherd);
+            if (uri == null) throw new IOException("could not find server uri");
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Properties submitProps = ShepherdProperties.getProperties("submit.properties", langCode,
+                context);
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(this);
+            tagMap.put(NotificationMailer.WILDBOOK_COMMUNITY_URL,
+                CommonConfiguration.getWildbookCommunityURL(context));
+            List<String> mailTo = NotificationMailer.splitEmails(
+                CommonConfiguration.getNewSubmissionEmail(context));
+            String mailSubj = submitProps.getProperty("newEncounter") + this.getCatalogNumber();
+            for (String emailTo : mailTo) {
+                NotificationMailer mailer = new NotificationMailer(context, emailTo, langCode,
+                    "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            // this will be empty if no locationID
+            Set<String> locEmails = myShepherd.getAllUserEmailAddressesForLocationIDAsSet(
+                this.getLocationID(), context);
+            for (String emailTo : locEmails) {
+                NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo,
+                    "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
+            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + this.getCatalogNumber());
+            // this is a mashup of: submitters, photographers, informOthers....
+            for (String emailTo : this.getNotificationEmailAddresses()) {
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, getHashOfEmailString(emailTo));
+                NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo,
+                    "newSubmission", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            es.shutdown();
+        } catch (Exception ex) {
+            System.out.println("sendCreationEmails() on " + this + " failed: " + ex);
+            ex.printStackTrace();
+        } finally {
+            myShepherd.rollbackDBTransaction();
+        }
     }
 }

@@ -602,6 +602,13 @@ public final class NotificationMailer implements Runnable {
         return map;
     }
 
+    public static Map<String, String> createBasicTagMap(Encounter enc) {
+        Map<String, String> map = new HashMap<>();
+
+        addTags(map, null, enc, null);
+        return map;
+    }
+
     /**
      * Creates a basic tag map for the specified encounter. This map can subsequently be enhanced with extra tags. Tags included are the union of
      * those added by
@@ -665,9 +672,14 @@ public final class NotificationMailer implements Runnable {
     private static void addTags(Map<String, String> map, HttpServletRequest req, Encounter enc,
         String scheme) {
         Objects.requireNonNull(map);
-        if (!map.containsKey("@URL_LOCATION@"))
-            map.put("@URL_LOCATION@",
-                String.format(scheme + "://%s", CommonConfiguration.getURLLocation(req)));
+        if (!map.containsKey("@URL_LOCATION@")) {
+            if (req == null) {
+                map.put("@URL_LOCATION@", CommonConfiguration.getServerURL("context0"));
+            } else {
+                map.put("@URL_LOCATION@",
+                    String.format(scheme + "://%s", CommonConfiguration.getURLLocation(req)));
+            }
+        }
         if (enc != null) {
             // Add useful encounter fields.
             map.put("@ENCOUNTER_LINK@",
