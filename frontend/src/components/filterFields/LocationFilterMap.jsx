@@ -146,8 +146,6 @@ export default function LocationFilterMap({ onChange, data }) {
         bounds={bounds}
         setBounds={setBounds}
         setTempBounds={setTempBounds}
-        center={{ lat: -1.286389, lng: 36.817223 }}
-        zoom={5}
         onChange={onChange}
       />
       <FormGroupMultiSelect
