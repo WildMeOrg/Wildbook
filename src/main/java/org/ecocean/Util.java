@@ -800,6 +800,7 @@ public class Util {
         return (str != null && !str.trim().equals("") && !str.toLowerCase().equals("none") &&
                    !str.toLowerCase().equals("unknown"));
     }
+
     public static boolean stringIsEmptyOrNull(String str) {
         return ((str == null) || str.equals(""));
     }
@@ -1127,6 +1128,18 @@ public class Util {
             e.printStackTrace();
             return 0;
         }
+    }
+
+    // note: this respect user.receiveEmails - you have been warned
+    public static Set<String> getUserEmailAddresses(List<User> users) {
+        Set<String> addrs = new HashSet<String>();
+
+        if (users == null) return addrs;
+        for (User user : users) {
+            if (user.getReceiveEmails() && !stringIsEmptyOrNull(user.getEmailAddress()))
+                addrs.add(user.getEmailAddress());
+        }
+        return addrs;
     }
 
     public static String getISO8601Date(final String date) {
