@@ -47,6 +47,9 @@
                 {"name": "Dor", "id": "Dor", "locationID":[]},
                 {"name": "Herzelia", "id": "Herzelia", "locationID":[]}
             ]}
+          ]},
+          {"name": "Spain", "id": "Spain", "locationID":[
+            {"name": "Balearic Islands", "id": "Balearic Islands", "locationID":[]}
           ]}
         ]},
         {"name": "Argentine Sea", "id": "Argentine Sea", "locationID":[]},
