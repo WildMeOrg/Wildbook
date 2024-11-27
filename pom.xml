@@ -359,11 +359,6 @@
     </dependency>
 
     <!-- wildbook local jars, not in public maven repos -->
-    <dependency>
-      <groupId>dilib</groupId>
-      <artifactId>dilib</artifactId>
-      <version>1.0</version>
-    </dependency>
 
     <dependency>
       <groupId>sqljdbc4</groupId>
