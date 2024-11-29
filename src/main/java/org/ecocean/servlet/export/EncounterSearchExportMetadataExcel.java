@@ -171,6 +171,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             newEasyColumn("Occurrence.groupBehavior", columns);
             newEasyColumn("Occurrence.minGroupSizeEstimate", columns);
             newEasyColumn("Occurrence.bestGroupSizeEstimate", columns);
+            newEasyColumn("Occurrence.groupSize", columns);
             newEasyColumn("Occurrence.maxGroupSizeEstimate", columns);
             newEasyColumn("Occurrence.numAdults", columns);
             newEasyColumn("Occurrence.numJuveniles", columns);
