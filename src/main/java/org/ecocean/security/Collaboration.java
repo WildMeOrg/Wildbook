@@ -39,7 +39,6 @@ public class Collaboration implements java.io.Serializable {
     // JDOQL required empty instantiator
     public Collaboration() {}
 
-////////////////TODO prevent duplicates
     public Collaboration(String username1, String username2) {
         this.setUsername1(username1);
         this.setUsername2(username2);
@@ -129,12 +128,9 @@ public class Collaboration implements java.io.Serializable {
         }
     }
 
-// TODO this should do other steps?  maybe? like notify user??
 // NOTE the first user, by convention, is the initiator
     public static Collaboration create(String u1, String u2) {
         Collaboration c = new Collaboration(u1, u2);
-
-        // storeNewCollaboration(Collaboration collab) {
         return c;
     }
 
@@ -148,7 +144,7 @@ public class Collaboration implements java.io.Serializable {
         String state) {
         String context = ServletUtilities.getContext(request);
 
-        if (request.getUserPrincipal() == null) return null; // TODO is this cool?
+        if (request.getUserPrincipal() == null) return null; // TODO: evaluate is this cool?
         String username = request.getUserPrincipal().getName();
         return collaborationsForUser(context, username, state);
     }
@@ -188,7 +184,7 @@ public class Collaboration implements java.io.Serializable {
 
     @SuppressWarnings("unchecked") public static List<Collaboration> collaborationsForUser(
         String context, String username, String state) {
-// TODO cache!!!  (may be hit a lot)
+// TODO: implement cache as this may be hit a lot
         String queryString =
             "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username +
             "') || (username2 == '" + username + "'))";
@@ -214,10 +210,6 @@ public class Collaboration implements java.io.Serializable {
         }
         return returnMe;
     }
-
-    // public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
-    // return collaborationBetweenUsers(context, u1.getUsername(), u2.getUsername());
-    // }
 
     public static Collaboration collaborationBetweenUsers(Shepherd myShepherd, String u1,
         String u2) {
@@ -274,9 +266,6 @@ public class Collaboration implements java.io.Serializable {
         return ((Collaboration)results.get(0));
     }
 
-    // public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
-    // return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
-    // }
     public static boolean canCollaborate(User u1, User u2, String context) {
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
@@ -287,7 +276,7 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(String context, String u1, String u2) {
-        if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true; // TODO not sure???
+        if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true; 
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
         // System.out.println("canCollaborate(String context, String u1, String u2)");
@@ -390,7 +379,7 @@ public class Collaboration implements java.io.Serializable {
     // "View" means "you can see that the data exists but may not necessarily access the data"
     public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request,
         Shepherd myShepherd) {
-        if (request.isUserInRole("admin")) return true; // TODO generalize and/or allow other roles all-access
+        if (request.isUserInRole("admin")) return true; 
         if (ownerName == null || request.isUserInRole("admin")) return true;
         User viewer = myShepherd.getUser(request);
         User owner = myShepherd.getUser(ownerName);
@@ -401,10 +390,7 @@ public class Collaboration implements java.io.Serializable {
         HttpServletRequest request) {
         // if they own it
         if (viewer != null && owner != null && viewer.getUUID() != null &&
-            viewer.getUUID().equals(owner.getUUID())) return true;                                                                  // should really
-                                                                                                                                    // be user
-                                                                                                                                    // .equals()
-                                                                                                                                    // method
+            viewer.getUUID().equals(owner.getUUID())) return true;                                                                  // should really be user .equals() method
         // if viewer and owner have sharing turned on
         if (((viewer != null && viewer.hasSharing() && (owner == null || owner.hasSharing()))))
             return true; // just based on sharing
@@ -416,7 +402,7 @@ public class Collaboration implements java.io.Serializable {
         String context = ServletUtilities.getContext(request);
 
         if (!securityEnabled(context)) return true;
-        if (request.isUserInRole("admin")) return true; // TODO generalize and/or allow other roles all-access
+        if (request.isUserInRole("admin")) return true; 
         if (User.isUsernameAnonymous(ownerName)) return true; // anon-owned is "fair game" to anyone
         if (request.getUserPrincipal() == null) {
             return canCollaborate(context, ownerName, "public");
@@ -479,7 +465,7 @@ public class Collaboration implements java.io.Serializable {
     // Check if User (via request) has edit access to every Encounter in this Individual
     public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi,
         HttpServletRequest request) {
-        if (request.isUserInRole("admin")) return true; // TODO generalize and/or allow other roles all-access
+        if (request.isUserInRole("admin")) return true; 
         Vector<Encounter> all = mi.getEncounters();
         if ((all == null) || (all.size() < 1)) return false;
         for (Encounter enc : all) {
@@ -524,18 +510,6 @@ public class Collaboration implements java.io.Serializable {
         }
     }
 
-/*   CURRENTLY NOT USED public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {
-   System.out.println("query>>>> " + query.toString());
-                String context = ServletUtilities.getContext(request);
-                if (!securityEnabled(context)) return false;
-
-                if (request.getUserPrincipal() == null) return true;  //anon user excluded if security enabled????
-                String username = request.getUserPrincipal().getName();
-   System.out.println("username->"+username);
-
-                return false;
-        }
- */
     private static List<Collaboration> addAssumedOrgAdminCollaborations(
         List<Collaboration> returnMe, Shepherd myShepherd, String username) {
         // orgAdmin check

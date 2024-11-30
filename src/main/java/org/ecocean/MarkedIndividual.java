@@ -7,6 +7,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -43,8 +46,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     private static HashMap<Integer, String> NAMES_CACHE = new HashMap<Integer, String>(); // this is for searching
     private static HashMap<Integer, String> NAMES_KEY_CACHE = new HashMap<Integer, String>();
 
-    private String alternateid; // TODO this will go away soon
-    private String legacyIndividualID; // TODO this "could" go away "eventually"
+    private String alternateid;
+    private String legacyIndividualID;
 
     // additional comments added by researchers
     private String comments = "None";
@@ -84,7 +87,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // first sighting
     private String dateFirstIdentified;
 
-    // points to thumbnail (usually of most recent encounter) - TODO someday will be superceded by MediaAsset magic[tm]
+    // points to thumbnail (usually of most recent encounter) - TODO: evaluate and remove if has been superceded by MediaAsset
     private String thumbnailUrl;
 
     // a Vector of Strings of email addresses to notify when this MarkedIndividual is modified
@@ -128,9 +131,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         maxYearsBetweenResightings = 0;
     }
 
-    /**
-     * empty constructor used by JDO Enhancer - DO NOT USE
-     */
+    // TODO: evaluate if this can be removed: empty constructor used by JDO Enhancer - DO NOT USE
     public MarkedIndividual() {
         this.individualID = Util.generateUUID();
     }
@@ -143,20 +144,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         refreshDependentProperties();
     }
 
-    /**
-     * Retrieves the Individual Id.
-     *
-     * @return Individual Id String
-     */
+    // Retrieves the Individual Id.
     @Override public String getId() {
         return individualID;
     }
 
-    /**
-     * Sets the Individual Id.
-     *
-     * @param id The Individual Id to set
-     */
+    // Sets the Individual Id.
     @Override public void setId(String id) {
         individualID = id;
     }
@@ -370,14 +363,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             if (NAMES_CACHE.get(nid).matches(query.toLowerCase()) && tracker < 1) {
                 returnVal = NAMES_CACHE.get(nid);
                 return returnVal;
-                // tracker ++;
                 // System.out.println("tracker is: " + tracker);
             }
         }
         return returnVal;
     }
-
-///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
 
     // this should be run once, as it will set (default key) values based on old field values
     // see, e.g.  appadmin/migrateMarkedIndividualNames.jsp
@@ -416,7 +406,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         List<String> keysList = new ArrayList<String>(keys); // we want a list to use .replaceAll
         keysList.replaceAll(s -> s.replaceAll("'", "''"));
         keysList.replaceAll(s -> s.replaceAll("_", "\\_"));
-        keysList.replaceAll(s -> s.replaceAll(":", "_")); // $*#(@*(! JDO PARAMETERS!!!
+        keysList.replaceAll(s -> s.replaceAll(":", "_"));
         String sql =
             "SELECT DISTINCT(\"ID_OID\") AS \"ID\" FROM \"MULTIVALUE_VALUES\" JOIN \"MARKEDINDIVIDUAL\" ON (\"NAMES_ID_OID\" = \"ID_OID\") WHERE \"KEY\" LIKE '"
             + StringUtils.join(keysList, "' OR \"KEY\" LIKE '") + "'";
@@ -459,11 +449,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         }
     }
 
-    /**Adds a new encounter to this MarkedIndividual.
-     *@param  newEncounter  the new <code>encounter</code> to add
-     *@return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
-     *@see  Shepherd#commitDBTransaction()
-     */
+    // Adds a new encounter to this MarkedIndividual.
     public boolean addEncounter(Encounter newEncounter) {
         // get and therefore set the haplotype if necessary
         getHaplotype();
@@ -503,16 +489,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             numberEncounters++;
             refreshDependentProperties();
         }
-        // setTaxonomyFromEncounters();  //will only set if has no value
-        // setSexFromEncounters();       //likewise
         return isNew;
     }
 
-    /**Removes an encounter from this MarkedIndividual.
-     *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
-     *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
-     *@see  Shepherd#commitDBTransaction()
-     */
+    // Removes an encounter from this MarkedIndividual.
     public boolean removeEncounter(Encounter getRidOfMe) {
         numberEncounters--;
         boolean changed = false;
@@ -533,11 +513,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return changed;
     }
 
-    /**
-     * Returns the total number of submitted encounters for this MarkedIndividual
-     *
-     * @return the total number of encounters recorded for this MarkedIndividual
-     */
+    // Returns the total number of submitted encounters for this MarkedIndividual
     public int totalEncounters() {
         return encounters.size();
     }
@@ -587,21 +563,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return thumbUrl;
     }
 
-/*
-   public int totalLogEncounters() {
-    if (unidentifiableEncounters == null) {
-      //unidentifiableEncounters = new Vector();
-    }
-    return unidentifiableEncounters.size();
-   }
- */
     public Vector returnEncountersWithGPSData(HttpServletRequest request) {
         return returnEncountersWithGPSData(false, false, "context0", request);
     }
 
     public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,
         String context, HttpServletRequest request) {
-        // if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
         Vector haveData = new Vector();
         Encounter[] myEncs = getDateSortedEncounters(reverseOrder);
 
@@ -633,23 +600,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     public boolean isDeceased() {
-        // if (unidentifiableEncounters == null) {
-        // unidentifiableEncounters = new Vector();
-        // }
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
             if ((temp.getLivingStatus() != null) && temp.getLivingStatus().equals("dead")) {
                 return true;
             }
         }
-        /*
-           for (int d = 0; d < numUnidentifiableEncounters; d++) {
-           Encounter temp = (Encounter) unidentifiableEncounters.get(d);
-           if (temp.getLivingStatus().equals("dead")) {
-            return true;
-           }
-           }
-         */
         return false;
     }
 
@@ -684,11 +640,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return false;
     }
 
-    /**
-     *
-     *
-     * @deprecated
-     */
+    // TODO: evaluate and remove if deprecated
     public double averageLengthInYear(int year) {
         int numLengths = 0;
         double total = 0;
@@ -708,11 +660,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return avg;
     }
 
-    /**
-     *
-     *
-     * @deprecated
-     */
+    // TODO: evaluate and remove if deprecated
     public double averageMeasuredLengthInYear(int year, boolean allowGuideGuess) {
         int numLengths = 0;
         double total = 0;
@@ -746,17 +694,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return false;
     }
 
-    /*
-       public boolean hasApprovedEncounters() {
-       for (int c = 0; c < encounters.size(); c++) {
-        Encounter temp = (Encounter) encounters.get(c);
-        if (temp.getState()!=null) {
-          return true;
-        }
-       }
-       return false;
-       }
-     */
     public boolean wasSightedInMonth(int year, int month) {
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
@@ -870,19 +807,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return names.getValue(keyHint);
     }
 
-    /**
-     * ##DEPRECATED #509 - Base class getId() method
-     */
+    // TODO: evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
     public String getIndividualID() {
         return individualID;
     }
 
-/*
-    now part of migration of all names to .names MultiValue property we still want "a (singular) nickname" and notably a nickNamer so we set nickname
-       to a special keyed value, but leave nicknameR as its own property
-
-    TODO someday(?) we might want to move the nicknamer to a key, so we could have multiple nicknamers/nicknames
- */
     public String getNickName() {
         if (names == null) return null;
         List<String> many = names.getValuesByKey(NAMES_KEY_NICKNAME);
@@ -915,9 +844,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return legacyIndividualID;
     }
 
-    /**
-     * ##DEPRECATED #509 - Base class setId() method
-     */
+    // TODO: evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
     public void setIndividualID(String id) {
         individualID = id;
     }
@@ -928,33 +855,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         this.addNameByKey(NAMES_KEY_ALTERNATEID, alt);
     }
 
-    /**
-     * Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored for this
-     * MarkedIndividual.
-     *
-     * @return the encounter at position i in the stored Vector of encounters
-     * @param  i  the specified encounter number, where i=0...(n-1)
-     */
+    // Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored for this MarkedIndividual.
     public Encounter getEncounter(int i) {
         return (Encounter)encounters.get(i);
     }
 
-    /*
-       public Encounter getLogEncounter(int i) {
-       return (Encounter) unidentifiableEncounters.get(i);
-       }
-     */
     public int numEncounters() {
         if (encounters == null) return 0;
         return encounters.size();
     }
 
-    /**
-     * Returns the complete Vector of stored encounters for this MarkedIndividual.
-     *
-     * @return a Vector of encounters
-     * @see java.util.Vector
-     */
+    // Returns the complete Vector of stored encounters for this MarkedIndividual.
     public Vector<Encounter> getEncounters() {
         return encounters;
     }
@@ -1019,33 +930,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return getWebUrl(this.getIndividualID(), req);
     }
 
-    // public String getHyperlink(HttpServletRequest req) {
-    // return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName(req)+ "</a>";
-    // }
-
     // sorted with the most recent first
     public Encounter[] getDateSortedEncounters() { return getDateSortedEncounters(false); }
 
-    // preserved for legacy purposes
-    /** public Encounter[] getDateSortedEncounters(boolean includeLogEncounters) {
-       return getDateSortedEncounters();
-       }
-     */
-
-    /*
-       public Vector getUnidentifiableEncounters() {
-       if (unidentifiableEncounters == null) {
-        unidentifiableEncounters = new Vector();
-       }
-       return unidentifiableEncounters;
-       }
-     */
-
-    /**
-     * Returns any additional, general comments recorded for this MarkedIndividual as a whole.
-     *
-     * @return a String of comments
-     */
+    // Returns any additional, general comments recorded for this MarkedIndividual as a whole.
     @Override public String getComments() {
         if (comments != null) {
             return comments;
@@ -1054,11 +942,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Adds any general comments recorded for this MarkedIndividual as a whole.
-     *
-     * @return a String of comments
-     */
+    // Adds any general comments recorded for this MarkedIndividual as a whole.
     @Override public void addComments(String newComments) {
         System.out.println("addComments called. oldComments=" + comments + " and new comments = " +
             newComments);
@@ -1069,37 +953,22 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Sets any additional, general comments recorded for this MarkedIndividual as a whole.
-     *
-     * @param comments to set
-     */
+    // Sets any additional, general comments recorded for this MarkedIndividual as a whole.
     @Override public void setComments(String comments) {
         this.comments = comments;
     }
 
-    /**
-     * Returns the complete Vector of stored satellite tag data files for this MarkedIndividual.
-     *
-     * @return a Vector of Files
-     * @see java.util.Vector
-     */
+    // Returns the complete Vector of stored satellite tag data files for this MarkedIndividual.
     public Vector getDataFiles() {
         return dataFiles;
     }
 
-    /**
-     * Returns the sex of this MarkedIndividual.
-     *
-     * @return a String
-     */
+    // Returns the sex of this MarkedIndividual.
     public String getSex() {
         return sex;
     }
 
-    /**
-     * Sets the sex of this MarkedIndividual.
-     */
+    // Sets the sex of this MarkedIndividual.
     public void setSex(String newSex) {
         if (newSex != null) { sex = newSex; } else { sex = null; }
     }
@@ -1147,7 +1016,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     ///this is really only for when dont have a value set; i.e. it should not be run after set on the instance;
     /// therefore we dont allow that unless you pass boolean true to force it
-    ///  TODO we only pick first one - perhaps smarter would be to check all encounters and pick dominant one?
+    ///   we only pick first from all encounters
     public String setTaxonomyFromEncounters(boolean force) {
         if (!force && ((genus != null) || (specificEpithet != null))) return getTaxonomyString();
         if ((encounters == null) || (encounters.size() < 1)) return getTaxonomyString();
@@ -1328,21 +1197,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         seriesCode = newCode;
     }
 
-    /**
-     * Adds a satellite tag data file for this MarkedIndividual.
-     *
-     * @param  dataFile  the satellite tag data file to be added
-     */
+    // Adds a satellite tag data file for this MarkedIndividual.
     public void addDataFile(String dataFile) {
         if (dataFiles == null) { dataFiles = new Vector(); }
         dataFiles.add(dataFile);
     }
 
-    /**
-     * Removes a satellite tag data file for this MarkedIndividual.
-     *
-     * @param  dataFile  The satellite data file, as a String, to be removed.
-     */
+    // Removes a satellite tag data file for this MarkedIndividual.
     public void removeDataFile(String dataFile) {
         if (dataFiles != null) {
             dataFiles.remove(dataFile);
@@ -1399,28 +1260,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return results;
     }
 
-    /*public int getFirstTrainingEncounter() {
-       for(int iter=0;iter<encounters.size(); iter++) {
-         encounter enc=(encounter)encounters.get(iter);
-         if (enc.getSpots()!=null) {return iter;}
-         }
-       return 0;
-       }*/
-
-    /*public int getSecondTrainingEncounter() {
-       for(int iter=(getFirstTrainingEncounter()+1);iter<encounters.size(); iter++) {
-         encounter enc=(encounter)encounters.get(iter);
-         if (enc.getSpots()!=null) {return iter;}
-         }
-       return 0;
-       }*/
-
     // months 1-12, days, 1-31
-    /**
-     *
-     *
-     * @deprecated
-     */
+    // TODO: evaluate and remove if deprecated
     public double avgLengthInPeriod(int m_startYear, int m_startMonth, int m_endYear,
         int m_endMonth) {
         double avgLength = 0;
@@ -1773,10 +1614,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return listPropertyValues;
     }
 
-    /**
-       Returns the patterning type evident on this MarkedIndividual instance.
-
-     */
+    // Returns the patterning type evident on this MarkedIndividual instance.
     public String getPatterningCode() {
         int numEncs = encounters.size();
 
@@ -1787,10 +1625,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return null;
     }
 
-    /**
-       Sets the patterning type evident on this MarkedIndividual instance.
-
-     */
+    // Sets the patterning type evident on this MarkedIndividual instance.
     public void setPatterningCode(String newCode) { this.patterningCode = newCode; }
 
     public void resetMaxNumYearsBetweenSightings() {
@@ -1861,10 +1696,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return null;
     }
 
-/**
-   Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
-   @return a String if found or null if no haplotype is found
- */
+// Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
     public String getHaplotype() {
         return localHaplotypeReflection;
     }
@@ -1994,10 +1826,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return false;
     }
 
-/**
- * Obtains the email addresses of all submitters, photographs, and others to notify.
- *@return ArrayList of all emails to inform
- */
+// Obtains the email addresses of all submitters, photographs, and others to notify.
     public List<String> getAllEmailsToUpdate() {
         ArrayList<String> notifyUs = new ArrayList<String>();
         int numEncounters = encounters.size();
@@ -2006,31 +1835,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         // process encounters
         for (int i = 0; i < numEncounters; i++) {
             Encounter enc = (Encounter)encounters.get(i);
-
-            /*
-               if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().trim().equals(""))){
-                    String submitter = enc.getSubmitterEmail();
-                    if (submitter.indexOf(",") != -1) {
-                       StringTokenizer str = new StringTokenizer(submitter, ",");
-                       while (str.hasMoreTokens()) {
-                     String token = str.nextToken().trim();
-                                     if((!token.equals(""))&&(!notifyUs.contains(token))){notifyUs.add(token);}
-                            }
-                    }
-                    else{if(!notifyUs.contains(submitter)){notifyUs.add(submitter);}}
-               }
-               if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().trim().equals(""))){
-                                    String photog = enc.getPhotographerEmail();
-                                    if (photog.indexOf(",") != -1) {
-                                       StringTokenizer str = new StringTokenizer(photog, ",");
-                                       while (str.hasMoreTokens()) {
-                                     String token = str.nextToken().trim();
-                                                     if((!token.equals(""))&&(!notifyUs.contains(token))){notifyUs.add(token);}
-                                            }
-                                    }
-                                    else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
-               }
-             */
             List<User> allUsers = new ArrayList<User>();
             if (enc.getSubmitters() != null) allUsers.addAll(enc.getSubmitters());
             if (enc.getPhotographers() != null) allUsers.addAll(enc.getPhotographers());
@@ -2042,64 +1846,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     notifyUs.add(use.getEmailAddress());
                 }
             }
-            /*
-               if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
-                                                    String photog = enc.getInformOthers();
-                                                    if (photog.indexOf(",") != -1) {
-                                                       StringTokenizer str = new StringTokenizer(photog, ",");
-                                                       while (str.hasMoreTokens()) {
-                                                     String token = str.nextToken().trim();
-                                                                     if((!token.equals(""))&&(!notifyUs.contains(token))){notifyUs.add(token);}
-                                                            }
-                                                    }
-                                                    else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
-               }
-             */
         }
-        /*
-                //process log encounters for(int i=0;i<numUnidentifiableEncounters;i++){
-                        Encounter enc=(Encounter)unidentifiableEncounters.get(i);
-                        if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().trim().equals(""))){
-                                String submitter = enc.getSubmitterEmail();
-                                if (submitter.indexOf(",") != -1) {
-                                   StringTokenizer str = new StringTokenizer(submitter, ",");
-                                   while (str.hasMoreTokens()) {
-                                 String token = str.nextToken().trim();
-                                                 if((!token.equals(""))&&(!notifyUs.contains(token))){notifyUs.add(token);}
-                                        }
-                                }
-                                else{if(!notifyUs.contains(submitter)){notifyUs.add(submitter);}}
-                        }
-                        if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().trim().equals(""))){
-                                                String photog = enc.getPhotographerEmail();
-                                                if (photog.indexOf(",") != -1) {
-                                                   StringTokenizer str = new StringTokenizer(photog, ",");
-                                                   while (str.hasMoreTokens()) {
-                                                 String token = str.nextToken().trim();
-                                                                 if((!token.equals(""))&&(!notifyUs.contains(token))){notifyUs.add(token);}
-                                                        }
-                                                }
-                                                else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
-                        }
-                        if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
-                                                                String photog = enc.getInformOthers();
-                                                                if (photog.indexOf(",") != -1) {
-                                                                   StringTokenizer str = new StringTokenizer(photog, ",");
-                                                                   while (str.hasMoreTokens()) {
-                                                                 String token = str.nextToken().trim();
-                                                                                 if((!token.equals(""))&&(!notifyUs.contains(token))){notifyUs.add(token);}
-                                                                        }
-                                                                }
-                                                                else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
-                        }
-
-           }
-         */
-
         return notifyUs;
     }
-
-// public void removeLogEncounter(Encounter enc){if(unidentifiableEncounters.contains(enc)){unidentifiableEncounters.remove(enc);}}
 
     public float distFrom(float lat1, float lng1, float lat2, float lng2) {
         double earthRadius = 3958.75;
@@ -2188,11 +1937,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return allIDs;
     }
 
-/**
- * DO NOT SET DIRECTLY!!
- *
- * @param myDepth
- */
+// DO NOT SET DIRECTLY!!
     public void doNotSetLocalHaplotypeReflection(String myHaplo) {
         if (myHaplo != null) { localHaplotypeReflection = myHaplo; } else {
             localHaplotypeReflection = null;
@@ -2277,9 +2022,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-/* FIXME we do not have user-flavored Collaboration.canUserAccessMarkedIndividual yet
-            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
- */
             if (user.getId() != null) ids.add(user.getId());
         }
         return ids;
@@ -2289,9 +2031,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-/* FIXME we do not have edit stuff for MarkedIndividual
-            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
- */
             if (user.getId() != null) ids.add(user.getId());
         }
         return ids;
@@ -2307,7 +2046,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         jobj.remove("timeOfDeath");
         jobj.remove("timeOfBirth");
         jobj.remove("maxYearsBetweenResightings");
-        // jobj.remove("numUnidentifiableEncounters");
         jobj.remove("nickName");
         jobj.remove("nickNamer");
         jobj.put("_sanitized", true);
@@ -2367,7 +2105,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     /**
      * returns an array of the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query), all they want in return are
-     * MediaAssets TODO: decorate with metadata
+     * MediaAssets; does not include metadata
      **/
     public org.datanucleus.api.rest.orgjson.JSONArray sanitizeMedia(HttpServletRequest request)
     throws org.datanucleus.api.rest.orgjson.JSONException {
@@ -2445,18 +2183,14 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al = new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
         List<String> kwNamesLeft = new ArrayList<String>(kwNames); // a copy of kwNames
 
-        // boolean haveProfilePhoto=false;
         for (Encounter enc : this.getDateSortedEncounters()) {
-            // if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
             ArrayList<Annotation> anns = enc.getAnnotations();
             if ((anns == null) || (anns.size() < 1)) {
                 continue;
             }
             for (Annotation ann : anns) {
-                // if (!ann.isTrivial()) continue;
                 MediaAsset ma = ann.getMediaAsset();
                 if (ma != null) {
-                    // JSONObject j = new JSONObject();
                     JSONObject j = ma.sanitizeJson(req, new JSONObject());
 
                     // we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
@@ -2528,8 +2262,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 al.add(j);
             }
         }
-        // myShepherd.rollbackDBTransaction();
-        // myShepherd.closeDBTransaction();
         return al;
     }
 
@@ -2785,7 +2517,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         this.names.merge(other.getNames());
         this.setComments(getMergedComments(other, username));
 
-        // WB-951: merge relationships
         ArrayList<Relationship> rels = myShepherd.getAllRelationshipsForMarkedIndividual(
             other.getIndividualID());
         if (rels != null && rels.size() > 0) {
@@ -2801,7 +2532,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 }
             }
         }
-        // WB-951: merge social units
         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(other);
         if (units != null && units.size() > 0) {
             for (SocialUnit unit : units) {
@@ -2865,11 +2595,49 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void opensearchIndexDeep()
     throws IOException {
-        if (this.encounters != null)
-            for (Encounter enc : this.encounters) {
-                enc.opensearchIndex();
-            }
         this.opensearchIndex();
+
+        final String indivId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("MarkedIndividual.opensearchIndexDeep");
+                bgShepherd.beginDBTransaction();
+                try {
+                    MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
+                    if ((indiv == null) || (indiv.getEncounters() == null)) {
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    int total = indiv.getNumEncounters();
+                    int ct = 0;
+                    for (Encounter enc : indiv.getEncounters()) {
+                        ct++;
+                        System.out.println("opensearchIndexDeep() background indexing " +
+                            enc.getId() + " via " + indivId + " [" + ct + "/" + total + "]");
+                        try {
+                            enc.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                enc.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                System.out.println("opensearchIndexDeep() backgrounding MarkedIndividual " +
+                    indivId + " finished.");
+                executor.shutdown();
+            }
+        };
+        System.out.println("opensearchIndexDeep() begin backgrounding " + this.getNumEncounters() +
+            " encs for " + this);
+        executor.execute(rn);
+        System.out.println("opensearchIndexDeep() [foreground] finished for MarkedIndividual " +
+            indivId);
     }
 
     public String toString() {

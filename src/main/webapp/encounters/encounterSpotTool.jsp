@@ -373,7 +373,7 @@ function nextAvailableSpotType(old) {
 
 
 function spotTypeAvailable(t) {
-	if (t == 'spot') return true;  //TODO any limit?
+	if (t == 'spot') return true;  
 	for (var i = 0 ; i < itool.spots.length ; i++) {
 		if (itool.spots[i].type == t) return false;
 	}
@@ -482,7 +482,6 @@ function spotsSave() {
 	var sp = itool.spotsVisible();
 	console.log('sp = %o', sp);
 	if (sp.length < 1) return;
-//TODO verify we really have all we need (like when we updateSaveButton())
 
 	$('#imageTools-spot-type-picker').hide();
 	$('#imageTools-buttons').hide();

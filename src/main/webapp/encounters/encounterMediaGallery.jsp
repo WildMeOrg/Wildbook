@@ -34,17 +34,6 @@ java.util.*" %>
     return false;
   }
 
-  String rotationInfo(MediaAsset ma) {
-        if ((ma == null) || (ma.getMetadata() == null)) return null;
-        HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
-        if (orient == null) return null;
-        for (String k : orient.keySet()) {
-            if (orient.get(k).matches(".*90.*")) return orient.get(k);
-            if (orient.get(k).matches(".*270.*")) return orient.get(k);
-        }
-        return null;
-    }
-
   %>
 
 <%
@@ -213,7 +202,7 @@ function forceLink(el) {
 
 		      //end caption render JSP side
 
-		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
+		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! 
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
 
@@ -254,7 +243,7 @@ function forceLink(el) {
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
 						ja.put("matchAgainst", ann.getMatchAgainst());
-            ja.put("viewpoint", ann.getViewpoint());
+						ja.put("viewpoint", ann.getViewpoint());
                                                 //ja.put("acmId", ann.getAcmId());
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
@@ -264,8 +253,7 @@ function forceLink(el) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 
-							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
-							//   also: prob should check *what* is detected. :) somewhere....
+							// here we skip unity feature annots. also: prob should check *what* is detected.
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
 System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
 							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
@@ -463,7 +451,7 @@ figcaption div {
 .image-enhancer-feature-wrapper {
     width: 100%;
     height: 100%;
-    /* position: relative; */
+    /*position: relative;*/
     overflow: hidden;
 }
 
@@ -840,6 +828,7 @@ var featureWrapperCounter = 0;
 jQuery(document).ready(function() {
     doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
+/*
     $(document).bind('keydown keyup', function(ev) {
         if (wildbook.user.isAnonymous()) return true;
         var editModeWas = editMode;
@@ -858,6 +847,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
         $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
     });
+*/
 
 <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) { %>
     if (wildbookGlobals.username) {
@@ -971,7 +961,6 @@ console.info(' ===========>   %o %o', el, enh);
 	if (!opt.init) opt.init = []; //maybe created if logged in?
 
 	opt.init.push(
-		//function(el, enh) { enhancerDisplayAnnots(el, enh); },  //TODO fix for scaled/watermark image
 		function(el, enh) { enhancerCaption(el, enh); }
 	);
 
@@ -1006,7 +995,7 @@ function showDuplicates() {
 function enhancerCaption(el, opt) {
 	var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
 	var ma = assetById(mid);
-console.warn("====== enhancerCaption %o ", ma);
+//console.warn("====== enhancerCaption %o ", ma);
 	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
 	var title = ma.sourceAsset.userFilename || '';
 	if (ma.sourceAsset.metadata && ma.sourceAsset.metadata.basic) {
@@ -1024,7 +1013,7 @@ console.warn("====== enhancerCaption %o ", ma);
 	}
 	var tlink = (time ? '#t=' + time : '');
 	var timeDisp = (time ? 'At approx <b>' + time + '</b> in ' : '');
-console.info(timeDisp);
+//console.info(timeDisp);
 
 	var ycap = $('<div title="' + title + '" class="caption-youtube">' + timeDisp + ' YouTube video</div>');
 	ycap.on('click', function(ev) {
@@ -1039,10 +1028,10 @@ function enhancerDisplayAnnots(el, opt) {
     if (opt.skipDisplayAnnots) return;
     //var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
     var aid = imageEnhancer.annotationIdFromElement(el.context);
-console.warn('foocontext --> %o', aid);
+//console.warn('foocontext --> %o', aid);
     if (!aid) return;
     var ma = assetByAnnotationId(aid);
-console.warn("====== enhancerDisplayAnnots %o ", ma);
+//console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
     var featwrap = $('<div data-media-asset-id="' + ma.id + '-' + ma.annotation.id + '" data-count="' + featureWrapperCounter + '"class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
     featureWrapperCounter ++;
@@ -1079,7 +1068,6 @@ function featureSortOrder(feat) {
 function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
-    //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     let widthScale = el; //.width;// / el.naturalWidth;
@@ -1142,7 +1130,6 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 }
 
 function checkImageEnhancerResize() {
-//TODO update enhancerScale when this happens!
 	var needUpdate = false;
 	$('.image-enhancer-wrapper').each(function(i,el) {
             var jel = $(el);
@@ -1168,15 +1155,18 @@ function updateLabeledKeywordValue(el) {
   var label = jel.data("kw-label");
   var value = jel.val();
   var wrapper = jel.closest('.image-enhancer-keyword-wrapper');
+
   if (!wrapper.length) {
     console.error("could not find MediaAsset id from closest wrapper");
     return;
   }
+
   let wrapperId = $(wrapper).attr('id');
   let mid = wrapperId.replace("asset-id-", "");
   if (!mid) {
       mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
   }
+
   if (!assetById(mid)) {
     console.error("could not find MediaAsset byId(%o)", mid);
     return;
@@ -1190,7 +1180,7 @@ function updateLabeledKeywordValue(el) {
   console.log("dataObj = %o",dataObj);
 
   var urlWithArgs = wildbookGlobals.baseUrl + '/AddLabeledKeyword?label='+label+'&value='+value+'&mid='+mid;
-
+  console.log("---> url with args: "+urlWithArgs);
   $.ajax({
     url: urlWithArgs,
     //data: JSON.stringify(dataObj),
@@ -1217,14 +1207,12 @@ function updateLabeledKeywordValue(el) {
       }
     },
     error: function(x,a,b) {
-      // console.error('%o %o %o', x, a, b);
-      // // $('.popup-content').append('<p class="error">ERROR making change: ' + b + '</p>');
+      //console.error('%o %o %o', x, a, b);
       console.log('<p class="error">ERROR making change: ' + b + '</p>');
     },
     type: 'POST',
     dataType: 'json'
   });
-
 
   return false;
 }
@@ -1309,6 +1297,7 @@ console.info(d);
 	});
 	return false;
 }
+
 /*
 {
     "success": true,
@@ -1331,6 +1320,7 @@ function refreshKeywordsForMediaAsset(mid, data) {
   console.log("refreshKeywordsForMediaAsset called on mid %s and data %o",mid,data);
   console.log("assets.length = "+assets.length);
     for (var i = 0 ; i < assets.length ; i++) {
+        //console.log("looking at asset id="+assets[i].id);
         if (assets[i].id != mid) continue;
         //if (!assets[i].keywords) assets[i].keywords = [];
         assets[i].keywords = [];  //we get *all* keywords in results, so blank this!
@@ -1341,13 +1331,14 @@ function refreshKeywordsForMediaAsset(mid, data) {
             });
         }
     }
-    //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
+
     console.log("in refreshKeywordsForMediaAsset, looking for #asset-id-"+mid);
-      $('#asset-id-'+mid).each(function(i,el) {
-      $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
-      console.log("before imageLayerKeywords: mid="+mid+" el="+JSON.stringify(el));
-      imageLayerKeywords($(el), { _mid: mid });
-      $(el).show();
+    $('#asset-id-'+mid).each(function(i,el) {
+        $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
+
+        console.log("before imageLayerKeywords: mid="+mid+" el="+JSON.stringify(el));
+        imageLayerKeywords($(el), { _mid: mid });
+        $(el).show();
     });
 }
 
@@ -1397,13 +1388,12 @@ console.info("############## mid=%s -> %o", mid, ma);
 	var thisHas = [];
 
     // if this is a refresh, it will already have this element
-    let hasWrapper = el.has('.image-enhancer-keyword-wrapper').length;
-
+    let hasWrapper = el.hasClass('image-enhancer-keyword-wrapper');
     let h = '';
 
     if (!hasWrapper) {
-      h += '<div id="asset-id-'+mid+'" class="image-enhancer-keyword-wrapper">';
-      h += '<div class="image-enhancer-keyword-wrapper-hover">';
+        h += '<div id="asset-id-'+mid+'" class="image-enhancer-keyword-wrapper">';
+	    h += '<div class="image-enhancer-keyword-wrapper-hover">';
     }
 
     //number of keywords for default display, keyword list hidden until hover
@@ -1419,6 +1409,8 @@ console.info("############## mid=%s -> %o", mid, ma);
     for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
+
+
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
       h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span>';
@@ -1460,6 +1452,7 @@ console.info("############## mid=%s -> %o", mid, ma);
   
   
   h +='<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+
   if (!$.isEmptyObject(labelsToValues)) {
       //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
     var hasSome = false;
@@ -1471,8 +1464,6 @@ console.info("############## mid=%s -> %o", mid, ma);
       //console.log("in labelsToValues loop with label %s and values %s",label, values);
       for (var i in values) {
         var value = values[i];
-        //console.log("in labelsToValues loop with label %s and value %s",label, value);
-        //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
         valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
         hasSome = true;
       }
@@ -1508,16 +1499,17 @@ console.info("############## mid=%s -> %o", mid, ma);
 		mh += '</select>';
 		if (hasSome) h += mh;
 	}
-	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
+	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addOrRemoveNewKeyword(this);" />';
 	h += '</div></div>';
 	
 	
 	
 
-    // image-enhancer-keyword-wrapper-hover
+    // we need to attach this to the outer container now
     if (!hasWrapper) {
         h += '</div></div>';
     }
+
     if ($('.image-enhancer-wrapper-mid-'+mid).find('.number-cell-on-asset').length>0) {
         $('.image-enhancer-wrapper-mid-'+mid).find('.number-cell-on-asset').remove();
     }
@@ -1534,7 +1526,6 @@ console.info("############## mid=%s -> %o", mid, ma);
 	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
 		ev.stopPropagation();
 	});
-
 }
 
 function showKeywordList(el) {
@@ -1703,8 +1694,7 @@ function _parseDetection(task) {
             rtn.msg = 'Detection task found, but no results.  Possibly still processing?';
         } else {
             for (var i = 0 ; i < task.results.length ; i++) {
-                if (!task.results[i].status) continue;  //kinda cheap hack.. should probably investigate this TODO
-                //TODO actually check out what most recent has to say here....
+                if (!task.results[i].status) continue;  //kinda cheap hack
                 rtn.state = 'complete';
                 rtn.msg = 'most recent result status _action=' + task.results[i].status._action;
                 break;

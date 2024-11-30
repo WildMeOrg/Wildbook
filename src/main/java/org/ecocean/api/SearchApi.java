@@ -61,8 +61,8 @@ public class SearchApi extends ApiBase {
                     String sizeStr = request.getParameter("size");
                     String sort = request.getParameter("sort");
                     String sortOrder = request.getParameter("sortOrder");
-                    // for now, we delete pit by default. we will need to let frontend decide when to keep it
-                    // by passing in the previous pit (e.g. for pagination)  TODO
+                    // for now, we delete pit by default. TODO: let frontend decide when to keep it
+                    // by passing in the previous pit (e.g. for pagination) 
                     // boolean deletePit = Util.requestParameterSet(request.getParameter("deletePit"));
                     boolean deletePit = true;
                     int numFrom = 0;

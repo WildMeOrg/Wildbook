@@ -912,7 +912,8 @@ public class StandardImport extends HttpServlet {
             List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues(
                 "genusSpecies", myShepherd.getContext());
             if (configuredSpecies != null && configuredSpecies.size() > 0 &&
-                configuredSpecies.toString().replaceAll("_"," ").indexOf(enc.getTaxonomyString()) < 0) {
+                configuredSpecies.toString().replaceAll("_",
+                " ").indexOf(enc.getTaxonomyString()) < 0) {
                 // if bad values
                 feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),
                     genus, row, "UNSUPPORTED VALUE: " + genus);
@@ -1250,20 +1251,6 @@ public class StandardImport extends HttpServlet {
             if (tissueType != null) sample.setTissueType(tissueType);
         }
         // genotype
-        /*
-           String markerAnalysisID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
-           // we need to add uniqueness to the parsed string bc it's a primary key
-           // but adding full encID is too long of a string.
-           if (markerAnalysisID!=null) markerAnalysisID = markerAnalysisID+"-enc-"+encID.substring(0,Math.min(8,encID.length()));
-           if (markerAnalysisID!=null && !myShepherd.isGeneticAnalysis(markerAnalysisID)) {
-           markerAnalysisID = markerAnalysisID.replaceAll("_","-");
-           MicrosatelliteMarkersAnalysis microMark = myShepherd.getMicrosatelliteMarkersAnalysis(markerAnalysisID);
-           if (microMark==null) {
-            microMark = new MicrosatelliteMarkersAnalysis(markerAnalysisID, tissueSampleID, encID);
-            if (sample!=null) sample.addGeneticAnalysis(microMark);
-           } // if microMark was grabbed from Shepherd correctly there is no further data to store.
-           }
-         */
 
         MicrosatelliteMarkersAnalysis markers = null;
         String alleleNames = getString(row, "MicrosatelliteMarkersAnalysis.alleleNames",
@@ -1418,97 +1405,6 @@ public class StandardImport extends HttpServlet {
         return annots;
     }
 
-// TODO add column to point to an image directory
-//// for when the provided image filename is actually a folder of images
-// private ArrayList<Annotation> loadAnnotationsFolderRow(Row row, AssetStore astore, Shepherd myShepherd) {
-// ArrayList<Annotation> annots = new ArrayList<Annotation>();
-// String localPath = getString(row, "Encounter.mediaAsset0");
-// if (localPath==null) return annots;
-// localPath = localPath.substring(0,localPath.length()-1).trim(); // removes trailing asterisk
-////   localPath = fixGlobiceFullPath(localPath)+"/";
-////   localPath = localPath.replace(" ","\\ ");
-// String fullPath = photoDirectory+localPath;
-// fullPath = fullPath.replaceAll("//","/");
-// System.out.println(fullPath);
-//// Globice fix!
-//// now fix spaces
-// File photoDir = new File(fullPath);
-// if (!photoDir.exists()||!photoDir.isDirectory()||photoDir.listFiles()==null) {
-// boolean itExists = photoDir.exists();
-// boolean isDirectory = (itExists) && photoDir.isDirectory();
-// boolean hasFiles = isDirectory && photoDir.listFiles()!=null;
-// System.out.println("StandardImport ERROR: loadAnnotationsFolderRow called on non-directory (or empty?) path "+fullPath);
-// System.out.println("    itExists: "+itExists);
-// System.out.println("    isDirectory: "+isDirectory);
-// System.out.println("    hasFiles: "+hasFiles);
-
-// feedback.addMissingPhoto(localPath);
-
-// return annots;
-// }
-
-//// if there are keywords we apply to all photos in encounter
-// String keyword0 = getString(row, "Encounter.keyword00");
-// Keyword key0 = (keyword0==null) ? null : myShepherd.getOrCreateKeyword(keyword0);
-// String keyword1 = getString(row, "Encounter.keyword01");
-// Keyword key1 = (keyword1==null) ? null : myShepherd.getOrCreateKeyword(keyword1);
-
-// String species = getSpeciesString(row);
-// for (File f: photoDir.listFiles()) {
-// MediaAsset ma = null;
-// try {
-// JSONObject assetParams = astore.createParameters(f);
-// System.out.println("    have assetParams");
-// assetParams.put("_localDirect", f.toString());
-// System.out.println("    about to create mediaAsset");
-// ma = astore.copyIn(f, assetParams);
-// } catch (Exception e) {
-// System.out.println("IOException creating MediaAsset for file "+f.getPath() + ": " + e.toString());
-// feedback.addMissingPhoto(localPath);
-
-// continue; // skips the rest of loop for this file
-// }
-// if (ma==null) continue;
-// if (key0!=null) ma.addKeyword(key0);
-// if (key1!=null) ma.addKeyword(key1);
-// Annotation ann = new Annotation(species, ma);
-// ann.setIsExemplar(true);
-// annots.add(ann);
-// }
-// if (annots.size()>0) foundPhotos.add(fullPath);
-// return annots;
-// }
-
-    //
-    // capitolizes the final directory in path
-    // private String fixGlobiceFullPath(String path) {
-    // String fixed = capitolizeLastFilepart(path);
-    // fixed = removeExtraGlobiceString(fixed);
-    // return fixed;
-    // }
-
-    // private String removeExtraGlobiceString(String path) {
-    //// we somehow got an extra instance of the word "globice" in the path string, right before a 1
-    // return (path.replace("Globice1","1"));
-    // }
-
-    // private String capitolizeLastFilepart(String path) {
-    // String[] parts = path.split("/");
-    // String lastPart = parts[parts.length-1];
-    // String firstPart = path.substring(0, path.indexOf(lastPart));
-    // return firstPart + lastPart.toUpperCase();
-    // }
-
-    // TODO add column to point to an image directory
-    //// most rows have a single image, but some have an image folder
-    // private boolean isFolderRow(Row row) {
-    // String path = getString(row, "Encounter.mediaAsset0");
-    // if (path==null) return false;
-    // boolean ans = path.endsWith("*");
-    // if (ans) numFolderRows++;
-    // return ans;
-    // }
-
     public String getSpeciesString(Row row, Map<String, Integer> colIndexMap, boolean verbose,
         Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
         String genus = getString(row, "Encounter.genus", colIndexMap, verbose, missingColumns,
@@ -1557,7 +1453,7 @@ public class StandardImport extends HttpServlet {
         }
         System.out.println("     localPath2: " + localPath);
         if (isUserUpload) {
-            // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
+            // user uploads currently flatten all images into a folder so we trim extensions
             try {
                 if (localPath != null && !"null".equals(localPath) && localPath.contains("/")) {
                     int numChunks = localPath.split("/").length;
@@ -1665,18 +1561,10 @@ public class StandardImport extends HttpServlet {
         }
         myAssets.put(fileHash(f), ma);
 
-        // Keyword keyword = null;
-        // String keywordI = getString(row, "Encounter.keyword"+i);
-        // if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
-        // String keywordOIKey = "Encounter.keyword0"+i;
-        // String keywordOI = getString(row, keywordOIKey);
-        // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
-        // if (keyword!=null) ma.addKeyword(keyword);
         System.out.println("getMediaAsset() created " + ma + " with params: " + assetParams);
         return ma;
     }
 
-    // TODO in a perfect world, we would also check db for assets with same hash!!  but then we need a shepherd.  SIGH
     private MediaAsset checkExistingMediaAsset(File f, Map<String, MediaAsset> myAssets) {
         String fhash = fileHash(f);
 
@@ -1697,28 +1585,6 @@ public class StandardImport extends HttpServlet {
         return null;
     }
 
-    /*
-       private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
-
-       ArrayList<Keyword> ans = new ArrayList<Keyword>();
-       int maxAssets = getNumAssets(row);
-       int maxKeywords=4;
-       int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; //
-       // we have up to 4 keywords per row.
-       for (int i=n; i<=stopAtKeyword; i++) {
-       String kwColName = "Encounter.keyword"+i;
-       String kwName = getString(row, kwColName);
-       if (kwName==null) {
-        kwColName = "Encounter.keyword0"+i;
-        kwName = getString(row, kwColName);
-       }
-       if (kwName==null) continue;
-       Keyword kw = myShepherd.getOrCreateKeyword(kwName);
-       if (kw!=null) ans.add(kw);
-       }
-       return ans;
-       }
-     */
     private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd,
         Map<String, Integer> colIndexMap, boolean verbose, Set<String> missingColumns,
         Set<String> unusedColumns, TabularFeedback feedback) {
@@ -2277,7 +2143,7 @@ public class StandardImport extends HttpServlet {
         }
     }
 
-    // TODO getString logging good string values... should check against
+    // TODO: getString logging good string values... should check against
     // 1. allowed values for strings
     // 2. image file presence for filenames
 
@@ -2631,23 +2497,6 @@ public class StandardImport extends HttpServlet {
 
     private AssetStore getAssetStore(Shepherd myShepherd) {
         return AssetStore.getDefault(myShepherd);
-        // return AssetStore.get(myShepherd, 1);
-
-        // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
-        //// TODO: fix this for flukebook
-        //// String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-        // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
-
-        // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
-
-        // if (committing) {
-        // myShepherd.beginDBTransaction();
-        // myShepherd.getPM().makePersistent(as);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
-        // }
-
-        // return as;
     }
 
     // returns file so you can use .getName() or .lastModified() etc
@@ -2681,27 +2530,12 @@ public class StandardImport extends HttpServlet {
     // returns file so you can use .getName() or .lastModified() etc
     public static File importXlsFile(String rootDir, HttpServletRequest request) {
         File dir = new File(rootDir, "import");
-        File f = null;
+        File f = new File(dir, "WildbookStandardFormat.xlsx");
 
-        if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
-            f = new File(dir, "WildbookStandardFormat_IndoCet.xlsx");
-        } else {
-            f = new File(dir, "WildbookStandardFormat.xlsx");
-        }
         if (f != null && f.isFile()) { return f; } else {
             System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + ";f is: " + f);
             return null;
         }
-        /*
-           try {
-            for (final File f : dir.listFiles()) {
-                if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
-            }
-           } catch (Exception ex) {
-            System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " + ex.toString());
-            return null;
-           }
-         */
     }
 
     // cannot put this inside CellFeedback bc java inner classes are not allowed static methods or vars (this is stupid).

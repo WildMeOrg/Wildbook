@@ -35,7 +35,7 @@ console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ???
         jel.data('enc-already-enhanced', true);
         var mid = imageEnhancer.mediaAssetIdFromElement(jel);  //jel.data('enh-mediaassetid');
         var aid = imageEnhancer.annotationIdFromElement(jel);
-        var parEl = jel.parent();  //TODO what if there is none... oops???
+        var parEl = jel.parent();  // does not account for "none" case
         if (parEl.prop('tagName') == 'A') parEl = parEl.parent();
 console.info('imageEnhancer.apply to %o [%dx%d] (mid=%o|aid=%o) with opt %o (parEl=%o)', el, jel.width(), jel.height(), mid, aid, opt, parEl);
         if (typeof opt != 'object') opt = {};

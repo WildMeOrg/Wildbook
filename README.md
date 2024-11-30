@@ -49,6 +49,13 @@ The following git commands may prove useful.
 * `git add <filename>: add files that have changes to staging in preparation for commit
 * `git commit`: commits the stagged files, opens a text editor for you to write a commit log
 
+### Unit Tests
+We are working on building up test coverage. Current requirements are:
+* Do not drop the percentage of test coverage (exceptions will be made for large scale changes on case-by-case basis)
+* Do not break existing tests
+
+See [test coverage guidelines](src/test/README.md) for how to develop your tests.
+
 ### Submit PR
 Up to this point, all changes have been done to your local copy of Wildbook. You need to push the new commits to a remote branch to start the PR process.
 

@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 class AnnotationTest {
 /*
     to create a (real) MediaAsset or a Feature we need to have a Shepherd!
-    TODO extend to this with mockito/Shepherd
+    TODO: extend to this with mockito/Shepherd
     https://semaphoreci.com/community/tutorials/stubbing-and-mocking-with-mockito-2-and-junit
  */
     @Test void createAnnotation() {

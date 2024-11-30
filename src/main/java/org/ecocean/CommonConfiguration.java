@@ -215,7 +215,6 @@ public class CommonConfiguration {
         return u.toASCIIString().replaceFirst(":80\\b", ""); // hide :80 cuz its tacky
     }
 
-    // TODO maybe these should be private so as not to be overused
     public static JSONObject getServerInfo(Shepherd myShepherd) {
         return SystemValue.getJSONObject(myShepherd, "SERVER_INFO");
     }
@@ -386,22 +385,6 @@ public class CommonConfiguration {
         return getProperty("newSubmissionEmail", context).trim();
     }
 
-    public static String getDefaultSelectedProject(String context) {
-        return getProperty("defaultProjName", context).trim();
-    }
-
-    public static String getDefaultProjectOrganizationParameter(String context) {
-        return getProperty("defaultProjectOrganizationParameter", context).trim();
-    }
-
-    public static String getDefaultSelectedProjectId(String context) {
-        return getProperty("defaultProjId", context).trim();
-    }
-
-    public static boolean getLoggedOutDefaultDesired(String context) {
-        return parseBoolean(getProperty("loggedOutDefaultDesired", context), false);
-    }
-
     public static String getR(String context) {
         return getProperty("R", context).trim();
     }
@@ -519,11 +502,6 @@ public class CommonConfiguration {
                 context).getProperty("ga_id", context);
     }
 
-    /*
-       public static String getGoogleSearchKey(String context) {
-       return getProperty("googleSearchKey",context);
-       }
-     */
     public static String getDefaultGoogleMapsCenter(String context) {
         if (getProperty("googleMapsCenter", context) != null) {
             return getProperty("googleMapsCenter", context);
@@ -647,7 +625,6 @@ public class CommonConfiguration {
      * @return Fully-qualified class name of the plugin to use, or null.
      */
     public static String getBatchUploadPlugin(String context) {
-        // initialize(context);
         if (getProperty("batchUploadPlugin", context) != null) {
             return getProperty("batchUploadPlugin", context).trim();
         }
@@ -782,7 +759,7 @@ public class CommonConfiguration {
 
     public static String appendEmailRemoveHashString(HttpServletRequest request,
         String originalString, String emailAddress, String context) {
-        return null; // disabled via issue #397
+        return null;
     }
 
     public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
@@ -894,7 +871,6 @@ public class CommonConfiguration {
         initialize(context);
         String dataDirectoryName = "shepherd_data_dir";
         // new context code here
-        // if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
         if ((ContextConfiguration.getDataDirForContext(context) != null) &&
             (!ContextConfiguration.getDataDirForContext(context).trim().equals(""))) {
             dataDirectoryName = ContextConfiguration.getDataDirForContext(context);
