@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useContext, useState } from "react";
 import { Navbar, Nav, NavDropdown } from "react-bootstrap";
 import "../css/dropdown.css";
@@ -10,7 +9,7 @@ import { FormattedMessage } from "react-intl";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader({showclassicsubmit}) {
+export default function AuthenticatedAppHeader({ showclassicsubmit }) {
   const { visible } = useContext(FooterVisibilityContext);
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,

@@ -14,10 +14,13 @@ import AdminLogs from "./pages/AdminLogs";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
-export default function AuthenticatedSwitch({ showAlert, setShowAlert, showclassicsubmit }) {
+export default function AuthenticatedSwitch({
+  showAlert,
+  setShowAlert,
+  showclassicsubmit,
+}) {
   const { data } = useGetMe();
   const username = data?.username;
-  // eslint-disable-next-line no-undef
   const avatar =
     data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
   const [header, setHeader] = React.useState(true);
