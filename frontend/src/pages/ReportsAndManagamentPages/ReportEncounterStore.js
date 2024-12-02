@@ -292,7 +292,7 @@ export class ReportEncounterStore {
     if (this._speciesSection.required && !this._speciesSection.value) {
       this._speciesSection.error = true;
       isValid = false;
-    } 
+    }
 
     if (!this.validateEmails()) {
       isValid = false;
@@ -335,16 +335,28 @@ export class ReportEncounterStore {
           additionalEmails: this._followUpSection.additionalEmails,
           decimalLatitude: this._lat,
           decimalLongitude: this._lon,
-        };        
+        };
 
         const filteredPayload = Object.fromEntries(
-          Object.entries(payload).filter(([key, value]) => value !== null && value !== "")
-          .filter(([key, value]) => key !== "decimalLatitude" || (value >= -90 && value <= 90))
-          .filter(([key, value]) => key !== "decimalLongitude" || (value >= -180 && value <= 180))
-          .filter(([key, value]) => key !== "taxonomy" || value !== "unknown")
+          Object.entries(payload)
+            .filter(([_, value]) => value !== null && value !== "")
+            .filter(
+              ([key, value]) =>
+                key !== "decimalLatitude" || (value >= -90 && value <= 90),
+            )
+            .filter(
+              ([key, value]) =>
+                key !== "decimalLongitude" || (value >= -180 && value <= 180),
+            )
+            .filter(
+              ([key, value]) => key !== "taxonomy" || value !== "unknown",
+            ),
         );
 
-        const response = await axios.post("/api/v3/encounters", filteredPayload);
+        const response = await axios.post(
+          "/api/v3/encounters",
+          filteredPayload,
+        );
 
         if (response.status === 200) {
           this._speciesSection.value = "";
@@ -364,7 +376,7 @@ export class ReportEncounterStore {
         this._showSubmissionFailedAlert = true;
         this._error = error.response.data.errors;
       }
-    } 
+    }
   }
 }
 
