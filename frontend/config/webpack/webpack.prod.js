@@ -1,6 +1,3 @@
-/* eslint-disable no-undef */
-
-// const webpack = require("webpack");
 const { resolve } = require("path");
 const path = require("path");
 const TerserPlugin = require("terser-webpack-plugin");
