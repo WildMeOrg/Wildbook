@@ -6828,7 +6828,6 @@ for (JSONObject val : identConfigs.values()) {
 $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
         var key = keyMap[el.name] || '_UNKNOWN_';
-        if (key == '_UNKNOWN_') return;
         if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
 
         if(el.name=="match-filter-algorithm"){
