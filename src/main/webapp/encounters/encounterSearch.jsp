@@ -43,6 +43,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     animatedcollapse.addDiv('export', 'fade=1')
     animatedcollapse.addDiv('genetics', 'fade=1')
     animatedcollapse.addDiv('patternrecognition', 'fade=1')
+    animatedcollapse.addDiv('social', 'fade=1')
+
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -223,13 +225,15 @@ $(".search-collapse-header a").click(function(){
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounterSearch.jsp");
+  myShepherd.setAction("/react/encounter-search");
   myShepherd.beginDBTransaction();
   boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
   encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
+  Properties props = new Properties();
+  props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
 
 
 %>
@@ -246,7 +250,7 @@ $(".search-collapse-header a").click(function(){
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="searchResults.jsp" method="get" name="encounterSearch" id="search">
+<form action="/react/login" method="get" name="encounterSearch" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
@@ -658,7 +662,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         %>
         <tr>
         <td>
-         <strong><%=encprops.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
+         <strong><%=encprops.getProperty("genusSpecies") %></strong>: <select name="genusField" id="genusField">
 		<option value=""></option>
 
 				       <%
@@ -669,7 +673,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 				       	  	%>
 
-				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
+				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
 				       	  	<%
 				       		taxNum++;
 				          }
@@ -1435,6 +1439,103 @@ else {
   </td>
 </tr>
 
+<tr>
+  <td>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=props.getProperty("socialFilters") %></a></h4>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div id="social" style="display:none;">
+
+    <table>
+    	<tr>
+    		<td style="vertical-align: top">
+    			<strong><%=props.getProperty("belongsToCommunity")%></strong>
+    		</td>
+    		</tr>
+    		<tr>
+    		<td style="vertical-align: top">
+			<%
+ 				List<String> communities = myShepherd.getAllSocialUnitNames();
+
+ 					//System.out.println(haplos.toString());
+
+ 			        if ((communities!=null)&&(communities.size()>0)) {
+ 			        	int totalNames = communities.size();
+ 			%>
+
+      <select multiple size="10" name="community" id="community">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalNames; n++) {
+            String word = communities.get(n);
+            if ((word!=null)&&(!word.equals(""))) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select></td>
+      </tr>
+      </table>
+      <%
+      } else {
+      %>
+      <em><%=props.getProperty("noCommunities")%>
+      </em>
+      </td>
+      </tr>
+      </table>
+      <%
+        }
+      %>
+    <table>
+    	<tr>
+    		<td style="vertical-align: top">
+    			<strong><%=props.getProperty("socialRoleIs")%></strong><br />
+    			<input type="checkbox" name="andRoles"/>&nbsp;<em><%=props.getProperty("andRoles")%></em>
+    		</td>
+    		</tr>
+    		<tr>
+    		<td style="vertical-align: top">
+			<%
+		List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
+        if ((roles!=null)&&(roles.size()>0)) {
+        	int totalNames = roles.size();
+      %>
+      <select multiple size="10" name="role" id="role">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalNames; n++) {
+            String word = roles.get(n);
+            if ((word!=null)&&(!word.equals(""))) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select></td>
+      </tr>
+      </table>
+      <%
+      } else {
+      %>
+      <em><%=props.getProperty("noRoles")%>
+      </em>
+      </td>
+      </tr>
+      </table>
+      <%
+        }
+      %>
+    </div>
+  </td>
+</tr>
 
 
 <tr>
@@ -1481,6 +1582,8 @@ else {
 </tr>
 
 <% FormUtilities.printStringFieldSearchRow("submitterProject", out, encprops); %>
+<% FormUtilities.printStringFieldSearchRow("occurrenceID", out, encprops); %>
+
 <%
   FormUtilities.setUpOrgDropdown("organizationId", false, encprops, out, request, myShepherd);
   FormUtilities.setUpProjectDropdown(false, 6, "Project Name", "projectId", encprops, out, request, myShepherd);

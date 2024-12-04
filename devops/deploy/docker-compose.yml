@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+
+  db:
+    image: postgres:13.4
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    labels:
+      - autoheal=true
+    user: postgres
+    volumes:
+      - db-pgdata-var:/var/lib/postgresql/data
+      # DB initialization scripts
+      - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
+    networks:
+      - intranet
+    ports:
+      # development exposure, not exposed in production
+      - 5433:5432
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      WBIA_DB_NAME: "${WBIA_DB_NAME}"
+      WBIA_DB_USER: "${WBIA_DB_USER}"
+      WBIA_DB_PASSWORD: "${WBIA_DB_PASSWORD}"
+      WILDBOOK_DB_NAME: "${WILDBOOK_DB_NAME}"
+      WILDBOOK_DB_USER: "${WILDBOOK_DB_USER}"
+      WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
+
+  wildbook:
+    image: wildme/wildbook:${WILDBOOK_TAG:main}
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - autoheal=true
+
+    networks:
+      - intranet
+    ports:
+      # FIXME: exposed for developer verification
+      - "81:8080"
+
+  wbia:
+    # https://github.com/WildMeOrg/wildbook-ia
+    image: wildme/wbia:latest
+    command: ["--db-uri", "${WBIA_DB_URI}"]
+    depends_on:
+      db:
+        condition: service_healthy
+    # healthcheck:  # WBIA defines it's own health check and is already labeled for autoheal
+    # labels:
+    #   - autoheal=true
+    volumes:
+      - wbia-database-var:/data/db
+      - wbia-cache-var:/cache
+    networks:
+      - intranet
+    ports:
+      - "82:5000"
+    environment:
+      WBIA_DB_URI: "${WBIA_DB_URI}"
+      HOUSTON_CLIENT_ID: "${HOUSTON_CLIENT_ID}"
+      HOUSTON_CLIENT_SECRET: "${HOUSTON_CLIENT_SECRET}"
+
+  nginx:
+    image: nginx:1.23.4
+    #healthcheck:
+      #test: [ "CMD", "curl", "-f", "http://localhost:84/"]
+      #interval: 10s
+      #timeout: 5s
+      #retries: 60
+    labels:
+      - autoheal=true
+    volumes:
+      - .dockerfiles/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - intranet
+    ports:
+      # BBB deprecated in favor or port 80, remains for backward compat
+      - "80:80"
+    depends_on:
+      - wildbook
+
+  autoheal:
+    image: willfarrell/autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: "autoheal"
+      AUTOHEAL_INTERVAL: 15
+      AUTOHEAL_START_PERIOD: 600
+      AUTOHEAL_DEFAULT_STOP_TIMEOUT: 60
+    restart: always
+
+networks:
+  intranet:
+
+volumes:
+  db-pgdata-var:
+  wbia-database-var:
+  wbia-cache-var:
+  wildbook-var:

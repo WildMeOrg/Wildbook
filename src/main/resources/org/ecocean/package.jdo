@@ -98,48 +98,6 @@
       <fetch-group name="count"/>
     </class>
 
-    <class name="Adoption" identity-type="application">
-      <field name="adopterName" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterAddress" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterEmail" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterImage" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterQuote" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adoptionStartDate" persistence-modifier="persistbent">
-        <column length="100"/>
-      </field>
-      <field name="adoptionEndDate" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="adoptionManager" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="individual" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="encounter" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="adoptionType" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="notes" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="id" persistence-modifier="persistent" primary-key="true">
-        <column length="100"/>
-      </field>
-    </class>
-
     <class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
       <field name="individualID" primary-key="true" />
 

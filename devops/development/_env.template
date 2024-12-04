@@ -1,0 +1,43 @@
+# this should be a directory on your host system where you want to put your files related to development
+#   you *must* create:
+#   - $WILDBOOK_BASE_DIR/webapps/   (this is where you will deploy your war file to, under a subdir wildbook/)
+#   - $WILDBOOK_BASE_DIR/logs/      (logs will go here)
+
+WILDBOOK_BASE_DIR=~/wildbook-dev
+
+
+# for smtp (postfix) usage:
+MAIL_HOSTNAME=example.com
+MAIL_ALLOWED_SENDER_DOMAINS=example.com
+MAIL_PORT=1587
+MAIL_RELAYHOST=example.com:587
+MAIL_RELAYHOST_USERNAME=changeme
+MAIL_RELAYHOST_PASSWORD=changeme
+
+
+
+# these rest of these settings are fine for a development environment, but can be changed if you desire
+
+POSTGRES_PASSWORD=development
+
+PGADMIN_DEFAULT_EMAIL=dev@example.com
+PGADMIN_DEFAULT_PASSWORD=development
+
+OPENSEARCH_INITIAL_ADMIN_PASSWORD=D3v3l0p-ment
+
+WILDBOOK_DB_NAME=wildbook
+WILDBOOK_DB_USER=wildbook
+WILDBOOK_DB_PASSWORD=development
+#: i.e. jdbc:postgresql://db:5432/${WILDBOOK_DB_NAME}
+WILDBOOK_DB_CONNECTION_URL=jdbc:postgresql://db:5432/wildbook
+
+
+WBIA_DB_NAME=wbia
+WBIA_DB_USER=wbia
+WBIA_DB_PASSWORD=development
+
+#: i.e. postgresql://${WBIA_DB_USER}:${WBIA_DB_PASSWORD}@db/${WBIA_DB_NAME}
+WBIA_DB_URI=postgresql://wbia:development@db/wbia
+#: Location within the container
+WBIA_DB_DIR=/data/db
+

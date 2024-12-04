@@ -71,10 +71,10 @@
 
     List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
-    //TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 %>
 
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
 
 
 <style type="text/css">
@@ -476,7 +476,7 @@ if (request.getQueryString() != null) {
 
  <ul id="tabmenu">
 
-   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
    </a></li>
    <li><a
      href="projectManagement.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("projectManagement")%>

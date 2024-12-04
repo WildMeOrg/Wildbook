@@ -45,6 +45,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
 String encNum="";
 boolean isOwner=false;
+JSONObject MediaAssetOwner = new JSONObject();
 
 
 
@@ -96,7 +97,7 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
-  System.out.println("EncounterMediaGallery about to execute query "+query);
+  //System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
 	query.closeAll();
@@ -120,6 +121,7 @@ function forceLink(el) {
   <%
     List<String> maAcms = new ArrayList<String>();
     List<String> maIds = new ArrayList<String>();
+    boolean isEncounterOwner=isOwner;
 
   for(int f=0;f<numEncs;f++){
 
@@ -134,7 +136,9 @@ function forceLink(el) {
         //System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
         continue;
       }
-
+        if(!isOwner){
+            isEncounterOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,imageShepherd);
+        }
 		  ArrayList<Annotation> anns = enc.getAnnotations();
 		JSONObject iaTasks = new JSONObject();
 
@@ -155,10 +159,11 @@ function forceLink(el) {
 				if (ma == null) continue;
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
                         maIds.add(Integer.toString(ma.getId()));
+                        MediaAssetOwner.put(Integer.toString(ma.getId()),isEncounterOwner); 
 
 
 
-		      String filename = ma.getFilename();
+		      String filename = ma.getUserFilename();
 		      //System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
@@ -197,7 +202,7 @@ function forceLink(el) {
 
 		      //end caption render JSP side
 
-		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
+		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! 
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
 
@@ -248,8 +253,7 @@ function forceLink(el) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 
-							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
-							//   also: prob should check *what* is detected. :) somewhere....
+							// here we skip unity feature annots. also: prob should check *what* is detected.
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
 System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
 							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
@@ -288,12 +292,13 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 
 		}
 			out.println("<script> var iaTasks = " + iaTasks.toString() + ";</script>");
+            out.println("<script> var MediaAssetOwner = " + MediaAssetOwner.toString() + ";</script>");
 	}
 
     JSONObject dups = new JSONObject();
     //this is kinda hacky cuz it is sql-specific
     if (maAcms.size() > 0) {
-        String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId, \"ENCOUNTER\".\"CATALOGNUMBER\" as encId, \"ENCOUNTER\".\"INDIVIDUALID\" as indivId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") where \"MEDIAASSET\".\"ACMID\" in ('" + String.join("', '", maAcms) + "') AND \"MEDIAASSET\".\"ID\" not in (" + String.join(", ", maIds) + ");";
+        String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId, \"ENCOUNTER\".\"CATALOGNUMBER\" as encId, \"MARKEDINDIVIDUAL_ENCOUNTERS\".\"INDIVIDUALID_OID\" as indivId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") left join \"MARKEDINDIVIDUAL_ENCOUNTERS\" on (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"MARKEDINDIVIDUAL_ENCOUNTERS\".\"CATALOGNUMBER_EID\") where \"MEDIAASSET\".\"ACMID\" in ('" + String.join("', '", maAcms) + "') AND \"MEDIAASSET\".\"ID\" not in (" + String.join(", ", maIds) + ");";
 // assetid |              assetacmid              |                encid                 | individ
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
@@ -849,7 +854,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var mid = imageEnhancer.mediaAssetIdFromElement($(el));
 	    var ma = assetById(mid);
-            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
+            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.userFilename) + '">' + ma.userFilename + '</a></div>';
             $(el).closest('figure').after(h);
             //$(el).closest('.my-gallery').after(h);
         });
@@ -956,7 +961,6 @@ console.info(' ===========>   %o %o', el, enh);
 	if (!opt.init) opt.init = []; //maybe created if logged in?
 
 	opt.init.push(
-		//function(el, enh) { enhancerDisplayAnnots(el, enh); },  //TODO fix for scaled/watermark image
 		function(el, enh) { enhancerCaption(el, enh); }
 	);
 
@@ -993,7 +997,7 @@ function enhancerCaption(el, opt) {
 	var ma = assetById(mid);
 //console.warn("====== enhancerCaption %o ", ma);
 	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
-	var title = ma.sourceAsset.filename || '';
+	var title = ma.sourceAsset.userFilename || '';
 	if (ma.sourceAsset.metadata && ma.sourceAsset.metadata.basic) {
 		title = ma.sourceAsset.metadata.basic.title || 'Untitled';
 		title += ' [from ' + (ma.sourceAsset.metadata.basic.author_name || 'Unknown source') + ']';
@@ -1064,7 +1068,6 @@ function featureSortOrder(feat) {
 function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
-    //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     let widthScale = el; //.width;// / el.naturalWidth;
@@ -1127,7 +1130,6 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 }
 
 function checkImageEnhancerResize() {
-//TODO update enhancerScale when this happens!
 	var needUpdate = false;
 	$('.image-enhancer-wrapper').each(function(i,el) {
             var jel = $(el);
@@ -1330,8 +1332,6 @@ function refreshKeywordsForMediaAsset(mid, data) {
         }
     }
 
-    //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
-
     console.log("in refreshKeywordsForMediaAsset, looking for #asset-id-"+mid);
     $('#asset-id-'+mid).each(function(i,el) {
         $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
@@ -1415,26 +1415,26 @@ console.info("############## mid=%s -> %o", mid, ma);
       console.info("Have labeled keyword %o", kw);
       h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span>';
 
-      <%
-      if(isOwner){
-      %>
+      
+      if(MediaAssetOwner[mid]){
+      
       h+='<span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span>';
-      <%
+      
     	}
-      %>
+      
 
       h+='</div>';
     }
     else {
 
     	h+= '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName;
-    	<%
-    	if(isOwner){
-    	%>
+    	
+    	if(MediaAssetOwner[mid]){
+    	
     	h+=' <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span>';
-    	<%
+    	
     	}
-    	%>
+    	
     	h+='</div>';
 
     }
@@ -1448,9 +1448,9 @@ console.info("############## mid=%s -> %o", mid, ma);
   console.log("Labeled keywords %o", labelsToValues);
   let labeledAvailable = (labelsToValues.length>0);
 
-  <%
-  if(isOwner){
-  %>
+  
+  
+  
   h +='<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
 
   if (!$.isEmptyObject(labelsToValues)) {
@@ -1481,11 +1481,11 @@ console.info("############## mid=%s -> %o", mid, ma);
   }
   h += '</div></div>';
 
-  <%
-	}
+  
+	
 
-  if(isOwner){
-  %>
+  
+  
 
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
@@ -1501,9 +1501,9 @@ console.info("############## mid=%s -> %o", mid, ma);
 	}
 	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addOrRemoveNewKeyword(this);" />';
 	h += '</div></div>';
-	<%
-	}
-	%>
+	
+	
+	
 
     // we need to attach this to the outer container now
     if (!hasWrapper) {
@@ -1536,6 +1536,11 @@ function showKeywordList(el) {
         $(el).parent().attr('class').split(' ').map(function(className){
             if (className.startsWith('image-enhancer-wrapper-mid-')) {
                 let mid = className.replace('image-enhancer-wrapper-mid-', '');
+                if(!MediaAssetOwner[mid]){
+                    $('.image-enhancer-keyword-wrapper-hover > .iek-new-wrapper:not(.labeled)').hide();
+                } else {
+                    $('.image-enhancer-keyword-wrapper-hover > .iek-new-wrapper:not(.labeled)').show();
+                }
                 $('.pswp__button--arrow--right').click(function(ev) {
                     nextImageArrow(ev,mid);
                 });
@@ -1689,8 +1694,7 @@ function _parseDetection(task) {
             rtn.msg = 'Detection task found, but no results.  Possibly still processing?';
         } else {
             for (var i = 0 ; i < task.results.length ; i++) {
-                if (!task.results[i].status) continue;  //kinda cheap hack.. should probably investigate this TODO
-                //TODO actually check out what most recent has to say here....
+                if (!task.results[i].status) continue;  //kinda cheap hack
                 rtn.state = 'complete';
                 rtn.msg = 'most recent result status _action=' + task.results[i].status._action;
                 break;

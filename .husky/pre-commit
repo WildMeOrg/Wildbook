@@ -1,0 +1,42 @@
+#!/bin/sh
+# . "$(dirname "$0")/_/husky.sh"
+
+# echo "Running pre commit hook"
+
+# NODE_ENV=development BABEL_ENV=development npx lint-staged
+
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-commit hook"
+
+# Set up the base directory for the React app relative to the git root
+REACT_DIR="frontend/"
+
+# List files that are staged for commit
+STAGED_FILES=$(git diff --cached --name-only)
+echo "Staged files:"
+git diff --cached --name-only
+
+# Check if the staged files are within the React directory
+REACT_CHANGE=0
+for FILE in $STAGED_FILES; do
+  if echo "$FILE" | grep -q "^$REACT_DIR"; then
+    REACT_CHANGE=1
+    break
+  fi
+done
+
+# Run linters if there are changes in the React directory
+if [ "$REACT_CHANGE" -eq 1 ]; then
+  echo "Changes detected in React app, running linters..."
+  NODE_ENV=development BABEL_ENV=development npx lint-staged 
+else
+  echo "No changes in React app, skipping linters."
+fi
+
+
+# this runs the java uncrustify scripts
+
+. "$(dirname "$0")/java/pre-commit-uncrustify"
+

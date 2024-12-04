@@ -408,7 +408,7 @@ try{
 	}
 	
 	
-	Set<String> locationIds = new HashSet<String>();
+	ArrayList<String> locationIds = new ArrayList<String>();
 
 	    out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
 	    out.println("<br>Data Import Status: <em>"+itask.getStatus()+"</em>");
@@ -417,7 +417,8 @@ try{
 	    out.println("<p id=\"refreshPara\" class=\"caption\">Refreshing results in <span id=\"countdown\"></span> seconds.</p><script>$('#refreshPara').hide();</script>");
 	    
 	    if(itask.getParameters()!=null){
-	    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+	    	String filenameParam = itask.getParameters().getJSONObject("_passedParameters").has("originalFilename") ? "originalFilename" : "filename";
+	    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray(filenameParam).toString());
 	    }	
 	    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
 	    String[] headers = new String[]{"Encounter", "Date", "Occurrence", "Individual", "#Images","Match Results by Class"};
@@ -447,7 +448,7 @@ try{
 	    	ArrayList<MediaAsset> fixACMIDAssets=new ArrayList<MediaAsset>();
 	       
 	    	JSONArray jarr=new JSONArray();
-	    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
+	    	if (enc.getLocationID() != null && !locationIds.contains(enc.getLocationID())) locationIds.add(enc.getLocationID());
 	        out.println("<tr>");
 	        out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
 	        out.println("<td>" + enc.getDate() + "</td>");
@@ -891,10 +892,7 @@ try{
 		%>
 		 <div style="margin-bottom: 20px;">   	
 		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Send to identification</a> matching against <b>location(s):</b>
-		    	<select multiple id="id-locationids" style="vertical-align: top;">
-		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
-		        	<option value="">ALL locations</option>
-		    	</select>
+                        <%=LocationID.getHTMLSelector(true, locationIds, null, "id-locationids", "locationID", "") %>
 		   </div>
 		    	
 		    <%
