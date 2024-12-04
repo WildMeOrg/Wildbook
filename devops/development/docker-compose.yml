@@ -1,0 +1,133 @@
+version: "3.8"
+
+services:
+
+  db:
+    image: postgres:13.4
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    labels:
+      - autoheal=true
+    user: postgres
+    volumes:
+      - db-pgdata-var:/var/lib/postgresql/data
+      # DB initialization scripts
+      - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
+    networks:
+      - intranet
+    ports:
+      # development exposure, not exposed in production
+      - 5433:5432
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      WBIA_DB_NAME: "${WBIA_DB_NAME}"
+      WBIA_DB_USER: "${WBIA_DB_USER}"
+      WBIA_DB_PASSWORD: "${WBIA_DB_PASSWORD}"
+      WILDBOOK_DB_NAME: "${WILDBOOK_DB_NAME}"
+      WILDBOOK_DB_USER: "${WILDBOOK_DB_USER}"
+      WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
+
+  wildbook:
+    image: tomcat:9.0.85-jre8-temurin-jammy
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - autoheal=true
+    entrypoint: /docker-entrypoint.sh
+    volumes:
+      # lets let this live in /webapps/ instead
+      #- wildbook-var:/usr/local/tomcat/webapps/wildbook_data_dir
+      - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
+      - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
+      - .dockerfiles/tomcat/watermark.png:/usr/local/tomcat/watermark.png
+      - .dockerfiles/tomcat/IA.json:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
+      - .dockerfiles/tomcat/IA.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.properties
+      - .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
+      - "$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/"
+      - "$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/"
+    networks:
+      - intranet
+    ports:
+      - "81:8080"
+    environment:
+      DB_USER: "${WILDBOOK_DB_USER}"
+      DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
+      DB_CONNECTION_URL: "${WILDBOOK_DB_CONNECTION_URL}"
+      # Admin user created on startup,
+      # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
+      # JAVA_OPTS from old-world wildbook, which gives us 4G heap memory
+      JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    labels:
+      - autoheal=true
+    volumes:
+      - opensearch-var1:/usr/share/opensearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - intranet
+    ports:
+      # development exposure, not exposed in production
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - plugins.security.disabled=true
+      - node.name=opensearch
+      #- discovery.seed_hosts=elasticsearch2,elasticsearch3
+      #- cluster.initial_master_nodes=elasticsearch,elasticsearch2,elasticsearch3
+      #- discovery.seed_hosts=opensearch2
+      - cluster.initial_master_nodes=opensearch
+      - bootstrap.memory_lock=true
+      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+
+  # https://hub.docker.com/r/boky/postfix/
+  #  TODO dkim and spf needs to be added/supported
+  smtp:
+    image: boky/postfix
+    networks:
+      - intranet
+    ports:
+      - $MAIL_PORT:587
+    volumes:
+      - .dockerfiles/smtp/dkim-keys:/etc/opendkim/keys
+    environment:
+      - "HOSTNAME=${MAIL_HOSTNAME}"
+      - "ALLOWED_SENDER_DOMAINS=${MAIL_ALLOWED_SENDER_DOMAINS}"
+      - "RELAYHOST=${MAIL_RELAYHOST}"
+      - "RELAYHOST_USERNAME=${MAIL_RELAYHOST_USERNAME}"
+      - "RELAYHOST_PASSWORD=${MAIL_RELAYHOST_PASSWORD}"
+
+  autoheal:
+    image: willfarrell/autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: "autoheal"
+      AUTOHEAL_INTERVAL: 15
+      AUTOHEAL_START_PERIOD: 600
+      AUTOHEAL_DEFAULT_STOP_TIMEOUT: 60
+    restart: always
+
+networks:
+  intranet:
+
+volumes:
+  db-pgdata-var:
+  wildbook-var:
+  opensearch-var1:
+  opensearch-var2:

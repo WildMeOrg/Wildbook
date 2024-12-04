@@ -78,37 +78,40 @@ if (Util.stringExists(projectIdPrefix)) {
 //do queue stuff
 String queueStatementID="";
 boolean fastlane=false;
+boolean taskCompleted=false;
 if(request.getParameter("taskId")!=null){
 	Task t=myShepherd.getTask(request.getParameter("taskId"));
 	if(t!=null && t.getParameters()!=null && t.getParameters().optBoolean("fastlane", false)){
 		fastlane=true;
 	}
+	if(t!=null && t.areSelfAndOrAllChildrenComplete())taskCompleted=true;
 
 }
 int wbiaIDQueueSize = 0;
-if(fastlane){wbiaIDQueueSize =  WbiaQueueUtil.getSizeDetectionJobQueue(false);}
-else{wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);}
-if(wbiaIDQueueSize==0){
-	queueStatementID = "The machine learning queue is working.";
-}
-else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
-	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
-	String queueType="bulk import";
-	if(fastlane){
-		val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
-		queueType="small batch";
+if(!taskCompleted){
+	if(fastlane){wbiaIDQueueSize =  WbiaQueueUtil.getSizeDetectionJobQueue(false);}
+	else{wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);}
+	if(wbiaIDQueueSize==0){
+		queueStatementID = "The machine learning queue is working.";
 	}
-	try{
-		if(wbiaIDQueueSize>1){
-			Double d = Double.parseDouble(val);
-			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the "+queueType+" queue. Time per job is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+		String queueType="bulk import";
+		if(fastlane){
+			val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
+			queueType="small batch";
 		}
+		try{
+			if(wbiaIDQueueSize>1){
+				Double d = Double.parseDouble(val);
+				d=d/60.0;
+				queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the "+queueType+" queue. Time per job is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+			}
+		}
+		catch(Exception de){de.printStackTrace();}
 	}
-	catch(Exception de){de.printStackTrace();}
 }
-
-//do queue stuff
+//end do queue stuff
 
 
 
@@ -126,7 +129,7 @@ String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to kee
 
 
 
-//TODO security for this stuff, obvs?
+// security could be better for this stuff
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
 		
@@ -136,7 +139,7 @@ String taskId = request.getParameter("taskId");
 
 %>
 
-<script type="text/javascript" src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+<script type="text/javascript" src="javascript/ia.IBEIS.js"></script> 
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -161,7 +164,7 @@ String taskId = request.getParameter("taskId");
 			<p class="algoInstructions"><ul>
 				<li>Hover mouse over results below to <b>compare candidates</b> to target.</li>
 				<li>Links to <b>encounters</b> and <b>individuals</b> are next to each match score.</li>
-				<li>Select <b>correct match</b> by hovering over the correct result and checking the checkbox</li>
+				<li>Select <b>correct match</b> by clicking at the correct result and checking the checkbox</li>
 				<li>Use the buttons below to switch between result types:<ul>
 					<li><b>Image Scores:</b> computes the match score for every <em>image</em> in the database when compared to the query image</li>
 					<li><b>Individual Scores:</b> computes one match score for every <em>individual</em> in the database. This is the aggregate of each image score for that individual.</li>
@@ -228,7 +231,7 @@ h4.intro.accordion .rotate-chevron.down {
 		String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
 		String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
 		//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
-		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
+		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString();
 		System.out.println("Current URL = "+currentUrl);
 		// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType
 		String linkUrl = currentUrl;
@@ -258,7 +261,7 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 
-		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+		<!-- fix so that this isn't a form that submits but a link that gets pressed -->
 		<!-- need to add javascript to update the link href on  -->
 		<div id="scoreNumSettings">
 				<span id="scoreNumInput">
@@ -410,7 +413,7 @@ function toggleScoreType() {
 	init2();
 }
 
-var headerDefault = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
+var headerDefault = 'Select <b>correct match</b> from results below by <i>clicking</i> at result and checking the <i>checkbox</i>.';
 // we use the same space as
 
 function init2() {   //called from wildbook.init() when finished
@@ -929,14 +932,16 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			}
 
 		}
-		$('.annot-summary').on('mousemove', function(ev) {
-			//console.log('mouseover2 with num viewers: '+viewers.size);
+		$('.annot-summary').on('click', function(ev) {
+			console.log('mouse click with num viewers: '+viewers.size);			
+        	$('.annot-summary').css('background-color', ''); 
+        	$(this).css('background-color', '#8E8'); 						
+   		
 			annotClick(ev);
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
 			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
 			//tell seadragon to pan to the annotation
 			if(viewers.has(taskId+"+"+m_acmId )){
-				//console.log("Found viewer: "+taskId+"+"+m_acmId );
 				var viewer=viewers.get(taskId+"+"+m_acmId );
 				var eventArgs={
 					acmId: m_acmId,
@@ -1060,7 +1065,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
         	}
         }
         acmId=acmIdPassed;
-        if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
+        if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId); 
         if (mainAsset) {
 //console.info('mainAsset -> %o', mainAsset);
 //console.info('illustrationUrl '+illustrationUrl);
@@ -1205,8 +1210,8 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
             if(res.responseJSON.annotations[returnNum] && res.responseJSON.annotations[returnNum].encounterDate){
                 imgInfo += ' <b>' + res.responseJSON.annotations[returnNum].encounterDate.substring(0,16) + '</b> ';
             }
-            if (mainAsset.filename) {
-                var fn = mainAsset.filename;
+            if (mainAsset.userFilename) {
+                var fn = mainAsset.userFilename;
                 var j = fn.lastIndexOf('/');
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
@@ -1217,7 +1222,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 var encDisplay = encId;
                 var taxonomy = ft.genus+' '+ft.specificEpithet;
                 //console.log('Taxonomy: '+taxonomy);
-                if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
+                if (encId && encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
 				var socialUnitName;
 				if(isQueryAnnot){
@@ -1231,7 +1236,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 <%
                 if(user != null){
                 %>
-                if (isQueryAnnot) addNegativeButton(encId, displayName);
+                if (isQueryAnnot && !indivId) addNegativeButton(encId, displayName);
                 <%
                 }
                 %>
@@ -1245,22 +1250,22 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				console.log("indivId: "+indivId+" projectIdPrefix: "+projectIdPrefix+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
 
 				let thisResultLine = $('#task-'+taskId+' .annot-summary-'+acmId);
+				let thisAnnotInfo = thisResultLine.find('.annot-info');
 
                 if (encId) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
-					// make whole encounter line clickable
-					thisResultLine.click(function(event) {
-						let tar = $(event.target);
-						if (tar.is(thisResultLine)||tar.is(thisResultLine.find('.annot-info-num')[0])||tar.is(thisResultLine.find('.annot-info')[0])) {
-							window.location.href = 'encounters/encounter.jsp?number='+encId;
-						}
-					});
-
+					//To make the browser behave consistent with other links when encounter number is left/middle/right clicked, change the encounter number to a link
+					thisResultLine.find('.annot-info').each(function() {
+						const content = $(this).contents();
+						const href = 'encounters/encounter.jsp?number='+encId;
+						const newAnchor = $('<a></a>').attr('href', href).css('white-space', 'nowrap').append(content);
+						$(this).replaceWith(newAnchor);
+				});
 					//console.log("Main asset encId = "+encId);
-                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
-                    //thisResultLine.append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
+                    h += ' for <a  class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
+                    //thisResultLine.append('<a class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
 
 					if (!indivId) {
 						thisResultLine.append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
@@ -1269,33 +1274,33 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 
 				if (isProjectSelected()) {
 					console.log("trying to show project-based id for asset...(UUID: "+projectUUID+" )");
-					h += ' in <a class="project-link" target="_new" href="/projects/project.jsp?id=<%=researchProjectUUID%>" title="Open Project '+researchProjectName+'">Project: ' + researchProjectName.substring(0,15) + '</a>';
+					h += ' in <a class="project-link"  href="/projects/project.jsp?id=<%=researchProjectUUID%>" title="Open Project '+researchProjectName+'">Project: ' + researchProjectName.substring(0,15) + '</a>';
 
 					if (incrementalProjectId) {
-						thisResultLine.append('<a class="indiv-link" target="_new" href="/projects/project.jsp?id='+projectUUID+'" title="Project Id: '+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
+						thisResultLine.append('<a class="indiv-link"  href="/projects/project.jsp?id='+projectUUID+'" title="Project Id: '+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
 					}
 				}
 
 				if (taxonomy && taxonomy!='Eubalaena glacialis' && indivId && (incrementalProjectId!=displayName)) {
-                    h += '<a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
-                    thisResultLine.append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
+                    h += '<a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
+                    thisResultLine.append('<a class="indiv-link"  href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                     
                     //add social unit name
                     console.log("socialunit name: "+socialUnitName);
                     if(socialUnitName){
                     	
-                    	thisResultLine.append('<a class="indiv-link" target="_new" href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                    	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
                     }
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
-                    //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
-                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog #'+displayName+'</a>');
+                    //h += ' <a class="indiv-link" title="open individual page"  href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
+                    thisResultLine.append('<a class="indiv-link"  href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog #'+displayName+'</a>');
                 }
 				<%
 				if(request.getUserPrincipal()!=null){
 				%>
                 if (encId || indivId) {
-					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive annot-action-checkbox" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 <%
             	}
@@ -1320,7 +1325,6 @@ console.info('qdata[%s] = %o', taskId, qdata);
             // Illustration
             if (illustrationUrl) {
             	var selector = '#task-' + taskId + ' .annot-summary-' + acmId;
-            	// TODO: generify
             	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
             	illustrationUrl = iaBase+illustrationUrl
 				let resultIndex = $(selector).closest(".has-data-index").data("index");
@@ -1361,19 +1365,19 @@ console.info('qdata[%s] = %o', taskId, qdata);
         imgInfo += '<div><i>Alternate references:</i><ul>';
         for (var i = 0 ; i < otherAnnots.length ; i++) {
             imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
-            var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO is acmId correct here???
+            var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO: verify that acmId is correct here
             if (ft) {
                 var encId = ft.encounterId;
                 var indivId = ft.individualId;
                 var displayName = ft.displayName;
                 if (encId) {
-                	imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
+                	imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
                 	console.log("another encId = "+encId);
                 }
-                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
+                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
                 //add social unit name
                 if(socialUnitName){
-                	thisResultLine.append('<a class="indiv-link" target="_new" href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
                 }
             }
             imgInfo += '</li>';
@@ -1383,6 +1387,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
 
     if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
+
 
 function getSelectedProjectIdPrefix() {
 	let selectedValue = $("#projectDropdown option:selected").val();
@@ -1396,26 +1401,60 @@ function annotCheckbox(el) {
     var task = getCachedTask(taskId);
     var queryAnnotation = jel.closest('.task-content').data();
     console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
-	annotCheckboxReset();
+	//annotCheckboxReset();
   	if (!taskId || !task) return;
-	if (!el.checked) return;
+	//if (!el.checked) return;
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
+	let allSelected = $('.annot-action-checkbox:checked');
+        console.log('allSelected %d %o', allSelected.length, allSelected);
+        if (!allSelected.length) {
+	    annotCheckboxReset();
+            return;
+        }
 	jel.parent().addClass('annot-summary-checked');
 
+        let indivs = {};
+        let displayName = {};
+        let unassignedEncs = [];
+        if (queryAnnotation.indivId) {
+            indivs[queryAnnotation.indivId] = indivs[queryAnnotation.indivId] + 1 || 1;
+            if (queryAnnotation.displayName) indivs[queryAnnotation.indivId] = queryAnnotation.displayName;
+        } else {
+            unassignedEncs.push(queryAnnotation.encId);
+        }
+        for (let isel = 0 ; isel < allSelected.length ; isel++) {
+            let sel = $(allSelected[isel]).data();  // WARN this flattens case to lower on keys :(
+            console.log('>>>> sel %o .... queryAnnotation %o', sel, queryAnnotation);
+            if (sel.individ) {
+                indivs[sel.individ] = indivs[sel.individ] + 1 || 1;
+                if (sel.displayname) displayName[sel.individ] = sel.displayname;
+            } else {
+                unassignedEncs.push(sel.encid);
+            }
+        }
+        let numIndivsSelected = Object.keys(indivs).length;
+console.log('indivs=%o | unassignedEncs=%o', indivs, unassignedEncs);
 
 	let selectedProjectIdPrefix = getSelectedProjectIdPrefix();
 	if (selectedProjectIdPrefix==NONE_SELECTED) selectedProjectIdPrefix = '';
 	let allowSyncReturn = true;
 
 	var h = '<i>Getting next ID...</i>';
-	if (!queryAnnotation.encId || !jel.data('encid')) {
-		h = '<i>Insufficient encounter data for any actions</i>';
-	} else if (jel.data('individ')==queryAnnotation.indivId) {
-		h = 'The target and candidate are already assigned to the <b>same individual ID</b>. No further action is needed to confirm this match.'
-	} else if (jel.data('individ') && queryAnnotation.indivId) {
+        if (numIndivsSelected > 2) {
+            h = '<i>You cannot merge <b>more than 2 individuals</b> here.</i>';
+
+	} else if (numIndivsSelected == 2) {
 		// construct link to merge page
-		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
+		var link = "merge.jsp?individualA=" + Object.keys(indivs)[0] + "&individualB=" + Object.keys(indivs)[1];
+                if (unassignedEncs.length) link += '&encounterId=' + unassignedEncs.join('&encounterId=');
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
+
+	} else if (numIndivsSelected == 1 && !unassignedEncs.length) {
+		h = 'All encounters already assigned to the <b>same individual ID</b>. No further action is needed to confirm this match.'
+
+	} else if (!queryAnnotation.encId || !unassignedEncs.length) {
+		h = '<i>Insufficient encounter data for any actions</i>';
+
 	} else if (selectedProjectIdPrefix.length>0&&!jel.data('individ')&&!queryAnnotation.indivId) {
 		allowSyncReturn = false;
 		let requestJSON = {};
@@ -1450,10 +1489,14 @@ function annotCheckbox(el) {
 			}
 		});
 
-	} else if (jel.data('individ')) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
-	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
+	//} else if (jel.data('individ')) {
+        } else if (!queryAnnotation.indivId && numIndivsSelected == 1) {
+                let indivId = Object.keys(indivs)[0];
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + indivId + '\', \'' + unassignedEncs.join(',') + '\' , \'' + taskId + '\' , \'' + displayName[indivId] + '\');" type="button" value="Set to individual ' + displayName[indivId] + '" />';
+
+	} else if (queryAnnotation.indivId && unassignedEncs.length) {
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + queryAnnotation.indivId + '\', \'' + unassignedEncs.join(',') + '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match(es) below" />';
+
 	} else {
 		h = '';
 		if (annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId) h += '<label for="lbcheckbox" title="' + annotData[queryAnnotId][0].encounterLocationId + '">Use next name based on location</label><input type="checkbox" class="location-based-checkbox" onClick="return locationBasedCheckbox(this, \'' + queryAnnotId + '\');" />';
@@ -1462,9 +1505,11 @@ function annotCheckbox(el) {
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' data-match-task-id="' + taskId + '" ';
 		h += ' data-match-display-name="' + jel.data('displayname') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
+		h += ' /> <input type="button" value="Set individual on all encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
 	}
 
+//$('#enc-action').html(h);
+//console.log(h); return;
 	if (allowSyncReturn) {
 		$('#enc-action').html(h);
 		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
@@ -1518,21 +1563,6 @@ function annotClick(ev) {
 	$('#task-' + taskId + ' .annot-' + acmId + ' img').trigger('load');
 }
 
-// function score_sort(cm_dict, topn) {
-// console.warn('score_sort() cm_dict %o', cm_dict);
-// //.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
-// 	if (!cm_dict.score_list || !cm_dict.dannot_uuid_list) return;
-// 	var sorta = [];
-// 	if (cm_dict.score_list.length < 1) return;
-// 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
-// 	for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
-// 		if (cm_dict.score_list[i] < 0) continue;
-// 		sorta.push(cm_dict.score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
-// 	}
-// 	sorta.sort().reverse();
-// 	return sorta;
-// }
-
 function algHasNoImageScores(algo_name) {
 	return ("Deepsense" == algo_name);
 }
@@ -1540,7 +1570,7 @@ function algHasNoImageScores(algo_name) {
 
 function score_sort(cm_dict, algo_name) {
 console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
-//.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
+//.score_list vs .annot_score_list are these the same? seem to be same values
 	if (!cm_dict.annot_score_list || !cm_dict.dannot_uuid_list) return;
 	var sorta = [];
 
@@ -1671,7 +1701,7 @@ console.info('waiting to try again...');
       			altIDString = ', altID '+altIDString;
     		}
 
-		$('#results').html('One match found (<a target="_new" href="encounters/encounter.jsp?number=' +
+		$('#results').html('One match found (<a  href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
 			'</a> id ' + (res.matchAnnotations[0].encounter.individualID || 'unknown') + altIDString +
@@ -1692,7 +1722,7 @@ console.info('waiting to try again...');
 	if (altIDString && altIDString.length > 0) {
 		altIDString = ' (altID: '+altIDString+')';
 	}
-		h += '<li data-i="' + i + '"><a target="_new" href="encounters/encounter.jsp?number=' +
+		h += '<li data-i="' + i + '"><a  href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
 			res.matchAnnotations[i].encounter.catalogNumber + altIDString + '</a> (' +
 			(res.matchAnnotations[i].encounter.individualID || 'unidentified') + '), score = ' +
@@ -1757,7 +1787,7 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
 	if ((!indivID || !encID) && !useLocation) {
-		jQuery(msgTarget).html('Argument errors');
+		jQuery(msgTarget).html('Argument errors (No name provided?)');
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
@@ -1768,7 +1798,8 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 		url += '&projectId='+projectId;
 		console.log('adding projectId to URL for new name!!');
 	}
-	if (encID2) url += '&enc2=' + encID2;
+	if (encID2) url += '&encOther=' + encID2.split(',').join('&encOther=');
+//console.log('url => %s', url); alert(url); return;
 
 	jQuery.ajax({
 		url: url,
@@ -1778,11 +1809,11 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 			console.warn(d);
 			if (d.success) {
 				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
-				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a>';
+				var indivLink = ' <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a>';
 				if (encID2) {
 					$(".enc-title .indiv-link").remove();
 					$(".enc-title #enc-action").remove();
-					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
 					// updates encounters in results list with name and link to indy
 					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter
@@ -1806,7 +1837,20 @@ function approveNewIndividual(el) {
 	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
 	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
+        let otherEncIds = [];
+	let allSelected = $('.annot-action-checkbox:checked');
+        for (let isel = 0 ; isel < allSelected.length ; isel++) {
+            let sel = $(allSelected[isel]).data();  // WARN this flattens case to lower on keys :(
+            console.log('>>>> sel %o', sel);
+/*
+            if (sel.individ) {
+                indivs[sel.individ] = indivs[sel.individ] + 1 || 1;
+                if (sel.displayname) displayName[sel.individ] = sel.displayname;
+            } else {
+*/
+            otherEncIds.push(sel.encid);
+        }
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), otherEncIds.join(','), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
 }
 
 function encDisplayString(encId) {
@@ -1819,16 +1863,24 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
+     var nextName = '<%=nextName%>';
+     if (nextName == 'null') nextName = false;
+     var nextNameInput = $('#negative-button-name').val();
+     console.log('negativeButtonClick(): encId=%o, oldDisplayName=%o, nextName=%o, nextNameInput=%o', encId, oldDisplayName, nextName, nextNameInput);
+     if (!nextName && !nextNameInput) return alert('You must provide a name for the new individual.');
+     if (!nextName && nextNameInput) nextName = nextNameInput;  // just for displaying below
 	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
+	     confirmMsg+= 'The name ' + nextName + ' will be added to individual '+oldDisplayName + '.';
 	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
+	     confirmMsg+= 'A new individual will be created with name ' + nextName + ' and applied to encounter '+encDisplayString(encId) +'.';
 	}
 	confirmMsg+= 'Click \'OK\' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
 	let projectId = '<%=projectIdPrefix%>';
-	if (projectId&&projectId.length) {
+     if (nextNameInput) {
+		paramStr += '&nextNameInput=' + encodeURIComponent(nextNameInput);
+	} else if (projectId&&projectId.length) {
 		paramStr += '&useNextProjectId=true&projectIdPrefix='+encodeURIComponent(projectId);
 	}
 
@@ -1863,11 +1915,19 @@ function updateNameCallback(d, oldDisplayName, encId) {
 }
 
 function addNegativeButton(encId, oldDisplayName) {
-	if (<%=usesAutoNames%>) {
-		console.log("Adding auto name/confirm negative button!");
+        /*
+            FIXME: issue 432 uncovered some mysterious tie to org/names for the display of this button.
+            this needs further investigation to remove this for real and/or figure out why this was like this
+        */
+	//if (<%=usesAutoNames%>) {
+        if (true) {
+			var nextName = '<%=nextName%>';
+		console.log("Adding auto name/confirm negative button! nextName = %o", nextName);
 		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
-		console.log("negativeButton = "+negativeButton);
-		//var negativeButton = '<input onclick="negativeButtonClick();" type="button" value="Confirm No Match" />';
+		   if (!nextName || (nextName == 'null')) {
+			   negativeButton = '<input id="negative-button-name" placeholder="Enter name for new individual" /> ' + negativeButton;
+		   }
+
 		headerDefault = negativeButton;
 		//console.log("NEGATIVE BUTTON: About to attach "+negativeButton+" to "+JSON.stringify($('div#enc-action')));
 		$('div#enc-action').html(negativeButton);

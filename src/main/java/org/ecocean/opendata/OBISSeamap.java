@@ -1,25 +1,24 @@
 package org.ecocean.opendata;
 
-import org.ecocean.Shepherd;
-import org.ecocean.Encounter;
-import org.ecocean.Occurrence;
-import org.ecocean.Taxonomy;
-import org.ecocean.User;
-import org.ecocean.Util;
-import org.ecocean.media.MediaAsset;
-import org.ecocean.security.Collaboration;
-import javax.jdo.Query;
-import java.util.Collection;
-import java.util.List;
-import java.net.URL;
-import java.util.ArrayList;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.jdo.Query;
+import org.ecocean.Encounter;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.Occurrence;
+import org.ecocean.security.Collaboration;
+import org.ecocean.Shepherd;
+import org.ecocean.Taxonomy;
+import org.ecocean.User;
+import org.ecocean.Util;
 import org.joda.time.DateTime;
 
 public class OBISSeamap extends Share {
-
     public OBISSeamap(final String context) {
         super(context);
         this.init();
@@ -30,18 +29,18 @@ public class OBISSeamap extends Share {
             log("not enabled; exiting init()");
             return;
         }
-        //do these once to get into cache
+        // do these once to get into cache
         getCollaborationUser();
         getShareAll();
-        //TODO support organizationId (when Organization makes it to master!)
     }
 
-
-    public void generate() throws IOException {
+    public void generate()
+    throws IOException {
         String outPath = getProperty("outputFile", null);
-        if (outPath == null) throw new IllegalArgumentException("must have 'outputFile' set in properties file");
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outPath));
 
+        if (outPath == null)
+            throw new IllegalArgumentException("must have 'outputFile' set in properties file");
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outPath));
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction(this.typeCode() + ".generate");
         myShepherd.beginDBTransaction();
@@ -49,7 +48,7 @@ public class OBISSeamap extends Share {
         // here we want to export all Occurrences (and their Encounters), and then Occurrence-less Encounters as well
         String jdoql = "SELECT FROM org.ecocean.Occurrence";
         Query query = myShepherd.getPM().newQuery(jdoql);
-        Collection c = (Collection) (query.execute());
+        Collection c = (Collection)(query.execute());
         List<Occurrence> occs = new ArrayList<Occurrence>(c);
         query.closeAll();
         for (Occurrence occ : occs) {
@@ -57,12 +56,12 @@ public class OBISSeamap extends Share {
             String row = tabRow(occ, myShepherd);
             if (row != null) writer.write(row);
         }
-
         // cant figure out how to do this via jdoql.  :/
-        String sql = "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
+        String sql =
+            "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
         query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         query.setClass(Encounter.class);
-        c = (Collection) (query.execute());
+        c = (Collection)(query.execute());
         List<Encounter> encs = new ArrayList<Encounter>(c);
         query.closeAll();
         for (Encounter enc : encs) {
@@ -70,7 +69,6 @@ public class OBISSeamap extends Share {
             String row = tabRow(enc, myShepherd);
             if (row != null) writer.write(row);
         }
-
         writer.close();
         myShepherd.rollbackDBTransaction();
         log(outPath + " written by generate()");
@@ -83,12 +81,12 @@ public class OBISSeamap extends Share {
         return false;
     }
 
-
     public boolean isShareable(Encounter enc) {
         if (enc == null) return false;
         if (getShareAll()) return true;
         User cu = getCollaborationUser();
-        if ((cu != null) && Util.stringExists(cu.getUsername()) && Collaboration.canUserAccessEncounter(enc, context, cu.getUsername()))
+        if ((cu != null) && Util.stringExists(cu.getUsername()) &&
+            Collaboration.canUserAccessEncounter(enc, context, cu.getUsername()))
             return true;
         if (isShareOrganizationUser(enc.getSubmitters())) return true;
         return false;
@@ -104,9 +102,8 @@ public class OBISSeamap extends Share {
         return true;
     }
 
-
-    //these are the row (record) for tab-delim output; assuming OBISSeamap flat-file Darwin Core
-    //  NOTE: these do not include trailing newline
+    // these are the row (record) for tab-delim output; assuming OBISSeamap flat-file Darwin Core
+    // NOTE: these do not include trailing newline
     public String tabRowOLD(Occurrence occ, Shepherd myShepherd) {
         if (occ == null) return null;
         List<String> fields = new ArrayList<String>();
@@ -117,7 +114,7 @@ public class OBISSeamap extends Share {
             log("cannot share " + occ + " due to invalid date!");
             return null;
         }
-        fields.add((new DateTime(d)).toString().substring(0,16).replace("T", " "));
+        fields.add((new DateTime(d)).toString().substring(0, 16).replace("T", " "));
         occ.setLatLonFromEncs(false);
         Double dlat = occ.getDecimalLatitude();
         Double dlon = occ.getDecimalLongitude();
@@ -127,7 +124,7 @@ public class OBISSeamap extends Share {
         }
         fields.add(Double.toString(dlat));
         fields.add(Double.toString(dlon));
-        Taxonomy tx = occ.getTaxonomy();  //this often fails.  :(
+        Taxonomy tx = occ.getTaxonomy(); // this often fails.  :(
         String txString = null;
         if (tx != null) txString = tx.getScientificName();
         if ((txString == null) && (occ.getEncounters() != null)) {
@@ -197,7 +194,7 @@ public class OBISSeamap extends Share {
         fields.add(forceString(enc.getIndividualID()));
         fields.add(forceString(enc.getSex()));
         fields.add(forceString(enc.getLifeStage()));
-        //////fields.add("1");  //for encounter, always just one individual
+        // fields.add("1");  //for encounter, always just one individual
         ArrayList<MediaAsset> mas = enc.getMedia();
         if ((mas == null) || (mas.size() < 1)) {
             fields.add("");
@@ -227,9 +224,8 @@ public class OBISSeamap extends Share {
         return String.join("\t", fields) + "\n";
     }
 
-
     private static String forceString(String txt) {
-        if (!Util.stringExists(txt)) return "";  //this checks for "unknown", "none", etc...
+        if (!Util.stringExists(txt)) return ""; // this checks for "unknown", "none", etc...
         return txt;
     }
 }

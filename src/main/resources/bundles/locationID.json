@@ -1,13 +1,13 @@
 {
-  "description": "Hierarchical Encounter.locationID list in Wildbook",
-  "source": "http://en.wikipedia.org/wiki/List_of_seas",
-  "locationID": [
+	"description": "Hierarchical Encounter.locationID list in Wildbook",
+	"source": "http://en.wikipedia.org/wiki/List_of_seas",
+	"locationID": [
 		{
 			"name": "Klufterbach",
 			"id": "KB",
-			"geospatialInfo":{
-				"lat":50.686688,
-				"long":7.127002
+			"geospatialInfo": {
+				"lat": 50.686688,
+				"long": 7.127002
 			},
 			"locationID": []
 		},
@@ -109,7 +109,6 @@
 				"long": 8.880677
 			},
 			"locationID": []
-		},
-  ]
+		}
+	]
 }
-

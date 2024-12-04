@@ -1,0 +1,109 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@flowjs/flow.js": "^2.14.1",
+    "@testing-library/user-event": "^13.5.0",
+    "antd": "^5.21.5",
+    "autoprefixer": "^10.4.18",
+    "axios": "^1.7.4",
+    "bootstrap": "^5.3.2",
+    "copy-webpack-plugin": "^12.0.2",
+    "exif-js": "^2.3.0",
+    "flow.js": "^0.2.6",
+    "google-map-react": "^2.2.1",
+    "js-cookie": "^3.0.5",
+    "lodash-es": "^4.17.21",
+    "mobx": "6.13.3",
+    "mobx-react-lite": "^4.0.7",
+    "moment": "^2.30.1",
+    "postcss-cli": "^11.0.0",
+    "rc-slider": "^10.6.2",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.10.1",
+    "react-burger-menu": "^3.0.9",
+    "react-data-table-component": "^7.6.2",
+    "react-datetime": "^3.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.52.1",
+    "react-intl": "^6.6.2",
+    "react-paginate": "^8.2.0",
+    "react-router-bootstrap": "^0.26.2",
+    "react-router-dom": "^6.22.0",
+    "react-scripts": "5.0.1",
+    "react-select": "^5.8.0",
+    "sass": "^1.71.1",
+    "web-vitals": "^2.1.4",
+    "webpack-merge": "^5.10.0",
+    "webpack-version-file": "^0.1.7",
+    "workbox-background-sync": "^6.6.0",
+    "workbox-broadcast-update": "^6.6.0",
+    "workbox-cacheable-response": "^6.6.0",
+    "workbox-core": "^6.6.0",
+    "workbox-expiration": "^6.6.0",
+    "workbox-google-analytics": "^6.6.1",
+    "workbox-navigation-preload": "^6.6.0",
+    "workbox-precaching": "^6.6.0",
+    "workbox-range-requests": "^6.6.0",
+    "workbox-routing": "^6.6.0",
+    "workbox-strategies": "^6.6.0",
+    "workbox-streams": "^6.6.0"
+  },
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test --transformIgnorePatterns \"node_modules/(?!axios|react)/\"",
+    "eject": "react-scripts eject",
+    "deploy-dev": "npm run build && node scripts/deploy-dev.js"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@eslint/js": "^9.9.1",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "bootstrap-icons": "^1.11.3",
+    "css-loader": "^6.10.0",
+    "date-fns": "^4.1.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.35.0",
+    "globals": "^15.9.0",
+    "html-webpack-plugin": "^5.6.0",
+    "husky": "^9.0.11",
+    "jest": "^27.5.1",
+    "react-app-rewired": "^2.2.1",
+    "react-bootstrap-icons": "^1.11.3",
+    "react-query": "^3.39.3",
+    "style-loader": "^3.3.4",
+    "styled-components": "^6.1.8",
+    "terser-webpack-plugin": "^5.3.10",
+    "unused-webpack-plugin": "^2.4.0",
+    "webpack": "^5.94.0",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+     },
+    "jest":{
+    "collectCoverage": true,
+    "coverageReporters": ["lcov", "text"],
+    "coverageDirectory": "./coverage"
+  }
+}

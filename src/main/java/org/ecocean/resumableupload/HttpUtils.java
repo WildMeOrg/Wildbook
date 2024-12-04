@@ -1,10 +1,10 @@
-package ec.com.mapache.ngflow.upload;
+package org.ecocean.resumableupload;
 
 public class HttpUtils {
-
     public static boolean isEmpty(String value) {
         return value == null || "".equals(value);
     }
+
     /**
      * Convert String to long
      * @param value
@@ -15,7 +15,6 @@ public class HttpUtils {
         if (isEmpty(value)) {
             return def;
         }
-
         try {
             return Long.valueOf(value);
         } catch (NumberFormatException e) {
