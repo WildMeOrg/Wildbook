@@ -31,26 +31,25 @@
   },
   "homepage": "https://github.com/WildbookOrg/Wildbook#readme",
   "lint-staged": {
-    "*.{js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ]
+    "*.{js,jsx}": ["eslint --fix", "prettier --write"]
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@babel/eslint-parser": "^7.25.1",
+    "@babel/eslint-parser": "^7.25.9",
     "@babel/preset-env": "^7.25.4",
     "@babel/preset-react": "^7.24.7",
     "@eslint/js": "^9.9.1",
     "cypress": "^13.7.1",
-    "eslint": "^9.9.1",
-    "eslint-plugin-import": "^2.30.0",
-    "eslint-plugin-react": "^7.35.2",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint": "^9.15.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jest": "^28.9.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
     "globals": "^15.0.0",
     "husky": "^7.0.4",
     "lint-staged": ">=8",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "jest": "^27.5.1"
   },
   "jest": {
     "collectCoverage": true,
