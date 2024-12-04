@@ -17,7 +17,6 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import "./recaptcha.css";
 
 export const ReportEncounter = observer(() => {
-
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
@@ -72,7 +71,8 @@ export const ReportEncounter = observer(() => {
       store.setDateTimeSectionValue(new Date(localStorage.getItem("datetime")));
     localStorage.getItem("exifDateTime") &&
       store.setExifDateTime(localStorage.getItem("exifDateTime"));
-    localStorage.getItem("locationID") && store.setLocationId(localStorage.getItem("locationID"));
+    localStorage.getItem("locationID") &&
+      store.setLocationId(localStorage.getItem("locationID"));
     localStorage.getItem("lat") && store.setLat(localStorage.getItem("lat"));
     localStorage.getItem("lon") && store.setLon(localStorage.getItem("lon"));
 
@@ -92,7 +92,6 @@ export const ReportEncounter = observer(() => {
     localStorage.removeItem("lat");
     localStorage.removeItem("lon");
     localStorage.removeItem("submissionId");
-
   }, []);
 
   const handleSubmit = async () => {
@@ -233,7 +232,7 @@ export const ReportEncounter = observer(() => {
         size="lg"
         onHide={() => {
           setLoading(false);
-          store.setShowSubmissionFailedAlert(false)
+          store.setShowSubmissionFailedAlert(false);
         }}
         keyboard
         centered
@@ -248,19 +247,35 @@ export const ReportEncounter = observer(() => {
         ></Modal.Header>
         <div className="d-flex flex-row pb-4 ps-4">
           {missingField && <FormattedMessage id="MISSING_REQUIRED_FIELDS" />}
-          {store.error && <div className="d-flex flex-column">
-            {store.error.slice().map((error, index) => (
-              <div key={index} className="d-flex flex-column">
-                {error.code === "INVALID" && <p>
-                  <FormattedMessage id="BEERROR_INVALID" />{error.fieldName} </p>}
-                {error.code === "REQUIRED" && <p>
-                  <FormattedMessage id="BEERROR_REQUIRED" />{error.fieldName} </p>}
-                {!error.code && <p>
-                  <FormattedMessage id="BEERROR_UNKNOWN" />{error.fieldName} </p>}
-              </div>
-            ))}
-          </div>}
-          {!missingField && !store.error && <FormattedMessage id="SUBMISSION_FAILED" />}
+          {store.error && (
+            <div className="d-flex flex-column">
+              {store.error.slice().map((error, index) => (
+                <div key={index} className="d-flex flex-column">
+                  {error.code === "INVALID" && (
+                    <p>
+                      <FormattedMessage id="BEERROR_INVALID" />
+                      {error.fieldName}{" "}
+                    </p>
+                  )}
+                  {error.code === "REQUIRED" && (
+                    <p>
+                      <FormattedMessage id="BEERROR_REQUIRED" />
+                      {error.fieldName}{" "}
+                    </p>
+                  )}
+                  {!error.code && (
+                    <p>
+                      <FormattedMessage id="BEERROR_UNKNOWN" />
+                      {error.fieldName}{" "}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {!missingField && !store.error && (
+            <FormattedMessage id="SUBMISSION_FAILED" />
+          )}
         </div>
       </Modal>
       <Row>
@@ -280,7 +295,11 @@ export const ReportEncounter = observer(() => {
                   color: themeColor.statusColors.yellow800,
                 }}
               ></i>
-              {(isHuman || store.isHumanLocal) ?<FormattedMessage id="SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER"/> : <FormattedMessage id="SIGNIN_REMINDER_BANNER" /> }
+              {isHuman || store.isHumanLocal ? (
+                <FormattedMessage id="SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER" />
+              ) : (
+                <FormattedMessage id="SIGNIN_REMINDER_BANNER" />
+              )}
             </div>
             <Row
               className="d-flex flex-row"
@@ -301,44 +320,58 @@ export const ReportEncounter = observer(() => {
                     "followUpSection.submitter.name",
                     store.followUpSection.submitter.name,
                   );
-                  store.followUpSection.submitter.email && localStorage.setItem(
-                    "followUpSection.submitter.email",
-                    store.followUpSection.submitter.email,
-                  );
-                  store.followUpSection.photographer.name && localStorage.setItem(
-                    "followUpSection.photographer.name",
-                    store.followUpSection.photographer.name,
-                  );
-                  store.followUpSection.photographer.email && localStorage.setItem(
-                    "followUpSection.photographer.email",
-                    store.followUpSection.photographer.email,
-                  );
-                  store.followUpSection.additionalEmails && localStorage.setItem(
-                    "followUpSection.additionalEmails",
-                    store.followUpSection.additionalEmails,
-                  );
-                  store.additionalCommentsSection.value && localStorage.setItem(
-                    "additionalCommentsSection",
-                    store.additionalCommentsSection.value,
-                  );
-                  store.imagePreview && localStorage.setItem(
-                    "uploadedFiles",
-                    JSON.stringify(store.imagePreview),
-                  );
-                  store.imageSectionSubmissionId && localStorage.setItem(
-                    "submissionId",
-                    store.imageSectionSubmissionId,
-                  );
-                  store.imageSectionFileNames && localStorage.setItem(
-                    "fileNames",
-                    JSON.stringify(store.imageSectionFileNames),
-                  );
-                  store.dateTimeSection.value && localStorage.setItem(
-                    "datetime",
-                    store.dateTimeSection.value?.toISOString(),
-                  );
-                  store.exifDateTime && localStorage.setItem("exifDateTime", store.exifDateTime);
-                  store.placeSection.locationId && localStorage.setItem("locationID", store.placeSection.locationId);
+                  store.followUpSection.submitter.email &&
+                    localStorage.setItem(
+                      "followUpSection.submitter.email",
+                      store.followUpSection.submitter.email,
+                    );
+                  store.followUpSection.photographer.name &&
+                    localStorage.setItem(
+                      "followUpSection.photographer.name",
+                      store.followUpSection.photographer.name,
+                    );
+                  store.followUpSection.photographer.email &&
+                    localStorage.setItem(
+                      "followUpSection.photographer.email",
+                      store.followUpSection.photographer.email,
+                    );
+                  store.followUpSection.additionalEmails &&
+                    localStorage.setItem(
+                      "followUpSection.additionalEmails",
+                      store.followUpSection.additionalEmails,
+                    );
+                  store.additionalCommentsSection.value &&
+                    localStorage.setItem(
+                      "additionalCommentsSection",
+                      store.additionalCommentsSection.value,
+                    );
+                  store.imagePreview &&
+                    localStorage.setItem(
+                      "uploadedFiles",
+                      JSON.stringify(store.imagePreview),
+                    );
+                  store.imageSectionSubmissionId &&
+                    localStorage.setItem(
+                      "submissionId",
+                      store.imageSectionSubmissionId,
+                    );
+                  store.imageSectionFileNames &&
+                    localStorage.setItem(
+                      "fileNames",
+                      JSON.stringify(store.imageSectionFileNames),
+                    );
+                  store.dateTimeSection.value &&
+                    localStorage.setItem(
+                      "datetime",
+                      store.dateTimeSection.value?.toISOString(),
+                    );
+                  store.exifDateTime &&
+                    localStorage.setItem("exifDateTime", store.exifDateTime);
+                  store.placeSection.locationId &&
+                    localStorage.setItem(
+                      "locationID",
+                      store.placeSection.locationId,
+                    );
                   store.lat && localStorage.setItem("lat", store.lat);
                   store.lon && localStorage.setItem("lon", store.lon);
                 }}
