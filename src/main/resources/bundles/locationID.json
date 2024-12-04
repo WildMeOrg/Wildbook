@@ -806,6 +806,15 @@
 					"id": "Karingani Wildlife Reserve",
 					"locationID":[]
 				},
+								{
+					"name": "Maputo National Park",
+					"id": "Maputo National Park",
+					"geospatialInfo":{
+						"lat": -26.39543,
+						"long": 32.85268
+					},
+					"locationID":[]
+				},
 				{
 					"name": "Zinave National Park",
 					"id": "Zinave National Park",
