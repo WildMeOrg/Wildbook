@@ -358,6 +358,14 @@
       <version>3.11</version>
     </dependency>
 
+    <!-- wildbook local jars, not in public maven repos -->
+    <dependency>
+      <groupId>dilib</groupId>
+      <artifactId>dilib</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <!-- end local repo dependencies-->
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
