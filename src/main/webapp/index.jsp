@@ -212,13 +212,7 @@ h2.vidcap {
                                     <a href="submit.jsp">
                 <button class="large heroBtn">Report your sightings<span class="button-icon" aria-hidden="true"></button>
             </a>
-            <br>
-            <% if (CommonConfiguration.allowAdoptions(context)) { %>
-	            <a href="adoptashark.jsp">
-	                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
-	            </a>
-	            <br>
-            <% } %>
+
 
             </div>
         </div>   
@@ -517,60 +511,7 @@ You too can assist with shark research, by submitting photos and sighting data. 
         <h2 class="section-header">How can I help?</h2>
         <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
 
-		<% if (CommonConfiguration.allowAdoptions(context)) { %>
-        <section class="adopt-section row">
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase">Adopt a Shark</h3>
-                <ul>
-                    <li>Support individual research programs in different regions</li>
-					<li>Receive email updates when we resight your adopted animal</li>
-					<li>Display your photo and a quote on the animal's page in our database</li>
-</ul>
-                <a href="adoptashark.jsp" title="">Learn more about adopting an individual animal in our study</a>
-            </div>
-            <%
-            //Shepherd myShepherd=new Shepherd(context);
-            //myShepherd.beginDBTransaction();
-            try{
-	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-	            if(adopt!=null){
-	            %>
-	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-		                <div class="focusbox-inner" style="overflow: hidden;">
-		                	<%
-		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-
-		                	%>
-		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
-		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-		                    <%
-		                    if(adopt.getAdopterQuote()!=null){
-		                    %>
-			                    <blockquote>
-			                        <%=adopt.getAdopterQuote() %>
-			                    </blockquote>
-		                    <%
-		                    }
-		                    %>
-		                </div>
-		            </div>
-
-	            <%
-				}
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-	            
-            }
-            
-
-            %>
-
-
-        </section>
-        <hr />
-        <% } 
-        
+        <%
            myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             
