@@ -501,11 +501,6 @@ $(document).ready(function() {
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myDisplayName%></span>
                   <%
-                  if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
-                  <%
-                  }
                   if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
 
             <div>
@@ -524,12 +519,6 @@ $(document).ready(function() {
             %>
             <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName(request, myShepherd)%>
             <%
-            if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md">
-                    <%= props.getProperty("nicknameMe") %><span class="button-icon" aria-hidden="true"></button></a>
-                  <%
-                  }
             if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit"><%= props.getProperty("edit") %></button>
@@ -1240,7 +1229,6 @@ if (sharky.getNames() != null) {
     <%-- Main Column --%>
     <div class="col-md-12 mainColumn">
 
-      <%-- TODO does this vv go here? --%>
       <%
       if (sharky.getDynamicProperties() != null) {
       //let's create a TreeMap of the properties
@@ -2408,24 +2396,6 @@ if (sharky.getNames() != null) {
 		%>
 
 
-              <%-- Start Adoption --%>
-        <%
-          if (CommonConfiguration.allowAdoptions(context)) {
-        %>
-
-      <p><strong><%=props.getProperty("meetAdopters") %></strong></p>
-      <div style="width: 100%;">
-
-          <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-            <jsp:param name="name" value="<%=id%>"/>
-          </jsp:include>
-                </div>
-
-          <%
-           }
-        %>
-      <%-- End Adoption --%>
-
       <br>
       <%-- Start Collaborators --%>
       <div style="width: 100%;clear:both;">
@@ -2525,21 +2495,20 @@ if (sharky.getNames() != null) {
         if(isOwner){
           %>
           <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
-
-          <div style="text-align:left;border:1px solid lightgray;width:100%;height:250px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
+          <div id='commentBoard' style="text-align:left;border:1px solid lightgray;width:100%;height:250px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
             <p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
           </div>
           <%
           if (CommonConfiguration.isCatalogEditable(context) && isOwner) {
             %>
             <p>
-              <form action="IndividualAddComment" method="post" name="addComments">
+              <form name="addComments">
                 <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
                 <input name="individual" type="hidden" value="<%=sharky.getId()%>" id="individual">
                 <input name="action" type="hidden" value="comments" id="action">
 
                   <p><textarea name="comments" cols="60" id="comments" class="form-control" rows="3" style="width: 100%"></textarea> <br />
-                  <input name="Submit" type="submit" value="<%=addComments %>">
+                  <input name="Submit" type="submit" value="<%=addComments %>" id="addCommentsBtn">
                 </form>
               </p>
               <%
@@ -2552,6 +2521,41 @@ if (sharky.getNames() != null) {
           </tr>
         </table>
       </div>
+      <script type = "text/javascript">
+          $(window).on('load', function() {
+              $("#addCommentsBtn").click(function(event) {
+                  event.preventDefault();
+
+                  $("#addCommentsBtn").hide();
+
+                  var addCommentUser = $("#user").val();
+                  var addCommentIndividual = $("#individual").val();
+                  var addCommentAction = $("#action").val();
+                  var addCommentComment = $("#comments").val();
+
+                  $.post("IndividualAddComment", {"user": addCommentUser, "individual": addCommentIndividual, "action": addCommentAction, "comments": addCommentComment},
+                  function(response) {
+
+                      $("#comments").val("");
+                      let match = response.match(/(<p>.*<\/p>)/);
+                      if (match) {
+                          let newComment = match[1];
+                          $("#commentBoard").append(newComment);
+                      } else {
+                          console.log('Incorrectly Formatted Comment')
+                      }
+
+                  }).fail(function(response) {
+
+                      console.log(response);
+
+                  })
+
+                  $("#addCommentsBtn").show();
+
+              })
+          })
+      </script>
       <%-- End Comments --%>
 
     </div>

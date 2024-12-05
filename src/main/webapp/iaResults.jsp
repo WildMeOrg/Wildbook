@@ -1,4 +1,4 @@
-<!-- <%@ page contentType="text/html; charset=iso-8859-1" language="java"
+<%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
@@ -129,7 +129,7 @@ String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to kee
 
 
 
-//TODO security for this stuff, obvs?
+// security could be better for this stuff
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
 		
@@ -139,7 +139,7 @@ String taskId = request.getParameter("taskId");
 
 %>
 
-<script type="text/javascript" src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+<script type="text/javascript" src="javascript/ia.IBEIS.js"></script> 
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -231,7 +231,7 @@ h4.intro.accordion .rotate-chevron.down {
 		String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
 		String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
 		//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
-		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
+		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString();
 		System.out.println("Current URL = "+currentUrl);
 		// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType
 		String linkUrl = currentUrl;
@@ -261,7 +261,7 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 
-		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+		<!-- fix so that this isn't a form that submits but a link that gets pressed -->
 		<!-- need to add javascript to update the link href on  -->
 		<div id="scoreNumSettings">
 				<span id="scoreNumInput">
@@ -1065,7 +1065,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
         	}
         }
         acmId=acmIdPassed;
-        if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
+        if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId); 
         if (mainAsset) {
 //console.info('mainAsset -> %o', mainAsset);
 //console.info('illustrationUrl '+illustrationUrl);
@@ -1222,7 +1222,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 var encDisplay = encId;
                 var taxonomy = ft.genus+' '+ft.specificEpithet;
                 //console.log('Taxonomy: '+taxonomy);
-                if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
+                if (encId && encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
 				var socialUnitName;
 				if(isQueryAnnot){
@@ -1325,7 +1325,6 @@ console.info('qdata[%s] = %o', taskId, qdata);
             // Illustration
             if (illustrationUrl) {
             	var selector = '#task-' + taskId + ' .annot-summary-' + acmId;
-            	// TODO: generify
             	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
             	illustrationUrl = iaBase+illustrationUrl
 				let resultIndex = $(selector).closest(".has-data-index").data("index");
@@ -1366,7 +1365,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
         imgInfo += '<div><i>Alternate references:</i><ul>';
         for (var i = 0 ; i < otherAnnots.length ; i++) {
             imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
-            var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO is acmId correct here???
+            var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO: verify that acmId is correct here
             if (ft) {
                 var encId = ft.encounterId;
                 var indivId = ft.individualId;
@@ -1564,21 +1563,6 @@ function annotClick(ev) {
 	$('#task-' + taskId + ' .annot-' + acmId + ' img').trigger('load');
 }
 
-// function score_sort(cm_dict, topn) {
-// console.warn('score_sort() cm_dict %o', cm_dict);
-// //.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
-// 	if (!cm_dict.score_list || !cm_dict.dannot_uuid_list) return;
-// 	var sorta = [];
-// 	if (cm_dict.score_list.length < 1) return;
-// 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
-// 	for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
-// 		if (cm_dict.score_list[i] < 0) continue;
-// 		sorta.push(cm_dict.score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
-// 	}
-// 	sorta.sort().reverse();
-// 	return sorta;
-// }
-
 function algHasNoImageScores(algo_name) {
 	return ("Deepsense" == algo_name);
 }
@@ -1586,7 +1570,7 @@ function algHasNoImageScores(algo_name) {
 
 function score_sort(cm_dict, algo_name) {
 console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
-//.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
+//.score_list vs .annot_score_list are these the same? seem to be same values
 	if (!cm_dict.annot_score_list || !cm_dict.dannot_uuid_list) return;
 	var sorta = [];
 
@@ -1879,16 +1863,24 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
+     var nextName = '<%=nextName%>';
+     if (nextName == 'null') nextName = false;
+     var nextNameInput = $('#negative-button-name').val();
+     console.log('negativeButtonClick(): encId=%o, oldDisplayName=%o, nextName=%o, nextNameInput=%o', encId, oldDisplayName, nextName, nextNameInput);
+     if (!nextName && !nextNameInput) return alert('You must provide a name for the new individual.');
+     if (!nextName && nextNameInput) nextName = nextNameInput;  // just for displaying below
 	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
+	     confirmMsg+= 'The name ' + nextName + ' will be added to individual '+oldDisplayName + '.';
 	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
+	     confirmMsg+= 'A new individual will be created with name ' + nextName + ' and applied to encounter '+encDisplayString(encId) +'.';
 	}
 	confirmMsg+= 'Click \'OK\' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
 	let projectId = '<%=projectIdPrefix%>';
-	if (projectId&&projectId.length) {
+     if (nextNameInput) {
+		paramStr += '&nextNameInput=' + encodeURIComponent(nextNameInput);
+	} else if (projectId&&projectId.length) {
 		paramStr += '&useNextProjectId=true&projectIdPrefix='+encodeURIComponent(projectId);
 	}
 
@@ -1929,10 +1921,13 @@ function addNegativeButton(encId, oldDisplayName) {
         */
 	//if (<%=usesAutoNames%>) {
         if (true) {
-		console.log("Adding auto name/confirm negative button!");
+			var nextName = '<%=nextName%>';
+		console.log("Adding auto name/confirm negative button! nextName = %o", nextName);
 		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
-		console.log("negativeButton = "+negativeButton);
-		//var negativeButton = '<input onclick="negativeButtonClick();" type="button" value="Confirm No Match" />';
+		   if (!nextName || (nextName == 'null')) {
+			   negativeButton = '<input id="negative-button-name" placeholder="Enter name for new individual" /> ' + negativeButton;
+		   }
+
 		headerDefault = negativeButton;
 		//console.log("NEGATIVE BUTTON: About to attach "+negativeButton+" to "+JSON.stringify($('div#enc-action')));
 		$('div#enc-action').html(negativeButton);
@@ -2058,4 +2053,4 @@ function selectedProjectContainsEncounter(acmId) {
 
 }
 
-</script> -->
+</script>

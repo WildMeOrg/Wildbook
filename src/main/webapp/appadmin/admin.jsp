@@ -75,11 +75,11 @@ context=ServletUtilities.getContext(request);
                                            
         
 
-<%=LocationID.getHTMLSelector(false,null,null,"oldLocCode","oldLocCode","class")%>
+<%=LocationID.getHTMLSelector(false,(String)null,null,"oldLocCode","oldLocCode","class")%>
 
 
 
-              <p>New location code: <%=LocationID.getHTMLSelector(false,null,null,"newLocCode","newLocCode","class")%> <br/>
+              <p>New location code: <%=LocationID.getHTMLSelector(false,(String)null,null,"newLocCode","newLocCode","class")%> <br/>
                 <br> 
                 <input name="Update" type="submit" id="Update" value="Update">
                </p>

@@ -154,7 +154,7 @@ public class Survey implements java.io.Serializable {
         return surveyTracks.size();
     }
 
-    // TODO what does this method do (differently than getSurveyTracks()) ???    -jon
+    // TODO: evaluate this method in relation to getSurveyTracks(); remove if duplicate
     public ArrayList<SurveyTrack> getAllSurveyTracks() {
         if (surveyTracks == null) return null;
         if (!surveyTracks.isEmpty()) {
@@ -368,9 +368,9 @@ public class Survey implements java.io.Serializable {
         if (Util.collectionIsEmptyOrNull(surveyTracks)) return null;
         Long sum = 0L;
         for (SurveyTrack st : surveyTracks) {
-            if (st == null) continue; // TODO or return null ????
+            if (st == null) continue; 
             Long dur = st.getComputedDuration();
-            if (dur == null) return null; // TODO or continue ???  argument for null: we have a track but it has unknown duration but cant assume 0
+            if (dur == null) return null;
             sum += dur;
         }
         return sum;

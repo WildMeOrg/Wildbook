@@ -1,0 +1,40 @@
+.pagination .active-page a {
+    background-color: #007599 ;
+    border-color: #007599 ;
+    color: white ;
+}
+
+.go-button {
+    background-color: #007599;
+    border-color: #007599;
+    color: white;
+}
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.custom-placeholder::placeholder {
+    color: white;
+  }
+
+@media (min-width: 992px) {
+    .search-bar {
+        width: 15%;
+    }
+
+    .tabs {
+        width: 85%;
+    }
+}
+
+@media (max-width: 456px) {
+    .search-bar {
+        /* background-color: white; */
+       width: 40%
+    }
+
+    .tabs {
+        width: 60%;
+    }
+}

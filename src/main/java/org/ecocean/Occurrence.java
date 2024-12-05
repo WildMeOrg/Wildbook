@@ -1,9 +1,12 @@
 package org.ecocean;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -37,11 +40,12 @@ import org.ecocean.media.AssetStoreType;
  * @author Jason Holmberg
  *
  */
-public class Occurrence implements java.io.Serializable {
+public class Occurrence extends Base implements java.io.Serializable {
     /**
      *
      */
     private static final long serialVersionUID = -7545783883959073726L;
+    @Override public String opensearchIndexName() { return "occurrence"; }
     private String occurrenceID;
     private ArrayList<Encounter> encounters;
     private List<MediaAsset> assets;
@@ -95,7 +99,7 @@ public class Occurrence implements java.io.Serializable {
     private Integer numCalves;
     private String observer;
 
-    private String submitterID; // not sure if this should atrophy, now that we have .submitters ???  TODO what does Encounter do?
+    private String submitterID; 
     private List<User> submitters;
     private List<User> informOthers;
 
@@ -129,10 +133,6 @@ public class Occurrence implements java.io.Serializable {
         assets = new ArrayList<MediaAsset>();
         setDWCDateLastModified();
         setDateTimeCreated();
-        // if(encounters!=null){
-        // updateNumberOfEncounters();
-        // }
-        // if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     }
 
     public Occurrence(List<MediaAsset> assets, Shepherd myShepherd) {
@@ -156,29 +156,16 @@ public class Occurrence implements java.io.Serializable {
         System.out.println("Created new occurrence with only ID" + this.occurrenceID);
     }
 
-    public boolean addEncounter(Encounter enc) {
-        if (encounters == null) { encounters = new ArrayList<Encounter>(); }
-        // prevent duplicate addition
-        boolean isNew = true;
-        for (int i = 0; i < encounters.size(); i++) {
-            Encounter tempEnc = (Encounter)encounters.get(i);
-            if (tempEnc.getEncounterNumber().equals(enc.getEncounterNumber())) {
-                return false;
-            }
-        }
-        if (isNew) {
-            encounters.add(enc);
-            // updateNumberOfEncounters();
-        }
-        // if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
-        return isNew;
+    public boolean hasEncounter(Encounter enc) {
+        return ((encounters != null) && encounters.contains(enc));
     }
 
-    // private void updateNumberOfEncounters() {
-    // if (individualCount!=null) {
-    // individualCount = encounters.size();
-    // }
-    // }
+    public boolean addEncounter(Encounter enc) {
+        if (encounters == null) encounters = new ArrayList<Encounter>();
+        if (encounters.contains(enc)) return false;
+        encounters.add(enc);
+        return true;
+    }
 
     // like addEncounter but adds backwards link to this enc
     public void addEncounterAndUpdateIt(Encounter enc) {
@@ -228,7 +215,6 @@ public class Occurrence implements java.io.Serializable {
             }
         }
         if (isNew) { assets.add(ma); }
-        // if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
         return isNew;
     }
 
@@ -318,7 +304,6 @@ public class Occurrence implements java.io.Serializable {
     public void removeEncounter(Encounter enc) {
         if (encounters != null) {
             encounters.remove(enc);
-            // updateNumberOfEncounters();
         }
     }
 
@@ -402,10 +387,12 @@ public class Occurrence implements java.io.Serializable {
         return names;
     }
 
+    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setID(String id) {
         occurrenceID = id;
     }
 
+    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public String getID() {
         return occurrenceID;
     }
@@ -418,14 +405,22 @@ public class Occurrence implements java.io.Serializable {
         return getWebUrl(getOccurrenceID(), req);
     }
 
+    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public String getOccurrenceID() {
         return occurrenceID;
     }
 
-    public String getId() {
+    // Retrieves the Occurrence Id.
+    @Override public String getId() {
         return occurrenceID;
     }
 
+    // Sets the Occurrence Id.
+    @Override public void setId(String id) {
+        occurrenceID = id;
+    }
+
+    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setOccurrenceID(String id) {
         occurrenceID = id;
     }
@@ -487,12 +482,8 @@ public class Occurrence implements java.io.Serializable {
         return encs2;
     }
 
-    /**
-     * Returns any additional, general comments recorded for this Occurrence as a whole.
-     *
-     * @return a String of comments
-     */
-    public String getComments() {
+    // Returns any additional, general comments recorded for this Occurrence as a whole.
+    @Override public String getComments() {
         if (comments != null) {
             return comments;
         } else {
@@ -500,11 +491,12 @@ public class Occurrence implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns any additional, general comments recorded for this Occurrence as a whole.
-     *
-     * @return a String of comments
-     */
+    // Sets any additional, general comments recorded for this Occurrence as a whole.
+    @Override public void setComments(String comments) {
+        this.comments = comments;
+    }
+
+    // Returns any additional, general comments recorded for this Occurrence as a whole.
     public String getCommentsExport() {
         if (comments != null && !(comments.equals("None"))) {
             return comments;
@@ -513,12 +505,8 @@ public class Occurrence implements java.io.Serializable {
         }
     }
 
-    /**
-     * Adds any general comments recorded for this Occurrence as a whole.
-     *
-     * @return a String of comments
-     */
-    public void addComments(String newComments) {
+    // Adds any general comments recorded for this Occurrence as a whole.
+    @Override public void addComments(String newComments) {
         if ((comments != null) && (!(comments.equals("None")))) {
             comments += newComments;
         } else {
@@ -569,7 +557,6 @@ public class Occurrence implements java.io.Serializable {
 
     public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,
         String context, HttpServletRequest request) {
-        // if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
         Vector haveData = new Vector();
         Encounter[] myEncs = getDateSortedEncounters(reverseOrder);
 
@@ -706,11 +693,7 @@ public class Occurrence implements java.io.Serializable {
         modified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
     }
 
-    /**
-     * This method simply iterates through the encounters for the occurrence and returns the first Encounter.locationID that it finds or returns null.
-     *
-     * @return
-     */
+    // This method simply iterates through the encounters for the occurrence and returns the first Encounter.locationID that it finds or returns null.
     public String getLocationID() {
         int size = encounters.size();
 
@@ -775,8 +758,6 @@ public class Occurrence implements java.io.Serializable {
         return null;
     }
 
-    // public void setLocationID(String newLocID){this.locationID=newLocID;}
-
     public String getDateTimeCreated() {
         if (dateTimeCreated != null) {
             return dateTimeCreated;
@@ -838,6 +819,30 @@ public class Occurrence implements java.io.Serializable {
         return Collaboration.canUserAccessOccurrence(this, request);
     }
 
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* TODO: we do not have user-flavored Collaboration.canUserAccessOccurrence yet
+            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* TODO: we do not have edit stuff for occurrence
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
     public JSONObject uiJson(HttpServletRequest request)
     throws JSONException {
         JSONObject jobj = new JSONObject();
@@ -857,44 +862,6 @@ public class Occurrence implements java.io.Serializable {
         return sanitizeJson(request, decorateJson(request, jobj));
     }
 
-///*  this was messing up the co-occur js (d3?), so lets kill for now?
-// public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-// org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
-// return sanitizeJson(request, jobj, true);
-// }
-//
-// public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj,
-// boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-// jobj.put("ID", this.occurrenceID);
-// jobj.put("encounters", this.encounters);
-// if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
-// JSONArray jarr = new JSONArray();
-/////  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-////but for *now* (see note way above) this is all we need for gallery/image display js:
-// for (Encounter enc : this.getEncounters()) {
-// JSONObject je = new JSONObject();
-// je.put("id", enc.getID());
-// if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
-// if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
-// JSONArray ja = new JSONArray();
-// for (Annotation ann : enc.getAnnotations()) {
-// ja.put(ann.getId());
-// }
-// je.put("annotations", ja);
-// }
-// jarr.put(je);
-// }
-// jobj.put("encounters", jarr);
-// }
-// int[] assetIds = new int[this.assets.size()];
-// for (int i=0; i<this.assets.size(); i++) {
-// if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
-// }
-// jobj.put("assets", assetIds);
-// return jobj;
-//
-// }
-
     public String toString() {
         return new ToStringBuilder(this)
                    .append("id", occurrenceID)
@@ -913,18 +880,14 @@ public class Occurrence implements java.io.Serializable {
     throws JSONException {
         ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al = new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
 
-        // boolean haveProfilePhoto=false;
         for (Encounter enc : this.getDateSortedEncounters(false)) {
-            // if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
             ArrayList<Annotation> anns = enc.getAnnotations();
             if ((anns == null) || (anns.size() < 1)) {
                 continue;
             }
             for (Annotation ann : anns) {
-                // if (!ann.isTrivial()) continue;
                 MediaAsset ma = ann.getMediaAsset();
                 if (ma != null) {
-                    // JSONObject j = new JSONObject();
                     JSONObject j = ma.sanitizeJson(req, new JSONObject());
                     if (j != null) {
                         // ok, we have a viable candidate
@@ -937,7 +900,6 @@ public class Occurrence implements java.io.Serializable {
                     }
                 }
             }
-            // }
         }
         return al;
     }
@@ -1389,5 +1351,29 @@ public class Occurrence implements java.io.Serializable {
         }
         // return sanitizeJson(request, decorateJson(request, json));
         return json;
+    }
+
+    // note this does not seem to cover *removing an encounter* as it seems the
+    // encounters cling to the occurrence after it was removed. so for now this
+    // has to be handled at the point of removal, e.g. OccurrenceRemoveEncounter servlet
+    public void opensearchIndexDeep()
+    throws IOException {
+        if (this.encounters != null)
+            for (Encounter enc : this.encounters) {
+                enc.opensearchIndex();
+            }
+        this.opensearchIndex();
+    }
+
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        // note: some Occurrences do not have ids.  :(
+        String sql =
+            "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+
+        return getAllVersions(myShepherd, sql);
     }
 }

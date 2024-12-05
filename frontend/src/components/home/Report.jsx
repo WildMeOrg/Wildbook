@@ -31,7 +31,7 @@ export default function Report() {
           />
           <image
             alt="report"
-            href="/react/images/submit.png"
+            href={`${process.env.PUBLIC_URL}/images/submit.png`}
             x="0"
             y="0"
             width="538px"
