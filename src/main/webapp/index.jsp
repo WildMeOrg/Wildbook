@@ -86,7 +86,7 @@ finally{
 }
 #video{    
     width: 100vw; 
-    height: auto;
+    height: 50vw;
     object-fit: cover;
     left: 0px;
     top: 0px;
