@@ -26,6 +26,8 @@ private String wrap(final String input, int len) {
 Shepherd myShepherd = new Shepherd(request);
 OpenSearch os = new OpenSearch();
 
+out.println("<p>fubar=" + os.getConfigurationValue("context0", "fubar", 1234) + "</p>");
+
 Request req = new Request("GET", "_cat/indices?v");
 //req.setJsonEntity(query.toString());
 String rtn = os.getRestResponse(req);
@@ -71,9 +73,6 @@ out.println(res.toString(4));
 </textarea>
 <%
 
-
-
-myShepherd.rollbackAndClose();
 
 
 myShepherd.rollbackAndClose();
