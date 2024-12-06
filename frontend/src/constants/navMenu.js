@@ -244,7 +244,7 @@ const authenticatedMenu = (username, showclassicsubmit) => [
         name: (
           <FormattedMessage id="MENU_ADMINISTER_LOGS" defaultMessage="Logs" />
         ),
-        href: "/appadmin/logs.jsp",
+        href: "/react/admin/logs",
       },
       {
         name: (

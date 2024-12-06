@@ -10,10 +10,15 @@ import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
 import EncounterSearch from "./pages/EncounterSearch";
 import Citation from "./pages/Citation";
+import AdminLogs from "./pages/AdminLogs";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
-export default function AuthenticatedSwitch({ showAlert, setShowAlert, showclassicsubmit }) {
+export default function AuthenticatedSwitch({
+  showAlert,
+  setShowAlert,
+  showclassicsubmit,
+}) {
   const { data } = useGetMe();
   const username = data?.username;
   const avatar =
@@ -57,6 +62,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert, showclass
           <Route path="/report" element={<ReportEncounter />} />
           <Route path="/reportConfirm" element={<ReportConfirm />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
+          <Route path="/admin/logs" element={<AdminLogs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound setHeader={setHeader} />} />
