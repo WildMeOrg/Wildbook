@@ -28,8 +28,18 @@ OpenSearch os = new OpenSearch();
 
 if (resetIndex && os.existsIndex("encounter")) {
     os.deleteIndex("encounter");
+    OpenSearch.unsetActiveIndexingForeground();
+    OpenSearch.unsetActiveIndexingBackground();
     out.println("<p>deleted encounter index</p>");
 }
+
+if (OpenSearch.indexingActive()) {
+    out.println("<P>bailing due to active indexing: fore=<b>" + OpenSearch.indexingActiveForeground() + "</b>, back=<b>" + OpenSearch.indexingActiveBackground() + "</b></p>");
+    System.out.println("opensearchSync.jsp bailed due to other active indexing");
+    return;
+}
+
+OpenSearch.setActiveIndexingForeground();
 
 if (!os.existsIndex("encounter")) {
         Encounter enc = new Encounter();
@@ -60,6 +70,7 @@ if (forceNum > 0) {
 
 myShepherd.rollbackAndClose();
 
+OpenSearch.unsetActiveIndexingForeground();
 os.deleteAllPits();
 System.out.println("opensearchSync.jsp finished");
 
