@@ -57,12 +57,15 @@ public class OpenSearch {
     public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
-    public static String SEARCH_SCROLL_TIME = "10m";
-    public static String SEARCH_PIT_TIME = "10m";
+    public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
+        "10m");
+    public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
-    public static int BACKGROUND_DELAY_MINUTES = 20;
-    public static int BACKGROUND_SLICE_SIZE = 2500;
+    public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
+        "backgroundDelayMinutes", 20);
+    public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
+        2500);
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
 
     private int pitRetry = 0;
@@ -670,6 +673,10 @@ public class OpenSearch {
         JSONObject scrubbed = new JSONObject();
         scrubbed.put("query", query.optJSONObject("query"));
         return scrubbed;
+    }
+
+    public static Object getConfigurationValue(String key, Object defaultValue) {
+        return getConfigurationValue("context0", key, defaultValue);
     }
 
     public static Object getConfigurationValue(String context, String key, Object defaultValue) {

@@ -26,7 +26,10 @@ private String wrap(final String input, int len) {
 Shepherd myShepherd = new Shepherd(request);
 OpenSearch os = new OpenSearch();
 
-out.println("<p>fubar=" + os.getConfigurationValue("context0", "fubar", 1234) + "</p>");
+out.println("<p>SEARCH_SCROLL_TIME=" + os.SEARCH_SCROLL_TIME + "<br />");
+out.println("SEARCH_PIT_TIME=" + os.SEARCH_PIT_TIME + "<br />");
+out.println("BACKGROUND_DELAY_MINUTES=" + os.BACKGROUND_DELAY_MINUTES + "<br />");
+out.println("BACKGROUND_SLICE_SIZE=" + os.BACKGROUND_SLICE_SIZE + "</p>");
 
 Request req = new Request("GET", "_cat/indices?v");
 //req.setJsonEntity(query.toString());
