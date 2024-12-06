@@ -154,7 +154,6 @@ public class Encounter extends Base implements java.io.Serializable {
     private static HashMap<String, ArrayList<Encounter> > _matchEncounterCache = new HashMap<String,
         ArrayList<Encounter> >();
 
-
     // An URL to a thumbnail image representing the encounter.
     private String dwcImageURL;
 
@@ -678,13 +677,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return (this.getNumRightSpots() > 0);
     }
 
-    
     // Sets the recorded length of the shark for this encounter.
     public void setSize(Double mysize) {
         if (mysize != null) { size = mysize; } else { size = null; }
     }
 
-    // @return the length of the shark 
+    // @return the length of the shark
     public double getSize() {
         return size.doubleValue();
     }
@@ -2450,9 +2448,10 @@ public class Encounter extends Base implements java.io.Serializable {
     public Set<String> getTissueSampleIDs() {
         Set<String> ids = new HashSet<String>();
 
-        if (tissueSamples != null) for (TissueSample ts : tissueSamples) {
-            ids.add(ts.getSampleID());
-        }
+        if (tissueSamples != null)
+            for (TissueSample ts : tissueSamples) {
+                ids.add(ts.getSampleID());
+            }
         return ids;
     }
 
@@ -4052,7 +4051,6 @@ public class Encounter extends Base implements java.io.Serializable {
                 encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
                 if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
             }
-
             jgen.writeArrayFieldStart("individualSocialUnits");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
@@ -4183,11 +4181,18 @@ public class Encounter extends Base implements java.io.Serializable {
     public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
     throws IOException {
         int[] rtn = new int[2];
+
+        if (OpenSearch.indexingActive()) {
+            System.out.println("Encounter.opensearchSyncIndex() skipped due to indexingActive()");
+            rtn[0] = -1;
+            rtn[1] = -1;
+            return rtn;
+        }
+        OpenSearch.setActiveIndexingBackground();
         String indexName = "encounter";
         OpenSearch os = new OpenSearch();
         List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
             os.getAllVersions(indexName));
-
         if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
         List<String> needIndexing = changes.get(0);
         List<String> needRemoval = changes.get(1);
@@ -4218,6 +4223,7 @@ public class Encounter extends Base implements java.io.Serializable {
             ct++;
         }
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
+        OpenSearch.unsetActiveIndexingBackground();
         return rtn;
     }
 

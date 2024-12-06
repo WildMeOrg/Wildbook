@@ -154,7 +154,7 @@ public class StartupWildbook implements ServletContextListener {
     // these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
-        String context = "context0"; 
+        String context = "context0";
 
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " +
             servletContextInfo(sContext));
@@ -171,11 +171,13 @@ public class StartupWildbook implements ServletContextListener {
             createMatchGraph();
         }
         // TODO: set strategy for the following (genericize starting "all" consumers, make configurable, move to WildbookIAM.startup, move to plugins, or other)
-        startIAQueues(context); 
+        startIAQueues(context);
         TwitterBot.startServices(context);
         MetricsBot.startServices(context);
         AcmIdBot.startServices(context);
         AnnotationLite.startup(sContext, context);
+        OpenSearch.unsetActiveIndexingBackground(); // since tomcat is just starting, these reset to false
+        OpenSearch.unsetActiveIndexingForeground();
         OpenSearch.backgroundStartup(context);
 
         try {
@@ -307,7 +309,7 @@ public class StartupWildbook implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
-        String context = "context0"; 
+        String context = "context0";
 
         System.out.println("* StartupWildbook destroyed called for: " +
             servletContextInfo(sContext));
@@ -327,7 +329,7 @@ public class StartupWildbook implements ServletContextListener {
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {
         ServletContext sc = sce.getServletContext();
-        
+
 /*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
      see:  https://octopus.com/blog/defining-tomcat-context-paths
  */
