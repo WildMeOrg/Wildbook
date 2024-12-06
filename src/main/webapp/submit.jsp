@@ -3,7 +3,7 @@
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
-                 java.util.Properties,
+                 java.util.Properties,java.util.ArrayList,
                  java.util.List,
                  java.util.Locale" %>
 
@@ -881,7 +881,11 @@ if(CommonConfiguration.showReleaseDate(context)){
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+      
+      	<%
+      	ArrayList<String> selectedIDs=null;
+      	%>
+          <%=LocationID.getHTMLSelector(false, selectedIDs,qualifier,"locationID","locationID","form-control") %>
       </div>
     </div>
 <%
