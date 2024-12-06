@@ -63,8 +63,8 @@ public class OpenSearch {
     public static int BACKGROUND_DELAY_MINUTES = 20;
     public static int BACKGROUND_SLICE_SIZE = 2500;
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
-    public static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
-    public static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
+    static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
+    static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
 
     private int pitRetry = 0;
 
@@ -572,35 +572,35 @@ public class OpenSearch {
         return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
     }
 
-    public boolean indexingActive() {
+    public static boolean indexingActive() {
         return indexingActiveBackground() || indexingActiveForeground();
     }
 
-    public boolean indexingActiveForeground() {
+    public static boolean indexingActiveForeground() {
         return getActive(ACTIVE_TYPE_FOREGROUND);
     }
 
-    public void setActiveIndexingForeground() {
+    public static void setActiveIndexingForeground() {
         setActive(ACTIVE_TYPE_FOREGROUND);
     }
 
-    public void unsetActiveIndexingForeground() {
+    public static void unsetActiveIndexingForeground() {
         unsetActive(ACTIVE_TYPE_FOREGROUND);
     }
 
-    public boolean indexingActiveBackground() {
+    public static boolean indexingActiveBackground() {
         return getActive(ACTIVE_TYPE_BACKGROUND);
     }
 
-    public void setActiveIndexingBackground() {
+    public static void setActiveIndexingBackground() {
         setActive(ACTIVE_TYPE_BACKGROUND);
     }
 
-    public void unsetActiveIndexingBackground() {
+    public static void unsetActiveIndexingBackground() {
         unsetActive(ACTIVE_TYPE_BACKGROUND);
     }
 
-    void setActive(String type) {
+    static void setActive(String type) {
         // we want our own shepherd as the main shepherd may not persist this til later
         Shepherd myShepherd = new Shepherd("context0");
 
@@ -616,7 +616,7 @@ public class OpenSearch {
         }
     }
 
-    void unsetActive(String type) {
+    static void unsetActive(String type) {
         Shepherd myShepherd = new Shepherd("context0");
 
         myShepherd.setAction("OpenSearch.unsetActive");
@@ -632,7 +632,7 @@ public class OpenSearch {
     }
 
     // TODO probably should get in some sort of expire/stale check here
-    boolean getActive(String type) {
+    static boolean getActive(String type) {
         Boolean active = false;
         Shepherd myShepherd = new Shepherd("context0");
 
