@@ -154,7 +154,6 @@ public class Encounter extends Base implements java.io.Serializable {
     private static HashMap<String, ArrayList<Encounter> > _matchEncounterCache = new HashMap<String,
         ArrayList<Encounter> >();
 
-
     // An URL to a thumbnail image representing the encounter.
     private String dwcImageURL;
 
@@ -678,13 +677,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return (this.getNumRightSpots() > 0);
     }
 
-    
     // Sets the recorded length of the shark for this encounter.
     public void setSize(Double mysize) {
         if (mysize != null) { size = mysize; } else { size = null; }
     }
 
-    // @return the length of the shark 
+    // @return the length of the shark
     public double getSize() {
         return size.doubleValue();
     }
@@ -2450,9 +2448,10 @@ public class Encounter extends Base implements java.io.Serializable {
     public Set<String> getTissueSampleIDs() {
         Set<String> ids = new HashSet<String>();
 
-        if (tissueSamples != null) for (TissueSample ts : tissueSamples) {
-            ids.add(ts.getSampleID());
-        }
+        if (tissueSamples != null)
+            for (TissueSample ts : tissueSamples) {
+                ids.add(ts.getSampleID());
+            }
         return ids;
     }
 
@@ -3857,280 +3856,275 @@ public class Encounter extends Base implements java.io.Serializable {
     throws IOException {
         return Base.opensearchQuery("encounter", query, numFrom, pageSize, sort, sortOrder);
     }
-    
-    public void opensearchDocumentSerializer(JsonGenerator jgen)
-    throws IOException, JsonProcessingException {    
-	    Shepherd myShepherd = new Shepherd("context0");
-	    myShepherd.setAction("Encounter.opensearchDocumentSerializer");
-	    myShepherd.beginDBTransaction();
-    	try {
-    		opensearchDocumentSerializer(jgen, myShepherd);
-    	}
-    	catch(Exception e) {}
-    	finally {
-    		myShepherd.rollbackAndClose();
-    	}
 
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("Encounter.opensearchDocumentSerializer");
+        myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
     }
-    	
+
     public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
 
-        	super.opensearchDocumentSerializer(jgen,myShepherd);
+        jgen.writeStringField("locationId", this.getLocationID());
+        jgen.writeStringField("locationName", this.getLocationName());
+        Long dim = this.getDateInMillisecondsFallback();
+        if (dim != null) jgen.writeNumberField("dateMillis", dim);
+        String date = Util.getISO8601Date(this.getDate());
+        if (date != null) jgen.writeStringField("date", date);
+        date = Util.getISO8601Date(this.getDWCDateAdded());
+        if (date != null) jgen.writeStringField("dateSubmitted", date);
+        jgen.writeStringField("verbatimEventDate", this.getVerbatimEventDate());
+        jgen.writeStringField("sex", this.getSex());
+        jgen.writeStringField("taxonomy", this.getTaxonomyString());
+        jgen.writeStringField("lifeStage", this.getLifeStage());
+        jgen.writeStringField("livingStatus", this.getLivingStatus());
+        jgen.writeStringField("verbatimLocality", this.getVerbatimLocality());
+        jgen.writeStringField("country", this.getCountry());
+        jgen.writeStringField("behavior", this.getBehavior());
+        jgen.writeStringField("patterningCode", this.getPatterningCode());
+        jgen.writeStringField("state", this.getState());
+        jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
+        jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
 
-	        jgen.writeStringField("locationId", this.getLocationID());
-	        jgen.writeStringField("locationName", this.getLocationName());
-	        Long dim = this.getDateInMillisecondsFallback();
-	        if (dim != null) jgen.writeNumberField("dateMillis", dim);
-	        String date = Util.getISO8601Date(this.getDate());
-	        if (date != null) jgen.writeStringField("date", date);
-	        date = Util.getISO8601Date(this.getDWCDateAdded());
-	        if (date != null) jgen.writeStringField("dateSubmitted", date);
-	        jgen.writeStringField("verbatimEventDate", this.getVerbatimEventDate());
-	        jgen.writeStringField("sex", this.getSex());
-	        jgen.writeStringField("taxonomy", this.getTaxonomyString());
-	        jgen.writeStringField("lifeStage", this.getLifeStage());
-	        jgen.writeStringField("livingStatus", this.getLivingStatus());
-	        jgen.writeStringField("verbatimLocality", this.getVerbatimLocality());
-	        jgen.writeStringField("country", this.getCountry());
-	        jgen.writeStringField("behavior", this.getBehavior());
-	        jgen.writeStringField("patterningCode", this.getPatterningCode());
-	        jgen.writeStringField("state", this.getState());
-	        jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
-	        jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
-	
-	        String featuredAssetId = null;
-	        List<MediaAsset> mas = this.getMedia();
-	        jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
-	        jgen.writeNumberField("numberMediaAssets", mas.size());
-	        jgen.writeArrayFieldStart("mediaAssets");
-	        for (MediaAsset ma : mas) {
-	            jgen.writeStartObject();
-	            jgen.writeNumberField("id", ma.getId());
-	            jgen.writeStringField("uuid", ma.getUUID());
-	            java.net.URL url = ma.safeURL(myShepherd);
-	            if (url != null) jgen.writeStringField("url", url.toString());
-	            jgen.writeEndObject();
-	            if (featuredAssetId == null) featuredAssetId = ma.getUUID();
-	        }
-	        jgen.writeEndArray();
-	        if (featuredAssetId != null) jgen.writeStringField("featuredAssetUuid", featuredAssetId);
-	        if (this.submitterID == null) {
-	            jgen.writeNullField("assignedUsername");
-	        } else {
-	            jgen.writeStringField("assignedUsername", this.submitterID);
-	        }
-	        jgen.writeArrayFieldStart("submitters");
-	        for (String id : this.getAllSubmitterIds(myShepherd)) {
-	            jgen.writeString(id);
-	        }
-	        jgen.writeEndArray();
-	        jgen.writeArrayFieldStart("photographers");
-	        for (String id : this.getAllPhotographerIds()) {
-	            jgen.writeString(id);
-	        }
-	        jgen.writeEndArray();
-	        jgen.writeArrayFieldStart("informOthers");
-	        for (String id : this.getAllInformOtherIds()) {
-	            jgen.writeString(id);
-	        }
-	        jgen.writeEndArray();
-	
-	        List<String> kws = new ArrayList();
-	        Map<String, String> lkws = new HashMap<String, String>();
-	        for (Keyword kw : this.getMediaAssetKeywords()) {
-	            if (kw instanceof LabeledKeyword) {
-	                LabeledKeyword lkw = (LabeledKeyword)kw;
-	                lkws.put(lkw.getLabel(), lkw.getValue());
-	            } else {
-	                String name = kw.getDisplayName();
-	                if (!kws.contains(name)) kws.add(name);
-	            }
-	        }
-	        jgen.writeArrayFieldStart("mediaAssetKeywords");
-	        for (String kw : kws) {
-	            jgen.writeString(kw);
-	        }
-	        jgen.writeEndArray();
-	        jgen.writeObjectFieldStart("mediaAssetLabeledKeywords");
-	        for (String kwLabel : lkws.keySet()) {
-	            jgen.writeStringField(kwLabel, lkws.get(kwLabel));
-	        }
-	        jgen.writeEndObject();
-	
-	        List<Project> projs = this.getProjects(myShepherd);
-	        jgen.writeArrayFieldStart("projects");
-	        if (projs != null)
-	            for (Project proj : projs) {
-	                jgen.writeString(proj.getId());
-	            }
-	        jgen.writeEndArray();
-	
-	        jgen.writeArrayFieldStart("annotationViewpoints");
-	        for (String vp : this.getAnnotationViewpoints()) {
-	            jgen.writeString(vp);
-	        }
-	        jgen.writeEndArray();
-	
-	        jgen.writeArrayFieldStart("annotationIAClasses");
-	        for (String cls : this.getAnnotationIAClasses()) {
-	            jgen.writeString(cls);
-	        }
-	        jgen.writeEndArray();
-	
-	        jgen.writeArrayFieldStart("measurements");
-	        if (this.measurements != null)
-	            for (Measurement meas : this.measurements) {
-	                if (meas.getValue() == null) continue; // no value means we should skip
-	                jgen.writeStartObject();
-	                jgen.writeNumberField("value", meas.getValue());
-	                if (meas.getType() != null) jgen.writeStringField("type", meas.getType());
-	                if (meas.getUnits() != null) jgen.writeStringField("units", meas.getUnits());
-	                if (meas.getSamplingProtocol() != null)
-	                    jgen.writeStringField("samplingProtocol", meas.getSamplingProtocol());
-	                jgen.writeEndObject();
-	            }
-	        jgen.writeEndArray();
-	
-	        jgen.writeArrayFieldStart("metalTags");
-	        if (this.getMetalTags() != null)
-	            for (MetalTag tag : this.getMetalTags()) {
-	                jgen.writeStartObject();
-	                jgen.writeStringField("number", tag.getTagNumber());
-	                jgen.writeStringField("location", tag.getLocation());
-	                jgen.writeEndObject();
-	            }
-	        jgen.writeEndArray();
-	        if (this.getAcousticTag() != null) {
-	            jgen.writeObjectFieldStart("acousticTag");
-	            jgen.writeStringField("idNumber", this.getAcousticTag().getIdNumber());
-	            jgen.writeStringField("serialNumber", this.getAcousticTag().getSerialNumber());
-	            jgen.writeEndObject();
-	        }
-	        if (this.getSatelliteTag() != null) {
-	            jgen.writeObjectFieldStart("satelliteTag");
-	            jgen.writeStringField("name", this.getSatelliteTag().getName());
-	            jgen.writeStringField("serialNumber", this.getSatelliteTag().getSerialNumber());
-	            jgen.writeStringField("argosPttNumber", this.getSatelliteTag().getArgosPttNumber());
-	            jgen.writeEndObject();
-	        }
-	        if (this.getDTag() != null) {
-	            jgen.writeObjectFieldStart("digitalArchiveTag");
-	            jgen.writeStringField("dTagID", this.getDTag().getDTagID());
-	            jgen.writeStringField("serialNumber", this.getDTag().getSerialNumber());
-	            jgen.writeEndObject();
-	        }
-	        org.json.JSONObject dpj = this.getDynamicPropertiesJSONObject();
-	        jgen.writeObjectFieldStart("dynamicProperties");
-	        for (String key : (Set<String>)dpj.keySet()) {
-	            jgen.writeStringField(key, dpj.optString(key, null));
-	        }
-	        jgen.writeEndObject();
-	
-	        Double dlat = this.getDecimalLatitudeAsDouble();
-	        Double dlon = this.getDecimalLongitudeAsDouble();
-	        if ((dlat == null) || (dlon == null)) {
-	            jgen.writeNullField("locationGeoPoint");
-	        } else {
-	            jgen.writeObjectFieldStart("locationGeoPoint");
-	            jgen.writeNumberField("lat", dlat);
-	            jgen.writeNumberField("lon", dlon);
-	            jgen.writeEndObject();
-	        }
-	        MarkedIndividual indiv = this.getIndividual();
-	        if (indiv == null) {
-	            jgen.writeNullField("individualId");
-	        } else {
-	            jgen.writeStringField("individualId", indiv.getId());
-	            jgen.writeStringField("individualSex", indiv.getSex());
-	            jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
-	            jgen.writeStringField("individualDisplayName", indiv.getDisplayName());
-	            jgen.writeArrayFieldStart("individualNames");
-	            Set<String> names = indiv.getAllNamesList();
-	            if (names != null)
-	                for (String name : names) {
-	                    jgen.writeString(name);
-	                }
-	            jgen.writeEndArray();
-	            jgen.writeStringField("individualNickName", indiv.getNickName());
-	            if (indiv.getTimeOfBirth() > 0) {
-	                String birthTime = Util.getISO8601Date(new DateTime(
-	                    indiv.getTimeOfBirth()).toString());
-	                jgen.writeStringField("individualTimeOfBirth", birthTime);
-	            }
-	            Encounter[] encs = indiv.getDateSortedEncounters(true);
-	            if ((encs != null) && (encs.length > 0)) {
-	                String encDate = Util.getISO8601Date(encs[0].getDate());
-	                if (encDate != null) jgen.writeStringField("individualFirstEncounterDate", encDate);
-	                encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
-	                if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
-	            }
-	
-	            jgen.writeArrayFieldStart("individualSocialUnits");
-	            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
-	                Membership mem = su.getMembershipForMarkedIndividual(indiv);
-	                if (mem != null) jgen.writeString(su.getSocialUnitName());
-	            }
-	            jgen.writeEndArray();
-	
-	            jgen.writeArrayFieldStart("individualRelationshipRoles");
-	            for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(indiv.getId())) {
-	                jgen.writeString(relRole);
-	            }
-	            jgen.writeEndArray();
-	        }
-	        DateTime occdt = getOccurrenceDateTime(myShepherd);
-	        if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
-	        jgen.writeStringField("geneticSex", this.getGeneticSex());
-	        jgen.writeStringField("haplotype", this.getHaplotype());
-	
-	        jgen.writeArrayFieldStart("microsatelliteMarkers");
-	        for (MicrosatelliteMarkersAnalysis msm : getMicrosatelliteMarkers()) {
-	            jgen.writeStartObject();
-	            jgen.writeStringField("analysisId", msm.getAnalysisID());
-	            jgen.writeObjectFieldStart("loci");
-	            if (msm.getLoci() != null)
-	                for (Locus locus : msm.getLoci()) {
-	                    if (locus.getName() == null) continue; // snh
-	                    jgen.writeObjectFieldStart(locus.getName());
-	                    for (int i = 0; i < 4; i++) {
-	                        Integer allele = locus.getAllele(i);
-	                        if (allele != null) jgen.writeNumberField("allele" + i, allele);
-	                    }
-	                    jgen.writeEndObject();
-	                }
-	            jgen.writeEndObject();
-	            jgen.writeEndObject();
-	        }
-	        jgen.writeEndArray();
-	
-	        Occurrence occ = this.getOccurrence(myShepherd);
-	        if (occ == null) {
-	            jgen.writeNullField("occurrenceId");
-	        } else {
-	            jgen.writeStringField("occurrenceId", occ.getId());
-	        }
-	        jgen.writeArrayFieldStart("organizations");
-	        User owner = this.getSubmitterUser(myShepherd);
-	        if ((owner != null) && (owner.getOrganizations() != null))
-	            for (Organization org : owner.getOrganizations()) {
-	                jgen.writeString(org.getId());
-	            }
-	        jgen.writeEndArray();
-	
-	        jgen.writeArrayFieldStart("tissueSampleIds");
-	        for (String id : this.getTissueSampleIDs()) {
-	            jgen.writeString(id);
-	        }
-	        jgen.writeEndArray();
-	
-	        Map<String, BiologicalMeasurement> bmeas = this.getBiologicalMeasurementsByType();
-	        jgen.writeObjectFieldStart("biologicalMeasurements");
-	        for (String type : (Set<String>)bmeas.keySet()) {
-	            jgen.writeNumberField(type, bmeas.get(type).getValue());
-	        }
-	        jgen.writeEndObject();
+        String featuredAssetId = null;
+        List<MediaAsset> mas = this.getMedia();
+        jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
+        jgen.writeNumberField("numberMediaAssets", mas.size());
+        jgen.writeArrayFieldStart("mediaAssets");
+        for (MediaAsset ma : mas) {
+            jgen.writeStartObject();
+            jgen.writeNumberField("id", ma.getId());
+            jgen.writeStringField("uuid", ma.getUUID());
+            java.net.URL url = ma.safeURL(myShepherd);
+            if (url != null) jgen.writeStringField("url", url.toString());
+            jgen.writeEndObject();
+            if (featuredAssetId == null) featuredAssetId = ma.getUUID();
+        }
+        jgen.writeEndArray();
+        if (featuredAssetId != null) jgen.writeStringField("featuredAssetUuid", featuredAssetId);
+        if (this.submitterID == null) {
+            jgen.writeNullField("assignedUsername");
+        } else {
+            jgen.writeStringField("assignedUsername", this.submitterID);
+        }
+        jgen.writeArrayFieldStart("submitters");
+        for (String id : this.getAllSubmitterIds(myShepherd)) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("photographers");
+        for (String id : this.getAllPhotographerIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("informOthers");
+        for (String id : this.getAllInformOtherIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
 
+        List<String> kws = new ArrayList();
+        Map<String, String> lkws = new HashMap<String, String>();
+        for (Keyword kw : this.getMediaAssetKeywords()) {
+            if (kw instanceof LabeledKeyword) {
+                LabeledKeyword lkw = (LabeledKeyword)kw;
+                lkws.put(lkw.getLabel(), lkw.getValue());
+            } else {
+                String name = kw.getDisplayName();
+                if (!kws.contains(name)) kws.add(name);
+            }
+        }
+        jgen.writeArrayFieldStart("mediaAssetKeywords");
+        for (String kw : kws) {
+            jgen.writeString(kw);
+        }
+        jgen.writeEndArray();
+        jgen.writeObjectFieldStart("mediaAssetLabeledKeywords");
+        for (String kwLabel : lkws.keySet()) {
+            jgen.writeStringField(kwLabel, lkws.get(kwLabel));
+        }
+        jgen.writeEndObject();
+
+        List<Project> projs = this.getProjects(myShepherd);
+        jgen.writeArrayFieldStart("projects");
+        if (projs != null)
+            for (Project proj : projs) {
+                jgen.writeString(proj.getId());
+            }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationViewpoints");
+        for (String vp : this.getAnnotationViewpoints()) {
+            jgen.writeString(vp);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationIAClasses");
+        for (String cls : this.getAnnotationIAClasses()) {
+            jgen.writeString(cls);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("measurements");
+        if (this.measurements != null)
+            for (Measurement meas : this.measurements) {
+                if (meas.getValue() == null) continue; // no value means we should skip
+                jgen.writeStartObject();
+                jgen.writeNumberField("value", meas.getValue());
+                if (meas.getType() != null) jgen.writeStringField("type", meas.getType());
+                if (meas.getUnits() != null) jgen.writeStringField("units", meas.getUnits());
+                if (meas.getSamplingProtocol() != null)
+                    jgen.writeStringField("samplingProtocol", meas.getSamplingProtocol());
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("metalTags");
+        if (this.getMetalTags() != null)
+            for (MetalTag tag : this.getMetalTags()) {
+                jgen.writeStartObject();
+                jgen.writeStringField("number", tag.getTagNumber());
+                jgen.writeStringField("location", tag.getLocation());
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+        if (this.getAcousticTag() != null) {
+            jgen.writeObjectFieldStart("acousticTag");
+            jgen.writeStringField("idNumber", this.getAcousticTag().getIdNumber());
+            jgen.writeStringField("serialNumber", this.getAcousticTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getSatelliteTag() != null) {
+            jgen.writeObjectFieldStart("satelliteTag");
+            jgen.writeStringField("name", this.getSatelliteTag().getName());
+            jgen.writeStringField("serialNumber", this.getSatelliteTag().getSerialNumber());
+            jgen.writeStringField("argosPttNumber", this.getSatelliteTag().getArgosPttNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getDTag() != null) {
+            jgen.writeObjectFieldStart("digitalArchiveTag");
+            jgen.writeStringField("dTagID", this.getDTag().getDTagID());
+            jgen.writeStringField("serialNumber", this.getDTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
+        org.json.JSONObject dpj = this.getDynamicPropertiesJSONObject();
+        jgen.writeObjectFieldStart("dynamicProperties");
+        for (String key : (Set<String>)dpj.keySet()) {
+            jgen.writeStringField(key, dpj.optString(key, null));
+        }
+        jgen.writeEndObject();
+
+        Double dlat = this.getDecimalLatitudeAsDouble();
+        Double dlon = this.getDecimalLongitudeAsDouble();
+        if ((dlat == null) || (dlon == null)) {
+            jgen.writeNullField("locationGeoPoint");
+        } else {
+            jgen.writeObjectFieldStart("locationGeoPoint");
+            jgen.writeNumberField("lat", dlat);
+            jgen.writeNumberField("lon", dlon);
+            jgen.writeEndObject();
+        }
+        MarkedIndividual indiv = this.getIndividual();
+        if (indiv == null) {
+            jgen.writeNullField("individualId");
+        } else {
+            jgen.writeStringField("individualId", indiv.getId());
+            jgen.writeStringField("individualSex", indiv.getSex());
+            jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
+            jgen.writeStringField("individualDisplayName", indiv.getDisplayName());
+            jgen.writeArrayFieldStart("individualNames");
+            Set<String> names = indiv.getAllNamesList();
+            if (names != null)
+                for (String name : names) {
+                    jgen.writeString(name);
+                }
+            jgen.writeEndArray();
+            jgen.writeStringField("individualNickName", indiv.getNickName());
+            if (indiv.getTimeOfBirth() > 0) {
+                String birthTime = Util.getISO8601Date(new DateTime(
+                    indiv.getTimeOfBirth()).toString());
+                jgen.writeStringField("individualTimeOfBirth", birthTime);
+            }
+            Encounter[] encs = indiv.getDateSortedEncounters(true);
+            if ((encs != null) && (encs.length > 0)) {
+                String encDate = Util.getISO8601Date(encs[0].getDate());
+                if (encDate != null) jgen.writeStringField("individualFirstEncounterDate", encDate);
+                encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
+                if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
+            }
+            jgen.writeArrayFieldStart("individualSocialUnits");
+            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
+                Membership mem = su.getMembershipForMarkedIndividual(indiv);
+                if (mem != null) jgen.writeString(su.getSocialUnitName());
+            }
+            jgen.writeEndArray();
+
+            jgen.writeArrayFieldStart("individualRelationshipRoles");
+            for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(indiv.getId())) {
+                jgen.writeString(relRole);
+            }
+            jgen.writeEndArray();
+        }
+        DateTime occdt = getOccurrenceDateTime(myShepherd);
+        if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
+        jgen.writeStringField("geneticSex", this.getGeneticSex());
+        jgen.writeStringField("haplotype", this.getHaplotype());
+
+        jgen.writeArrayFieldStart("microsatelliteMarkers");
+        for (MicrosatelliteMarkersAnalysis msm : getMicrosatelliteMarkers()) {
+            jgen.writeStartObject();
+            jgen.writeStringField("analysisId", msm.getAnalysisID());
+            jgen.writeObjectFieldStart("loci");
+            if (msm.getLoci() != null)
+                for (Locus locus : msm.getLoci()) {
+                    if (locus.getName() == null) continue; // snh
+                    jgen.writeObjectFieldStart(locus.getName());
+                    for (int i = 0; i < 4; i++) {
+                        Integer allele = locus.getAllele(i);
+                        if (allele != null) jgen.writeNumberField("allele" + i, allele);
+                    }
+                    jgen.writeEndObject();
+                }
+            jgen.writeEndObject();
+            jgen.writeEndObject();
+        }
+        jgen.writeEndArray();
+
+        Occurrence occ = this.getOccurrence(myShepherd);
+        if (occ == null) {
+            jgen.writeNullField("occurrenceId");
+        } else {
+            jgen.writeStringField("occurrenceId", occ.getId());
+        }
+        jgen.writeArrayFieldStart("organizations");
+        User owner = this.getSubmitterUser(myShepherd);
+        if ((owner != null) && (owner.getOrganizations() != null))
+            for (Organization org : owner.getOrganizations()) {
+                jgen.writeString(org.getId());
+            }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("tissueSampleIds");
+        for (String id : this.getTissueSampleIDs()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+
+        Map<String, BiologicalMeasurement> bmeas = this.getBiologicalMeasurementsByType();
+        jgen.writeObjectFieldStart("biologicalMeasurements");
+        for (String type : (Set<String>)bmeas.keySet()) {
+            jgen.writeNumberField(type, bmeas.get(type).getValue());
+        }
+        jgen.writeEndObject();
     }
 
     @Override public long getVersion() {
