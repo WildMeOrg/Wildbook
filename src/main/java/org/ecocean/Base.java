@@ -135,12 +135,9 @@ import org.json.JSONObject;
     }
 
     // should be overridden
-    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
-        Shepherd myShepherd = new Shepherd("context0");
 
-        myShepherd.setAction("BaseSerializer");
-        myShepherd.beginDBTransaction();
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
 
@@ -157,9 +154,26 @@ import org.json.JSONObject;
             jgen.writeString(id);
         }
         jgen.writeEndArray();
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+
     }
+    
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+    
+	    Shepherd myShepherd = new Shepherd("context0");
+	
+	    myShepherd.setAction("BaseSerializer");
+	    myShepherd.beginDBTransaction();
+	    try {
+	    	opensearchDocumentSerializer(jgen, myShepherd);
+	    }
+	    catch(Exception e) {}
+	    finally {
+	    	myShepherd.rollbackAndClose();
+	    }
+	    	    
+    }
+    
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
         int numFrom, int pageSize, String sort, String sortOrder)
