@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
@@ -669,5 +670,39 @@ public class OpenSearch {
         JSONObject scrubbed = new JSONObject();
         scrubbed.put("query", query.optJSONObject("query"));
         return scrubbed;
+    }
+
+    public static Object getConfigurationValue(String context, String key, Object defaultValue) {
+        if (key == null) return null;
+        Properties props = getConfigurationProperties(context);
+        if (props == null) {
+            System.out.println(
+                "OpenSearch.getConfigurationValue(): WARNING could not get properties file; using defaultValue ["
+                + defaultValue + "] for " + key);
+            return defaultValue;
+        }
+        String propValue = props.getProperty(key);
+        // TODO can we actually set a NULL from a properties file? if so: we need to return that as null here
+        if (propValue == null) return defaultValue;
+        if (defaultValue instanceof Integer) { // get int from string
+            try {
+                return Integer.parseInt(propValue);
+            } catch (NumberFormatException nfe) {
+                return defaultValue;
+            }
+        }
+        if (defaultValue instanceof Double) { // get int from string
+            try {
+                return Double.parseDouble(propValue);
+            } catch (NumberFormatException nfe) {
+                return defaultValue;
+            }
+        }
+        // guess we are just a string
+        return propValue;
+    }
+
+    static Properties getConfigurationProperties(String context) {
+        return ShepherdProperties.getProperties("OpenSearch.properties", "", context);
     }
 }
