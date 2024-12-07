@@ -4342,9 +4342,15 @@ public class Encounter extends Base implements java.io.Serializable {
                 // this is throwaway read-only shepherd
                 Shepherd myShepherd = new Shepherd("context0");
                 myShepherd.setAction("Encounter.validateFieldValue");
+                boolean validTaxonomy=false;
                 myShepherd.beginDBTransaction();
-                boolean validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
-                myShepherd.rollbackDBTransaction();
+                try {
+                	validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
+                }
+                catch(Exception e) {e.printStackTrace();}
+                finally {
+                	myShepherd.rollbackAndClose();
+                }
                 if (!validTaxonomy) {
                     error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                     error.put("value", returnValue);
