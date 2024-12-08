@@ -118,12 +118,12 @@ import org.json.JSONObject;
     throws IOException {
     	
     	//unindexing should be non-blocking and backgrounded
-    	OpenSearch opensearch = new OpenSearch();
     	String opensearchIndexName=this.opensearchIndexName();
         String objectId=this.getId();
         
         ExecutorService executor = Executors.newFixedThreadPool(4);
         Runnable rn = new Runnable() {
+        	OpenSearch opensearch = new OpenSearch();
             public void run() {
                 try {
                 	opensearch.delete(opensearchIndexName, objectId);
