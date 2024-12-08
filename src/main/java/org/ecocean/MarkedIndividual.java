@@ -2625,7 +2625,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                             ex.printStackTrace();
                         }
                     }
-                } finally {
+                }
+                catch(Exception e) {
+                	System.out.println("opensearchIndexDeep() backgrounding MarkedIndividual " +
+                        indivId + " hit an exception.");
+                	e.printStackTrace();
+                }
+                finally {
                     bgShepherd.rollbackAndClose();
                 }
                 System.out.println("opensearchIndexDeep() backgrounding MarkedIndividual " +
