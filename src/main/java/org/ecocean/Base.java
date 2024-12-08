@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javax.jdo.Query;
 import org.ecocean.api.ApiException;
 import org.ecocean.OpenSearch;
@@ -113,9 +116,29 @@ import org.json.JSONObject;
 
     public void opensearchUnindex()
     throws IOException {
-        OpenSearch opensearch = new OpenSearch();
+    	
+    	//unindexing should be non-blocking and backgrounded
+    	OpenSearch opensearch = new OpenSearch();
+    	String opensearchIndexName=this.opensearchIndexName();
+        String objectId=this.getId();
+        
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                try {
+                	opensearch.delete(opensearchIndexName, objectId);
+                }
+                catch(Exception e) {
+                	System.out.println("opensearchUnindex() backgrounding Object " +
+                			objectId + " hit an exception.");
+                	e.printStackTrace();
+                }
+                
+                executor.shutdown();
+            }
+        };
+        executor.execute(rn);
 
-        opensearch.delete(this.opensearchIndexName(), this);
     }
 
     public void opensearchUnindexQuiet() {
