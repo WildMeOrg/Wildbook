@@ -154,7 +154,7 @@ const authenticatedMenu = (username, showclassicsubmit) => [
             defaultMessage="My Projects"
           />
         ),
-        href: "/projects/projectList.jsp",
+        href: "/react/projects/overview",
       },
     ],
   },
