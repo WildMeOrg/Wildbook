@@ -8,6 +8,8 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
 import java.util.Collection;
@@ -4492,4 +4494,40 @@ public class Encounter extends Base implements java.io.Serializable {
             myShepherd.rollbackDBTransaction();
         }
     }
+    
+    public void opensearchIndexDeep()
+    throws IOException {
+        
+
+        final String encId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("Encounter.opensearchIndexDeep_"+encId);
+                bgShepherd.beginDBTransaction();
+                try {
+                    Encounter enc = bgShepherd.getEncounter(encId);
+                    if (enc == null) {
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    enc.opensearchIndex();
+                }
+                catch(Exception e) {
+                	
+                	e.printStackTrace();
+                }
+                finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                executor.shutdown();
+            }
+        };
+
+        executor.execute(rn);
+
+    }
+    
 }

@@ -2602,7 +2602,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         Runnable rn = new Runnable() {
             public void run() {
                 Shepherd bgShepherd = new Shepherd("context0");
-                bgShepherd.setAction("MarkedIndividual.opensearchIndexDeep");
+                bgShepherd.setAction("MarkedIndividual.opensearchIndexDeep_"+indivId);
                 bgShepherd.beginDBTransaction();
                 try {
                     MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
