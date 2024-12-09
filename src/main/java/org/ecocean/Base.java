@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javax.jdo.Query;
 import org.ecocean.api.ApiException;
 import org.ecocean.OpenSearch;
@@ -113,9 +116,29 @@ import org.json.JSONObject;
 
     public void opensearchUnindex()
     throws IOException {
-        OpenSearch opensearch = new OpenSearch();
+    	
+    	//unindexing should be non-blocking and backgrounded
+    	String opensearchIndexName=this.opensearchIndexName();
+        String objectId=this.getId();
+        
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+        	OpenSearch opensearch = new OpenSearch();
+            public void run() {
+                try {
+                	opensearch.delete(opensearchIndexName, objectId);
+                }
+                catch(Exception e) {
+                	System.out.println("opensearchUnindex() backgrounding Object " +
+                			objectId + " hit an exception.");
+                	e.printStackTrace();
+                }
+                
+                executor.shutdown();
+            }
+        };
+        executor.execute(rn);
 
-        opensearch.delete(this.opensearchIndexName(), this);
     }
 
     public void opensearchUnindexQuiet() {
@@ -135,12 +158,8 @@ import org.json.JSONObject;
     }
 
     // should be overridden
-    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("BaseSerializer");
-        myShepherd.beginDBTransaction();
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
 
@@ -157,8 +176,19 @@ import org.json.JSONObject;
             jgen.writeString(id);
         }
         jgen.writeEndArray();
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("BaseSerializer");
+        myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
