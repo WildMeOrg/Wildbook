@@ -154,7 +154,6 @@ public class Encounter extends Base implements java.io.Serializable {
     private static HashMap<String, ArrayList<Encounter> > _matchEncounterCache = new HashMap<String,
         ArrayList<Encounter> >();
 
-
     // An URL to a thumbnail image representing the encounter.
     private String dwcImageURL;
 
@@ -678,13 +677,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return (this.getNumRightSpots() > 0);
     }
 
-    
     // Sets the recorded length of the shark for this encounter.
     public void setSize(Double mysize) {
         if (mysize != null) { size = mysize; } else { size = null; }
     }
 
-    // @return the length of the shark 
+    // @return the length of the shark
     public double getSize() {
         return size.doubleValue();
     }
@@ -2450,9 +2448,10 @@ public class Encounter extends Base implements java.io.Serializable {
     public Set<String> getTissueSampleIDs() {
         Set<String> ids = new HashSet<String>();
 
-        if (tissueSamples != null) for (TissueSample ts : tissueSamples) {
-            ids.add(ts.getSampleID());
-        }
+        if (tissueSamples != null)
+            for (TissueSample ts : tissueSamples) {
+                ids.add(ts.getSampleID());
+            }
         return ids;
     }
 
@@ -3852,6 +3851,11 @@ public class Encounter extends Base implements java.io.Serializable {
         return this.getCatalogNumber().hashCode();
     }
 
+    // "true" public (not null submitterID)
+    public boolean isPublic() {
+        return "public".equals(this.submitterID);
+    }
+
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
         int pageSize, String sort, String sortOrder)
     throws IOException {
@@ -3885,6 +3889,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("state", this.getState());
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
+        jgen.writeBooleanField("public", this.isPublic());
 
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
@@ -3895,8 +3900,11 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStartObject();
             jgen.writeNumberField("id", ma.getId());
             jgen.writeStringField("uuid", ma.getUUID());
-            java.net.URL url = ma.safeURL(myShepherd);
-            if (url != null) jgen.writeStringField("url", url.toString());
+            try {
+                // historic data might throw IllegalArgumentException: Path not under given root
+                java.net.URL url = ma.safeURL(myShepherd);
+                if (url != null) jgen.writeStringField("url", url.toString());
+            } catch (Exception ex) {}
             jgen.writeEndObject();
             if (featuredAssetId == null) featuredAssetId = ma.getUUID();
         }
@@ -4052,7 +4060,6 @@ public class Encounter extends Base implements java.io.Serializable {
                 encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
                 if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
             }
-
             jgen.writeArrayFieldStart("individualSocialUnits");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
