@@ -8,8 +8,8 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
 import java.util.Collection;
@@ -4344,14 +4344,12 @@ public class Encounter extends Base implements java.io.Serializable {
                 // this is throwaway read-only shepherd
                 Shepherd myShepherd = new Shepherd("context0");
                 myShepherd.setAction("Encounter.validateFieldValue");
-                boolean validTaxonomy=false;
+                boolean validTaxonomy = false;
                 myShepherd.beginDBTransaction();
                 try {
-                	validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
-                }
-                catch(Exception e) {e.printStackTrace();}
-                finally {
-                	myShepherd.rollbackAndClose();
+                    validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
+                } catch (Exception e) { e.printStackTrace(); } finally {
+                    myShepherd.rollbackAndClose();
                 }
                 if (!validTaxonomy) {
                     error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
@@ -4494,17 +4492,15 @@ public class Encounter extends Base implements java.io.Serializable {
             myShepherd.rollbackDBTransaction();
         }
     }
-    
+
     public void opensearchIndexDeep()
     throws IOException {
-        
-
         final String encId = this.getId();
         ExecutorService executor = Executors.newFixedThreadPool(4);
         Runnable rn = new Runnable() {
             public void run() {
                 Shepherd bgShepherd = new Shepherd("context0");
-                bgShepherd.setAction("Encounter.opensearchIndexDeep_"+encId);
+                bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
                 bgShepherd.beginDBTransaction();
                 try {
                     Encounter enc = bgShepherd.getEncounter(encId);
@@ -4514,12 +4510,9 @@ public class Encounter extends Base implements java.io.Serializable {
                         return;
                     }
                     enc.opensearchIndex();
-                }
-                catch(Exception e) {
-                	
-                	e.printStackTrace();
-                }
-                finally {
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
                     bgShepherd.rollbackAndClose();
                 }
                 executor.shutdown();
@@ -4527,7 +4520,5 @@ public class Encounter extends Base implements java.io.Serializable {
         };
 
         executor.execute(rn);
-
     }
-    
 }

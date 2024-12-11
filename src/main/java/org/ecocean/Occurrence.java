@@ -3,14 +3,14 @@ package org.ecocean;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
@@ -97,7 +97,7 @@ public class Occurrence extends Base implements java.io.Serializable {
     private Integer numCalves;
     private String observer;
 
-    private String submitterID; 
+    private String submitterID;
     private List<User> submitters;
     private List<User> informOthers;
 
@@ -385,12 +385,12 @@ public class Occurrence extends Base implements java.io.Serializable {
         return names;
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setID(String id) {
         occurrenceID = id;
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public String getID() {
         return occurrenceID;
     }
@@ -403,7 +403,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         return getWebUrl(getOccurrenceID(), req);
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public String getOccurrenceID() {
         return occurrenceID;
     }
@@ -418,7 +418,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         occurrenceID = id;
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setOccurrenceID(String id) {
         occurrenceID = id;
     }
@@ -1363,7 +1363,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         Runnable rn = new Runnable() {
             public void run() {
                 Shepherd bgShepherd = new Shepherd("context0");
-                bgShepherd.setAction("Occurrence.opensearchIndexDeep_"+occurId);
+                bgShepherd.setAction("Occurrence.opensearchIndexDeep_" + occurId);
                 bgShepherd.beginDBTransaction();
                 try {
                     Occurrence occur = bgShepherd.getOccurrence(occurId);
@@ -1386,23 +1386,20 @@ public class Occurrence extends Base implements java.io.Serializable {
                             ex.printStackTrace();
                         }
                     }
-                }
-                catch(Exception e) {
-                	System.out.println("opensearchIndexDeep() backgrounding Occurrence " +
-                        occurId + " hit an exception.");
-                	e.printStackTrace();
-                }
-                finally {
+                } catch (Exception e) {
+                    System.out.println("opensearchIndexDeep() backgrounding Occurrence " + occurId +
+                        " hit an exception.");
+                    e.printStackTrace();
+                } finally {
                     bgShepherd.rollbackAndClose();
                 }
-                System.out.println("opensearchIndexDeep() backgrounding Occurrence " +
-                    occurId + " finished.");
+                System.out.println("opensearchIndexDeep() backgrounding Occurrence " + occurId +
+                    " finished.");
                 executor.shutdown();
             }
         };
-        
+
         executor.execute(rn);
-        
     }
 
     @Override public long getVersion() {
