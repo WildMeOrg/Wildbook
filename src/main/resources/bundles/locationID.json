@@ -405,12 +405,22 @@
 					"description": "Mara",
 					"locationID":[
 						{
+							"name": "Enonkishu Conservancy",
+							"id": "Enonkishu Conservancy",
+							"locationID": []
+						},
+						{
 							"name": "Isaaten Conservancy",
 							"id": "Isaaten Conservancy",
 							"prefix": "isa",
 							"prefixDigitPadding": 3,
 							"description": "Isaaten Conservancy",
 							"locationID":[]
+						},
+						{
+							"name":"Lemek Conservancy",
+							"id": "Lemek Conservancy",
+							"locationID": []
 						},
 						{
 							"name": "Mara North",
@@ -445,6 +455,21 @@
 							"locationID":[]
 						},
 						{
+							"name": "Nashulai Conservancy",
+							"id": "Nashulai Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Ol Chorro Conservancy",
+							"id": "Ol Chorro Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Oloisukut Conservancy",
+							"id": "Oloisukut Conservancy",
+							"locationID": []
+						},
+						{
 							"name": "Ol Kinyei",
 							"id": "Ol Kinyei",
 							"prefix": "olk",
@@ -477,12 +502,22 @@
 							"locationID":[]
 						},
 						{
+							"name": "Pardamat Conservation Area",
+							"id": "Pardamat Conservation Area",
+							"locationID": []
+						},
+						{
 							"name": "Siana Conservancy",
 							"id": "Siana Conservancy",
 							"prefix": "sia",
 							"prefixDigitPadding": 3,
 							"description": "Siana Conservancy",
 							"locationID":[]
+						},
+						{
+							"name": "Siria Plateau",
+							"id": "Siria Plateau",
+							"locationID": []
 						}
 					]
 				},
@@ -806,7 +841,7 @@
 					"id": "Karingani Wildlife Reserve",
 					"locationID":[]
 				},
-								{
+				{
 					"name": "Maputo National Park",
 					"id": "Maputo National Park",
 					"geospatialInfo":{
@@ -1177,6 +1212,15 @@
 					"id": "Greater Mapungubwe Transfrontier Conservation Area",
 					"description": "Greater Mapungubwe Transfrontier Conservation Area",
 					"locationID":[]
+				},
+				{
+					"name": "Hwange National Park",
+					"id": "Hwange National Park",
+					"geospatialInfo": {
+						"lat": -19.13321,
+						"long": 26.59494
+					},
+					"locationID": []
 				},
 				{
 					"name": "Imire Conservancy",
