@@ -1,4 +1,4 @@
-[Plain-text summary description of the solution. Include any model updates, new or edited functions, significant changes to UX, etc]
+[Plain-text summary description of the solution. Include any class updates, new or edited functions, significant changes to UX, etc]
 
 PR fixes #[REPLACE WITH ISSUE NUMBER]
 
