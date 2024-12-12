@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -3876,6 +3877,8 @@ public class Encounter extends Base implements java.io.Serializable {
     skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
  */
     public static void opensearchIndexPermissions() {
+// Util.mark("perm start"); long t = System.currentTimeMillis();
+        System.out.println("opensearchIndexPermissions(): begin...");
         // no security => everything publiclyReadable - saves us work, no?
         if (!Collaboration.securityEnabled("context0")) return;
         Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
@@ -3883,10 +3886,12 @@ public class Encounter extends Base implements java.io.Serializable {
         Shepherd myShepherd = new Shepherd("context0");
         myShepherd.setAction("Encounter.opensearchIndexPermissions");
         myShepherd.beginDBTransaction();
+        int nonAdminCt = 0;
         // it seems as though user.uuid is *required* so we can trust that
         for (User user : myShepherd.getUsersWithUsername()) {
             usernameToId.put(user.getUsername(), user.getId());
             if (user.isAdmin(myShepherd)) continue;
+            nonAdminCt++;
             List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
                 user.getUsername());
             if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
@@ -3897,8 +3902,41 @@ public class Encounter extends Base implements java.io.Serializable {
                 collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
             }
         }
-        // now iterated over NECESSARY encounters
+// Util.mark("perm: user build done", t);
+        System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
+            " total users; " + nonAdminCt + " non-admin; " + collab.size() + " have active collab");
+        // now iterated over (non-public) encounters
+        int encCount = 0;
+        Query query = myShepherd.getPM().newQuery(
+            "SELECT FROM org.ecocean.Encounter WHERE (submitterID != null) && (submitterID != '') && (submitterID != 'N/A') && (submitterID != 'public')");
+        Iterator<Encounter> it = myShepherd.getAllEncounters(query);
+// Util.mark("perm: start encs", t);
+        while (it.hasNext()) {
+            Set<String> viewers = new HashSet<String>();
+            Encounter enc = (Encounter)it.next();
+            String uid = usernameToId.get(enc.getSubmitterID());
+            if (uid == null) {
+                // see issue 939 for example :(
+                System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
+                    enc.getSubmitterID() + " on enc " + enc.getId());
+                continue;
+            }
+            encCount++;
+            viewers.add(uid);
+            if (!collab.containsKey(uid)) continue;
+            for (String colUsername : collab.get(uid)) {
+                String colId = usernameToId.get(colUsername);
+                if (colId == null) {
+                    System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
+                        colUsername + " in collaboration with userId=" + uid);
+                    continue;
+                }
+                viewers.add(colId);
+            }
+        }
+// Util.mark("perm: done encs", t);
         myShepherd.rollbackAndClose();
+        System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs]");
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
