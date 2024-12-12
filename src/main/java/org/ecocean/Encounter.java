@@ -3859,6 +3859,34 @@ public class Encounter extends Base implements java.io.Serializable {
         return User.isUsernameAnonymous(this.submitterID);
     }
 
+    // wrapper for below, that checks if we really need to be run
+    public static void opensearchIndexPermissionsBackground(Shepherd myShepherd) {
+        boolean runIt = false;
+        Long lastRun = OpenSearch.getPermissionsTimestamp(myShepherd);
+        long now = System.currentTimeMillis();
+
+        if ((lastRun == null) ||
+            ((now - lastRun) > OpenSearch.BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES * 60000)) {
+            System.out.println(
+                "opensearchIndexPermissionsBackground: forced run due to max time since previous");
+            runIt = true;
+        }
+        boolean needed = OpenSearch.getPermissionsNeeded(myShepherd);
+        if (needed && !runIt) {
+            System.out.println("opensearchIndexPermissionsBackground: running due to needed=true");
+            runIt = true;
+        }
+        if (!runIt) {
+            System.out.println("opensearchIndexPermissionsBackground: running not required; done");
+            return;
+        }
+        // i think we should set these first... tho they may not get persisted til after?
+        OpenSearch.setPermissionsTimestamp(myShepherd);
+        OpenSearch.setPermissionsNeeded(myShepherd, false);
+        opensearchIndexPermissions();
+        System.out.println("opensearchIndexPermissionsBackground: running completed");
+    }
+
 /*  note: there are a great deal of users with *no username* that seem to appear in enc.submitters array.
     however, very few (2 out of 5600+) encounters with such .submitters have a blank submitterID value
     therefore: submitterID will be assumed to be a required value on users which need to be

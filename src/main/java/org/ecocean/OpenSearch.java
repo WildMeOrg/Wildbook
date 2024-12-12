@@ -62,6 +62,10 @@ public class OpenSearch {
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
     public static int BACKGROUND_DELAY_MINUTES = 20;
     public static int BACKGROUND_SLICE_SIZE = 2500;
+    public static int BACKGROUND_PERMISSIONS_MINUTES = 10; // how often it checks if NEED to run
+    public static int BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES = 45; // how often it forces a run
+    public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
+    public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
 
     private int pitRetry = 0;
@@ -130,25 +134,45 @@ public class OpenSearch {
 // http://localhost:9200/_cat/indices?v
 
     public static void backgroundStartup(String context) {
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(2);
-        final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-            public void run() {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("OpenSearch.background");
-                try {
-                    myShepherd.beginDBTransaction();
-                    System.out.println("OpenSearch background running...");
-                    Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
-                    System.out.println("OpenSearch background finished.");
-                    myShepherd.rollbackAndClose();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    myShepherd.rollbackAndClose();
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(8);
+        final ScheduledFuture schedFutureIndexing = schedExec.scheduleWithFixedDelay(
+            new Runnable() {
+                public void run() {
+                    Shepherd myShepherd = new Shepherd(context);
+                    myShepherd.setAction("OpenSearch.backgroundIndexing");
+                    try {
+                        myShepherd.beginDBTransaction();
+                        System.out.println("OpenSearch background indexing running...");
+                        Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
+                        System.out.println("OpenSearch background indexing finished.");
+                        myShepherd.rollbackAndClose();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        myShepherd.rollbackAndClose();
+                    }
                 }
-            }
-        }, 2, // initial delay
+            }, 2, // initial delay
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
             TimeUnit.MINUTES); // unit of delays above
+        final ScheduledFuture schedFuturePermissions = schedExec.scheduleWithFixedDelay(
+            new Runnable() {
+                public void run() {
+                    Shepherd myShepherd = new Shepherd(context);
+                    myShepherd.setAction("OpenSearch.backgroundPermissions");
+                    try {
+                        myShepherd.beginDBTransaction();
+                        System.out.println("OpenSearch background permissions running...");
+                        Encounter.opensearchIndexPermissionsBackground(myShepherd);
+                        System.out.println("OpenSearch background permissions finished.");
+                        myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
+                        myShepherd.closeDBTransaction();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        myShepherd.rollbackAndClose();
+                    }
+                }
+            }, 8, // initial delay
+            BACKGROUND_PERMISSIONS_MINUTES, TimeUnit.MINUTES); // unit of delays above
 
         try {
             schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
@@ -579,6 +603,29 @@ public class OpenSearch {
 
     public Long getIndexTimestamp(Shepherd myShepherd, String indexName) {
         return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
+    }
+
+    public static long setPermissionsTimestamp(Shepherd myShepherd) {
+        long now = System.currentTimeMillis();
+
+        SystemValue.set(myShepherd, PERMISSIONS_LAST_RUN_KEY, now);
+        return now;
+    }
+
+    public static Long getPermissionsTimestamp(Shepherd myShepherd) {
+        return SystemValue.getLong(myShepherd, PERMISSIONS_LAST_RUN_KEY);
+    }
+
+    // FIXME: when we have Boolean support in SystemValue, modify these!
+    public static void setPermissionsNeeded(Shepherd myShepherd, boolean value) {
+        SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, String.valueOf(value));
+    }
+
+    // TODO see above
+    public static boolean getPermissionsNeeded(Shepherd myShepherd) {
+        String value = SystemValue.getString(myShepherd, PERMISSIONS_NEEDED_KEY);
+
+        return "true".equals(value);
     }
 
     public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd) {
