@@ -3142,7 +3142,7 @@ public class Encounter extends Base implements java.io.Serializable {
     @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
-        for (User user : myShepherd.getAllUsers()) {
+        for (User user : myShepherd.getUsersWithUsername()) {
             if ((user.getId() != null) && this.canUserView(user, myShepherd))
                 ids.add(user.getId());
         }
@@ -3152,7 +3152,7 @@ public class Encounter extends Base implements java.io.Serializable {
     @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
-        for (User user : myShepherd.getAllUsers()) {
+        for (User user : myShepherd.getUsersWithUsername()) {
             if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
         }
         return ids;
@@ -3851,9 +3851,54 @@ public class Encounter extends Base implements java.io.Serializable {
         return this.getCatalogNumber().hashCode();
     }
 
-    // "true" public (not null submitterID)
-    public boolean isPublic() {
-        return "public".equals(this.submitterID);
+    // sadly, this mess needs to carry on the tradition set up in User.isUsernameAnonymous()
+    // thanks to the logic in Collaboration.canUserAccessOwnedObject()
+    public boolean isPubliclyReadable() {
+        if (!Collaboration.securityEnabled("context0")) return true;
+        return User.isUsernameAnonymous(this.submitterID);
+    }
+
+/*  note: there are a great deal of users with *no username* that seem to appear in enc.submitters array.
+    however, very few (2 out of 5600+) encounters with such .submitters have a blank submitterID value
+    therefore: submitterID will be assumed to be a required value on users which need to be
+
+    this seems further validated by the facts that:
+    - canUserAccess(user) returns false if no username on user
+    - a user wihtout a username cant be logged in (and thus cant search)
+
+    "admin" users are just ignored entirely, as they will be exempt from the viewUsers criteria during searching.
+
+    other than "ownership" (via submitterID), a user can view if they have view or edit collab with
+    another user. so we frontload *approved* collabs for every user here too.
+
+    in terms of "public" encounters, it seems that (based on Collaboration.canUserAccessEncounter()),
+    encounters with submitterID in (NULL, "public", "", "N/A" [ugh]) is readable by anyone; so we will
+    skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
+ */
+    public static void opensearchIndexPermissions() {
+        // no security => everything publiclyReadable - saves us work, no?
+        if (!Collaboration.securityEnabled("context0")) return;
+        Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
+        Map<String, String> usernameToId = new HashMap<String, String>();
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.opensearchIndexPermissions");
+        myShepherd.beginDBTransaction();
+        // it seems as though user.uuid is *required* so we can trust that
+        for (User user : myShepherd.getUsersWithUsername()) {
+            usernameToId.put(user.getUsername(), user.getId());
+            if (user.isAdmin(myShepherd)) continue;
+            List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
+                user.getUsername());
+            if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
+            for (Collaboration col : collabsFor) {
+                if (!col.isApproved() && !col.isEditApproved()) continue;
+                if (!collab.containsKey(user.getId()))
+                    collab.put(user.getId(), new HashSet<String>());
+                collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
+            }
+        }
+        // now iterated over NECESSARY encounters
+        myShepherd.rollbackAndClose();
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
@@ -3889,7 +3934,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("state", this.getState());
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
-        jgen.writeBooleanField("public", this.isPublic());
+        jgen.writeBooleanField("publiclyReadable", this.isPubliclyReadable());
 
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();

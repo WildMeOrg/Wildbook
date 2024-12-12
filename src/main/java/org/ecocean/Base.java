@@ -94,6 +94,8 @@ import org.json.JSONObject;
         map.put("version", new org.json.JSONObject("{\"type\": \"long\"}"));
         // id should be keyword for the sake of sorting
         map.put("id", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+        map.put("viewUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+        map.put("editUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         return map;
     }
 
@@ -144,6 +146,10 @@ import org.json.JSONObject;
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
 
+/*
+        these are no longer computed in the general opensearchIndex() call.
+        they are too expensive. see Encounter.opensearchIndexPermission()
+
         jgen.writeFieldName("viewUsers");
         jgen.writeStartArray();
         for (String id : this.userIdsWithViewAccess(myShepherd)) {
@@ -157,6 +163,7 @@ import org.json.JSONObject;
             jgen.writeString(id);
         }
         jgen.writeEndArray();
+ */
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
     }
