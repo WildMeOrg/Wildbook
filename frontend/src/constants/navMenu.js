@@ -1,7 +1,11 @@
 import React from "react";
 import { FormattedMessage } from "react-intl";
 
-const authenticatedMenu = (username, showclassicsubmit) => [
+const authenticatedMenu = (
+  username,
+  showclassicsubmit,
+  showClassicEncounterSearch,
+) => [
   {
     Submit: [
       {
@@ -169,6 +173,19 @@ const authenticatedMenu = (username, showclassicsubmit) => [
         ),
         href: `${process.env.PUBLIC_URL}/encounter-search`,
       },
+      ...(showClassicEncounterSearch
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_SEARCH_ENCOUNTERS_CLASSIC"
+                  defaultMessage="Encounters(Classic)"
+                />
+              ),
+              href: "/encounters/encounterSearch.jsp",
+            },
+          ]
+        : []),
       {
         name: (
           <FormattedMessage

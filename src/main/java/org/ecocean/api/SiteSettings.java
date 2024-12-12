@@ -162,6 +162,10 @@ public class SiteSettings extends ApiBase {
         settings.put("showClassicSubmit",
             Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))
             );
+        
+        settings.put("showClassicEncouners",
+            Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncouners", context))
+            );
 
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
             context);

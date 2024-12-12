@@ -28,6 +28,7 @@ export default function FrontDesk() {
   const [loading, setLoading] = useState(true);
   const { data } = useGetSiteSettings();
   const showclassicsubmit = data?.showClassicSubmit;
+  const showClassicEncounterSearch = data?.showClassicEncounterSearch;
 
   const checkLoginStatus = () => {
     axios
@@ -93,6 +94,7 @@ export default function FrontDesk() {
           showAlert={showAlert}
           setShowAlert={setShowAlert}
           showclassicsubmit={showclassicsubmit}
+          showClassicEncounterSearch={showClassicEncounterSearch}
         />
       </AuthContext.Provider>
     );
