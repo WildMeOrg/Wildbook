@@ -136,6 +136,14 @@ import org.json.JSONObject;
         this.opensearchUnindex();
     }
 
+    public void opensearchUpdate(final JSONObject updateData)
+    throws IOException {
+        if (updateData == null) return;
+        OpenSearch opensearch = new OpenSearch();
+
+        opensearch.indexUpdate(this.opensearchIndexName(), this.getId(), updateData);
+    }
+
     // should be overridden
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {

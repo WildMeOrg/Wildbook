@@ -466,6 +466,17 @@ public class OpenSearch {
         System.out.println("OpenSearch.indexClose() on " + indexName + ": " + rtn);
     }
 
+    // updateData is { field0: value0, field1: value1, ... }
+    public void indexUpdate(final String indexName, String id, JSONObject updateData)
+    throws IOException {
+        if ((id == null) || (updateData == null)) throw new IOException("missing id or updateData");
+        JSONObject doc = new JSONObject();
+        doc.put("doc", updateData);
+        Request updateRequest = new Request("POST", indexName + "/_update/" + id);
+        updateRequest.setJsonEntity(doc.toString());
+        getRestResponse(updateRequest);
+    }
+
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
     public static List<List<String> > resolveVersions(Map<String, Long> objVersions,
         Map<String, Long> indexVersions) {
