@@ -4119,7 +4119,8 @@ public class Encounter extends Base implements java.io.Serializable {
 
         Double dlat = this.getDecimalLatitudeAsDouble();
         Double dlon = this.getDecimalLongitudeAsDouble();
-        if ((dlat == null) || (dlon == null)) {
+        if ((dlat == null) || !Util.isValidDecimalLatitude(dlat) || (dlon == null) ||
+            !Util.isValidDecimalLongitude(dlon)) {
             jgen.writeNullField("locationGeoPoint");
         } else {
             jgen.writeObjectFieldStart("locationGeoPoint");
@@ -4300,7 +4301,13 @@ public class Encounter extends Base implements java.io.Serializable {
         int ct = 0;
         for (String id : needIndexing) {
             Encounter enc = myShepherd.getEncounter(id);
-            if (enc != null) os.index(indexName, enc);
+            try {
+                if (enc != null) os.index(indexName, enc);
+            } catch (Exception ex) {
+                System.out.println("Encounter.opensearchSyncIndex(): index failed " + enc + " => " +
+                    ex.toString());
+                ex.printStackTrace();
+            }
             if (ct % 500 == 0)
                 System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
                     rtn[0]);
