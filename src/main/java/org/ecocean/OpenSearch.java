@@ -581,13 +581,18 @@ public class OpenSearch {
         return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
     }
 
-    public static JSONObject querySanitize(JSONObject query, User user) {
+    public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd) {
         if ((query == null) || (user == null)) return query;
+        // do not add viewUsers query when we are admin, as user has no restriction
+        if (user.isAdmin(myShepherd)) return query;
+        JSONObject permClause = new JSONObject(
+            "{\"bool\": {\"should\": [{\"term\": {\"publiclyReadable\": true}}, {\"term\": {\"viewUsers\": \""
+            + user.getId() + "\"}} ] }}");
         JSONObject newQuery = new JSONObject(query.toString());
         try {
             JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
                 "filter");
-            filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
+            filter.put(permClause);
         } catch (Exception ex) {
             System.out.println("OpenSearch.querySanitize() failed to find filter element: " + ex);
         }
