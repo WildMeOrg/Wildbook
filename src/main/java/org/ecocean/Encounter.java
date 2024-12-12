@@ -3877,7 +3877,8 @@ public class Encounter extends Base implements java.io.Serializable {
     skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
  */
     public static void opensearchIndexPermissions() {
-// Util.mark("perm start"); long t = System.currentTimeMillis();
+        Util.mark("perm start");
+        long t = System.currentTimeMillis();
         System.out.println("opensearchIndexPermissions(): begin...");
         // no security => everything publiclyReadable - saves us work, no?
         if (!Collaboration.securityEnabled("context0")) return;
@@ -3907,12 +3908,13 @@ public class Encounter extends Base implements java.io.Serializable {
             " total users; " + nonAdminCt + " non-admin; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
         int encCount = 0;
+        org.json.JSONObject updateData = new org.json.JSONObject();
         Query query = myShepherd.getPM().newQuery(
             "SELECT FROM org.ecocean.Encounter WHERE (submitterID != null) && (submitterID != '') && (submitterID != 'N/A') && (submitterID != 'public')");
         Iterator<Encounter> it = myShepherd.getAllEncounters(query);
 // Util.mark("perm: start encs", t);
         while (it.hasNext()) {
-            Set<String> viewers = new HashSet<String>();
+            org.json.JSONArray viewUsers = new org.json.JSONArray();
             Encounter enc = (Encounter)it.next();
             String uid = usernameToId.get(enc.getSubmitterID());
             if (uid == null) {
@@ -3922,16 +3924,26 @@ public class Encounter extends Base implements java.io.Serializable {
                 continue;
             }
             encCount++;
-            viewers.add(uid);
-            if (!collab.containsKey(uid)) continue;
-            for (String colUsername : collab.get(uid)) {
-                String colId = usernameToId.get(colUsername);
-                if (colId == null) {
-                    System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                        colUsername + " in collaboration with userId=" + uid);
-                    continue;
+            if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", t);
+            viewUsers.put(uid);
+            if (collab.containsKey(uid)) {
+                for (String colUsername : collab.get(uid)) {
+                    String colId = usernameToId.get(colUsername);
+                    if (colId == null) {
+                        System.out.println(
+                            "opensearchIndexPermissions(): WARNING invalid username " +
+                            colUsername + " in collaboration with userId=" + uid);
+                        continue;
+                    }
+                    viewUsers.put(colId);
                 }
-                viewers.add(colId);
+            }
+            updateData.put("viewUsers", viewUsers);
+            try {
+                enc.opensearchUpdate(updateData);
+            } catch (Exception ex) {
+                // keeping this quiet cuz it can get noise while index builds
+                // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
             }
         }
 // Util.mark("perm: done encs", t);
