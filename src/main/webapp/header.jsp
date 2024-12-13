@@ -490,7 +490,7 @@ if(request.getUserPrincipal()!=null){
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
 <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncouners", context))) { %>
-                            <li><a href="<%=urlLoc %>/encounters/encounerSearch.jsp" ><%=props.getProperty("encounters")%></a></li>
+                            <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
 <% } %>
                           <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("sightings")%></a></li>

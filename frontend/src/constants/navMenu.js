@@ -179,7 +179,7 @@ const authenticatedMenu = (
               name: (
                 <FormattedMessage
                   id="MENU_SEARCH_ENCOUNTERS_CLASSIC"
-                  defaultMessage="Encounters(Classic)"
+                  defaultMessage="Encounters (Classic)"
                 />
               ),
               href: "/encounters/encounterSearch.jsp",

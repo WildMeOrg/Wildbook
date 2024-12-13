@@ -28,7 +28,7 @@ export default function FrontDesk() {
   const [loading, setLoading] = useState(true);
   const { data } = useGetSiteSettings();
   const showclassicsubmit = data?.showClassicSubmit;
-  const showClassicEncounterSearch = data?.showClassicEncounterSearch;
+  const showClassicEncounterSearch = data?.showClassicEncouners;
 
   const checkLoginStatus = () => {
     axios
