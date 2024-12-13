@@ -489,7 +489,7 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
-<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncouners", context))) { %>
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))) { %>
                             <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
 <% } %>
                           <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
