@@ -3953,7 +3953,7 @@ public class Encounter extends Base implements java.io.Serializable {
             }
             encCount++;
             if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
-            viewUsers.put(uid);
+            // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
             if (collab.containsKey(uid)) {
                 for (String colUsername : collab.get(uid)) {
                     String colId = usernameToId.get(colUsername);
@@ -3966,12 +3966,14 @@ public class Encounter extends Base implements java.io.Serializable {
                     viewUsers.put(colId);
                 }
             }
-            updateData.put("viewUsers", viewUsers);
-            try {
-                enc.opensearchUpdate(updateData);
-            } catch (Exception ex) {
-                // keeping this quiet cuz it can get noise while index builds
-                // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
+            if (viewUsers.length() > 0) {
+                updateData.put("viewUsers", viewUsers);
+                try {
+                    enc.opensearchUpdate(updateData);
+                } catch (Exception ex) {
+                    // keeping this quiet cuz it can get noise while index builds
+                    // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
+                }
             }
         }
 // Util.mark("perm: done encs", startT);
@@ -4038,6 +4040,8 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNullField("assignedUsername");
         } else {
             jgen.writeStringField("assignedUsername", this.submitterID);
+            User submitter = this.getSubmitterUser(myShepherd);
+            if (submitter != null) jgen.writeStringField("submitterUserId", submitter.getId());
         }
         jgen.writeArrayFieldStart("submitters");
         for (String id : this.getAllSubmitterIds(myShepherd)) {
@@ -4278,6 +4282,7 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("taxonomy", keywordType);
         map.put("occurrenceId", keywordType);
         map.put("state", keywordType);
+        map.put("submitterUserId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);

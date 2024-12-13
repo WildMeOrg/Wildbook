@@ -630,12 +630,23 @@ public class OpenSearch {
 
     public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd) {
         if ((query == null) || (user == null)) return query;
-        // do not add viewUsers query when we are admin, as user has no restriction
+        // do not add permissions clause when we are admin, as user has no restriction
         if (user.isAdmin(myShepherd)) return query;
         // if (!Collaboration.securityEnabled("context0")) TODO do we want to allow everything searchable?
-        JSONObject permClause = new JSONObject(
+/*
+        JSONObject permClause = new JSONObject("{\"bool\": {\"should\": [] }}");
             "{\"bool\": {\"should\": [{\"term\": {\"publiclyReadable\": true}}, {\"term\": {\"viewUsers\": \""
-            + user.getId() + "\"}} ] }}");
+ + user.getId() + "\"}} ] }}");
+ */
+        JSONArray shouldArr = new JSONArray();
+        shouldArr.put(new JSONObject("{\"term\": {\"publiclyReadable\": true}}"));
+        shouldArr.put(new JSONObject("{\"term\": {\"submitterUserId\": \"" + user.getId() +
+            "\"}}"));
+        shouldArr.put(new JSONObject("{\"term\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
+        JSONObject pshould = new JSONObject();
+        pshould.put("should", shouldArr);
+        JSONObject permClause = new JSONObject();
+        permClause.put("bool", pshould);
         JSONObject newQuery = new JSONObject(query.toString());
         try {
             JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
