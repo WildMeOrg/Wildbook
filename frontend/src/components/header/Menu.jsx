@@ -15,8 +15,6 @@ export default function Menu({
   const [dropdownShows, setDropdownShows] = useState({});
   const [dropdownBorder, setDropdownBorder] = useState("2px solid transparent");
 
-  console.log("showClassicEncounterSearch", showClassicEncounterSearch);
-
   const handleMouseEnterLeave = (id, isEnter) => {
     setDropdownShows((prev) => ({ ...prev, [id]: isEnter ? true : false }));
     setDropdownBorder((prev) => ({
