@@ -632,6 +632,7 @@ public class OpenSearch {
         if ((query == null) || (user == null)) return query;
         // do not add viewUsers query when we are admin, as user has no restriction
         if (user.isAdmin(myShepherd)) return query;
+        // if (!Collaboration.securityEnabled("context0")) TODO do we want to allow everything searchable?
         JSONObject permClause = new JSONObject(
             "{\"bool\": {\"should\": [{\"term\": {\"publiclyReadable\": true}}, {\"term\": {\"viewUsers\": \""
             + user.getId() + "\"}} ] }}");

@@ -3906,7 +3906,7 @@ public class Encounter extends Base implements java.io.Serializable {
  */
     public static void opensearchIndexPermissions() {
         Util.mark("perm start");
-        long t = System.currentTimeMillis();
+        long startT = System.currentTimeMillis();
         System.out.println("opensearchIndexPermissions(): begin...");
         // no security => everything publiclyReadable - saves us work, no?
         if (!Collaboration.securityEnabled("context0")) return;
@@ -3931,7 +3931,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
             }
         }
-// Util.mark("perm: user build done", t);
+// Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
             " total users; " + nonAdminCt + " non-admin; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
@@ -3940,7 +3940,7 @@ public class Encounter extends Base implements java.io.Serializable {
         Query query = myShepherd.getPM().newQuery(
             "SELECT FROM org.ecocean.Encounter WHERE (submitterID != null) && (submitterID != '') && (submitterID != 'N/A') && (submitterID != 'public')");
         Iterator<Encounter> it = myShepherd.getAllEncounters(query);
-// Util.mark("perm: start encs", t);
+// Util.mark("perm: start encs", startT);
         while (it.hasNext()) {
             org.json.JSONArray viewUsers = new org.json.JSONArray();
             Encounter enc = (Encounter)it.next();
@@ -3952,7 +3952,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 continue;
             }
             encCount++;
-            if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", t);
+            if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
             viewUsers.put(uid);
             if (collab.containsKey(uid)) {
                 for (String colUsername : collab.get(uid)) {
@@ -3974,9 +3974,10 @@ public class Encounter extends Base implements java.io.Serializable {
                 // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
             }
         }
-// Util.mark("perm: done encs", t);
+// Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
-        System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs]");
+        System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
+            Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
