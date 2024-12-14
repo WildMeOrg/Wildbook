@@ -57,7 +57,7 @@ public class Login extends ApiBase {
                 // user.setAcceptedUserAgreement(true);
                 // myShepherd.commitDBTransaction();
             } catch (Exception ex) {
-                myShepherd.rollbackDBTransaction();
+                myShepherd.rollbackAndClose();
                 results.put("error", "invalid_credentials");
             }
             if (user != null) {

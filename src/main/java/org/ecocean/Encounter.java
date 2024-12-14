@@ -8,6 +8,8 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
 import java.util.Collection;
@@ -153,7 +155,6 @@ public class Encounter extends Base implements java.io.Serializable {
 
     private static HashMap<String, ArrayList<Encounter> > _matchEncounterCache = new HashMap<String,
         ArrayList<Encounter> >();
-
 
     // An URL to a thumbnail image representing the encounter.
     private String dwcImageURL;
@@ -678,13 +679,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return (this.getNumRightSpots() > 0);
     }
 
-    
     // Sets the recorded length of the shark for this encounter.
     public void setSize(Double mysize) {
         if (mysize != null) { size = mysize; } else { size = null; }
     }
 
-    // @return the length of the shark 
+    // @return the length of the shark
     public double getSize() {
         return size.doubleValue();
     }
@@ -2450,9 +2450,10 @@ public class Encounter extends Base implements java.io.Serializable {
     public Set<String> getTissueSampleIDs() {
         Set<String> ids = new HashSet<String>();
 
-        if (tissueSamples != null) for (TissueSample ts : tissueSamples) {
-            ids.add(ts.getSampleID());
-        }
+        if (tissueSamples != null)
+            for (TissueSample ts : tissueSamples) {
+                ids.add(ts.getSampleID());
+            }
         return ids;
     }
 
@@ -3860,10 +3861,20 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
-        super.opensearchDocumentSerializer(jgen);
         Shepherd myShepherd = new Shepherd("context0");
+
         myShepherd.setAction("Encounter.opensearchDocumentSerializer");
         myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
 
         jgen.writeStringField("locationId", this.getLocationID());
         jgen.writeStringField("locationName", this.getLocationName());
@@ -4052,7 +4063,6 @@ public class Encounter extends Base implements java.io.Serializable {
                 encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
                 if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
             }
-
             jgen.writeArrayFieldStart("individualSocialUnits");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
@@ -4117,7 +4127,6 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
-        myShepherd.rollbackAndClose();
     }
 
     @Override public long getVersion() {
@@ -4335,9 +4344,13 @@ public class Encounter extends Base implements java.io.Serializable {
                 // this is throwaway read-only shepherd
                 Shepherd myShepherd = new Shepherd("context0");
                 myShepherd.setAction("Encounter.validateFieldValue");
+                boolean validTaxonomy = false;
                 myShepherd.beginDBTransaction();
-                boolean validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
-                myShepherd.rollbackDBTransaction();
+                try {
+                    validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
+                } catch (Exception e) { e.printStackTrace(); } finally {
+                    myShepherd.rollbackAndClose();
+                }
                 if (!validTaxonomy) {
                     error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                     error.put("value", returnValue);
@@ -4478,5 +4491,34 @@ public class Encounter extends Base implements java.io.Serializable {
         } finally {
             myShepherd.rollbackDBTransaction();
         }
+    }
+
+    public void opensearchIndexDeep()
+    throws IOException {
+        final String encId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
+                bgShepherd.beginDBTransaction();
+                try {
+                    Encounter enc = bgShepherd.getEncounter(encId);
+                    if (enc == null) {
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    enc.opensearchIndex();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                executor.shutdown();
+            }
+        };
+
+        executor.execute(rn);
     }
 }
