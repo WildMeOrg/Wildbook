@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React from "react";
 import { FormattedMessage } from "react-intl";
 
@@ -155,7 +154,7 @@ const authenticatedMenu = (username, showclassicsubmit) => [
             defaultMessage="My Projects"
           />
         ),
-        href: "/projects/projectList.jsp",
+        href: "/react/projects/overview",
       },
     ],
   },

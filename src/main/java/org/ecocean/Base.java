@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.jdo.Query;
 import org.ecocean.api.ApiException;
@@ -116,29 +116,25 @@ import org.json.JSONObject;
 
     public void opensearchUnindex()
     throws IOException {
-    	
-    	//unindexing should be non-blocking and backgrounded
-    	String opensearchIndexName=this.opensearchIndexName();
-        String objectId=this.getId();
-        
+        // unindexing should be non-blocking and backgrounded
+        String opensearchIndexName = this.opensearchIndexName();
+        String objectId = this.getId();
         ExecutorService executor = Executors.newFixedThreadPool(4);
         Runnable rn = new Runnable() {
-        	OpenSearch opensearch = new OpenSearch();
+            OpenSearch opensearch = new OpenSearch();
             public void run() {
                 try {
-                	opensearch.delete(opensearchIndexName, objectId);
+                    opensearch.delete(opensearchIndexName, objectId);
+                } catch (Exception e) {
+                    System.out.println("opensearchUnindex() backgrounding Object " + objectId +
+                        " hit an exception.");
+                    e.printStackTrace();
                 }
-                catch(Exception e) {
-                	System.out.println("opensearchUnindex() backgrounding Object " +
-                			objectId + " hit an exception.");
-                	e.printStackTrace();
-                }
-                
                 executor.shutdown();
             }
         };
-        executor.execute(rn);
 
+        executor.execute(rn);
     }
 
     public void opensearchUnindexQuiet() {

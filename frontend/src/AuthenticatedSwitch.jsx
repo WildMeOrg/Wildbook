@@ -13,11 +13,15 @@ import Citation from "./pages/Citation";
 import AdminLogs from "./pages/AdminLogs";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
+import ProjectList from "./pages/ProjectList";
 
-export default function AuthenticatedSwitch({ showAlert, setShowAlert, showclassicsubmit }) {
+export default function AuthenticatedSwitch({
+  showAlert,
+  setShowAlert,
+  showclassicsubmit,
+}) {
   const { data } = useGetMe();
   const username = data?.username;
-  // eslint-disable-next-line no-undef
   const avatar =
     data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
   const [header, setHeader] = React.useState(true);
@@ -55,6 +59,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert, showclass
         <Routes>
           <Route path="/profile" element={<Profile />} />
           <Route path="/citation" element={<Citation />} />
+          <Route path="/projects/overview" element={<ProjectList />} />
           <Route path="/home" element={<Home />} />
           <Route path="/report" element={<ReportEncounter />} />
           <Route path="/reportConfirm" element={<ReportConfirm />} />
