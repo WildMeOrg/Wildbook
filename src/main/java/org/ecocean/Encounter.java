@@ -4280,7 +4280,6 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
-
         // this gets set on specific single-encounter-only actions, when extra expense is okay
         // otherwise this will be computed by permissions backgrounding
         if (this.getOpensearchProcessPermissions()) {
