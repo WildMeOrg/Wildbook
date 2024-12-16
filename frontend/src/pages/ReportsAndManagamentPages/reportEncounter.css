@@ -1,0 +1,19 @@
+.ant-select-tree {
+}
+
+.ant-select-tree-list-holder-inner {
+    padding-bottom: 10px;
+}
+
+.modal-90w {
+    width: 75%;
+    height: 35%;
+    max-height: fit-content;
+    max-width: 90%;
+    margin: 0 auto;
+}
+
+.ant-select-tree-list-scrollbar-thumb{
+    /* background-color: aqua !important; */
+    z-index: 9999;
+}

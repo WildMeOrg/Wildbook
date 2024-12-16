@@ -7,7 +7,7 @@ export default function MainButton({
   disabled,
   color = "#000000",
   backgroundColor = "rgba(255, 255, 255, 0.01)",
-  borderColor = "#000000",
+  borderColor,
   shadowColor = "#000000",
   type = "button",
   className = "",
@@ -32,7 +32,9 @@ export default function MainButton({
       className={`d-flex justify-content-center align-items-center ${className}`}
       style={{
         backgroundColor: backgroundColor,
-        border: borderColor || `2px solid ${backgroundColor}`,
+        border: borderColor
+          ? `2px solid ${borderColor}`
+          : `2px solid ${backgroundColor}`,
         color: color,
         margin: "8px",
         borderRadius: "4.8px",

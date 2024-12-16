@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
@@ -56,12 +57,15 @@ public class OpenSearch {
     public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
-    public static String SEARCH_SCROLL_TIME = "10m";
-    public static String SEARCH_PIT_TIME = "10m";
+    public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
+        "10m");
+    public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
-    public static int BACKGROUND_DELAY_MINUTES = 20;
-    public static int BACKGROUND_SLICE_SIZE = 2500;
+    public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
+        "backgroundDelayMinutes", 20);
+    public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
+        2500);
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
 
     private int pitRetry = 0;
@@ -583,8 +587,8 @@ public class OpenSearch {
         return newQuery;
     }
 
-    // TODO right now this respects index timestamp and only indexes objects with versions > timestamp.
-    // probably want to make an option to index everything and ignore version/timestamp.
+    // TODO: right now this respects index timestamp and only indexes objects with versions > timestamp.
+    // want to make an option to index everything and ignore version/timestamp.
     public void indexAll(Shepherd myShepherd, Base obj)
     throws IOException {
         String clause = "";
@@ -669,5 +673,43 @@ public class OpenSearch {
         JSONObject scrubbed = new JSONObject();
         scrubbed.put("query", query.optJSONObject("query"));
         return scrubbed;
+    }
+
+    public static Object getConfigurationValue(String key, Object defaultValue) {
+        return getConfigurationValue("context0", key, defaultValue);
+    }
+
+    public static Object getConfigurationValue(String context, String key, Object defaultValue) {
+        if (key == null) return null;
+        Properties props = getConfigurationProperties(context);
+        if (props == null) {
+            System.out.println(
+                "OpenSearch.getConfigurationValue(): WARNING could not get properties file; using defaultValue ["
+                + defaultValue + "] for " + key);
+            return defaultValue;
+        }
+        String propValue = props.getProperty(key);
+        // TODO can we actually set a NULL from a properties file? if so: we need to return that as null here
+        if (propValue == null) return defaultValue;
+        if (defaultValue instanceof Integer) { // get int from string
+            try {
+                return Integer.parseInt(propValue);
+            } catch (NumberFormatException nfe) {
+                return defaultValue;
+            }
+        }
+        if (defaultValue instanceof Double) { // get int from string
+            try {
+                return Double.parseDouble(propValue);
+            } catch (NumberFormatException nfe) {
+                return defaultValue;
+            }
+        }
+        // guess we are just a string
+        return propValue;
+    }
+
+    static Properties getConfigurationProperties(String context) {
+        return ShepherdProperties.getProperties("OpenSearch.properties", "", context);
     }
 }

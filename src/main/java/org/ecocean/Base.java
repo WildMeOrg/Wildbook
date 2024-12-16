@@ -4,12 +4,17 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.jdo.Query;
+import org.ecocean.api.ApiException;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -111,9 +116,25 @@ import org.json.JSONObject;
 
     public void opensearchUnindex()
     throws IOException {
-        OpenSearch opensearch = new OpenSearch();
+        // unindexing should be non-blocking and backgrounded
+        String opensearchIndexName = this.opensearchIndexName();
+        String objectId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            OpenSearch opensearch = new OpenSearch();
+            public void run() {
+                try {
+                    opensearch.delete(opensearchIndexName, objectId);
+                } catch (Exception e) {
+                    System.out.println("opensearchUnindex() backgrounding Object " + objectId +
+                        " hit an exception.");
+                    e.printStackTrace();
+                }
+                executor.shutdown();
+            }
+        };
 
-        opensearch.delete(this.opensearchIndexName(), this);
+        executor.execute(rn);
     }
 
     public void opensearchUnindexQuiet() {
@@ -133,12 +154,8 @@ import org.json.JSONObject;
     }
 
     // should be overridden
-    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
     throws IOException, JsonProcessingException {
-        Shepherd myShepherd = new Shepherd("context0");
-
-        myShepherd.setAction("BaseSerializer");
-        myShepherd.beginDBTransaction();
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
 
@@ -155,8 +172,19 @@ import org.json.JSONObject;
             jgen.writeString(id);
         }
         jgen.writeEndArray();
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("BaseSerializer");
+        myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
@@ -186,6 +214,17 @@ import org.json.JSONObject;
         }
         query.closeAll();
         return rtn;
+    }
+
+    public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
+    throws ApiException {
+        throw new ApiException("not yet supported");
+    }
+
+    // TODO should this be an abstract? will we need some base stuff?
+    public static Object validateFieldValue(String fieldName, JSONObject data)
+    throws ApiException {
+        return null;
     }
 
 /*

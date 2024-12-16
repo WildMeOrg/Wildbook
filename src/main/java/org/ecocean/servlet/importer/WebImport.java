@@ -179,13 +179,6 @@ public class WebImport extends HttpServlet {
                 }
                 if (verbose) {
                     feedback.printRow();
-                    // out.println("<td> Enc "+getEncounterDisplayString(enc)+"</td>"
-                    // +"<td> individual "+mark+"</td>"
-                    // +"<td> occurrence "+occ+"</td>"
-                    // +"<td> dateInMillis "+enc.getDateInMilliseconds()+"</td>"
-                    // +"<td> sex "+enc.getSex()+"</td>"
-                    // +"<td> lifeStage "+enc.getLifeStage()+"</td>"
-                    // out.println("</tr>");
                 }
             } catch (Exception e) {
                 out.println("Encountered an error while importing the file.");
@@ -211,16 +204,6 @@ public class WebImport extends HttpServlet {
             out.println("<li>" + heading + "</li>");
         }
         out.println("</ul>");
-
-        // List<String> usedColumns = new ArrayList<String>();
-        // for (String colName: colIndexMap.keySet()) {
-        // if (!unusedColumns.contains(colName)) usedColumns.add(colName);
-        // }
-        // out.println("<h2><em>USED</em> Column headings ("+usedColumns.size()+"):</h2><ul>");
-        // for (String heading: usedColumns) {
-        // out.println("<li>"+heading+"</li>");
-        // }
-        // out.println("</ul>");
 
         feedback.printMissingPhotos();
 
@@ -665,14 +648,6 @@ public class WebImport extends HttpServlet {
         ArrayList<Keyword> kws = getKeywordsForAsset(row, i);
         ma.setKeywords(kws);
 
-        // Keyword keyword = null;
-        // String keywordI = getString(row, "Encounter.keyword"+i);
-        // if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
-        // String keywordOIKey = "Encounter.keyword0"+i;
-        // String keywordOI = getString(row, keywordOIKey);
-        // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
-        // if (keyword!=null) ma.addKeyword(keyword);
-
         return ma;
     }
 
@@ -951,7 +926,7 @@ public class WebImport extends HttpServlet {
         String str = getStringNoLog(row, i);
         System.out.println("about to logParseValue on a string, row " + i + ", feedback " +
             feedback);
-        feedback.logParseValue(i, str, row); // todo: figure out why this line breaks the import
+        feedback.logParseValue(i, str, row); 
         System.out.println("done with logParseValue on a string");
         return str;
     }
@@ -1119,22 +1094,6 @@ public class WebImport extends HttpServlet {
     private AssetStore getAssetStore(Shepherd myShepherd) {
         // return AssetStore.getDefault(myShepherd);
         return AssetStore.get(myShepherd, 5);
-
-        // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
-        //// TODO: fix this for flukebook
-        //// String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-        // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
-
-        // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
-
-        // if (committing) {
-        // myShepherd.beginDBTransaction();
-        // myShepherd.getPM().makePersistent(as);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
-        // }
-
-        // return as;
     }
 
     private class TabularFeedback {
