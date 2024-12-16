@@ -624,16 +624,15 @@ public class OpenSearch {
         return SystemValue.getLong(myShepherd, PERMISSIONS_LAST_RUN_KEY);
     }
 
-    // FIXME: when we have Boolean support in SystemValue, modify these!
     public static void setPermissionsNeeded(Shepherd myShepherd, boolean value) {
-        SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, String.valueOf(value));
+        SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, value);
     }
 
-    // TODO see above
     public static boolean getPermissionsNeeded(Shepherd myShepherd) {
-        String value = SystemValue.getString(myShepherd, PERMISSIONS_NEEDED_KEY);
+        Boolean value = SystemValue.getBoolean(myShepherd, PERMISSIONS_NEEDED_KEY);
 
-        return "true".equals(value);
+        if (value == null) return false;
+        return value;
     }
 
     public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd)
