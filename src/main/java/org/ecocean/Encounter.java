@@ -4293,7 +4293,6 @@ public class Encounter extends Base implements java.io.Serializable {
             }
             jgen.writeEndArray();
         }
-        myShepherd.rollbackAndClose();
     }
 
     @Override public long getVersion() {

@@ -77,7 +77,7 @@ import org.json.JSONObject;
      */
     public abstract void addComments(final String newComments);
 
-    // issue 785 makes this no longer necessary; they overrides are left on Occurrence and MarkedIndividual
+    // issue 785 makes this no longer necessary; the overrides are left on Occurrence and MarkedIndividual
     // for now as reference -- but are not called. they will need to be addressed when these classes are searchable
     // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
     // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
