@@ -61,7 +61,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
             String indexName = searchQuery.optString("indexName", null);
             if (indexName == null) return failed;
             searchQuery = OpenSearch.queryScrubStored(searchQuery);
-            JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user, myShepherd);
+            JSONObject sanitized = null;
+            try {
+                sanitized = OpenSearch.querySanitize(searchQuery, user, myShepherd);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                // this should be unlikely, so fail hard
+                throw new RuntimeException("query failed");
+            }
             OpenSearch os = new OpenSearch();
             String sort = request.getParameter("sort");
             String sortOrder = request.getParameter("sortOrder");
@@ -1542,7 +1549,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 return new EncounterQueryResult(rEncounters, "searchQuery has no indexName",
                         "OpenSearch id " + searchQueryId);
             searchQuery = OpenSearch.queryScrubStored(searchQuery);
-            JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user, myShepherd);
+            JSONObject sanitized = null;
+            try {
+                sanitized = OpenSearch.querySanitize(searchQuery, user, myShepherd);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                // this should be unlikely, so fail hard
+                throw new RuntimeException("query failed");
+            }
             OpenSearch os = new OpenSearch();
             String sort = request.getParameter("sort");
             String sortOrder = request.getParameter("sortOrder");
