@@ -4359,11 +4359,18 @@ public class Encounter extends Base implements java.io.Serializable {
     public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
     throws IOException {
         int[] rtn = new int[2];
+
+        if (OpenSearch.indexingActive()) {
+            System.out.println("Encounter.opensearchSyncIndex() skipped due to indexingActive()");
+            rtn[0] = -1;
+            rtn[1] = -1;
+            return rtn;
+        }
+        OpenSearch.setActiveIndexingBackground();
         String indexName = "encounter";
         OpenSearch os = new OpenSearch();
         List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
             os.getAllVersions(indexName));
-
         if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
         List<String> needIndexing = changes.get(0);
         List<String> needRemoval = changes.get(1);
@@ -4400,6 +4407,7 @@ public class Encounter extends Base implements java.io.Serializable {
             ct++;
         }
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
+        OpenSearch.unsetActiveIndexingBackground();
         return rtn;
     }
 

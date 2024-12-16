@@ -73,6 +73,8 @@ public class OpenSearch {
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
     public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
+    static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
+    static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
 
     private int pitRetry = 0;
 
@@ -666,6 +668,82 @@ public class OpenSearch {
             throw new IOException("unable to find placement for permissions clause in query");
         }
         return newQuery;
+    }
+
+    public static boolean indexingActive() {
+        return indexingActiveBackground() || indexingActiveForeground();
+    }
+
+    public static boolean indexingActiveForeground() {
+        return getActive(ACTIVE_TYPE_FOREGROUND);
+    }
+
+    public static void setActiveIndexingForeground() {
+        setActive(ACTIVE_TYPE_FOREGROUND);
+    }
+
+    public static void unsetActiveIndexingForeground() {
+        unsetActive(ACTIVE_TYPE_FOREGROUND);
+    }
+
+    public static boolean indexingActiveBackground() {
+        return getActive(ACTIVE_TYPE_BACKGROUND);
+    }
+
+    public static void setActiveIndexingBackground() {
+        setActive(ACTIVE_TYPE_BACKGROUND);
+    }
+
+    public static void unsetActiveIndexingBackground() {
+        unsetActive(ACTIVE_TYPE_BACKGROUND);
+    }
+
+    static void setActive(String type) {
+        // we want our own shepherd as the main shepherd may not persist this til later
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.setActive");
+        myShepherd.beginDBTransaction();
+        try {
+            SystemValue.set(myShepherd, type, true);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    static void unsetActive(String type) {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.unsetActive");
+        myShepherd.beginDBTransaction();
+        try {
+            SystemValue.set(myShepherd, type, false);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    // TODO probably should get in some sort of expire/stale check here
+    static boolean getActive(String type) {
+        Boolean active = false;
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.getActive");
+        myShepherd.beginDBTransaction();
+        try {
+            active = SystemValue.getBoolean(myShepherd, type);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        myShepherd.rollbackAndClose();
+        if (active == null) return false;
+        return active;
     }
 
     // TODO: right now this respects index timestamp and only indexes objects with versions > timestamp.
