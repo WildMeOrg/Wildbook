@@ -95,7 +95,7 @@ public class Occurrence extends Base implements java.io.Serializable {
     private Integer numCalves;
     private String observer;
 
-    private String submitterID; 
+    private String submitterID;
     private List<User> submitters;
     private List<User> informOthers;
 
@@ -383,12 +383,12 @@ public class Occurrence extends Base implements java.io.Serializable {
         return names;
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setID(String id) {
         occurrenceID = id;
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public String getID() {
         return occurrenceID;
     }
@@ -401,7 +401,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         return getWebUrl(getOccurrenceID(), req);
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public String getOccurrenceID() {
         return occurrenceID;
     }
@@ -416,7 +416,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         occurrenceID = id;
     }
 
-    //TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
+    // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setOccurrenceID(String id) {
         occurrenceID = id;
     }
@@ -815,7 +815,8 @@ public class Occurrence extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessOccurrence(this, request);
     }
 
-    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    // see note on Base class
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
@@ -827,7 +828,8 @@ public class Occurrence extends Base implements java.io.Serializable {
         return ids;
     }
 
-    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+    // see note on Base class
+    public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {

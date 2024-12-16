@@ -2018,7 +2018,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
     }
 
-    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    // see note on Base class
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
@@ -2027,7 +2028,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return ids;
     }
 
-    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+    // see note on Base class
+    public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {

@@ -117,6 +117,7 @@ public class Encounter extends Base implements java.io.Serializable {
     private Double immunoglobin;
     private Boolean sampleTakenForDiet;
     private Boolean injured;
+    private boolean opensearchProcessPermissions = false;
 
     private ArrayList<Observation> observations = new ArrayList<Observation>();
 
@@ -3140,17 +3141,23 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
-    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    // new logic means we only need users who are in collab with submitting user
+    // and if public, we dont need to do this at all
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
-        for (User user : myShepherd.getUsersWithUsername()) {
-            if ((user.getId() != null) && this.canUserView(user, myShepherd))
-                ids.add(user.getId());
+        if (this.isPubliclyReadable()) return ids;
+        List<Collaboration> collabs = Collaboration.collaborationsForUser(myShepherd,
+            this.getSubmitterID());
+        for (Collaboration collab : collabs) {
+            User user = myShepherd.getUser(collab.getOtherUsername(this.getSubmitterID()));
+            if (user != null) ids.add(user.getId());
         }
         return ids;
     }
 
-    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+/*
+    public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getUsersWithUsername()) {
@@ -3158,7 +3165,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         return ids;
     }
-
+ */
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         boolean fullAccess = this.canUserAccess(request);
@@ -3859,6 +3866,14 @@ public class Encounter extends Base implements java.io.Serializable {
         return User.isUsernameAnonymous(this.submitterID);
     }
 
+    public boolean getOpensearchProcessPermissions() {
+        return opensearchProcessPermissions;
+    }
+
+    public void setOpensearchProcessPermissions(boolean value) {
+        opensearchProcessPermissions = value;
+    }
+
     // wrapper for below, that checks if we really need to be run
     public static void opensearchIndexPermissionsBackground(Shepherd myShepherd) {
         boolean runIt = false;
@@ -4253,6 +4268,19 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
+        // this gets set on specific single-encounter-only actions, when extra expense is okay
+        // otherwise this will be computed by permissions backgrounding
+        if (this.getOpensearchProcessPermissions()) {
+            System.out.println("opensearchProcessPermissions=true for " + this.getId() +
+                "; indexing permissions");
+            jgen.writeFieldName("viewUsers");
+            jgen.writeStartArray();
+            for (String id : this.userIdsWithViewAccess(myShepherd)) {
+                System.out.println("opensearch whhhh: " + id);
+                jgen.writeString(id);
+            }
+            jgen.writeEndArray();
+        }
         myShepherd.rollbackAndClose();
     }
 

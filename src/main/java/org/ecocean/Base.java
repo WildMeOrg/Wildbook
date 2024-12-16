@@ -74,8 +74,10 @@ import org.json.JSONObject;
      */
     public abstract void addComments(final String newComments);
 
-    public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
-    public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
+    // issue 785 makes this no longer necessary; they overrides are left on Occurrence and MarkedIndividual
+    // for now as reference -- but are not called. they will need to be addressed when these classes are searchable
+    // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
+    // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
 
     public abstract String opensearchIndexName();
 
@@ -153,6 +155,7 @@ import org.json.JSONObject;
         myShepherd.beginDBTransaction();
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
+        jgen.writeNumberField("indexTimestamp", System.currentTimeMillis());
 
 /*
         these are no longer computed in the general opensearchIndex() call.
@@ -183,6 +186,11 @@ import org.json.JSONObject;
         JSONObject res = opensearch.queryPit(indexname, query, numFrom, pageSize, sort, sortOrder);
 
         return res;
+    }
+
+    // this is so we can call it on Base obj, but really is only needed by [overridden by] Encounter (currently)
+    public boolean getOpensearchProcessPermissions() {
+        return false;
     }
 
     public static Map<String, Long> getAllVersions(Shepherd myShepherd, String sql) {
