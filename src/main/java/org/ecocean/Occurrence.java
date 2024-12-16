@@ -3,6 +3,8 @@ package org.ecocean;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1356,11 +1358,50 @@ public class Occurrence extends Base implements java.io.Serializable {
     // has to be handled at the point of removal, e.g. OccurrenceRemoveEncounter servlet
     public void opensearchIndexDeep()
     throws IOException {
-        if (this.encounters != null)
-            for (Encounter enc : this.encounters) {
-                enc.opensearchIndex();
-            }
         this.opensearchIndex();
+
+        final String occurId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("Occurrence.opensearchIndexDeep_" + occurId);
+                bgShepherd.beginDBTransaction();
+                try {
+                    Occurrence occur = bgShepherd.getOccurrence(occurId);
+                    if ((occur == null) || (occur.getEncounters() == null)) {
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    int total = occur.getNumberEncounters();
+                    int ct = 0;
+                    for (Encounter enc : occur.getEncounters()) {
+                        ct++;
+                        System.out.println("opensearchIndexDeep() background indexing " +
+                            enc.getId() + " via " + occurId + " [" + ct + "/" + total + "]");
+                        try {
+                            enc.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                enc.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("opensearchIndexDeep() backgrounding Occurrence " + occurId +
+                        " hit an exception.");
+                    e.printStackTrace();
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                System.out.println("opensearchIndexDeep() backgrounding Occurrence " + occurId +
+                    " finished.");
+                executor.shutdown();
+            }
+        };
+
+        executor.execute(rn);
     }
 
     @Override public long getVersion() {

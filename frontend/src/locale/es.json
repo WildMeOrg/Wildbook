@@ -314,7 +314,17 @@
     "INVALID_LAT": "La latitud debe estar entre -90 y 90",
     "INVALID_LONG": "La longitud debe estar entre -180 y 180",
     "BEERROR_REQUIRED" : "No se ha podido enviar; falta el campo obligatorio: ",
+    "SUBMISSION_FAILED" : "No se pudo enviar; inténtalo de nuevo.",
     "BEERROR_INVALID" : "No se pudo enviar; el formato del campo no era válido: ",
     "BEERROR_UNKNOWN" : "No se pudo enviar debido a un error desconocido.",
-    "ANON_UPLOAD_IMAGE_WARNING": "No se pueden subir imágenes hasta que se complete el captcha."
+    "ANON_UPLOAD_IMAGE_WARNING": "No se pueden subir imágenes hasta que se complete el captcha.",
+    "PROJECTS_FOR" : "Proyectos para",
+    "NEW_PROJECT" : "Nuevo Proyecto",
+    "PROJECTS_ID" : "Identificación de proyectos",
+    "PERCENTAGE_IDENTIFIED" : "Porcentaje identificado",
+    "TOTAL" : "Total",
+    "ITEMS" : "elementos",
+    "INPUT_PAGE_ALERT" : "Por favor, introduzca un número de página válido entre 1 y {totalPages}.",
+    "NO_PROJECTS" : "Sin proyectos",
+    "PROJECT_LIST_TITLE": "Wildbook - Mis Proyectos"
 }

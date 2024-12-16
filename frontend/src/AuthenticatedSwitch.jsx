@@ -13,6 +13,7 @@ import Citation from "./pages/Citation";
 import AdminLogs from "./pages/AdminLogs";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
+import ProjectList from "./pages/ProjectList";
 
 export default function AuthenticatedSwitch({
   showAlert,
@@ -58,6 +59,7 @@ export default function AuthenticatedSwitch({
         <Routes>
           <Route path="/profile" element={<Profile />} />
           <Route path="/citation" element={<Citation />} />
+          <Route path="/projects/overview" element={<ProjectList />} />
           <Route path="/home" element={<Home />} />
           <Route path="/report" element={<ReportEncounter />} />
           <Route path="/reportConfirm" element={<ReportConfirm />} />
