@@ -315,6 +315,7 @@
     "INVALID_LAT": "Latitude must be between -90 and 90",
     "INVALID_LONG": "Longitude must be between -180 and 180",
     "BEERROR_REQUIRED" : "Could not submit; missing required field: ",
+    "SUBMISSION_FAILED" : "Submission Failed",
     "BEERROR_INVALID" : "Could not submit; field format was invalid: ",
     "BEERROR_UNKNOWN" : "Could not submit due to unknown error.",
     "ANON_UPLOAD_IMAGE_WARNING": "Images cannot be uploaded until captcha is complete.",

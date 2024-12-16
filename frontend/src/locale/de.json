@@ -315,6 +315,7 @@
     "INVALID_LAT": "Der Breitengrad muss zwischen -90 und 90 liegen",
     "INVALID_LONG": "Der Längengrad muss zwischen -180 und 180 liegen",
     "BEERROR_REQUIRED" : "Konnte nicht übermittelt werden; erforderliches Feld fehlt: ",
+    "SUBMISSION_FAILED": "Einreichung fehlgeschlagen",
     "BEERROR_INVALID" : "Konnte nicht übermittelt werden; Feldformat war ungültig: ",
     "BEERROR_UNKNOWN" : "Konnte aufgrund eines unbekannten Fehlers nicht abgeschickt werden.",
     "ANON_UPLOAD_IMAGE_WARNING": "Bilder können erst hochgeladen werden, wenn das Captcha abgeschlossen ist.",
