@@ -66,8 +66,10 @@ public class OpenSearch {
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
         2500);
-    public static int BACKGROUND_PERMISSIONS_MINUTES = 10; // how often it checks if NEED to run
-    public static int BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES = 45; // how often it forces a run
+    public static int BACKGROUND_PERMISSIONS_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsMinutes", 10);
+    public static int BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsMaxForceMinutes", 45);
     public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
     public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
