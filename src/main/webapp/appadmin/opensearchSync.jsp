@@ -9,6 +9,7 @@ org.ecocean.*
 <%
 System.out.println("opensearchSync.jsp begun...");
 long timer = System.currentTimeMillis();
+int numProcessed = -1;
 Util.mark("opensearchSync begin");
 
 boolean resetIndex = Util.requestParameterSet(request.getParameter("resetIndex"));
@@ -73,6 +74,7 @@ if (forceNum > 0) {
             //System.out.println(enc.getId() + ": " + enc.getVersion());
             try {
                 enc.opensearchIndex();
+                numProcessed++;
             } catch (Exception ex) {
                 System.out.println("opensearchSync.jsp: exception failure on " + enc);
                 ex.printStackTrace();
@@ -91,7 +93,14 @@ myShepherd.rollbackAndClose();
 
 OpenSearch.unsetActiveIndexingForeground();
 os.deleteAllPits();
-System.out.println("opensearchSync.jsp finished");
+
+double totalMin = System.currentTimeMillis() - timer;
+totalMin = totalMin / 60000D;
+if (numProcessed > 0) {
+    System.out.println("opensearchSync.jsp finished: " + numProcessed + " in " + String.format("%.2f", totalMin) + " min (" + String.format("%.2f", numProcessed / totalMin) + " per min)");
+} else {
+    System.out.println("opensearchSync.jsp finished: " + totalMin + " min");
+}
 Util.mark("opensearchSync ended", timer);
 
 %>
