@@ -628,6 +628,21 @@ public class OpenSearch {
         SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, value);
     }
 
+    public static void setPermissionsNeeded(boolean value) {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.setPermissionsNeeded");
+        myShepherd.beginDBTransaction();
+        try {
+            setPermissionsNeeded(myShepherd, value);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
     public static boolean getPermissionsNeeded(Shepherd myShepherd) {
         Boolean value = SystemValue.getBoolean(myShepherd, PERMISSIONS_NEEDED_KEY);
 
