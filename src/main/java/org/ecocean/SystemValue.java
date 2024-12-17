@@ -57,7 +57,11 @@ public class SystemValue implements java.io.Serializable {
 
     public void store(Shepherd myShepherd) {
         this.version = System.currentTimeMillis();
-        myShepherd.getPM().makePersistent(this);
+        try {
+            myShepherd.getPM().makePersistent(this);
+        } catch (Exception ex) {
+            System.out.println("SystemValue.store() failed to store " + this + ": " + ex);
+        }
     }
 
     private static SystemValue _set(Shepherd myShepherd, String key, String type, Object val) {
