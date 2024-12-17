@@ -14,17 +14,17 @@ Util.mark("opensearchSync begin");
 
 boolean resetIndex = Util.requestParameterSet(request.getParameter("resetIndex"));
 
-String fstr = request.getParameter("forceNum");
-int forceNum = -1;
+String fstr = request.getParameter("endNum");
+int endNum = -1;
 if ("".equals(fstr)) {
-    forceNum = 500;
+    endNum = 500;
 } else if (fstr != null) {
     try {
-        forceNum = Integer.parseInt(fstr);
+        endNum = Integer.parseInt(fstr);
     } catch (Exception ex) {}
 }
 
-if (forceNum == 0) forceNum = 999999;
+if (endNum == 0) endNum = 999999;
 
 String sstr = request.getParameter("startNum");
 int startNum = -1;
@@ -59,8 +59,12 @@ if (!os.existsIndex("encounter")) {
 }
 
 
-if (forceNum > 0) {
-    out.println("<p>indexing " + forceNum + " Encounters</p>");
+if (endNum > 0) {
+    if (startNum > 0) {
+        out.println("<p>indexing " + startNum + "-" + endNum + " Encounters</p>");
+    } else {
+        out.println("<p>indexing through " + endNum + " Encounters</p>");
+    }
     int ct = 0;
     Iterator itr = myShepherd.getAllEncounters("catalogNumber");
     while (itr.hasNext()) {
@@ -80,7 +84,7 @@ if (forceNum > 0) {
                 ex.printStackTrace();
             }
             if (ct % 100 == 0) System.out.println("opensearchSync.jsp: count " + ct);
-            if (ct > forceNum) break;
+            if (ct > endNum) break;
     }
 
 } else {
