@@ -3927,6 +3927,7 @@ public class Encounter extends Base implements java.io.Serializable {
         System.out.println("opensearchIndexPermissions(): begin...");
         // no security => everything publiclyReadable - saves us work, no?
         if (!Collaboration.securityEnabled("context0")) return;
+        OpenSearch os = new OpenSearch();
         Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
         Map<String, String> usernameToId = new HashMap<String, String>();
         Shepherd myShepherd = new Shepherd("context0");
@@ -3948,24 +3949,29 @@ public class Encounter extends Base implements java.io.Serializable {
                 collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
             }
         }
-// Util.mark("perm: user build done", startT);
+        Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
             " total users; " + nonAdminCt + " non-admin; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
         int encCount = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
-        Query query = myShepherd.getPM().newQuery(
-            "SELECT FROM org.ecocean.Encounter WHERE (submitterID != null) && (submitterID != '') && (submitterID != 'N/A') && (submitterID != 'public')");
-        Iterator<Encounter> it = myShepherd.getAllEncounters(query);
-// Util.mark("perm: start encs", startT);
+        // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
+        String sql =
+            "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        Util.mark("perm: start encs, size=" + results.size(), startT);
         while (it.hasNext()) {
+            Object[] row = (Object[])it.next();
+            String id = (String)row[0];
+            String submitterId = (String)row[1];
             org.json.JSONArray viewUsers = new org.json.JSONArray();
-            Encounter enc = (Encounter)it.next();
-            String uid = usernameToId.get(enc.getSubmitterID());
+            String uid = usernameToId.get(submitterId);
             if (uid == null) {
                 // see issue 939 for example :(
                 System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                    enc.getSubmitterID() + " on enc " + enc.getId());
+                    submitterId + " on enc " + id);
                 continue;
             }
             encCount++;
@@ -3986,14 +3992,15 @@ public class Encounter extends Base implements java.io.Serializable {
             if (viewUsers.length() > 0) {
                 updateData.put("viewUsers", viewUsers);
                 try {
-                    enc.opensearchUpdate(updateData);
+                    os.indexUpdate("encounter", id, updateData);
                 } catch (Exception ex) {
                     // keeping this quiet cuz it can get noise while index builds
                     // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
                 }
             }
         }
-// Util.mark("perm: done encs", startT);
+        q.closeAll();
+        Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
         System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
             Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
