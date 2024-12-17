@@ -10,6 +10,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <datanucleus.version>4.2.0-release</datanucleus.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
@@ -45,7 +46,6 @@
       </releases>
     </repository>
   </repositories>
-
 
   <dependencies>
     <dependency>
@@ -123,7 +123,6 @@
       <artifactId>shiro-web</artifactId>
       <version>1.13.0</version>
     </dependency>
-
 
     <dependency>
       <groupId>org.scribe</groupId>
@@ -248,9 +247,7 @@
     <dependency>
       <groupId>org.opensearch.client</groupId>
       <artifactId>opensearch-java</artifactId>
-      <!--
-      <version>2.9.1</version>
--->
+      <!-- <version>2.9.1</version> -->
       <version>2.10.3</version>
     </dependency>
 
@@ -412,7 +409,6 @@
       <version>1.4.01</version>
     </dependency>
 
-
     <dependency>
       <groupId>jstl</groupId>
       <artifactId>jstl</artifactId>
@@ -548,6 +544,13 @@
 
   </dependencies>
 
+  <scm>
+    <connection>scm:git:${project.scm.url}</connection>
+    <developerConnection>scm:git:${project.scm.url}</developerConnection>
+    <url>git@github.com:WildMeOrg/Wildbook.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <build>
     <resources>
       <resource>
@@ -558,12 +561,20 @@
 
     <plugins>
       <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>${maven-release-plugin.version}</version>
+        <configuration>
+          <scmCommentPrefix>[ci skip]</scmCommentPrefix>
+        </configuration>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.1</version>
       </plugin>
 
-<plugin>
+      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.19</version>
         <dependencies>
@@ -573,7 +584,7 @@
                 <version>1.0.0</version>
             </dependency>
         </dependencies>
-    </plugin>
+      </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -634,26 +645,26 @@
         </executions>
       </plugin>
 
-    <plugin>
-      <groupId>org.jacoco</groupId>
-      <artifactId>jacoco-maven-plugin</artifactId>
-      <version>0.8.8</version>
-      <executions>
-        <execution>
-          <goals>
-            <goal>prepare-agent</goal>
-          </goals>
-        </execution>
-        <execution>
-          <id>report</id>
-          <phase>test</phase>
-          <goals>
-            <goal>report</goal>
-          </goals>
-        </execution>
-      </executions>
-    </plugin>
-      
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.8</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.tomcat.maven</groupId>
         <artifactId>tomcat7-maven-plugin</artifactId>
