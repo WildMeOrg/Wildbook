@@ -5,7 +5,7 @@ import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import Description from "../Form/Description";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
-import _ from "lodash";
+import { repeat } from "lodash-es";
 import { useIntl } from "react-intl";
 
 export default function LocationFilterMap({ onChange, data }) {
@@ -67,7 +67,7 @@ export default function LocationFilterMap({ onChange, data }) {
     flattenedData.map((location) => {
       return {
         value: location.id,
-        label: _.repeat("-", location.depth) + " " + location.name,
+        label: repeat("-", location.depth) + " " + location.name,
       };
     }) || [];
   const [tempBounds, setTempBounds] = useState(bounds);

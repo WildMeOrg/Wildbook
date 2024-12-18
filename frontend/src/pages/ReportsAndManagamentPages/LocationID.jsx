@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import { Form, Alert } from "react-bootstrap";
 import { observer } from "mobx-react-lite";
-import { TreeSelect, Tag } from "antd";
+import { TreeSelect, Tag } from "antd/es";
 import MainButton from "../../components/MainButton";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { LocationFilterByMap } from "./LocationFilterByMap";

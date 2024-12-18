@@ -8,7 +8,7 @@ import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
 import axios from "axios";
-import { get } from "lodash";
+import { get } from "lodash-es";
 import ThemeColorContext from "../ThemeColorProvider";
 
 const columns = [
