@@ -228,7 +228,7 @@ export default function EncounterSearch() {
     <div
       className="encounter-search container-fluid"
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${process.env.PUBLIC_URL}/images/encounter_search_background.png')`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${process.env.PUBLIC_URL}/images/encounter_search_background.webp')`,
         backgroundSize: "cover",
         minHeight: "700px",
         width: "100%",

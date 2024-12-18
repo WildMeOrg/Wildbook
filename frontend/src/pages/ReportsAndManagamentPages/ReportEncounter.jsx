@@ -410,7 +410,7 @@ export const ReportEncounter = observer(() => {
           <div
             className="p-4 mb-4"
             style={{
-              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),url(${process.env.PUBLIC_URL}/images/report_an_encounter.png)`,
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),url(${process.env.PUBLIC_URL}/images/report_an_encounter.webp)`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               borderRadius: "25px",
