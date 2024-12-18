@@ -3962,8 +3962,9 @@ public class Encounter extends Base implements java.io.Serializable {
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
             "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
+        Query q = null;
         try {
-            Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
             List results = (List)q.execute();
             Iterator it = results.iterator();
             Util.mark("perm: start encs, size=" + results.size(), startT);
@@ -4008,6 +4009,8 @@ public class Encounter extends Base implements java.io.Serializable {
         } catch (Exception ex) {
             System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
             ex.printStackTrace();
+        } finally {
+            if (q != null) q.closeAll();
         }
         Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
