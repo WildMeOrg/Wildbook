@@ -66,6 +66,12 @@ public class OpenSearch {
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
         2500);
+    public static int BACKGROUND_PERMISSIONS_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsMinutes", 10);
+    public static int BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsMaxForceMinutes", 45);
+    public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
+    public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
     static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
     static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
@@ -136,25 +142,45 @@ public class OpenSearch {
 // http://localhost:9200/_cat/indices?v
 
     public static void backgroundStartup(String context) {
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(2);
-        final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-            public void run() {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("OpenSearch.background");
-                try {
-                    myShepherd.beginDBTransaction();
-                    System.out.println("OpenSearch background running...");
-                    Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
-                    System.out.println("OpenSearch background finished.");
-                    myShepherd.rollbackAndClose();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    myShepherd.rollbackAndClose();
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(8);
+        final ScheduledFuture schedFutureIndexing = schedExec.scheduleWithFixedDelay(
+            new Runnable() {
+                public void run() {
+                    Shepherd myShepherd = new Shepherd(context);
+                    myShepherd.setAction("OpenSearch.backgroundIndexing");
+                    try {
+                        myShepherd.beginDBTransaction();
+                        System.out.println("OpenSearch background indexing running...");
+                        Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
+                        System.out.println("OpenSearch background indexing finished.");
+                        myShepherd.rollbackAndClose();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        myShepherd.rollbackAndClose();
+                    }
                 }
-            }
-        }, 2, // initial delay
+            }, 2, // initial delay
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
             TimeUnit.MINUTES); // unit of delays above
+        final ScheduledFuture schedFuturePermissions = schedExec.scheduleWithFixedDelay(
+            new Runnable() {
+                public void run() {
+                    Shepherd myShepherd = new Shepherd(context);
+                    myShepherd.setAction("OpenSearch.backgroundPermissions");
+                    try {
+                        myShepherd.beginDBTransaction();
+                        System.out.println("OpenSearch background permissions running...");
+                        Encounter.opensearchIndexPermissionsBackground(myShepherd);
+                        System.out.println("OpenSearch background permissions finished.");
+                        myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
+                        myShepherd.closeDBTransaction();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        myShepherd.rollbackAndClose();
+                    }
+                }
+            }, 8, // initial delay
+            BACKGROUND_PERMISSIONS_MINUTES, TimeUnit.MINUTES); // unit of delays above
 
         try {
             schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
@@ -472,6 +498,17 @@ public class OpenSearch {
         System.out.println("OpenSearch.indexClose() on " + indexName + ": " + rtn);
     }
 
+    // updateData is { field0: value0, field1: value1, ... }
+    public void indexUpdate(final String indexName, String id, JSONObject updateData)
+    throws IOException {
+        if ((id == null) || (updateData == null)) throw new IOException("missing id or updateData");
+        JSONObject doc = new JSONObject();
+        doc.put("doc", updateData);
+        Request updateRequest = new Request("POST", indexName + "/_update/" + id);
+        updateRequest.setJsonEntity(doc.toString());
+        getRestResponse(updateRequest);
+    }
+
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
     public static List<List<String> > resolveVersions(Map<String, Long> objVersions,
         Map<String, Long> indexVersions) {
@@ -576,6 +613,77 @@ public class OpenSearch {
         return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
     }
 
+    public static long setPermissionsTimestamp(Shepherd myShepherd) {
+        long now = System.currentTimeMillis();
+
+        SystemValue.set(myShepherd, PERMISSIONS_LAST_RUN_KEY, now);
+        return now;
+    }
+
+    public static Long getPermissionsTimestamp(Shepherd myShepherd) {
+        return SystemValue.getLong(myShepherd, PERMISSIONS_LAST_RUN_KEY);
+    }
+
+    public static void setPermissionsNeeded(Shepherd myShepherd, boolean value) {
+        SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, value);
+    }
+
+    public static void setPermissionsNeeded(boolean value) {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.setPermissionsNeeded");
+        myShepherd.beginDBTransaction();
+        try {
+            setPermissionsNeeded(myShepherd, value);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public static boolean getPermissionsNeeded(Shepherd myShepherd) {
+        Boolean value = SystemValue.getBoolean(myShepherd, PERMISSIONS_NEEDED_KEY);
+
+        if (value == null) return false;
+        return value;
+    }
+
+    public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd)
+    throws IOException {
+        if ((query == null) || (user == null)) throw new IOException("empty query or user");
+        // do not add permissions clause when we are admin, as user has no restriction
+        if (user.isAdmin(myShepherd)) return query;
+        // if (!Collaboration.securityEnabled("context0")) TODO do we want to allow everything searchable?
+/*
+        JSONObject permClause = new JSONObject("{\"bool\": {\"should\": [] }}");
+            "{\"bool\": {\"should\": [{\"term\": {\"publiclyReadable\": true}}, {\"term\": {\"viewUsers\": \""
+ + user.getId() + "\"}} ] }}");
+ */
+        JSONArray shouldArr = new JSONArray();
+        shouldArr.put(new JSONObject("{\"term\": {\"publiclyReadable\": true}}"));
+        shouldArr.put(new JSONObject("{\"term\": {\"submitterUserId\": \"" + user.getId() +
+            "\"}}"));
+        shouldArr.put(new JSONObject("{\"term\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
+        JSONObject pshould = new JSONObject();
+        pshould.put("should", shouldArr);
+        JSONObject permClause = new JSONObject();
+        permClause.put("bool", pshould);
+        JSONObject newQuery = new JSONObject(query.toString());
+        try {
+            JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                "filter");
+            filter.put(permClause);
+        } catch (Exception ex) {
+            System.out.println(
+                "OpenSearch.querySanitize() failed to find placement for permissions in query=" +
+                query + "; cause: " + ex);
+            throw new IOException("unable to find placement for permissions clause in query");
+        }
+        return newQuery;
+    }
+
     public static boolean indexingActive() {
         return indexingActiveBackground() || indexingActiveForeground();
     }
@@ -650,19 +758,6 @@ public class OpenSearch {
         myShepherd.rollbackAndClose();
         if (active == null) return false;
         return active;
-    }
-
-    public static JSONObject querySanitize(JSONObject query, User user) {
-        if ((query == null) || (user == null)) return query;
-        JSONObject newQuery = new JSONObject(query.toString());
-        try {
-            JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
-                "filter");
-            filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
-        } catch (Exception ex) {
-            System.out.println("OpenSearch.querySanitize() failed to find filter element: " + ex);
-        }
-        return newQuery;
     }
 
     // TODO: right now this respects index timestamp and only indexes objects with versions > timestamp.
