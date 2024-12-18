@@ -4684,6 +4684,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public void opensearchIndexDeep()
     throws IOException {
         final String encId = this.getId();
+        final Encounter origEnc = this;
         ExecutorService executor = Executors.newFixedThreadPool(4);
         Runnable rn = new Runnable() {
             public void run() {
@@ -4693,6 +4694,8 @@ public class Encounter extends Base implements java.io.Serializable {
                 try {
                     Encounter enc = bgShepherd.getEncounter(encId);
                     if (enc == null) {
+                        // we use origEnc if we can (especially necessary on initial creation of Encounter)
+                        if (origEnc != null) origEnc.opensearchIndex();
                         bgShepherd.rollbackAndClose();
                         executor.shutdown();
                         return;
