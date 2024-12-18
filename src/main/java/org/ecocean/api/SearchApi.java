@@ -62,7 +62,7 @@ public class SearchApi extends ApiBase {
                     String sort = request.getParameter("sort");
                     String sortOrder = request.getParameter("sortOrder");
                     // for now, we delete pit by default. TODO: let frontend decide when to keep it
-                    // by passing in the previous pit (e.g. for pagination) 
+                    // by passing in the previous pit (e.g. for pagination)
                     // boolean deletePit = Util.requestParameterSet(request.getParameter("deletePit"));
                     boolean deletePit = true;
                     int numFrom = 0;
@@ -77,7 +77,7 @@ public class SearchApi extends ApiBase {
                         indexName = query.optString("indexName", null);
                         query = OpenSearch.queryScrubStored(query);
                     }
-                    query = OpenSearch.querySanitize(query, currentUser);
+                    query = OpenSearch.querySanitize(query, currentUser, myShepherd);
                     System.out.println("SearchApi (sanitized) indexName=" + indexName + "; query=" +
                         query);
 

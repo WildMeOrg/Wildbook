@@ -61,7 +61,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
             String indexName = searchQuery.optString("indexName", null);
             if (indexName == null) return failed;
             searchQuery = OpenSearch.queryScrubStored(searchQuery);
-            JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
+            JSONObject sanitized = null;
+            try {
+                sanitized = OpenSearch.querySanitize(searchQuery, user, myShepherd);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                // this should be unlikely, so fail hard
+                throw new RuntimeException("query failed");
+            }
             OpenSearch os = new OpenSearch();
             String sort = request.getParameter("sort");
             String sortOrder = request.getParameter("sortOrder");
@@ -134,8 +141,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             String variables_statement =
                 " VARIABLES org.ecocean.User user; org.ecocean.Organization org";
             jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
-        } else {
-        }
+        } else {}
         // end filter for organization------------------
         // filter for projectName-------------------
         if (Util.isUUID(request.getParameter("projectId"))) {
@@ -169,8 +175,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             }
             String variables_statement = " VARIABLES org.ecocean.Project proj";
             jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
-        } else {
-        }
+        } else {}
         // end filter for projectName------------------
         // username filters-------------------------------------------------
         String[] usernames = request.getParameterValues("username");
@@ -1356,7 +1361,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
             (!request.getParameter("nameField").equals(""))) {
             String nameString = request.getParameter("nameField").replaceAll("%20",
                 " ").toLowerCase().trim();
-
             String filterString = "" + "(" +
                 "(submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('" +
                 nameString + "') != -1)||(submitter.emailAddress.toLowerCase().indexOf('" +
@@ -1529,7 +1533,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
         String currentUser = null;
 
         if (request.getUserPrincipal() != null) currentUser = request.getUserPrincipal().getName();
-
         String searchQueryId = request.getParameter("searchQueryId");
         long startTime = System.currentTimeMillis();
         if (searchQueryId != null) {
@@ -1546,7 +1549,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 return new EncounterQueryResult(rEncounters, "searchQuery has no indexName",
                         "OpenSearch id " + searchQueryId);
             searchQuery = OpenSearch.queryScrubStored(searchQuery);
-            JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
+            JSONObject sanitized = null;
+            try {
+                sanitized = OpenSearch.querySanitize(searchQuery, user, myShepherd);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                // this should be unlikely, so fail hard
+                throw new RuntimeException("query failed");
+            }
             OpenSearch os = new OpenSearch();
             String sort = request.getParameter("sort");
             String sortOrder = request.getParameter("sortOrder");
@@ -1620,7 +1630,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 rEncounters.add(temp_enc);
             }
         }
-
         query.closeAll();
 
         // silo security logging
