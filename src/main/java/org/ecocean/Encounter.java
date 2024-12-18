@@ -3935,19 +3935,23 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.beginDBTransaction();
         int nonAdminCt = 0;
         // it seems as though user.uuid is *required* so we can trust that
-        for (User user : myShepherd.getUsersWithUsername()) {
-            usernameToId.put(user.getUsername(), user.getId());
-            if (user.isAdmin(myShepherd)) continue;
-            nonAdminCt++;
-            List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
-                user.getUsername());
-            if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
-            for (Collaboration col : collabsFor) {
-                if (!col.isApproved() && !col.isEditApproved()) continue;
-                if (!collab.containsKey(user.getId()))
-                    collab.put(user.getId(), new HashSet<String>());
-                collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
+        try {
+            for (User user : myShepherd.getUsersWithUsername()) {
+                usernameToId.put(user.getUsername(), user.getId());
+                if (user.isAdmin(myShepherd)) continue;
+                nonAdminCt++;
+                List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
+                    user.getUsername());
+                if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
+                for (Collaboration col : collabsFor) {
+                    if (!col.isApproved() && !col.isEditApproved()) continue;
+                    if (!collab.containsKey(user.getId()))
+                        collab.put(user.getId(), new HashSet<String>());
+                    collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
+                }
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
@@ -3958,48 +3962,53 @@ public class Encounter extends Base implements java.io.Serializable {
         // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
         String sql =
             "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
-        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
-        List results = (List)q.execute();
-        Iterator it = results.iterator();
-        Util.mark("perm: start encs, size=" + results.size(), startT);
-        while (it.hasNext()) {
-            Object[] row = (Object[])it.next();
-            String id = (String)row[0];
-            String submitterId = (String)row[1];
-            org.json.JSONArray viewUsers = new org.json.JSONArray();
-            String uid = usernameToId.get(submitterId);
-            if (uid == null) {
-                // see issue 939 for example :(
-                System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
-                    submitterId + " on enc " + id);
-                continue;
-            }
-            encCount++;
-            if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
-            // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
-            if (collab.containsKey(uid)) {
-                for (String colUsername : collab.get(uid)) {
-                    String colId = usernameToId.get(colUsername);
-                    if (colId == null) {
-                        System.out.println(
-                            "opensearchIndexPermissions(): WARNING invalid username " +
-                            colUsername + " in collaboration with userId=" + uid);
-                        continue;
+        try {
+            Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            List results = (List)q.execute();
+            Iterator it = results.iterator();
+            Util.mark("perm: start encs, size=" + results.size(), startT);
+            while (it.hasNext()) {
+                Object[] row = (Object[])it.next();
+                String id = (String)row[0];
+                String submitterId = (String)row[1];
+                org.json.JSONArray viewUsers = new org.json.JSONArray();
+                String uid = usernameToId.get(submitterId);
+                if (uid == null) {
+                    // see issue 939 for example :(
+                    System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
+                        submitterId + " on enc " + id);
+                    continue;
+                }
+                encCount++;
+                if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
+                // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
+                if (collab.containsKey(uid)) {
+                    for (String colUsername : collab.get(uid)) {
+                        String colId = usernameToId.get(colUsername);
+                        if (colId == null) {
+                            System.out.println(
+                                "opensearchIndexPermissions(): WARNING invalid username " +
+                                colUsername + " in collaboration with userId=" + uid);
+                            continue;
+                        }
+                        viewUsers.put(colId);
                     }
-                    viewUsers.put(colId);
+                }
+                if (viewUsers.length() > 0) {
+                    updateData.put("viewUsers", viewUsers);
+                    try {
+                        os.indexUpdate("encounter", id, updateData);
+                    } catch (Exception ex) {
+                        // keeping this quiet cuz it can get noise while index builds
+                        // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
+                    }
                 }
             }
-            if (viewUsers.length() > 0) {
-                updateData.put("viewUsers", viewUsers);
-                try {
-                    os.indexUpdate("encounter", id, updateData);
-                } catch (Exception ex) {
-                    // keeping this quiet cuz it can get noise while index builds
-                    // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
-                }
-            }
+            q.closeAll();
+        } catch (Exception ex) {
+            System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
+            ex.printStackTrace();
         }
-        q.closeAll();
         Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
         System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
