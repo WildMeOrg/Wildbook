@@ -16,9 +16,9 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.web.util.SavedRequest;
 import org.apache.shiro.web.util.WebUtils;
-import org.apache.shiro.SecurityUtils;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
@@ -74,15 +74,12 @@ public class Login extends ApiBase {
                     success = true;
                     results = user.infoJSONObject(context, true);
                     results.put("success", true);
-                    
-                    //check for redirect URL
-                    SavedRequest saved=WebUtils.getAndClearSavedRequest(request);
-                    if(saved!=null) {
-                    	results.put("redirectUrl",saved.getRequestUrl());
+
+                    // check for redirect URL
+                    SavedRequest saved = WebUtils.getAndClearSavedRequest(request);
+                    if (saved != null) {
+                        results.put("redirectUrl", saved.getRequestUrl());
                     }
-
-
-                    
                 } catch (UnknownAccountException ex) {
                     // username not found
                     ex.printStackTrace();
