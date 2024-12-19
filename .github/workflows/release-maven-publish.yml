@@ -4,11 +4,11 @@ on:
   release:
     types: [published]
 
-
 jobs:
   build:
     name: Maven build , deploy and release
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
 
     steps:
     - uses: actions/checkout@v4
@@ -18,6 +18,15 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: 8
+
+    - name: Relase
+      uses: qcastel/github-actions-maven-release@v1.12.43
+      env:
+        JAVA_HOME: /usr/lib/jvm/java-1.8-openjdk/
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        maven-args: "-Dmaven.javadoc.skip=true -DskipTests -DskipITs -Ddockerfile.skip -DdockerCompose.skip"
+        release-branch-name: "main"
 
     - name: Build with Maven
       run: |
