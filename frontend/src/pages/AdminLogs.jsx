@@ -37,7 +37,7 @@ export const AdminLogs = () => {
   return (
     <div
       style={{
-        backgroundImage: `url(${process.env.PUBLIC_URL}/images/List_of_Logs_Image.png)`,
+        backgroundImage: `url(${process.env.PUBLIC_URL}/images/List_of_Logs_Image.webp)`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         width: "100%",
