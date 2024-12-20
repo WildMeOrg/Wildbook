@@ -3933,13 +3933,10 @@ public class Encounter extends Base implements java.io.Serializable {
         Shepherd myShepherd = new Shepherd("context0");
         myShepherd.setAction("Encounter.opensearchIndexPermissions");
         myShepherd.beginDBTransaction();
-        int nonAdminCt = 0;
         // it seems as though user.uuid is *required* so we can trust that
         try {
             for (User user : myShepherd.getUsersWithUsername()) {
                 usernameToId.put(user.getUsername(), user.getId());
-                if (user.isAdmin(myShepherd)) continue;
-                nonAdminCt++;
                 List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
                     user.getUsername());
                 if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
@@ -3955,7 +3952,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
-            " total users; " + nonAdminCt + " non-admin; " + collab.size() + " have active collab");
+            " total users; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
         int encCount = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
