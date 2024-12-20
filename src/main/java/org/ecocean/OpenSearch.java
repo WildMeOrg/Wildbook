@@ -653,35 +653,8 @@ public class OpenSearch {
     public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd)
     throws IOException {
         if ((query == null) || (user == null)) throw new IOException("empty query or user");
-        // do not add permissions clause when we are admin, as user has no restriction
-        if (user.isAdmin(myShepherd)) return query;
-        // if (!Collaboration.securityEnabled("context0")) TODO do we want to allow everything searchable?
-/*
-        JSONObject permClause = new JSONObject("{\"bool\": {\"should\": [] }}");
-            "{\"bool\": {\"should\": [{\"term\": {\"publiclyReadable\": true}}, {\"term\": {\"viewUsers\": \""
- + user.getId() + "\"}} ] }}");
- */
-        JSONArray shouldArr = new JSONArray();
-        shouldArr.put(new JSONObject("{\"term\": {\"publiclyReadable\": true}}"));
-        shouldArr.put(new JSONObject("{\"term\": {\"submitterUserId\": \"" + user.getId() +
-            "\"}}"));
-        shouldArr.put(new JSONObject("{\"term\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
-        JSONObject pshould = new JSONObject();
-        pshould.put("should", shouldArr);
-        JSONObject permClause = new JSONObject();
-        permClause.put("bool", pshould);
-        JSONObject newQuery = new JSONObject(query.toString());
-        try {
-            JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
-                "filter");
-            filter.put(permClause);
-        } catch (Exception ex) {
-            System.out.println(
-                "OpenSearch.querySanitize() failed to find placement for permissions in query=" +
-                query + "; cause: " + ex);
-            throw new IOException("unable to find placement for permissions clause in query");
-        }
-        return newQuery;
+        // see issue 958 - now we let query pass as-is for anyone, results are scrubbed later XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX FIXME add method ref
+        return query;
     }
 
     public static boolean indexingActive() {
