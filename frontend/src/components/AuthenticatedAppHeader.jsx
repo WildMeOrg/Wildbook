@@ -13,6 +13,7 @@ export default function AuthenticatedAppHeader({
   username,
   avatar,
   showclassicsubmit,
+  showClassicEncounterSearch,
 }) {
   const { visible } = useContext(FooterVisibilityContext);
 
@@ -74,6 +75,7 @@ export default function AuthenticatedAppHeader({
                 <Menu
                   username={username}
                   showclassicsubmit={showclassicsubmit}
+                  showClassicEncounterSearch={showClassicEncounterSearch}
                 />
               </Nav>
               <NotificationButton

@@ -491,7 +491,9 @@ if(request.getUserPrincipal()!=null){
                         	<li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp">Encounter Search (Legacy)</a></li>
                         
                           <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
-
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))) { %>
+                            <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
+<% } %>
                           <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("sightings")%></a></li>
 
