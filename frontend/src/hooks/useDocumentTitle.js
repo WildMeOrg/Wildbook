@@ -4,7 +4,6 @@ import useGetSiteSettings from "../models/useGetSiteSettings";
 export default function useDocumentTitle() {
   const { data: siteSettings } = useGetSiteSettings();
 
-  console.log("siteSettings", siteSettings);
   document.title = siteSettings?.siteName || "wildbook";
   useEffect(() => {
     if (!siteSettings) return;
@@ -34,13 +33,6 @@ export default function useDocumentTitle() {
       meta.content = siteSettings?.siteAuthor;
       document.getElementsByTagName("head")[0].appendChild(meta);
     }
-
-    console.log(
-      "++++++++++++",
-      siteSettings.siteDescription,
-      siteSettings.siteKeywords,
-      siteSettings.siteAuthor,
-    );
 
     if (link) {
       link.href = iconURL;
