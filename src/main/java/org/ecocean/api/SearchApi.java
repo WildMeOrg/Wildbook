@@ -101,10 +101,8 @@ public class SearchApi extends ApiBase {
                             JSONObject doc = h.optJSONObject("_source");
                             if (doc == null)
                                 throw new IOException("failed to parse doc in hits[" + i + "]");
-                            // these are kind of noisy
-                            doc.remove("viewUsers");
-                            doc.remove("editUsers");
-                            hitsArr.put(doc);
+                            hitsArr.put(OpenSearch.sanitizeDoc(doc, indexName, myShepherd,
+                                currentUser));
                         }
                         response.setHeader("X-Wildbook-Total-Hits", Integer.toString(totalHits));
                         response.setHeader("X-Wildbook-Search-Query-Id", searchQueryId);

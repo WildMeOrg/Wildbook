@@ -105,7 +105,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
                         return failed;
                     }
                     // Encounter enc = myShepherd.getEncounter(hId);
-                    encIds.add(hId);
+                    boolean hasAccess = Encounter.opensearchAccess(h.optJSONObject("_source"), user,
+                        myShepherd);
+                    if (hasAccess) encIds.add(hId);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -1597,8 +1599,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
                         return new EncounterQueryResult(rEncounters, searchQuery.toString(),
                                 "OpenSearch id " + searchQueryId);
                     }
-                    Encounter enc = myShepherd.getEncounter(hId);
-                    if (enc != null) rEncounters.add(enc);
+                    boolean hasAccess = Encounter.opensearchAccess(h.optJSONObject("_source"), user,
+                        myShepherd);
+                    if (hasAccess) {
+                        Encounter enc = myShepherd.getEncounter(hId);
+                        if (enc != null) rEncounters.add(enc);
+                    }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

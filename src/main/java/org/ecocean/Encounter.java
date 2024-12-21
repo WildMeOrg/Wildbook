@@ -4311,6 +4311,21 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    // given a doc from opensearch, can user access it?
+    public static boolean opensearchAccess(org.json.JSONObject doc, User user,
+        Shepherd myShepherd) {
+        if ((doc == null) || (user == null)) return false;
+        if (doc.optBoolean("publiclyReadable", false)) return true;
+        if (doc.optString("submitterUserId", "__FAIL__").equals(user.getId())) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        org.json.JSONArray viewUsers = doc.optJSONArray("viewUsers");
+        if (viewUsers == null) return false;
+        for (int i = 0; i < viewUsers.length(); i++) {
+            if (viewUsers.optString(i, "__FAIL__").equals(user.getId())) return true;
+        }
+        return false;
+    }
+
     @Override public long getVersion() {
         return Util.getVersionFromModified(modified);
     }
