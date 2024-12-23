@@ -23,7 +23,7 @@ try {
   if (enc.getSinglePhotoVideo() != null && enc.getSinglePhotoVideo().size() > 0) {
     hasPhotos = true;
   }
-  boolean isAuthorized = request.isUserInRole("admin") || request.isUserInRole("imageProcessor");
+  //boolean isAuthorized = request.isUserInRole("admin") || request.isUserInRole("imageProcessor");
 
   //let's set up references to our file system components
   File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext(), context);
@@ -31,7 +31,7 @@ try {
   String langCode = ServletUtilities.getLanguageCode(request);
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 
-  if (isAuthorized && hasPhotos) {
+  if (hasPhotos) {
 %>
   <div id="mma" class="section">
     <p class="sectionTitle"><%= encprops.getProperty("mma.sectionTitle") %></p>
