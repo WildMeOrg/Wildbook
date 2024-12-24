@@ -37,6 +37,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.Measurement;
 import org.ecocean.NotificationMailer;
 import org.ecocean.Occurrence;
+import org.ecocean.OpenSearch;
 import org.ecocean.Project;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
@@ -104,7 +105,7 @@ public class EncounterForm extends HttpServlet {
 
     private List<MetalTag> getMetalTags(Map formValues) {
         List<MetalTag> list = new ArrayList<MetalTag>();
-        List<String> keys = Arrays.asList("left", "right"); 
+        List<String> keys = Arrays.asList("left", "right");
 
         for (String key : keys) {
             // The keys are the location
@@ -131,8 +132,7 @@ public class EncounterForm extends HttpServlet {
                 try {
                     Double doubleVal = Double.valueOf(value);
                     list.add(new Measurement(encID, key, doubleVal, units, samplingProtocol));
-                } catch (Exception ex) {
-                }
+                } catch (Exception ex) {}
             }
         }
         return list;
@@ -188,7 +188,7 @@ public class EncounterForm extends HttpServlet {
                     if (item.isFormField()) { // plain field
                         formValues.put(item.getFieldName(),
                             ServletUtilities.preventCrossSiteScriptingAttacks(item.getString(
-                            "UTF-8").trim()));                                                                                               
+                            "UTF-8").trim()));
                         if (item.getFieldName().equals("defaultProject")) {
                             if (!projectIdSelection.contains(item.getString().trim())) {
                                 projectIdSelection.add(item.getString().trim());
@@ -262,8 +262,7 @@ public class EncounterForm extends HttpServlet {
         if (badmsg.equals("")) { badmsg = "none"; }
         session.setAttribute("filesBadMessage", badmsg);
         if (fileSuccess) {
-
-            // check for spamBots 
+            // check for spamBots
             boolean spamBot = false;
             String[] spamFieldsToCheck = new String[] {
                 "submitterPhone", "submitterName", "photographerName", "" + "Phone", "location",
@@ -763,7 +762,6 @@ public class EncounterForm extends HttpServlet {
             if ((formValues.get("lat") != null) && (formValues.get("longitude") != null) &&
                 !formValues.get("lat").toString().equals("") &&
                 !formValues.get("longitude").toString().equals("")) {
-
                 try {
                     double degrees = (new Double(formValues.get("lat").toString())).doubleValue();
                     double position = degrees;
@@ -780,7 +778,6 @@ public class EncounterForm extends HttpServlet {
                     e.printStackTrace();
                 }
             }
-
             enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() +
                 " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
             // enc.approved = false;
@@ -897,7 +894,7 @@ public class EncounterForm extends HttpServlet {
                             parentTask.setParameters(tp);
                         }
                         Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(),
-                            parentTask);              
+                            parentTask);
                         myShepherd.storeNewTask(task);
                         Logger log = LoggerFactory.getLogger(EncounterForm.class);
                         log.info("New encounter submission: <a href=\"" + request.getScheme() +
@@ -914,6 +911,7 @@ public class EncounterForm extends HttpServlet {
                         enc + " bc no ia config was found.");
                     e.printStackTrace();
                 }
+                OpenSearch.setPermissionsNeeded(myShepherd, true);
                 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
                 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }
@@ -1020,7 +1018,6 @@ public class EncounterForm extends HttpServlet {
                                 es.execute(mailer);
                             }
                         }
-
                         es.shutdown();
                     } catch (Exception e) {
                         e.printStackTrace();

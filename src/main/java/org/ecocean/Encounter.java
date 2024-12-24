@@ -8,6 +8,8 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
 import java.util.Collection;
@@ -15,6 +17,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -116,6 +119,7 @@ public class Encounter extends Base implements java.io.Serializable {
     private Double immunoglobin;
     private Boolean sampleTakenForDiet;
     private Boolean injured;
+    private boolean opensearchProcessPermissions = false;
 
     private ArrayList<Observation> observations = new ArrayList<Observation>();
 
@@ -153,7 +157,6 @@ public class Encounter extends Base implements java.io.Serializable {
 
     private static HashMap<String, ArrayList<Encounter> > _matchEncounterCache = new HashMap<String,
         ArrayList<Encounter> >();
-
 
     // An URL to a thumbnail image representing the encounter.
     private String dwcImageURL;
@@ -678,13 +681,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return (this.getNumRightSpots() > 0);
     }
 
-    
     // Sets the recorded length of the shark for this encounter.
     public void setSize(Double mysize) {
         if (mysize != null) { size = mysize; } else { size = null; }
     }
 
-    // @return the length of the shark 
+    // @return the length of the shark
     public double getSize() {
         return size.doubleValue();
     }
@@ -2450,9 +2452,10 @@ public class Encounter extends Base implements java.io.Serializable {
     public Set<String> getTissueSampleIDs() {
         Set<String> ids = new HashSet<String>();
 
-        if (tissueSamples != null) for (TissueSample ts : tissueSamples) {
-            ids.add(ts.getSampleID());
-        }
+        if (tissueSamples != null)
+            for (TissueSample ts : tissueSamples) {
+                ids.add(ts.getSampleID());
+            }
         return ids;
     }
 
@@ -3140,25 +3143,31 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
-    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    // new logic means we only need users who are in collab with submitting user
+    // and if public, we dont need to do this at all
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
-        for (User user : myShepherd.getAllUsers()) {
-            if ((user.getId() != null) && this.canUserView(user, myShepherd))
-                ids.add(user.getId());
+        if (this.isPubliclyReadable()) return ids;
+        List<Collaboration> collabs = Collaboration.collaborationsForUser(myShepherd,
+            this.getSubmitterID());
+        for (Collaboration collab : collabs) {
+            User user = myShepherd.getUser(collab.getOtherUsername(this.getSubmitterID()));
+            if (user != null) ids.add(user.getId());
         }
         return ids;
     }
 
-    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+/*
+    public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
-        for (User user : myShepherd.getAllUsers()) {
+        for (User user : myShepherd.getUsersWithUsername()) {
             if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
         }
         return ids;
     }
-
+ */
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         boolean fullAccess = this.canUserAccess(request);
@@ -3852,6 +3861,160 @@ public class Encounter extends Base implements java.io.Serializable {
         return this.getCatalogNumber().hashCode();
     }
 
+    // sadly, this mess needs to carry on the tradition set up in User.isUsernameAnonymous()
+    // thanks to the logic in Collaboration.canUserAccessOwnedObject()
+    public boolean isPubliclyReadable() {
+        if (!Collaboration.securityEnabled("context0")) return true;
+        return User.isUsernameAnonymous(this.submitterID);
+    }
+
+    public boolean getOpensearchProcessPermissions() {
+        return opensearchProcessPermissions;
+    }
+
+    public void setOpensearchProcessPermissions(boolean value) {
+        opensearchProcessPermissions = value;
+    }
+
+    // wrapper for below, that checks if we really need to be run
+    public static void opensearchIndexPermissionsBackground(Shepherd myShepherd) {
+        boolean runIt = false;
+        Long lastRun = OpenSearch.getPermissionsTimestamp(myShepherd);
+        long now = System.currentTimeMillis();
+
+        if ((lastRun == null) ||
+            ((now - lastRun) > OpenSearch.BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES * 60000)) {
+            System.out.println(
+                "opensearchIndexPermissionsBackground: forced run due to max time since previous");
+            runIt = true;
+        }
+        boolean needed = OpenSearch.getPermissionsNeeded(myShepherd);
+        if (needed && !runIt) {
+            System.out.println("opensearchIndexPermissionsBackground: running due to needed=true");
+            runIt = true;
+        }
+        if (!runIt) {
+            System.out.println("opensearchIndexPermissionsBackground: running not required; done");
+            return;
+        }
+        // i think we should set these first... tho they may not get persisted til after?
+        OpenSearch.setPermissionsTimestamp(myShepherd);
+        OpenSearch.setPermissionsNeeded(myShepherd, false);
+        opensearchIndexPermissions();
+        System.out.println("opensearchIndexPermissionsBackground: running completed");
+    }
+
+/*  note: there are a great deal of users with *no username* that seem to appear in enc.submitters array.
+    however, very few (2 out of 5600+) encounters with such .submitters have a blank submitterID value
+    therefore: submitterID will be assumed to be a required value on users which need to be
+
+    this seems further validated by the facts that:
+    - canUserAccess(user) returns false if no username on user
+    - a user wihtout a username cant be logged in (and thus cant search)
+
+    "admin" users are just ignored entirely, as they will be exempt from the viewUsers criteria during searching.
+
+    other than "ownership" (via submitterID), a user can view if they have view or edit collab with
+    another user. so we frontload *approved* collabs for every user here too.
+
+    in terms of "public" encounters, it seems that (based on Collaboration.canUserAccessEncounter()),
+    encounters with submitterID in (NULL, "public", "", "N/A" [ugh]) is readable by anyone; so we will
+    skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
+ */
+    public static void opensearchIndexPermissions() {
+        Util.mark("perm start");
+        long startT = System.currentTimeMillis();
+        System.out.println("opensearchIndexPermissions(): begin...");
+        // no security => everything publiclyReadable - saves us work, no?
+        if (!Collaboration.securityEnabled("context0")) return;
+        OpenSearch os = new OpenSearch();
+        Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
+        Map<String, String> usernameToId = new HashMap<String, String>();
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.opensearchIndexPermissions");
+        myShepherd.beginDBTransaction();
+        // it seems as though user.uuid is *required* so we can trust that
+        try {
+            for (User user : myShepherd.getUsersWithUsername()) {
+                usernameToId.put(user.getUsername(), user.getId());
+                List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
+                    user.getUsername());
+                if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
+                for (Collaboration col : collabsFor) {
+                    if (!col.isApproved() && !col.isEditApproved()) continue;
+                    if (!collab.containsKey(user.getId()))
+                        collab.put(user.getId(), new HashSet<String>());
+                    collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        Util.mark("perm: user build done", startT);
+        System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
+            " total users; " + collab.size() + " have active collab");
+        // now iterated over (non-public) encounters
+        int encCount = 0;
+        org.json.JSONObject updateData = new org.json.JSONObject();
+        // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
+        String sql =
+            "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
+        Query q = null;
+        try {
+            q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            List results = (List)q.execute();
+            Iterator it = results.iterator();
+            Util.mark("perm: start encs, size=" + results.size(), startT);
+            while (it.hasNext()) {
+                Object[] row = (Object[])it.next();
+                String id = (String)row[0];
+                String submitterId = (String)row[1];
+                org.json.JSONArray viewUsers = new org.json.JSONArray();
+                String uid = usernameToId.get(submitterId);
+                if (uid == null) {
+                    // see issue 939 for example :(
+                    System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
+                        submitterId + " on enc " + id);
+                    continue;
+                }
+                encCount++;
+                if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
+                // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
+                if (collab.containsKey(uid)) {
+                    for (String colUsername : collab.get(uid)) {
+                        String colId = usernameToId.get(colUsername);
+                        if (colId == null) {
+                            System.out.println(
+                                "opensearchIndexPermissions(): WARNING invalid username " +
+                                colUsername + " in collaboration with userId=" + uid);
+                            continue;
+                        }
+                        viewUsers.put(colId);
+                    }
+                }
+                if (viewUsers.length() > 0) {
+                    updateData.put("viewUsers", viewUsers);
+                    try {
+                        os.indexUpdate("encounter", id, updateData);
+                    } catch (Exception ex) {
+                        // keeping this quiet cuz it can get noise while index builds
+                        // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
+                    }
+                }
+            }
+            q.closeAll();
+        } catch (Exception ex) {
+            System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
+            ex.printStackTrace();
+        } finally {
+            if (q != null) q.closeAll();
+        }
+        Util.mark("perm: done encs", startT);
+        myShepherd.rollbackAndClose();
+        System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
+            Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
+    }
+
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
         int pageSize, String sort, String sortOrder)
     throws IOException {
@@ -3860,10 +4023,20 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
-        super.opensearchDocumentSerializer(jgen);
         Shepherd myShepherd = new Shepherd("context0");
+
         myShepherd.setAction("Encounter.opensearchDocumentSerializer");
         myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
 
         jgen.writeStringField("locationId", this.getLocationID());
         jgen.writeStringField("locationName", this.getLocationName());
@@ -3885,6 +4058,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("state", this.getState());
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
+        jgen.writeBooleanField("publiclyReadable", this.isPubliclyReadable());
 
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
@@ -3895,8 +4069,11 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStartObject();
             jgen.writeNumberField("id", ma.getId());
             jgen.writeStringField("uuid", ma.getUUID());
-            java.net.URL url = ma.safeURL(myShepherd);
-            if (url != null) jgen.writeStringField("url", url.toString());
+            try {
+                // historic data might throw IllegalArgumentException: Path not under given root
+                java.net.URL url = ma.safeURL(myShepherd);
+                if (url != null) jgen.writeStringField("url", url.toString());
+            } catch (Exception ex) {}
             jgen.writeEndObject();
             if (featuredAssetId == null) featuredAssetId = ma.getUUID();
         }
@@ -3906,6 +4083,8 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNullField("assignedUsername");
         } else {
             jgen.writeStringField("assignedUsername", this.submitterID);
+            User submitter = this.getSubmitterUser(myShepherd);
+            if (submitter != null) jgen.writeStringField("submitterUserId", submitter.getId());
         }
         jgen.writeArrayFieldStart("submitters");
         for (String id : this.getAllSubmitterIds(myShepherd)) {
@@ -4016,7 +4195,8 @@ public class Encounter extends Base implements java.io.Serializable {
 
         Double dlat = this.getDecimalLatitudeAsDouble();
         Double dlon = this.getDecimalLongitudeAsDouble();
-        if ((dlat == null) || (dlon == null)) {
+        if ((dlat == null) || !Util.isValidDecimalLatitude(dlat) || (dlon == null) ||
+            !Util.isValidDecimalLongitude(dlon)) {
             jgen.writeNullField("locationGeoPoint");
         } else {
             jgen.writeObjectFieldStart("locationGeoPoint");
@@ -4052,7 +4232,6 @@ public class Encounter extends Base implements java.io.Serializable {
                 encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
                 if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
             }
-
             jgen.writeArrayFieldStart("individualSocialUnits");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
@@ -4117,7 +4296,34 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
-        myShepherd.rollbackAndClose();
+        // this gets set on specific single-encounter-only actions, when extra expense is okay
+        // otherwise this will be computed by permissions backgrounding
+        if (this.getOpensearchProcessPermissions()) {
+            System.out.println("opensearchProcessPermissions=true for " + this.getId() +
+                "; indexing permissions");
+            jgen.writeFieldName("viewUsers");
+            jgen.writeStartArray();
+            for (String id : this.userIdsWithViewAccess(myShepherd)) {
+                System.out.println("opensearch whhhh: " + id);
+                jgen.writeString(id);
+            }
+            jgen.writeEndArray();
+        }
+    }
+
+    // given a doc from opensearch, can user access it?
+    public static boolean opensearchAccess(org.json.JSONObject doc, User user,
+        Shepherd myShepherd) {
+        if ((doc == null) || (user == null)) return false;
+        if (doc.optBoolean("publiclyReadable", false)) return true;
+        if (doc.optString("submitterUserId", "__FAIL__").equals(user.getId())) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        org.json.JSONArray viewUsers = doc.optJSONArray("viewUsers");
+        if (viewUsers == null) return false;
+        for (int i = 0; i < viewUsers.length(); i++) {
+            if (viewUsers.optString(i, "__FAIL__").equals(user.getId())) return true;
+        }
+        return false;
     }
 
     @Override public long getVersion() {
@@ -4146,6 +4352,7 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("taxonomy", keywordType);
         map.put("occurrenceId", keywordType);
         map.put("state", keywordType);
+        map.put("submitterUserId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
@@ -4183,11 +4390,18 @@ public class Encounter extends Base implements java.io.Serializable {
     public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
     throws IOException {
         int[] rtn = new int[2];
+
+        if (OpenSearch.indexingActive()) {
+            System.out.println("Encounter.opensearchSyncIndex() skipped due to indexingActive()");
+            rtn[0] = -1;
+            rtn[1] = -1;
+            return rtn;
+        }
+        OpenSearch.setActiveIndexingBackground();
         String indexName = "encounter";
         OpenSearch os = new OpenSearch();
         List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
             os.getAllVersions(indexName));
-
         if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
         List<String> needIndexing = changes.get(0);
         List<String> needRemoval = changes.get(1);
@@ -4198,7 +4412,13 @@ public class Encounter extends Base implements java.io.Serializable {
         int ct = 0;
         for (String id : needIndexing) {
             Encounter enc = myShepherd.getEncounter(id);
-            if (enc != null) os.index(indexName, enc);
+            try {
+                if (enc != null) os.index(indexName, enc);
+            } catch (Exception ex) {
+                System.out.println("Encounter.opensearchSyncIndex(): index failed " + enc + " => " +
+                    ex.toString());
+                ex.printStackTrace();
+            }
             if (ct % 500 == 0)
                 System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
                     rtn[0]);
@@ -4218,6 +4438,7 @@ public class Encounter extends Base implements java.io.Serializable {
             ct++;
         }
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
+        OpenSearch.unsetActiveIndexingBackground();
         return rtn;
     }
 
@@ -4335,9 +4556,13 @@ public class Encounter extends Base implements java.io.Serializable {
                 // this is throwaway read-only shepherd
                 Shepherd myShepherd = new Shepherd("context0");
                 myShepherd.setAction("Encounter.validateFieldValue");
+                boolean validTaxonomy = false;
                 myShepherd.beginDBTransaction();
-                boolean validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
-                myShepherd.rollbackDBTransaction();
+                try {
+                    validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
+                } catch (Exception e) { e.printStackTrace(); } finally {
+                    myShepherd.rollbackAndClose();
+                }
                 if (!validTaxonomy) {
                     error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                     error.put("value", returnValue);
@@ -4478,5 +4703,37 @@ public class Encounter extends Base implements java.io.Serializable {
         } finally {
             myShepherd.rollbackDBTransaction();
         }
+    }
+
+    public void opensearchIndexDeep()
+    throws IOException {
+        final String encId = this.getId();
+        final Encounter origEnc = this;
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
+                bgShepherd.beginDBTransaction();
+                try {
+                    Encounter enc = bgShepherd.getEncounter(encId);
+                    if (enc == null) {
+                        // we use origEnc if we can (especially necessary on initial creation of Encounter)
+                        if (origEnc != null) origEnc.opensearchIndex();
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    enc.opensearchIndex();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                executor.shutdown();
+            }
+        };
+
+        executor.execute(rn);
     }
 }
