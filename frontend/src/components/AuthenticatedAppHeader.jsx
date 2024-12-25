@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useContext } from "react";
 import { Navbar, Nav } from "react-bootstrap";
 import "../css/dropdown.css";
@@ -10,7 +9,12 @@ import Menu from "./header/Menu";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader({ username, avatar, showclassicsubmit }) {
+export default function AuthenticatedAppHeader({
+  username,
+  avatar,
+  showclassicsubmit,
+  showClassicEncounterSearch,
+}) {
   const { visible } = useContext(FooterVisibilityContext);
 
   const {
@@ -68,7 +72,11 @@ export default function AuthenticatedAppHeader({ username, avatar, showclassicsu
                   marginLeft: "auto",
                 }}
               >
-                <Menu username={username} showclassicsubmit={showclassicsubmit}/>
+                <Menu
+                  username={username}
+                  showclassicsubmit={showclassicsubmit}
+                  showClassicEncounterSearch={showClassicEncounterSearch}
+                />
               </Nav>
               <NotificationButton
                 collaborationTitle={collaborationTitle}

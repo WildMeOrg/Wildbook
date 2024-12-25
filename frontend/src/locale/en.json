@@ -30,6 +30,7 @@
     "MENU_LEARN_MYBULKIMPORTS": "My Bulk Imports",
     "MENU_LEARN_MYPROJECTS": "My Projects",
     "MENU_SEARCH_ENCOUNTERS": "Encounters",
+    "MENU_SEARCH_ENCOUNTERS_CLASSIC": "Encounter Search (Classic)",
     "MENU_SEARCH_INDIVIDUALS": "Individuals",
     "MENU_SEARCH_SIGHTINGS": "Sightings",
     "MENU_ANIMALS_INDIVIDUALGALLERY": "Individual Gallery",
@@ -315,7 +316,17 @@
     "INVALID_LAT": "Latitude must be between -90 and 90",
     "INVALID_LONG": "Longitude must be between -180 and 180",
     "BEERROR_REQUIRED" : "Could not submit; missing required field: ",
+    "SUBMISSION_FAILED" : "Submission Failed",
     "BEERROR_INVALID" : "Could not submit; field format was invalid: ",
     "BEERROR_UNKNOWN" : "Could not submit due to unknown error.",
-    "ANON_UPLOAD_IMAGE_WARNING": "Images cannot be uploaded until captcha is complete."
+    "ANON_UPLOAD_IMAGE_WARNING": "Images cannot be uploaded until captcha is complete.",
+    "PROJECTS_FOR" : "Projects for",
+    "NEW_PROJECT" : "New Project",
+    "PROJECTS_ID" : "Projects ID",
+    "PERCENTAGE_IDENTIFIED" : "Percentage Identified",
+    "TOTAL" : "Total",
+    "ITEMS" : "items",
+    "INPUT_PAGE_ALERT" : "Please enter a valid page number between 1 and {totalPages}.",
+    "NO_PROJECTS" : "No Projects",
+    "PROJECT_LIST_TITLE": "Wildbook - My Projects"
 }
