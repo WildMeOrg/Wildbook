@@ -56,7 +56,7 @@ public class MetricsBot {
 
     // basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     private static void startCollector(final String context) { // throws IOException {
-        collectorStartTime = System.currentTimeMillis(); // TODO should really be keyed off context!
+        collectorStartTime = System.currentTimeMillis(); 
         long interval = 60; // number minutes between metrics refreshes of data in the CSV
         long initialDelay = 1; // number minutes before first execution occurs
         System.out.println("+ MetricsBot.startCollector(" + context + ") starting.");
@@ -89,7 +89,7 @@ public class MetricsBot {
         System.out.println("+ MetricsBot.startCollector(" + context + ") backgrounded");
     }
 
-    // mostly for ContextDestroyed in StartupWildbook..... i think?
+    // mostly for ContextDestroyed in StartupWildbook
     public static void cleanup() {
         System.out.println(
             "================ = = = = = = ===================== MetricsBot.cleanup() finished.");
@@ -537,27 +537,6 @@ public class MetricsBot {
             filterTasksUsersQuery.closeAll();
             // end WB-1968
 
-            // too slow and error-prone for various usernames
-            /*
-               for (User user:users)
-               {
-               // Try catch for nulls, because tasks executed by anonymous users don't have a name tied to them String userFilter = "";
-               String name = "";
-               try{
-                userFilter = (String) user.getUsername();
-
-                name+=user.getUUID();
-
-                name=name.replaceAll("-", "_");
-                //System.out.println("NAME:" + name);
-                csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 &&
-                   (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') >
-                   -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context));
-               }
-               catch (NullPointerException e) {e.printStackTrace(); }
-               catch(java.util.regex.PatternSyntaxException pe) {pe.printStackTrace();}
-               }
-             */
         } catch (Exception exy) { exy.printStackTrace(); } finally {
             myShepherd.rollbackAndClose();
         }

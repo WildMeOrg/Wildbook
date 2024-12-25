@@ -96,7 +96,7 @@ $(document).ready( function() {
    $('#locationID').select2({width: '100%', height:'50px'});
    $('#country').select2({width: '100%', height:'50px'});
 
-	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	populateProjectNameDropdown([],[],"", false);
 	<%
 	if(user != null){
 		%>
@@ -115,35 +115,26 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
-	if(useCustomStyle){
-		//do nothing unusual
-	}else{
-		defaultSelectItem = null;
-		defaultSelectItemId = null;
-		loggedOutDefaultDesired = false;
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId){
+
+	defaultSelectItem = null;
+	defaultSelectItemId = null;
+	
+	if(options.length<1){
+	 	isVisible=false;
 	}
-	// if(options.length<1){
-	// 	isVisible=false;
-	// }
 		let projectNameHtml = '';
-		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		if(loggedOutDefaultDesired){
-			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
-			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
-		}
+
 		if(isVisible){
-			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
-			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
-		}else{
-			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+			projectNameHtml += '<div class="col-xs-6 col-md-4"><label class="control-label"><%=props.getProperty("projectMultiSelectLabel") %></label></div><div class="col-xs-6 col-lg-8"><select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}
-		projectNameHtml += '<option value=""></option>';
-		if(defaultSelectItem){
+
+		//options
+    if(defaultSelectItem){
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 			options = options.remove(defaultSelectItem);
 		}
+    projectNameHtml += '<option value=""></option>';
 		for(let i=0; i<options.length; i++){
 			if(options[i] === selectedOption){
 				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
@@ -151,7 +142,8 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
 			}
 		}
-		projectNameHtml += '</div>';
+    
+		projectNameHtml += '</div></div>';
 		$("#proj-id-dropdown-container").empty();
 		$("#proj-id-dropdown-container").append(projectNameHtml);
 }
@@ -167,26 +159,6 @@ Array.prototype.remove = function() {
     return this;
 };
 
-function getDefaultSelectedProject(){
-	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
-	return defaultProject;
-}
-
-function getDefaultProjectOrganizationParameter(){
-	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
-	return defaultProjectOrganizationParameter;
-}
-
-function getDefaultSelectedProjectId(){
-	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
-	return defaultProjectId;
-}
-
-function getLoggedOutDefaultDesired(){
-	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
-	return loggedOutDefaultDesired;
-}
-
 function doAjaxForProject(requestJSON,userId){
 	$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -200,7 +172,7 @@ function doAjaxForProject(requestJSON,userId){
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
 					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
-					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true);
 				}
 			},
 			error: function(x,y,z) {
@@ -306,18 +278,6 @@ function validate() {
        */
       requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
     }
-
-      /*
-      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-
-           requiredfields += "\n   *  valid Email address";
-      }
-      if ((document.encounter_submission.location.value.length == 0)) {
-          requiredfields += "\n   *  valid sighting location";
-      }
-      */
 
     if (requiredfields != "") {
       requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
@@ -647,7 +607,6 @@ function updateList(inp) {
 var dtList = [];
 var llList = [];
 var commentJson = {};
-//TODO Bearing, Altitude
 function gotExif(file) {
     exifFindDateTimes(file.exifdata);
 console.log('dtList => %o', dtList);
@@ -1001,7 +960,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
   <fieldset>
 
-		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		<div class="form-group" id="proj-id-dropdown-container">
 		</div>
 
     <div class="form-group">
@@ -1123,30 +1082,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-
-        <!--
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("manual_id") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="manualID" type="text" id="manualID" size="75">
-          </div>
-        </div>
-        -->
-
-<!--
-				<div class="form-group">
-					<div class="col-xs-6 col-md-4">
-						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
-					</div>
-
-					<div class="col-xs-6 col-lg-8">
-						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
-					</div>
-				</div>
--->
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1398,14 +1333,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	// $('.required-missing').removeClass('required-missing')
-	// if an mediaAsset is ever required
-	// if(!$('#theFiles').val()){
-	// 	console.log("No file submitted!");
-	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
-	// 	return false;
-	// }
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
 		$('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
@@ -1421,22 +1348,6 @@ function sendButtonClicked() {
 				return false;
 			}
 	}
-
-	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
-	// 	// console.log("email address not present");
-	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
-	// 	return false;
-	// }else{
-	// 	var email = $('#submitterEmail').val();
-  //   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  //   if(!re.test(email.toLowerCase())){
-	// 		console.log("not a valid email address");
-	// 		$('#submitterEmail').closest('.form-group').addClass('required-missing');
-	// 		window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
-	// 		return false;
-	// 	}
-  // }
 
 	if (!$('#datepicker').val()) {
 		$('#datepicker').closest('.form-group').addClass('required-missing');

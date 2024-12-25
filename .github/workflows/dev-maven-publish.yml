@@ -2,7 +2,7 @@ name: Development Build
 
 on:
   push:
-      branches-ignore:
+      branches:
           - main
       tags-ignore:
           - v*
@@ -25,11 +25,18 @@ jobs:
         mvn dependency:resolve -B -U
         mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
         mvn -B package --file pom.xml
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: wildmeorg
+        password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN  }}
 
-    # Publishing to git is disabld for Development branch
-    #- name: Publish to GitHub Packages
-    #if: github.event_name == 'push' 
-    #run: mvn -B deploy -Dversion=development
-    #env:
-    #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build Docker image
+      run: |
+        docker build -t wildme/wildbook:main  -f devops/development/Dockerfile devops/development/
+
+    - name: Push Docker image
+      run: |
+        docker push wildme/wildbook:main  
+
       

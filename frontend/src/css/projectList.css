@@ -1,0 +1,130 @@
+.projectListDiv {
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.headerContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.newProject {
+    box-shadow: 3px 3px black;
+    background-color: #007DA3;
+    color: white;
+    padding: 8px 16px; /* Add padding for a nicer look */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+table {
+    cursor: pointer;
+    border-spacing: 0;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+table thead th {
+    background-color: white;
+    padding: 8px;
+    text-align: left;
+}
+
+table tbody tr:nth-child(odd) {
+    background-color: #f2f2f3;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: white;
+}
+
+table tbody td {
+    max-width: 350px;
+    word-wrap: break-word;
+    padding: 8px;
+}
+
+table thead tr th {
+    background-image: url('../../../src/main/webapp/javascript/tablesorter/themes/blue/bg.gif');
+    background-repeat: no-repeat;
+    background-position: center right;
+    padding-right: 30px;
+}
+
+table thead tr .headerSortUp {
+    background-image: url('../../../src/main/webapp/javascript/tablesorter/themes/blue/asc.gif');
+}
+table thead tr .headerSortDown {
+    background-image: url('../../../src/main/webapp/javascript/tablesorter/themes/blue/desc.gif');
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+}
+
+.pagination .itemCounter {
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.pagination button {
+    cursor: pointer;
+    background-color: white;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 16px 16px;
+    outline: none;
+    border: 1px solid #DEE2E6;
+    color: #007DA3;
+    padding: 6px 8px;
+}
+
+.pagination .previous-button {
+    background-image: url('../../../src/main/webapp/javascript/tablesorter/themes/pagination/previous.jpg');
+}
+
+.pagination .next-button {
+    background-image: url('../../../src/main/webapp/javascript/tablesorter/themes/pagination/next.jpg');
+    margin-right: 10px;
+}
+
+.pagination-options {
+    align-items: center;
+    margin-right: 10px;
+}
+
+.pagination-options select {
+    background-color: white;
+    border: 1px solid #ddd;
+    outline: none;
+    cursor: pointer;
+    padding: 8px 8px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.goto-box {
+    display: flex;
+    align-items: center;
+}
+
+.goto-box input {
+    margin-left: 10px;
+    width: 30px;
+    border: 1px solid #ddd;
+    text-align: center;
+    outline: none;
+    padding: 6px;
+}
+
+.pagination button.active {
+    background-color: #007DA3;
+    color: white;
+    font-weight: bold;
+    border: 1px solid #007DA3;
+}

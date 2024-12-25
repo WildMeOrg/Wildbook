@@ -27,7 +27,7 @@ import com.healthmarketscience.jackcess.Table;
 
 import java.io.*;
 
-/// DEPRECATED!!! This importer is not compatible with the new naming scheme and must be updated
+// TODO: Evaluate as DEPRECATED and full remove. This importer is not compatible with the new naming scheme and must be updated
 public class ImportAccess extends HttpServlet {
     /**
      *
@@ -36,7 +36,6 @@ public class ImportAccess extends HttpServlet {
     private static PrintWriter out;
     private static String context;
 
-    // Hack. TODO: remove?
     private static boolean runOncePercompile = false;
 
     private static boolean committing = true; // for developing w/o mucking up database
@@ -131,30 +130,8 @@ public class ImportAccess extends HttpServlet {
         }
     }
 
-    //// I find AssetStores confusing, hence the convenience method
-    // private LocalAssetStore  getLocalAssetStore(Shepherd myShepherd) {
-    // return getLocalAssetStore(DEFAULT_ASSETSTORE_NAME, myShepherd);
-    // }
-
     private AssetStore getAssetStore(Shepherd myShepherd) {
-        // return AssetStore.getDefault(myShepherd);
         return AssetStore.get(myShepherd, 1);
-
-        // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
-        //// TODO: fix this for flukebook
-        //// String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-        // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
-
-        // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
-
-        // if (committing) {
-        // myShepherd.beginDBTransaction();
-        // myShepherd.getPM().makePersistent(as);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
-        // }
-
-        // return as;
     }
 
     private static <T> void addToCount(Map<T, Integer> countMap, T elem) {
@@ -380,15 +357,6 @@ public class ImportAccess extends HttpServlet {
             if (printing) {
                 System.out.println("    PROCIDPHOTOS: beginning row " + rowNum + ".");
             }
-            // forgive me, god
-            // if (i==1188) {
-            // System.out.println("Skipping sighting history row "+getStringSafe(thisRow,"RecID"));
-            // continue
-            // forgive me, god
-            // if (rowNum>562&&rowNum<600) {
-            // System.out.println("Skipping IDPhoto row "+rowNum);
-            // continue;
-            // }
 
             try {
                 thisRow = table.getNextRow();
@@ -481,7 +449,6 @@ public class ImportAccess extends HttpServlet {
             indy = new MarkedIndividual(indID, enc);
             generatedIndividuals.put(indID, indy);
         }
-        // TODO: process indy?
 
         return indy;
     }
@@ -502,11 +469,6 @@ public class ImportAccess extends HttpServlet {
             System.out.println("    PROCIDPHOTOS got our enc " + enc);
         } else {
             System.out.println("    PROCIDPHOTOS making a new encounter");
-            // commented out bc of mystifying bug on 565th row. Shouldn't matter if this runs *before* StandardImport
-            // enc = myShepherd.getEncounterByIndividualAndOccurrence(indID, occID);
-            // if (enc!=null) {
-            // System.out.println("    PROCIDPHOTOS wait! we got the enc from shep!");
-            // } else {
             enc = new Encounter(false);
             System.out.println(" we're adding to generatedEncounters!");
             generatedEncounters.put(encCode, enc);
@@ -519,24 +481,6 @@ public class ImportAccess extends HttpServlet {
         } else {
             System.out.println("    Nothing to add!");
         }
-        // System.out.println("    PROCIDPHOTOS making a new encounter");
-        // enc = myShepherd.getEncounterByIndividualAndOccurrence(indID, occID);
-        // if (enc!=null) {
-        // System.out.println("    PROCIDPHOTOS wait! we got the enc from shep!");
-        // if (ann!=null) {
-        // System.out.println("    Adding annotation!");
-        // enc.addAnnotation(ann);
-        // System.out.println("    We added annotation!");
-        // } else {
-        // System.out.println("    Nothing to add!");
-        // }
-        // } else {
-        // if (ann!=null) {
-        // enc = new Encounter(ann);
-        // } else {
-        // enc = new Encounter(false);
-        // }
-        // }
 
         System.out.println(" we're continuing onward!");
 
@@ -566,7 +510,7 @@ public class ImportAccess extends HttpServlet {
         if (project != null) enc.setSubmitterProject(project);
         System.out.println("    PROCIDPHOTOS set project " + project);
 
-        // DEPRECATED
+        // TODO: Evaluate and delete if DEPRECATED
         // if (individualID!=null) enc.setIndividualID(individualID);
         System.out.println("    PROCIDPHOTOS set indID " + indID);
 
@@ -589,11 +533,6 @@ public class ImportAccess extends HttpServlet {
                 thisRow.getString("Photographer"));
         } else { System.out.println("    PROCIDPHOTOS did not need to set photog name "); }
         // System.out.println("    PROCIDPHOTOS: encCode is done loading");
-
-        // if (committing && newObj) {
-        // System.out.println("    Committing PROCIDPHOTOS: about to commit new enc "+enc);
-        // myShepherd.storeNewEncounter(enc);
-        // }
 
         enc.setGenus("Megaptera");
         enc.setSpecificEpithet("novaeangliae");
@@ -901,8 +840,7 @@ public class ImportAccess extends HttpServlet {
         } else {
             System.out.println("    SHROW-Proc making a new encounter");
 
-            // TODO: try to load encounter by indID and occID, make a new one if it doesn't exist.
-            // nvm: there are no indIDs on the SHRows, so we couldn't resolve this
+            // there are no indIDs on the SHRows, so cannot resolve
 
             enc = new Encounter((Annotation)null);
 
@@ -1092,8 +1030,6 @@ public class ImportAccess extends HttpServlet {
         if (nickname != null) indy.setNickName(nickname);
         System.out.println("    SHROW-Proc set nickname " + nickname);
 
-        // TODO: process indy?
-
         return indy;
     }
 
@@ -1215,7 +1151,7 @@ public class ImportAccess extends HttpServlet {
         // String rootURL="http://localhost:8080";
         String rootURL = "flukebook.org";
         String assetStoreURL = rootURL + "/wildbook_data_dir/encounters";
-        //////////////// begin local //////////////
+        // begin local
         LocalAssetStore as = new LocalAssetStore("Oman-Asset-Store",
             new File(assetStorePath).toPath(), assetStoreURL, true);
         myShepherd.getPM().makePersistent(as);

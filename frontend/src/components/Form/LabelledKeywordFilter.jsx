@@ -17,9 +17,8 @@ const colourStyles = {
 
 export default function LabelledKeywordFilter({ data, onChange }) {
   const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
-  // eslint-disable-next-line no-unused-vars
   const labelledKeywordsOptions =
-    Object.entries(data?.labeledKeyword || {}).map(([key, value]) => {
+    Object.entries(data?.labeledKeyword || {}).map(([key, _]) => {
       return {
         value: key,
         label: key,

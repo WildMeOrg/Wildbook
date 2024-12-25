@@ -8,20 +8,23 @@ org.ecocean.*
 
 <%
 System.out.println("opensearchSync.jsp begun...");
+long timer = System.currentTimeMillis();
+int numProcessed = -1;
+Util.mark("opensearchSync begin");
 
 boolean resetIndex = Util.requestParameterSet(request.getParameter("resetIndex"));
 
-String fstr = request.getParameter("forceNum");
-int forceNum = -1;
+String fstr = request.getParameter("endNum");
+int endNum = -1;
 if ("".equals(fstr)) {
-    forceNum = 500;
+    endNum = 500;
 } else if (fstr != null) {
     try {
-        forceNum = Integer.parseInt(fstr);
+        endNum = Integer.parseInt(fstr);
     } catch (Exception ex) {}
 }
 
-if (forceNum == 0) forceNum = 999999;
+if (endNum == 0) endNum = 999999;
 
 String sstr = request.getParameter("startNum");
 int startNum = -1;
@@ -36,8 +39,18 @@ OpenSearch os = new OpenSearch();
 
 if (resetIndex && os.existsIndex("encounter")) {
     os.deleteIndex("encounter");
+    OpenSearch.unsetActiveIndexingForeground();
+    OpenSearch.unsetActiveIndexingBackground();
     out.println("<p>deleted encounter index</p>");
 }
+
+if (OpenSearch.indexingActive()) {
+    out.println("<P>bailing due to active indexing: fore=<b>" + OpenSearch.indexingActiveForeground() + "</b>, back=<b>" + OpenSearch.indexingActiveBackground() + "</b></p>");
+    System.out.println("opensearchSync.jsp bailed due to other active indexing");
+    return;
+}
+
+OpenSearch.setActiveIndexingForeground();
 
 if (!os.existsIndex("encounter")) {
         Encounter enc = new Encounter();
@@ -46,8 +59,12 @@ if (!os.existsIndex("encounter")) {
 }
 
 
-if (forceNum > 0) {
-    out.println("<p>indexing " + forceNum + " Encounters</p>");
+if (endNum > 0) {
+    if (startNum > 0) {
+        out.println("<p>indexing " + startNum + "-" + endNum + " Encounters</p>");
+    } else {
+        out.println("<p>indexing through " + endNum + " Encounters</p>");
+    }
     int ct = 0;
     Iterator itr = myShepherd.getAllEncounters("catalogNumber");
     while (itr.hasNext()) {
@@ -61,12 +78,13 @@ if (forceNum > 0) {
             //System.out.println(enc.getId() + ": " + enc.getVersion());
             try {
                 enc.opensearchIndex();
+                numProcessed++;
             } catch (Exception ex) {
                 System.out.println("opensearchSync.jsp: exception failure on " + enc);
                 ex.printStackTrace();
             }
             if (ct % 100 == 0) System.out.println("opensearchSync.jsp: count " + ct);
-            if (ct > forceNum) break;
+            if (ct > endNum) break;
     }
 
 } else {
@@ -77,7 +95,16 @@ if (forceNum > 0) {
 
 myShepherd.rollbackAndClose();
 
+OpenSearch.unsetActiveIndexingForeground();
 os.deleteAllPits();
-System.out.println("opensearchSync.jsp finished");
+
+double totalMin = System.currentTimeMillis() - timer;
+totalMin = totalMin / 60000D;
+if (numProcessed > 0) {
+    System.out.println("opensearchSync.jsp finished: " + numProcessed + " in " + String.format("%.2f", totalMin) + " min (" + String.format("%.2f", numProcessed / totalMin) + " per min)");
+} else {
+    System.out.println("opensearchSync.jsp finished: " + totalMin + " min");
+}
+Util.mark("opensearchSync ended", timer);
 
 %>
