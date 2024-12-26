@@ -483,7 +483,7 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myIndividuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?submitterID=<%=request.getRemoteUser()%>"><%=props.getProperty("mySightings")%></a></li>
                           <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("myBulkImports")%></a></li>
-                          <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("myProjects")%></a></li>
+                          <li><a href="<%=urlLoc %>/react/projects/overview"><%=props.getProperty("myProjects")%></a></li>
 
                         </ul>
                       </li>
@@ -491,7 +491,9 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
-
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))) { %>
+                            <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
+<% } %>
                           <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("sightings")%></a></li>
 

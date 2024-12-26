@@ -233,7 +233,11 @@ function filesChanged(f) {
 function filesChangedSetFilename(f) {
     console.log("filesChangedSetFilename")
     filesChanged(f);
-    let filename = f.files[0].name.replace(/[^a-zA-Z0-9\. ]/g, "")
+    let originalFilename = f.files[0].name;
+    // Add original filename to hidden element on page before string processing
+    document.getElementById("originalFilename").innerHTML = originalFilename;    
+    let filename = originalFilename.replace(/[^a-zA-Z0-9\. ]/g, "")
+    // Add updated filename to hidden element on page after string processing
     document.getElementById("hiddenFilename").innerHTML = filename;    
 }
 

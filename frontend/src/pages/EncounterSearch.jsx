@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
 import axios from "axios";
 import { get } from "lodash";
+import ThemeColorContext from "../ThemeColorProvider";
 
 const columns = [
   { name: "INDIVIDUAL_ID", selector: "individualDisplayName" },
@@ -31,6 +32,7 @@ export default function EncounterSearch() {
   const [paramsFormFilters, setParamsFormFilters] = useState([]);
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
   const [formFilters, setFormFilters] = useState([]);
+  const theme = React.useContext(ThemeColorContext);
 
   const regularQuery = searchParams.get("regularQuery");
 
@@ -272,10 +274,20 @@ export default function EncounterSearch() {
         onPerPageChange={queryID ? setSearchIdResultPerPage1 : setPerPage}
         setSort={setSort}
         loading={false}
+        extraStyles={[
+          {
+            when: (row) => row.access === "none",
+            style: {
+              backgroundColor: theme?.statusColors?.yellow100 || "#fff3cd",
+              "&:hover": {
+                backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
+              },
+            },
+          },
+        ]}
         onRowClicked={(row) => {
           const url = `/encounters/encounter.jsp?number=${row.id}`;
           window.open(url, "_blank");
-          // window.location.href = url;
         }}
         onSelectedRowsChange={(selectedRows) => {
           console.log("Selected Rows: ", selectedRows);
