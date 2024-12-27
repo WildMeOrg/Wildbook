@@ -34,16 +34,7 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
 
-//check for and inject a default user 'tomcat' if none exists
-if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
-  System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
-  %>
-    <script type="text/javascript">
-      console.log("Wildbook is not initialized!");
-    </script>
-  <%
-  StartupWildbook.initializeWildbook(request, myShepherd);
-}
+
 
 
 //let's quickly get the data we need from Shepherd
@@ -53,15 +44,16 @@ int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
 int numUsers=0;
-myShepherd.beginDBTransaction();
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
+
+
 
 //String url = "/react/login";
 //response.sendRedirect(url);
 //RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
 //dispatcher.forward(request, response);
 
-
+myShepherd.beginDBTransaction();
 try{
 
 
@@ -273,10 +265,11 @@ h2.vidcap {
                     <ul class="encounter-list list-unstyled">
 
                        <%
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
-                       int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
+
+                       
                        try{
+                           List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                           int numResults=latestIndividuals.size();
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
@@ -302,7 +295,7 @@ h2.vidcap {
 						}
                        catch(Exception e){e.printStackTrace();}
                        finally{
-                    	   myShepherd.rollbackDBTransaction();
+                    	   //myShepherd.rollbackDBTransaction();
 
                        }
 
