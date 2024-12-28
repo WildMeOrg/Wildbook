@@ -2609,7 +2609,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 try {
                     MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
                     if ((indiv == null) || (indiv.getEncounters() == null)) {
-                        bgShepherd.rollbackAndClose();
+                        //bgShepherd.rollbackAndClose();
                         executor.shutdown();
                         return;
                     }
