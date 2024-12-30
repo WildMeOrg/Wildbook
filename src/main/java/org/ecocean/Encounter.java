@@ -4,17 +4,23 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.lang.Math;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -30,8 +36,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.ecocean.api.ApiException;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
@@ -66,22 +74,14 @@ public class Encounter extends Base implements java.io.Serializable {
 
     @Override public String opensearchIndexName() { return "encounter"; }
 
-    // at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
     public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.7;
     public static final String STATE_AUTO_SOURCED = "auto_sourced";
 
-    /**
-     * The following attributes are described in the Darwin Core quick reference at:
-     * http://rs.tdwg.org/dwc/terms/#dcterms:type
-     * <p/>
-     * Wherever possible, this class will be extended with Darwin Core attributes for greater adoption of the standard.
-     */
     private String sex = null;
     private String locationID = null;
     private Double maximumDepthInMeters;
     private Double maximumElevationInMeters;
     private String catalogNumber = "";
-    // private String individualID;
     private MarkedIndividual individual;
     private int day = 0;
     private int month = -1;
@@ -110,7 +110,6 @@ public class Encounter extends Base implements java.io.Serializable {
     public String country;
     public String zebraClass = ""; // via lewa: lactating female, territorial male, etc etc
 
-    // fields from Dan's sample csv
     private String imageSet;
     private String soil;
 
@@ -120,6 +119,7 @@ public class Encounter extends Base implements java.io.Serializable {
     private Double immunoglobin;
     private Boolean sampleTakenForDiet;
     private Boolean injured;
+    private boolean opensearchProcessPermissions = false;
 
     private ArrayList<Observation> observations = new ArrayList<Observation>();
 
@@ -157,10 +157,6 @@ public class Encounter extends Base implements java.io.Serializable {
 
     private static HashMap<String, ArrayList<Encounter> > _matchEncounterCache = new HashMap<String,
         ArrayList<Encounter> >();
-
-    /*
-     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
-     */
 
     // An URL to a thumbnail image representing the encounter.
     private String dwcImageURL;
@@ -226,22 +222,9 @@ public class Encounter extends Base implements java.io.Serializable {
     private String gpsLongitude = "", gpsLatitude = "";
     private String gpsEndLongitude = "", gpsEndLatitude = "";
 
-    // whether this encounter has been rejected and should be hidden from public display
-    // unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
-    // private boolean unidentifiable = false;
-    // whether this encounter has a left-side spot image extracted
-    // public boolean hasSpotImage = false;
-    // whether this encounter has a right-side spot image extracted
-    // public boolean hasRightSpotImage = false;
-
     // Indicates whether this record can be exposed via TapirLink
     private boolean okExposeViaTapirLink = false;
 
-    // whether this encounter has been approved for public display
-    // private boolean approved = true;
-    // integers of the latitude and longitude degrees
-    // private int lat=-1000, longitude=-1000;
-    // name of the stored file from which the left-side spots were extracted
     public String spotImageFileName = "";
 
     // name of the stored file from which the right-side spots were extracted
@@ -251,10 +234,6 @@ public class Encounter extends Base implements java.io.Serializable {
     // we also use keywords to be more specific
     public String distinguishingScar = "None";
     // describes how this encounter was matched to an existing shark - by eye, by pattern recognition algorithm etc.
-
-    // DEPRECATING OLD DATA CONSTRUCT
-    // private int numSpotsLeft = 0;
-    // private int numSpotsRight = 0;
 
     // SPOTS
     // an array of the extracted left-side superSpots
@@ -343,7 +322,7 @@ public class Encounter extends Base implements java.io.Serializable {
      * Use this constructor to add the minimum level of information for a new encounter The Vector <code>additionalImages</code> must be a Vector of
      * Blob objects
      *
-     * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
+     * TODO: evaluate and remove if this is DEPRECATED cuz, SinglePhotoVideos? really?
      */
     public Encounter(int day, int month, int year, int hour, String minutes, String size_guess,
         String location) {
@@ -351,11 +330,6 @@ public class Encounter extends Base implements java.io.Serializable {
             System.out.println(
                 "WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
         this.verbatimLocality = location;
-        // this.recordedBy = submitterName;
-        // this.submitterEmail = submitterEmail;
-
-        // now we need to set the hashed form of the email addresses
-        // this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
 
         this.images = images;
         this.day = day;
@@ -566,12 +540,10 @@ public class Encounter extends Base implements java.io.Serializable {
      * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
      */
     public ArrayList<SuperSpot> getSpots() {
-        // return HACKgetSpots();
         return spots;
     }
 
     public ArrayList<SuperSpot> getRightSpots() {
-        // return HACKgetRightSpots();
         return rightSpots;
     }
 
@@ -580,7 +552,8 @@ public class Encounter extends Base implements java.io.Serializable {
      *
      * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
      */
-/*   these have gone away!  dont be setting spots on Encounter any more .... NOT SO FAST... we regress for whaleshark.org... */
+/*  TODO: evaluate if this is deprecate and can be removed
+    these have gone away!  dont be setting spots on Encounter any more .... NOT SO FAST... we regress for whaleshark.org... */
     public void setSpots(ArrayList<SuperSpot> newSpots) {
         spots = newSpots;
     }
@@ -694,20 +667,10 @@ public class Encounter extends Base implements java.io.Serializable {
      */
     public int getNumSpots() {
         return (spots == null) ? 0 : spots.size();
-/*
-    ArrayList<SuperSpot> fakeSpots = HACKgetSpots();
-    if(fakeSpots!=null){return fakeSpots.size();}
-    else{return 0;}
- */
     }
 
     public int getNumRightSpots() {
         return (rightSpots == null) ? 0 : rightSpots.size();
-/*
-    ArrayList<SuperSpot> fakeRightSpots = HACKgetRightSpots();
-    if(fakeRightSpots!=null){return fakeRightSpots.size();}
-    else{return 0;}
- */
     }
 
     public boolean hasLeftSpotImage() {
@@ -718,18 +681,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return (this.getNumRightSpots() > 0);
     }
 
-    /**
-     * Sets the recorded length of the shark for this encounter.
-     */
+    // Sets the recorded length of the shark for this encounter.
     public void setSize(Double mysize) {
         if (mysize != null) { size = mysize; } else { size = null; }
     }
 
-    /**
-     * Returns the recorded length of the shark for this encounter.
-     *
-     * @return the length of the shark
-     */
+    // @return the length of the shark
     public double getSize() {
         return size.doubleValue();
     }
@@ -738,18 +695,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return size;
     }
 
-    /**
-     * Sets the units of the recorded size and depth of the shark for this encounter. Acceptable entries are either "Feet" or "Meters"
-     */
+    // Sets the units of the recorded size and depth of the shark for this encounter. Acceptable entries are either "Feet" or "Meters"
     public void setMeasureUnits(String measure) {
         measurementUnit = measure;
     }
 
-    /**
-     * Returns the units of the recorded size and depth of the shark for this encounter.
-     *
-     * @return the units of measure used by the recorded of this encounter, either "feet" or "meters"
-     */
+    // @return the units of measure used by the recorded of this encounter, either "feet" or "meters"
     public String getMeasureUnits() {
         return measurementUnit;
     }
@@ -758,11 +709,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return measurementUnit;
     }
 
-    /**
-     * Returns the recorded location of this encounter.
-     *
-     * @return the location of this encounter
-     */
+    // @return the location of this encounter
     public String getLocation() {
         return verbatimLocality;
     }
@@ -771,27 +718,17 @@ public class Encounter extends Base implements java.io.Serializable {
         this.verbatimLocality = location;
     }
 
-    /**
-     * Sets the recorded sex of the shark in this encounter. Acceptable values are "Male" or "Female"
-     */
+    // Sets the recorded sex of the shark in this encounter. Acceptable values are "Male" or "Female"
     public void setSex(String thesex) {
         if (thesex != null) { sex = thesex; } else { sex = null; }
     }
 
-    /**
-     * Returns the recorded sex of the shark in this encounter.
-     *
-     * @return the sex of the shark, either "male" or "female"
-     */
+    // @return the sex of the shark, either "male" or "female"
     public String getSex() {
         return sex;
     }
 
-    /**
-     * Returns any submitted comments about scarring on the shark.
-     *
-     * @return any comments regarding observed scarring on the shark's body
-     */
+    // @return any comments regarding observed scarring on the shark's body
     public boolean getMmaCompatible() {
         if (mmaCompatible == null) return false;
         return mmaCompatible;
@@ -801,38 +738,22 @@ public class Encounter extends Base implements java.io.Serializable {
         mmaCompatible = b;
     }
 
-    /**
-     * Returns Occurrence Remarks.
-     *
-     * @return Occurrence Remarks String
-     */
+    // @return Occurrence Remarks String
     @Override public String getComments() {
         return occurrenceRemarks;
     }
 
-    /**
-     * Sets the initially submitted comments about markings and additional details on the shark.
-     *
-     * @param newComments Occurrence remarks to set
-     */
+    // @param newComments Occurrence remarks to set
     @Override public void setComments(String newComments) {
         occurrenceRemarks = newComments;
     }
 
-    /**
-     * Returns any comments added by researchers
-     *
-     * @return any comments added by authroized researchers
-     */
+    // @return any comments added by authroized researchers
     public String getRComments() {
         return researcherComments;
     }
 
-    /**
-     * Adds additional comments about the encounter
-     *
-     * @param newComments any additional comments to be added to the encounter
-     */
+    // @param newComments any additional comments to be added to the encounter
     @Override public void addComments(String newComments) {
         if ((researcherComments != null) && (!(researcherComments.equals("None")))) {
             researcherComments += newComments;
@@ -841,11 +762,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the name of the person who submitted this encounter data.
-     *
-     * @return the name of the person who submitted this encounter to the database
-     */
+    // @return the name of the person who submitted this encounter to the database
     public String getSubmitterName() {
         return recordedBy;
     }
@@ -858,11 +775,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the e-mail address of the person who submitted this encounter data
-     *
-     * @return the e-mail address of the person who submitted this encounter data
-     */
+    // @return the e-mail address of the person who submitted this encounter data
     public String getSubmitterEmail() {
         return submitterEmail;
     }
@@ -877,18 +790,12 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the phone number of the person who submitted this encounter data.
-     *
-     * @return the phone number of the person who submitted this encounter data
-     */
+    // @return the phone number of the person who submitted this encounter data
     public String getSubmitterPhone() {
         return submitterPhone;
     }
 
-    /**
-     * Sets the phone number of the person who submitted this encounter data.
-     */
+    // Sets the phone number of the person who submitted this encounter data.
     public void setSubmitterPhone(String newphone) {
         if (newphone == null) {
             submitterPhone = null;
@@ -897,18 +804,12 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the mailing address of the person who submitted this encounter data.
-     *
-     * @return the mailing address of the person who submitted this encounter data
-     */
+    // @return the mailing address of the person who submitted this encounter data
     public String getSubmitterAddress() {
         return submitterAddress;
     }
 
-    /**
-     * Sets the mailing address of the person who submitted this encounter data.
-     */
+    // Sets the mailing address of the person who submitted this encounter data.
     public void setSubmitterAddress(String address) {
         if (address == null) {
             submitterAddress = null;
@@ -917,18 +818,12 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the name of the person who took the primaryImage this encounter.
-     *
-     * @return the name of the photographer who took the primary image for this encounter
-     */
+    // @return the name of the photographer who took the primary image for this encounter
     public String getPhotographerName() {
         return photographerName;
     }
 
-    /**
-     * Sets the name of the person who took the primaryImage this encounter.
-     */
+    // @return the name of the photographer who took the primary image for this encounter
     public void setPhotographerName(String name) {
         if (name == null) {
             photographerName = null;
@@ -937,18 +832,12 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the e-mail address of the person who took the primaryImage this encounter.
-     *
-     * @return  @return the e-mail address of the photographer who took the primary image for this encounter
-     */
+    // @return the e-mail address of the photographer who took the primary image for this encounter
     public String getPhotographerEmail() {
         return photographerEmail;
     }
 
-    /**
-     * Sets the e-mail address of the person who took the primaryImage this encounter.
-     */
+    // Sets the e-mail address of the person who took the primaryImage this encounter.
     public void setPhotographerEmail(String email) {
         if (email == null) {
             photographerEmail = null;
@@ -959,11 +848,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the phone number of the person who took the primaryImage this encounter.
-     *
-     * @return the phone number of the photographer who took the primary image for this encounter
-     */
+    // @return the phone number of the photographer who took the primary image for this encounter
     public String getPhotographerPhone() {
         return photographerPhone;
     }
@@ -1038,19 +923,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return (serverUrl + "/encounters/encounter.jsp?number=" + encId);
     }
 
-    // public String getHyperlink(HttpServletRequest req, int labelLength) {
-    // String label="";
-    // if (labelLength==1) label = "Enc ";
-    // if (labelLength> 1) label = "Encounter ";
-    // return "<a href=\""+getWebUrl(req)+"\">"+label+getCatalogNumber()+ "</a>";
-    // }
-    // public String getHyperlink(HttpServletRequest req) {
-    // return getHyperlink(req, 1);
-    // }
-
-    /**
-     * Sets the phone number of the person who took the primaryImage this encounter.
-     */
+    // Sets the phone number of the person who took the primaryImage this encounter.
     public void setPhotographerPhone(String phone) {
         if (phone == null) {
             photographerPhone = null;
@@ -1059,18 +932,12 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Returns the mailing address of the person who took the primaryImage this encounter.
-     *
-     * @return the mailing address of the photographer who took the primary image for this encounter
-     */
+    // @return the mailing address of the photographer who took the primary image for this encounter
     public String getPhotographerAddress() {
         return photographerAddress;
     }
 
-    /**
-     * Sets the mailing address of the person who took the primaryImage this encounter.
-     */
+    // Sets the mailing address of the person who took the primaryImage this encounter.
     public void setPhotographerAddress(String address) {
         if (address == null) {
             photographerAddress = null;
@@ -1079,20 +946,14 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    /**
-     * Sets the recorded depth of this encounter.
-     */
+    // Sets the recorded depth of this encounter.
     public void setDepth(Double myDepth) {
         if (myDepth != null) { maximumDepthInMeters = myDepth; } else {
             maximumDepthInMeters = null;
         }
     }
 
-    /**
-     * Returns the recorded depth of this encounter.
-     *
-     * @return the recorded depth for this encounter
-     */
+    // @return the recorded depth for this encounter
     public double getDepth() {
         return maximumDepthInMeters.doubleValue();
     }
@@ -1101,17 +962,10 @@ public class Encounter extends Base implements java.io.Serializable {
         return maximumDepthInMeters;
     }
 
-    // public Vector getAdditionalImages() {return additionalImages;}
-
-    /**
-     * Returns the file names of all images taken for this encounter.
-     *
-     * @return a vector of image name Strings
-     */
+    // @return a vector of image name Strings
     public Vector getAdditionalImageNames() {
         Vector imageNamesOnly = new Vector();
 
-        // List<SinglePhotoVideo> images=getCollectedDataOfClass(SinglePhotoVideo.class);
         if ((images != null) && (images.size() > 0)) {
             int imagesSize = images.size();
             for (int i = 0; i < imagesSize; i++) {
@@ -1153,61 +1007,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return ma.getFilename();
     }
 
-    /**
-     * Adds another image to the collection of images for this encounter. These images should be the additional or non-side shots.
-     *
-
-       public void addAdditionalImageName(SinglePhotoVideo file) {
-       images.add(file);
-
-       }
-     */
-/*
-   public void approve() {
-    approved = true;
-    okExposeViaTapirLink = true;
-   }
- */
-/**
-   public void resetAdditionalImageName(int position, String fileName) {
-   additionalImageNames.set(position, fileName);
-   //additionalImageNames.add(fileName);
-   }
- */
-
-    /**
-     * Removes the specified additional image from this encounter.
-     *
-     * @param  imageFile  the image to be removed from the additional images stored for this encounter
-     */
-    /*
-       public void removeAdditionalImageName(String imageFile) {
-
-       for (int i = 0; i < collectedData.size(); i++) {
-
-
-        String thisName = images.get(i).getFilename();
-        if ((thisName.equals(imageFile)) || (thisName.indexOf("#") != -1)) {
-          images.remove(i);
-          i--;
-        }
-
-       }
-
-
-       }
-     */
-
-    /*
-       public void removeDataCollectionEvent(DataCollectionEvent dce) {
-       collectedData.remove(dce);
-       }
-     */
-    /**
-     * Returns the unique encounter identifier number for this encounter.
-     *
-     * @return a unique integer String used to identify this encounter in the database
-     */
+    // @return a unique integer String used to identify this encounter in the database
     public String getEncounterNumber() {
         return catalogNumber;
     }
@@ -1245,12 +1045,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return d;
     }
 
-    /**
-     * Returns the date of this encounter.
-     *
-     * @return a Date object
-     * @see java.util.Date
-     */
+    // @return a Date object
     public String getDate() {
         String date = "";
         String time = "";
@@ -1291,11 +1086,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return date;
     }
 
-    /**
-     * Returns the String discussing how the size of this animal was approximated.
-     *
-     * @return a String with text about how the size of this animal was estimated/measured
-     */
+    // @return a String with text about how the size of this animal was estimated/measured
     public String getSizeGuess() {
         return size_guess;
     }
@@ -1357,43 +1148,27 @@ public class Encounter extends Base implements java.io.Serializable {
         return (start.getMillis() <= thisTime && end.getMillis() >= thisTime);
     }
 
-    /**
-     * Returns the String holding specific location data used for searching
-     *
-     * @return the String holding specific location data used for searching
-     */
+    // @return the String holding specific location data used for searching
     public String getLocationCode() {
         return locationID;
     }
 
-    /**
-     * A legacy method replaced by setLocationID(...).
-     *
-     *
-     */
+    // TODO: Verify and remove if this is deprecated: A legacy method replaced by setLocationID(...).
     public void setLocationCode(String newLoc) {
         setLocationID(newLoc);
     }
 
-    /**
-     * Returns the String holding specific location data used for searching
-     *
-     * @return the String holding specific location data used for searching
-     */
+    // @return the String holding specific location data used for searching
     public String getDistinguishingScar() {
         return distinguishingScar;
     }
 
-    /**
-     * Sets the String holding scarring information for the encounter
-     */
+    // Sets the String holding scarring information for the encounter
     public void setDistinguishingScar(String scar) {
         distinguishingScar = scar;
     }
 
-    /**
-     * Sets the String documenting how the size of this animal was approximated.
-     */
+    // Sets the String documenting how the size of this animal was approximated.
     public void setSizeGuess(String newGuess) {
         size_guess = newGuess;
     }
@@ -1455,22 +1230,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return individual.getId();
     }
 
-    /*
-       public boolean wasRejected() {
-
-       return unidentifiable;
-       }
-
-       public void reject() {
-       unidentifiable = true;
-       //okExposeViaTapirLink=false;
-       }
-
-       public void reaccept() {
-       unidentifiable = false;
-       //okExposeViaTapirLink=true;
-       }
-     */
     public String getGPSLongitude() {
         if (gpsLongitude == null) {
             return "";
@@ -1527,7 +1286,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
     // ----------------
 
-    // really only intended to convert legacy SinglePhotoVideo to MediaAsset/Annotation world
+    // TODO: evaluate and remove if this has been deprecated: really only intended to convert legacy SinglePhotoVideo to MediaAsset/Annotation world
     public ArrayList<Annotation> generateAnnotations(String baseDir, Shepherd myShepherd) {
         if ((annotations != null) && (annotations.size() > 0)) return annotations;
         if ((images == null) || (images.size() < 1)) return null; // probably pointless, so...
@@ -1561,11 +1320,8 @@ public class Encounter extends Base implements java.io.Serializable {
             haveMedia.add(ma);
 
             annotations.add(new Annotation(getTaxonomyString(), ma));
-            // if (!media.contains(ma)) media.add(ma);
-            // File idir = new File(this.dir(baseDir));
             File idir = new File(spv.getFullFileSystemPath()).getParentFile();
-            // now we iterate through flavors that could be derived
-            // TODO is it bad to assume ".jpg" ? i forget!
+
             addMediaIfNeeded(myShepherd, new File(idir, spv.getDataCollectionEventID() + ".jpg"),
                 "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() +
                 ".jpg", ma, "_watermark");
@@ -1624,8 +1380,6 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // this makes assumption (for flukes) that both right and left image files are identical
-    // TODO handle that they are different
-    // TODO also maybe should reuse addMediaIfNeeded() for some of this where redundant
     public MediaAsset spotImageAsMediaAsset(MediaAsset parent, String baseDir,
         Shepherd myShepherd) {
         if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
@@ -1692,22 +1446,6 @@ public class Encounter extends Base implements java.io.Serializable {
         interestedResearchers.add(email);
     }
 
-    /*
-       public boolean isApproved() {
-       return approved;
-       }
-     */
-
-    /*
-       public void removeInterestedResearcher(String email) {
-       for (int i = 0; i < interestedResearchers.size(); i++) {
-        String rName = (String) interestedResearchers.get(i);
-        if (rName.equals(email)) {
-          interestedResearchers.remove(i);
-        }
-       }
-       }
-     */
     public double getRightmostSpot() {
         double rightest = 0;
         ArrayList<SuperSpot> spots = getSpots();
@@ -1874,10 +1612,7 @@ public class Encounter extends Base implements java.io.Serializable {
         this.rightReferenceSpots = rightReferenceSpots;
     }
 
-    /**
-     * @param population array values to get the variance for
-     * @return the variance
-     */
+    // @return the variance for population
     public double variance(double[] population) {
         long n = 0;
         double mean = 0;
@@ -1895,22 +1630,11 @@ public class Encounter extends Base implements java.io.Serializable {
         return (s / (n - 1));
     }
 
-    /**
-     * @param population array values to get the standard deviation for
-     * @return the standard deviation
-     */
+    // @return the standard deviation for population
     public double standard_deviation(double[] population) {
         return Math.sqrt(variance(population));
     }
 
-/*  GONE!  no more spots on encounters public void setNumLeftSpots(int numspots) {
-    numSpotsLeft = numspots;
-   }
-
-   public void setNumRightSpots(int numspots) {
-    numSpotsRight = numspots;
-   }
- */
     public void setDWCGlobalUniqueIdentifier(String guid) {
         this.guid = guid;
     }
@@ -1970,15 +1694,9 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public void setDWCDateAdded(Long m_dateAdded) {
         dwcDateAddedLong = m_dateAdded;
-        // org.joda.time.DateTime dt=new org.joda.time.DateTime(dwcDateAddedLong.longValue());
-        // DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-        // setDWCDateAdded(dt.toString(parser1));
-        // System.out.println("     Encounter.detDWCDateAded(Long): "+dt.toString(parser1)+" which is also "+m_dateAdded.longValue());
     }
 
-    // public void setDateAdded(long date){dateAdded=date;}
-    // public long getDateAdded(){return dateAdded;}
-
+    // TODO: evaluate and remove if deprecated
     public Date getReleaseDateDONOTUSE() {
         return releaseDate;
     }
@@ -2041,7 +1759,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public void setSurvey() {
     }
 
-    // TODO Get all this lat lon over to Locations
+    // TODO: Get all this lat lon over to Locations
 
     public void setDWCDecimalLatitude(double lat) {
         if (lat == -9999.0) {
@@ -2101,12 +1819,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return informothers;
     }
 
-    /*
-       public void setInformOthers(String others) {
-       this.informothers = others;
-       this.hashedInformOthers = Encounter.getHashOfEmailString(others);
-       }
-     */
     public String getLocationID() {
         return locationID;
     }
@@ -2140,48 +1852,36 @@ public class Encounter extends Base implements java.io.Serializable {
         this.maximumElevationInMeters = newElev;
     }
 
-    /**
-     * Retrieves the Catalog Number.
-     *
-     * @return Catalog Number String
-     */
+    // @return Catalog Number String
     @Override public String getId() {
         return catalogNumber;
     }
 
-    /**
-     * Sets the Catalog Number.
-     *
-     * @param newNumber The Catalog Number to set.
-     */
+    // @param newNumber The Catalog Number to set.
     @Override public void setId(String newNumber) {
         this.catalogNumber = newNumber;
     }
 
-    /**
-     * ##DEPRECATED #509 - Base class getId() method
-     */
+    // TODO: remove if actually deprecated and unused
+    // ##DEPRECATED #509 - Base class getId() method
     public String getCatalogNumber() {
         return catalogNumber;
     }
 
-    /**
-     * ##DEPRECATED #509 - Base class setId() method
-     */
+    // TODO: remove if actually deprecated and unused
+    // ##DEPRECATED #509 - Base class setId() method
     public void setCatalogNumber(String newNumber) {
         this.catalogNumber = newNumber;
     }
 
-    /**
-     * ##DEPRECATED #509 - Base class getId() method
-     */
+    // TODO: remove if actually deprecated and unused
+    // ##DEPRECATED #509 - Base class getId() method
     public String getID() {
         return catalogNumber;
     }
 
-    /**
-     * ##DEPRECATED #509 - Base class setId() method
-     */
+    // TODO: remove if actually deprecated and unused
+    // ##DEPRECATED #509 - Base class setId() method
     public void setID(String newNumber) {
         this.catalogNumber = newNumber;
     }
@@ -2194,8 +1894,6 @@ public class Encounter extends Base implements java.io.Serializable {
         this.verbatimLocality = vlcl;
     }
 
-/* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have some strings and decimal (double, er Double?) values --
-   so i am doing my best to standardize on the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
     public Double getDecimalLatitudeAsDouble() {
         return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();
     }
@@ -2465,7 +2163,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // hacky (as generates new Taxonomy -- with random uuid) but still should work for tax1.equals(tax2);
-    // TODO FIXME this should be superceded by the getter for Taxonomy property in the future....
+    // TODO: FIXME this should be superceded by the getter for Taxonomy property in the future....
     public Taxonomy getTaxonomy(Shepherd myShepherd) {
         String sciname = this.getTaxonomyString();
 
@@ -2510,7 +2208,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public String getPatterningCode() { return patterningCode; }
     public void setPatterningCode(String newCode) { this.patterningCode = newCode; }
 
-    // crawls thru assets and sets date.. in an ideal world would do some kinda avg or whatever if more than one  TODO?
+    // crawls thru assets and sets date
     public void setDateFromAssets() {
         // FIXME if you dare.  i can *promise you* there are some timezone problems here.  ymmv.
         if ((annotations == null) || (annotations.size() < 1)) return;
@@ -2607,6 +2305,60 @@ public class Encounter extends Base implements java.io.Serializable {
         this.dateInMilliseconds = ms;
     }
 
+    // also supports YYYY and YYYY-MM
+    public void setDateFromISO8601String(String iso8601) {
+        if (!validISO8601String(iso8601)) return;
+        if (iso8601.length() == 4) { // assume year
+            try {
+                this.year = Integer.parseInt(iso8601);
+            } catch (Exception ex) {}
+            resetDateInMilliseconds();
+            return;
+        }
+        // this should already be validated so we can trust it (flw)
+        if (iso8601.length() == 7) {
+            try {
+                this.year = Integer.parseInt(iso8601.substring(0, 4));
+                this.month = Integer.parseInt(iso8601.substring(5, 7));
+            } catch (Exception ex) {}
+            resetDateInMilliseconds();
+            return;
+        }
+        try {
+            String adjusted = Util.getISO8601Date(iso8601);
+            DateTime dt = new DateTime(adjusted);
+            this.setDateInMilliseconds(dt.getMillis());
+        } catch (Exception ex) {
+            System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
+        }
+        resetDateInMilliseconds();
+    }
+
+    // also supports YYYY and YYYY-MM
+    public static boolean validISO8601String(String iso8601) {
+        if (iso8601 == null) return false;
+        if (iso8601.length() == 4) {
+            Integer yr = null;
+            try {
+                yr = Integer.parseInt(iso8601);
+            } catch (Exception ex) {}
+            return (yr != null);
+        }
+        if (iso8601.length() == 7) {
+            Integer yr = null;
+            Integer mo = null;
+            try {
+                yr = Integer.parseInt(iso8601.substring(0, 4));
+                mo = Integer.parseInt(iso8601.substring(5, 7));
+            } catch (Exception ex) {}
+            if ((yr == null) || (mo == null)) return false;
+            if ((mo < 1) || (mo > 12)) return false;
+            return true;
+        }
+        long test = Util.getVersionFromModified(iso8601);
+        return (test > 0);
+    }
+
     public Long getEndDateInMilliseconds() {
         return endDateInMilliseconds;
     }
@@ -2634,8 +2386,6 @@ public class Encounter extends Base implements java.io.Serializable {
         if (decimalLatitude != null) { return Double.toString(decimalLatitude); }
         return null;
     }
-
-    // public void setDecimalLatitude(String lat){this.decimalLatitude=Double.parseDouble(lat);}
 
     public String getDecimalLongitude() {
         if (decimalLongitude != null) { return Double.toString(decimalLongitude); }
@@ -2687,50 +2437,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return myShepherd.getProjectsForEncounter(this);
     }
 
-    // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
-
-    /*
-       public ArrayList<DataCollectionEvent> getCollectedDataOfType(String type){
-       ArrayList<DataCollectionEvent> filteredList=new ArrayList<DataCollectionEvent>();
-       int cdSize=collectedData.size();
-       System.out.println("cdSize="+cdSize);
-       for(int i=0;i<cdSize;i++){
-        System.out.println("i="+i);
-        DataCollectionEvent tempDCE=collectedData.get(i);
-        if(tempDCE.getType().equals(type)){filteredList.add(tempDCE);}
-       }
-       return filteredList;
-       }
-     */
-    /*
-       public <T extends DataCollectionEvent> List<T> getCollectedDataOfClass(Class<T> clazz) {
-       List<DataCollectionEvent> collectedData = getCollectedData();
-       List<T> result = new ArrayList<T>();
-       for (DataCollectionEvent dataCollectionEvent : collectedData) {
-        if (dataCollectionEvent.getClass().isAssignableFrom(clazz)) {
-          result.add((T) dataCollectionEvent);
-        }
-       }
-       return result;
-       }
-
-       public <T extends DataCollectionEvent> List<T> getCollectedDataOfClassAndType(Class<T> clazz, String type) {
-       List<T> collectedDataOfClass = getCollectedDataOfClass(clazz);
-       List<T> result = new ArrayList<T>();
-       for (T t : collectedDataOfClass) {
-        if (type.equals(t.getType())) {
-          result.add(t);
-        }
-       }
-       return result;
-       }
-
-       public void addCollectedDataPoint(DataCollectionEvent dce){
-       if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
-       if(!collectedData.contains(dce)){collectedData.add(dce);}
-       }
-       public void removeCollectedDataPoint(int num){collectedData.remove(num);}
-     */
     public void addTissueSample(TissueSample dce) {
         if (tissueSamples == null) { tissueSamples = new ArrayList<TissueSample>(); }
         if (!tissueSamples.contains(dce)) { tissueSamples.add(dce); }
@@ -2746,9 +2452,10 @@ public class Encounter extends Base implements java.io.Serializable {
     public Set<String> getTissueSampleIDs() {
         Set<String> ids = new HashSet<String>();
 
-        for (TissueSample ts : tissueSamples) {
-            ids.add(ts.getSampleID());
-        }
+        if (tissueSamples != null)
+            for (TissueSample ts : tissueSamples) {
+                ids.add(ts.getSampleID());
+            }
         return ids;
     }
 
@@ -2872,13 +2579,8 @@ public class Encounter extends Base implements java.io.Serializable {
         if (newStage != null) { lifeStage = newStage; } else { lifeStage = null; }
     }
 
-    /**
-     * A convenience method that returns the first haplotype found in the TissueSamples for this Encounter.
-     *
-     *@return a String if found or null if no haplotype is found
-     */
+    // A convenience method that returns the first haplotype found in the TissueSamples for this Encounter.
     public String getHaplotype() {
-        // List<TissueSample> tissueSamples=getCollectedDataOfClass(TissueSample.class);
         if (tissueSamples != null) {
             int numTissueSamples = tissueSamples.size();
             if (numTissueSamples > 0) {
@@ -2901,11 +2603,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return null;
     }
 
-    /**
-     * A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter.
-     *
-     *@return a String if found or null if no genetic sex is found
-     */
+    // A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter.
     public String getGeneticSex() {
         if (tissueSamples != null) {
             int numTissueSamples = tissueSamples.size();
@@ -2988,7 +2686,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann.getIAClass() != null) classes.add(ann.getIAClass());
         }
-        // TODO we should find out how/where bunk iaClass values are getting set
+        // TODO: we should find out how/where bunk iaClass values are getting set
         // and stop the via isValidIAClass() or similar
         // also should be considered for any data integrity/repair tools
         classes.remove("____");
@@ -3029,26 +2727,6 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-/*  officially deprecating this (until needed?) ... work now being done with replaceAnnotation() basically   -jon public void
-   addAnnotationReplacingUnityFeature(Annotation ann) {
-        int unityAnnotIndex = -1;
-        if (annotations == null) annotations = new ArrayList<Annotation>();
-        System.out.println("n annotations = "+annotations.size());
-
-        for (int i=0; i<annotations.size(); i++) {
-          if (annotations.get(i).isTrivial()) {
-            System.out.println("annotation "+i+" is unity!");
-            unityAnnotIndex = i;
-            break;
-          }
-        }
-        System.out.println("unityAnnotIndex = "+unityAnnotIndex);
-        if (unityAnnotIndex > -1) { // there is a unity annot; replace it annotations.set(unityAnnotIndex, ann);
-        } else {
-          annotations.add(ann);
-        }
-    }
- */
     public Annotation getAnnotationWithKeyword(String word) {
         System.out.println("getAnnotationWithKeyword called for " + word);
         System.out.println("getAnnotationWithKeyword called, annotations = " + annotations);
@@ -3116,7 +2794,6 @@ public class Encounter extends Base implements java.io.Serializable {
             Encounter newEnc = __encForCollate(tmpAnns, parentRoot);
             if (newEnc != null) {
                 newEnc.setDynamicProperty("frameSplitNumber", Integer.toString(groupsMade + 1));
-                // newEnc.setDynamicProperty("frameSplitSourceEncounter", this.getCatalogNumber());
                 newEncs.add(newEnc);
                 System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
                 groupsMade++;
@@ -3285,11 +2962,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return MediaAsset.findAllByLabel(getMedia(), myShepherd, label);
     }
 
-/*
-    public MediaAsset findOneMediaByLabel(Shepherd myShepherd, String label) {
-        return MediaAsset.findOneByLabel(media, myShepherd, label);
-    }
- */
     public boolean hasKeyword(Keyword word) {
         int imagesSize = images.size();
 
@@ -3360,11 +3032,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
-    /**
-     * Returns the first measurement of the specified type
-     * @param type
-     * @return
-     */
+    // Returns the first measurement of the specified type
     public Measurement getMeasurement(String type) {
         if ((measurements != null) && (measurements.size() > 0)) {
             int numMeasurements = measurements.size();
@@ -3475,25 +3143,31 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
-    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    // new logic means we only need users who are in collab with submitting user
+    // and if public, we dont need to do this at all
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
-        for (User user : myShepherd.getAllUsers()) {
-            if ((user.getId() != null) && this.canUserView(user, myShepherd))
-                ids.add(user.getId());
+        if (this.isPubliclyReadable()) return ids;
+        List<Collaboration> collabs = Collaboration.collaborationsForUser(myShepherd,
+            this.getSubmitterID());
+        for (Collaboration collab : collabs) {
+            User user = myShepherd.getUser(collab.getOtherUsername(this.getSubmitterID()));
+            if (user != null) ids.add(user.getId());
         }
         return ids;
     }
 
-    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+/*
+    public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
-        for (User user : myShepherd.getAllUsers()) {
+        for (User user : myShepherd.getUsersWithUsername()) {
             if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
         }
         return ids;
     }
-
+ */
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         boolean fullAccess = this.canUserAccess(request);
@@ -3647,38 +3321,6 @@ public class Encounter extends Base implements java.io.Serializable {
    this is a problem, as we cant make a thumb in refreshAssetFormats(req, spv) since we dont know if that is the "right" spv.
    thus, we have to treat it as a special case.
  */
-/*
-                public boolean refreshAssetFormats(String context, String baseDir) {
-                        boolean ok = true;
-                        //List<SinglePhotoVideo> allSPV = this.getImages();
-                        boolean thumb = true;
-                        for (SinglePhotoVideo spv : this.getImages()) {
-                                ok &= this.refreshAssetFormats(context, baseDir, spv, thumb);
-                                thumb = false;
-                        }
-                        return ok;
-                }
-
-                //as above, but for specific SinglePhotoVideo public boolean refreshAssetFormats(String context, String baseDir, SinglePhotoVideo spv,
-                   boolean doThumb) {
-                        if (spv == null) return false;
-                        String encDir = this.dir(baseDir);
-
-                        boolean ok = true;
-                        if (doThumb) ok &= spv.scaleTo(context, 100, 75, encDir + File.separator + "thumb.jpg");
-                        //TODO some day this will be a structure/definition that lives in a config file or on MediaAsset, etc.  for now, ya get
-                           hard-coded
-
-                        //this will first try watermark version, then regular ok &= (spv.scaleToWatermark(context, 250, 200, encDir + File.separator +
-                           spv.getDataCollectionEventID() + ".jpg", "") || spv.scaleTo(context, 250, 200, encDir + File.separator +
-                           spv.getDataCollectionEventID() + ".jpg"));
-
-                        ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM
-                           tool etc. (bandwidth friendly?) return ok;
-                }
-
-
- */
     // see also: future, MediaAssets
     public String getThumbnailUrl(String context) {
         MediaAsset ma = getPrimaryMediaAsset();
@@ -3725,18 +3367,10 @@ public class Encounter extends Base implements java.io.Serializable {
         String fail = access.checkRequest(this, request, jsonobj);
         System.out.println("fail -----> " + fail);
         if (fail != null) throw new Exception(fail);
-        // HashMap<String, String> perm = access.permissions(this, request);
-// System.out.println(perm);
-
-/*
-   System.out.println("!!!----------------------------------------");
-   System.out.println(request.getMethod());
-   throw new Exception();
- */
         return true;
     }
 
-///////// these are bunk now - dont use Features  TODO fix these - perhaps by crawlng thru ma.getAnnotations() ?
+///////// these are bunk now - dont use Features  TODO: fix these - perhaps by crawlng thru ma.getAnnotations() ?
     public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
         String queryString =
             "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
@@ -3759,8 +3393,6 @@ public class Encounter extends Base implements java.io.Serializable {
             String queryString =
                 "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
                 + ma.getId();
-            // String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(mAsset) && mAsset.id
-            // ==" + ma.getId();
             Query query = myShepherd.getPM().newQuery(queryString);
             Collection results = (Collection)query.execute();
             returnEncs = new ArrayList<Encounter>(results);
@@ -3803,14 +3435,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return findByAnnotation(ann, myShepherd);
     }
 
-/*  not really sure we need this now/yet
-
-        public void refreshDependentProperties() {
-                this.resetDateInMilliseconds();
-   //TODO could possibly do integrity check, re: individuals/occurrences linking?
-        }
-
- */
     public static ArrayList<Encounter> getEncountersForMatching(String taxonomyString,
         Shepherd myShepherd) {
         if (_matchEncounterCache.get(taxonomyString) != null)
@@ -3847,11 +3471,6 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public ArrayList<SuperSpot> HACKgetAnySpots(String which) {
-/*
-        RuntimeException ex = new RuntimeException(" ===== DEPRECATED ENCOUNTER SPOT BEHAVIOR! PLEASE FIX =====");
-        System.out.println(ex.toString());
-        ex.printStackTrace();
- */
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(
             new String[] { "org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots" });
 
@@ -3868,11 +3487,6 @@ public class Encounter extends Base implements java.io.Serializable {
 
     // err, i think ref spots are the same right or left.... at least for flukes/dorsals.  :/  good luck with mantas and whalesharks!
     public ArrayList<SuperSpot> HACKgetAnyReferenceSpots() {
-/*
-        RuntimeException ex = new RuntimeException(" ===== DEPRECATED ENCOUNTER SPOT BEHAVIOR! PLEASE FIX =====");
-        System.out.println(ex.toString());
-        ex.printStackTrace();
- */
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(
             new String[] { "org.ecocean.flukeEdge.referenceSpots",
                            "org.ecocean.referenceEdge.edgeSpots" });
@@ -3941,7 +3555,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
-    // TODO figure out what this really means
+    // TODO: figure out what this really means
     public void setMatchingOnly() {
         this.setState(STATE_MATCHING_ONLY);
     }
@@ -3955,7 +3569,7 @@ public class Encounter extends Base implements java.io.Serializable {
     /*
        note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really this
           probably should be upon some (mythical) BASE CLASS!!!! ... for now, this Encounter variation kinda fudges with existing "ownership" stuff,
-          namely, the submitterID - which maps (in theory!) to a User username. TODO much much much  ... incl call via constructor maybe ??  etc.
+          namely, the submitterID - which maps (in theory!) to a User username. TODO: much much much  ... incl call via constructor maybe ??  etc.
      */
     // NOTE: not going to currently persist the AccessControl object yet, but create on the fly...  clever? stupid?
     public AccessControl getAccessControl() {
@@ -4247,6 +3861,160 @@ public class Encounter extends Base implements java.io.Serializable {
         return this.getCatalogNumber().hashCode();
     }
 
+    // sadly, this mess needs to carry on the tradition set up in User.isUsernameAnonymous()
+    // thanks to the logic in Collaboration.canUserAccessOwnedObject()
+    public boolean isPubliclyReadable() {
+        if (!Collaboration.securityEnabled("context0")) return true;
+        return User.isUsernameAnonymous(this.submitterID);
+    }
+
+    public boolean getOpensearchProcessPermissions() {
+        return opensearchProcessPermissions;
+    }
+
+    public void setOpensearchProcessPermissions(boolean value) {
+        opensearchProcessPermissions = value;
+    }
+
+    // wrapper for below, that checks if we really need to be run
+    public static void opensearchIndexPermissionsBackground(Shepherd myShepherd) {
+        boolean runIt = false;
+        Long lastRun = OpenSearch.getPermissionsTimestamp(myShepherd);
+        long now = System.currentTimeMillis();
+
+        if ((lastRun == null) ||
+            ((now - lastRun) > OpenSearch.BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES * 60000)) {
+            System.out.println(
+                "opensearchIndexPermissionsBackground: forced run due to max time since previous");
+            runIt = true;
+        }
+        boolean needed = OpenSearch.getPermissionsNeeded(myShepherd);
+        if (needed && !runIt) {
+            System.out.println("opensearchIndexPermissionsBackground: running due to needed=true");
+            runIt = true;
+        }
+        if (!runIt) {
+            System.out.println("opensearchIndexPermissionsBackground: running not required; done");
+            return;
+        }
+        // i think we should set these first... tho they may not get persisted til after?
+        OpenSearch.setPermissionsTimestamp(myShepherd);
+        OpenSearch.setPermissionsNeeded(myShepherd, false);
+        opensearchIndexPermissions();
+        System.out.println("opensearchIndexPermissionsBackground: running completed");
+    }
+
+/*  note: there are a great deal of users with *no username* that seem to appear in enc.submitters array.
+    however, very few (2 out of 5600+) encounters with such .submitters have a blank submitterID value
+    therefore: submitterID will be assumed to be a required value on users which need to be
+
+    this seems further validated by the facts that:
+    - canUserAccess(user) returns false if no username on user
+    - a user wihtout a username cant be logged in (and thus cant search)
+
+    "admin" users are just ignored entirely, as they will be exempt from the viewUsers criteria during searching.
+
+    other than "ownership" (via submitterID), a user can view if they have view or edit collab with
+    another user. so we frontload *approved* collabs for every user here too.
+
+    in terms of "public" encounters, it seems that (based on Collaboration.canUserAccessEncounter()),
+    encounters with submitterID in (NULL, "public", "", "N/A" [ugh]) is readable by anyone; so we will
+    skip these from processing as they should be flagged with the boolean isPubliclyReadable in indexing
+ */
+    public static void opensearchIndexPermissions() {
+        Util.mark("perm start");
+        long startT = System.currentTimeMillis();
+        System.out.println("opensearchIndexPermissions(): begin...");
+        // no security => everything publiclyReadable - saves us work, no?
+        if (!Collaboration.securityEnabled("context0")) return;
+        OpenSearch os = new OpenSearch();
+        Map<String, Set<String> > collab = new HashMap<String, Set<String> >();
+        Map<String, String> usernameToId = new HashMap<String, String>();
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.opensearchIndexPermissions");
+        myShepherd.beginDBTransaction();
+        // it seems as though user.uuid is *required* so we can trust that
+        try {
+            for (User user : myShepherd.getUsersWithUsername()) {
+                usernameToId.put(user.getUsername(), user.getId());
+                List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
+                    user.getUsername());
+                if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
+                for (Collaboration col : collabsFor) {
+                    if (!col.isApproved() && !col.isEditApproved()) continue;
+                    if (!collab.containsKey(user.getId()))
+                        collab.put(user.getId(), new HashSet<String>());
+                    collab.get(user.getId()).add(col.getOtherUsername(user.getUsername()));
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        Util.mark("perm: user build done", startT);
+        System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
+            " total users; " + collab.size() + " have active collab");
+        // now iterated over (non-public) encounters
+        int encCount = 0;
+        org.json.JSONObject updateData = new org.json.JSONObject();
+        // we do not need full Encounter objects here to update index docs, so lets do this via sql/fields - much faster
+        String sql =
+            "SELECT \"CATALOGNUMBER\", \"SUBMITTERID\" FROM \"ENCOUNTER\" WHERE \"SUBMITTERID\" IS NOT NULL AND \"SUBMITTERID\" != '' AND \"SUBMITTERID\" != 'N/A' AND \"SUBMITTERID\" != 'public'";
+        Query q = null;
+        try {
+            q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            List results = (List)q.execute();
+            Iterator it = results.iterator();
+            Util.mark("perm: start encs, size=" + results.size(), startT);
+            while (it.hasNext()) {
+                Object[] row = (Object[])it.next();
+                String id = (String)row[0];
+                String submitterId = (String)row[1];
+                org.json.JSONArray viewUsers = new org.json.JSONArray();
+                String uid = usernameToId.get(submitterId);
+                if (uid == null) {
+                    // see issue 939 for example :(
+                    System.out.println("opensearchIndexPermissions(): WARNING invalid username " +
+                        submitterId + " on enc " + id);
+                    continue;
+                }
+                encCount++;
+                if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
+                // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
+                if (collab.containsKey(uid)) {
+                    for (String colUsername : collab.get(uid)) {
+                        String colId = usernameToId.get(colUsername);
+                        if (colId == null) {
+                            System.out.println(
+                                "opensearchIndexPermissions(): WARNING invalid username " +
+                                colUsername + " in collaboration with userId=" + uid);
+                            continue;
+                        }
+                        viewUsers.put(colId);
+                    }
+                }
+                if (viewUsers.length() > 0) {
+                    updateData.put("viewUsers", viewUsers);
+                    try {
+                        os.indexUpdate("encounter", id, updateData);
+                    } catch (Exception ex) {
+                        // keeping this quiet cuz it can get noise while index builds
+                        // System.out.println("opensearchIndexPermissions(): WARNING failed to update viewUsers on enc " + enc.getId() + "; likely has not been indexed yet: " + ex);
+                    }
+                }
+            }
+            q.closeAll();
+        } catch (Exception ex) {
+            System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
+            ex.printStackTrace();
+        } finally {
+            if (q != null) q.closeAll();
+        }
+        Util.mark("perm: done encs", startT);
+        myShepherd.rollbackAndClose();
+        System.out.println("opensearchIndexPermissions(): ...end [" + encCount + " encs; " +
+            Math.round((System.currentTimeMillis() - startT) / 1000) + "sec]");
+    }
+
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
         int pageSize, String sort, String sortOrder)
     throws IOException {
@@ -4255,10 +4023,20 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
-        super.opensearchDocumentSerializer(jgen);
         Shepherd myShepherd = new Shepherd("context0");
+
         myShepherd.setAction("Encounter.opensearchDocumentSerializer");
         myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
 
         jgen.writeStringField("locationId", this.getLocationID());
         jgen.writeStringField("locationName", this.getLocationName());
@@ -4280,6 +4058,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("state", this.getState());
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
+        jgen.writeBooleanField("publiclyReadable", this.isPubliclyReadable());
 
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
@@ -4290,8 +4069,11 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStartObject();
             jgen.writeNumberField("id", ma.getId());
             jgen.writeStringField("uuid", ma.getUUID());
-            java.net.URL url = ma.safeURL(myShepherd);
-            if (url != null) jgen.writeStringField("url", url.toString());
+            try {
+                // historic data might throw IllegalArgumentException: Path not under given root
+                java.net.URL url = ma.safeURL(myShepherd);
+                if (url != null) jgen.writeStringField("url", url.toString());
+            } catch (Exception ex) {}
             jgen.writeEndObject();
             if (featuredAssetId == null) featuredAssetId = ma.getUUID();
         }
@@ -4301,6 +4083,8 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNullField("assignedUsername");
         } else {
             jgen.writeStringField("assignedUsername", this.submitterID);
+            User submitter = this.getSubmitterUser(myShepherd);
+            if (submitter != null) jgen.writeStringField("submitterUserId", submitter.getId());
         }
         jgen.writeArrayFieldStart("submitters");
         for (String id : this.getAllSubmitterIds(myShepherd)) {
@@ -4411,7 +4195,8 @@ public class Encounter extends Base implements java.io.Serializable {
 
         Double dlat = this.getDecimalLatitudeAsDouble();
         Double dlon = this.getDecimalLongitudeAsDouble();
-        if ((dlat == null) || (dlon == null)) {
+        if ((dlat == null) || !Util.isValidDecimalLatitude(dlat) || (dlon == null) ||
+            !Util.isValidDecimalLongitude(dlon)) {
             jgen.writeNullField("locationGeoPoint");
         } else {
             jgen.writeObjectFieldStart("locationGeoPoint");
@@ -4447,17 +4232,6 @@ public class Encounter extends Base implements java.io.Serializable {
                 encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
                 if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
             }
-/*
-    this currently is not needed as-is. we instead use just the social unit name as its own property (below)
-
-            jgen.writeObjectFieldStart("individualSocialUnitMap");
-            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
-                Membership mem = su.getMembershipForMarkedIndividual(indiv);
-                if (mem != null) jgen.writeStringField(su.getSocialUnitName(), mem.getRole());
-            }
-            jgen.writeEndObject();
- */
-
             jgen.writeArrayFieldStart("individualSocialUnits");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
@@ -4522,21 +4296,34 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNumberField(type, bmeas.get(type).getValue());
         }
         jgen.writeEndObject();
+        // this gets set on specific single-encounter-only actions, when extra expense is okay
+        // otherwise this will be computed by permissions backgrounding
+        if (this.getOpensearchProcessPermissions()) {
+            System.out.println("opensearchProcessPermissions=true for " + this.getId() +
+                "; indexing permissions");
+            jgen.writeFieldName("viewUsers");
+            jgen.writeStartArray();
+            for (String id : this.userIdsWithViewAccess(myShepherd)) {
+                System.out.println("opensearch whhhh: " + id);
+                jgen.writeString(id);
+            }
+            jgen.writeEndArray();
+        }
+    }
 
-/* not really sure if we need to search on TissueSamples but just putting this in for reference
-
-    this.getTissueSamples()
-
-    private String tissueType;
-    private String preservationMethod;
-    private String storageLabID;
-    private String sampleID;
-    private String alternateSampleID;
-    private List<GeneticAnalysis> analyses;
-    private String permit;
-    private String state;
- */
-        myShepherd.rollbackAndClose();
+    // given a doc from opensearch, can user access it?
+    public static boolean opensearchAccess(org.json.JSONObject doc, User user,
+        Shepherd myShepherd) {
+        if ((doc == null) || (user == null)) return false;
+        if (doc.optBoolean("publiclyReadable", false)) return true;
+        if (doc.optString("submitterUserId", "__FAIL__").equals(user.getId())) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        org.json.JSONArray viewUsers = doc.optJSONArray("viewUsers");
+        if (viewUsers == null) return false;
+        for (int i = 0; i < viewUsers.length(); i++) {
+            if (viewUsers.optString(i, "__FAIL__").equals(user.getId())) return true;
+        }
+        return false;
     }
 
     @Override public long getVersion() {
@@ -4555,10 +4342,6 @@ public class Encounter extends Base implements java.io.Serializable {
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
         org.json.JSONObject keywordNormalType = new org.json.JSONObject(
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
-/*
-        org.json.JSONObject fieldKeywordNormalType = new org.json.JSONObject(
-            "{\"fields\": {\"keyword\": {\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}}, \"type\": \"object\"}");
- */
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
@@ -4569,6 +4352,7 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("taxonomy", keywordType);
         map.put("occurrenceId", keywordType);
         map.put("state", keywordType);
+        map.put("submitterUserId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
@@ -4587,11 +4371,10 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("individualDisplayName", keywordNormalType);
         map.put("organizations", keywordNormalType);
         map.put("otherCatalogNumbers", keywordNormalType);
-
-/*
-        map.put("mediaAssetLabeledKeywords", fieldKeywordNormalType);
-        map.put("individualSocialUnits", fieldKeywordNormalType);
- */
+        map.put("lifeStage", keywordNormalType);
+        map.put("submitters", keywordNormalType);
+        map.put("photographers", keywordNormalType);
+        map.put("informOthers", keywordNormalType);
 
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
@@ -4607,11 +4390,18 @@ public class Encounter extends Base implements java.io.Serializable {
     public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
     throws IOException {
         int[] rtn = new int[2];
+
+        if (OpenSearch.indexingActive()) {
+            System.out.println("Encounter.opensearchSyncIndex() skipped due to indexingActive()");
+            rtn[0] = -1;
+            rtn[1] = -1;
+            return rtn;
+        }
+        OpenSearch.setActiveIndexingBackground();
         String indexName = "encounter";
         OpenSearch os = new OpenSearch();
         List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
             os.getAllVersions(indexName));
-
         if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
         List<String> needIndexing = changes.get(0);
         List<String> needRemoval = changes.get(1);
@@ -4622,7 +4412,13 @@ public class Encounter extends Base implements java.io.Serializable {
         int ct = 0;
         for (String id : needIndexing) {
             Encounter enc = myShepherd.getEncounter(id);
-            if (enc != null) os.index(indexName, enc);
+            try {
+                if (enc != null) os.index(indexName, enc);
+            } catch (Exception ex) {
+                System.out.println("Encounter.opensearchSyncIndex(): index failed " + enc + " => " +
+                    ex.toString());
+                ex.printStackTrace();
+            }
             if (ct % 500 == 0)
                 System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
                     rtn[0]);
@@ -4642,6 +4438,302 @@ public class Encounter extends Base implements java.io.Serializable {
             ct++;
         }
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
+        OpenSearch.unsetActiveIndexingBackground();
         return rtn;
+    }
+
+    public static Base createFromApi(org.json.JSONObject payload, List<File> files,
+        Shepherd myShepherd)
+    throws ApiException {
+        if (payload == null) throw new ApiException("empty payload");
+        User user = (User)payload.opt("_currentUser");
+
+        // these need validation (will throw ApiException if fail)
+        String locationID = (String)validateFieldValue("locationId", payload);
+        String dateTime = (String)validateFieldValue("dateTime", payload);
+        String txStr = (String)validateFieldValue("taxonomy", payload);
+        String submitterEmail = (String)validateFieldValue("submitterEmail", payload);
+        String photographerEmail = (String)validateFieldValue("photographerEmail", payload);
+        Double decimalLatitude = (Double)validateFieldValue("decimalLatitude", payload);
+        Double decimalLongitude = (Double)validateFieldValue("decimalLongitude", payload);
+        if (((decimalLatitude == null) && (decimalLongitude != null)) ||
+            ((decimalLatitude != null) && (decimalLongitude == null))) {
+            org.json.JSONObject error = new org.json.JSONObject();
+            error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            // i guess we pick one, since both are wrong
+            error.put("fieldName", "decimalLatitude");
+            error.put("value", decimalLatitude);
+            throw new ApiException("cannot send just one of decimalLatitude and decimalLongitude",
+                    error);
+        }
+        String additionalEmailsValue = payload.optString("additionalEmails", null);
+        String[] additionalEmails = null;
+        if (!Util.stringIsEmptyOrNull(additionalEmailsValue))
+            additionalEmails = additionalEmailsValue.split("[,\\s]+");
+        if (additionalEmails != null) {
+            org.json.JSONObject error = new org.json.JSONObject();
+            error.put("fieldName", "additionalEmails");
+            for (String email : additionalEmails) {
+                if (!Util.isValidEmailAddress(email)) {
+                    error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                    error.put("value", email);
+                    throw new ApiException("invalid email address", error);
+                }
+            }
+        }
+        Encounter enc = new Encounter(false);
+        if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
+        enc.setLocationID(locationID);
+        enc.setDecimalLatitude(decimalLatitude);
+        enc.setDecimalLongitude(decimalLongitude);
+        enc.setDateFromISO8601String(dateTime);
+        enc.setTaxonomyFromString(txStr);
+        enc.setComments(payload.optString("comments", null));
+        if (user == null) {
+            enc.setSubmitterID("public"); // this seems to be what EncounterForm servlet does so...
+        } else {
+            enc.setSubmitterID(user.getUsername());
+            enc.addSubmitter(user);
+        }
+        if (!Util.stringIsEmptyOrNull(submitterEmail)) {
+            User submitterUser = myShepherd.getOrCreateUserByEmailAddress(submitterEmail,
+                payload.optString("submitterName", null));
+            // set this after the owner-submitter being set
+            enc.addSubmitter(submitterUser);
+        }
+        if (!Util.stringIsEmptyOrNull(photographerEmail)) {
+            User photographerUser = myShepherd.getOrCreateUserByEmailAddress(photographerEmail,
+                payload.optString("photographerName", null));
+            enc.addPhotographer(photographerUser);
+        }
+        if (additionalEmails != null) {
+            for (String email : additionalEmails) {
+                User addlUser = myShepherd.getOrCreateUserByEmailAddress(email, null);
+                enc.addInformOther(addlUser);
+            }
+        }
+        return enc;
+    }
+
+    public static Object validateFieldValue(String fieldName, org.json.JSONObject data)
+    throws ApiException {
+        if (data == null) throw new ApiException("empty payload");
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("fieldName", fieldName);
+        String exMessage = "invalid value for " + fieldName;
+        Object returnValue = null;
+        double UNSET_LATLON = 9999.99;
+        switch (fieldName) {
+        case "locationId":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!LocationID.isValidLocationID((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "dateTime":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!validISO8601String((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "taxonomy":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue != null) { // null is allowed, but will not pass validity
+                // this is throwaway read-only shepherd
+                Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.setAction("Encounter.validateFieldValue");
+                boolean validTaxonomy = false;
+                myShepherd.beginDBTransaction();
+                try {
+                    validTaxonomy = myShepherd.isValidTaxonomyName((String)returnValue);
+                } catch (Exception e) { e.printStackTrace(); } finally {
+                    myShepherd.rollbackAndClose();
+                }
+                if (!validTaxonomy) {
+                    error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                    error.put("value", returnValue);
+                    throw new ApiException(exMessage, error);
+                }
+            }
+            break;
+
+        case "photographerEmail":
+        case "submitterEmail":
+            returnValue = data.optString(fieldName, null);
+            if ((returnValue != null) && !Util.isValidEmailAddress((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "decimalLatitude":
+            returnValue = data.optDouble(fieldName, UNSET_LATLON);
+            if ((double)returnValue == UNSET_LATLON) {
+                returnValue = null;
+            } else if (!Util.isValidDecimalLatitude((double)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "decimalLongitude":
+            returnValue = data.optDouble(fieldName, UNSET_LATLON);
+            if ((double)returnValue == UNSET_LATLON) {
+                returnValue = null;
+            } else if (!Util.isValidDecimalLongitude((double)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" +
+                fieldName);
+        }
+        // must be okay!
+        return returnValue;
+    }
+
+    // basically ripped from servlet/EncounterForm
+    public Task sendToIA(Shepherd myShepherd) {
+        Task task = null;
+
+        try {
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            if (iaConfig.hasIA(this, myShepherd)) {
+                for (MediaAsset ma : this.getMedia()) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
+                Task parentTask = null; // this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+                if (this.getLocationID() != null) {
+                    parentTask = new Task();
+                    org.json.JSONObject tp = new org.json.JSONObject();
+                    org.json.JSONObject mf = new org.json.JSONObject();
+                    mf.put("locationId", this.getLocationID());
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, this.getMedia(), parentTask);
+                myShepherd.storeNewTask(task);
+                System.out.println("sendToIA() success on " + this + " => " + task);
+            } else {
+                System.out.println("sendToIA() skipped; no config for " + this);
+            }
+        } catch (Exception ex) {
+            System.out.println("sendToIA() failed on " + this + ": " + ex);
+            ex.printStackTrace();
+        }
+        return task;
+    }
+
+    public Set<String> getNotificationEmailAddresses() {
+        Set<String> addrs = new HashSet<String>();
+
+        addrs.addAll(Util.getUserEmailAddresses(this.getSubmitters()));
+        addrs.addAll(Util.getUserEmailAddresses(this.getPhotographers()));
+        addrs.addAll(Util.getUserEmailAddresses(this.getInformOthers()));
+        return addrs;
+    }
+
+    // FIXME passing the langCode is dumb imho, but this is "standard practice"
+    // better would be that each recipient user's language preference would be used for their email
+    public void sendCreationEmails(Shepherd myShepherd, String langCode) {
+        String context = myShepherd.getContext();
+
+        if (!CommonConfiguration.sendEmailNotifications(context)) return;
+        myShepherd.beginDBTransaction();
+        try {
+            URI uri = CommonConfiguration.getServerURI(myShepherd);
+            if (uri == null) throw new IOException("could not find server uri");
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Properties submitProps = ShepherdProperties.getProperties("submit.properties", langCode,
+                context);
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(this);
+            tagMap.put(NotificationMailer.WILDBOOK_COMMUNITY_URL,
+                CommonConfiguration.getWildbookCommunityURL(context));
+            List<String> mailTo = NotificationMailer.splitEmails(
+                CommonConfiguration.getNewSubmissionEmail(context));
+            String mailSubj = submitProps.getProperty("newEncounter") + this.getCatalogNumber();
+            for (String emailTo : mailTo) {
+                NotificationMailer mailer = new NotificationMailer(context, emailTo, langCode,
+                    "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            // this will be empty if no locationID
+            Set<String> locEmails = myShepherd.getAllUserEmailAddressesForLocationIDAsSet(
+                this.getLocationID(), context);
+            for (String emailTo : locEmails) {
+                NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo,
+                    "newSubmission-summary", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
+            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + this.getCatalogNumber());
+            // this is a mashup of: submitters, photographers, informOthers....
+            for (String emailTo : this.getNotificationEmailAddresses()) {
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, getHashOfEmailString(emailTo));
+                NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo,
+                    "newSubmission", tagMap);
+                mailer.setUrlScheme(uri.getScheme());
+                es.execute(mailer);
+            }
+            es.shutdown();
+        } catch (Exception ex) {
+            System.out.println("sendCreationEmails() on " + this + " failed: " + ex);
+            ex.printStackTrace();
+        } finally {
+            myShepherd.rollbackDBTransaction();
+        }
+    }
+
+    public void opensearchIndexDeep()
+    throws IOException {
+        final String encId = this.getId();
+        final Encounter origEnc = this;
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
+                bgShepherd.beginDBTransaction();
+                try {
+                    Encounter enc = bgShepherd.getEncounter(encId);
+                    if (enc == null) {
+                        // we use origEnc if we can (especially necessary on initial creation of Encounter)
+                        if (origEnc != null) origEnc.opensearchIndex();
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    enc.opensearchIndex();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                executor.shutdown();
+            }
+        };
+
+        executor.execute(rn);
     }
 }

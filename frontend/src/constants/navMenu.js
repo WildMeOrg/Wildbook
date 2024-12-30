@@ -1,22 +1,39 @@
 import React from "react";
 import { FormattedMessage } from "react-intl";
 
-const authenticatedMenu = (username) => [
+const authenticatedMenu = (
+  username,
+  showclassicsubmit,
+  showClassicEncounterSearch,
+) => [
   {
     Submit: [
       {
         name: (
           <FormattedMessage
-            id="menu.submit.reportSighting"
+            id="MENU_LEARN_REPORTENCOUNTER"
             defaultMessage="Report an Encounter"
           />
         ),
-        href: "/submit.jsp",
+        href: `${process.env.PUBLIC_URL}/report`,
       },
+      ...(showclassicsubmit
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
+                  defaultMessage="Report an Encounter(Classic)"
+                />
+              ),
+              href: "/submit.jsp",
+            },
+          ]
+        : []),
       {
         name: (
           <FormattedMessage
-            id="menu.submit.bulkImport"
+            id="MENU_LEARN_BULKIMPORT"
             defaultMessage="Bulk Import"
           />
         ),
@@ -29,7 +46,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.learn.aboutWildbook"
+            id="MENU_LEARN_ABOUTWILDBOOK"
             defaultMessage="About Wildbook"
           />
         ),
@@ -38,7 +55,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.learn.contactUs"
+            id="MENU_LEARN_CONTACTUS"
             defaultMessage="Contact Us"
           />
         ),
@@ -47,23 +64,23 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.learn.citingWildbook"
+            id="MENU_LEARN_CITINGWILDBOOK"
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/citing.jsp",
+        href: `${process.env.PUBLIC_URL}/citation`,
       },
       {
         name: (
           <FormattedMessage
-            id="menu.learn.howToPhotograph"
+            id="MENU_LEARN_HOWTOPHOTOGRAPH"
             defaultMessage="How to Photograph"
           />
         ),
         href: "/photographing.jsp",
       },
-      // { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
-      // { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
+      // { name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
+      // { name: <FormattedMessage id="MENU_LEARN_TERMSOFUSE" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
     ],
   },
 
@@ -72,45 +89,45 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.myData.myEncounters"
+            id="MENU_LEARN_MYENCOUNTERS"
             defaultMessage="My Encounters"
           />
         ),
-        href: `/react/encounter-search?username=${username}`,
+        href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}`,
         sub: [
           {
             name: (
               <FormattedMessage
-                id="menu.myData.approvedAnimals"
+                id="MENU_LEARN_APPROVEDANIMALS"
                 defaultMessage="My Approved Animals"
               />
             ),
-            href: `/react/encounter-search?username=${username}&state=approved`,
+            href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}&state=approved`,
           },
           {
             name: (
               <FormattedMessage
-                id="menu.myData.unapprovedAnimals"
+                id="MENU_LEARN_UNAPPROVEDANIMALS"
                 defaultMessage="My Unapproved Animals"
               />
             ),
-            href: `/react/encounter-search?username=${username}&state=unapproved`,
+            href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}&state=unapproved`,
           },
           {
             name: (
               <FormattedMessage
-                id="menu.myData.unidentifiableAnimals"
+                id="MENU_LEARN_UNIDENTIFIABLEANIMALS"
                 defaultMessage="My Unidentifiable Animals"
               />
             ),
-            href: `/react/encounter-search?username=${username}&state=unidentifiable`,
+            href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}&state=unidentifiable`,
           },
         ],
       },
       {
         name: (
           <FormattedMessage
-            id="menu.myData.myIndividuals"
+            id="MENU_LEARN_MYINDIVIDUALS"
             defaultMessage="My Individuals"
           />
         ),
@@ -119,7 +136,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.myData.mySightings"
+            id="MENU_LEARN_MYSIGHTINGS"
             defaultMessage="My Sightings"
           />
         ),
@@ -128,7 +145,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.myData.myBulkImports"
+            id="MENU_LEARN_MYBULKIMPORTS"
             defaultMessage="My Bulk Imports"
           />
         ),
@@ -137,11 +154,11 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.myData.myProjects"
+            id="MENU_LEARN_MYPROJECTS"
             defaultMessage="My Projects"
           />
         ),
-        href: "/projects/projectList.jsp",
+        href: "/react/projects/overview",
       },
     ],
   },
@@ -150,16 +167,29 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.search.encounters"
+            id="MENU_SEARCH_ENCOUNTERS"
             defaultMessage="Encounters"
           />
         ),
-        href: "/react/encounter-search",
+        href: `${process.env.PUBLIC_URL}/encounter-search`,
       },
+      ...(showClassicEncounterSearch
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_SEARCH_ENCOUNTERS_CLASSIC"
+                  defaultMessage="Encounters (Classic)"
+                />
+              ),
+              href: "/encounters/encounterSearch.jsp",
+            },
+          ]
+        : []),
       {
         name: (
           <FormattedMessage
-            id="menu.search.individuals"
+            id="MENU_SEARCH_INDIVIDUALS"
             defaultMessage="Individuals"
           />
         ),
@@ -168,7 +198,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.search.sightings"
+            id="MENU_SEARCH_SIGHTINGS"
             defaultMessage="Sightings"
           />
         ),
@@ -181,7 +211,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.animals.individualGallery"
+            id="MENU_ANIMALS_INDIVIDUALGALLERY"
             defaultMessage="Individual Gallery"
           />
         ),
@@ -190,7 +220,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.animals.animalCalendar"
+            id="MENU_ANIMALS_ANIMALCALENDAR"
             defaultMessage="Animal Calendar"
           />
         ),
@@ -203,7 +233,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.administer.manageAccounts"
+            id="MENU_ADMINISTER_MANAGEACCOUNTS"
             defaultMessage="Manage My Accounts"
           />
         ),
@@ -212,7 +242,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.administer.userManagement"
+            id="MENU_ADMINISTER_USERMANAGEMENT"
             defaultMessage="User Management"
           />
         ),
@@ -221,7 +251,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.administer.libraryAdmin"
+            id="MENU_ADMINISTER_LIBRARYADMINISTRATION"
             defaultMessage="Library Administration"
           />
         ),
@@ -229,14 +259,14 @@ const authenticatedMenu = (username) => [
       },
       {
         name: (
-          <FormattedMessage id="menu.administer.logs" defaultMessage="Logs" />
+          <FormattedMessage id="MENU_ADMINISTER_LOGS" defaultMessage="Logs" />
         ),
-        href: "/appadmin/logs.jsp",
+        href: "/react/admin/logs",
       },
       {
         name: (
           <FormattedMessage
-            id="menu.administer.photoKeywords"
+            id="MENU_ADMINISTER_PHOTOKEYWORDS"
             defaultMessage="Photo Keywords"
           />
         ),
@@ -245,7 +275,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.administer.softwareDocs"
+            id="MENU_ADMINISTER_SOFTWAREDOCS"
             defaultMessage="Software Documentation"
           />
         ),
@@ -254,7 +284,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.administer.dataIntegrity"
+            id="MENU_ADMINISTER_DATAINTEGRITY"
             defaultMessage="Data Integrity"
           />
         ),
@@ -263,7 +293,7 @@ const authenticatedMenu = (username) => [
       {
         name: (
           <FormattedMessage
-            id="menu.administer.bulkImportLogs"
+            id="MENU_ADMINISTER_BULKIMPORTLOGS"
             defaultMessage="Bulk Import Logs"
           />
         ),
@@ -273,18 +303,31 @@ const authenticatedMenu = (username) => [
   },
 ];
 
-const unAuthenticatedMenu = [
+const unAuthenticatedMenu = (showclassicsubmit) => [
   {
     Submit: [
       {
         name: (
           <FormattedMessage
-            id="menu.submit.reportSighting"
+            id="MENU_LEARN_REPORTENCOUNTER"
             defaultMessage="Report an Encounter"
           />
         ),
-        href: "/submit.jsp",
+        href: `${process.env.PUBLIC_URL}/report`,
       },
+      ...(showclassicsubmit
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
+                  defaultMessage="Report an Encounter(Classic)"
+                />
+              ),
+              href: "/submit.jsp",
+            },
+          ]
+        : []),
     ],
   },
   {
@@ -292,7 +335,7 @@ const unAuthenticatedMenu = [
       {
         name: (
           <FormattedMessage
-            id="menu.learn.aboutWildbook"
+            id="MENU_LEARN_ABOUTWILDBOOK"
             defaultMessage="About Wildbook"
           />
         ),
@@ -301,7 +344,7 @@ const unAuthenticatedMenu = [
       {
         name: (
           <FormattedMessage
-            id="menu.learn.contactUs"
+            id="MENU_LEARN_CONTACTUS"
             defaultMessage="Contact Us"
           />
         ),
@@ -310,16 +353,16 @@ const unAuthenticatedMenu = [
       {
         name: (
           <FormattedMessage
-            id="menu.learn.citingWildbook"
+            id="MENU_LEARN_CITINGWILDBOOK"
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/citing.jsp",
+        href: `${process.env.PUBLIC_URL}/citation`,
       },
       {
         name: (
           <FormattedMessage
-            id="menu.learn.howToPhotograph"
+            id="MENU_LEARN_HOWTOPHOTOGRAPH"
             defaultMessage="How to Photograph"
           />
         ),
@@ -328,7 +371,7 @@ const unAuthenticatedMenu = [
       //   {
       //     name: (
       //       <FormattedMessage
-      //         id="menu.learn.privacyPolicy"
+      //         id="MENU_LEARN_PRIVACYPOLICY"
       //         defaultMessage="Privacy Policy"
       //       />
       //     ),
@@ -337,7 +380,7 @@ const unAuthenticatedMenu = [
       //   {
       //     name: (
       //       <FormattedMessage
-      //         id="menu.learn.termsOfUse"
+      //         id="MENU_LEARN_TERMSOFUSE"
       //         defaultMessage="Terms of Use"
       //       />
       //     ),
@@ -351,7 +394,7 @@ const unAuthenticatedMenu = [
       {
         name: (
           <FormattedMessage
-            id="menu.animals.individualGallery"
+            id="MENU_ANIMALS_INDIVIDUALGALLERY"
             defaultMessage="Individual Gallery"
           />
         ),
@@ -360,7 +403,7 @@ const unAuthenticatedMenu = [
       {
         name: (
           <FormattedMessage
-            id="menu.animals.animalCalendar"
+            id="MENU_ANIMALS_ANIMALCALENDAR"
             defaultMessage="Animal Calendar"
           />
         ),

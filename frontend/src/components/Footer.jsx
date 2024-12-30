@@ -1,9 +1,10 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import FooterLink from "./footer/FooterLink";
 import ThemeColorContext from "../ThemeColorProvider";
 import FooterVisibilityContext from "../FooterVisibilityContext";
+import useGetSiteSettings from "../models/useGetSiteSettings";
 import {
   footerLinks1,
   footerLinks2,
@@ -13,7 +14,13 @@ import {
 const Footer = () => {
   const theme = useContext(ThemeColorContext);
   const { visible } = useContext(FooterVisibilityContext);
-
+  const [version, setVersion] = useState();
+  const { data } = useGetSiteSettings();
+  useEffect(() => {
+    if (data) {
+      setVersion(data.system?.wildbookVersion);
+    }
+  }, [data]);
   return visible ? (
     <footer
       className="footer py-3 w-100"
@@ -62,6 +69,17 @@ const Footer = () => {
         <Row className="justify-content-md-center py-3">
           <Col md="auto">
             <p>
+              {version ? (
+                <a
+                  href={`https://github.com/WildMeOrg/Wildbook/releases/tag/${version}`}
+                  style={{ color: "inherit", textDecoration: "none" }}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {`V${version}`}
+                  {" | "}
+                </a>
+              ) : null}
               <FormattedMessage id="FOOTER_COPYRIGHT" />
             </p>
           </Col>

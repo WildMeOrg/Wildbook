@@ -4,12 +4,17 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.jdo.Query;
+import org.ecocean.api.ApiException;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -72,8 +77,10 @@ import org.json.JSONObject;
      */
     public abstract void addComments(final String newComments);
 
-    public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
-    public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
+    // issue 785 makes this no longer necessary; the overrides are left on Occurrence and MarkedIndividual
+    // for now as reference -- but are not called. they will need to be addressed when these classes are searchable
+    // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
+    // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
 
     public abstract String opensearchIndexName();
 
@@ -92,6 +99,8 @@ import org.json.JSONObject;
         map.put("version", new org.json.JSONObject("{\"type\": \"long\"}"));
         // id should be keyword for the sake of sorting
         map.put("id", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+        map.put("viewUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+        map.put("editUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         return map;
     }
 
@@ -111,9 +120,25 @@ import org.json.JSONObject;
 
     public void opensearchUnindex()
     throws IOException {
-        OpenSearch opensearch = new OpenSearch();
+        // unindexing should be non-blocking and backgrounded
+        String opensearchIndexName = this.opensearchIndexName();
+        String objectId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            OpenSearch opensearch = new OpenSearch();
+            public void run() {
+                try {
+                    opensearch.delete(opensearchIndexName, objectId);
+                } catch (Exception e) {
+                    System.out.println("opensearchUnindex() backgrounding Object " + objectId +
+                        " hit an exception.");
+                    e.printStackTrace();
+                }
+                executor.shutdown();
+            }
+        };
 
-        opensearch.delete(this.opensearchIndexName(), this);
+        executor.execute(rn);
     }
 
     public void opensearchUnindexQuiet() {
@@ -132,15 +157,24 @@ import org.json.JSONObject;
         this.opensearchUnindex();
     }
 
-    // should be overridden
-    public void opensearchDocumentSerializer(JsonGenerator jgen)
-    throws IOException, JsonProcessingException {
-        Shepherd myShepherd = new Shepherd("context0");
+    public void opensearchUpdate(final JSONObject updateData)
+    throws IOException {
+        if (updateData == null) return;
+        OpenSearch opensearch = new OpenSearch();
 
-        myShepherd.setAction("BaseSerializer");
-        myShepherd.beginDBTransaction();
+        opensearch.indexUpdate(this.opensearchIndexName(), this.getId(), updateData);
+    }
+
+    // should be overridden
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
+        jgen.writeNumberField("indexTimestamp", System.currentTimeMillis());
+
+/*
+        these are no longer computed in the general opensearchIndex() call.
+        they are too expensive. see Encounter.opensearchIndexPermission()
 
         jgen.writeFieldName("viewUsers");
         jgen.writeStartArray();
@@ -155,7 +189,20 @@ import org.json.JSONObject;
             jgen.writeString(id);
         }
         jgen.writeEndArray();
-        myShepherd.rollbackDBTransaction();
+ */
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("BaseSerializer");
+        myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
@@ -165,6 +212,11 @@ import org.json.JSONObject;
         JSONObject res = opensearch.queryPit(indexname, query, numFrom, pageSize, sort, sortOrder);
 
         return res;
+    }
+
+    // this is so we can call it on Base obj, but really is only needed by [overridden by] Encounter (currently)
+    public boolean getOpensearchProcessPermissions() {
+        return false;
     }
 
     public static Map<String, Long> getAllVersions(Shepherd myShepherd, String sql) {
@@ -185,6 +237,17 @@ import org.json.JSONObject;
         }
         query.closeAll();
         return rtn;
+    }
+
+    public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
+    throws ApiException {
+        throw new ApiException("not yet supported");
+    }
+
+    // TODO should this be an abstract? will we need some base stuff?
+    public static Object validateFieldValue(String fieldName, JSONObject data)
+    throws ApiException {
+        return null;
     }
 
 /*

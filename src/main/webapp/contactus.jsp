@@ -26,7 +26,7 @@
 	<p>The following logos may be used in conjunction with our project.</p>
 
 	<h3>Wild Me</h3>
-	<p><img src="images/WildMe-Logo-04.png" width="500px" height="*" /></p>
+	<p><img src="images/WildMe-Logo-100x100.png" width="500px" height="*" /></p>
 
 	<h3>Wildbook&reg;</h3>
 	<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>

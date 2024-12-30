@@ -25,7 +25,6 @@ var randomPrefix = Math.floor(Math.random() * 100000);  //this is only used for 
 var keyToFilename = {};
 var pendingUpload = -1;
 
-//TODO we should make this more generic wrt elements and events
 function uploaderInit(completionCallback, subdir) {
 
     if (useS3Direct()) {
@@ -151,19 +150,6 @@ function requestMediaAssetSet(callback) {
     });
 }
 
-/*
-{
-"MediaAssetCreate": [
-	{
-    	"setId":"567d00b5-b44e-485a-9d77-10987f6dd3e6",
-      "assets": [
-        {"bucket": "flukebook-dev-upload-tmp", "key": "567d00b5-b44e-485a-9d77-10987f6dd3e6/11854-r043-4f25.jpg"},
-        {"bucket": "abc", "key": "xyz"}
-        ]
-    }
-]
-}*/
-
 function createMediaAssets(setId, bucket, keys, callback) {
     var assetData = [];
     for (var i = 0 ; i < keys.length ; i++) {
@@ -247,7 +233,11 @@ function filesChanged(f) {
 function filesChangedSetFilename(f) {
     console.log("filesChangedSetFilename")
     filesChanged(f);
-    let filename = f.files[0].name.replace(/[^a-zA-Z0-9\. ]/g, "")
+    let originalFilename = f.files[0].name;
+    // Add original filename to hidden element on page before string processing
+    document.getElementById("originalFilename").innerHTML = originalFilename;    
+    let filename = originalFilename.replace(/[^a-zA-Z0-9\. ]/g, "")
+    // Add updated filename to hidden element on page after string processing
     document.getElementById("hiddenFilename").innerHTML = filename;    
 }
 
