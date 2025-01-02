@@ -253,6 +253,7 @@ public class Collaborate extends HttpServlet {
                     System.out.println("/Collaborate: new .getState() = " + collab.getState() +
                         " for collab " + collab);
                     rtn.put("success", true);
+                    OpenSearch.setPermissionsNeeded(myShepherd, true);
                     myShepherd.updateDBTransaction();
                     // myShepherd.commitDBTransaction();
                 }
