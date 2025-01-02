@@ -19,6 +19,7 @@ export default function AuthenticatedSwitch({
   showAlert,
   setShowAlert,
   showclassicsubmit,
+  showClassicEncounterSearch,
 }) {
   const { data } = useGetMe();
   const username = data?.username;
@@ -44,6 +45,7 @@ export default function AuthenticatedSwitch({
           showAlert={showAlert}
           setShowAlert={setShowAlert}
           showclassicsubmit={showclassicsubmit}
+          showClassicEncounterSearch={showClassicEncounterSearch}
         />
       </div>
 
