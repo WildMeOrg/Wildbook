@@ -24,6 +24,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
+import org.ecocean.OpenSearch;
 import org.ecocean.Project;
 import org.ecocean.resumableupload.UploadServlet;
 import org.ecocean.servlet.importer.ImportTask;
@@ -175,6 +176,7 @@ public class BaseObject extends ApiBase {
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
             System.out.println("BaseObject.processPost() success (200) creating " + obj +
                 " from payload " + payload);
+            OpenSearch.setPermissionsNeeded(myShepherd, true);
             myShepherd.commitDBTransaction();
             MediaAsset.updateStandardChildrenBackground(context, maIds);
             if (encounterForIA != null) {
