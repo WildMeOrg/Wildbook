@@ -442,6 +442,7 @@ public class StandardImport extends HttpServlet {
                 if (itask != null) sendforACMID(itask, myShepherd, context);
                 // let's finish up and be done
                 if (itask != null) itask.setStatus("complete");
+                OpenSearch.setPermissionsNeeded(myShepherd, true);
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
                 if (itask != null)

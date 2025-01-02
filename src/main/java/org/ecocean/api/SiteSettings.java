@@ -47,6 +47,9 @@ public class SiteSettings extends ApiBase {
         // note: there is a CommonConfiguration property: htmlShortcutIcon=images/favicon.ico?v=2
         settings.put("siteFavicon", "/images/favicon.ico");
         settings.put("siteName", CommonConfiguration.getHTMLTitle(context));
+        settings.put("siteDescription", CommonConfiguration.getHTMLDescription(context));
+        settings.put("siteKeywords", CommonConfiguration.getHTMLKeywords(context));
+        settings.put("siteAuthor", CommonConfiguration.getHTMLAuthor(context));
         settings.put("locationData", LocationID.getLocationIDStructure());
 
         settings.put("mapCenterLat", CommonConfiguration.getCenterLat(context));
@@ -161,6 +164,10 @@ public class SiteSettings extends ApiBase {
 
         settings.put("showClassicSubmit",
             Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))
+            );
+        
+        settings.put("showClassicEncounters",
+            Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))
             );
 
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",

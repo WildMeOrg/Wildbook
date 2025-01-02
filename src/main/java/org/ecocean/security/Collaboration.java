@@ -66,6 +66,13 @@ public class Collaboration implements java.io.Serializable {
         this.setId();
     }
 
+    public String getOtherUsername(String name) {
+        if (name == null) return null;
+        if (name.equals(username1)) return username2;
+        if (name.equals(username2)) return username1;
+        return null;
+    }
+
     public String getUsername2() {
         return this.username2;
     }
@@ -109,6 +116,10 @@ public class Collaboration implements java.io.Serializable {
         return (this.state != null && this.state.equals(STATE_APPROVED));
     }
 
+    public boolean isEditApproved() {
+        return STATE_EDIT_PRIV.equals(this.state);
+    }
+
     public String getState() {
         return this.state;
     }
@@ -129,6 +140,7 @@ public class Collaboration implements java.io.Serializable {
 // NOTE the first user, by convention, is the initiator
     public static Collaboration create(String u1, String u2) {
         Collaboration c = new Collaboration(u1, u2);
+
         return c;
     }
 
@@ -274,7 +286,7 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(String context, String u1, String u2) {
-        if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true; 
+        if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
         // System.out.println("canCollaborate(String context, String u1, String u2)");
@@ -377,7 +389,7 @@ public class Collaboration implements java.io.Serializable {
     // "View" means "you can see that the data exists but may not necessarily access the data"
     public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request,
         Shepherd myShepherd) {
-        if (request.isUserInRole("admin")) return true; 
+        if (request.isUserInRole("admin")) return true;
         if (ownerName == null || request.isUserInRole("admin")) return true;
         User viewer = myShepherd.getUser(request);
         User owner = myShepherd.getUser(ownerName);
@@ -400,7 +412,7 @@ public class Collaboration implements java.io.Serializable {
         String context = ServletUtilities.getContext(request);
 
         if (!securityEnabled(context)) return true;
-        if (request.isUserInRole("admin")) return true; 
+        if (request.isUserInRole("admin")) return true;
         if (User.isUsernameAnonymous(ownerName)) return true; // anon-owned is "fair game" to anyone
         if (request.getUserPrincipal() == null) {
             return canCollaborate(context, ownerName, "public");
@@ -463,7 +475,7 @@ public class Collaboration implements java.io.Serializable {
     // Check if User (via request) has edit access to every Encounter in this Individual
     public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi,
         HttpServletRequest request) {
-        if (request.isUserInRole("admin")) return true; 
+        if (request.isUserInRole("admin")) return true;
         Vector<Encounter> all = mi.getEncounters();
         if ((all == null) || (all.size() < 1)) return false;
         for (Encounter enc : all) {
