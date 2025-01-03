@@ -119,7 +119,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 encIds) + "\")";
             System.out.println("queryStringBuilder: searchQueryId=" + searchQueryId + " yielded " +
                 encIds.size() + " matching encounters");
-            myShepherd.rollbackAndClose();
             return filter;
         }
         // filter for location------------------------------------------
