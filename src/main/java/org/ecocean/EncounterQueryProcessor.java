@@ -112,11 +112,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
             } catch (Exception ex) {
                 ex.printStackTrace();
                 return failed;
+            } finally {
+                myShepherd.rollbackAndClose();
             }
             filter += " (catalogNumber == \"" + String.join("\") || (catalogNumber == \"",
                 encIds) + "\")";
             System.out.println("queryStringBuilder: searchQueryId=" + searchQueryId + " yielded " +
                 encIds.size() + " matching encounters");
+            myShepherd.rollbackAndClose();
             return filter;
         }
         // filter for location------------------------------------------
