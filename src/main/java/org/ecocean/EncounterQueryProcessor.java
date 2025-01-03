@@ -48,6 +48,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
         context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("EncounterQueryProcessor.class");
+        myShepherd.beginDBTransaction();
 
         String searchQueryId = request.getParameter("searchQueryId");
         // hack to build a ridiculous query string from an OpenSearch query
