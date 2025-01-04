@@ -50,132 +50,133 @@ public class SubmitSpotsAndImage extends HttpServlet {
         myShepherd.setAction("SubmitSpotsAndImage.class");
 
         myShepherd.beginDBTransaction();
-        JSONObject json = ServletUtilities.jsonFromHttpServletRequest(request);
-        int maId = json.optInt("mediaAssetId", -1);
-        if (maId < 0) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            throw new IOException("invalid mediaAssetId");
-        }
-        String encId = json.optString("encId", null);
-        if (encId == null) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            throw new IOException("invalid encId");
-        }
-        Encounter enc = myShepherd.getEncounter(encId);
-        if (enc == null) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            throw new IOException("invalid encId");
-        }
-        boolean rightSide = json.optBoolean("rightSide", false);
-        ArrayList<SuperSpot> spots = parseSpots(json.optJSONArray("spots"));
-        if (spots == null) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            throw new IOException("invalid spots");
-        }
-        ArrayList<SuperSpot> refSpots = parseSpots(json.optJSONArray("refSpots"));
-        if (refSpots == null) {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            throw new IOException("invalid refSpots");
-        }
-        AssetStore store = AssetStore.getDefault(myShepherd);
-        // this should put it in the same old (pre-MediaAsset) location to maintain url pattern
+        
+        try{
+	        JSONObject json = ServletUtilities.jsonFromHttpServletRequest(request);
+	        int maId = json.optInt("mediaAssetId", -1);
+	        if (maId < 0) {
+	            throw new IOException("invalid mediaAssetId");
+	        }
+	        String encId = json.optString("encId", null);
+	        if (encId == null) {
+	            throw new IOException("invalid encId");
+	        }
+	        Encounter enc = myShepherd.getEncounter(encId);
+	        if (enc == null) {
+	            throw new IOException("invalid encId");
+	        }
+	        boolean rightSide = json.optBoolean("rightSide", false);
+	        ArrayList<SuperSpot> spots = parseSpots(json.optJSONArray("spots"));
+	        if (spots == null) {
+	            throw new IOException("invalid spots");
+	        }
+	        ArrayList<SuperSpot> refSpots = parseSpots(json.optJSONArray("refSpots"));
+	        if (refSpots == null) {
+	            throw new IOException("invalid refSpots");
+	        }
+	        AssetStore store = AssetStore.getDefault(myShepherd);
+	        // this should put it in the same old (pre-MediaAsset) location to maintain url pattern
+	
+	        // setup data dir
+	        String rootWebappPath = getServletContext().getRealPath("/");
+	        File webappsDir = new File(rootWebappPath).getParentFile();
+	        File shepherdDataDir = new File(webappsDir,
+	            CommonConfiguration.getDataDirectoryName(context));
+	        // if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+	        // File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+	        // if(!encountersDir.exists()){encountersDir.mkdirs();}
+	        String thisEncDirString = Encounter.dir(shepherdDataDir, encId);
+	        File thisEncounterDir = new File(thisEncDirString);
+	        if (!thisEncounterDir.exists()) {
+	            thisEncounterDir.mkdirs();
+	            System.out.println("I am making the encDir: " + thisEncDirString);
+	        }
+	        // now persist
+	        JSONObject params = store.createParameters(new File("encounters/" +
+	            Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
+	        System.out.println("====> params = " + params);
+	        MediaAsset crMa = store.create(params);
+	        crMa.copyInBase64(json.optString("imageData", null));
+	        crMa.addLabel("_spot" + (rightSide ? "Right" : "")); // we are sticking with "legacy" '_spot' for left
+	        // crMa.setParentId(maId);
+	        crMa.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
+	        // ma.updateMinimalMetadata();
+	
+	        Keyword crKeyword = myShepherd.getOrCreateKeyword("CR Image");
+	        String crParentId = request.getParameter("dataCollectionEventID");
+	        // crMa.addDerivationMethod("crParentId", crParentId);
+	        // crMa.addLabel("CR");
+	        crMa.addKeyword(crKeyword);
+	        crMa.updateMinimalMetadata();
+	        crMa.setDetectionStatus("complete");
+	        System.out.println("    + updated made media asset");
+	        MediaAssetFactory.save(crMa, myShepherd);
+	        System.out.println("    + saved media asset " + crMa.toString());
+	        myShepherd.updateDBTransaction();
+	        System.out.println("    + updated transaction, about to make children");
+	        crMa.updateStandardChildren(myShepherd);
+	        crMa.updateMetadata();
+	        System.out.println("    + updated children for asset " + crMa.toString() +
+	            "; hasFamily = " + crMa.hasFamily(myShepherd));
+	        String speciesString = enc.getTaxonomyString();
+	        Annotation ann = new Annotation(speciesString, crMa);
+	        ann.setMatchAgainst(true);
+	        String iaClass = "whalesharkCR"; // should we change this?
+	        ann.setIAClass(iaClass);
+	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
+	        enc.addAnnotation(ann);
+	        System.out.println("    + made annotation " + ann.toString());
 
-        // setup data dir
-        String rootWebappPath = getServletContext().getRealPath("/");
-        File webappsDir = new File(rootWebappPath).getParentFile();
-        File shepherdDataDir = new File(webappsDir,
-            CommonConfiguration.getDataDirectoryName(context));
-        // if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-        // File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-        // if(!encountersDir.exists()){encountersDir.mkdirs();}
-        String thisEncDirString = Encounter.dir(shepherdDataDir, encId);
-        File thisEncounterDir = new File(thisEncDirString);
-        if (!thisEncounterDir.exists()) {
-            thisEncounterDir.mkdirs();
-            System.out.println("I am making the encDir: " + thisEncDirString);
+
+	        myShepherd.getPM().makePersistent(ann);
+	        System.out.println("    + saved annotation");
+	
+	        // we need to intake mediaassets so they get acmIds and are matchable
+	        ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
+	        maList.add(crMa);
+	        ArrayList<Annotation> annList = new ArrayList<Annotation>();
+	        annList.add(ann);
+	        try {
+	            System.out.println("    + sending asset to IA");
+	            IBEISIA.sendMediaAssetsNew(maList, context);
+	            myShepherd.updateDBTransaction();
+	            System.out.println("    + asset sent, sending annot");
+	            IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
+	            myShepherd.updateDBTransaction();
+	            System.out.println("    + annot sent.");
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            System.out.println("hit above exception while trying to send CR ma & annot to IA");
+	        }
+	        System.out.println("    + done processing new CR annot");
+	        if (rightSide) {
+	            enc.setRightSpots(spots);
+	            enc.setRightReferenceSpots(refSpots);
+	        } else {
+	            enc.setSpots(spots);
+	            enc.setLeftReferenceSpots(refSpots);
+	        }
+	        // reset the entry in the GridManager graph
+	        GridManager gm = GridManagerFactory.getGridManager();
+	        gm.addMatchGraphEntry(encId, new EncounterLite(enc));
+	
+	        myShepherd.commitDBTransaction();
+	        myShepherd.closeDBTransaction();
+	
+	        JSONObject rtn = new JSONObject("{\"success\": true}");
+	        rtn.put("spotAssetId", crMa.getId());
+	        rtn.put("spotAssetUrl", crMa.webURL());
+	        response.setContentType("text/plain");
+	        PrintWriter out = response.getWriter();
+	        out.println(rtn.toString());
+	        out.close();
         }
-        // now persist
-        JSONObject params = store.createParameters(new File("encounters/" +
-            Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
-        System.out.println("====> params = " + params);
-        MediaAsset crMa = store.create(params);
-        crMa.copyInBase64(json.optString("imageData", null));
-        crMa.addLabel("_spot" + (rightSide ? "Right" : "")); // we are sticking with "legacy" '_spot' for left
-        // crMa.setParentId(maId);
-        crMa.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
-        // ma.updateMinimalMetadata();
-
-        Keyword crKeyword = myShepherd.getOrCreateKeyword("CR Image");
-        String crParentId = request.getParameter("dataCollectionEventID");
-        // crMa.addDerivationMethod("crParentId", crParentId);
-        // crMa.addLabel("CR");
-        crMa.addKeyword(crKeyword);
-        crMa.updateMinimalMetadata();
-        crMa.setDetectionStatus("complete");
-        System.out.println("    + updated made media asset");
-        MediaAssetFactory.save(crMa, myShepherd);
-        System.out.println("    + saved media asset " + crMa.toString());
-        myShepherd.updateDBTransaction();
-        System.out.println("    + updated transaction, about to make children");
-        crMa.updateStandardChildren(myShepherd);
-        crMa.updateMetadata();
-        System.out.println("    + updated children for asset " + crMa.toString() +
-            "; hasFamily = " + crMa.hasFamily(myShepherd));
-        String speciesString = enc.getTaxonomyString();
-        Annotation ann = new Annotation(speciesString, crMa);
-        ann.setMatchAgainst(true);
-        String iaClass = "whalesharkCR"; // should we change this?
-        ann.setIAClass(iaClass);
-        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
-        enc.addAnnotation(ann);
-        System.out.println("    + made annotation " + ann.toString());
-        myShepherd.getPM().makePersistent(ann);
-        System.out.println("    + saved annotation");
-
-        // we need to intake mediaassets so they get acmIds and are matchable
-        ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
-        maList.add(crMa);
-        ArrayList<Annotation> annList = new ArrayList<Annotation>();
-        annList.add(ann);
-        try {
-            System.out.println("    + sending asset to IA");
-            IBEISIA.sendMediaAssetsNew(maList, context);
-            myShepherd.updateDBTransaction();
-            System.out.println("    + asset sent, sending annot");
-            IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
-            myShepherd.updateDBTransaction();
-            System.out.println("    + annot sent.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("hit above exception while trying to send CR ma & annot to IA");
+        catch(Exception e) {
+        	e.printStackTrace();
         }
-        System.out.println("    + done processing new CR annot");
-        if (rightSide) {
-            enc.setRightSpots(spots);
-            enc.setRightReferenceSpots(refSpots);
-        } else {
-            enc.setSpots(spots);
-            enc.setLeftReferenceSpots(refSpots);
+        finally {
+        	myShepherd.rollbackAndClose();
         }
-        // reset the entry in the GridManager graph
-        GridManager gm = GridManagerFactory.getGridManager();
-        gm.addMatchGraphEntry(encId, new EncounterLite(enc));
-
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-
-        JSONObject rtn = new JSONObject("{\"success\": true}");
-        rtn.put("spotAssetId", crMa.getId());
-        rtn.put("spotAssetUrl", crMa.webURL());
-        response.setContentType("text/plain");
-        PrintWriter out = response.getWriter();
-        out.println(rtn.toString());
-        out.close();
     }
 
     private ArrayList<SuperSpot> parseSpots(JSONArray arr) {
