@@ -430,7 +430,8 @@ public class WildbookIAM extends IAPlugin {
         // if (curl == null) curl = ma.webURL();
 
         URL curl = ma.webURL();
-        String urlStr = curl.toString();
+        String urlString = System.getenv("SERVER_URL");
+        String urlStr = curl.toString().replace("localhost", urlString);
 
         // THIS WILL BREAK if you need to append a query to the filename...
         // we are double encoding the '?' in order to allow filenames that contain it to go to IA

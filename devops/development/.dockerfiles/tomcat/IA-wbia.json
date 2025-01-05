@@ -11,78 +11,170 @@
 		"get_job_status": "http://wbia:5000/api/engine/job/status/",
 		"get_job_result": "http://wbia:5000/api/engine/job/result/"
 	},
-	"_default": "@Giraffa.camelopardalis.reticulata",
-
-
-	"Giraffa": {
-		"reticulata": "@Giraffa.tippelskirchi",
-
-		"giraffa": {
-			"angolensis": "@Giraffa.tippelskirchi",
-			"giraffa": "@Giraffa.tippelskirchi",
-
-			"_note": "below this is to handle the case where taxonomy = 'Giraffa.giraffa' (no 3rd term)",
-			"_detect_conf": "@Giraffa.tippelskirchi._detect_conf",
-			"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf",
-			"giraffe_reticulated": "@Giraffa.tippelskirchi.giraffe_reticulated",
-			"giraffe_masai": "@Giraffa.tippelskirchi.giraffe_masai",
-			"giraffe_whole": "@Giraffa.tippelskirchi.giraffe_whole"
-		},
-
-		"camelopardalis": {
-			"camelopardalis": "@Giraffa.tippelskirchi",
-			"antiquorum": "@Giraffa.tippelskirchi",
-			"peralta": "@Giraffa.tippelskirchi",
-
-			"_note": "below this is to handle the case where taxonomy = 'Giraffa.camelopardalis' (no 3rd term)",
-			"_detect_conf": "@Giraffa.tippelskirchi._detect_conf",
-			"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf",
-			"giraffe_reticulated": "@Giraffa.tippelskirchi.giraffe_reticulated",
-			"giraffe_masai": "@Giraffa.tippelskirchi.giraffe_masai",
-			"giraffe_whole": "@Giraffa.tippelskirchi.giraffe_whole"
-		},
-
-		"tippelskirchi": {
-			"thornicrofti": "@Giraffa.tippelskirchi",
-			"_detect_conf": [
-				{
-					"xclass": "giraffe_reticulated",
-					"start_detect": "http://wbia:5000/api/engine/detect/cnn/lightnet/",
-					"labeler_algo": "densenet",
-                    			"labeler_model_tag": "giraffe_v1",
-                    			"model_tag": "giraffe_v1",
-                    			"nms_thresh": 0.5,
-                    			"sensitivity": 0.58
-				}
-			],
-			"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf",
-
-			"giraffe_reticulated": {
-				"_save_as": "giraffe_whole",
-				"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf"
+	"Acinonyx": {
+	  "jubatus": {
+		"_detect_conf": [
+		  {
+			"start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+			"labeler_algo": "densenet",
+			"labeler_model_tag": "cheetah_v1",
+			"model_tag": "cheetah_v1",
+			"nms_aware": "byclass",
+			"nms_thresh": 0.6,
+			"sensitivity": 0.62
+		  }
+		],
+		"cheetah": {
+		  "_id_conf": [
+			{
+			  "query_config_dict": {
+				"sv_on": true
+			  }
 			},
-			"giraffe_masai": {
-				"_save_as": "giraffe_whole",
-				"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf"
-			},
-
-			"giraffe_whole": {
-				"_id_conf": [
-					{
-					  "query_config_dict": {
-						 "pipeline_root": "MiewId"
-					  },
-					  "description": "MiewID Matcher",
-										  "default": true
-					},
-					{
-						"query_config_dict": {
-							"sv_on": true
-						},
-						"description": "HotSpotter pattern-matcher"
-					}
-				]
+			{
+				"query_config_dict": {
+					"pipeline_root": "MiewId"
+				},
+				"description": "MiewID Matcher",
+				"default": true
 			}
+		  ]
 		}
-	}
-}
+	  }
+	},
+	"Crocuta": {
+	  "crocuta": {
+		"_detect_conf": [
+		  {
+			"labeler_algo": "densenet",
+			"labeler_model_tag": "hyaena_v0",
+			"model_tag": "hyaena_v0",
+			"nms_aware": null,
+			"nms_thresh": 0.7,
+			"sensitivity": 0.74
+		  }
+		],
+		"hyaena": {
+		  "_id_conf": [
+			{
+			  "query_config_dict": {
+				"sv_on": true
+			  }
+			}
+		  ]
+		}
+	  }
+	},
+	"Lycaon": {
+	  "pictus": {
+		"_detect_conf": [
+		  {
+			"assigner_algo": "wd_v0",
+			"labeler_algo": "densenet",
+			"labeler_model_tag": "wilddog_v3+wilddog_v2+wilddog_v1",
+			"model_tag": "wilddog_v0",
+			"nms_aware": "ispart",
+			"nms_thresh": 0.5,
+			"sensitivity": 0.48,
+			"use_labeler_species": true
+		  }
+		],
+		"wild_dog": {
+		  "_id_conf": [
+			{
+			  "query_config_dict": {
+				"n": 20,
+				"sv_on": true
+			  }
+			}
+		  ]
+		},
+		"wild_dog+tail_ambiguous": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailAmbiguous"
+		},
+		"wild_dog+tail_double_black_brown": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailDoubleBlackBrown"
+		},
+		"wild_dog+tail_double_black_white": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailDoubleBlackWhite"
+		},
+		"wild_dog+tail_general": {
+		  "_id_conf": [],
+		  "_save_as": "wild_dog+tail_general",
+		  "_save_keyword": "TailGeneral"
+		},
+		"wild_dog+tail_long_black": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailLongBlack"
+		},
+		"wild_dog+tail_long_white": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailLongWhite"
+		},
+		"wild_dog+tail_short_black": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailShortBlack"
+		},
+		"wild_dog+tail_standard": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailStandard"
+		},
+		"wild_dog+tail_triple_black": {
+		  "_id_conf": [],
+		  "_save_keyword": "TailTripleBlack"
+		},
+		"wild_dog_ambiguous": {
+		  "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+		  "_save_keyword": "BodyAmbiguous"
+		},
+		"wild_dog_dark": {
+		  "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+		  "_save_keyword": "BodyDark"
+		},
+		"wild_dog_general": {
+		  "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+		  "_save_as": "wild_dog_general",
+		  "_save_keyword": "BodyGeneral"
+		},
+		"wild_dog_puppy": {
+		  "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+		  "_save_keyword": "Puppy"
+		},
+		"wild_dog_standard": {
+		  "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+		  "_save_keyword": "BodyStandard"
+		},
+		"wild_dog_tan": {
+		  "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+		  "_save_keyword": "BodyTan"
+		}
+	  }
+	},
+	"Panthera": {
+	  "pardus": {
+		"_detect_conf": [
+		  {
+			"labeler_algo": "densenet",
+			"model_tag": "leopard_v0",
+			"nms_aware": null,
+			"nms_thresh": 0.5,
+			"sensitivity": 0.73,
+			"viewpoint_model_tag": "leopard_v0"
+		  }
+		],
+		"leopard": {
+		  "_id_conf": [
+			{
+			  "query_config_dict": {
+				"sv_on": true
+			  }
+			}
+		  ]
+		}
+	  }
+	},
+	"_default": "@Lycaon.pictus"
+  }
