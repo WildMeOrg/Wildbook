@@ -35,6 +35,8 @@ module.exports = override(
         ],
       };
 
+      // save for future use, if needed to compress the assets
+
       // config.plugins.push(
       //   new CompressionPlugin({
       //     filename: "[path][base].gz",
@@ -64,5 +66,6 @@ module.exports = override(
     }),
   ),
 
+  // Uncomment the following line to enable the bundle analyzer, for debugging purposes
   // addWebpackPlugin(new BundleAnalyzerPlugin()),
 );
