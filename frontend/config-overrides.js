@@ -18,7 +18,6 @@ module.exports = override(
   (config) => {
     const env = process.env.NODE_ENV;
     if (env === "production") {
-      console.log("Production build!");
       config.devtool = "source-map";
       config.optimization = {
         ...config.optimization,
