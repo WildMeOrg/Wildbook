@@ -92,7 +92,7 @@ public class LocalAssetStore extends AssetStore {
             webRoot = config.getString(KEY_WEB_ROOT);
             logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
         }
-        return webRoot;
+        return "http://172.17.0.1:80";
     }
 
     /**
