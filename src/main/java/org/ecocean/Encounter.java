@@ -4720,7 +4720,6 @@ public class Encounter extends Base implements java.io.Serializable {
                     if (enc == null) {
                         // we use origEnc if we can (especially necessary on initial creation of Encounter)
                         if (origEnc != null) origEnc.opensearchIndex();
-                        bgShepherd.rollbackAndClose();
                         executor.shutdown();
                         return;
                     }
