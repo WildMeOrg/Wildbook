@@ -89,7 +89,7 @@ public class AcmIdBot {
 
     // basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     private static void startCollector(final String context) { // throws IOException {
-        long interval = 15; // number minutes between runs
+        long interval = 5; // number minutes between runs
         long initialDelay = 1; // number minutes before first execution occurs
 
         System.out.println("+ AcmIdBot.startCollector(" + context + ") starting.");
