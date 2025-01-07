@@ -34,6 +34,9 @@ public class AcmIdBot {
             int numInvalidForIA = 0;
             for (Feature feat : feats) {
                 MediaAsset asset = feat.getMediaAsset();
+                if (asset == null) {
+                    continue;
+                }
                 myShepherd.setAction("AcmIDBot_" + summaryMessage + "_asset_" + asset.getId());
                 try {
                     // is this an appropriate image type for acm ID registration?
@@ -136,7 +139,7 @@ public class AcmIdBot {
                 "Looking for complete import tasks with media assets with missing acmIds");
 
             // number of fixes to consider before finishing and letting a new round of work restart the effort
-            int maxFixes = 500;
+            int maxFixes = 5000;
             String filter2 =
                 "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
             Query query2 = myShepherd.getPM().newQuery(filter2);
