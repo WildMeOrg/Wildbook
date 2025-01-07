@@ -1,6 +1,7 @@
-
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ import org.ecocean.media.MediaAsset;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Annotation implements java.io.Serializable {
+public class Annotation extends Base implements java.io.Serializable {
     public Annotation() {}
     private String id;
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
@@ -51,13 +52,14 @@ public class Annotation implements java.io.Serializable {
     // TODO: was this made obsolete by ACM and friends?
     private boolean matchAgainst = false;
 
-    // TODO: can these (thru mediaAsset) be removed now that there Features? 
+    // TODO: can these (thru mediaAsset) be removed now that there Features?
     private int x;
     private int y;
     private int width;
     private int height;
     private float[] transformMatrix;
     private double theta;
+    private long version = System.currentTimeMillis();
 
     // quality indicates the fidelity of the annotation, e.g. the overall image quality of a picture.
     // This is useful e.g. for researchers who want to account for a bias where "better" images are
@@ -113,6 +115,61 @@ public class Annotation implements java.io.Serializable {
         this.species = species;
         this.features = f;
         this.iaClass = iaClass;
+    }
+
+    @Override public String opensearchIndexName() { return "annotation"; }
+
+    @Override public long getVersion() {
+        return version;
+    }
+
+    public JSONObject opensearchMapping() {
+        JSONObject map = super.opensearchMapping();
+
+/*
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+        map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("submitters", keywordNormalType);
+        map.put("photographers", keywordNormalType);
+        map.put("informOthers", keywordNormalType);
+
+        // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
+        map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
+ */
+        return map;
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
+
+        jgen.writeStringField("acmId", this.getAcmId());
+        jgen.writeStringField("viewpoint", this.getViewpoint());
+        jgen.writeStringField("iaClass", this.getIAClass());
+        MediaAsset ma = this.getMediaAsset();
+        if (ma != null) {
+            jgen.writeNumberField("mediaAssetId", ma.getId());
+        }
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc != null) {
+            jgen.writeStringField("encounterId", enc.getId());
+            jgen.writeStringField("encounterLocationId", enc.getLocationID());
+            jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+        }
+    }
+
+    // only needed for Base class
+    @Override public String getComments() {
+        return null;
+    }
+
+    @Override public void setComments(final String comments) {
+    }
+
+    @Override public void addComments(final String newComments) {
     }
 
     // this is for use *only* to migrate old-world Annotations to new-world
@@ -245,7 +302,7 @@ public class Annotation implements java.io.Serializable {
 
         if (ma == null) return false;
         for (Feature ft : getFeatures()) {
-            if (ft.isUnity()) return true; 
+            if (ft.isUnity()) return true;
         }
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) &&
                    (getHeight() == (int)ma.getHeight()));
@@ -851,7 +908,6 @@ public class Annotation implements java.io.Serializable {
                 }
             }
         }
-
         List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
         String locFilter = "";
         if (expandedLocationIds.size() > 0) {
@@ -1060,7 +1116,6 @@ public class Annotation implements java.io.Serializable {
                 myShepherd.getContext()));
         }
         return newEnc;
-
     }
 
     public Annotation revertToTrivial(Shepherd myShepherd)
