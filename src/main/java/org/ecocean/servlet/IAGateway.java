@@ -766,7 +766,7 @@ public class IAGateway extends HttpServlet {
     }
 
     public static boolean requeueJob(JSONObject jobj, final boolean increment) {
-        int MAX_RETRIES = 30;
+        int MAX_RETRIES = 3;
         long MAX_TIME_MILLIS = 2 * 24 * 60 * 60 * 1000;
         String context = jobj.optString("__context", "context0");
         String taskId = jobj.optString("taskId", "UNKNOWN_TASKID");
