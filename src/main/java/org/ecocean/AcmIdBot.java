@@ -92,7 +92,7 @@ public class AcmIdBot {
 
     // basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     private static void startCollector(final String context) { // throws IOException {
-        long interval = 5; // number minutes between runs
+        long interval = 1; // number minutes between runs
         long initialDelay = 1; // number minutes before first execution occurs
 
         System.out.println("+ AcmIdBot.startCollector(" + context + ") starting.");
@@ -139,7 +139,7 @@ public class AcmIdBot {
                 "Looking for complete import tasks with media assets with missing acmIds");
 
             // number of fixes to consider before finishing and letting a new round of work restart the effort
-            int maxFixes = 5000;
+            int maxFixes = 1000;
             String filter2 =
                 "select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
             Query query2 = myShepherd.getPM().newQuery(filter2);
@@ -151,22 +151,22 @@ public class AcmIdBot {
             fixFeats(feats, myShepherd, "ACM ID ImportTask fixing summary", maxFixes);
 
             // check recent Encounter submissions in last 24 hours for missing acmIds
-            long currentTimeInMillis = System.currentTimeMillis();
-            long twenyFourHoursAgo = currentTimeInMillis - (1000 * 60 * 60 * 24);
-            System.out.println(
-                "Looking for recent Encounters (24 hours) with media assets with missing acmIds");
+            // long currentTimeInMillis = System.currentTimeMillis();
+            // long twenyFourHoursAgo = currentTimeInMillis - (1000 * 60 * 60 * 24);
+            // System.out.println(
+            //     "Looking for recent Encounters (24 hours) with media assets with missing acmIds");
             // dwcDateAddedLong >=
-            String filter3 =
-                "select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= " +
-                twenyFourHoursAgo +
-                " && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot";
-            Query query3 = myShepherd.getPM().newQuery(filter3);
-            query3.setOrdering("revision desc");
-            Collection c3 = (Collection)(query3.execute());
-            List<Feature> feats2 = new ArrayList<Feature>(c3);
-            query3.closeAll();
+            // String filter3 =
+            //     "select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= " +
+            //     twenyFourHoursAgo +
+            //     " && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot";
+            // Query query3 = myShepherd.getPM().newQuery(filter3);
+            // query3.setOrdering("revision desc");
+            // Collection c3 = (Collection)(query3.execute());
+            // List<Feature> feats2 = new ArrayList<Feature>(c3);
+            // query3.closeAll();
 
-            fixFeats(feats2, myShepherd, "Recent Encounter ACM ID Fixing Summary", maxFixes);
+            // fixFeats(feats2, myShepherd, "Recent Encounter ACM ID Fixing Summary", maxFixes);
         } catch (Exception f) {
             System.out.println("Exception in AcmIdBot!");
             f.printStackTrace();
