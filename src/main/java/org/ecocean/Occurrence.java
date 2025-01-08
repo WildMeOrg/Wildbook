@@ -1374,7 +1374,7 @@ public class Occurrence extends Base implements java.io.Serializable {
                 try {
                     Occurrence occur = bgShepherd.getOccurrence(occurId);
                     if ((occur == null) || (occur.getEncounters() == null)) {
-                        bgShepherd.rollbackAndClose();
+                        // rollbackAndClose handled by finally
                         executor.shutdown();
                         return;
                     }
