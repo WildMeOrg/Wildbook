@@ -153,7 +153,7 @@ public class RabbitMQQueue extends Queue {
         long channelSize = 0;
 
         try {
-            channelSize = getChannel().messageCount(EXCHANGE_NAME);
+            channelSize = getChannel().messageCount(this.queueName);
         } catch (Exception e) { e.printStackTrace(); }
         return channelSize;
     }
