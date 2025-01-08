@@ -58,7 +58,7 @@ public class RabbitMQQueue extends Queue {
             factory.setUsername(getUsername(context, "guest"));
             factory.setPassword(getPassword(context, "guest"));
             factory.setVirtualHost(getVirtualHost(context, "/"));
-            factory.setHost(getHost(context, "localhost"));
+            factory.setHost(getHost(context, "172.17.0.1"));
             factory.setPort(getPort(context, "5672"));
             checkConnection();
         } catch (java.util.concurrent.TimeoutException toex) {
