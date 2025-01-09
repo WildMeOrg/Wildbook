@@ -166,6 +166,14 @@ public class Annotation extends Base implements java.io.Serializable {
         return null;
     }
 
+    @Override public String getAllVersionsSql() {
+        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY version";
+    }
+
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getAnnotation(id);
+    }
+
     @Override public void setComments(final String comments) {
     }
 

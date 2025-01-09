@@ -2609,7 +2609,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 try {
                     MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
                     if ((indiv == null) || (indiv.getEncounters() == null)) {
-                        //bgShepherd.rollbackAndClose();
+                        // bgShepherd.rollbackAndClose();
                         executor.shutdown();
                         return;
                     }
@@ -2657,9 +2657,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                    .toString();
     }
 
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getMarkedIndividual(id);
+    }
+
     @Override public long getVersion() {
         // Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
         return 0;
+    }
+
+    @Override public String getAllVersionsSql() {
+        return "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
     }
 
     public static Map<String, Long> getAllVersions(Shepherd myShepherd) {

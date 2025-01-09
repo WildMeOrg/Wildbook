@@ -4326,15 +4326,23 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getEncounter(id);
+    }
+
+    @Override public String getAllVersionsSql() {
+        return
+                "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    }
+
     @Override public long getVersion() {
         return Util.getVersionFromModified(modified);
     }
 
     public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        String sql =
-            "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+        Encounter enc = new Encounter();
 
-        return getAllVersions(myShepherd, sql);
+        return getAllVersions(myShepherd, enc.getAllVersionsSql());
     }
 
     public org.json.JSONObject opensearchMapping() {
@@ -4382,6 +4390,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return map;
     }
 
+/*
     public static int[] opensearchSyncIndex(Shepherd myShepherd)
     throws IOException {
         return opensearchSyncIndex(myShepherd, 0);
@@ -4441,7 +4450,7 @@ public class Encounter extends Base implements java.io.Serializable {
         OpenSearch.unsetActiveIndexingBackground();
         return rtn;
     }
-
+ */
     public static Base createFromApi(org.json.JSONObject payload, List<File> files,
         Shepherd myShepherd)
     throws ApiException {
@@ -4704,5 +4713,4 @@ public class Encounter extends Base implements java.io.Serializable {
             myShepherd.rollbackDBTransaction();
         }
     }
-
 }
