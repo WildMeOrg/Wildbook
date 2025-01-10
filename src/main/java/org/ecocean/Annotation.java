@@ -1188,7 +1188,7 @@ public class Annotation implements java.io.Serializable {
 	    if (enc != null) {
 	        if (cloneEncounter) {
 */
-        return null;
+        return null; //FIXME
     }
 
     public static Object validateFieldValue(String fieldName, JSONObject data)
