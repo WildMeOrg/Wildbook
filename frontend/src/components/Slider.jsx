@@ -3,7 +3,7 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import ThemeColorContext from "../ThemeColorProvider";
 
-function RotationSlider() {
+function RotationSlider({ setValue }) {
   const [angle, setAngle] = useState(0);
   const theme = useContext(ThemeColorContext);
 
@@ -16,6 +16,7 @@ function RotationSlider() {
         value={angle}
         onChange={(value) => {
           setAngle(value);
+          setValue(value);
         }}
         marks={{
           "-180": "-180°",
@@ -27,11 +28,13 @@ function RotationSlider() {
         railStyle={{ backgroundColor: "transparent", height: 8 }}
         trackStyle={{ backgroundColor: "transparent", height: 8 }}
         handleStyle={{
-          borderColor: "#3b82f6",
-          height: 20,
-          width: 20,
-          marginTop: -6,
-          backgroundColor: "#fff",
+          backgroundColor: theme.primaryColors.primary500,
+          borderColor: theme.primaryColors.primary500,
+          width: "8px",
+          height: "20px",
+          borderRadius: "4px",
+          marginTop: -8,
+          //   backgroundColor: "#fff",
         }}
         dots={true}
         dotStyle={(dotValue) => {
@@ -64,7 +67,7 @@ function RotationSlider() {
           }
           if (dotValue === 0) {
             return {
-              backgroundColor: theme.grayColors.gray200,
+              backgroundColor: theme.primaryColors.primary500,
               width: "14px",
               height: "14px",
             };
