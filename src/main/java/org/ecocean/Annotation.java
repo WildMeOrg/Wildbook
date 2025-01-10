@@ -20,6 +20,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
+import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONArray;
@@ -1136,8 +1137,8 @@ public class Annotation implements java.io.Serializable {
             // FIXME check security of user editing this
         }
         // validate iaClass; this is a little janky
+        IAJsonProperties iaConf = IAJsonProperties.iaConfig();
         if (enc != null) {
-            IAJsonProperties iaConf = IAJsonProperties.iaConfig();
             Taxonomy tx = enc.getTaxonomy(myShepherd);
             if (!iaConf.isValidIAClass(tx, iaClass)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
@@ -1147,41 +1148,64 @@ public class Annotation implements java.io.Serializable {
                         " on " + enc, error);
             }
         }
+        // must have all we need now
+        FeatureType.initAll(myShepherd);
+        JSONObject fparams = new JSONObject();
+        fparams.put("x", x);
+        fparams.put("y", y);
+        fparams.put("width", width);
+        fparams.put("height", height);
+        fparams.put("theta", theta);
+        fparams.put("viewpoint", viewpoint); // not sure when/how this is used, but seems here historically
+        fparams.put("_manualAnnotationViaApiV3", System.currentTimeMillis());
+        Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+
+        ma.addFeature(ft);
+        ma.setDetectionStatus("complete");
+
+        Annotation ann = new Annotation(null, ft, iaClass);
+        ann.setViewpoint(viewpoint);
 /*
-    FeatureType.initAll(myShepherd);
-            JSONObject fparams = new JSONObject();
-            fparams.put("width", ma.getWidth() * sizeMult);
-            fparams.put("height", ma.getHeight() * sizeMult);
-   //{"viewpoint":"left","width":1842,"x":34,"y":254,"detectionConfidence":0.9206,"theta":-0.0103,"height":580}
-            Feature ft = new Feature("org.ecocean.boundingBox", fparams);
-            ma.addFeature(ft);
-            Annotation annot = new Annotation(enc.getTaxonomyString(), ft);
-            System.out.println("annotation -> " + annot);
-            enc.addAnnotation(annot);
-
-
-
-            FeatureType.initAll(myShepherd);
-            JSONObject fparams = new JSONObject();
-            fparams.put("x", xywh[0]);
-            fparams.put("y", xywh[1]);
-            fparams.put("width", xywh[2]);
-            fparams.put("height", xywh[3]);
-      fparams.put("totalWidth", xywh[4]);
-            fparams.put("_manualAnnotation", System.currentTimeMillis());
-            ft = new Feature("org.ecocean.boundingBox", fparams);
-            ma.addFeature(ft);
-            ma.setDetectionStatus("complete");
-            Annotation ann = new Annotation(null, ft, iaClass);
-                IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        if (enc != null) {
+            String context = myShepherd.getContext();
             if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
-            ann.setMatchAgainst(true);
+                ann.setMatchAgainst(true);
+            }
         }
-            ann.setViewpoint(viewpoint);
-            String encMsg = "(no encounter)";
-            if (enc != null) {
-                if (cloneEncounter) {
  */
+
+/*   logic(??) when to clone encounter vs bump trivial
+        //we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
+        //also don't clone if this is a part
+        if(annots.size()>1 && iaClass!=null){
+                cloneEncounter=true;
+        }
+        //also don't clone if this is a part
+        //if the one annot isn't trivial, then we have to clone the encounter as well
+        else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")==-1){
+                cloneEncounter=true;
+
+                //exception case - if there is only one annotation and it is a part
+                Annotation annot1 = annots.get(0);
+                if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
+                        cloneEncounter=false;
+                }
+
+
+        }
+        else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")>-1){
+                //exception case - if there is only one annotation and it is a part
+
+                        Annotation annot1 = annots.get(0);
+                        if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
+                                cloneEncounter=true;
+                        }
+
+        }
+ */
+
+// FIXME whole bunch of other stuff from manualAnnotation.jsp too..........
+
         return null; // FIXME
     }
 
