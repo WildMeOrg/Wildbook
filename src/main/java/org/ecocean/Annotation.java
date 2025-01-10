@@ -172,17 +172,17 @@ public class Annotation extends Base implements java.io.Serializable {
         }
     }
 
-    // only needed for Base class
-    @Override public String getComments() {
-        return null;
-    }
-
     @Override public String getAllVersionsSql() {
         return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
         return myShepherd.getAnnotation(id);
+    }
+
+    // comment cruft only needed for Base class
+    @Override public String getComments() {
+        return null;
     }
 
     @Override public void setComments(final String comments) {
