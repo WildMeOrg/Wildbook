@@ -214,6 +214,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public void setAcmId(String id) {
         this.acmId = id;
+        this.setVersion();
     }
 
     public String getAcmId() {
@@ -230,11 +231,13 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public void setFeatures(ArrayList<Feature> f) {
         features = f;
+        this.setVersion();
     }
 
     public void addFeature(Feature f) {
         if (features == null) features = new ArrayList<Feature>();
         if (!features.contains(f)) features.add(f);
+        this.setVersion();
     }
 
     public String getId() {
@@ -243,6 +246,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public void setId(String id) {
         this.id = id;
+        this.setVersion();
     }
 
     public Double getQuality() {
@@ -417,6 +421,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public void setViewpoint(String v) {
         viewpoint = v;
+        this.setVersion();
     }
 
     // note!  this can block and take a while if IA has yet to compute the viewpoint!
@@ -534,6 +539,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public void setIAClass(String iaClass) {
         this.iaClass = iaClass;
+        this.setVersion();
     }
 
     public boolean hasIAClass() {
@@ -589,6 +595,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public void setMatchAgainst(boolean b) {
         matchAgainst = b;
+        this.setVersion();
     }
 
     public String getIdentificationStatus() {
@@ -597,6 +604,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public void setIdentificationStatus(String status) {
         this.identificationStatus = status;
+        this.setVersion();
     }
 
     // if this cannot determine a bounding box, then we return null
