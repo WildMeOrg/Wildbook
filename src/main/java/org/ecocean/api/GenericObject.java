@@ -24,7 +24,6 @@ public class GenericObject extends ApiBase {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("api.GenericObject.doGet");
         myShepherd.beginDBTransaction();
-        User currentUser = myShepherd.getUser(request);
 
         String uri = request.getRequestURI();
         String[] args = uri.substring(8).split("/");
@@ -33,6 +32,7 @@ public class GenericObject extends ApiBase {
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
         try {
+            User currentUser = myShepherd.getUser(request);
             switch (args[0]) {
             case "media-assets":
                 if (currentUser == null) {
@@ -67,6 +67,8 @@ public class GenericObject extends ApiBase {
             rtn.put("statusCode", 400);
             rtn.put("errors", apiEx.getErrors());
             rtn.put("debug", apiEx.toString());
+        } finally {
+            myShepherd.rollbackAndClose();
         }
 
         response.setStatus(rtn.optInt("statusCode", 500));
