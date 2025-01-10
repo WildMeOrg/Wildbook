@@ -165,6 +165,7 @@ public class Annotation extends Base implements java.io.Serializable {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc != null) {
             jgen.writeStringField("encounterId", enc.getId());
+            jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
         }
