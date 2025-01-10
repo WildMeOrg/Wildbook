@@ -1,4 +1,3 @@
-
 package org.ecocean;
 
 import java.awt.Rectangle;
@@ -54,7 +53,7 @@ public class Annotation implements java.io.Serializable {
     // TODO: was this made obsolete by ACM and friends?
     private boolean matchAgainst = false;
 
-    // TODO: can these (thru mediaAsset) be removed now that there Features? 
+    // TODO: can these (thru mediaAsset) be removed now that there Features?
     private int x;
     private int y;
     private int width;
@@ -248,7 +247,7 @@ public class Annotation implements java.io.Serializable {
 
         if (ma == null) return false;
         for (Feature ft : getFeatures()) {
-            if (ft.isUnity()) return true; 
+            if (ft.isUnity()) return true;
         }
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) &&
                    (getHeight() == (int)ma.getHeight()));
@@ -854,7 +853,6 @@ public class Annotation implements java.io.Serializable {
                 }
             }
         }
-
         List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
         String locFilter = "";
         if (expandedLocationIds.size() > 0) {
@@ -1063,7 +1061,6 @@ public class Annotation implements java.io.Serializable {
                 myShepherd.getContext()));
         }
         return newEnc;
-
     }
 
     public Annotation revertToTrivial(Shepherd myShepherd)
@@ -1119,7 +1116,6 @@ public class Annotation implements java.io.Serializable {
         String viewpoint = (String)validateFieldValue("viewpoint", payload);
         // dont need to validate encId, as it is optional and we load encounter below which effectively validates if set
         String encId = payload.optString("encounterId", null);
-
         JSONObject error = new JSONObject();
         MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
         if (ma == null) {
@@ -1128,7 +1124,6 @@ public class Annotation implements java.io.Serializable {
             error.put("value", maId);
             throw new ApiException("invalid MediaAsset id=" + maId, error);
         }
-
         Encounter enc = null;
         if (encId != null) {
             enc = myShepherd.getEncounter(encId);
@@ -1140,25 +1135,24 @@ public class Annotation implements java.io.Serializable {
             }
             // FIXME check security of user editing this
         }
-
         // validate iaClass; this is a little janky
         if (enc != null) {
             IAJsonProperties iaConf = IAJsonProperties.iaConfig();
-	    Taxonomy tx = enc.getTaxonomy(myShepherd);
-	    if (!iaConf.isValidIAClass(tx, iaClass)) {
+            Taxonomy tx = enc.getTaxonomy(myShepherd);
+            if (!iaConf.isValidIAClass(tx, iaClass)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("fieldName", "iaClass");
                 error.put("value", iaClass);
-                throw new ApiException("iaClass=" + iaClass + " invalid for taxonomy " + tx + " on " + enc, error);
+                throw new ApiException("iaClass=" + iaClass + " invalid for taxonomy " + tx +
+                        " on " + enc, error);
             }
         }
-
 /*
     FeatureType.initAll(myShepherd);
             JSONObject fparams = new JSONObject();
             fparams.put("width", ma.getWidth() * sizeMult);
             fparams.put("height", ma.getHeight() * sizeMult);
-//{"viewpoint":"left","width":1842,"x":34,"y":254,"detectionConfidence":0.9206,"theta":-0.0103,"height":580}
+   //{"viewpoint":"left","width":1842,"x":34,"y":254,"detectionConfidence":0.9206,"theta":-0.0103,"height":580}
             Feature ft = new Feature("org.ecocean.boundingBox", fparams);
             ma.addFeature(ft);
             Annotation annot = new Annotation(enc.getTaxonomyString(), ft);
@@ -1167,28 +1161,28 @@ public class Annotation implements java.io.Serializable {
 
 
 
-	    FeatureType.initAll(myShepherd);
-	    JSONObject fparams = new JSONObject();
-	    fparams.put("x", xywh[0]);
-	    fparams.put("y", xywh[1]);
-	    fparams.put("width", xywh[2]);
-	    fparams.put("height", xywh[3]);
+            FeatureType.initAll(myShepherd);
+            JSONObject fparams = new JSONObject();
+            fparams.put("x", xywh[0]);
+            fparams.put("y", xywh[1]);
+            fparams.put("width", xywh[2]);
+            fparams.put("height", xywh[3]);
       fparams.put("totalWidth", xywh[4]);
-	    fparams.put("_manualAnnotation", System.currentTimeMillis());
-	    ft = new Feature("org.ecocean.boundingBox", fparams);
-	    ma.addFeature(ft);
-	    ma.setDetectionStatus("complete");
-	    Annotation ann = new Annotation(null, ft, iaClass);
-		IAJsonProperties iaConf = IAJsonProperties.iaConfig();
-	    if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
+            fparams.put("_manualAnnotation", System.currentTimeMillis());
+            ft = new Feature("org.ecocean.boundingBox", fparams);
+            ma.addFeature(ft);
+            ma.setDetectionStatus("complete");
+            Annotation ann = new Annotation(null, ft, iaClass);
+                IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+            if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
             ann.setMatchAgainst(true);
         }
-	    ann.setViewpoint(viewpoint);
-	    String encMsg = "(no encounter)";
-	    if (enc != null) {
-	        if (cloneEncounter) {
-*/
-        return null; //FIXME
+            ann.setViewpoint(viewpoint);
+            String encMsg = "(no encounter)";
+            if (enc != null) {
+                if (cloneEncounter) {
+ */
+        return null; // FIXME
     }
 
     public static Object validateFieldValue(String fieldName, JSONObject data)
@@ -1212,7 +1206,9 @@ public class Annotation implements java.io.Serializable {
         case "width":
         case "height":
             returnValue = data.optInt(fieldName, -1);
-            if (((int)returnValue < 0) || (((int)returnValue < 1) && (fieldName.equals("width") || fieldName.equals("height")))) {
+            if (((int)returnValue < 0) ||
+                (((int)returnValue < 1) &&
+                (fieldName.equals("width") || fieldName.equals("height")))) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", returnValue);
                 throw new ApiException(exMessage, error);
