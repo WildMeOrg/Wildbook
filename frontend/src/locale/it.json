@@ -327,5 +327,7 @@
     "ITEMS" : "elementi",
     "INPUT_PAGE_ALERT" : "Inserisci un numero di pagina valido compreso tra 1 e {totalPages}.",
     "NO_PROJECTS" : "Nessun progetto",
-    "PROJECT_LIST_TITLE": "Wildbook - I miei progetti"
+    "PROJECT_LIST_TITLE": "Wildbook - I miei progetti",
+    "ADD_ANNOTATIONS": "Aggiungi annotazioni",
+    "SAVE_ANNOTATION" : "Salva annotazione"
 }
