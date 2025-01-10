@@ -2669,11 +2669,4 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     @Override public String getAllVersionsSql() {
         return "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
     }
-
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        // see above
-        String sql = "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
-
-        return getAllVersions(myShepherd, sql);
-    }
 }

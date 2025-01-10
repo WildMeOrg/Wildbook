@@ -155,6 +155,8 @@ public class OpenSearch {
                         System.out.println("OpenSearch background indexing running...");
                         Base.opensearchSyncIndex(myShepherd, Encounter.class,
                         BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
+                        BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
                     } catch (Exception ex) {

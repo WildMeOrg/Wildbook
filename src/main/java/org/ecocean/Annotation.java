@@ -123,22 +123,31 @@ public class Annotation extends Base implements java.io.Serializable {
         return version;
     }
 
+    public long setVersion() {
+        version = System.currentTimeMillis();
+        return version;
+    }
+
     public JSONObject opensearchMapping() {
         JSONObject map = super.opensearchMapping();
+        JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
 
 /*
-        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
-        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+        JSONObject keywordNormalType = new org.json.JSONObject(
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
-        map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
-        map.put("submitters", keywordNormalType);
-        map.put("photographers", keywordNormalType);
-        map.put("informOthers", keywordNormalType);
-
-        // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
-        map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
-        map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
  */
+
+        // "id" is done in Base
+        map.put("viewpoint", keywordType);
+        map.put("iaClass", keywordType);
+        map.put("acmId", keywordType);
+        map.put("encounterId", keywordType);
+        map.put("encounterLocationId", keywordType);
+        map.put("encounterTaxonomy", keywordType);
+
+        // all case-insensitive keyword-ish types
+        // map.put("fubar", keywordNormalType);
+
         return map;
     }
 

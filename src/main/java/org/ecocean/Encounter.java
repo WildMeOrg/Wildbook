@@ -4339,12 +4339,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return Util.getVersionFromModified(modified);
     }
 
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        Encounter enc = new Encounter();
-
-        return getAllVersions(myShepherd, enc.getAllVersionsSql());
-    }
-
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
@@ -4390,67 +4384,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return map;
     }
 
-/*
-    public static int[] opensearchSyncIndex(Shepherd myShepherd)
-    throws IOException {
-        return opensearchSyncIndex(myShepherd, 0);
-    }
-
-    public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
-    throws IOException {
-        int[] rtn = new int[2];
-
-        if (OpenSearch.indexingActive()) {
-            System.out.println("Encounter.opensearchSyncIndex() skipped due to indexingActive()");
-            rtn[0] = -1;
-            rtn[1] = -1;
-            return rtn;
-        }
-        OpenSearch.setActiveIndexingBackground();
-        String indexName = "encounter";
-        OpenSearch os = new OpenSearch();
-        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
-            os.getAllVersions(indexName));
-        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
-        List<String> needIndexing = changes.get(0);
-        List<String> needRemoval = changes.get(1);
-        rtn[0] = needIndexing.size();
-        rtn[1] = needRemoval.size();
-        System.out.println("Encounter.opensearchSyncIndex(): stopAfter=" + stopAfter +
-            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
-        int ct = 0;
-        for (String id : needIndexing) {
-            Encounter enc = myShepherd.getEncounter(id);
-            try {
-                if (enc != null) os.index(indexName, enc);
-            } catch (Exception ex) {
-                System.out.println("Encounter.opensearchSyncIndex(): index failed " + enc + " => " +
-                    ex.toString());
-                ex.printStackTrace();
-            }
-            if (ct % 500 == 0)
-                System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
-                    rtn[0]);
-            ct++;
-            if ((stopAfter > 0) && (ct > stopAfter)) {
-                System.out.println("Encounter.opensearchSyncIndex() breaking due to stopAfter");
-                break;
-            }
-        }
-        System.out.println("Encounter.opensearchSyncIndex() finished needIndexing");
-        ct = 0;
-        for (String id : needRemoval) {
-            os.delete(indexName, id);
-            if (ct % 500 == 0)
-                System.out.println("Encounter.opensearchSyncIndex needRemoval: " + ct + "/" +
-                    rtn[1]);
-            ct++;
-        }
-        System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
-        OpenSearch.unsetActiveIndexingBackground();
-        return rtn;
-    }
- */
     public static Base createFromApi(org.json.JSONObject payload, List<File> files,
         Shepherd myShepherd)
     throws ApiException {

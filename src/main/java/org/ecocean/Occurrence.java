@@ -1416,11 +1416,4 @@ public class Occurrence extends Base implements java.io.Serializable {
         return
                 "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"OCCURRENCE\" ORDER BY version";
     }
-
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        // note: some Occurrences do not have ids.  :(
-        Occurrence occ = new Occurrence();
-
-        return getAllVersions(myShepherd, occ.getAllVersionsSql());
-    }
 }
