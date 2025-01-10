@@ -142,6 +142,7 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("iaClass", keywordType);
         map.put("acmId", keywordType);
         map.put("encounterId", keywordType);
+        map.put("encounterSubmitterId", keywordType);
         map.put("encounterLocationId", keywordType);
         map.put("encounterTaxonomy", keywordType);
 
