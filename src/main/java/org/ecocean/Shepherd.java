@@ -1933,7 +1933,6 @@ public class Shepherd {
      * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
      * @see encounter, java.util.Iterator
      */
-
     public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
         String filter =
             "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == " +
@@ -2062,6 +2061,18 @@ public class Shepherd {
             npe.printStackTrace();
             return null;
         }
+    }
+
+    public Iterator<Encounter> getAllAnnotations(String order) {
+        Extent extClass = pm.getExtent(Annotation.class, true);
+        Query q = pm.newQuery(extClass);
+
+        q.setOrdering(order);
+        Collection c = (Collection)(q.execute());
+        ArrayList list = new ArrayList(c);
+        Iterator it = list.iterator();
+        q.closeAll();
+        return it;
     }
 
     public Iterator getAllMediaAssets() {
@@ -2679,7 +2690,6 @@ public class Shepherd {
                 }
             }
         }
-
         ArrayList<Map.Entry> as = new ArrayList<Map.Entry>(hmap.entrySet());
         if (as.size() > 0) {
             IndividualOccurrenceNumComparator cmp = new IndividualOccurrenceNumComparator();
@@ -3864,7 +3874,6 @@ public class Shepherd {
             ShepherdPMF.setShepherdState(action + "_" + shepherdID, "begin");
 
             pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
-
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (NullPointerException npe) {
@@ -4283,8 +4292,8 @@ public class Shepherd {
                                     Keyword word = getKeyword(keywords[n]);
                                     if ((images.get(i).getKeywords() != null) &&
                                         images.get(i).getKeywords().contains(word)) {
-                                            hasKeyword = true;
-                                        }
+                                        hasKeyword = true;
+                                    }
                                 } else {
                                     hasKeyword = true;
                                 }
@@ -4358,7 +4367,7 @@ public class Shepherd {
                                         Keyword word = getKeyword(keywords[n]);
                                         if ((images.get(i).getKeywords() != null) &&
                                             images.get(i).getKeywords().contains(word)) {
-                                                hasKeyword = true;
+                                            hasKeyword = true;
                                         }
                                     } else {
                                         hasKeyword = true;
@@ -4437,9 +4446,8 @@ public class Shepherd {
                         }
                     }
                 }
-                if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                } else if (hasKeyword && isAcceptableImageFile(imageName)) {
-                } else {
+                if (hasKeyword && isAcceptableVideoFile(imageName)) {} else if (hasKeyword &&
+                    isAcceptableImageFile(imageName)) {} else {
                     count--;
                 }
             }

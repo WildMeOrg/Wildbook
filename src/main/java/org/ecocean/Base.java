@@ -270,7 +270,6 @@ import org.json.JSONObject;
         }
         OpenSearch.setActiveIndexingBackground();
         OpenSearch os = new OpenSearch();
-        System.out.println(">>>>>>>>>>>>>>>>>>>> " + baseObj.getAllVersionsSql());
         List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
             baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
         if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
