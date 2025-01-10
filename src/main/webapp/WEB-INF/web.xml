@@ -563,6 +563,10 @@
 		<servlet-name>ApiBaseObject</servlet-name>
 		<url-pattern>/api/v3/occurrences/*</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiBaseObject</servlet-name>
+		<url-pattern>/api/v3/annotations/*</url-pattern>
+	</servlet-mapping>
 
 
   <servlet>

@@ -2,6 +2,7 @@
 package org.ecocean;
 
 import java.awt.Rectangle;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,11 +16,13 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -1100,6 +1103,164 @@ public class Annotation implements java.io.Serializable {
         ann.isExemplar = this.isExemplar;
         ann.identificationStatus = this.identificationStatus;
         return ann;
+    }
+
+    public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
+    throws ApiException {
+        if (payload == null) throw new ApiException("empty payload");
+        User user = (User)payload.opt("_currentUser");
+        int maId = (Integer)validateFieldValue("mediaAssetId", payload);
+        int x = (Integer)validateFieldValue("x", payload);
+        int y = (Integer)validateFieldValue("y", payload);
+        int width = (Integer)validateFieldValue("width", payload);
+        int height = (Integer)validateFieldValue("height", payload);
+        double theta = (Double)validateFieldValue("theta", payload);
+        String iaClass = (String)validateFieldValue("iaClass", payload);
+        String viewpoint = (String)validateFieldValue("viewpoint", payload);
+        // dont need to validate encId, as it is optional and we load encounter below which effectively validates if set
+        String encId = payload.optString("encounterId", null);
+
+        JSONObject error = new JSONObject();
+        MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
+        if (ma == null) {
+            error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            error.put("fieldName", "mediaAssetId");
+            error.put("value", maId);
+            throw new ApiException("invalid MediaAsset id=" + maId, error);
+        }
+
+        Encounter enc = null;
+        if (encId != null) {
+            enc = myShepherd.getEncounter(encId);
+            if (enc == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("fieldName", "encounterId");
+                error.put("value", encId);
+                throw new ApiException("invalid Encounter id=" + maId, error);
+            }
+            // FIXME check security of user editing this
+        }
+
+        // validate iaClass; this is a little janky
+        if (enc != null) {
+            IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+	    Taxonomy tx = enc.getTaxonomy(myShepherd);
+	    if (!iaConf.isValidIAClass(tx, iaClass)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("fieldName", "iaClass");
+                error.put("value", iaClass);
+                throw new ApiException("iaClass=" + iaClass + " invalid for taxonomy " + tx + " on " + enc, error);
+            }
+        }
+
+/*
+    FeatureType.initAll(myShepherd);
+            JSONObject fparams = new JSONObject();
+            fparams.put("width", ma.getWidth() * sizeMult);
+            fparams.put("height", ma.getHeight() * sizeMult);
+//{"viewpoint":"left","width":1842,"x":34,"y":254,"detectionConfidence":0.9206,"theta":-0.0103,"height":580}
+            Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+            ma.addFeature(ft);
+            Annotation annot = new Annotation(enc.getTaxonomyString(), ft);
+            System.out.println("annotation -> " + annot);
+            enc.addAnnotation(annot);
+
+
+
+	    FeatureType.initAll(myShepherd);
+	    JSONObject fparams = new JSONObject();
+	    fparams.put("x", xywh[0]);
+	    fparams.put("y", xywh[1]);
+	    fparams.put("width", xywh[2]);
+	    fparams.put("height", xywh[3]);
+      fparams.put("totalWidth", xywh[4]);
+	    fparams.put("_manualAnnotation", System.currentTimeMillis());
+	    ft = new Feature("org.ecocean.boundingBox", fparams);
+	    ma.addFeature(ft);
+	    ma.setDetectionStatus("complete");
+	    Annotation ann = new Annotation(null, ft, iaClass);
+		IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+	    if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
+            ann.setMatchAgainst(true);
+        }
+	    ann.setViewpoint(viewpoint);
+	    String encMsg = "(no encounter)";
+	    if (enc != null) {
+	        if (cloneEncounter) {
+*/
+        return null;
+    }
+
+    public static Object validateFieldValue(String fieldName, JSONObject data)
+    throws ApiException {
+        if (data == null) throw new ApiException("empty payload");
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("fieldName", fieldName);
+        String exMessage = "invalid value for " + fieldName;
+        Object returnValue = null;
+        switch (fieldName) {
+        case "mediaAssetId":
+            returnValue = data.optInt(fieldName, 0);
+            if ((int)returnValue < 1) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "x":
+        case "y":
+        case "width":
+        case "height":
+            returnValue = data.optInt(fieldName, -1);
+            if (((int)returnValue < 0) || (((int)returnValue < 1) && (fieldName.equals("width") || fieldName.equals("height")))) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "theta":
+            returnValue = data.optDouble(fieldName, 9999.9);
+            double dval = (double)returnValue;
+            if (dval == 9999.9) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if ((dval < -6.28318) || (dval > 6.28318)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", dval);
+                throw new ApiException("invalid theta value in radians", error);
+            }
+            break;
+
+        case "viewpoint":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!isValidViewpoint((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "iaClass":
+            // TODO is iaClass required???
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            // validity is checked in main createFromApi
+            break;
+
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" +
+                fieldName);
+        }
+        return returnValue;
     }
 
     public List<Task> getRootIATasks(Shepherd myShepherd) { // convenience

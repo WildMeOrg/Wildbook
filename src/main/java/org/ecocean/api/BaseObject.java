@@ -155,10 +155,28 @@ public class BaseObject extends ApiBase {
                 rtn.put("statusCode", 200);
                 break;
             case "occurrences":
-                obj = Occurrence.createFromApi(payload, files, myShepherd);
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    obj = Occurrence.createFromApi(payload, files, myShepherd);
+                }
                 break;
             case "individuals":
-                obj = MarkedIndividual.createFromApi(payload, files, myShepherd);
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    obj = MarkedIndividual.createFromApi(payload, files, myShepherd);
+                }
+                break;
+            case "annotations":
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    obj = Annotation.createFromApi(payload, files, myShepherd);
+                }
                 break;
             default:
                 throw new ApiException("bad class");
@@ -176,15 +194,16 @@ public class BaseObject extends ApiBase {
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
             System.out.println("BaseObject.processPost() success (200) creating " + obj +
                 " from payload " + payload);
-            OpenSearch.setPermissionsNeeded(myShepherd, true);
-            myShepherd.commitDBTransaction();
-            MediaAsset.updateStandardChildrenBackground(context, maIds);
-            if (encounterForIA != null) {
+            if (encounterForIA != null) { // encounter-specific needs
+                OpenSearch.setPermissionsNeeded(myShepherd, true);
+                MediaAsset.updateStandardChildrenBackground(context, maIds);
                 encounterForIA.sendToIA(myShepherd);
                 encounterForIA.sendCreationEmails(myShepherd, langCode);
             }
+            myShepherd.commitDBTransaction();
             // not sure what this is for, but servlet/EncounterForm did it so guessing its important
-            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+            if (encounterForIA != null)
+                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         } else {
             myShepherd.rollbackDBTransaction();
         }
