@@ -18,6 +18,23 @@ export default function ManualAnnotation() {
     const [isDraggingRect, setIsDraggingRect] = useState(false);
     const [hoveringRect, setHoveringRect] = useState(false);
 
+    const getMediaAssets = async () => {
+        try {
+            const response = await fetch("/api/v3/media-assets/329716");
+            const data = await response.json();
+            console.log("++++++++++++++++++++++++++++",data);
+        } catch (error) {
+            console.error("-------------------------------",error);
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            await getMediaAssets();
+        };
+        fetchData();
+    }, []);
+        
 
     useEffect(() => {
         const handleMouseUp = () => setIsDrawing(false);
