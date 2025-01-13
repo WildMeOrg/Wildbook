@@ -1,5 +1,7 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +28,7 @@ import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Annotation implements java.io.Serializable {
+public class Annotation extends Base implements java.io.Serializable {
     public Annotation() {}
     private String id;
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
@@ -61,6 +63,7 @@ public class Annotation implements java.io.Serializable {
     private int height;
     private float[] transformMatrix;
     private double theta;
+    private long version = System.currentTimeMillis();
 
     // quality indicates the fidelity of the annotation, e.g. the overall image quality of a picture.
     // This is useful e.g. for researchers who want to account for a bias where "better" images are
@@ -118,6 +121,80 @@ public class Annotation implements java.io.Serializable {
         this.iaClass = iaClass;
     }
 
+    @Override public String opensearchIndexName() { return "annotation"; }
+
+    @Override public long getVersion() {
+        return version;
+    }
+
+    public long setVersion() {
+        version = System.currentTimeMillis();
+        return version;
+    }
+
+    public JSONObject opensearchMapping() {
+        JSONObject map = super.opensearchMapping();
+        JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+
+/*
+        JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+ */
+
+        // "id" is done in Base
+        map.put("viewpoint", keywordType);
+        map.put("iaClass", keywordType);
+        map.put("acmId", keywordType);
+        map.put("encounterId", keywordType);
+        map.put("encounterSubmitterId", keywordType);
+        map.put("encounterLocationId", keywordType);
+        map.put("encounterTaxonomy", keywordType);
+
+        // all case-insensitive keyword-ish types
+        // map.put("fubar", keywordNormalType);
+
+        return map;
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
+
+        jgen.writeStringField("acmId", this.getAcmId());
+        jgen.writeStringField("viewpoint", this.getViewpoint());
+        jgen.writeStringField("iaClass", this.getIAClass());
+        MediaAsset ma = this.getMediaAsset();
+        if (ma != null) {
+            jgen.writeNumberField("mediaAssetId", ma.getId());
+        }
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc != null) {
+            jgen.writeStringField("encounterId", enc.getId());
+            jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
+            jgen.writeStringField("encounterLocationId", enc.getLocationID());
+            jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+        }
+    }
+
+    @Override public String getAllVersionsSql() {
+        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY version";
+    }
+
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getAnnotation(id);
+    }
+
+    // comment cruft only needed for Base class
+    @Override public String getComments() {
+        return null;
+    }
+
+    @Override public void setComments(final String comments) {
+    }
+
+    @Override public void addComments(final String newComments) {
+    }
+
     // this is for use *only* to migrate old-world Annotations to new-world
     public Feature migrateToFeatures() {
         Feature f;
@@ -143,6 +220,7 @@ public class Annotation implements java.io.Serializable {
 
     public void setAcmId(String id) {
         this.acmId = id;
+        this.setVersion();
     }
 
     public String getAcmId() {
@@ -159,11 +237,13 @@ public class Annotation implements java.io.Serializable {
 
     public void setFeatures(ArrayList<Feature> f) {
         features = f;
+        this.setVersion();
     }
 
     public void addFeature(Feature f) {
         if (features == null) features = new ArrayList<Feature>();
         if (!features.contains(f)) features.add(f);
+        this.setVersion();
     }
 
     public String getId() {
@@ -172,6 +252,7 @@ public class Annotation implements java.io.Serializable {
 
     public void setId(String id) {
         this.id = id;
+        this.setVersion();
     }
 
     public Double getQuality() {
@@ -346,6 +427,7 @@ public class Annotation implements java.io.Serializable {
 
     public void setViewpoint(String v) {
         viewpoint = v;
+        this.setVersion();
     }
 
     // note!  this can block and take a while if IA has yet to compute the viewpoint!
@@ -463,6 +545,7 @@ public class Annotation implements java.io.Serializable {
 
     public void setIAClass(String iaClass) {
         this.iaClass = iaClass;
+        this.setVersion();
     }
 
     public boolean hasIAClass() {
@@ -518,6 +601,7 @@ public class Annotation implements java.io.Serializable {
 
     public void setMatchAgainst(boolean b) {
         matchAgainst = b;
+        this.setVersion();
     }
 
     public String getIdentificationStatus() {
@@ -526,6 +610,7 @@ public class Annotation implements java.io.Serializable {
 
     public void setIdentificationStatus(String status) {
         this.identificationStatus = status;
+        this.setVersion();
     }
 
     // if this cannot determine a bounding box, then we return null
