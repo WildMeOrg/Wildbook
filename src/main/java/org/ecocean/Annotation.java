@@ -1234,6 +1234,7 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
         // must have all we need now
+        List<Annotation> annots = ma.getAnnotations(); // get before we add ours
         FeatureType.initAll(myShepherd);
         JSONObject fparams = new JSONObject();
         fparams.put("x", x);
@@ -1258,39 +1259,61 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
  */
+        // we replace trivial if applicable; otherwise this logic determines if we should
+        // clone the encounter (based off historic logic in manualAnnotation.jsp)
+        if (enc != null) {
+            boolean cloneEncounter = false;
+            // we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
+            if ((annots.size() > 1) && (iaClass != null)) {
+                cloneEncounter = true;
 
-/*   logic(??) when to clone encounter vs bump trivial
-        //we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
-        //also don't clone if this is a part
-        if(annots.size()>1 && iaClass!=null){
-                cloneEncounter=true;
-        }
-        //also don't clone if this is a part
-        //if the one annot isn't trivial, then we have to clone the encounter as well
-        else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")==-1){
-                cloneEncounter=true;
-
-                //exception case - if there is only one annotation and it is a part
+                // also don't clone if this is a part
+                // if the one annot isn't trivial, then we have to clone the encounter as well
+            } else if ((annots.size() == 1) && !annots.get(0).isTrivial() && (iaClass != null) &&
+                (iaClass.indexOf("+") == -1)) {
+                cloneEncounter = true;
+                // exception case - if there is only one annotation and it is a part
                 Annotation annot1 = annots.get(0);
-                if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
-                        cloneEncounter=false;
+                if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
+                    cloneEncounter = false;
                 }
-
-
+                // exception case - if there is only one annotation and it is a part
+            } else if ((annots.size() == 1) && !annots.get(0).isTrivial() && (iaClass != null) &&
+                (iaClass.indexOf("+") > -1)) {
+                Annotation annot1 = annots.get(0);
+                if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
+                    cloneEncounter = true;
+                }
+            }
+            if (cloneEncounter) {
+                try {
+                    Encounter clone = enc.cloneWithoutAnnotations(myShepherd);
+                    clone.addAnnotation(ann);
+                    clone.addComments("<p data-annot-id=\"" + ann.getId() +
+                        "\">Encounter cloned and <i>new Annotation</i> manually added by " +
+                        user.getDisplayName() + "</p>");
+                    myShepherd.getPM().makePersistent(clone);
+                    Occurrence occ = myShepherd.getOccurrence(enc);
+                    if (occ != null) {
+                        occ.addEncounterAndUpdateIt(clone);
+                        occ.setDWCDateLastModified();
+                    } else {
+                        // let's create an occurrence to link these two Encounters
+                        occ = new Occurrence(Util.generateUUID(), clone);
+                        occ.addEncounter(enc);
+                        myShepherd.getPM().makePersistent(occ);
+                    }
+                    myShepherd.updateDBTransaction();
+                } catch (Exception ex) {
+                    throw new ApiException("cloning encounter " + enc.getId() + " failed: " +
+                            ex.toString());
+                }
+            } else { // not cloned
+                enc.addAnnotation(ann);
+                enc.addComments("<p data-annot-id=\"" + ann.getId() +
+                    "\"><i>new Annotation</i> manually added by " + user.getDisplayName() + "</p>");
+            }
         }
-        else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")>-1){
-                //exception case - if there is only one annotation and it is a part
-
-                        Annotation annot1 = annots.get(0);
-                        if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
-                                cloneEncounter=true;
-                        }
-
-        }
- */
-
-// FIXME whole bunch of other stuff from manualAnnotation.jsp too..........
-
         return ann;
     }
 
