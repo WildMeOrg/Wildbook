@@ -79,9 +79,17 @@
              			 	"long":-119.358266
              			 }},
 
-               {"name": "Anacapa Island- Northeast Side", "id": "Anacapa Island- Northeast Side"},
+               {"name": "Anacapa Island- Northeast Side", "id": "Anacapa Island- Northeast Side",
+             "geospatialInfo":{
+             			 	"lat":34.0193786,
+             			 	"long":-119.3804080
+             			 }},
 
-               {"name": "Anacapa Island- Northwest Side", "id": "Anacapa Island- Northwest Side"},
+               {"name": "Anacapa Island- Northwest Side", "id": "Anacapa Island- Northwest Side",
+             "geospatialInfo":{
+             			 	"lat":34.0204772,
+             			 	"long":-119.4281733
+             			 }},
 
                {"name": "Anacapa Island- Parallel Reefs", "id": "Anacapa Island- Parallel Reefs",
              "geospatialInfo":{
@@ -89,11 +97,23 @@
              			 	"long":-119.413733
              			 }},
 
-               {"name": "Anacapa Island- Rat Rock", "id": "Anacapa Island- Rat Rock"},
+               {"name": "Anacapa Island- Rat Rock", "id": "Anacapa Island- Rat Rock",
+             "geospatialInfo":{
+             			 	"lat":34.0126713,
+             			 	"long":-119.4453775
+             			 }},
 
-               {"name": "Anacapa Island- Southeast Side", "id": "Anacapa Island- Southeast Side"},
+               {"name": "Anacapa Island- Southeast Side", "id": "Anacapa Island- Southeast Side",
+             "geospatialInfo":{
+             			 	"lat":34.0066590,
+             			 	"long":-119.3679113
+             			 }},
 
-               {"name": "Anacapa Island- Southwest Side", "id": "Anacapa Island- Southwest Side"},
+               {"name": "Anacapa Island- Southwest Side", "id": "Anacapa Island- Southwest Side",
+             "geospatialInfo":{
+             			 	"lat":34.0022657,
+             			 	"long":-119.4313892
+             			 }},
 
                {"name": "Anacapa Island- Surveyor's Rock", "id": "Anacapa Island- Surveyor's Rock",
              "geospatialInfo":{
@@ -539,9 +559,17 @@
 
             ]},
 
-            {"name": "Santa Rosa Island", "id": "Santa Rosa Island", "locationID":[
+            {"name": "Santa Rosa Island", "id": "Santa Rosa Island",
+             "geospatialInfo":{
+             			 	"lat":33.9633922,
+             			 	"long":-120.1046325
+             			 }, "locationID":[
 
-                {"name": "Santa Rosa Island- Carrington Point", "id": "Santa Rosa Island- Carrington Point"}
+                {"name": "Santa Rosa Island- Carrington Point", "id": "Santa Rosa Island- Carrington Point",
+             "geospatialInfo":{
+                            "lat":34.0486622,
+                            "long":-120.0506080
+                        }}
 
             ]},
 
