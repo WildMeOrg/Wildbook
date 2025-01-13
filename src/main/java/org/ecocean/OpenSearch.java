@@ -61,7 +61,9 @@ public class OpenSearch {
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
-    public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
+    public static String[] VALID_INDICES = {
+        "encounter", "individual", "occurrence", "annotation"
+    };
     public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
@@ -151,7 +153,10 @@ public class OpenSearch {
                     try {
                         myShepherd.beginDBTransaction();
                         System.out.println("OpenSearch background indexing running...");
-                        Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Encounter.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
+                        BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
                     } catch (Exception ex) {

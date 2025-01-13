@@ -551,6 +551,11 @@
 			<index name="ANNOTATION_VIEWPOINT_IDX" />
 		</field>
 
+		<field jdbc-type="BIGINT" name="version" allows-null="false" >
+			<column default-value="-1" />
+			<index name="ANNOTATION_VERSION_IDX" />
+		</field>
+
             	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
                 	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
                 	<join />
