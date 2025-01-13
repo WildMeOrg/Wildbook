@@ -1291,7 +1291,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
 // FIXME whole bunch of other stuff from manualAnnotation.jsp too..........
 
-        return null; // FIXME
+        return ann;
     }
 
     public static Object validateFieldValue(String fieldName, JSONObject data)

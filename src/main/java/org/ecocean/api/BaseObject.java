@@ -196,11 +196,13 @@ public class BaseObject extends ApiBase {
                 " from payload " + payload);
             if (encounterForIA != null) { // encounter-specific needs
                 OpenSearch.setPermissionsNeeded(myShepherd, true);
+                myShepherd.commitDBTransaction();
                 MediaAsset.updateStandardChildrenBackground(context, maIds);
                 encounterForIA.sendToIA(myShepherd);
                 encounterForIA.sendCreationEmails(myShepherd, langCode);
+            } else {
+                myShepherd.commitDBTransaction();
             }
-            myShepherd.commitDBTransaction();
             // not sure what this is for, but servlet/EncounterForm did it so guessing its important
             if (encounterForIA != null)
                 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
