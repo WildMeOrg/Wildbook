@@ -207,8 +207,7 @@ public class BaseObject extends ApiBase {
                 myShepherd.commitDBTransaction();
             }
             // not sure what this is for, but servlet/EncounterForm did it so guessing its important
-            if (encounterForIA != null)
-                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         } else {
             myShepherd.rollbackDBTransaction();
         }

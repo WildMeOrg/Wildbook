@@ -331,6 +331,8 @@ public class Annotation extends Base implements java.io.Serializable {
         for (Feature ft : getFeatures()) {
             if (ft.isUnity()) return true;
         }
+        // prevents zero-values from return true on final test
+        if ((getWidth() == 0) || (getHeight() == 0)) return false;
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) &&
                    (getHeight() == (int)ma.getHeight()));
     }
@@ -1245,12 +1247,12 @@ public class Annotation extends Base implements java.io.Serializable {
         fparams.put("viewpoint", viewpoint); // not sure when/how this is used, but seems here historically
         fparams.put("_manualAnnotationViaApiV3", System.currentTimeMillis());
         Feature ft = new Feature("org.ecocean.boundingBox", fparams);
-
-        ma.addFeature(ft);
-        ma.setDetectionStatus("complete");
-
         Annotation ann = new Annotation(null, ft, iaClass);
         ann.setViewpoint(viewpoint);
+        ma.addFeature(ft);
+        ma.setDetectionStatus("complete");
+        myShepherd.getPM().makePersistent(ft);
+        myShepherd.getPM().makePersistent(ann);
 /*
         if (enc != null) {
             String context = myShepherd.getContext();
@@ -1259,29 +1261,36 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
  */
+        // NOTE: manualAnnotation.jsp once allowed featureId to be passed; that functionality is not handled here
+        //
         // we replace trivial if applicable; otherwise this logic determines if we should
         // clone the encounter (based off historic logic in manualAnnotation.jsp)
         if (enc != null) {
             boolean cloneEncounter = false;
             // we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
             if ((annots.size() > 1) && (iaClass != null)) {
+                System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [0]");
                 cloneEncounter = true;
 
                 // also don't clone if this is a part
                 // if the one annot isn't trivial, then we have to clone the encounter as well
             } else if ((annots.size() == 1) && !annots.get(0).isTrivial() && (iaClass != null) &&
                 (iaClass.indexOf("+") == -1)) {
+                System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [1]");
                 cloneEncounter = true;
                 // exception case - if there is only one annotation and it is a part
                 Annotation annot1 = annots.get(0);
                 if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
+                    System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [2]");
                     cloneEncounter = false;
                 }
                 // exception case - if there is only one annotation and it is a part
             } else if ((annots.size() == 1) && !annots.get(0).isTrivial() && (iaClass != null) &&
                 (iaClass.indexOf("+") > -1)) {
+                System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [3]");
                 Annotation annot1 = annots.get(0);
                 if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
+                    System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [4]");
                     cloneEncounter = true;
                 }
             }
@@ -1303,6 +1312,8 @@ public class Annotation extends Base implements java.io.Serializable {
                         occ.addEncounter(enc);
                         myShepherd.getPM().makePersistent(occ);
                     }
+                    System.out.println("Annotation.createFromApi(): " + ann + " added to clone " +
+                        clone + " in " + occ);
                     myShepherd.updateDBTransaction();
                 } catch (Exception ex) {
                     throw new ApiException("cloning encounter " + enc.getId() + " failed: " +
@@ -1312,6 +1323,26 @@ public class Annotation extends Base implements java.io.Serializable {
                 enc.addAnnotation(ann);
                 enc.addComments("<p data-annot-id=\"" + ann.getId() +
                     "\"><i>new Annotation</i> manually added by " + user.getDisplayName() + "</p>");
+                System.out.println("Annotation.createFromApi(): " + ann + " added to " + enc);
+            }
+        }
+        // NOTE: manualAnnotation.jsp allowed 'removeTrivial' (boolean) to be set via url, but was default true
+        Annotation foundTrivial = null; // note this will only remove (at most) ONE (but "should never" have > 1 anyway)
+        for (Annotation a : ma.getAnnotations()) {
+            if (a.isTrivial()) foundTrivial = a;
+        }
+        if (foundTrivial == null) {
+            System.out.println(
+                "Annotation.createFromApi(): no trivial annotation found to remove from " + ma);
+        } else {
+            foundTrivial.detachFromMediaAsset();
+            if (enc == null) {
+                System.out.println("Annotation.createFromApi(): removeTrivial detached " +
+                    foundTrivial + " (and Feature) from " + ma);
+            } else {
+                enc.removeAnnotation(foundTrivial);
+                System.out.println("Annotation.createFromApi(): removeTrivial detached " +
+                    foundTrivial + " (and Feature) from " + ma + " and " + enc);
             }
         }
         return ann;
@@ -1351,10 +1382,8 @@ public class Annotation extends Base implements java.io.Serializable {
             returnValue = data.optDouble(fieldName, 9999.9);
             double dval = (double)returnValue;
             if (dval == 9999.9) {
-                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
-                throw new ApiException(exMessage, error);
-            }
-            if ((dval < -6.28318) || (dval > 6.28318)) {
+                returnValue = 0.0d; // theta (passed-in) is optional, but results in 0.0
+            } else if ((dval < -6.28318) || (dval > 6.28318)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", dval);
                 throw new ApiException("invalid theta value in radians", error);
