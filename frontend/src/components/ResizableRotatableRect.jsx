@@ -12,17 +12,7 @@ const ResizableRotatableRect = ({
   setRect,
   angle = 0,
 }) => {
-  const [rectProps, setRectProps] = useState({
-    x: 100,
-    y: 100,
-    width: 100,
-    height: 100,
-    fill: null,
-    stroke: "red",
-    strokeWidth: 2,
-    rotation: 0,
-    draggable: false,
-  });
+  const [rectProps, setRectProps] = useState({});
 
   useEffect(() => {
     setRectProps({
@@ -34,55 +24,54 @@ const ResizableRotatableRect = ({
       stroke: "red",
       strokeWidth: 2,
       rotation: angle,
-      draggable: false,
+      draggable: true,
     });
-  }, [angle]);
-
-  useEffect(() => {
-    setRectProps({
-      x,
-      y,
-      width,
-      height,
-      fill: null,
-      stroke: "red",
-      strokeWidth: 2,
-      rotation: 0,
-      draggable: false,
-    });
-  }, [x, y, width, height]);
+  }, [x, y, width, height, angle]);
 
   const rectRef = useRef(null);
   const transformerRef = useRef(null);
-
   const handleTransform = () => {
     const node = rectRef.current;
 
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
 
-    setRectProps({
-      ...rectProps,
+    const updatedRect = {
       x: node.x(),
       y: node.y(),
       width: Math.max(5, node.width() * scaleX),
       height: Math.max(5, node.height() * scaleY),
       rotation: node.rotation(),
+    };
+
+    setRectProps({
+      ...rectProps,
+      ...updatedRect,
     });
 
-    setRect({
-      x: node.x(),
-      y: node.y(),
-      width: Math.max(5, node.width() * scaleX),
-      height: Math.max(5, node.height() * scaleY),
-    });
+    setRect(updatedRect);
 
-    //
     node.scaleX(1);
     node.scaleY(1);
   };
 
   const handleDragEnd = () => {
+    const node = rectRef.current;
+
+    const updatedRect = {
+      x: node.x(),
+      y: node.y(),
+    };
+
+    setRectProps({
+      ...rectProps,
+      ...updatedRect,
+    });
+
+    setRect({
+      ...rectProps,
+      ...updatedRect,
+    });
     setIsDraggingRect(false);
   };
 
@@ -103,9 +92,9 @@ const ResizableRotatableRect = ({
           onDragStart={handleSelect}
           onDragEnd={handleDragEnd}
           onTransformEnd={handleTransform}
-          draggable={false}
-          offsetX={width / 2}
-          offsetY={height / 2}
+          draggable={true}
+          // offsetX={width / 2}
+          // offsetY={height / 2}
         />
         <Transformer
           ref={transformerRef}
