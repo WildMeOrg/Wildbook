@@ -12,9 +12,20 @@ export default function ManualAnnotation() {
     const theme = useContext(ThemeColorContext);
     const imgRef = useRef(null);
     const [value, setValue] = useState(0);
+    const [data, setData] = useState({
+        width: 100,
+        height: 100,
+        url: ""
+    });
 
-    const [rect, setRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
+    const [rect, setRect] = useState({
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    });
     const [isDrawing, setIsDrawing] = useState(false);
+    const [drawStatus, setDrawStatus] = useState("DRAW");
     const [isDraggingRect, setIsDraggingRect] = useState(false);
     const [hoveringRect, setHoveringRect] = useState(false);
 
@@ -22,11 +33,45 @@ export default function ManualAnnotation() {
         try {
             const response = await fetch("/api/v3/media-assets/329716");
             const data = await response.json();
-            console.log("++++++++++++++++++++++++++++",data);
+            // console.log("++++++++++++++++++++++++++++", data);
+            setData(data);
         } catch (error) {
-            console.error("-------------------------------",error);
+            // console.error("-------------------------------", error);
         }
     };
+
+    const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
+
+    useEffect(() => {
+        // console.log("isDrawing", isDrawing);
+        // console.log("rect", rect);
+        if (isDrawing) {
+            setDrawStatus("DRAWING");
+        } else if(rect.width > 0 && rect.height > 0) {
+            console.log(1);
+            setDrawStatus("DELETE");
+        } else {    
+             console.log(2);
+            setDrawStatus("DRAW");
+        }
+    }, [isDrawing, rect]);
+
+    useEffect(() => {
+        if (imgRef.current) {
+            const naturalWidth = data.width;
+            const naturalHeight = data.height;
+            const displayWidth = imgRef.current.clientWidth;
+            const displayHeight = imgRef.current.clientHeight;
+
+            const scaleX = displayWidth / naturalWidth;
+            const scaleY = displayHeight / naturalHeight;
+
+            setScaleFactor({ x: scaleX, y: scaleY });
+        }
+    }, [data, imgRef]);
+
+    // console.log("RECT", rect);
+    // console.log("angle", value);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -34,7 +79,6 @@ export default function ManualAnnotation() {
         };
         fetchData();
     }, []);
-        
 
     useEffect(() => {
         const handleMouseUp = () => setIsDrawing(false);
@@ -44,7 +88,7 @@ export default function ManualAnnotation() {
 
 
     const handleMouseDown = (e) => {
-        if (!imgRef.current) return;
+        if (!imgRef.current || drawStatus === "DELETE") return;
 
         if (hoveringRect) {
             setIsDraggingRect(true);
@@ -62,21 +106,19 @@ export default function ManualAnnotation() {
     };
 
     const handleMouseMove = (e) => {
-        if (!imgRef.current) return;
+        if (!imgRef.current || drawStatus === "DELETE") return;
 
         const { left, top } = imgRef.current.getBoundingClientRect();
         const mouseX = e.clientX - left;
         const mouseY = e.clientY - top;
 
-        const isInsideRect =
-            mouseX >= rect.x - 4 &&
-            mouseX <= rect.x + rect.width + 4 &&
-            mouseY >= rect.y - 4 &&
-            mouseY <= rect.y + rect.height + 4;
+        // const isInsideRect =
+        //     mouseX >= rect.x - 4 &&
+        //     mouseX <= rect.x + rect.width + 4 &&
+        //     mouseY >= rect.y - 4 &&
+        //     mouseY <= rect.y + rect.height + 4;
 
-        console.log("isInsideRect", isInsideRect);
-
-        setHoveringRect(isInsideRect);
+        // setHoveringRect(isInsideRect);
 
         if (isDrawing) {
             setRect((prevRect) => ({
@@ -88,10 +130,10 @@ export default function ManualAnnotation() {
     };
 
     const handleMouseUp = () => {
+        if (!imgRef.current || drawStatus === "DELETE") return;
         setIsDrawing(false);
         setIsDraggingRect(false);
     };
-
 
     return (
         <Container>
@@ -129,13 +171,13 @@ export default function ManualAnnotation() {
                 </Form.Group>
             </Form>
             <div
-                className="d-flex w-100 flex-column"
+                className="d-flex flex-column"
                 style={{
-                    height: "80vh",
+                    maxWidth: "100%",
+                    height: "auto",
                     padding: "1em",
                     marginTop: "1em",
                     borderRadius: "10px",
-                    overflow: "hidden",
                     boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
                 }}
             >
@@ -148,50 +190,60 @@ export default function ManualAnnotation() {
                             cursor: "pointer",
                             color: theme.primaryColors.primary500,
                         }}
+                        onClick = {() => {
+                            if (drawStatus === "DELETE") {
+                                setRect({
+                                    x: 0,
+                                    y: 0,
+                                    width: 0,
+                                    height: 0,
+                                });
+                            } else if (drawStatus === "DRAW") {
+                                setDrawStatus("DRAWING");
+                            }
+                        }}
                     >
-                        <FormattedMessage id="DELETE" />
+                        <FormattedMessage id={drawStatus} />
                         <i className="bi bi-trash ms-2"></i>
                     </div>
                 </div>
-                <div
-                    className="d-flex w-100 flex-column"
+                <div id="image-container"
+                    // className="d-flex justify-content-center align-items-center"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     style={{
-                        height: "80vh",
-                        marginTop: "1em",
-                        borderRadius: "10px",
-                        overflow: "hidden",
-                        boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
+                        width: "100%",
+                        marginTop: "1rem",
                         position: "relative", // Key to enable stacking
                     }}
                 >
                     <img
                         ref={imgRef}
-                        src={`${process.env.PUBLIC_URL}/images/forest.png`}
+                        src={"http://frontend.scribble.com/wildbook_data_dir/a/1/a1e8b85b-1a22-4ecd-aa8d-59aa93b3322c/48f0d20d-7104-4e8b-9fb6-1d806a831af3-master.jpg"}
                         alt="annotationimages"
                         style={{
                             width: "100%",
-                            height: "100%",
-                            objectFit: "fill",
+                            // maxHeight: "600px",
+                            height: "auto",
+                            objectFit: "contain",
                             position: "absolute", // Ensure stacking
                             top: 0,
                             left: 0,
                         }}
                     />
+                    
                     <ResizableRotatableRect
-                        x={rect.x}
-                        y={rect.y}
-                        width={rect.width}
-                        height={rect.height}
+                        x={rect?.x}
+                        y={rect?.y}
+                        width={rect?.width}
+                        height={rect?.height}
                         imgHeight={imgRef.current?.height}
                         imgWidth={imgRef.current?.width}
                         setIsDraggingRect={setIsDraggingRect}
                         setRect={setRect}
                         angle={value}
                     />
-
                 </div>
 
                 <Slider
@@ -199,9 +251,9 @@ export default function ManualAnnotation() {
                     max={360}
                     step={1}
                     setValue={setValue}
-
                 />
             </div>
+
             <MainButton
                 noArrow={true}
                 style={{ marginTop: "1em" }}
