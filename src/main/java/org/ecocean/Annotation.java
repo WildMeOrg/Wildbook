@@ -1203,6 +1203,8 @@ public class Annotation extends Base implements java.io.Serializable {
         String iaClass = (String)validateFieldValue("iaClass", payload);
         String viewpoint = (String)validateFieldValue("viewpoint", payload);
         // dont need to validate encId, as it is optional and we load encounter below which effectively validates if set
+        // UPDATE: switching gears on this -- now requiring encounter; but leaving this code as-is in case we switch back
+        // (see comments below as well)
         String encId = payload.optString("encounterId", null);
         JSONObject error = new JSONObject();
         MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
@@ -1222,6 +1224,12 @@ public class Annotation extends Base implements java.io.Serializable {
                 throw new ApiException("invalid Encounter id=" + maId, error);
             }
             // FIXME check security of user editing this
+        }
+        // as noted above, last-minute decision to make an encounter required:
+        if (enc == null) {
+            error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+            error.put("fieldName", "encounterId");
+            throw new ApiException("Encounter required", error);
         }
         // validate iaClass; this is a little janky
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
