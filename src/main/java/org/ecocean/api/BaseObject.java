@@ -152,7 +152,6 @@ public class BaseObject extends ApiBase {
                 // these are needed for display in results
                 rtn.put("locationId", enc.getLocationID());
                 rtn.put("submissionDate", enc.getDWCDateAdded());
-                rtn.put("statusCode", 200);
                 break;
             case "occurrences":
                 if (currentUser == null) {
@@ -181,9 +180,13 @@ public class BaseObject extends ApiBase {
             default:
                 throw new ApiException("bad class");
             }
-            rtn.put("id", obj.getId());
-            rtn.put("class", cls);
-            rtn.put("success", true);
+            // add for any flavor of Base
+            if (obj != null) {
+                rtn.put("id", obj.getId());
+                rtn.put("class", cls);
+                rtn.put("statusCode", 200);
+                rtn.put("success", true);
+            }
         } catch (ApiException apiEx) {
             System.out.println("BaseObject.processPost() returning 400 due to " + apiEx +
                 " [errors=" + apiEx.getErrors() + "] on payload " + payload);
