@@ -548,6 +548,15 @@
 	</servlet-mapping>
 
 	<servlet>
+		<servlet-name>ApiGenericObject</servlet-name>
+		<servlet-class>org.ecocean.api.GenericObject</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiGenericObject</servlet-name>
+		<url-pattern>/api/v3/media-assets/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>ApiBaseObject</servlet-name>
 		<servlet-class>org.ecocean.api.BaseObject</servlet-class>
 	</servlet>
