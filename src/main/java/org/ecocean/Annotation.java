@@ -1236,6 +1236,7 @@ public class Annotation extends Base implements java.io.Serializable {
             }
         }
         // must have all we need now
+        String context = myShepherd.getContext();
         List<Annotation> annots = ma.getAnnotations(); // get before we add ours
         FeatureType.initAll(myShepherd);
         JSONObject fparams = new JSONObject();
@@ -1255,7 +1256,6 @@ public class Annotation extends Base implements java.io.Serializable {
         myShepherd.getPM().makePersistent(ann);
 /*
         if (enc != null) {
-            String context = myShepherd.getContext();
             if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
                 ann.setMatchAgainst(true);
             }
@@ -1345,6 +1345,17 @@ public class Annotation extends Base implements java.io.Serializable {
                     foundTrivial + " (and Feature) from " + ma + " and " + enc);
             }
         }
+        // send to IA as needed
+        try {
+            if (ma.getAcmId() == null) {
+                ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+                mas.add(ma);
+                IBEISIA.sendMediaAssetsNew(mas, context);
+            }
+            ArrayList<Annotation> anns = new ArrayList<Annotation>();
+            anns.add(ann);
+            IBEISIA.sendAnnotationsNew(anns, context, myShepherd);
+        } catch (Exception ex) {} // silently fail; they will be synced up later
         return ann;
     }
 
