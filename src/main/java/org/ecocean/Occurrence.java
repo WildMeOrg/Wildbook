@@ -1370,7 +1370,7 @@ public class Occurrence extends Base implements java.io.Serializable {
                 try {
                     Occurrence occur = bgShepherd.getOccurrence(occurId);
                     if ((occur == null) || (occur.getEncounters() == null)) {
-                        bgShepherd.rollbackAndClose();
+                        // rollbackAndClose handled by finally
                         executor.shutdown();
                         return;
                     }
@@ -1408,11 +1408,12 @@ public class Occurrence extends Base implements java.io.Serializable {
         return Util.getVersionFromModified(modified);
     }
 
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        // note: some Occurrences do not have ids.  :(
-        String sql =
-            "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getOccurrence(id);
+    }
 
-        return getAllVersions(myShepherd, sql);
+    @Override public String getAllVersionsSql() {
+        return
+                "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"OCCURRENCE\" ORDER BY version";
     }
 }

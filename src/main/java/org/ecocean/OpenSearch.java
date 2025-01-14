@@ -61,7 +61,9 @@ public class OpenSearch {
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
-    public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
+    public static String[] VALID_INDICES = {
+        "encounter", "individual", "occurrence", "annotation"
+    };
     public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
@@ -151,7 +153,10 @@ public class OpenSearch {
                     try {
                         myShepherd.beginDBTransaction();
                         System.out.println("OpenSearch background indexing running...");
-                        Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Encounter.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
+                        BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
                     } catch (Exception ex) {
@@ -653,35 +658,35 @@ public class OpenSearch {
     public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd)
     throws IOException {
         if ((query == null) || (user == null)) throw new IOException("empty query or user");
-        // do not add permissions clause when we are admin, as user has no restriction
-        if (user.isAdmin(myShepherd)) return query;
-        // if (!Collaboration.securityEnabled("context0")) TODO do we want to allow everything searchable?
-/*
-        JSONObject permClause = new JSONObject("{\"bool\": {\"should\": [] }}");
-            "{\"bool\": {\"should\": [{\"term\": {\"publiclyReadable\": true}}, {\"term\": {\"viewUsers\": \""
- + user.getId() + "\"}} ] }}");
- */
-        JSONArray shouldArr = new JSONArray();
-        shouldArr.put(new JSONObject("{\"term\": {\"publiclyReadable\": true}}"));
-        shouldArr.put(new JSONObject("{\"term\": {\"submitterUserId\": \"" + user.getId() +
-            "\"}}"));
-        shouldArr.put(new JSONObject("{\"term\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
-        JSONObject pshould = new JSONObject();
-        pshould.put("should", shouldArr);
-        JSONObject permClause = new JSONObject();
-        permClause.put("bool", pshould);
-        JSONObject newQuery = new JSONObject(query.toString());
-        try {
-            JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
-                "filter");
-            filter.put(permClause);
-        } catch (Exception ex) {
-            System.out.println(
-                "OpenSearch.querySanitize() failed to find placement for permissions in query=" +
-                query + "; cause: " + ex);
-            throw new IOException("unable to find placement for permissions clause in query");
+        // see issue 958 - now we let query pass as-is for anyone, results are scrubbed later e.g. sanitizeDoc() below
+        return query;
+    }
+
+    // takes raw search result doc and presents only data user should see
+    public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
+        Shepherd myShepherd, User user)
+    throws IOException {
+        if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
+        JSONObject clean = new JSONObject();
+        // this is just punting future classes to later development (should never happen)
+        if (!"encounter".equals(indexName)) return clean;
+        boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
+        if (hasAccess) {
+            clean = new JSONObject(sourceDoc.toString());
+            clean.remove("viewUsers");
+            clean.put("access", "full");
+            return clean;
         }
-        return newQuery;
+        clean.put("access", "none");
+        String[] okFields = new String[] {
+            "id", "version", "indexTimestamp", "version", "individualId", "individualDisplayName",
+                "occurrenceId", "otherCatalogNumbers", "dateSubmitted", "date", "locationId",
+                "locationName", "taxonomy", "assignedUsername", "numberAnnotations"
+        };
+        for (String fieldName : okFields) {
+            if (sourceDoc.has(fieldName)) clean.put(fieldName, sourceDoc.get(fieldName));
+        }
+        return clean;
     }
 
     public static boolean indexingActive() {

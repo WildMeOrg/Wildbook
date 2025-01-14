@@ -3933,13 +3933,10 @@ public class Encounter extends Base implements java.io.Serializable {
         Shepherd myShepherd = new Shepherd("context0");
         myShepherd.setAction("Encounter.opensearchIndexPermissions");
         myShepherd.beginDBTransaction();
-        int nonAdminCt = 0;
         // it seems as though user.uuid is *required* so we can trust that
         try {
             for (User user : myShepherd.getUsersWithUsername()) {
                 usernameToId.put(user.getUsername(), user.getId());
-                if (user.isAdmin(myShepherd)) continue;
-                nonAdminCt++;
                 List<Collaboration> collabsFor = Collaboration.collaborationsForUser(myShepherd,
                     user.getUsername());
                 if (Util.collectionIsEmptyOrNull(collabsFor)) continue;
@@ -3955,7 +3952,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         Util.mark("perm: user build done", startT);
         System.out.println("opensearchIndexPermissions(): " + usernameToId.size() +
-            " total users; " + nonAdminCt + " non-admin; " + collab.size() + " have active collab");
+            " total users; " + collab.size() + " have active collab");
         // now iterated over (non-public) encounters
         int encCount = 0;
         org.json.JSONObject updateData = new org.json.JSONObject();
@@ -4314,15 +4311,32 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    @Override public long getVersion() {
-        return Util.getVersionFromModified(modified);
+    // given a doc from opensearch, can user access it?
+    public static boolean opensearchAccess(org.json.JSONObject doc, User user,
+        Shepherd myShepherd) {
+        if ((doc == null) || (user == null)) return false;
+        if (doc.optBoolean("publiclyReadable", false)) return true;
+        if (doc.optString("submitterUserId", "__FAIL__").equals(user.getId())) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        org.json.JSONArray viewUsers = doc.optJSONArray("viewUsers");
+        if (viewUsers == null) return false;
+        for (int i = 0; i < viewUsers.length(); i++) {
+            if (viewUsers.optString(i, "__FAIL__").equals(user.getId())) return true;
+        }
+        return false;
     }
 
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        String sql =
-            "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getEncounter(id);
+    }
 
-        return getAllVersions(myShepherd, sql);
+    @Override public String getAllVersionsSql() {
+        return
+                "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    }
+
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
     }
 
     public org.json.JSONObject opensearchMapping() {
@@ -4368,66 +4382,6 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
         return map;
-    }
-
-    public static int[] opensearchSyncIndex(Shepherd myShepherd)
-    throws IOException {
-        return opensearchSyncIndex(myShepherd, 0);
-    }
-
-    public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
-    throws IOException {
-        int[] rtn = new int[2];
-
-        if (OpenSearch.indexingActive()) {
-            System.out.println("Encounter.opensearchSyncIndex() skipped due to indexingActive()");
-            rtn[0] = -1;
-            rtn[1] = -1;
-            return rtn;
-        }
-        OpenSearch.setActiveIndexingBackground();
-        String indexName = "encounter";
-        OpenSearch os = new OpenSearch();
-        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
-            os.getAllVersions(indexName));
-        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
-        List<String> needIndexing = changes.get(0);
-        List<String> needRemoval = changes.get(1);
-        rtn[0] = needIndexing.size();
-        rtn[1] = needRemoval.size();
-        System.out.println("Encounter.opensearchSyncIndex(): stopAfter=" + stopAfter +
-            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
-        int ct = 0;
-        for (String id : needIndexing) {
-            Encounter enc = myShepherd.getEncounter(id);
-            try {
-                if (enc != null) os.index(indexName, enc);
-            } catch (Exception ex) {
-                System.out.println("Encounter.opensearchSyncIndex(): index failed " + enc + " => " +
-                    ex.toString());
-                ex.printStackTrace();
-            }
-            if (ct % 500 == 0)
-                System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
-                    rtn[0]);
-            ct++;
-            if ((stopAfter > 0) && (ct > stopAfter)) {
-                System.out.println("Encounter.opensearchSyncIndex() breaking due to stopAfter");
-                break;
-            }
-        }
-        System.out.println("Encounter.opensearchSyncIndex() finished needIndexing");
-        ct = 0;
-        for (String id : needRemoval) {
-            os.delete(indexName, id);
-            if (ct % 500 == 0)
-                System.out.println("Encounter.opensearchSyncIndex needRemoval: " + ct + "/" +
-                    rtn[1]);
-            ct++;
-        }
-        System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
-        OpenSearch.unsetActiveIndexingBackground();
-        return rtn;
     }
 
     public static Base createFromApi(org.json.JSONObject payload, List<File> files,
@@ -4691,37 +4645,5 @@ public class Encounter extends Base implements java.io.Serializable {
         } finally {
             myShepherd.rollbackDBTransaction();
         }
-    }
-
-    public void opensearchIndexDeep()
-    throws IOException {
-        final String encId = this.getId();
-        final Encounter origEnc = this;
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        Runnable rn = new Runnable() {
-            public void run() {
-                Shepherd bgShepherd = new Shepherd("context0");
-                bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
-                bgShepherd.beginDBTransaction();
-                try {
-                    Encounter enc = bgShepherd.getEncounter(encId);
-                    if (enc == null) {
-                        // we use origEnc if we can (especially necessary on initial creation of Encounter)
-                        if (origEnc != null) origEnc.opensearchIndex();
-                        bgShepherd.rollbackAndClose();
-                        executor.shutdown();
-                        return;
-                    }
-                    enc.opensearchIndex();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    bgShepherd.rollbackAndClose();
-                }
-                executor.shutdown();
-            }
-        };
-
-        executor.execute(rn);
     }
 }
