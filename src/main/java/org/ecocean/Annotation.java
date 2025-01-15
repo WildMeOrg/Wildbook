@@ -1402,7 +1402,7 @@ public class Annotation extends Base implements java.io.Serializable {
             double dval = (double)returnValue;
             if (dval == 9999.9) {
                 returnValue = 0.0d; // theta (passed-in) is optional, but results in 0.0
-            } else if ((dval < -6.28318) || (dval > 6.28318)) {
+            } else if ((dval < -6.2832) || (dval > 6.2832)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", dval);
                 throw new ApiException("invalid theta value in radians", error);
