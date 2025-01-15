@@ -1383,16 +1383,24 @@ public class Annotation extends Base implements java.io.Serializable {
             }
             break;
 
-        case "x":
-        case "y":
         case "width":
         case "height":
+            // value must be > 0 (also will catch unset)
             returnValue = data.optInt(fieldName, -1);
-            if (((int)returnValue < 0) ||
-                (((int)returnValue < 1) &&
-                (fieldName.equals("width") || fieldName.equals("height")))) {
+            if ((int)returnValue < 1) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "x":
+        case "y":
+            // x/y can be negative or zero, but they are required
+            // little hacky as prevents this actual x/y value, but um...
+            returnValue = data.optInt(fieldName, -999999);
+            if ((int)returnValue == -999999) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
                 throw new ApiException(exMessage, error);
             }
             break;
