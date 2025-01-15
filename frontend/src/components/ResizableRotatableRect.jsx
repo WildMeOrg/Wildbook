@@ -2,37 +2,66 @@ import React, { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Rect, Transformer } from "react-konva";
 
 const ResizableRotatableRect = ({
-  x = 0,
-  y = 0,
-  width = 0,
-  height = 0,
+  rect,
   imgHeight,
   imgWidth,
-  setIsDraggingRect,
   setRect,
   angle = 0,
+  drawStatus,
 }) => {
   const [rectProps, setRectProps] = useState({});
 
   useEffect(() => {
-    setRectProps({
-      x,
-      y,
-      width,
-      height,
-      fill: null,
-      stroke: "red",
-      strokeWidth: 2,
-      rotation: angle,
-      draggable: true,
-    });
-  }, [x, y, width, height, angle]);
+
+    if (drawStatus !== "DELETE") {
+      console.log("executing useEffect");
+      setRectProps(
+        {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          fill: null,
+          stroke: "red",
+          strokeWidth: 2,
+          rotation: angle,
+          draggable: true,
+        }
+      );
+      
+    }
+  }, [rect.x, rect.y, rect.width, rect.height, drawStatus]);
+
+  useEffect(() => {
+    console.log("executing useEffect for angle");
+    setRectProps(
+      {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        fill: null,
+        stroke: "red",
+        strokeWidth: 2,
+        rotation: angle,
+        draggable: true,
+      }
+    );
+
+    setRect({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+    })
+
+
+  }, [angle]);
 
   const rectRef = useRef(null);
   const transformerRef = useRef(null);
   const handleTransform = () => {
     const node = rectRef.current;
-
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
 
@@ -49,15 +78,18 @@ const ResizableRotatableRect = ({
       ...updatedRect,
     });
 
-    setRect(updatedRect);
+    setRect({
+      ...rectProps,
+      ...updatedRect,
+    });
 
     node.scaleX(1);
     node.scaleY(1);
   };
 
   const handleDragEnd = () => {
+    console.log("handle drag end");
     const node = rectRef.current;
-
     const updatedRect = {
       x: node.x(),
       y: node.y(),
@@ -72,12 +104,10 @@ const ResizableRotatableRect = ({
       ...rectProps,
       ...updatedRect,
     });
-    setIsDraggingRect(false);
   };
 
   const handleSelect = (e) => {
-    e.cancelBubble = true;
-    setIsDraggingRect(true);
+    // e.cancelBubble = true;
     transformerRef.current.nodes([rectRef.current]);
     transformerRef.current.getLayer().batchDraw();
   };
@@ -93,15 +123,12 @@ const ResizableRotatableRect = ({
           onDragEnd={handleDragEnd}
           onTransformEnd={handleTransform}
           draggable={true}
-          // offsetX={width / 2}
-          // offsetY={height / 2}
         />
         <Transformer
           ref={transformerRef}
           rotateEnabled={false}
           resizeEnabled={true}
           keepRatio={false}
-          // anchorSize={10}
         />
       </Layer>
     </Stage>
