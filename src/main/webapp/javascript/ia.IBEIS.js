@@ -71,7 +71,7 @@ wildbook.IA.plugins.push({
             function(enh) {  //the menu action
             	var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
-                wildbook.openInTab('manualAnnotation.jsp?encounterId=' + encounterNumberFromElement(enh.imgEl) + '&assetId=' + mid);
+                wildbook.openInTab('/react/manual-annotation?encounterId=' + encounterNumberFromElement(enh.imgEl) + '&assetId=' + mid);
             }
         ]);
 
