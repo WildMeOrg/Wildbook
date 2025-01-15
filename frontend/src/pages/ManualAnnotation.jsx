@@ -23,11 +23,10 @@ export default function ManualAnnotation() {
         y: 0,
         width: 0,
         height: 0,
+        rotation: 0,
     });
     const [isDrawing, setIsDrawing] = useState(false);
     const [drawStatus, setDrawStatus] = useState("DRAW");
-    const [isDraggingRect, setIsDraggingRect] = useState(false);
-    const [hoveringRect, setHoveringRect] = useState(false);
 
     const getMediaAssets = async () => {
         try {
@@ -40,18 +39,16 @@ export default function ManualAnnotation() {
         }
     };
 
+    console.log("rect", rect);
+
     const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
 
     useEffect(() => {
-        // console.log("isDrawing", isDrawing);
-        // console.log("rect", rect);
         if (isDrawing) {
             setDrawStatus("DRAWING");
-        } else if(rect.width > 0 && rect.height > 0) {
-            console.log(1);
+        } else if (rect.width > 0 && rect.height > 0) {
             setDrawStatus("DELETE");
-        } else {    
-             console.log(2);
+        } else {
             setDrawStatus("DRAW");
         }
     }, [isDrawing, rect]);
@@ -70,9 +67,6 @@ export default function ManualAnnotation() {
         }
     }, [data, imgRef]);
 
-    // console.log("RECT", rect);
-    // console.log("angle", value);
-
     useEffect(() => {
         const fetchData = async () => {
             await getMediaAssets();
@@ -86,14 +80,8 @@ export default function ManualAnnotation() {
         return () => window.removeEventListener("mouseup", handleMouseUp);
     }, []);
 
-
     const handleMouseDown = (e) => {
         if (!imgRef.current || drawStatus === "DELETE") return;
-
-        if (hoveringRect) {
-            setIsDraggingRect(true);
-            return;
-        }
 
         const { left, top } = imgRef.current.getBoundingClientRect();
         setRect({
@@ -101,6 +89,7 @@ export default function ManualAnnotation() {
             y: e.clientY - top,
             width: 0,
             height: 0,
+            rotation: value,
         });
         setIsDrawing(true);
     };
@@ -112,19 +101,12 @@ export default function ManualAnnotation() {
         const mouseX = e.clientX - left;
         const mouseY = e.clientY - top;
 
-        // const isInsideRect =
-        //     mouseX >= rect.x - 4 &&
-        //     mouseX <= rect.x + rect.width + 4 &&
-        //     mouseY >= rect.y - 4 &&
-        //     mouseY <= rect.y + rect.height + 4;
-
-        // setHoveringRect(isInsideRect);
-
         if (isDrawing) {
             setRect((prevRect) => ({
                 ...prevRect,
                 width: mouseX - prevRect.x,
                 height: mouseY - prevRect.y,
+                rotation: value,
             }));
         }
     };
@@ -132,7 +114,6 @@ export default function ManualAnnotation() {
     const handleMouseUp = () => {
         if (!imgRef.current || drawStatus === "DELETE") return;
         setIsDrawing(false);
-        setIsDraggingRect(false);
     };
 
     return (
@@ -190,7 +171,7 @@ export default function ManualAnnotation() {
                             cursor: "pointer",
                             color: theme.primaryColors.primary500,
                         }}
-                        onClick = {() => {
+                        onClick={() => {
                             if (drawStatus === "DELETE") {
                                 setRect({
                                     x: 0,
@@ -208,7 +189,6 @@ export default function ManualAnnotation() {
                     </div>
                 </div>
                 <div id="image-container"
-                    // className="d-flex justify-content-center align-items-center"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
@@ -232,17 +212,14 @@ export default function ManualAnnotation() {
                             left: 0,
                         }}
                     />
-                    
+
                     <ResizableRotatableRect
-                        x={rect?.x}
-                        y={rect?.y}
-                        width={rect?.width}
-                        height={rect?.height}
+                        rect={rect}
                         imgHeight={imgRef.current?.height}
                         imgWidth={imgRef.current?.width}
-                        setIsDraggingRect={setIsDraggingRect}
                         setRect={setRect}
                         angle={value}
+                        drawStatus={drawStatus}
                     />
                 </div>
 
@@ -259,6 +236,18 @@ export default function ManualAnnotation() {
                 style={{ marginTop: "1em" }}
                 backgroundColor="lightblue"
                 borderColor="#303336"
+                onClick={async () => {
+                    try {
+                        console.log("111");
+                        const response = await fetch("/api/v3/annotations/");
+                        const data = await response.json();
+                        // console.log("++++++++++++++++++++++++++++", data);
+                        setData(data);
+                    } catch (error) {
+                        // console.error("-------------------------------", error);
+                    }
+
+                }}
             >
                 <FormattedMessage id="SAVE_ANNOTATION" />
             </MainButton>
