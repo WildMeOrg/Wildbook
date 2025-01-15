@@ -7,8 +7,16 @@ import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
 import Slider from "../components/Slider";
 import ResizableRotatableRect from "../components/ResizableRotatableRect";
+import useGetSiteSettings from "../models/useGetSiteSettings";
+import axios from "axios";
+import { useSearchParams } from "react-router-dom";
+
 
 export default function ManualAnnotation() {
+
+    const [searchParams] = useSearchParams();
+    const assetId = searchParams.get("assetId");
+    const encounterId = searchParams.get("encounterId");
     const theme = useContext(ThemeColorContext);
     const imgRef = useRef(null);
     const [value, setValue] = useState(0);
@@ -17,6 +25,21 @@ export default function ManualAnnotation() {
         height: 100,
         url: ""
     });
+
+    const { data: siteData } = useGetSiteSettings();
+
+    const iaOptions = siteData?.iaClass?.map((iaClass) => ({
+        value: iaClass,
+        label: iaClass,
+    }));
+
+    const viewpointOptions = siteData?.annotationViewpoint?.map((viewpoint) => ({
+        value: viewpoint,
+        label: viewpoint,
+    }));
+
+    const [ia, setIa] = useState(null);
+    const [viewpoint, setViewpoint] = useState(null);
 
     const [rect, setRect] = useState({
         x: 0,
@@ -30,7 +53,7 @@ export default function ManualAnnotation() {
 
     const getMediaAssets = async () => {
         try {
-            const response = await fetch("/api/v3/media-assets/329716");
+            const response = await fetch(`/api/v3/media-assets/${assetId}`);
             const data = await response.json();
             // console.log("++++++++++++++++++++++++++++", data);
             setData(data);
@@ -38,8 +61,6 @@ export default function ManualAnnotation() {
             // console.error("-------------------------------", error);
         }
     };
-
-    console.log("rect", rect);
 
     const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
 
@@ -60,12 +81,17 @@ export default function ManualAnnotation() {
             const displayWidth = imgRef.current.clientWidth;
             const displayHeight = imgRef.current.clientHeight;
 
-            const scaleX = displayWidth / naturalWidth;
-            const scaleY = displayHeight / naturalHeight;
+            const scaleX = naturalWidth/displayWidth;
+            const scaleY = naturalHeight/displayHeight;
+
+            
 
             setScaleFactor({ x: scaleX, y: scaleY });
         }
     }, [data, imgRef]);
+
+    console.log("scaleFactor", scaleFactor);
+            
 
     useEffect(() => {
         const fetchData = async () => {
@@ -127,14 +153,15 @@ export default function ManualAnnotation() {
                         <FormattedMessage id="IA_CLASS" />*
                     </Form.Label>
                     <Select
-                        isMulti={true}
-                        options={[]}
+                        options={iaOptions}
                         className="basic-multi-select"
                         classNamePrefix="select"
                         menuPlacement="auto"
                         menuPortalTarget={document.body}
-                        value={[]}
-                        onChange={() => { }}
+                        value={ia}
+                        onChange={(selected) => {
+                            setIa(selected)
+                        }}
                     />
                 </Form.Group>
                 <Form.Group controlId="formBasicEmail">
@@ -142,12 +169,15 @@ export default function ManualAnnotation() {
                         <FormattedMessage id="VIEWPOINT" />*
                     </Form.Label>
                     <Select
-                        isMulti={true}
-                        options={[]}
+                        options={viewpointOptions}
                         className="basic-multi-select"
                         classNamePrefix="select"
                         menuPlacement="auto"
                         menuPortalTarget={document.body}
+                        value={viewpoint}
+                        onChange={(selected) => {
+                            setViewpoint(selected)
+                        }}
                     />
                 </Form.Group>
             </Form>
@@ -200,7 +230,7 @@ export default function ManualAnnotation() {
                 >
                     <img
                         ref={imgRef}
-                        src={"http://frontend.scribble.com/wildbook_data_dir/a/1/a1e8b85b-1a22-4ecd-aa8d-59aa93b3322c/48f0d20d-7104-4e8b-9fb6-1d806a831af3-master.jpg"}
+                        src={data.url}
                         alt="annotationimages"
                         style={{
                             width: "100%",
@@ -238,8 +268,22 @@ export default function ManualAnnotation() {
                 borderColor="#303336"
                 onClick={async () => {
                     try {
-                        console.log("111");
-                        const response = await fetch("/api/v3/annotations/");
+                        const response = await axios.request({
+                            method: "post",
+                            url: "/api/v3/annotations",
+                            data: {
+                                "encounterId": encounterId,
+                                "height": rect.height * scaleFactor.y,
+                                "iaClass": ia.value,
+                                "mediaAssetId": assetId,
+                                "theta": 0.6,
+                                "viewpoint": viewpoint.value,
+                                "width": rect.width * scaleFactor.x,
+                                "x": rect.x * scaleFactor.x,
+                                "y": rect.y * scaleFactor.y,
+                            },
+                            });                        
+
                         const data = await response.json();
                         // console.log("++++++++++++++++++++++++++++", data);
                         setData(data);
