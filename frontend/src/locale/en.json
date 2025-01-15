@@ -139,6 +139,7 @@
     "FILTER_OBSERVATION_ATTRIBUTE": "Observation Attribute",
     "FILTER_OBSERVATION_ATTRIBUTE_DESC": "Use the fields below to filter your search based on observed attributes",
     "FILTER_SEX": "Sex",
+    "FILTER_NOTICEABLE_SCARRING": "Noticeable Scarring",
     "FILTER_LIVING_STATUS": "Living Status",
     "FILTER_LIFE_STAGE": "Life Stage",
     "FILTER_GENUS_AND_SPECIES": "Genus and Species",

@@ -72,8 +72,8 @@ public class EncounterSetScarring extends HttpServlet {
             String oldScar = "None";
 
             try {
-                oldScar = changeMe.getDistinguishingScar();
-                changeMe.setDistinguishingScar(scar);
+                oldScar = changeMe.getNoticeableScar();
+                changeMe.setNoticeableScar(scar);
                 changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " +
                     (new java.util.Date()).toString() +
                     "</em><br>Changed noticeable scarring from " + oldScar + " to " + scar +

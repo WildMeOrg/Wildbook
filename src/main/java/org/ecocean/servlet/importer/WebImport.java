@@ -417,8 +417,8 @@ public class WebImport extends HttpServlet {
         }
         Double depth = getDouble(row, "Encounter.depth");
         if (depth != null) enc.setDepth(depth);
-        String scar = getIntAsString(row, "Encounter.distinguishingScar");
-        if (scar != null) enc.setDistinguishingScar(scar);
+        String scar = getIntAsString(row, "Encounter.noticeableScar");
+        if (scar != null) enc.setNoticeableScar(scar);
         // SAMPLES
         TissueSample sample = null;
         String tissueSampleID = getStringOrInt(row, "TissueSample.sampleID");

@@ -4244,7 +4244,7 @@ if(enc.getSex()!=null){sex=enc.getSex();}
 
 <%
 String recordedScarring="";
-if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
+if(enc.getNoticeableScar()!=null){recordedScarring=enc.getNoticeableScar();}
 %>
 <span id="displayScarring"><%=recordedScarring%></span>
 <%
@@ -4293,7 +4293,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
    <div class="form-group row">
      <div class="col-sm-5">
-       <textarea name="scars" class="form-control" id="scarInput"><%=enc.getDistinguishingScar()%></textarea>
+       <textarea name="scars" class="form-control" id="scarInput"><%=enc.getNoticeableScar()%></textarea>
      </div>
      <div class="col-sm-3">
        <input name="Add" type="submit" id="addScar" value="<%=encprops.getProperty("resetScarring")%>" class="btn btn-sm"/>

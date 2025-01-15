@@ -232,7 +232,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
     // string descriptor of the most obvious scar (if any) as reported by the original submitter
     // we also use keywords to be more specific
-    public String distinguishingScar = "None";
+    public String noticeableScar = "None";
     // describes how this encounter was matched to an existing shark - by eye, by pattern recognition algorithm etc.
 
     // SPOTS
@@ -1159,13 +1159,13 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // @return the String holding specific location data used for searching
-    public String getDistinguishingScar() {
-        return distinguishingScar;
+    public String getNoticeableScar() {
+        return noticeableScar;
     }
 
     // Sets the String holding scarring information for the encounter
-    public void setDistinguishingScar(String scar) {
-        distinguishingScar = scar;
+    public void setNoticeableScar(String scar) {
+        this.noticeableScar = scar;
     }
 
     // Sets the String documenting how the size of this animal was approximated.
@@ -4059,7 +4059,11 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
         jgen.writeBooleanField("publiclyReadable", this.isPubliclyReadable());
-
+    
+        String scarring = this.getNoticeableScar();
+    if (scarring != null) {  // Only add the field if scarring is not null
+        jgen.writeStringField("noticeableScarring", scarring);
+    }
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
@@ -4705,4 +4709,35 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+//     public void opensearchIndexDeep()
+//     throws IOException {
+//         final String encId = this.getId();
+//         final Encounter origEnc = this;
+//         ExecutorService executor = Executors.newFixedThreadPool(4);
+//         Runnable rn = new Runnable() {
+//             public void run() {
+//                 Shepherd bgShepherd = new Shepherd("context0");
+//                 bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
+//                 bgShepherd.beginDBTransaction();
+//                 try {
+//                     Encounter enc = bgShepherd.getEncounter(encId);
+//                     if (enc == null) {
+//                         // we use origEnc if we can (especially necessary on initial creation of Encounter)
+//                         if (origEnc != null) origEnc.opensearchIndex();
+//                         bgShepherd.rollbackAndClose();
+//                         executor.shutdown();
+//                         return;
+//                     }
+//                     enc.opensearchIndex();
+//                 } catch (Exception e) {
+//                     e.printStackTrace();
+//                 } finally {
+//                     bgShepherd.rollbackAndClose();
+//                 }
+//                 executor.shutdown();
+//             }
+//         };
+
+//         executor.execute(rn);
+//     }
 }

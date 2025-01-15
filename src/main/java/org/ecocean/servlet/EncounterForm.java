@@ -664,7 +664,7 @@ public class EncounterForm extends HttpServlet {
                     enc.setPatterningCode(pc);
             }
             if (formValues.get("scars") != null) {
-                enc.setDistinguishingScar(formValues.get("scars").toString());
+                enc.setNoticeableScar(formValues.get("scars").toString());
             }
             int sizePeriod = 0;
             if ((formValues.get("measureUnits") != null) &&

@@ -75,6 +75,19 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         term="terms"
         filterKey="Sex"
       />
+
+
+      <FormGroupText
+        label="FILTER_NOTICEABLE_SCARRING"
+        noDesc={true}
+        onChange={onChange}
+        term="match"
+        field="noticeableScar"
+        filterId={"noticeableScar"}
+        filterKey= {"Noticeable Scarring"}
+      />
+
+      
       <FormGroupMultiSelect
         isMulti={true}
         label="FILTER_LIFE_STAGE"
