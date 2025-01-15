@@ -19,7 +19,7 @@ jobs:
         distribution: 'zulu'
         java-version: 8
 
-    - name: Relase
+    - name: Release
       uses: qcastel/github-actions-maven-release@v1.12.43
       env:
         JAVA_HOME: /usr/lib/jvm/java-1.8-openjdk/
