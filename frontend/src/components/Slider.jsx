@@ -10,8 +10,8 @@ function RotationSlider({ setValue }) {
   return (
     <div style={{ padding: "50px 100px 20px 100px", textAlign: "center" }}>
       <Slider
-        min={-180}
-        max={180}
+        min={-360}
+        max={360}
         step={10}
         value={angle}
         onChange={(value) => {
@@ -19,11 +19,15 @@ function RotationSlider({ setValue }) {
           setValue(value);
         }}
         marks={{
+          "-360": "-360°",
+          "-270": "-270°",
           "-180": "-180°",
           "-90": "-90°",
           0: "0°",
           90: "90°",
           180: "180°",
+          270: "270°",
+          360: "360°",
         }}
         railStyle={{ backgroundColor: "transparent", height: 8 }}
         trackStyle={{ backgroundColor: "transparent", height: 8 }}
