@@ -83,7 +83,7 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
                 if (!locked) {
                     myShepherd.commitDBTransaction();
                     // out.println(ServletUtilities.getHeader(request));
-                    if (enc2remove != null) enc2remove.opensearchIndexDeep();
+                    //if (enc2remove != null) enc2remove.opensearchIndexDeep();
                     out.println("<strong>Success:</strong> Encounter " +
                         request.getParameter("number") +
                         " was successfully removed from occurrence " + old_name + ".");
