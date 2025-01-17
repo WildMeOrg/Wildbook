@@ -68,44 +68,52 @@ export default function ManualAnnotation() {
 
     const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
 
-    useEffect(() => {
-        if (rect.width === 0 || rect.height === 0 || value === 0) {
-            return;
-        }
-        const radians = (value * Math.PI) / 180;
-        const halfW = rect.width / 2;
-        const halfH = rect.height / 2;
+    //     useEffect(() => {
+    //         if (rect.width === 0 || rect.height === 0 || value === 0) {
+    //             return;
+    //         }
+    //         const radians = (value * Math.PI) / 180;
+    //         const halfW = rect.width / 2;
+    //         const halfH = rect.height / 2;
 
-        const theta0 = Math.atan(halfH / halfW);
-        const radius = Math.sqrt(halfW * halfW + halfH * halfH);
+    //         const theta0 = Math.atan(halfH / halfW);
+    //         const radius = Math.sqrt(halfW * halfW + halfH * halfH);
+    // 	    //console.log('jon halfW=%d halfH=%d theta0=%o radius=%o', halfW * scaleFactor.x, halfH * scaleFactor.y, theta0, radius * scaleFactor.y);
 
-        const a = Math.cos(radians + theta0) * radius;
-        const b = Math.sin(radians + theta0) * radius;
+    //         const a = Math.cos(radians + theta0) * radius;
+    //         const b = Math.sin(radians + theta0) * radius;
+    // 	    //console.log('radians=%o jon a=%o b=%o', radians, a * scaleFactor.x, b * scaleFactor.y);
+    // 	    //console.log('jon: rx, ry (%d,%d)', rect.x * scaleFactor.x, rect.y * scaleFactor.y);
 
-        const cx = rect.x - a;
-        const cy = rect.y - b;
-        console.log("cx and cy:", cx, cy);
+    //         const cx = rect.x + a;
+    //         const cy = rect.y + b;
+    //         console.log(">>>> jon cx and cy: (%d, %d)", cx * scaleFactor.x, cy * scaleFactor.y);
 
-        const x = cx - halfW;
-        const y = cy - halfH;
+    //         const x = cx - halfW;
+    //         const y = cy - halfH;
+    //         console.log(">>>> jon x and y: (%d, %d)", x * scaleFactor.x, y * scaleFactor.y);
 
-        const radian = (Math.PI / 180) * value;
+    // 	    /*
+    //         const radian = (Math.PI / 180) * value;
 
-        const centerX = rect.x + rect.width / 2;
-        const centerY = rect.y + rect.height / 2;
+    //         const centerX = rect.x + rect.width / 2;
+    //         const centerY = rect.y + rect.height / 2;
 
-        const dx = -rect.width / 2;
-        const dy = -rect.height / 2;
-        const originalDx = dx * Math.cos(-radian) - dy * Math.sin(-radian);
-        const originalDy = dx * Math.sin(-radian) + dy * Math.cos(-radian);
+    //         const dx = -rect.width / 2;
+    //         const dy = -rect.height / 2;
+    //         const originalDx = dx * Math.cos(-radian) - dy * Math.sin(-radian);
+    //         const originalDy = dx * Math.sin(-radian) + dy * Math.cos(-radian);
 
-        const originalX = centerX + originalDx;
-        const originalY = centerY + originalDy;
-        console.log("x and y after rotation:", rect.x, rect.y);
-        console.log("x and y after scale:", rect.x * scaleFactor.x, rect.y * scaleFactor.y);
-        console.log("#1 ...jon... x.. and y.. before rotation:", x, y);
-        console.log("#2 ...erin... x.. and y.. before rotation:", originalX, originalY);
-    }, [value, rect]);
+    //         const originalX = centerX + originalDx;
+    //         const originalY = centerY + originalDy;
+    // 	*/
+    // 	    /*
+    //         console.log("x and y after rotation:", rect.x, rect.y);
+    //         console.log("x and y after scale:", rect.x * scaleFactor.x, rect.y * scaleFactor.y);
+    //         console.log("#1 ...jon... x.. and y.. before rotation:", x, y);
+    //         console.log("#2 ...erin... x.. and y.. before rotation:", originalX, originalY);
+    // */
+    //     }, [value, rect]);
 
     useEffect(() => {
         if (isDrawing) {
@@ -122,6 +130,8 @@ export default function ManualAnnotation() {
             if (imgRef.current) {
                 const naturalWidth = data.width;
                 const naturalHeight = data.height;
+                // const naturalWidth = imgRef.current.naturalWidth;
+                // const naturalHeight = imgRef.current.naturalHeight;
                 const displayWidth = imgRef.current.clientWidth;
                 const displayHeight = imgRef.current.clientHeight;
 
@@ -207,7 +217,7 @@ export default function ManualAnnotation() {
                     <Form className="d-flex flex-row">
                         <Form.Group controlId="formBasicEmail" className="me-3">
                             <Form.Label>
-                                <FormattedMessage id="IA_CLASS" />*
+                                <FormattedMessage id="FILTER_IA_CLASS" />*
                             </Form.Label>
                             <Select
                                 options={iaOptions}
@@ -223,7 +233,7 @@ export default function ManualAnnotation() {
                         </Form.Group>
                         <Form.Group controlId="formBasicEmail">
                             <Form.Label>
-                                <FormattedMessage id="VIEWPOINT" />*
+                                <FormattedMessage id="FILTER_VIEWPOINT" />*
                             </Form.Label>
                             <Select
                                 options={viewpointOptions}
@@ -287,8 +297,9 @@ export default function ManualAnnotation() {
                         >
                             <img
                                 ref={imgRef}
-                                src={"http://frontend.scribble.com/wildbook_data_dir/a/1/a1e8b85b-1a22-4ecd-aa8d-59aa93b3322c/48f0d20d-7104-4e8b-9fb6-1d806a831af3-master.jpg"}
-                                // src={data.url}
+                                // src={"http://frontend.scribble.com/wildbook_data_dir/grid.png"}
+                                //src={"http://frontend.scribble.com/wildbook_data_dir/a/1/a1e8b85b-1a22-4ecd-aa8d-59aa93b3322c/48f0d20d-7104-4e8b-9fb6-1d806a831af3-master.jpg"}
+                                src={data.url}
                                 alt="annotationimages"
                                 style={{
                                     width: "100%",
@@ -327,9 +338,31 @@ export default function ManualAnnotation() {
                                     setShowModal(false);
                                     // setsubmissionDone(true);
                                 }
+                                // const radians = (value * Math.PI) / 180;
+                                // const originalX = rect.x * Math.cos(radians) + rect.y * Math.sin(radians);
+                                // const originalY = -rect.x * Math.sin(radians) + rect.y * Math.cos(radians);
+
                                 const radians = (value * Math.PI) / 180;
-                                const originalX = rect.x * Math.cos(radians) + rect.y * Math.sin(radians);
-                                const originalY = -rect.x * Math.sin(radians) + rect.y * Math.cos(radians);
+                                const halfW = rect.width / 2;
+                                const halfH = rect.height / 2;
+
+                                const theta0 = Math.atan(halfH / halfW);
+                                const radius = Math.sqrt(halfW * halfW + halfH * halfH);
+                                //console.log('jon halfW=%d halfH=%d theta0=%o radius=%o', halfW * scaleFactor.x, halfH * scaleFactor.y, theta0, radius * scaleFactor.y);
+
+                                const a = Math.cos(radians + theta0) * radius;
+                                const b = Math.sin(radians + theta0) * radius;
+                                //console.log('radians=%o jon a=%o b=%o', radians, a * scaleFactor.x, b * scaleFactor.y);
+                                //console.log('jon: rx, ry (%d,%d)', rect.x * scaleFactor.x, rect.y * scaleFactor.y);
+
+                                const cx = rect.x + a;
+                                const cy = rect.y + b;
+                                console.log(">>>> jon cx and cy: (%d, %d)", cx * scaleFactor.x, cy * scaleFactor.y);
+
+                                const x = cx - halfW;
+                                const y = cy - halfH;
+                                console.log(">>>> jon x and y: (%d, %d)", x * scaleFactor.x, y * scaleFactor.y);
+
 
                                 const response = await axios.request({
                                     method: "post",
@@ -342,8 +375,8 @@ export default function ManualAnnotation() {
                                         "theta": (value * Math.PI) / 180,
                                         "viewpoint": viewpoint.value,
                                         "width": rect.width * scaleFactor.x,
-                                        "x": originalX * scaleFactor.x,
-                                        "y": originalY * scaleFactor.y,
+                                        "x": x * scaleFactor.x,
+                                        "y": y * scaleFactor.y,
 
                                     },
                                 });
