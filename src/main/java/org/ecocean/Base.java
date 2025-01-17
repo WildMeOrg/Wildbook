@@ -106,9 +106,12 @@ import org.json.JSONObject;
 
     public void opensearchIndex()
     throws IOException {
+        long startT = System.currentTimeMillis();
         OpenSearch opensearch = new OpenSearch();
 
         opensearch.index(this.opensearchIndexName(), this);
+        long endT = System.currentTimeMillis();
+        System.out.println("opensearchIndex(): " + (endT - startT) + "ms indexing " + this);
     }
 
     // this will index "related" objects as needed
