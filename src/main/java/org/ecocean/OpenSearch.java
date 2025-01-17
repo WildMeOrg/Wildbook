@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
@@ -56,13 +57,26 @@ public class OpenSearch {
     public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
-    public static String SEARCH_SCROLL_TIME = "10m";
-    public static String SEARCH_PIT_TIME = "10m";
+    public static String SEARCH_SCROLL_TIME = (String)getConfigurationValue("searchScrollTime",
+        "10m");
+    public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
-    public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
-    public static int BACKGROUND_DELAY_MINUTES = 20;
-    public static int BACKGROUND_SLICE_SIZE = 2500;
+    public static String[] VALID_INDICES = {
+        "encounter", "individual", "occurrence", "annotation"
+    };
+    public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
+        "backgroundDelayMinutes", 20);
+    public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
+        2500);
+    public static int BACKGROUND_PERMISSIONS_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsMinutes", 10);
+    public static int BACKGROUND_PERMISSIONS_MAX_FORCE_MINUTES = (Integer)getConfigurationValue(
+        "backgroundPermissionsMaxForceMinutes", 45);
+    public static String PERMISSIONS_LAST_RUN_KEY = "OpenSearch_permissions_last_run_timestamp";
+    public static String PERMISSIONS_NEEDED_KEY = "OpenSearch_permissions_needed";
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
+    static String ACTIVE_TYPE_FOREGROUND = "opensearch_indexing_foreground";
+    static String ACTIVE_TYPE_BACKGROUND = "opensearch_indexing_background";
 
     private int pitRetry = 0;
 
@@ -130,25 +144,48 @@ public class OpenSearch {
 // http://localhost:9200/_cat/indices?v
 
     public static void backgroundStartup(String context) {
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(2);
-        final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-            public void run() {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("OpenSearch.background");
-                try {
-                    myShepherd.beginDBTransaction();
-                    System.out.println("OpenSearch background running...");
-                    Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
-                    System.out.println("OpenSearch background finished.");
-                    myShepherd.rollbackAndClose();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    myShepherd.rollbackAndClose();
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(8);
+        final ScheduledFuture schedFutureIndexing = schedExec.scheduleWithFixedDelay(
+            new Runnable() {
+                public void run() {
+                    Shepherd myShepherd = new Shepherd(context);
+                    myShepherd.setAction("OpenSearch.backgroundIndexing");
+                    try {
+                        myShepherd.beginDBTransaction();
+                        System.out.println("OpenSearch background indexing running...");
+                        Base.opensearchSyncIndex(myShepherd, Encounter.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
+                        BACKGROUND_SLICE_SIZE);
+                        System.out.println("OpenSearch background indexing finished.");
+                        myShepherd.rollbackAndClose();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        myShepherd.rollbackAndClose();
+                    }
                 }
-            }
-        }, 2, // initial delay
+            }, 2, // initial delay
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
             TimeUnit.MINUTES); // unit of delays above
+        final ScheduledFuture schedFuturePermissions = schedExec.scheduleWithFixedDelay(
+            new Runnable() {
+                public void run() {
+                    Shepherd myShepherd = new Shepherd(context);
+                    myShepherd.setAction("OpenSearch.backgroundPermissions");
+                    try {
+                        myShepherd.beginDBTransaction();
+                        System.out.println("OpenSearch background permissions running...");
+                        Encounter.opensearchIndexPermissionsBackground(myShepherd);
+                        System.out.println("OpenSearch background permissions finished.");
+                        myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
+                        myShepherd.closeDBTransaction();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        myShepherd.rollbackAndClose();
+                    }
+                }
+            }, 8, // initial delay
+            BACKGROUND_PERMISSIONS_MINUTES, TimeUnit.MINUTES); // unit of delays above
 
         try {
             schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
@@ -466,6 +503,17 @@ public class OpenSearch {
         System.out.println("OpenSearch.indexClose() on " + indexName + ": " + rtn);
     }
 
+    // updateData is { field0: value0, field1: value1, ... }
+    public void indexUpdate(final String indexName, String id, JSONObject updateData)
+    throws IOException {
+        if ((id == null) || (updateData == null)) throw new IOException("missing id or updateData");
+        JSONObject doc = new JSONObject();
+        doc.put("doc", updateData);
+        Request updateRequest = new Request("POST", indexName + "/_update/" + id);
+        updateRequest.setJsonEntity(doc.toString());
+        getRestResponse(updateRequest);
+    }
+
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
     public static List<List<String> > resolveVersions(Map<String, Long> objVersions,
         Map<String, Long> indexVersions) {
@@ -570,17 +618,151 @@ public class OpenSearch {
         return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
     }
 
-    public static JSONObject querySanitize(JSONObject query, User user) {
-        if ((query == null) || (user == null)) return query;
-        JSONObject newQuery = new JSONObject(query.toString());
+    public static long setPermissionsTimestamp(Shepherd myShepherd) {
+        long now = System.currentTimeMillis();
+
+        SystemValue.set(myShepherd, PERMISSIONS_LAST_RUN_KEY, now);
+        return now;
+    }
+
+    public static Long getPermissionsTimestamp(Shepherd myShepherd) {
+        return SystemValue.getLong(myShepherd, PERMISSIONS_LAST_RUN_KEY);
+    }
+
+    public static void setPermissionsNeeded(Shepherd myShepherd, boolean value) {
+        SystemValue.set(myShepherd, PERMISSIONS_NEEDED_KEY, value);
+    }
+
+    public static void setPermissionsNeeded(boolean value) {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.setPermissionsNeeded");
+        myShepherd.beginDBTransaction();
         try {
-            JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
-                "filter");
-            filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
+            setPermissionsNeeded(myShepherd, value);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
         } catch (Exception ex) {
-            System.out.println("OpenSearch.querySanitize() failed to find filter element: " + ex);
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
         }
-        return newQuery;
+    }
+
+    public static boolean getPermissionsNeeded(Shepherd myShepherd) {
+        Boolean value = SystemValue.getBoolean(myShepherd, PERMISSIONS_NEEDED_KEY);
+
+        if (value == null) return false;
+        return value;
+    }
+
+    public static JSONObject querySanitize(JSONObject query, User user, Shepherd myShepherd)
+    throws IOException {
+        if ((query == null) || (user == null)) throw new IOException("empty query or user");
+        // see issue 958 - now we let query pass as-is for anyone, results are scrubbed later e.g. sanitizeDoc() below
+        return query;
+    }
+
+    // takes raw search result doc and presents only data user should see
+    public static JSONObject sanitizeDoc(final JSONObject sourceDoc, String indexName,
+        Shepherd myShepherd, User user)
+    throws IOException {
+        if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
+        JSONObject clean = new JSONObject();
+        // this is just punting future classes to later development (should never happen)
+        if (!"encounter".equals(indexName)) return clean;
+        boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
+        if (hasAccess) {
+            clean = new JSONObject(sourceDoc.toString());
+            clean.remove("viewUsers");
+            clean.put("access", "full");
+            return clean;
+        }
+        clean.put("access", "none");
+        String[] okFields = new String[] {
+            "id", "version", "indexTimestamp", "version", "individualId", "individualDisplayName",
+                "occurrenceId", "otherCatalogNumbers", "dateSubmitted", "date", "locationId",
+                "locationName", "taxonomy", "assignedUsername", "numberAnnotations"
+        };
+        for (String fieldName : okFields) {
+            if (sourceDoc.has(fieldName)) clean.put(fieldName, sourceDoc.get(fieldName));
+        }
+        return clean;
+    }
+
+    public static boolean indexingActive() {
+        return indexingActiveBackground() || indexingActiveForeground();
+    }
+
+    public static boolean indexingActiveForeground() {
+        return getActive(ACTIVE_TYPE_FOREGROUND);
+    }
+
+    public static void setActiveIndexingForeground() {
+        setActive(ACTIVE_TYPE_FOREGROUND);
+    }
+
+    public static void unsetActiveIndexingForeground() {
+        unsetActive(ACTIVE_TYPE_FOREGROUND);
+    }
+
+    public static boolean indexingActiveBackground() {
+        return getActive(ACTIVE_TYPE_BACKGROUND);
+    }
+
+    public static void setActiveIndexingBackground() {
+        setActive(ACTIVE_TYPE_BACKGROUND);
+    }
+
+    public static void unsetActiveIndexingBackground() {
+        unsetActive(ACTIVE_TYPE_BACKGROUND);
+    }
+
+    static void setActive(String type) {
+        // we want our own shepherd as the main shepherd may not persist this til later
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.setActive");
+        myShepherd.beginDBTransaction();
+        try {
+            SystemValue.set(myShepherd, type, true);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    static void unsetActive(String type) {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.unsetActive");
+        myShepherd.beginDBTransaction();
+        try {
+            SystemValue.set(myShepherd, type, false);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    // TODO probably should get in some sort of expire/stale check here
+    static boolean getActive(String type) {
+        Boolean active = false;
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("OpenSearch.getActive");
+        myShepherd.beginDBTransaction();
+        try {
+            active = SystemValue.getBoolean(myShepherd, type);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        myShepherd.rollbackAndClose();
+        if (active == null) return false;
+        return active;
     }
 
     // TODO: right now this respects index timestamp and only indexes objects with versions > timestamp.
@@ -669,5 +851,43 @@ public class OpenSearch {
         JSONObject scrubbed = new JSONObject();
         scrubbed.put("query", query.optJSONObject("query"));
         return scrubbed;
+    }
+
+    public static Object getConfigurationValue(String key, Object defaultValue) {
+        return getConfigurationValue("context0", key, defaultValue);
+    }
+
+    public static Object getConfigurationValue(String context, String key, Object defaultValue) {
+        if (key == null) return null;
+        Properties props = getConfigurationProperties(context);
+        if (props == null) {
+            System.out.println(
+                "OpenSearch.getConfigurationValue(): WARNING could not get properties file; using defaultValue ["
+                + defaultValue + "] for " + key);
+            return defaultValue;
+        }
+        String propValue = props.getProperty(key);
+        // TODO can we actually set a NULL from a properties file? if so: we need to return that as null here
+        if (propValue == null) return defaultValue;
+        if (defaultValue instanceof Integer) { // get int from string
+            try {
+                return Integer.parseInt(propValue);
+            } catch (NumberFormatException nfe) {
+                return defaultValue;
+            }
+        }
+        if (defaultValue instanceof Double) { // get int from string
+            try {
+                return Double.parseDouble(propValue);
+            } catch (NumberFormatException nfe) {
+                return defaultValue;
+            }
+        }
+        // guess we are just a string
+        return propValue;
+    }
+
+    static Properties getConfigurationProperties(String context) {
+        return ShepherdProperties.getProperties("OpenSearch.properties", "", context);
     }
 }

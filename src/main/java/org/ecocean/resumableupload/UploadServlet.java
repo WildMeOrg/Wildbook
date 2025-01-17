@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +29,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
 
 public class UploadServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -41,7 +44,7 @@ public class UploadServlet extends HttpServlet {
         String subdir = ServletUtilities.getParameterOrAttribute("subdir", request);
 
         if (subdir == null) {
-            System.out.println("No subidr is set for upload; setting subdir to username");
+            System.out.println("No subdir is set for upload; setting subdir to username");
             subdir = myShepherd.getUsername(request);
         }
         return subdir;
@@ -68,6 +71,13 @@ public class UploadServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!accessAllowed(request)) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().print("{\"success\": false}");
+            response.getWriter().close();
+            return;
+        }
         System.out.println("UploadServlet.java. About to Print Params");
         ServletUtilities.printParams(request);
         System.out.println("(Those were the params)");
@@ -92,7 +102,6 @@ public class UploadServlet extends HttpServlet {
                 break; // we only do first one.  ?
             }
         }
-        if (!ReCAPTCHA.sessionIsHuman(request)) throw new IOException("failed sessionIsHuman()");
         if (fileChunk == null) throw new IOException("doPost could not find file chunk");
         System.out.println("Do Post");
 
@@ -156,6 +165,13 @@ public class UploadServlet extends HttpServlet {
  */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!accessAllowed(request)) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().print("{\"success\": false}");
+            response.getWriter().close();
+            return;
+        }
         if (!ServletFileUpload.isMultipartContent(request))
             throw new IOException("doGet is not multipart");
         ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
@@ -208,22 +224,38 @@ public class UploadServlet extends HttpServlet {
         return -1;
     }
 
-    private String getOriginDomain(HttpServletRequest request) {
-        return "pod.scribble.com";
+    public static String getUploadDir(HttpServletRequest request) {
+        return getUploadDir(request, null);
     }
 
-    public static String getUploadDir(HttpServletRequest request) {
-        System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
+    public static String getUploadDir(HttpServletRequest request, Map<String, String> values) {
         ServletUtilities.printParams(request);
         String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
             request);
+        String submissionId = null;
+        if (values != null) submissionId = values.get("submissionId");
+        if (Util.isUUID(submissionId)) {
+/*  for now we cannot use username due to the fact that a user can upload while anon, and login later! :(
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("UploadServlet.getUploadDir");
+            String username = myShepherd.getUsername(request);
+            myShepherd.rollbackAndClose();
+            if (username == null) {
+                subDir = "_anonymous/submission/" + submissionId;
+            } else {
+                subDir = username + "/submission/" + submissionId;
+            }
+*/
+            subDir = "_anonymous/submission/" + submissionId;
+        }
         System.out.println("UploadServlet got subdir " + subDir);
         if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
         String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request)) +
             subDir;
-        System.out.println("UploadServlet got uploadDir = " + fullDir);
+        System.out.println("UploadServlet got uploadDir fullDir = " + fullDir);
         ensureDirectoryExists(fullDir);
-        return (fullDir);
+        return fullDir;
     }
 
     private static void ensureDirectoryExists(String fullPath) {
@@ -239,10 +271,13 @@ public class UploadServlet extends HttpServlet {
         String FlowIdentifier = null;
         String FlowFilename = null;
         String FlowRelativePath = null;
+        Map<String, String> values = new HashMap<String, String>();
 
         for (FileItem item : parts) {
             if (!item.isFormField()) continue;
-            System.out.println(item.getFieldName() + " -> " + item);
+            // System.out.println(item.getFieldName() + " -> " + item);
+            // System.out.println(item.getFieldName() + " -> " + item.getString());
+            values.put(item.getFieldName(), item.getString());
             switch (item.getFieldName()) {
             case "flowChunkSize":
                 FlowChunkSize = HttpUtils.toInt(item.getString(), -1);
@@ -261,22 +296,23 @@ public class UploadServlet extends HttpServlet {
                 break;
             }
         }
-        String base_dir = getUploadDir(request);
+        String base_dir = getUploadDir(request, values);
         System.out.println("[INFO] UploadServlet got base_dir=" + base_dir);
 
         // Here we add a ".temp" to every upload file to indicate NON-FINISHED
-        System.out.println("aaaa ==> " + FlowFilename);
+        // System.out.println("aaaa ==> " + FlowFilename);
         String FlowFilePath = new File(base_dir, FlowFilename).getAbsolutePath() + ".temp";
-        System.out.println("FlowFilePath ---> " + FlowFilePath);
-
+        // System.out.println("FlowFilePath ---> " + FlowFilePath);
         FlowInfoStorage storage = FlowInfoStorage.getInstance();
 
+/*
         System.out.println("FlowChunkSize: " + FlowChunkSize);
         System.out.println("FlowTotalSize: " + FlowTotalSize);
         System.out.println("FlowIdentifier: " + FlowIdentifier);
         System.out.println("FlowFilename: " + FlowFilename);
         System.out.println("FlowRelativePath: " + FlowRelativePath);
         System.out.println("FlowFilePath: " + FlowFilePath);
+ */
 
         // hacky, but gets us userFilename
         request.getSession().setAttribute("userFilename:" + FlowFilename, FlowRelativePath);
@@ -288,5 +324,11 @@ public class UploadServlet extends HttpServlet {
             throw new ServletException("Invalid request params.");
         }
         return info;
+    }
+
+    // a simple wrapper, in case we want to change the logic here
+    private boolean accessAllowed(HttpServletRequest request) {
+        // note: this will return true for logged-in user (indifferent to captcha)
+        return ReCAPTCHA.sessionIsHuman(request);
     }
 }

@@ -4,12 +4,17 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.jdo.Query;
+import org.ecocean.api.ApiException;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -72,8 +77,10 @@ import org.json.JSONObject;
      */
     public abstract void addComments(final String newComments);
 
-    public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
-    public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
+    // issue 785 makes this no longer necessary; the overrides are left on Occurrence and MarkedIndividual
+    // for now as reference -- but are not called. they will need to be addressed when these classes are searchable
+    // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
+    // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
 
     public abstract String opensearchIndexName();
 
@@ -92,14 +99,19 @@ import org.json.JSONObject;
         map.put("version", new org.json.JSONObject("{\"type\": \"long\"}"));
         // id should be keyword for the sake of sorting
         map.put("id", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+        map.put("viewUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+        map.put("editUsers", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         return map;
     }
 
     public void opensearchIndex()
     throws IOException {
+        long startT = System.currentTimeMillis();
         OpenSearch opensearch = new OpenSearch();
 
         opensearch.index(this.opensearchIndexName(), this);
+        long endT = System.currentTimeMillis();
+        System.out.println("opensearchIndex(): " + (endT - startT) + "ms indexing " + this);
     }
 
     // this will index "related" objects as needed
@@ -111,9 +123,25 @@ import org.json.JSONObject;
 
     public void opensearchUnindex()
     throws IOException {
-        OpenSearch opensearch = new OpenSearch();
+        // unindexing should be non-blocking and backgrounded
+        String opensearchIndexName = this.opensearchIndexName();
+        String objectId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            OpenSearch opensearch = new OpenSearch();
+            public void run() {
+                try {
+                    opensearch.delete(opensearchIndexName, objectId);
+                } catch (Exception e) {
+                    System.out.println("opensearchUnindex() backgrounding Object " + objectId +
+                        " hit an exception.");
+                    e.printStackTrace();
+                }
+                executor.shutdown();
+            }
+        };
 
-        opensearch.delete(this.opensearchIndexName(), this);
+        executor.execute(rn);
     }
 
     public void opensearchUnindexQuiet() {
@@ -132,15 +160,24 @@ import org.json.JSONObject;
         this.opensearchUnindex();
     }
 
-    // should be overridden
-    public void opensearchDocumentSerializer(JsonGenerator jgen)
-    throws IOException, JsonProcessingException {
-        Shepherd myShepherd = new Shepherd("context0");
+    public void opensearchUpdate(final JSONObject updateData)
+    throws IOException {
+        if (updateData == null) return;
+        OpenSearch opensearch = new OpenSearch();
 
-        myShepherd.setAction("BaseSerializer");
-        myShepherd.beginDBTransaction();
+        opensearch.indexUpdate(this.opensearchIndexName(), this.getId(), updateData);
+    }
+
+    // should be overridden
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
+        jgen.writeNumberField("indexTimestamp", System.currentTimeMillis());
+
+/*
+        these are no longer computed in the general opensearchIndex() call.
+        they are too expensive. see Encounter.opensearchIndexPermission()
 
         jgen.writeFieldName("viewUsers");
         jgen.writeStartArray();
@@ -155,8 +192,20 @@ import org.json.JSONObject;
             jgen.writeString(id);
         }
         jgen.writeEndArray();
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+ */
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("BaseSerializer");
+        myShepherd.beginDBTransaction();
+        try {
+            opensearchDocumentSerializer(jgen, myShepherd);
+        } catch (Exception e) {} finally {
+            myShepherd.rollbackAndClose();
+        }
     }
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
@@ -166,6 +215,11 @@ import org.json.JSONObject;
         JSONObject res = opensearch.queryPit(indexname, query, numFrom, pageSize, sort, sortOrder);
 
         return res;
+    }
+
+    // this is so we can call it on Base obj, but really is only needed by [overridden by] Encounter (currently)
+    public boolean getOpensearchProcessPermissions() {
+        return false;
     }
 
     public static Map<String, Long> getAllVersions(Shepherd myShepherd, String sql) {
@@ -186,6 +240,88 @@ import org.json.JSONObject;
         }
         query.closeAll();
         return rtn;
+    }
+
+    // these two methods are kinda hacky needs for opensearchSyncIndex (e.g. the fact
+    // they are not static)
+    public abstract Base getById(Shepherd myShepherd, String id);
+
+    public abstract String getAllVersionsSql();
+
+    // contains some reflection; not pretty, but gets the job done
+    public static int[] opensearchSyncIndex(Shepherd myShepherd, Class cls, int stopAfter)
+    throws IOException {
+        int[] rtn = new int[2];
+        Object tmpObj = null;
+
+        try {
+            tmpObj = cls.newInstance();
+        } catch (Exception ex) {
+            throw new IOException("FAIL: " + ex);
+        }
+        Base baseObj = (Base)tmpObj;
+        String indexName = baseObj.opensearchIndexName();
+        if (OpenSearch.indexingActive()) {
+            System.out.println("Base.opensearchSyncIndex(" + indexName +
+                ") skipped due to indexingActive()");
+            rtn[0] = -1;
+            rtn[1] = -1;
+            return rtn;
+        }
+        OpenSearch.setActiveIndexingBackground();
+        OpenSearch os = new OpenSearch();
+        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd,
+            baseObj.getAllVersionsSql()), os.getAllVersions(indexName));
+        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
+        List<String> needIndexing = changes.get(0);
+        List<String> needRemoval = changes.get(1);
+        rtn[0] = needIndexing.size();
+        rtn[1] = needRemoval.size();
+        System.out.println("Base.opensearchSyncIndex(" + indexName + "): stopAfter=" + stopAfter +
+            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
+        int ct = 0;
+        for (String id : needIndexing) {
+            Base obj = baseObj.getById(myShepherd, id);
+            try {
+                if (obj != null) os.index(indexName, obj);
+            } catch (Exception ex) {
+                System.out.println("Base.opensearchSyncIndex(" + indexName + "): index failed " +
+                    obj + " => " + ex.toString());
+                ex.printStackTrace();
+            }
+            if (ct % 500 == 0)
+                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needIndexing: " +
+                    ct + "/" + rtn[0]);
+            ct++;
+            if ((stopAfter > 0) && (ct > stopAfter)) {
+                System.out.println("Base.opensearchSyncIndex(" + indexName +
+                    ") breaking due to stopAfter");
+                break;
+            }
+        }
+        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needIndexing");
+        ct = 0;
+        for (String id : needRemoval) {
+            os.delete(indexName, id);
+            if (ct % 500 == 0)
+                System.out.println("Base.opensearchSyncIndex(" + indexName + ") needRemoval: " +
+                    ct + "/" + rtn[1]);
+            ct++;
+        }
+        System.out.println("Base.opensearchSyncIndex(" + indexName + ") finished needRemoval");
+        OpenSearch.unsetActiveIndexingBackground();
+        return rtn;
+    }
+
+    public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
+    throws ApiException {
+        throw new ApiException("not yet supported");
+    }
+
+    // TODO should this be an abstract? will we need some base stuff?
+    public static Object validateFieldValue(String fieldName, JSONObject data)
+    throws ApiException {
+        return null;
     }
 
 /*

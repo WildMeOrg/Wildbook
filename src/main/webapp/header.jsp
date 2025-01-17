@@ -436,7 +436,10 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                            <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("report")%></a></li>
+                            <li><a href="<%=urlLoc %>/react/report" ><%=props.getProperty("report")%></a></li>
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))) { %>
+                            <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("reportClassic")%></a></li>
+<% } %>
 
                             <!--
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
@@ -478,7 +481,7 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myIndividuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?submitterID=<%=request.getRemoteUser()%>"><%=props.getProperty("mySightings")%></a></li>
                           <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("myBulkImports")%></a></li>
-                          <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("myProjects")%></a></li>
+                          <li><a href="<%=urlLoc %>/react/projects/overview"><%=props.getProperty("myProjects")%></a></li>
 
                         </ul>
                       </li>
@@ -486,7 +489,9 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
-
+<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))) { %>
+                            <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
+<% } %>
                           <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("sightings")%></a></li>
 
@@ -507,7 +512,7 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageMyAccounts")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("libraryAdministration")%></a></li>
-                          <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
+                          <li><a href="<%=urlLoc %>/react/admin/logs"><%=props.getProperty("logs")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
                           <li><a href="https://wildbook.docs.wildme.org"><%=props.getProperty("softwareDocumentation")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>

@@ -294,6 +294,7 @@ public class StandardImport extends HttpServlet {
 
                 creator = AccessControl.getUser(request, myShepherd);
                 itask = new ImportTask(creator);
+                // This is where the url parameters are stored in the ImportTask
                 itask.setPassedParameters(request);
                 itask.setStatus("started");
                 if (request.getParameter("taskID") != null) {
@@ -441,6 +442,7 @@ public class StandardImport extends HttpServlet {
                 if (itask != null) sendforACMID(itask, myShepherd, context);
                 // let's finish up and be done
                 if (itask != null) itask.setStatus("complete");
+                OpenSearch.setPermissionsNeeded(myShepherd, true);
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
                 if (itask != null)
@@ -457,7 +459,7 @@ public class StandardImport extends HttpServlet {
         out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
         out.println("<h2>Import Overview</h2>");
         out.println("<ul>");
-        out.println("<li>Excel File Name: " + filename + "</li>");
+        out.println("<li>Excel File Name: " + request.getParameter("originalFilename") + "</li>");
         out.println("<li>Excel File Successfully Found = " + dataFound + "</li>");
         out.println("<li>Excel Sheets in File = " + numSheets + "</li>");
         out.println("<li>Excel Rows = " + physicalNumberOfRows + "</li>");

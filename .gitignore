@@ -29,6 +29,7 @@ src/main/caribwhale_data_dir
 /node_modules
 .vscode/
 *.swp
+/src/jsp/
 
 src/main/webapp/javascript/dev/MarkedIndividual.json
 src/main/webapp/javascript/dev/Relationship.json
