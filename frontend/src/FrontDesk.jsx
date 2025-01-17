@@ -15,8 +15,10 @@ import {
   sessionCountdownTime,
 } from "./constants/sessionWarning";
 import useGetSiteSettings from "./models/useGetSiteSettings";
+import useDocumentTitle from "./hooks/useDocumentTitle";
 
 export default function FrontDesk() {
+  useDocumentTitle();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [collaborationTitle, setCollaborationTitle] = useState();
   const [collaborationData, setCollaborationData] = useState([]);
