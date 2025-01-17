@@ -68,7 +68,10 @@ export default function AuthenticatedSwitch({
           <Route path="/reportConfirm" element={<ReportConfirm />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
-          <Route path="/manual-annotation" element={<ManualAnnotation />} />
+          <Route path="/manual-annotation" element={<ManualAnnotation 
+            
+          />} />
+          
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound setHeader={setHeader} />} />

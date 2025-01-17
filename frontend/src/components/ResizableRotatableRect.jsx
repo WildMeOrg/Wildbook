@@ -6,15 +6,13 @@ const ResizableRotatableRect = ({
   imgHeight,
   imgWidth,
   setRect,
-  angle = 0,
+  setValue,
   drawStatus,
 }) => {
   const [rectProps, setRectProps] = useState({});
 
   useEffect(() => {
-
     if (drawStatus !== "DELETE") {
-      console.log("executing useEffect");
       setRectProps(
         {
           x: rect.x,
@@ -24,71 +22,50 @@ const ResizableRotatableRect = ({
           fill: null,
           stroke: "red",
           strokeWidth: 2,
-          rotation: angle,
           draggable: true,
         }
       );
-      
     }
   }, [rect.x, rect.y, rect.width, rect.height, drawStatus]);
 
-  useEffect(() => {
-    console.log("executing useEffect for angle");
-    setRectProps(
-      {
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-        fill: null,
-        stroke: "red",
-        strokeWidth: 2,
-        rotation: angle,
-        draggable: true,
-      }
-    );
-
-    setRect({
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height,
-    })
-
-
-  }, [angle]);
 
   const rectRef = useRef(null);
-  const transformerRef = useRef(null);
+  const transformerRef = useRef(null);  
+
   const handleTransform = () => {
+
     const node = rectRef.current;
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
 
+    const newWidth = Math.max(5, node.width() * scaleX);
+    const newHeight = Math.max(5, node.height() * scaleY);
+
     const updatedRect = {
       x: node.x(),
       y: node.y(),
-      width: Math.max(5, node.width() * scaleX),
-      height: Math.max(5, node.height() * scaleY),
-      rotation: node.rotation(),
+      width: newWidth,
+      height: newHeight,
+      rotation: node.rotation(), 
     };
-
     setRectProps({
       ...rectProps,
       ...updatedRect,
     });
 
     setRect({
-      ...rectProps,
+      ...rect,
       ...updatedRect,
     });
 
     node.scaleX(1);
     node.scaleY(1);
+    setValue(node.rotation());
+    console.log("x after resizing: ", node.x());
+    console.log("y after resizing:", node.y());
   };
 
   const handleDragEnd = () => {
-    console.log("handle drag end");
     const node = rectRef.current;
     const updatedRect = {
       x: node.x(),
@@ -107,7 +84,6 @@ const ResizableRotatableRect = ({
   };
 
   const handleSelect = (e) => {
-    // e.cancelBubble = true;
     transformerRef.current.nodes([rectRef.current]);
     transformerRef.current.getLayer().batchDraw();
   };
@@ -126,7 +102,7 @@ const ResizableRotatableRect = ({
         />
         <Transformer
           ref={transformerRef}
-          rotateEnabled={false}
+          rotateEnabled={true}
           resizeEnabled={true}
           keepRatio={false}
         />
