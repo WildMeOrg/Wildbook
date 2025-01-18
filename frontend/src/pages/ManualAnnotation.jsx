@@ -27,8 +27,8 @@ export default function ManualAnnotation() {
         url: ""
     });
 
-    const [showModal, setShowModal] = useState(false); // State to manage Modal visibility
-    const [submissionDone, setsubmissionDone] = useState(false); // State to manage submission status
+    const [showModal, setShowModal] = useState(false);
+    const [submissionDone, setsubmissionDone] = useState(false);
 
     const { data: siteData } = useGetSiteSettings();
 
@@ -41,6 +41,7 @@ export default function ManualAnnotation() {
         value: viewpoint,
         label: viewpoint,
     }));
+    
 
     const [ia, setIa] = useState(null);
     const [viewpoint, setViewpoint] = useState(null);
@@ -64,56 +65,9 @@ export default function ManualAnnotation() {
         }
     };
 
-    console.log("rect", JSON.stringify(rect));
+    // console.log("rect", JSON.stringify(rect));
 
     const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
-
-    //     useEffect(() => {
-    //         if (rect.width === 0 || rect.height === 0 || value === 0) {
-    //             return;
-    //         }
-    //         const radians = (value * Math.PI) / 180;
-    //         const halfW = rect.width / 2;
-    //         const halfH = rect.height / 2;
-
-    //         const theta0 = Math.atan(halfH / halfW);
-    //         const radius = Math.sqrt(halfW * halfW + halfH * halfH);
-    // 	    //console.log('jon halfW=%d halfH=%d theta0=%o radius=%o', halfW * scaleFactor.x, halfH * scaleFactor.y, theta0, radius * scaleFactor.y);
-
-    //         const a = Math.cos(radians + theta0) * radius;
-    //         const b = Math.sin(radians + theta0) * radius;
-    // 	    //console.log('radians=%o jon a=%o b=%o', radians, a * scaleFactor.x, b * scaleFactor.y);
-    // 	    //console.log('jon: rx, ry (%d,%d)', rect.x * scaleFactor.x, rect.y * scaleFactor.y);
-
-    //         const cx = rect.x + a;
-    //         const cy = rect.y + b;
-    //         console.log(">>>> jon cx and cy: (%d, %d)", cx * scaleFactor.x, cy * scaleFactor.y);
-
-    //         const x = cx - halfW;
-    //         const y = cy - halfH;
-    //         console.log(">>>> jon x and y: (%d, %d)", x * scaleFactor.x, y * scaleFactor.y);
-
-    // 	    /*
-    //         const radian = (Math.PI / 180) * value;
-
-    //         const centerX = rect.x + rect.width / 2;
-    //         const centerY = rect.y + rect.height / 2;
-
-    //         const dx = -rect.width / 2;
-    //         const dy = -rect.height / 2;
-    //         const originalDx = dx * Math.cos(-radian) - dy * Math.sin(-radian);
-    //         const originalDy = dx * Math.sin(-radian) + dy * Math.cos(-radian);
-
-    //         const originalX = centerX + originalDx;
-    //         const originalY = centerY + originalDy;
-    // 	*/
-    // 	    /*
-    //         console.log("x and y after rotation:", rect.x, rect.y);
-    //         console.log("x and y after scale:", rect.x * scaleFactor.x, rect.y * scaleFactor.y);
-    //         console.log("#1 ...jon... x.. and y.. before rotation:", x, y);
-    //         console.log("#2 ...erin... x.. and y.. before rotation:", originalX, originalY);
-    // */
-    //     }, [value, rect]);
 
     useEffect(() => {
         if (isDrawing) {
@@ -130,8 +84,7 @@ export default function ManualAnnotation() {
             if (imgRef.current) {
                 const naturalWidth = data.width;
                 const naturalHeight = data.height;
-                // const naturalWidth = imgRef.current.naturalWidth;
-                // const naturalHeight = imgRef.current.naturalHeight;
+
                 const displayWidth = imgRef.current.clientWidth;
                 const displayHeight = imgRef.current.clientHeight;
 
@@ -171,6 +124,7 @@ export default function ManualAnnotation() {
         return () => window.removeEventListener("mouseup", handleMouseUp);
     }, []);
 
+
     const handleMouseDown = (e) => {
         if (!imgRef.current || drawStatus === "DELETE") return;
 
@@ -207,10 +161,41 @@ export default function ManualAnnotation() {
         setIsDrawing(false);
     };
 
+    const finalRect = () => {
+        const radians = (value * Math.PI) / 180;
+        const halfW = rect.width / 2;
+        const halfH = rect.height / 2;
+    
+        const theta0 = Math.atan(halfH / halfW);
+        const radius = Math.sqrt(halfW * halfW + halfH * halfH);
+    
+        const a = Math.cos(radians + theta0) * radius;
+        const b = Math.sin(radians + theta0) * radius;
+    
+        const cx = rect.x + a;
+        const cy = rect.y + b;
+    
+        const x = cx - halfW;
+        const y = cy - halfH;
+    
+        return {
+            x: x * scaleFactor.x,
+            y: y * scaleFactor.y,
+            width: rect.width * scaleFactor.x,
+            height: rect.height * scaleFactor.y,
+            rotation: radians,
+        };
+    }
+
     return (
         <Container>
 
-            {submissionDone ? <AnnotationSuccessful />
+            {submissionDone ? <AnnotationSuccessful 
+                annotationId={data.id}
+                encounterId={encounterId}
+                rect={finalRect()}
+                imageData={data}
+            />
                 : <>           <h4 className="mt-3 mb-3">
                     <FormattedMessage id="ADD_ANNOTATIONS" />
                 </h4>
@@ -226,6 +211,12 @@ export default function ManualAnnotation() {
                                 menuPlacement="auto"
                                 menuPortalTarget={document.body}
                                 value={ia}
+                                styles={{
+                                    container: (provided) => ({
+                                        ...provided,
+                                        width: '200px',
+                                    }),
+                                }}
                                 onChange={(selected) => {
                                     setIa(selected)
                                 }}
@@ -242,6 +233,12 @@ export default function ManualAnnotation() {
                                 menuPlacement="auto"
                                 menuPortalTarget={document.body}
                                 value={viewpoint}
+                                styles={{
+                                    container: (provided) => ({
+                                        ...provided,
+                                        width: '200px',
+                                    }),
+                                }}
                                 onChange={(selected) => {
                                     setViewpoint(selected)
                                 }}
@@ -282,7 +279,7 @@ export default function ManualAnnotation() {
                                 }}
                             >
                                 <FormattedMessage id={drawStatus} />
-                                <i className="bi bi-trash ms-2"></i>
+                                {drawStatus === "delete" && <i className="bi bi-trash ms-2"></i>}
                             </div>
                         </div>
                         <div id="image-container"
@@ -292,21 +289,18 @@ export default function ManualAnnotation() {
                             style={{
                                 width: "100%",
                                 marginTop: "1rem",
-                                position: "relative", // Key to enable stacking
+                                position: "relative",
                             }}
                         >
                             <img
                                 ref={imgRef}
-                                // src={"http://frontend.scribble.com/wildbook_data_dir/grid.png"}
-                                //src={"http://frontend.scribble.com/wildbook_data_dir/a/1/a1e8b85b-1a22-4ecd-aa8d-59aa93b3322c/48f0d20d-7104-4e8b-9fb6-1d806a831af3-master.jpg"}
                                 src={data.url}
                                 alt="annotationimages"
                                 style={{
                                     width: "100%",
-                                    // maxHeight: "600px",
                                     height: "auto",
                                     objectFit: "contain",
-                                    position: "absolute", // Ensure stacking
+                                    position: "absolute",
                                     top: 0,
                                     left: 0,
                                 }}
@@ -336,33 +330,27 @@ export default function ManualAnnotation() {
                                     return;
                                 } else {
                                     setShowModal(false);
-                                    // setsubmissionDone(true);
+                                    setsubmissionDone(true);
                                 }
+
                                 // const radians = (value * Math.PI) / 180;
-                                // const originalX = rect.x * Math.cos(radians) + rect.y * Math.sin(radians);
-                                // const originalY = -rect.x * Math.sin(radians) + rect.y * Math.cos(radians);
+                                // const halfW = rect.width / 2;
+                                // const halfH = rect.height / 2;
 
-                                const radians = (value * Math.PI) / 180;
-                                const halfW = rect.width / 2;
-                                const halfH = rect.height / 2;
+                                // const theta0 = Math.atan(halfH / halfW);
+                                // const radius = Math.sqrt(halfW * halfW + halfH * halfH);
 
-                                const theta0 = Math.atan(halfH / halfW);
-                                const radius = Math.sqrt(halfW * halfW + halfH * halfH);
-                                //console.log('jon halfW=%d halfH=%d theta0=%o radius=%o', halfW * scaleFactor.x, halfH * scaleFactor.y, theta0, radius * scaleFactor.y);
+                                // const a = Math.cos(radians + theta0) * radius;
+                                // const b = Math.sin(radians + theta0) * radius;
 
-                                const a = Math.cos(radians + theta0) * radius;
-                                const b = Math.sin(radians + theta0) * radius;
-                                //console.log('radians=%o jon a=%o b=%o', radians, a * scaleFactor.x, b * scaleFactor.y);
-                                //console.log('jon: rx, ry (%d,%d)', rect.x * scaleFactor.x, rect.y * scaleFactor.y);
+                                // const cx = rect.x + a;
+                                // const cy = rect.y + b;
 
-                                const cx = rect.x + a;
-                                const cy = rect.y + b;
-                                console.log(">>>> jon cx and cy: (%d, %d)", cx * scaleFactor.x, cy * scaleFactor.y);
+                                // const x = cx - halfW;
+                                // const y = cy - halfH;
 
-                                const x = cx - halfW;
-                                const y = cy - halfH;
-                                console.log(">>>> jon x and y: (%d, %d)", x * scaleFactor.x, y * scaleFactor.y);
-
+                                const x = finalRect().x;
+                                const y = finalRect().y;
 
                                 const response = await axios.request({
                                     method: "post",
@@ -375,12 +363,10 @@ export default function ManualAnnotation() {
                                         "theta": (value * Math.PI) / 180,
                                         "viewpoint": viewpoint.value,
                                         "width": rect.width * scaleFactor.x,
-                                        "x": x * scaleFactor.x,
-                                        "y": y * scaleFactor.y,
-
+                                        "x": x,
+                                        "y": y,
                                     },
                                 });
-
                                 const data = await response.json();
                                 setData(data);
                             } catch (error) {
