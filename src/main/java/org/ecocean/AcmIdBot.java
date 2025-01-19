@@ -32,6 +32,8 @@ public class AcmIdBot {
             int numAcmIdFixesSent = 0;
             int numAcmIdFixesSuccessful = 0;
             int numInvalidForIA = 0;
+            ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+
             for (Feature feat : feats) {
                 MediaAsset asset = feat.getMediaAsset();
                 if (asset == null) {
@@ -50,16 +52,10 @@ public class AcmIdBot {
                     if (asset != null && asset.isValidImageForIA()) {
                         // let's check for child media assets - lack of these could impact acmID registration
                         if (!asset.hasFamily(myShepherd)) asset.updateStandardChildren();
-                        ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
                         fixMe.add(asset);
-                        IBEISIA.sendMediaAssetsNew(fixMe, context);
                         numAcmIdFixesSent++;
-                        if (asset.getAcmId() != null) {
-                            numAcmIdFixesSuccessful++;
-                            // allow the bot to determine how many fixes it wants the logic to consider before exiting
-                            // helps keep the bots attention back on newer data
-                            if (numAcmIdFixesSuccessful >= maxFixes) break;
-                        }
+                         if (numAcmIdFixesSent >= maxFixes) break;
+                        
                     }
                 } catch (Exception ec) {
                     System.out.println("Exception in AcmIdBot.fixFeats");
@@ -72,6 +68,14 @@ public class AcmIdBot {
                         numInvalidForIA++;
                     }
                 }
+            }
+
+            try{
+                IBEISIA.sendMediaAssetsNew(fixMe, context);
+
+            } catch (Exception e) {
+                System.out.println("Exception in AcmIdBot.fixFeats");
+                e.printStackTrace();
             }
             System.out.println(summaryMessage);
             System.out.println("...candidate fixes: " + numRecommended);
