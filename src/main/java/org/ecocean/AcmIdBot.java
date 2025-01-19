@@ -171,7 +171,7 @@ public class AcmIdBot {
             System.out.println("Exception in AcmIdBot!");
             f.printStackTrace();
         } finally {
-            myShepherd.rollbackAndClose();
+            myShepherd.updateDBTransaction();
         }
     }
 }
