@@ -215,7 +215,7 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_id_conf": [
           {
             "query_config_dict": {
@@ -237,7 +237,7 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_id_conf": [
           {
             "query_config_dict": {
@@ -259,7 +259,7 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_id_conf": [
           {
             "query_config_dict": {
@@ -274,11 +274,11 @@
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
-          "model_tag": "lynx",
+          "model_tag": "lynx_v0",
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "viewpoint_model_tag": "lynx_v0"
         }
       ],
       "lynx": {
