@@ -329,5 +329,12 @@
     "NO_PROJECTS" : "Nessun progetto",
     "PROJECT_LIST_TITLE": "Wildbook - I miei progetti",
     "ADD_ANNOTATIONS": "Aggiungi annotazioni",
-    "SAVE_ANNOTATION" : "Salva annotazione"
+    "SAVE_ANNOTATION" : "Salva annotazione",
+    "DRAW_ANNOTATION" : "Disegna annotazione",
+    "DRAWING": "Disegno",
+    "DELETE" : "Elimina",
+    "ANNOTATION_SAVED" : "Annotazione salvata",
+    "ANNOTATION_SAVED_DESC" : "L'annotazione è stata salvata con successo.",
+    "ANNOTATION_ID": "ID Annotazione",
+    "ENCOUNTER_ID": "ID Incontro"
 }
