@@ -212,7 +212,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v4"
+          "viewpoint_model_tag": "lynx_v3"
         }
       ],
       "lynx": {
@@ -234,7 +234,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v4"
+          "viewpoint_model_tag": "lynx_v3"
         }
       ],
       "lynx": {
@@ -256,7 +256,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v4"
+          "viewpoint_model_tag": "lynx_v3"
         }
       ],
       "lynx": {
@@ -278,7 +278,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v4"
+          "viewpoint_model_tag": "lynx_v3"
         }
       ],
       "lynx": {
