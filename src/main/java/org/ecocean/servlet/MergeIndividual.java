@@ -14,9 +14,8 @@ import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;
 
 public class MergeIndividual extends HttpServlet {
-    Shepherd myShepherd;
-    PrintWriter out;
-    boolean locked = false;
+
+
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -30,8 +29,12 @@ public class MergeIndividual extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+    	
+        PrintWriter out = response.getWriter();
+        boolean locked = false;
+    	
         response.setContentType("text/html");
-        out = response.getWriter();
+        
 
         String id1 = request.getParameter("id1");
         String id2 = request.getParameter("id2");
@@ -46,12 +49,13 @@ public class MergeIndividual extends HttpServlet {
         String oldName1;
         String oldName2;
         boolean canMergeAutomatically = false;
+        
 
-        myShepherd = new Shepherd(request);
+        Shepherd myShepherd = new Shepherd(request);
         myShepherd.setAction("MergeIndividual.class");
-
+        myShepherd.beginDBTransaction();
         try {
-            myShepherd.beginDBTransaction();
+            
 
             MarkedIndividual mark1 = myShepherd.getMarkedIndividualQuiet(id1);
             MarkedIndividual mark2 = myShepherd.getMarkedIndividualQuiet(id2);

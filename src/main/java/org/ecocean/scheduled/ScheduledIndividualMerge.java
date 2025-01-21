@@ -36,6 +36,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
             + this.scheduledTaskType + ". Failed.");
     }
 
+    /*
     @Override public void execute(Shepherd myShepherd) {
         try {
             myShepherd.beginDBTransaction();
@@ -52,7 +53,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
             myShepherd.updateDBTransaction();
         }
     }
-
+*/
     private void mergeIndividuals(MarkedIndividual primaryIndividual,
         MarkedIndividual secondaryIndividual, Shepherd myShepherd) {
         if (primaryIndividual != null && secondaryIndividual != null) {
