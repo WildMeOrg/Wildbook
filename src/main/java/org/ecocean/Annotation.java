@@ -1223,7 +1223,8 @@ public class Annotation extends Base implements java.io.Serializable {
                 error.put("value", encId);
                 throw new ApiException("invalid Encounter id=" + maId, error);
             }
-            // FIXME check security of user editing this
+            // TODO manualAnnotation.jsp did *not* restrict who can edit which encounter, as long as they had researcher role
+            // should this be locked down tighter as to who can add an annotation to an encounter?
         }
         // as noted above, last-minute decision to make an encounter required:
         if (enc == null) {
