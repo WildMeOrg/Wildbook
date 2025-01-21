@@ -1264,6 +1264,7 @@ public class Annotation extends Base implements java.io.Serializable {
         myShepherd.getPM().makePersistent(ft);
         myShepherd.getPM().makePersistent(ann);
 /*
+        believe this is overly complicated, but saving it from manualAnnotation.jsp logic
         if (enc != null) {
             if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
                 ann.setMatchAgainst(true);
@@ -1275,6 +1276,7 @@ public class Annotation extends Base implements java.io.Serializable {
         // we replace trivial if applicable; otherwise this logic determines if we should
         // clone the encounter (based off historic logic in manualAnnotation.jsp)
         if (enc != null) {
+            ann.setMatchAgainst(true);
             boolean cloneEncounter = false;
             // we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
             if ((annots.size() > 1) && (iaClass != null)) {
