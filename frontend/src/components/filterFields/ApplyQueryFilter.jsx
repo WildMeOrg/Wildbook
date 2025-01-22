@@ -10,9 +10,9 @@ export default function ApplyQueryFilter() {
   const [queryId, setQueryId] = React.useState("");
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="APPLY_SEARCH_ID" />
-      </h3>
+      </h4>
       {/* <Description>
                 <FormattedMessage id="FILTER_METADATA_DESC" />
             </Description> */}

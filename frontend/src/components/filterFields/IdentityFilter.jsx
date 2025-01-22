@@ -15,9 +15,9 @@ export default function IdentityFilter({ onChange }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_IDENTITY" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>

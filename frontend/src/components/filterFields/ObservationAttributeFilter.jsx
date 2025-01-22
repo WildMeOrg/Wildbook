@@ -58,9 +58,9 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         overflow: "visible",
       }}
     >
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE_DESC" />
       </Description>
