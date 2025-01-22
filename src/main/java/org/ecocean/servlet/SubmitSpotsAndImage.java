@@ -122,6 +122,11 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        Annotation ann = new Annotation(speciesString, crMa);
 	        ann.setMatchAgainst(true);
 	        String iaClass = "whalesharkCR"; // should we change this?
+	        if(enc.getSpecificEpithet()!=null) {
+	        	if(enc.getSpecificEpithet().equals("tigrinum")) {
+	        		iaClass = "leopard_shark";
+	        	}
+	        }
 	        ann.setIAClass(iaClass);
 	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
 	        enc.addAnnotation(ann);
