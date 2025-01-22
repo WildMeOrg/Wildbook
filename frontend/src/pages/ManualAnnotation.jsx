@@ -20,16 +20,20 @@ export default function ManualAnnotation() {
     const encounterId = searchParams.get("encounterId");
     const theme = useContext(ThemeColorContext);
     const imgRef = useRef(null);
+    const canvasRef = useRef(null);
     const [value, setValue] = useState(0);
     const [incomplete, setIncomplete] = useState(false);
     const [data, setData] = useState({
         width: 100,
         height: 100,
         url: "",
+        annotations: [],
     });
 
     const { createAnnotation, loading, error, submissionDone, responseData } =
         useCreateAnnotation();
+
+        console.log("error",error)
 
     const [showModal, setShowModal] = useState(false);
     const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
@@ -85,10 +89,45 @@ export default function ManualAnnotation() {
         const handleImageLoad = () => {
             if (imgRef.current) {
                 const factor = calculateScaleFactor(data.width, data.height, imgRef.current.clientWidth, imgRef.current.clientHeight);
-                setScaleFactor(factor);
+                setScaleFactor(factor);                
+
+                const canvas = canvasRef.current;
+                const context = canvas.getContext("2d");
+                canvas.width = imgRef.current.clientWidth;
+                canvas.height = imgRef.current.clientHeight;
+
+                // draw existing annotations
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                const validAnnotations = data.annotations.filter((annotation) => !annotation.trivial);
+                for (const annotation of validAnnotations) {
+                    const { x, y, width, height, theta } = annotation;
+                    const scaledRect = {
+                        x: x / factor.x,
+                        y: y / factor.y,
+                        width: width / factor.x,
+                        height: height / factor.y,
+                    };
+
+                    context.strokeStyle = "yellow";
+                    context.lineWidth = 1;
+
+                    const rectCenterX = scaledRect.x + scaledRect.width / 2;
+                    const rectCenterY = scaledRect.y + scaledRect.height / 2;
+                    context.save();
+                    context.translate(rectCenterX, rectCenterY);
+                    context.rotate(theta);
+
+                    context.strokeRect(
+                        -scaledRect.width / 2,
+                        -scaledRect.height / 2,
+                        scaledRect.width,
+                        scaledRect.height                        
+                    );
+                    context.restore();
+
+                }
             }
         };
-
         const imgElement = imgRef.current;
         if (imgElement && imgElement.complete) {
             handleImageLoad();
@@ -288,7 +327,20 @@ export default function ManualAnnotation() {
                                 setRect={setRect}
                                 setValue={setValue}
                                 drawStatus={drawStatus}
+                                scaleFactor={scaleFactor}
                             />
+                            <canvas
+                                ref={canvasRef}
+                                width={150}
+                                height={150}
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    pointerEvents: "none",
+                                    zIndex: 100,
+                                }}
+                            ></canvas>
                         </div>
                     </div>
                     <MainButton

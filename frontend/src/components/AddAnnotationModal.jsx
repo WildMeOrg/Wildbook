@@ -11,6 +11,8 @@ export default function AddAnnotationModal({
 }) {
   const intl = useIntl();
 
+  console.log("error",error)
+
   return (
     <Modal show={showModal} onHide={() => setShowModal(false)}>
       <Modal.Header closeButton>
@@ -21,7 +23,7 @@ export default function AddAnnotationModal({
       <Modal.Body>
         {incomplete && intl.formatMessage({ id: "MISSING_REQUIRED_FIELDS" })}
         {error &&
-          error.slice().map((error, index) => {
+          (Array.isArray(error) ? error : [error]).map((error, index) => {
             return (
               <div key={index} className="d-flex flex-column">
                 {error.code === "INVALID" && (

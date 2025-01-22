@@ -8,6 +8,8 @@ const ResizableRotatableRect = ({
   setRect,
   setValue,
   drawStatus,
+  existingBoundingBoxes = [],
+  scaleFactor
 }) => {
   const [rectProps, setRectProps] = useState({});
 
@@ -88,28 +90,28 @@ const ResizableRotatableRect = ({
     transformerRef.current.getLayer().batchDraw();
   };
 
-  const existingBoundingBoxes = [
-    { x: 50, y: 50, width: 100, height: 80, stroke: "green" },
-    { x: 200, y: 150, width: 120, height: 60, stroke: "blue" },
-  ];
+  // const existingBoundingBoxes = [
+  //   { x: 50, y: 50, width: 100, height: 80, stroke: "green" },
+  //   { x: 200, y: 150, width: 120, height: 60, stroke: "blue" },
+  // ];
 
   return (
     <Stage width={imgWidth} height={imgHeight}>
       <Layer>
-      {existingBoundingBoxes.map((box, index) => (
+      {/* {existingBoundingBoxes.map((box, index) => (
           <Rect
             key={index}
-            x={box.x}
-            y={box.y}
-            width={box.width}
-            height={box.height}
-            rotation={box.rotation || 0}
+            x={box.x/scaleFactor.x}
+            y={box.y/scaleFactor.y}
+            width={box.width/scaleFactor.x}
+            height={box.height/scaleFactor.y}
+            rotation={box.theta * 180 / Math.PI || 0}
             fill={box.fill || "transparent"}
-            stroke={box.stroke || "blue"}
-            strokeWidth={box.strokeWidth || 2}
+            stroke={box.stroke || "yellow"}
+            strokeWidth={1}
             draggable={false} 
           />
-        ))}
+        ))} */}
         <Rect
           {...rectProps}
           ref={rectRef}
