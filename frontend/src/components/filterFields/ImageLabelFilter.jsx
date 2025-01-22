@@ -58,9 +58,9 @@ export default function ImageLabelFilter({ data, onChange }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_IMAGE_LABEL" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_IMAGE_LABEL_DESC" />
       </Description>

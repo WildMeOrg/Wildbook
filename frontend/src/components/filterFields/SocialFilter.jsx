@@ -26,9 +26,9 @@ export default function SocialFilter({ data, onChange }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_SOCIAL" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_SOCIAL_DESC" />
       </Description>

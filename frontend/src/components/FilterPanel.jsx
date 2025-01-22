@@ -146,40 +146,48 @@ export default function FilterPanel({
             }}
           >
             {safeSchemas.map((schema, index) => {
-              return (
-                <div
-                  key={index}
-                  className={`d-flex justify-content-between align-items-center rounded-3 p-2 mt-2 ${clicked === schema.id ? "bg-white" : "text-white"} cursor-pointer`}
-                  style={{
-                    color:
-                      clicked === schema.id
-                        ? theme.primaryColors.primary700
-                        : "white",
-                    minHeight: "50px",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    setClicked(schema.id);
-                    handleClick(schema.id);
-                  }}
-                >
-                  <Text
-                    id={schema.labelId}
-                    className="m-3"
+              if (schema.FilterComponent) {
+                return (
+                  <div
+                    key={index}
+                    className={`d-flex justify-content-between ms-4 align-items-center rounded-3 p-2 ${clicked === schema.id ? "bg-white" : "text-white"} cursor-pointer`}
                     style={{
-                      fontWeight: "500",
-                      marginRight: "20px",
+                      color:
+                        clicked === schema.id
+                          ? theme.primaryColors.primary700
+                          : "white",
+                      minHeight: "50px",
+                      cursor: "pointer",
                     }}
-                  ></Text>
-                  <span>
-                    {" "}
-                    <i
-                      className="bi bi-chevron-right"
-                      style={{ fontSize: "14px" }}
-                    ></i>{" "}
-                  </span>
-                </div>
-              );
+                    onClick={() => {
+                      setClicked(schema.id);
+                      handleClick(schema.id);
+                    }}
+                  >
+                    <Text
+                      id={schema.labelId}
+                      className="m-3"
+                      style={{
+                        fontWeight: "500",
+                        marginRight: "20px",
+                      }}
+                    ></Text>
+                    <span>
+                      {" "}
+                      <i
+                        className="bi bi-chevron-right"
+                        style={{ fontSize: "14px" }}
+                      ></i>{" "}
+                    </span>
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="mt-2 mb-2" key={index}>
+                    {schema.id}
+                  </div>
+                );
+              }
             })}
             <div className="mt-2 d-flex flex-wrap justify-content-center align-items-center w-100 gap-3">
               <BrutalismButton
@@ -259,17 +267,23 @@ export default function FilterPanel({
                   key={index}
                   ref={schemaRefs.current[index]}
                 >
-                  <schema.FilterComponent
-                    key={schema.id}
-                    labelId={schema.labelId}
-                    onChange={handleFilterChange}
-                    onClearFilter={clearFilter}
-                    {...schema.filterComponentProps}
-                    data={data}
-                    tempFormFilters={tempFormFilters}
-                    setFormFilters={setFormFilters}
-                    formFilters={formFilters}
-                  />
+                  {schema.FilterComponent ? (
+                    <schema.FilterComponent
+                      key={schema.id}
+                      labelId={schema.labelId}
+                      onChange={handleFilterChange}
+                      onClearFilter={clearFilter}
+                      {...schema.filterComponentProps}
+                      data={data}
+                      tempFormFilters={tempFormFilters}
+                      setFormFilters={setFormFilters}
+                      formFilters={formFilters}
+                    />
+                  ) : (
+                    <div>
+                      <h2>{schema.id}</h2>
+                    </div>
+                  )}
                 </div>
               );
             })}
