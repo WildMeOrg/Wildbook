@@ -3,6 +3,7 @@ package org.ecocean;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.awt.Rectangle;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,11 +17,14 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
+import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -327,6 +331,8 @@ public class Annotation extends Base implements java.io.Serializable {
         for (Feature ft : getFeatures()) {
             if (ft.isUnity()) return true;
         }
+        // prevents zero-values from return true on final test
+        if ((getWidth() == 0) || (getHeight() == 0)) return false;
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) &&
                    (getHeight() == (int)ma.getHeight()));
     }
@@ -1182,6 +1188,266 @@ public class Annotation extends Base implements java.io.Serializable {
         ann.isExemplar = this.isExemplar;
         ann.identificationStatus = this.identificationStatus;
         return ann;
+    }
+
+    public static Base createFromApi(JSONObject payload, List<File> files, Shepherd myShepherd)
+    throws ApiException {
+        if (payload == null) throw new ApiException("empty payload");
+        User user = (User)payload.opt("_currentUser");
+        int maId = (Integer)validateFieldValue("mediaAssetId", payload);
+        int x = (Integer)validateFieldValue("x", payload);
+        int y = (Integer)validateFieldValue("y", payload);
+        int width = (Integer)validateFieldValue("width", payload);
+        int height = (Integer)validateFieldValue("height", payload);
+        double theta = (Double)validateFieldValue("theta", payload);
+        String iaClass = (String)validateFieldValue("iaClass", payload);
+        String viewpoint = (String)validateFieldValue("viewpoint", payload);
+        // dont need to validate encId, as it is optional and we load encounter below which effectively validates if set
+        // UPDATE: switching gears on this -- now requiring encounter; but leaving this code as-is in case we switch back
+        // (see comments below as well)
+        String encId = payload.optString("encounterId", null);
+        JSONObject error = new JSONObject();
+        MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
+        if (ma == null) {
+            error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            error.put("fieldName", "mediaAssetId");
+            error.put("value", maId);
+            throw new ApiException("invalid MediaAsset id=" + maId, error);
+        }
+        Encounter enc = null;
+        if (encId != null) {
+            enc = myShepherd.getEncounter(encId);
+            if (enc == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("fieldName", "encounterId");
+                error.put("value", encId);
+                throw new ApiException("invalid Encounter id=" + maId, error);
+            }
+            // TODO manualAnnotation.jsp did *not* restrict who can edit which encounter, as long as they had researcher role
+            // should this be locked down tighter as to who can add an annotation to an encounter?
+        }
+        // as noted above, last-minute decision to make an encounter required:
+        if (enc == null) {
+            error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+            error.put("fieldName", "encounterId");
+            throw new ApiException("Encounter required", error);
+        }
+        // validate iaClass; this is a little janky
+        IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        if (enc != null) {
+            Taxonomy tx = enc.getTaxonomy(myShepherd);
+            if (!iaConf.isValidIAClass(tx, iaClass)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("fieldName", "iaClass");
+                error.put("value", iaClass);
+                throw new ApiException("iaClass=" + iaClass + " invalid for taxonomy " + tx +
+                        " on " + enc, error);
+            }
+        }
+        // must have all we need now
+        String context = myShepherd.getContext();
+        List<Annotation> annots = ma.getAnnotations(); // get before we add ours
+        FeatureType.initAll(myShepherd);
+        JSONObject fparams = new JSONObject();
+        fparams.put("x", x);
+        fparams.put("y", y);
+        fparams.put("width", width);
+        fparams.put("height", height);
+        fparams.put("theta", theta);
+        fparams.put("viewpoint", viewpoint); // not sure when/how this is used, but seems here historically
+        fparams.put("_manualAnnotationViaApiV3", System.currentTimeMillis());
+        Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+        Annotation ann = new Annotation(null, ft, iaClass);
+        ann.setViewpoint(viewpoint);
+        ma.addFeature(ft);
+        ma.setDetectionStatus("complete");
+        myShepherd.getPM().makePersistent(ft);
+        myShepherd.getPM().makePersistent(ann);
+/*
+        believe this is overly complicated, but saving it from manualAnnotation.jsp logic
+        if (enc != null) {
+            if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
+                ann.setMatchAgainst(true);
+            }
+        }
+ */
+        // NOTE: manualAnnotation.jsp once allowed featureId to be passed; that functionality is not handled here
+        //
+        // we replace trivial if applicable; otherwise this logic determines if we should
+        // clone the encounter (based off historic logic in manualAnnotation.jsp)
+        if (enc != null) {
+            ann.setMatchAgainst(true);
+            boolean cloneEncounter = false;
+            // we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
+            if ((annots.size() > 1) && (iaClass != null)) {
+                System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [0]");
+                cloneEncounter = true;
+
+                // also don't clone if this is a part
+                // if the one annot isn't trivial, then we have to clone the encounter as well
+            } else if ((annots.size() == 1) && !annots.get(0).isTrivial() && (iaClass != null) &&
+                (iaClass.indexOf("+") == -1)) {
+                System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [1]");
+                cloneEncounter = true;
+                // exception case - if there is only one annotation and it is a part
+                Annotation annot1 = annots.get(0);
+                if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
+                    System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [2]");
+                    cloneEncounter = false;
+                }
+                // exception case - if there is only one annotation and it is a part
+            } else if ((annots.size() == 1) && !annots.get(0).isTrivial() && (iaClass != null) &&
+                (iaClass.indexOf("+") > -1)) {
+                System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [3]");
+                Annotation annot1 = annots.get(0);
+                if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
+                    System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [4]");
+                    cloneEncounter = true;
+                }
+            }
+            if (cloneEncounter) {
+                try {
+                    Encounter clone = enc.cloneWithoutAnnotations(myShepherd);
+                    clone.addAnnotation(ann);
+                    clone.addComments("<p data-annot-id=\"" + ann.getId() +
+                        "\">Encounter cloned and <i>new Annotation</i> manually added by " +
+                        user.getDisplayName() + "</p>");
+                    myShepherd.getPM().makePersistent(clone);
+                    Occurrence occ = myShepherd.getOccurrence(enc);
+                    if (occ != null) {
+                        occ.addEncounterAndUpdateIt(clone);
+                        occ.setDWCDateLastModified();
+                    } else {
+                        // let's create an occurrence to link these two Encounters
+                        occ = new Occurrence(Util.generateUUID(), clone);
+                        occ.addEncounter(enc);
+                        myShepherd.getPM().makePersistent(occ);
+                    }
+                    System.out.println("Annotation.createFromApi(): " + ann + " added to clone " +
+                        clone + " in " + occ);
+                    myShepherd.updateDBTransaction();
+                } catch (Exception ex) {
+                    throw new ApiException("cloning encounter " + enc.getId() + " failed: " +
+                            ex.toString());
+                }
+            } else { // not cloned
+                enc.addAnnotation(ann);
+                enc.addComments("<p data-annot-id=\"" + ann.getId() +
+                    "\"><i>new Annotation</i> manually added by " + user.getDisplayName() + "</p>");
+                System.out.println("Annotation.createFromApi(): " + ann + " added to " + enc);
+            }
+        }
+        // NOTE: manualAnnotation.jsp allowed 'removeTrivial' (boolean) to be set via url, but was default true
+        Annotation foundTrivial = null; // note this will only remove (at most) ONE (but "should never" have > 1 anyway)
+        for (Annotation a : ma.getAnnotations()) {
+            if (a.isTrivial()) foundTrivial = a;
+        }
+        if (foundTrivial == null) {
+            System.out.println(
+                "Annotation.createFromApi(): no trivial annotation found to remove from " + ma);
+        } else {
+            foundTrivial.detachFromMediaAsset();
+            if (enc == null) {
+                System.out.println("Annotation.createFromApi(): removeTrivial detached " +
+                    foundTrivial + " (and Feature) from " + ma);
+            } else {
+                enc.removeAnnotation(foundTrivial);
+                System.out.println("Annotation.createFromApi(): removeTrivial detached " +
+                    foundTrivial + " (and Feature) from " + ma + " and " + enc);
+            }
+        }
+        // send to IA as needed
+        try {
+            if (ma.getAcmId() == null) {
+                ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+                mas.add(ma);
+                IBEISIA.sendMediaAssetsNew(mas, context);
+            }
+            ArrayList<Annotation> anns = new ArrayList<Annotation>();
+            anns.add(ann);
+            IBEISIA.sendAnnotationsNew(anns, context, myShepherd);
+        } catch (Exception ex) {} // silently fail; they will be synced up later
+        return ann;
+    }
+
+    public static Object validateFieldValue(String fieldName, JSONObject data)
+    throws ApiException {
+        if (data == null) throw new ApiException("empty payload");
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("fieldName", fieldName);
+        String exMessage = "invalid value for " + fieldName;
+        Object returnValue = null;
+        switch (fieldName) {
+        case "mediaAssetId":
+            returnValue = data.optInt(fieldName, 0);
+            if ((int)returnValue < 1) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "width":
+        case "height":
+            // value must be > 0 (also will catch unset)
+            returnValue = data.optInt(fieldName, -1);
+            if ((int)returnValue < 1) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "x":
+        case "y":
+            // x/y can be negative or zero, but they are required
+            // little hacky as prevents this actual x/y value, but um...
+            returnValue = data.optInt(fieldName, -999999);
+            if ((int)returnValue == -999999) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "theta":
+            returnValue = data.optDouble(fieldName, 9999.9);
+            double dval = (double)returnValue;
+            if (dval == 9999.9) {
+                returnValue = 0.0d; // theta (passed-in) is optional, but results in 0.0
+            } else if ((dval < -6.2832) || (dval > 6.2832)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", dval);
+                throw new ApiException("invalid theta value in radians", error);
+            }
+            break;
+
+        case "viewpoint":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!isValidViewpoint((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "iaClass":
+            // TODO is iaClass required???
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            // validity is checked in main createFromApi
+            break;
+
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" +
+                fieldName);
+        }
+        return returnValue;
     }
 
     public List<Task> getRootIATasks(Shepherd myShepherd) { // convenience
