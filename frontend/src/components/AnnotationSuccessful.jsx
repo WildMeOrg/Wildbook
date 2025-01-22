@@ -1,11 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 
-export default function AnnotationSuccessful({
-  encounterId,
-  rect,
-  imageData,
-}) {
+export default function AnnotationSuccessful({ encounterId, rect, imageData }) {
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
 
@@ -29,7 +25,7 @@ export default function AnnotationSuccessful({
         const imageContainer = imgElement?.parentElement;
 
         if (imgRef && imageContainer) {
-            imageContainer.style.height = `${imgElement.clientHeight}px`;         
+          imageContainer.style.height = `${imgElement.clientHeight}px`;
         }
 
         const scaledRect = {
@@ -55,6 +51,27 @@ export default function AnnotationSuccessful({
           scaledRect.width,
           scaledRect.height,
         );
+
+        // console.log("drawing line by line");
+
+        // context.strokeStyle = "blue";
+        // context.lineWidth = 2;
+        // context.beginPath();
+        // context.moveTo(-scaledRect.width / 2, -scaledRect.height / 2); // Top-left corner
+        // context.lineTo(scaledRect.width / 2, -scaledRect.height / 2);  // Top-right corner
+        // context.stroke();
+
+        // // Draw the other borders in yellow
+        // context.strokeStyle = "yellow";
+        // context.lineWidth = 1;
+        // context.beginPath();
+        // context.moveTo(-scaledRect.width / 2, -scaledRect.height / 2); // Top-left corner
+        // context.lineTo(-scaledRect.width / 2, scaledRect.height / 2);  // Bottom-left corner
+        // context.lineTo(scaledRect.width / 2, scaledRect.height / 2);  // Bottom-right corner
+        // context.lineTo(scaledRect.width / 2, -scaledRect.height / 2); // Top-right corner
+        // context.closePath();
+        // context.stroke();
+
         context.restore();
       }
     };
@@ -82,8 +99,11 @@ export default function AnnotationSuccessful({
         <FormattedMessage id="ANNOTATION_SAVED_DESC" />
       </div>
       <div className="mt-3">
-        <FormattedMessage id="ENCOUNTER_ID" />{": "}
-        <a href={`/encounters/encounter.jsp?number=${encounterId}`}>{encounterId}</a>
+        <FormattedMessage id="ENCOUNTER_ID" />
+        {": "}
+        <a href={`/encounters/encounter.jsp?number=${encounterId}`}>
+          {encounterId}
+        </a>
       </div>
       <div
         className="image-container mt-3"
@@ -108,8 +128,8 @@ export default function AnnotationSuccessful({
         />
         <canvas
           ref={canvasRef}
-          width={imgRef.current?.clientWidth || 150} 
-          height={imgRef.current?.clientHeight || 150} 
+          width={imgRef.current?.clientWidth || 150}
+          height={imgRef.current?.clientHeight || 150}
           style={{
             position: "absolute",
             top: 0,
@@ -122,7 +142,6 @@ export default function AnnotationSuccessful({
         <FormattedMessage id="CONTACT_MESSAGE" />
         <a href="https://community.wildme.org/">community.wildme.org</a>
       </div>
-
     </div>
   );
 }
