@@ -328,5 +328,14 @@
     "ITEMS" : "Artikel",
     "INPUT_PAGE_ALERT" : "Bitte geben Sie eine gültige Seitenzahl zwischen 1 und {totalPages}.",
     "NO_PROJECTS" : "Keine Projekte",
-    "PROJECT_LIST_TITLE": "Wildbook – Meine Projekte"
+    "PROJECT_LIST_TITLE": "Wildbook – Meine Projekte",
+    "ADD_ANNOTATIONS": "Annotationen hinzufügen",
+    "SAVE_ANNOTATION" : "Annotation speichern",
+    "DRAW_ANNOTATION" : "Annotation zeichnen",
+    "DRAWING" : "Zeichnen",
+    "DELETE" : "Löschen",
+    "ANNOTATION_SAVED" : "Annotation gespeichert",
+    "ANNOTATION_SAVED_DESC" : "Ihre Annotation wurde erfolgreich gespeichert.",
+    "ANNOTATION_ID": "Annotation ID",
+    "ENCOUNTER_ID": "Begegnungs ID"
 }

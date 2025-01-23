@@ -327,5 +327,14 @@
     "ITEMS" : "articles",
     "INPUT_PAGE_ALERT" : "Veuillez saisir un numéro de page valide entre 1 et {totalPages}.",
     "NO_PROJECTS" : "Aucun projet",
-    "PROJECT_LIST_TITLE": "Wildbook - Mes projets"
+    "PROJECT_LIST_TITLE": "Wildbook - Mes projets",
+    "ADD_ANNOTATIONS": "Ajouter des annotations",
+    "SAVE_ANNOTATION" : "Enregistrer l'annotation",
+    "DRAW_ANNOTATION" : "Dessiner une annotation",
+    "DRAWING" : "Dessin",
+    "DELETE" : "Supprimer",
+    "ANNOTATION_SAVED" : "Annotation enregistrée",
+    "ANNOTATION_SAVED_DESC" : "L'annotation a été enregistrée avec succès.",
+    "ANNOTATION_ID": "ID d'annotation",
+    "ENCOUNTER_ID": "ID de rencontre"
 }

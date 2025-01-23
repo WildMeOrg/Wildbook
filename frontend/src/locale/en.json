@@ -328,5 +328,14 @@
     "ITEMS" : "items",
     "INPUT_PAGE_ALERT" : "Please enter a valid page number between 1 and {totalPages}.",
     "NO_PROJECTS" : "No Projects",
-    "PROJECT_LIST_TITLE": "Wildbook - My Projects"
+    "PROJECT_LIST_TITLE": "Wildbook - My Projects",
+    "ADD_ANNOTATIONS" : "Add Annotations",
+    "SAVE_ANNOTATION" : "Save Annotation",
+    "DRAW_ANNOTATION" : "Draw Annotation",
+    "DRAWING" : "Drawing",
+    "DELETE" : "Delete",
+    "ANNOTATION_SAVED" : "Annotation Saved",
+    "ANNOTATION_SAVED_DESC" : "Your annotation was saved successfully.",
+    "ANNOTATION_ID": "Annotation ID",
+    "ENCOUNTER_ID": "Encounter ID"
 }
