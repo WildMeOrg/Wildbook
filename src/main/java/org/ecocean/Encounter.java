@@ -4059,7 +4059,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
         jgen.writeBooleanField("publiclyReadable", this.isPubliclyReadable());
-
+        jgen.writeStringField("distinguishingScar", this.getDistinguishingScar());
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
