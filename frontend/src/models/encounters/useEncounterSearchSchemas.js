@@ -7,8 +7,10 @@ import TagsFilter from "../../components/filterFields/TagsFilter";
 import SocialFilter from "../../components/filterFields/SocialFilter";
 import MetadataFilter from "../../components/filterFields/MetadataFilter";
 import ApplyQueryFilter from "../../components/filterFields/ApplyQueryFilter";
-
+import SightingsObservationAttributeFilter from "../../components/filterFields/SightingsObservationAttributeFilter";
 import BiologicalSamplesAndAnalysesFilter from "../../components/filterFields/BiologicalSamplesAndAnalysesFilter";
+import SightingsLocationFilter from "../../components/filterFields/SightingsLocationFilter";
+import IndividualsObservationAttributeFilter from "../../components/filterFields/IndividualsObservationAttributeFilter";
 
 export default function useEncounterSearchSchemas() {
   return [
@@ -63,9 +65,9 @@ export default function useEncounterSearchSchemas() {
       labelId: "FILTER_SIGHTINGS",
     },
     {
-      id: "location",
+      id: "sightingslocation",
       labelId: "FILTER_LOCATION",
-      FilterComponent: LocationFilter,
+      FilterComponent: SightingsLocationFilter,
     },
     {
       id: "identity",
@@ -78,23 +80,23 @@ export default function useEncounterSearchSchemas() {
       FilterComponent: SocialFilter,
     },
     {
-      id: "observation",
+      id: "sightingsobservation",
       labelId: "FILTER_OBSERVATION_ATTRIBUTE",
-      FilterComponent: ObservationAttributeFilter,
+      FilterComponent:  SightingsObservationAttributeFilter,
     },
     {
       id: "Individuals",
       labelId: "FILTER_INDIVIDUALS",
     },
     {
-      id: "date",
+      id: "individualsdate",
       labelId: "FILTER_DATE",
       FilterComponent: DateFilter,
     },
     {
-      id: "observation",
+      id: "individualsobservation",
       labelId: "FILTER_OBSERVATION_ATTRIBUTE",
-      FilterComponent: ObservationAttributeFilter,
+      FilterComponent: IndividualsObservationAttributeFilter,
     },
   ];
 }
