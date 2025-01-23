@@ -4,7 +4,7 @@
          org.ecocean.datacollection.Instant,
          org.ecocean.*,
          org.ecocean.tag.*,
-         org.datanucleus.api.rest.orgjson.JSONObject
+         org.datanucleus.api.rest.orgjson.JSONObject,org.ecocean.datacollection.*
          " %>
 
 <%
@@ -755,10 +755,10 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 								// Let's make a list of editable Observations... Dynamically!
 								
 						if (occ.getObservationArrayList() != null) {
-							ArrayList<Observation> obs = occ.getObservationArrayList();
+							ArrayList<org.ecocean.Observation> obs = occ.getObservationArrayList();
 							System.out.println("Observations ... "+obs);
 							int numObservations = occ.getObservationArrayList().size();
-							for (Observation ob : obs) {
+							for (org.ecocean.Observation ob : obs) {
 								
 								String nm = ob.getName();
 								String vl = ob.getValue();

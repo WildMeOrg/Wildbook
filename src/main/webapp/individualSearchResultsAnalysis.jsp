@@ -4,7 +4,7 @@
          org.ecocean.Util.MeasurementDesc,org.ecocean.Util.MeasurementEventDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics, java.util.stream.Collectors,
          org.joda.time.DateTime,
 		org.joda.time.format.DateTimeFormatter,
-		org.joda.time.format.ISODateTimeFormat
+		org.joda.time.format.ISODateTimeFormat,org.ecocean.datacollection.*
          " %>
 
 

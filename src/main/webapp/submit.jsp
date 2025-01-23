@@ -4,7 +4,8 @@
                  org.ecocean.*,
                  java.util.Properties,
                  java.util.List,java.util.ArrayList,
-                 java.util.Locale" %>
+                 java.util.Locale,
+                 org.ecocean.datacollection.*" %>
 
 
 <!-- Add reCAPTCHA -->

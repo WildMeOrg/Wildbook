@@ -4,7 +4,7 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List, java.util.Map, org.datanucleus.api.rest.orgjson.JSONObject,java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
-<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.Arrays,org.ecocean.datacollection.*" %>
 <%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
