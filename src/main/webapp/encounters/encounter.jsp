@@ -26,7 +26,7 @@
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
-         org.ecocean.metrics.Prometheus,
+         org.ecocean.metrics.Prometheus,org.ecocean.datacollection.MeasurementEvent,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -3293,15 +3293,15 @@ else {
         <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
-        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+        List<MeasurementEvent> list = (List<MeasurementEvent>) enc.getMeasurements();
 
         %>
         <c:forEach items="${items}" var="item">
           <%
           MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          MeasurementEvent measurement = enc.findMeasurementOfType(measurementDesc.getType());
           if (measurement == null) {
-            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+            measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
           pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
