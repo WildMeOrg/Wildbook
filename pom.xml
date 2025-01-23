@@ -598,6 +598,7 @@
             <argument>target/classes/org/ecocean/scheduled/package.jdo</argument>
             <argument>target/classes/org/ecocean/social/package.jdo</argument>
             <argument>target/classes/org/ecocean/movement/package.jdo</argument>
+			<argument>target/classes/org/ecocean/datacollection/package.jdo</argument>
           </arguments>
         </configuration>
         <executions>
