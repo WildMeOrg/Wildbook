@@ -45,6 +45,10 @@ import org.ecocean.cache.StoredQuery;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 
+//IOT customization
+import org.ecocean.datacollection.*;
+
+
 /**
  * Shepherd is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd
  * project applications. The shepherd class interacts directly with the database and all persistent objects stored within it.
@@ -1299,7 +1303,7 @@ public class Shepherd {
         }
     }
 
-    public <T extends DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
+    public <T extends org.ecocean.datacollection.DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
         T dataCollectionEvent = null;
 
         try {
@@ -5588,4 +5592,92 @@ public class Shepherd {
         }
         return allAnnotIds;
     }
+    
+    
+
+
+
+    //START IOT NEST CUSTOMIZATIONS
+    public Iterator<Nest> getAllNests() {
+        Extent allSharks = null;
+        try {
+          allSharks = pm.getExtent(Nest.class, true);
+        } catch (javax.jdo.JDOException x) {
+          x.printStackTrace();
+        }
+        Extent encClass = pm.getExtent(Nest.class, true);
+        Query sharks = pm.newQuery(encClass);
+        Collection c = (Collection) (sharks.execute());
+        ArrayList list = new ArrayList(c);
+        Iterator it = list.iterator();
+        return it;
+      }
+    
+    public Iterator<Nest> getAllNests(Query nests) {
+      Collection c = (Collection) (nests.execute());
+      Iterator it = c.iterator();
+      return it;
+    }
+
+    public Iterator<Nest> getAllNests(Query sharkies, String order) {
+      Map<String, Object> emptyMap = Collections.emptyMap();
+      return getAllNests(sharkies, order, emptyMap);
+    }
+
+
+    public Iterator<Nest> getAllNests(Query sharkies, String order, Map<String, Object> params) {
+      sharkies.setOrdering(order);
+      Collection c = (Collection) (sharkies.executeWithMap(params));
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    }
+    
+    public Iterator<DataSheet> getAllDataSheetsNoQuery() {
+        try {
+          Extent dsClass = pm.getExtent(DataSheet.class, true);
+          Iterator it = dsClass.iterator();
+          return it;
+        } catch (Exception npe) {
+          System.out.println("Error encountered when trying to execute getAllDataSheetsNoQuery. Returning a null iterator.");
+          npe.printStackTrace();
+          return null;
+        }
+      }
+    
+    public Iterator<DataSheet> getAllDataSheets(Query accepted, Map<String, Object> paramMap) {
+        Collection c;
+        try {
+          c = (Collection) (accepted.executeWithMap(paramMap));
+          ArrayList list = new ArrayList(c);
+          //Collections.reverse(list);
+          Iterator it = list.iterator();
+          return it;
+        } catch (Exception npe) {
+          System.out.println("Error encountered when trying to execute getAllDataSheets(Query). Returning a null collection.");
+          npe.printStackTrace();
+          return null;
+        }
+      }
+    
+    public boolean storeNewUser(User u) {
+        beginDBTransaction();
+        try {
+          pm.makePersistent(u);
+          commitDBTransaction();
+    			return true;
+
+        } catch (Exception e) {
+          rollbackDBTransaction();
+          System.out.println("I failed to create a new User in shepherd.storeNewUser().");
+          e.printStackTrace();
+          return false;
+        }
+      }
+    
+    //END IOT NEST CUSTOMIZATIONS
+    
+    //END IOT NEST CUSTOMIZATIONS
+    
 }

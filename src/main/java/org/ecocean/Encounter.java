@@ -59,6 +59,9 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 
+//IOT customization
+import org.ecocean.datacollection.*;
+
 /**
  * An <code>encounter</code> object stores the complete data for a single sighting/capture report.
  * <code>Encounters</code> are added to MarkedIndividual objects as multiple encounters are associated with known individuals.
@@ -268,7 +271,7 @@ public class Encounter extends Base implements java.io.Serializable {
     private List<SinglePhotoVideo> images;
     // private ArrayList<MediaAsset> media;
     private ArrayList<Annotation> annotations;
-    private List<Measurement> measurements;
+    private List<MeasurementEvent> measurements;
     private List<MetalTag> metalTags;
     private AcousticTag acousticTag;
     private SatelliteTag satelliteTag;
@@ -2470,17 +2473,17 @@ public class Encounter extends Base implements java.io.Serializable {
     public List<SinglePhotoVideo> getSinglePhotoVideo() { return images; }
     public void removeSinglePhotoVideo(SinglePhotoVideo num) { images.remove(num); }
 
-    public void setMeasurements(List<Measurement> measurements) {
+    public void setMeasurements(List<MeasurementEvent> measurements) {
         this.measurements = measurements;
     }
 
-    public void setMeasurement(Measurement measurement, Shepherd myShepherd) {
+    public void setMeasurement(MeasurementEvent measurement, Shepherd myShepherd) {
         // if measurements are null, set the empty list
-        if (measurements == null) { measurements = new ArrayList<Measurement>(); }
+        if (measurements == null) { measurements = new ArrayList<MeasurementEvent>(); }
         // now start checking for existence of a previous measurement
         // if we have it but the new value is null, remove the measurement
         if ((this.hasMeasurement(measurement.getType())) && (measurement.getValue() == null)) {
-            Measurement m = this.getMeasurement(measurement.getType());
+            MeasurementEvent m = this.getMeasurement(measurement.getType());
             measurements.remove(m);
             myShepherd.getPM().deletePersistent(m);
             myShepherd.commitDBTransaction();
@@ -2494,7 +2497,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         // if we had it before then just update the value
         else if ((this.hasMeasurement(measurement.getType())) && (measurement != null)) {
-            Measurement m = this.getMeasurement(measurement.getType());
+            MeasurementEvent m = this.getMeasurement(measurement.getType());
             m.setValue(measurement.getValue());
             m.setSamplingProtocol(measurement.getSamplingProtocol());
             myShepherd.commitDBTransaction();
@@ -2503,13 +2506,13 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void removeMeasurement(int num) { measurements.remove(num); }
-    public List<Measurement> getMeasurements() { return measurements; }
+    public List<MeasurementEvent> getMeasurements() { return measurements; }
     public void removeMeasurement(Measurement num) { measurements.remove(num); }
-    public Measurement findMeasurementOfType(String type) {
-        List<Measurement> measurements = getMeasurements();
+    public MeasurementEvent findMeasurementOfType(String type) {
+        List<MeasurementEvent> measurements = getMeasurements();
 
         if (measurements != null) {
-            for (Measurement measurement : measurements) {
+            for (MeasurementEvent measurement : measurements) {
                 if (type.equals(measurement.getType())) {
                     return measurement;
                 }
@@ -3000,7 +3003,7 @@ public class Encounter extends Base implements java.io.Serializable {
         if ((measurements != null) && (measurements.size() > 0)) {
             int numMeasurements = measurements.size();
             for (int i = 0; i < numMeasurements; i++) {
-                Measurement m = measurements.get(i);
+                MeasurementEvent m = measurements.get(i);
                 if (m.getValue() != null) { return true; }
             }
         }
@@ -3011,7 +3014,7 @@ public class Encounter extends Base implements java.io.Serializable {
         if ((measurements != null) && (measurements.size() > 0)) {
             int numMeasurements = measurements.size();
             for (int i = 0; i < numMeasurements; i++) {
-                Measurement m = measurements.get(i);
+                MeasurementEvent m = measurements.get(i);
                 if ((m.getValue() != null) && (m.getType().equals(type))) { return true; }
             }
         }
@@ -3033,11 +3036,11 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // Returns the first measurement of the specified type
-    public Measurement getMeasurement(String type) {
+    public MeasurementEvent getMeasurement(String type) {
         if ((measurements != null) && (measurements.size() > 0)) {
             int numMeasurements = measurements.size();
             for (int i = 0; i < numMeasurements; i++) {
-                Measurement m = measurements.get(i);
+                MeasurementEvent m = measurements.get(i);
                 if ((m.getValue() != null) && (m.getType().equals(type))) { return m; }
             }
         }
@@ -4146,7 +4149,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
         jgen.writeArrayFieldStart("measurements");
         if (this.measurements != null)
-            for (Measurement meas : this.measurements) {
+            for (MeasurementEvent meas : this.measurements) {
                 if (meas.getValue() == null) continue; // no value means we should skip
                 jgen.writeStartObject();
                 jgen.writeNumberField("value", meas.getValue());
@@ -4704,5 +4707,80 @@ public class Encounter extends Base implements java.io.Serializable {
             myShepherd.rollbackDBTransaction();
         }
     }
+    
+    //IOT customizations
+    public void setMeasurementEvent(MeasurementEvent measurement, Shepherd myShepherd){
+
+        //if measurements are null, set the empty list
+        if(measurements==null){measurements=new ArrayList<MeasurementEvent>();}
+
+        //now start checking for existence of a previous measurement
+
+        //if we have it but the new value is null, remove the measurement
+        if((this.hasMeasurementEvent(measurement.getType()))&&(measurement.getValue()==null)){
+          MeasurementEvent m=this.getMeasurement(measurement.getType());
+          measurements.remove(m);
+          myShepherd.getPM().deletePersistent(m);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+
+        //just add the measurement it if we did not have it before
+        else if(!this.hasMeasurementEvent(measurement.getType())){
+          measurements.add(measurement);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+
+        //if we had it before then just update the value
+        else if((this.hasMeasurementEvent(measurement.getType()))&&(measurement!=null)){
+          MeasurementEvent m=this.getMeasurement(measurement.getType());
+          m.setValue(measurement.getValue());
+          m.setSamplingProtocol(measurement.getSamplingProtocol());
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+
+      }
+      public void removeMeasurementEvent(int num){measurements.remove(num);}
+      public List<MeasurementEvent> getMeasurementEvents(){return measurements;}
+      public void removeMeasurementEvent(MeasurementEvent num){measurements.remove(num);}
+      public MeasurementEvent findMeasurementEventOfType(String type) {
+        List<MeasurementEvent> measurements = getMeasurementEvents();
+        if (measurements != null) {
+          for (MeasurementEvent measurement : measurements) {
+            if (type.equals(measurement.getType())) {
+              return measurement;
+            }
+          }
+        }
+        return null;
+      }
+      
+
+      public boolean hasMeasurementEvents(){
+        if((measurements!=null)&&(measurements.size()>0)){
+          int numMeasurementEvents=measurements.size();
+          for(int i=0;i<numMeasurementEvents;i++){
+            MeasurementEvent m=measurements.get(i);
+            if(m.getValue()!=null){return true;}
+          }
+        }
+        return false;
+      }
+
+      public boolean hasMeasurementEvent(String type){
+        if((measurements!=null)&&(measurements.size()>0)){
+          int numMeasurementEvents=measurements.size();
+          for(int i=0;i<numMeasurementEvents;i++){
+            MeasurementEvent m=measurements.get(i);
+            if((m.getValue()!=null)&&(m.getType().equals(type))){return true;}
+          }
+        }
+        return false;
+      }
+      
+      //END IOT CUSTOMIZATIONS
+    
 
 }

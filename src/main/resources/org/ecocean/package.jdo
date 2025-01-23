@@ -234,12 +234,13 @@
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
 
+	<!--
       <field name="dataSheets" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.datacollection.DataSheet"/>
         <column name="DATASHEETS"/>
         <join/>
       </field>
-
+    -->
 
 	
 	      <field name="submitters" persistence-modifier="persistent" default-fetch-group="true">

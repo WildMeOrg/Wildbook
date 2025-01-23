@@ -56,6 +56,9 @@ import org.ecocean.Annotation;
 import org.ecocean.mmutil.FileUtilities;
 import org.ecocean.User;
 
+//IOT customization
+import org.ecocean.datacollection.MeasurementEvent;
+
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
  *
@@ -117,8 +120,8 @@ public class EncounterForm extends HttpServlet {
         return list;
     }
 
-    private List<Measurement> getMeasurements(Map formValues, String encID, String context) {
-        List<Measurement> list = new ArrayList<Measurement>();
+    private List<MeasurementEvent> getMeasurements(Map formValues, String encID, String context) {
+        List<MeasurementEvent> list = new ArrayList<MeasurementEvent>();
 
         // dynamically adapt to project-specific measurements
         List<String> keys = CommonConfiguration.getIndexedPropertyValues("measurement", context);
@@ -131,7 +134,7 @@ public class EncounterForm extends HttpServlet {
             if (value.length() > 0) {
                 try {
                     Double doubleVal = Double.valueOf(value);
-                    list.add(new Measurement(encID, key, doubleVal, units, samplingProtocol));
+                    list.add(new MeasurementEvent(encID, key, doubleVal, units, samplingProtocol));
                 } catch (Exception ex) {}
             }
         }
@@ -648,8 +651,8 @@ public class EncounterForm extends HttpServlet {
             for (MetalTag metalTag : metalTags) {
                 enc.addMetalTag(metalTag);
             }
-            List<Measurement> measurements = getMeasurements(formValues, encID, context);
-            for (Measurement measurement : measurements) {
+            List<MeasurementEvent> measurements = getMeasurements(formValues, encID, context);
+            for (MeasurementEvent measurement : measurements) {
                 enc.setMeasurement(measurement, myShepherd);
             }
             enc.setAcousticTag(getAcousticTag(formValues));
