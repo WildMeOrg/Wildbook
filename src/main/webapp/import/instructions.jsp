@@ -37,8 +37,7 @@ String wbName = ContextConfiguration.getNameForContext(context);
 }
 .warning {
   border-radius: 5px;
-  background-color: lightgrey;
-  color: red;
+  background-color: #f0e130;
   padding: 5px;
 }
 </style>
@@ -49,7 +48,7 @@ String wbName = ContextConfiguration.getNameForContext(context);
   <h1 class="import-header">Bulk Import: Instructions</h1>
 
   <p class="warning">
-    <strong>This feature is in Alpha.</strong> This means it is untested and unreleased. Please only use this tool if you are willing to help us test the UI and report bugs. Your data might not be imported correctly until we have done further testing and development.
+    <strong>This feature is in Beta.</strong> This means has been updated and tested, but is still under active development. Please only use this tool if you are willing to help us test the UI and report bugs. Your data might not be imported correctly until we have done further testing and development.
   </p>
 
   <p>The goal of this tool is to allow scientists to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>

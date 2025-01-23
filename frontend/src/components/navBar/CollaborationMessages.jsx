@@ -7,6 +7,7 @@ export default function CollaborationMessages({
   getAllNotifications,
   setModalOpen,
 }) {
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [showError, setShowError] = useState(false);
   const [error, setError] = useState("");
@@ -30,6 +31,7 @@ export default function CollaborationMessages({
 
     return (
       <div
+        key={username}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -49,6 +51,7 @@ export default function CollaborationMessages({
         >
           {buttons.map((button) => (
             <BrutalismButton
+              key={button?.class}
               style={{
                 margin: "0 5px 10px 0",
               }}

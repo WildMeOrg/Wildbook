@@ -535,7 +535,7 @@ console.log('save returned: %o', d);
 
 var currentSpotType = null;
 function addSpot(x,y,type) {
-///////////// NOTE!!! presently spot type will be set via sortSpots() so doesnt really matter what happens here.  TODO other manual setting
+    // NOTE!!! presently spot type will be set via sortSpots() so doesnt really matter what happens here.
     if (!type) type = currentSpotType;
 
 /*  NOTE: now we are letting more spots come in, and basing type off or when it is added
@@ -603,7 +603,7 @@ function resetAll() {
 
 
 function backToEncounter() {
-    //TODO check for changes and confirm
+    // does not check for changes and confirm
     window.location = 'encounter.jsp?number=' + encounterNumber;
 }
 
@@ -984,7 +984,6 @@ if (!p) console.warn('lastMessage -> %s', lastMessage);
 
 //this is just a way to tell if we have "enough" points to consider it done
 function enoughPath(path) {
-//TODO something better like % of total space it could be
     return (path && (path.length > 120));
 }
 

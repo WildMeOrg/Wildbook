@@ -41,32 +41,13 @@ myShepherd.setAction("locationIDTester.jsp");
 
 <p>
 <form>
-<%=LocationID.getHTMLSelector(true,null,null,"id","name","class")%>
+<%=LocationID.getHTMLSelector(true,(String)null,null,"id","name","class")%>
 </form>
 </p>
 
 <p>Single select and selected: 
 <form>
 <%=LocationID.getHTMLSelector(false, "1",null,"id","name","class")%>
-</form>
-</p>
-
-<h2>Override Indocet tests</h2>
-<p><pre><%=LocationID.getLocationIDStructure("indocet").toString() %></pre></p>
-
-<p>The name for locationID 1 is: <pre><%=LocationID.getNameForLocationID("Moheli","indocet") %></pre></p>
-
-<p>The name for locationID 6 is: <pre><%=LocationID.getNameForLocationID("Moheli","indocet") %></pre></p>
-
-<p>
-<form>
-<%=LocationID.getHTMLSelector(true,null,"indocet","id","name","class")%>
-</form>
-</p>
-
-<p>Single select and selected: 
-<form>
-<%=LocationID.getHTMLSelector(false, "Ifaty","indocet","id","name","class")%>
 </form>
 </p>
 

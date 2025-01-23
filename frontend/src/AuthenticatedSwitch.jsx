@@ -6,22 +6,36 @@ import Profile from "./pages/Profile";
 import Home from "./pages/Home";
 import Footer from "./components/Footer";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
-import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
+import EncounterSearch from "./pages/EncounterSearch";
+import Citation from "./pages/Citation";
+import AdminLogs from "./pages/AdminLogs";
+import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
+import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
+import ProjectList from "./pages/ProjectList";
 
-export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
-  const { isFetched, data, error } = useGetMe();
+export default function AuthenticatedSwitch({
+  showAlert,
+  setShowAlert,
+  showclassicsubmit,
+  showClassicEncounterSearch,
+}) {
+  const { data } = useGetMe();
   const username = data?.username;
-  const avatar = data?.imageURL || "/react/images/Avatar.png";
+  const avatar =
+    data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
+  const [header, setHeader] = React.useState(true);
 
   return (
-    <main>
+    <div className="d-flex flex-column min-vh-100">
       <div
+        id="header"
         className="position-fixed top-0 mx-auto w-100"
         style={{
-          maxWidth: "1440px",
           zIndex: "100",
+          height: "50px",
+          backgroundColor: "#303336",
         }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
@@ -30,27 +44,36 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
           avatar={avatar}
           showAlert={showAlert}
           setShowAlert={setShowAlert}
+          showclassicsubmit={showclassicsubmit}
+          showClassicEncounterSearch={showClassicEncounterSearch}
         />
       </div>
 
       <div
-        className="position-absolute top-0 start-0 justify-content-center align-items-center overflow-hidden w-100"
+        id="main-content"
+        className="flex-grow-1 d-flex justify-content-center"
         style={{
           boxSizing: "border-box",
-          minHeight: "calc(100vh - 40px)", // Assuming the header height is 40px
+          overflow: "hidden",
+          paddingTop: header ? "48px" : "0",
         }}
       >
         <Routes>
           <Route path="/profile" element={<Profile />} />
-          {/* <Route path="/about" element={<About />} /> */}
+          <Route path="/citation" element={<Citation />} />
+          <Route path="/projects/overview" element={<ProjectList />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/report" element={<ReportEncounter />} />
+          <Route path="/reportConfirm" element={<ReportConfirm />} />
+          <Route path="/encounter-search" element={<EncounterSearch />} />
+          <Route path="/admin/logs" element={<AdminLogs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound setHeader={setHeader} />} />
         </Routes>
-
-        <Footer />
       </div>
-    </main>
+
+      <Footer />
+    </div>
   );
 }
