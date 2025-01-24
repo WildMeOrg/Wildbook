@@ -12,12 +12,13 @@ import BiologicalSamplesAndAnalysesFilter from "../../components/filterFields/Bi
 import SightingsLocationFilter from "../../components/filterFields/SightingsLocationFilter";
 import IndividualsObservationAttributeFilter from "../../components/filterFields/IndividualsObservationAttributeFilter";
 import IndividualEstimateFilter from "../../components/filterFields/IndividualEstimateFilter";
+import IndividualDateFilter from "../../components/filterFields/IndividualDateFilter";
 
 export default function useEncounterSearchSchemas() {
   return [
     {
       id: "Encounters",
-      labelId: "FILTER_ENCOUNTER",
+      labelId: "MENU_SEARCH_ENCOUNTERS",
     },
     {
       id: "location",
@@ -63,7 +64,7 @@ export default function useEncounterSearchSchemas() {
     },
     {
       id: "Sightings",
-      labelId: "FILTER_SIGHTINGS",
+      labelId: "MENU_SEARCH_SIGHTINGS",
     },
     {
       id: "sightingslocation",
@@ -83,7 +84,7 @@ export default function useEncounterSearchSchemas() {
     {
       id: "sightingsobservation",
       labelId: "FILTER_OBSERVATION_ATTRIBUTE",
-      FilterComponent:  SightingsObservationAttributeFilter,
+      FilterComponent: SightingsObservationAttributeFilter,
     },
     {
       id: "individualsEstimate",
@@ -92,12 +93,12 @@ export default function useEncounterSearchSchemas() {
     },
     {
       id: "Individuals",
-      labelId: "FILTER_INDIVIDUALS",
-    },    
+      labelId: "MENU_SEARCH_INDIVIDUALS",
+    },
     {
       id: "individualsdate",
       labelId: "FILTER_DATE",
-      FilterComponent: DateFilter,
+      FilterComponent: IndividualDateFilter,
     },
     {
       id: "individualsobservation",
