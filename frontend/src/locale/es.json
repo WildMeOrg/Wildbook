@@ -355,5 +355,7 @@
     "LATITUDE": "Latitud",
     "LONGITUDE": "Longitud",
     "BEARING": "Rumbo",
-    "DISTANCE": "Distancia"
+    "DISTANCE": "Distancia",
+    "FILTER_BIRTH" : "Nacimiento",
+    "FILTER_DEATH" : "Muerte"
 }

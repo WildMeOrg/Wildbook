@@ -356,5 +356,7 @@
     "LATITUDE": "Breitengrad",
     "LONGITUDE": "Längengrad",
     "BEARING": "Peilung",
-    "DISTANCE": "Entfernung"
+    "DISTANCE": "Entfernung",
+    "FILTER_BIRTH" : "Geburt",
+    "FILTER_DEATH" : "Tod"
 }

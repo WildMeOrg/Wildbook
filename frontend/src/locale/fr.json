@@ -355,5 +355,7 @@
     "LATITUDE": "Latitude",
     "LONGITUDE": "Longitude",
     "BEARING": "Cap",
-    "DISTANCE": "Distance"
+    "DISTANCE": "Distance",
+    "FILTER_BIRTH" : "Naissance",
+    "FILTER_DEATH" : "Décès"
 }
