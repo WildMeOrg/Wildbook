@@ -7,7 +7,6 @@ import { useIntl } from "react-intl";
 import Description from "../Form/Description";
 
 export default function SightingsLocationFilter({ onChange, data }) {
-
   const intl = useIntl();
   const mapCenterLat = data?.mapCenterLat || 51;
   const mapCenterLon = data?.mapCenterLon || 7;
@@ -116,7 +115,6 @@ export default function SightingsLocationFilter({ onChange, data }) {
         <FormattedMessage id="FILTER_LOCATION_DESC" />
       </Description>
       <div className="d-flex flex-row">
-
         <FormGroup
           key={"lat"}
           style={{
@@ -124,13 +122,11 @@ export default function SightingsLocationFilter({ onChange, data }) {
           }}
         >
           <FormLabel>
-            <FormattedMessage id="LAT" />
+            <FormattedMessage id="LATITUDE" />
           </FormLabel>
           <FormControl
             type="number"
-            placeholder={
-              intl.formatMessage({ id: "TYPE_NUMBER" })
-            }
+            placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.lat}
             onChange={(e) => {
               setLocation((prevLocation) => ({
@@ -152,9 +148,7 @@ export default function SightingsLocationFilter({ onChange, data }) {
           </FormLabel>
           <FormControl
             type="number"
-            placeholder={
-              intl.formatMessage({ id: "TYPE_NUMBER" })
-            }
+            placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.lng}
             onChange={(e) => {
               setLocation((prevLocation) => ({
@@ -175,9 +169,7 @@ export default function SightingsLocationFilter({ onChange, data }) {
           </FormLabel>
           <FormControl
             type="number"
-            placeholder={
-              intl.formatMessage({ id: "TYPE_NUMBER" })
-            }
+            placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.bearing}
             onChange={(e) => {
               setLocation((prevLocation) => ({
@@ -198,9 +190,7 @@ export default function SightingsLocationFilter({ onChange, data }) {
           </FormLabel>
           <FormControl
             type="number"
-            placeholder={
-              intl.formatMessage({ id: "TYPE_NUMBER" })
-            }
+            placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.distance}
             onChange={(e) => {
               setLocation((prevLocation) => ({
@@ -223,5 +213,5 @@ export default function SightingsLocationFilter({ onChange, data }) {
         <div ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
       </div>
     </div>
-  )
+  );
 }
