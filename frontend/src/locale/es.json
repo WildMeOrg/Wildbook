@@ -351,5 +351,9 @@
     "FILTER_MAXIMUM_ESTIMATE_INDIVIDUALS": "Estimación Máxima de Individuos",
     "FILTER_BEST_ESTIMATE_INDIVIDUALS": "Mejor Estimación de Individuos",
     "FILTER_INDIVIDUAL_SEX": "Sexo del Individuo",
-    "FILTER_INDIVIDUAL_TAXONOMY": "Taxonomía del Individuo"
+    "FILTER_INDIVIDUAL_TAXONOMY": "Taxonomía del Individuo",
+    "LATITUDE": "Latitud",
+    "LONGITUDE": "Longitud",
+    "BEARING": "Rumbo",
+    "DISTANCE": "Distancia"
 }
