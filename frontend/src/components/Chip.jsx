@@ -115,6 +115,13 @@ function Chip({ children }) {
       }
     }
 
+    if (query?.geo_distance) {
+      const { lat, lon, bearing, distance } = query.geo_distance;
+      entries.push(
+        `Location within ${distance} km of latitude: ${lat}, longitude: ${lon}`,
+      );
+    }
+
     return entries.length > 0 ? `${entries.join(", ")}` : `No filters set`;
   }
 
