@@ -281,7 +281,9 @@ export default function FilterPanel({
                     />
                   ) : (
                     <div>
-                      <h2>{schema.id}</h2>
+                      <h2>
+                        <FormattedMessage id={schema.labelId} />
+                      </h2>
                     </div>
                   )}
                 </div>
