@@ -159,6 +159,7 @@ public class Annotation extends Base implements java.io.Serializable {
         jgen.writeStringField("acmId", this.getAcmId());
         jgen.writeStringField("viewpoint", this.getViewpoint());
         jgen.writeStringField("iaClass", this.getIAClass());
+        jgen.writeBooleanField("matchAgainst", this.getMatchAgainst());
         MediaAsset ma = this.getMediaAsset();
         if (ma != null) {
             jgen.writeNumberField("mediaAssetId", ma.getId());
@@ -716,24 +717,13 @@ public class Annotation extends Base implements java.io.Serializable {
         return thisPart;
     }
 
-    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
-        return getMatchingSet(myShepherd, null);
-    }
-
 /*
-   {
-   "query" : {
-      "bool" : {
-         "filter" : [
-            {
-              "match": {"lifeStage": "male-with-brood"}
-            }
-         ]
-      }
-   }
-   }
+   additionalQuery can currently contain two top-level keys: filter and must_not.
+   both must be arrays which contain objects.
+   these will be "mixed into" the built default query. TODO this might cause some conflict or
+   overwriting that needs to be addressed in the future
  */
-    public JSONObject getMatchingSetQuery(Shepherd myShepherd, JSONObject queryIn) {
+    public JSONObject getMatchingSetQuery(Shepherd myShepherd, JSONObject additionalQuery) {
         Encounter enc = this.findEncounter(myShepherd);
 
         if (enc == null) {
@@ -741,11 +731,18 @@ public class Annotation extends Base implements java.io.Serializable {
                 this);
             return null;
         }
-        JSONObject query = new JSONObject("{\"query\": {\"bool\": {\"filter\": []} } }");
+        JSONObject query = new JSONObject(
+            "{\"query\": {\"bool\": {\"filter\": [], \"must_not\": []} } }");
         JSONObject wrapper = new JSONObject();
         JSONObject arg = new JSONObject();
-
-        arg.put("encounterTaxonomy", enc.getTaxonomyString());
+        String txStr = enc.getTaxonomyString();
+        if ((txStr == null) && !Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
+            "allowIdentificationWithoutTaxonomy"))) {
+            System.out.println(
+                "WARNING: getMatchingSetQuery() no taxonomy and allowIdentificationWithoutTaxonomy not set; returning empty set");
+            return null;
+        }
+        arg.put("encounterTaxonomy", txStr);
         wrapper.put("match", arg);
         query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
 
@@ -761,13 +758,59 @@ public class Annotation extends Base implements java.io.Serializable {
         wrapper.put("terms", arg);
         query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
 
+        // matchAgainst true
+        arg = new JSONObject();
+        arg.put("matchAgainst", true);
+        wrapper = new JSONObject();
+        wrapper.put("term", arg);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+
+        // must have acmId
+        arg = new JSONObject();
+        arg.put("field", "acmId");
+        wrapper = new JSONObject();
+        wrapper.put("exists", arg);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+
+        // exclude our encounter
+        arg = new JSONObject();
+        arg.put("encounterId", enc.getId());
+        wrapper = new JSONObject();
+        wrapper.put("match", arg);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("must_not").put(wrapper);
+        // TODO UseClauses ???
+        if (additionalQuery != null) {
+            JSONArray arr = additionalQuery.optJSONArray("filter");
+            if (arr != null) {
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject clause = arr.optJSONObject(i);
+                    if (clause != null)
+                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                            "filter").put(clause);
+                }
+            }
+            arr = additionalQuery.optJSONArray("must_not");
+            if (arr != null) {
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject clause = arr.optJSONObject(i);
+                    if (clause != null)
+                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                            "must_not").put(clause);
+                }
+            }
+        }
         return query;
     }
 
-    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject queryIn) {
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        JSONObject query = getMatchingSetQuery(myShepherd, queryIn);
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
+        return getMatchingSet(myShepherd, null);
+    }
 
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject additionalQuery) {
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        JSONObject query = getMatchingSetQuery(myShepherd, additionalQuery);
+
+        if (query == null) return anns;
         // TODO query it, duh
         return anns;
     }
