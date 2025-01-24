@@ -11,6 +11,7 @@ import SightingsObservationAttributeFilter from "../../components/filterFields/S
 import BiologicalSamplesAndAnalysesFilter from "../../components/filterFields/BiologicalSamplesAndAnalysesFilter";
 import SightingsLocationFilter from "../../components/filterFields/SightingsLocationFilter";
 import IndividualsObservationAttributeFilter from "../../components/filterFields/IndividualsObservationAttributeFilter";
+import IndividualEstimateFilter from "../../components/filterFields/IndividualEstimateFilter";
 
 export default function useEncounterSearchSchemas() {
   return [
@@ -85,9 +86,14 @@ export default function useEncounterSearchSchemas() {
       FilterComponent:  SightingsObservationAttributeFilter,
     },
     {
+      id: "individualsEstimate",
+      labelId: "FILTER_INDIVIDUAL_ESTIMATE",
+      FilterComponent: IndividualEstimateFilter,
+    },
+    {
       id: "Individuals",
       labelId: "FILTER_INDIVIDUALS",
-    },
+    },    
     {
       id: "individualsdate",
       labelId: "FILTER_DATE",
