@@ -1,15 +1,9 @@
 import React from "react";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
-import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import FormGroupText from "../Form/FormGroupText";
-import DynamicInputs from "../Form/DynamicInputs";
-import { FormLabel, FormGroup } from "react-bootstrap";
-import FormMeasurements from "../Form/FormMeasurements";
 
-export default function ObservationAttributeFilter({ onChange, data }) {
-
-    const measurementsOptions = data?.measurement || [];
+export default function SightingsObservationAttributeFilter({ onChange, data }) {
 
     return (
         <div
@@ -62,18 +56,6 @@ export default function ObservationAttributeFilter({ onChange, data }) {
                 filterId={"occurrenceRemarks"}
                 filterKey={"Observation Comments"}
             />
-
-            <FormGroup className="mt-2">
-                <FormLabel>
-                    <FormattedMessage id="FILTER_MEASUREMENTS" />
-                </FormLabel>
-                <FormMeasurements
-                    data={measurementsOptions}
-                    onChange={onChange}
-                    filterId={"measurements"}
-                    field={"measurements"}
-                />
-            </FormGroup>
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FormControl, FormGroup, FormLabel } from "react-bootstrap";
 import { Loader } from "@googlemaps/js-api-loader";
 import { useIntl } from "react-intl";
+import Description from "../Form/Description";
 
 export default function SightingsLocationFilter({ onChange, data }) {
 
@@ -27,7 +28,9 @@ export default function SightingsLocationFilter({ onChange, data }) {
     if (location && allFieldsFilled) {
       onChange({
         filterId: "sightingslocationMap",
-        clause: "term",
+        clause: "filter",
+        filterKey: "sightingslocation",
+        field: "sightingslocation",
         query: {
           geo_distance: {
             lat: location.lat,
@@ -64,15 +67,15 @@ export default function SightingsLocationFilter({ onChange, data }) {
           const lng = e.latLng.lng();
           setLocation((prevLocation) => ({
             ...prevLocation,
-            lat: e.latLng.lat(),
-            lng: e.latLng.lng(),
+            lat,
+            lng,
           }));
 
           if (markerRef.current) {
-            markerRef.current.setPosition({ lat: location.lat, lng: location.lng });
+            markerRef.current.setPosition({ lat, lng });
           } else {
             markerRef.current = new window.google.maps.Marker({
-              position: { lat: location.lat, lng: location.lng },
+              position: { lat, lng },
               map: googleMap,
             });
           }
@@ -86,14 +89,12 @@ export default function SightingsLocationFilter({ onChange, data }) {
   }, [mapCenterLat, mapCenterLon, mapZoom, mapKey]);
 
   useEffect(() => {
-
+    const lat = parseFloat(location.lat);
+    const lng = parseFloat(location.lng);
     if (map && !isNaN(location.lat) && !isNaN(location.lng)) {
-      if (pan) {
-        map.panTo({ lat: location.lat, lng: location.lng });
-      }
-
+      map.panTo({ lat: location.lat, lng: location.lng });
       if (markerRef.current) {
-        markerRef.current.setPosition({ lat: location.lat, lng: location.lng });
+        markerRef.current.setPosition({ lat, lng });
       } else {
         markerRef.current = new window.google.maps.Marker({
           position: { lat: location.lat, lng: location.lng },
@@ -108,40 +109,108 @@ export default function SightingsLocationFilter({ onChange, data }) {
 
   return (
     <div>
-      {[
-        { LATITUDE: "lat" },
-        { LONGITUDE: "lng" },
-        { BEARING: "bearing" },
-        { DISTANCE: "distance" },
-      ].map((item, index) => {
-        return (
-          <FormGroup
-            key={index}
-            style={{
-              marginRight: "10px",
-            }}
-          >
-            <FormLabel>
-              <FormattedMessage id={Object.keys(item)[0]} />
-            </FormLabel>
-            <FormControl
-              type="number"
-              placeholder={
-                intl.formatMessage({ id: "TYPE_NUMBER" })
-              }
-              value={location[Object.values(item)[0]]}
-              onChange={(e) => {
-                console.log("onChange");
-                setLocation((prevLocation) => ({
-                  ...prevLocation,
-                  [Object.values(item)[0]]: e.target.value,
-                }));
-              }}
-            />
-          </FormGroup>
-        );
-      })}
+      <h4>
+        <FormattedMessage id="FILTER_LOCATION" />
+      </h4>
+      <Description>
+        <FormattedMessage id="FILTER_LOCATION_DESC" />
+      </Description>
+      <div className="d-flex flex-row">
 
+        <FormGroup
+          key={"lat"}
+          style={{
+            marginRight: "10px",
+          }}
+        >
+          <FormLabel>
+            <FormattedMessage id="LAT" />
+          </FormLabel>
+          <FormControl
+            type="number"
+            placeholder={
+              intl.formatMessage({ id: "TYPE_NUMBER" })
+            }
+            value={location.lat}
+            onChange={(e) => {
+              setLocation((prevLocation) => ({
+                ...prevLocation,
+                lat: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </FormGroup>
+
+        <FormGroup
+          key={"bearing"}
+          style={{
+            marginRight: "10px",
+          }}
+        >
+          <FormLabel>
+            <FormattedMessage id="LONGITUDE" />
+          </FormLabel>
+          <FormControl
+            type="number"
+            placeholder={
+              intl.formatMessage({ id: "TYPE_NUMBER" })
+            }
+            value={location.lng}
+            onChange={(e) => {
+              setLocation((prevLocation) => ({
+                ...prevLocation,
+                lng: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </FormGroup>
+        <FormGroup
+          key={"bearing"}
+          style={{
+            marginRight: "10px",
+          }}
+        >
+          <FormLabel>
+            <FormattedMessage id="BEARING" />
+          </FormLabel>
+          <FormControl
+            type="number"
+            placeholder={
+              intl.formatMessage({ id: "TYPE_NUMBER" })
+            }
+            value={location.bearing}
+            onChange={(e) => {
+              setLocation((prevLocation) => ({
+                ...prevLocation,
+                bearing: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </FormGroup>
+        <FormGroup
+          key={"distance"}
+          style={{
+            marginRight: "10px",
+          }}
+        >
+          <FormLabel>
+            <FormattedMessage id="DISTANCE" />
+          </FormLabel>
+          <FormControl
+            type="number"
+            placeholder={
+              intl.formatMessage({ id: "TYPE_NUMBER" })
+            }
+            value={location.distance}
+            onChange={(e) => {
+              setLocation((prevLocation) => ({
+                ...prevLocation,
+                distance: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </FormGroup>
+      </div>
       <div
         className="mt-4"
         style={{

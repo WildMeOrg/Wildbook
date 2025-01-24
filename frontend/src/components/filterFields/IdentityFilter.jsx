@@ -101,6 +101,15 @@ export default function IdentityFilter({ onChange }) {
         />
       </Form>
       <FormGroupText
+        label="FILTER_NUMBER_REPORTED_MARKED_INDIVIDUALS"
+        noDesc={true}
+        field={"numberMarkedIndividuals"}
+        term={"match"}
+        filterId={"numberMarkedIndividuals"}
+        onChange={onChange}
+        filterKey={"Number of Reported Marked Individuals"}
+      />
+      <FormGroupText
         label="FILTER_ALTERNATIVE_ID"
         noDesc={true}
         field={"otherCatalogNumbers"}
@@ -108,7 +117,7 @@ export default function IdentityFilter({ onChange }) {
         filterId={"otherCatalogNumbers"}
         onChange={onChange}
         filterKey={"Alternative ID"}
-      />
+      />      
       <FormGroupText
         label="FILTER_INDIVIDUAL_NAME"
         field={"individualNames"}

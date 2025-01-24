@@ -4,6 +4,7 @@ import { Form } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
 import AndSelector from "../AndSelector";
+import FormGroupText from "../Form/FormGroupText";
 
 export default function SocialFilter({ data, onChange }) {
   const [isUnitChecked, setIsUnitChecked] = React.useState(false);
@@ -32,6 +33,25 @@ export default function SocialFilter({ data, onChange }) {
       <Description>
         <FormattedMessage id="FILTER_SOCIAL_DESC" />
       </Description>
+
+      <FormGroupText
+        label="FILTER_GROUP_BEHAVIOR"
+        noDesc={true}
+        field={"groupBehavior"}
+        term={"match"}
+        filterId={"groupBehavior"}
+        onChange={onChange}
+        filterKey={"Group Behavior"}
+      />
+      <FormGroupText
+        label="FILTER_GROUP_COMPOSITION"
+        noDesc={true}
+        field={"groupComposition"}
+        term={"match"}
+        filterId={"groupComposition"}
+        onChange={onChange}
+        filterKey={"Group Composition"}
+      />
 
       <div className="d-flex flex-row justify-content-between mt-2">
         <Form.Label>
