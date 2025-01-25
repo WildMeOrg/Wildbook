@@ -121,13 +121,23 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        String speciesString = enc.getTaxonomyString();
 	        Annotation ann = new Annotation(speciesString, crMa);
 	        ann.setMatchAgainst(true);
-	        String iaClass = "whalesharkCR"; // should we change this?
-	        if(enc.getSpecificEpithet()!=null) {
-	        	if(enc.getSpecificEpithet().equals("tigrinum")) {
-	        		iaClass = "leopard_shark";
-	        	}
+	        //WB-1841 only whale sharks are currently matchable via this method
+	        if(speciesString!=null && speciesString.equals("Rhincodon typus")) {
+	          ann.setMatchAgainst(true);
+	          String iaClass = "whaleshark"; // should we change this?
+	          ann.setIAClass(iaClass);
 	        }
-	        ann.setIAClass(iaClass);
+	        else if(speciesString!=null && speciesString.equals("Stegostoma tigrinum")) {
+	          ann.setMatchAgainst(true);
+	          String iaClass = "leopard_shark"; // should we change this?
+	          ann.setIAClass(iaClass);
+	        }
+	        else if(speciesString!=null && speciesString.equals("Scyliorhinus stellaris")) {
+	          ann.setMatchAgainst(true);
+	          String iaClass = "nursehoundsharkCR"; // should we change this?
+	          ann.setIAClass(iaClass);
+	        }
+
 	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
 	        enc.addAnnotation(ann);
 	        System.out.println("    + made annotation " + ann.toString());
