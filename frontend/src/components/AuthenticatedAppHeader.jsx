@@ -8,6 +8,7 @@ import AvatarAndUserProfile from "./header/AvatarAndUserProfile";
 import Menu from "./header/Menu";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
+import HeaderQuickSearch from "./header/HeaderQuickSearch";
 
 export default function AuthenticatedAppHeader({
   username,
@@ -37,7 +38,7 @@ export default function AuthenticatedAppHeader({
         className="container"
         style={{
           height: "50px",
-          paddingLeft: "5%",
+          paddingLeft: 0,
           paddingRight: "5%",
         }}
       >
@@ -60,7 +61,7 @@ export default function AuthenticatedAppHeader({
               href="/"
             >
               <Logo />
-              {process.env.SITE_NAME}
+              <span className="site-name">{process.env.SITE_NAME}</span>
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
@@ -78,6 +79,7 @@ export default function AuthenticatedAppHeader({
                   showClassicEncounterSearch={showClassicEncounterSearch}
                 />
               </Nav>
+              <HeaderQuickSearch />
               <NotificationButton
                 collaborationTitle={collaborationTitle}
                 collaborationData={collaborationData}
