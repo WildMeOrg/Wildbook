@@ -20,7 +20,7 @@ const NotificationButton = ({
       style={{
         width: "35px",
         height: "35px",
-        marginLeft: "20px",
+        marginLeft: "5px",
         position: "relative",
       }}
       tabIndex={0}

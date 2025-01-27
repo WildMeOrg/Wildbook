@@ -192,6 +192,7 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
+
 }
 
 .nav-brand {
@@ -301,7 +302,7 @@
 @media (max-width: 991px) {
 
   .site-name {
-    margin-right: 40px;
+    display: none !important;
   }
 
   .navbar-toggle {
