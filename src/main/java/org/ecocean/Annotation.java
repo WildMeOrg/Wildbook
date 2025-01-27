@@ -729,7 +729,8 @@ public class Annotation extends Base implements java.io.Serializable {
    these will be "mixed into" the built default query. TODO this might cause some conflict or
    overwriting that needs to be addressed in the future
  */
-    public JSONObject getMatchingSetQuery(Shepherd myShepherd, JSONObject additionalQuery) {
+    public JSONObject getMatchingSetQuery(Shepherd myShepherd, JSONObject additionalQuery,
+        boolean useClauses) {
         Encounter enc = this.findEncounter(myShepherd);
 
         if (enc == null) {
@@ -742,28 +743,45 @@ public class Annotation extends Base implements java.io.Serializable {
         JSONObject wrapper = new JSONObject();
         JSONObject arg = new JSONObject();
         String txStr = enc.getTaxonomyString();
-        if ((txStr == null) && !Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
+        if (txStr != null) {
+            useClauses = true;
+            arg.put("encounterTaxonomy", txStr);
+            wrapper.put("match", arg);
+            query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+        } else if (!Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
             "allowIdentificationWithoutTaxonomy"))) {
             System.out.println(
                 "WARNING: getMatchingSetQuery() no taxonomy and allowIdentificationWithoutTaxonomy not set; returning empty set");
             return null;
         }
-        arg.put("encounterTaxonomy", txStr);
-        wrapper.put("match", arg);
-        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
-
-        String[] viewpoints = this.getViewpointAndNeighbors();
-        if (viewpoints == null) {
-            System.out.println(
-                "WARNING: getMatchingSet() could not find neighboring viewpoints for " + this);
-            return null;
+        // it seems like useClauses=false only ever was used when no taxonomy was present and basically
+        // returned every annotation with matchAgainst=T and an acmId
+        if (useClauses) {
+            String[] viewpoints = this.getViewpointAndNeighbors();
+            if (viewpoints == null) {
+                System.out.println(
+                    "WARNING: getMatchingSet() could not find neighboring viewpoints for " + this);
+                return null;
+            }
+            arg = new JSONObject();
+            arg.put("viewpoint", new JSONArray(viewpoints));
+            wrapper = new JSONObject();
+            wrapper.put("terms", arg);
+            query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+            if (Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
+                "usePartsForIdentification"))) {
+                String part = this.getPartIfPresent();
+                if (!Util.stringIsEmptyOrNull(part)) {
+                    // TODO really should check that iaClass ENDS WITH part
+                    arg = new JSONObject();
+                    arg.put("iaClass", part);
+                    wrapper = new JSONObject();
+                    wrapper.put("match", arg);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        wrapper);
+                }
+            }
         }
-        arg = new JSONObject();
-        arg.put("viewpoint", new JSONArray(viewpoints));
-        wrapper = new JSONObject();
-        wrapper.put("terms", arg);
-        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
-
         // matchAgainst true
         arg = new JSONObject();
         arg.put("matchAgainst", true);
@@ -784,7 +802,7 @@ public class Annotation extends Base implements java.io.Serializable {
         wrapper = new JSONObject();
         wrapper.put("match", arg);
         query.getJSONObject("query").getJSONObject("bool").getJSONArray("must_not").put(wrapper);
-        // TODO UseClauses ???
+        // fold in additionalQuery
         if (additionalQuery != null) {
             JSONArray arr = additionalQuery.optJSONArray("filter");
             if (arr != null) {
@@ -805,24 +823,26 @@ public class Annotation extends Base implements java.io.Serializable {
                 }
             }
         }
+        System.out.println("getMatchingSet() returning query=" + query.toString(4));
         return query;
     }
 
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
-        return getMatchingSet(myShepherd, null);
+        return getMatchingSet(myShepherd, null, true);
     }
 
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject additionalQuery) {
+        return getMatchingSet(myShepherd, additionalQuery, true);
+    }
+
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject additionalQuery,
+        boolean useClauses) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        JSONObject query = getMatchingSetQuery(myShepherd, additionalQuery);
+        JSONObject query = getMatchingSetQuery(myShepherd, additionalQuery, useClauses);
 
         if (query == null) return anns;
         // TODO query it, duh
         return anns;
-    }
-
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject query) {
-        return null;
     }
 
     public ArrayList<Annotation> EXgetMatchingSet(Shepherd myShepherd) {
