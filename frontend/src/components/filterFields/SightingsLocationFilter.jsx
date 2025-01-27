@@ -20,27 +20,28 @@ export default function SightingsLocationFilter({ onChange, data }) {
 
   useEffect(() => {
     const allFieldsFilled =
-      Object.values(location).length === 4 &&
+      Object.values(location).length === 2 &&
       Object.values(location).every(
         (value) => value !== undefined && value !== "",
       );
     if (location && allFieldsFilled) {
       onChange({
-        filterId: "sightingslocationMap",
+        filterId: "occurrenceLocationGeoPoint",
         clause: "filter",
-        filterKey: "sightingslocation",
-        field: "sightingslocation",
+        filterKey: "sightings location",
+        field: "occurrenceLocationGeoPoint",
         query: {
           geo_distance: {
-            lat: location.lat,
-            lon: location.lng,
-            bearing: location.bearing,
-            distance: location.distance,
+            distance: `10 km`,
+            occurrenceLocationGeoPoint: {
+              lat: location.lat,
+              lon: location.lng,
+            },
           },
         },
       });
     } else {
-      onChange(null, "sightingslocationMap");
+      onChange(null, "occurrenceLocationGeoPoint");
     }
   }, [location]);
 
@@ -172,10 +173,17 @@ export default function SightingsLocationFilter({ onChange, data }) {
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.bearing}
             onChange={(e) => {
-              setLocation((prevLocation) => ({
-                ...prevLocation,
-                bearing: parseFloat(e.target.value),
-              }));
+              onChange({
+                filterId: "occurrenceBearing",
+                clause: "filter",
+                filterKey: "Sighting Bearing",
+                field: "occurrenceBearing",
+                query: {
+                  match: {
+                    occurrenceBearing: e.target.value,
+                  },
+                },
+              });
             }}
           />
         </FormGroup>
@@ -193,10 +201,17 @@ export default function SightingsLocationFilter({ onChange, data }) {
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.distance}
             onChange={(e) => {
-              setLocation((prevLocation) => ({
-                ...prevLocation,
-                distance: parseFloat(e.target.value),
-              }));
+              onChange({
+                filterId: "occurrenceDistance",
+                clause: "filter",
+                filterKey: "Sighting Distance",
+                field: "occurrenceDistance",
+                query: {
+                  match: {
+                    occurrenceDistance: e.target.value,
+                  },
+                },
+              });
             }}
           />
         </FormGroup>

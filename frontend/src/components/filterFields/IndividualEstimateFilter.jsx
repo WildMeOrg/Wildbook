@@ -16,29 +16,29 @@ export default function IndividualEstimateFilter({ onChange }) {
       <FormGroupText
         label="FILTER_BEST_ESTIMATE_INDIVIDUALS"
         noDesc={true}
-        field={"bestEstimateIndividuals"}
+        field={"occurrenceBestGroupSizeEstimate"}
         term={"match"}
-        filterId={"bestEstimateIndividuals"}
+        filterId={"occurrenceBestGroupSizeEstimate"}
         onChange={onChange}
         filterKey={"Best Estimate Individuals"}
       />
       <FormGroupText
         label="FILTER_MINIMUM_ESTIMATE_INDIVIDUALS"
         noDesc={true}
-        field={"minimumEstimateIndividuals"}
+        field={"occurrenceMinGroupSizeEstimate"}
         term={"match"}
-        filterId={"minimumEstimateIndividuals"}
+        filterId={"occurrenceMinGroupSizeEstimate"}
         onChange={onChange}
         filterKey={"Minimum Estimate Individuals"}
       />
       <FormGroupText
         label="FILTER_MAXIMUM_ESTIMATE_INDIVIDUALS"
         noDesc={true}
-        field={"groupComposition"}
+        field={"occurrenceMaxGroupSizeEstimate"}
         term={"match"}
-        filterId={"groupComposition"}
+        filterId={"occurrenceMaxGroupSizeEstimate"}
         onChange={onChange}
-        filterKey={"Group Composition"}
+        filterKey={"Maximum Estimate Individuals"}
       />
     </div>
   );
