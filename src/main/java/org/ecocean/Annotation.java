@@ -163,6 +163,7 @@ public class Annotation extends Base implements java.io.Serializable {
         jgen.writeStringField("acmId", this.getAcmId());
         jgen.writeStringField("viewpoint", this.getViewpoint());
         jgen.writeStringField("iaClass", this.getIAClass());
+        jgen.writeBooleanField("matchAgainst", this.getMatchAgainst());
         MediaAsset ma = this.getMediaAsset();
         if (ma != null) {
             jgen.writeNumberField("mediaAssetId", ma.getId());
@@ -722,23 +723,145 @@ public class Annotation extends Base implements java.io.Serializable {
         return thisPart;
     }
 
+/*
+   additionalQuery can currently contain two top-level keys: filter and must_not.
+   both must be arrays which contain objects.
+   these will be "mixed into" the built default query. TODO this might cause some conflict or
+   overwriting that needs to be addressed in the future
+ */
+    public JSONObject getMatchingSetQuery(Shepherd myShepherd, JSONObject additionalQuery,
+        boolean useClauses) {
+        Encounter enc = this.findEncounter(myShepherd);
+
+        if (enc == null) {
+            System.out.println("WARNING: getMatchingSetQuery() could not find Encounter for " +
+                this);
+            return null;
+        }
+        JSONObject query = new JSONObject(
+            "{\"query\": {\"bool\": {\"filter\": [], \"must_not\": []} } }");
+        JSONObject wrapper = new JSONObject();
+        JSONObject arg = new JSONObject();
+        String txStr = enc.getTaxonomyString();
+        if (txStr != null) {
+            useClauses = true;
+            arg.put("encounterTaxonomy", txStr);
+            wrapper.put("match", arg);
+            query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+        } else if (!Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
+            "allowIdentificationWithoutTaxonomy"))) {
+            System.out.println(
+                "WARNING: getMatchingSetQuery() no taxonomy and allowIdentificationWithoutTaxonomy not set; returning empty set");
+            return null;
+        }
+        // it seems like useClauses=false only ever was used when no taxonomy was present and basically
+        // returned every annotation with matchAgainst=T and an acmId
+        if (useClauses) {
+            String[] viewpoints = this.getViewpointAndNeighbors();
+            if (viewpoints == null) {
+                System.out.println(
+                    "WARNING: getMatchingSet() could not find neighboring viewpoints for " + this);
+                return null;
+            }
+            arg = new JSONObject();
+            arg.put("viewpoint", new JSONArray(viewpoints));
+            wrapper = new JSONObject();
+            wrapper.put("terms", arg);
+            query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+            if (Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
+                "usePartsForIdentification"))) {
+                String part = this.getPartIfPresent();
+                if (!Util.stringIsEmptyOrNull(part)) {
+                    // TODO really should check that iaClass ENDS WITH part
+                    arg = new JSONObject();
+                    arg.put("iaClass", part);
+                    wrapper = new JSONObject();
+                    wrapper.put("match", arg);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        wrapper);
+                }
+            }
+        }
+        // matchAgainst true
+        arg = new JSONObject();
+        arg.put("matchAgainst", true);
+        wrapper = new JSONObject();
+        wrapper.put("term", arg);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+
+        // must have acmId
+        arg = new JSONObject();
+        arg.put("field", "acmId");
+        wrapper = new JSONObject();
+        wrapper.put("exists", arg);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+
+        // exclude our encounter
+        arg = new JSONObject();
+        arg.put("encounterId", enc.getId());
+        wrapper = new JSONObject();
+        wrapper.put("match", arg);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("must_not").put(wrapper);
+        // fold in additionalQuery
+        if (additionalQuery != null) {
+            JSONArray arr = additionalQuery.optJSONArray("filter");
+            if (arr != null) {
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject clause = arr.optJSONObject(i);
+                    if (clause != null)
+                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                            "filter").put(clause);
+                }
+            }
+            arr = additionalQuery.optJSONArray("must_not");
+            if (arr != null) {
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject clause = arr.optJSONObject(i);
+                    if (clause != null)
+                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                            "must_not").put(clause);
+                }
+            }
+        }
+        System.out.println("getMatchingSet() returning query=" + query.toString(4));
+        return query;
+    }
+
     public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd) {
-        return getMatchingSet(myShepherd, null);
+        return getMatchingSet(myShepherd, null, true);
+    }
+
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject additionalQuery) {
+        return getMatchingSet(myShepherd, additionalQuery, true);
+    }
+
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject additionalQuery,
+        boolean useClauses) {
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        JSONObject query = getMatchingSetQuery(myShepherd, additionalQuery, useClauses);
+
+        if (query == null) return anns;
+        // TODO query it, duh
+        return anns;
+    }
+
+    public ArrayList<Annotation> EXgetMatchingSet(Shepherd myShepherd) {
+        return EXgetMatchingSet(myShepherd, null);
     }
 
     // params (usually?) come from task.parameters
-    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params) {
-        return getMatchingSet(myShepherd, params, true);
+    public ArrayList<Annotation> EXgetMatchingSet(Shepherd myShepherd, JSONObject params) {
+        return EXgetMatchingSet(myShepherd, params, true);
     }
 
-    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject params,
+    public ArrayList<Annotation> EXgetMatchingSet(Shepherd myShepherd, JSONObject params,
         boolean useClauses) {
-        System.out.println("[1] getMatchingSet params=" + params);
+        System.out.println("[1] EXgetMatchingSet params=" + params);
         // Make sure we don't include any 'siblings' no matter how we return..
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Encounter myEnc = this.findEncounter(myShepherd);
         if (myEnc == null) {
-            System.out.println("WARNING: getMatchingSet() could not find Encounter for " + this);
+            System.out.println("WARNING: EXgetMatchingSet() could not find Encounter for " + this);
             return anns;
         }
         System.out.println("Getting matching set for annotation. Retrieved encounter = " +
@@ -746,7 +869,7 @@ public class Annotation extends Base implements java.io.Serializable {
         String myGenus = myEnc.getGenus();
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
-            anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
+            anns = EXgetMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
         } else if (!Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
             "allowIdentificationWithoutTaxonomy"))) {
             System.out.println(
@@ -755,31 +878,31 @@ public class Annotation extends Base implements java.io.Serializable {
         } else if (useClauses) {
             System.out.println("MATCHING ALL SPECIES : Filter for Annotation id=" + this.id +
                 " is using viewpoint neighbors and matching parts.");
-            anns = getMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
+            anns = EXgetMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
         } else {
             System.out.println(
                 "MATCHING ALL SPECIES : The parent encounter for query Annotation id=" + this.id +
                 " has not specified specificEpithet and genus, and is not using clauses.");
-            anns = getMatchingSetAllSpecies(myShepherd);
+            anns = EXgetMatchingSetAllSpecies(myShepherd);
         }
         System.out.println("Did the query return any encounters? It got: " + anns.size());
         return anns;
     }
 
     // the figure-it-out-yourself version
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
+    public ArrayList<Annotation> EXgetMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
         JSONObject params) {
-        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd,
+        return EXgetMatchingSetForTaxonomyExcludingAnnotation(myShepherd,
                 this.findEncounter(myShepherd), params);
     }
 
     // note: this also excludes "sibling annots" (in same encounter)
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
+    public ArrayList<Annotation> EXgetMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
         Encounter enc, JSONObject params) {
-        return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, enc, params, true);
+        return EXgetMatchingSetForTaxonomyExcludingAnnotation(myShepherd, enc, params, true);
     }
 
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
+    public ArrayList<Annotation> EXgetMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
         Encounter enc, JSONObject params, boolean filterIAClass) {
         String filter = "";
 
@@ -787,9 +910,9 @@ public class Annotation extends Base implements java.io.Serializable {
             !Util.stringExists(enc.getSpecificEpithet())) return null;
         else if (enc.getSpecificEpithet().equals("sp")) {
             filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " +
-                this.getMatchingSetFilterFromParameters(params) +
-                this.getMatchingSetFilterIAClassClause(filterIAClass,
-                this.getIAClass()) + this.getMatchingSetFilterViewpointClause(myShepherd) +
+                this.EXgetMatchingSetFilterFromParameters(params) +
+                this.EXgetMatchingSetFilterIAClassClause(filterIAClass,
+                this.getIAClass()) + this.EXgetMatchingSetFilterViewpointClause(myShepherd) +
                 this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" +
                 enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" +
                 enc.getGenus() + "' VARIABLES org.ecocean.Encounter enc";
@@ -797,9 +920,9 @@ public class Annotation extends Base implements java.io.Serializable {
         // do we need to worry about our annot living in another encounter?  i hope not!
         else {
             filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " +
-                this.getMatchingSetFilterFromParameters(params) +
-                this.getMatchingSetFilterIAClassClause(filterIAClass,
-                this.getIAClass()) + this.getMatchingSetFilterViewpointClause(myShepherd) +
+                this.EXgetMatchingSetFilterFromParameters(params) +
+                this.EXgetMatchingSetFilterIAClassClause(filterIAClass,
+                this.getIAClass()) + this.EXgetMatchingSetFilterViewpointClause(myShepherd) +
                 this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" +
                 enc.getCatalogNumber()
                 // + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
@@ -808,11 +931,11 @@ public class Annotation extends Base implements java.io.Serializable {
         }
         if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";
         if (filter.matches(".*\\bproject\\b.*")) filter += "; org.ecocean.Project project";
-        return getMatchingSetForFilter(myShepherd, filter);
+        return EXgetMatchingSetForFilter(myShepherd, filter);
     }
 
     // gets everything, no exclusions (e.g. for cacheing)
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus,
+    public ArrayList<Annotation> EXgetMatchingSetForTaxonomy(Shepherd myShepherd, String genus,
         String specificEpithet, JSONObject params) {
         String filter = "";
 
@@ -827,23 +950,24 @@ public class Annotation extends Base implements java.io.Serializable {
                 + genus + "' && enc.specificEpithet == '" + specificEpithet +
                 "' VARIABLES org.ecocean.Encounter enc";
         }
-        return getMatchingSetForFilter(myShepherd, filter);
+        return EXgetMatchingSetForFilter(myShepherd, filter);
     }
 
-    public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
+    public ArrayList<Annotation> EXgetMatchingSetForTaxonomy(Shepherd myShepherd,
+        JSONObject params) {
         Encounter enc = this.findEncounter(myShepherd);
 
         if (enc == null) return null;
-        return getMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet(),
+        return EXgetMatchingSetForTaxonomy(myShepherd, enc.getGenus(), enc.getSpecificEpithet(),
                 params);
     }
 
     // pass in a generic SELECT filter query string and get back Annotations
-    static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd,
+    static public ArrayList<Annotation> EXgetMatchingSetForFilter(Shepherd myShepherd,
         String filter) {
         if (filter == null) return null;
         long t = System.currentTimeMillis();
-        System.out.println("INFO: getMatchingSetForFilter filter = " + filter);
+        System.out.println("INFO: EXgetMatchingSetForFilter filter = " + filter);
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
@@ -854,33 +978,33 @@ public class Annotation extends Base implements java.io.Serializable {
             anns.add(ann);
         }
         query.closeAll();
-        System.out.println("INFO: getMatchingSetForFilter found " + anns.size() + " annots (" +
+        System.out.println("INFO: EXgetMatchingSetForFilter found " + anns.size() + " annots (" +
             (System.currentTimeMillis() - t) + "ms)");
         return anns;
     }
 
     // If you don't specify a species, still take into account viewpoint and parts
-    public ArrayList<Annotation> getMatchingSetForAnnotationAllSpeciesUseClauses(
+    public ArrayList<Annotation> EXgetMatchingSetForAnnotationAllSpeciesUseClauses(
         Shepherd myShepherd) {
-        return getMatchingSetForFilter(myShepherd,
+        return EXgetMatchingSetForFilter(myShepherd,
                 "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " +
-                this.getMatchingSetFilterViewpointClause(myShepherd) +
+                this.EXgetMatchingSetFilterViewpointClause(myShepherd) +
                 this.getPartClause(myShepherd) + " && acmId != null");
     }
 
-    static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
-        return getMatchingSetForFilter(myShepherd,
+    static public ArrayList<Annotation> EXgetMatchingSetAllSpecies(Shepherd myShepherd) {
+        return EXgetMatchingSetForFilter(myShepherd,
                 "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
 
     static public ArrayList<Annotation> getAllMatchAgainstTrue(Shepherd myShepherd) {
-        return getMatchingSetForFilter(myShepherd,
+        return EXgetMatchingSetForFilter(myShepherd,
                 "SELECT FROM org.ecocean.Annotation WHERE matchAgainst");
     }
 
     // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
     // note: will return "" when this annot has no (valid) viewpoint
-    private String getMatchingSetFilterViewpointClause(Shepherd myShepherd) {
+    private String EXgetMatchingSetFilterViewpointClause(Shepherd myShepherd) {
         String[] viewpoints = this.getViewpointAndNeighbors();
 
         if (viewpoints == null) return "";
@@ -894,7 +1018,7 @@ public class Annotation extends Base implements java.io.Serializable {
         return clause;
     }
 
-    private String getMatchingSetFilterIAClassClause(boolean filterIAClass, String iaClass) {
+    private String EXgetMatchingSetFilterIAClassClause(boolean filterIAClass, String iaClass) {
         if (!filterIAClass) return "";
         String iaClassClause = " && iaClass.equals('" + iaClass + "') ";
         return iaClassClause;
@@ -918,7 +1042,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
     // > > > ATTENTION!  if you change this method, please also adjust accordingly getCurvrankDailyTag() below!! < < <
-    private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
+    private String EXgetMatchingSetFilterFromParameters(JSONObject taskParams) {
         if (taskParams == null) return "";
         String userId = taskParams.optString("userId", null);
         JSONObject j = taskParams.optJSONObject("matchingSetFilter");
@@ -984,7 +1108,7 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
     /*
-        sorta weird to have this in here, but it is inherently linked with getMatchingSetXXX() above ...
+        sorta weird to have this in here, but it is inherently linked with EXgetMatchingSetXXX() above ...
         this is a string that uniquely identifies the matchingSet, dependent of content (e.g. cant be based on content uuids)
      */
     public String getCurvrankDailyTag(JSONObject taskParams) {
