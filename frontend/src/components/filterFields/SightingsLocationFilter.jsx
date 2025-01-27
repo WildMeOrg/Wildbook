@@ -179,7 +179,7 @@ export default function SightingsLocationFilter({ onChange, data }) {
                 filterKey: "Sighting Bearing",
                 field: "occurrenceBearing",
                 query: {
-                  match: {
+                  term: {
                     occurrenceBearing: e.target.value,
                   },
                 },
@@ -207,7 +207,7 @@ export default function SightingsLocationFilter({ onChange, data }) {
                 filterKey: "Sighting Distance",
                 field: "occurrenceDistance",
                 query: {
-                  match: {
+                  term: {
                     occurrenceDistance: e.target.value,
                   },
                 },
