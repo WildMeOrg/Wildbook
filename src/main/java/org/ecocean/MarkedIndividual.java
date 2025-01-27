@@ -1945,7 +1945,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     public long getTimeOfBirth() { return timeOfBirth; }
-    public long getTimeofDeath() { return timeOfDeath; }
+    public long getTimeOfDeath() { return timeOfDeath; }
+    public long getTimeofDeath() { return timeOfDeath; } // whats up with this of
 
     public void setTimeOfBirth(long newTime) { timeOfBirth = newTime; }
     public void setTimeOfDeath(long newTime) { timeOfDeath = newTime; }
