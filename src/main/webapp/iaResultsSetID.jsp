@@ -36,7 +36,7 @@ private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
 			System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
 	    }
 	    SystemValue.set(myShepherd, svKey, m);
-	    myShepherd.commitDBTransaction();
+	    myShepherd.updateDBTransaction();
 	}
 	catch(Exception e){e.printStackTrace();}
 }
