@@ -116,9 +116,9 @@ function Chip({ children }) {
     }
 
     if (query?.geo_distance) {
-      const { lat, lon, bearing, distance } = query.geo_distance;
+      const { occurrenceLocationGeoPoint, distance } = query.geo_distance;
       entries.push(
-        `Location within ${distance} km of latitude: ${lat}, longitude: ${lon}`,
+        `Location within ${distance} km of latitude: ${occurrenceLocationGeoPoint.lat}, longitude: ${occurrenceLocationGeoPoint.lon}`,
       );
     }
 

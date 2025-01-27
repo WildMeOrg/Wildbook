@@ -61,11 +61,13 @@ export default function IndividualDateFilter({ onChange }) {
             onChange={(e) => {
               setBirthDate(e.target.value);
               onChange({
-                filterId: "birthdate",
+                filterId: "individualTimeofBirth",
                 filterKey: "Birth Date",
                 clause: "filter",
                 query: {
-                  birthdate: e.target.value,
+                  match: {
+                    individualTimeofBirth: e.target.value,
+                  },
                 },
               });
             }}
@@ -81,11 +83,13 @@ export default function IndividualDateFilter({ onChange }) {
             onChange={(e) => {
               setDeathDate(e.target.value);
               onChange({
-                filterId: "deathdate",
+                filterId: "individualTimeofDeath",
                 filterKey: "Death Date",
                 clause: "filter",
                 query: {
-                  deathdate: e.target.value,
+                  match: {
+                    individualTimeofDeath: e.target.value,
+                  },
                 },
               });
             }}
