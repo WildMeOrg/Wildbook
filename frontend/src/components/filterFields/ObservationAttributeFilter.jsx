@@ -58,9 +58,9 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         overflow: "visible",
       }}
     >
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE_DESC" />
       </Description>
@@ -108,7 +108,7 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         filterKey={"Genus and Species"}
       />
 
-      <FormGroupText
+      {/* <FormGroupText
         label="FILTER_SIGHTING_ID"
         noDesc={true}
         onChange={onChange}
@@ -116,7 +116,7 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         field="occurrenceId"
         filterId={"occurrenceId"}
         filterKey={"Sighting ID"}
-      />
+      /> */}
 
       <FormGroup className="mt-2">
         <FormLabel>
@@ -125,14 +125,14 @@ export default function ObservationAttributeFilter({ onChange, data }) {
 
         <DynamicInputs onChange={onChange} />
       </FormGroup>
-      <FormGroupText
+      {/* <FormGroupText
         label="FILTER_OBSERVATION_COMMENTS"
         onChange={onChange}
         term="match"
         field="occurrenceRemarks"
         filterId={"occurrenceRemarks"}
         filterKey={"Observation Comments"}
-      />
+      /> */}
 
       <FormGroupMultiSelect
         isMulti={true}

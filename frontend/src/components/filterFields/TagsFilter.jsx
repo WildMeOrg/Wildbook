@@ -16,9 +16,9 @@ export default function TagsFilter({ data, onChange }) {
   const intl = useIntl();
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_TAGS" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_TAGS_DESC" />
       </Description>

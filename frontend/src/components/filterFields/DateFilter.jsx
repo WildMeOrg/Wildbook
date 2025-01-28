@@ -86,9 +86,9 @@ export default function DateFilter({ onChange, data }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_DATE" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_DATE_DESC" />
       </Description>
