@@ -4291,11 +4291,14 @@ public class Encounter extends Base implements java.io.Serializable {
             if (occ.getIndividualCount() != null)
                 jgen.writeNumberField("occurrenceIndividualCount", occ.getIndividualCount());
             if (occ.getMinGroupSizeEstimate() != null)
-                jgen.writeNumberField("occurrenceMinGroupSizeEstimate", occ.getMinGroupSizeEstimate());
+                jgen.writeNumberField("occurrenceMinGroupSizeEstimate",
+                    occ.getMinGroupSizeEstimate());
             if (occ.getMaxGroupSizeEstimate() != null)
-                jgen.writeNumberField("occurrenceMaxGroupSizeEstimate", occ.getMaxGroupSizeEstimate());
+                jgen.writeNumberField("occurrenceMaxGroupSizeEstimate",
+                    occ.getMaxGroupSizeEstimate());
             if (occ.getBestGroupSizeEstimate() != null)
-                jgen.writeNumberField("occurrenceBestGroupSizeEstimate", occ.getBestGroupSizeEstimate());
+                jgen.writeNumberField("occurrenceBestGroupSizeEstimate",
+                    occ.getBestGroupSizeEstimate());
             if (occ.getBearing() != null)
                 jgen.writeNumberField("occurrenceBearing", occ.getBearing());
             if (occ.getDistance() != null)
@@ -4382,6 +4385,8 @@ public class Encounter extends Base implements java.io.Serializable {
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("individualTimeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("individualTimeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         map.put("occurrenceLocationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
 
@@ -4392,6 +4397,8 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("occurrenceId", keywordType);
         map.put("state", keywordType);
         map.put("submitterUserId", keywordType);
+        map.put("individualTaxonomy", keywordType);
+        map.put("individualId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
