@@ -95,7 +95,7 @@ export default function IndividualDateFilter({ onChange }) {
             }}
           />
         </FormGroup>
-        <FormLabel>
+        {/* <FormLabel>
           <FormattedMessage id="FILTER_DATE_MATCHED" />
         </FormLabel>
         <div className="d-flex flex-row w-100 mb-2">
@@ -125,7 +125,7 @@ export default function IndividualDateFilter({ onChange }) {
               }}
             />
           </FormGroup>
-        </div>
+        </div> */}
       </>
     </div>
   );

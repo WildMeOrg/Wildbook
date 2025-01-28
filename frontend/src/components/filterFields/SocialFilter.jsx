@@ -37,18 +37,18 @@ export default function SocialFilter({ data, onChange }) {
       <FormGroupText
         label="FILTER_GROUP_BEHAVIOR"
         noDesc={true}
-        field={"occurenceGroupBehavior"}
+        field={"occurrenceGroupBehavior"}
         term={"match"}
-        filterId={"occurenceGroupBehavior"}
+        filterId={"occurrenceGroupBehavior"}
         onChange={onChange}
         filterKey={"Group Behavior"}
       />
       <FormGroupText
         label="FILTER_GROUP_COMPOSITION"
         noDesc={true}
-        field={"occurenceGroupComposition"}
+        field={"occurrenceGroupComposition"}
         term={"match"}
-        filterId={"occurenceGroupComposition"}
+        filterId={"occurrenceGroupComposition"}
         onChange={onChange}
         filterKey={"Group Composition"}
       />

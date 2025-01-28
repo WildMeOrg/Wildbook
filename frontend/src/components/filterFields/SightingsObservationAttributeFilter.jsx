@@ -32,8 +32,8 @@ export default function SightingsObservationAttributeFilter({ onChange }) {
         noDesc={true}
         onChange={onChange}
         term="match"
-        field="occurenceComments"
-        filterId={"occurenceComments"}
+        field="occurrenceComments"
+        filterId={"occurrenceComments"}
         filterKey={"Sighting Comments"}
       />
 
@@ -42,8 +42,8 @@ export default function SightingsObservationAttributeFilter({ onChange }) {
         noDesc={true}
         onChange={onChange}
         term="match"
-        field="occurenceVisibilityIndex"
-        filterId={"occurenceVisibilityIndex"}
+        field="occurrenceVisibilityIndex"
+        filterId={"occurrenceVisibilityIndex"}
         filterKey={"Visibility Index"}
       />
 

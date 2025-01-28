@@ -48,9 +48,9 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         noDesc={true}
         options={genusAndSpeciesOptions}
         onChange={onChange}
-        field="individualtaxonomy"
+        field="individualTaxonomy"
         term="terms"
-        filterId={"sightingsTaxonomy"}
+        filterId={"individualTaxonomy"}
         filterKey={"Individual Taxonomy"}
       />
     </div>
