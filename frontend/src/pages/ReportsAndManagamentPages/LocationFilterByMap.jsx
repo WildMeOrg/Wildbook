@@ -5,7 +5,7 @@ import MainButton from "../../components/MainButton";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { observer } from "mobx-react-lite";
 import "./reportEncounter.css";
-import { TreeSelect, Tag } from "antd";
+import { TreeSelect, Tag } from "antd/es";
 import Map from "../../components/Map";
 
 const customTagRender = (props) => {
