@@ -4029,7 +4029,9 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.beginDBTransaction();
         try {
             opensearchDocumentSerializer(jgen, myShepherd);
-        } catch (Exception e) {} finally {
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
             myShepherd.rollbackAndClose();
         }
     }
@@ -4284,13 +4286,20 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField("occurrenceGroupBehavior", occ.getGroupBehavior());
             jgen.writeStringField("occurrenceGroupComposition", occ.getGroupComposition());
             jgen.writeStringField("occurrenceComments", occ.getComments());
-            jgen.writeNumberField("occurrenceVisibilityIndex", occ.getVisibilityIndex());
-            jgen.writeNumberField("occurrenceIndividualCount", occ.getIndividualCount());
-            jgen.writeNumberField("occurrenceMinGroupSizeEstimate", occ.getMinGroupSizeEstimate());
-            jgen.writeNumberField("occurrenceMaxGroupSizeEstimate", occ.getMaxGroupSizeEstimate());
-            jgen.writeNumberField("occurrenceBestGroupSizeEstimate", occ.getBestGroupSizeEstimate());
-            jgen.writeNumberField("occurrenceBearing", occ.getBearing());
-            jgen.writeNumberField("occurrenceDistance", occ.getDistance());
+            if (occ.getVisibilityIndex() != null)
+                jgen.writeNumberField("occurrenceVisibilityIndex", occ.getVisibilityIndex());
+            if (occ.getIndividualCount() != null)
+                jgen.writeNumberField("occurrenceIndividualCount", occ.getIndividualCount());
+            if (occ.getMinGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceMinGroupSizeEstimate", occ.getMinGroupSizeEstimate());
+            if (occ.getMaxGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceMaxGroupSizeEstimate", occ.getMaxGroupSizeEstimate());
+            if (occ.getBestGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceBestGroupSizeEstimate", occ.getBestGroupSizeEstimate());
+            if (occ.getBearing() != null)
+                jgen.writeNumberField("occurrenceBearing", occ.getBearing());
+            if (occ.getDistance() != null)
+                jgen.writeNumberField("occurrenceDistance", occ.getDistance());
             Double odlat = occ.getDecimalLatitude();
             Double odlon = occ.getDecimalLongitude();
             if ((odlat == null) || !Util.isValidDecimalLatitude(odlat) || (odlon == null) ||
