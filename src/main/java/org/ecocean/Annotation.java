@@ -147,8 +147,10 @@ public class Annotation extends Base implements java.io.Serializable {
         map.put("acmId", keywordType);
         map.put("encounterId", keywordType);
         map.put("encounterSubmitterId", keywordType);
+        map.put("encounterUserUuid", keywordType);
         map.put("encounterLocationId", keywordType);
         map.put("encounterTaxonomy", keywordType);
+        map.put("encounterProjectIds", keywordType);
 
         // all case-insensitive keyword-ish types
         // map.put("fubar", keywordNormalType);
@@ -174,6 +176,16 @@ public class Annotation extends Base implements java.io.Serializable {
             jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+            User owner = enc.getSubmitterUser(myShepherd);
+            if (owner != null) jgen.writeStringField("encounterUserUuid", owner.getId());
+            List<Project> projects = enc.getProjects(myShepherd);
+            if (!Util.collectionIsEmptyOrNull(projects)) {
+                jgen.writeArrayFieldStart("encounterProjectIds");
+                for (Project proj : projects) {
+                    jgen.writeString(proj.getId());
+                }
+                jgen.writeEndArray();
+            }
         }
     }
 
@@ -724,12 +736,11 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
 /*
-   additionalQuery can currently contain two top-level keys: filter and must_not.
    both must be arrays which contain objects.
    these will be "mixed into" the built default query. TODO this might cause some conflict or
    overwriting that needs to be addressed in the future
  */
-    public JSONObject getMatchingSetQuery(Shepherd myShepherd, JSONObject additionalQuery,
+    public JSONObject getMatchingSetQuery(Shepherd myShepherd, JSONObject taskParams,
         boolean useClauses) {
         Encounter enc = this.findEncounter(myShepherd);
 
@@ -824,27 +835,95 @@ public class Annotation extends Base implements java.io.Serializable {
         wrapper = new JSONObject();
         wrapper.put("match", arg);
         query.getJSONObject("query").getJSONObject("bool").getJSONArray("must_not").put(wrapper);
-        // fold in additionalQuery
-        if (additionalQuery != null) {
-            JSONArray arr = additionalQuery.optJSONArray("filter");
-            if (arr != null) {
-                for (int i = 0; i < arr.length(); i++) {
-                    JSONObject clause = arr.optJSONObject(i);
-                    if (clause != null)
-                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
-                            "filter").put(clause);
+        // now process taskParams
+        if (taskParams != null) {
+            String userId = taskParams.optString("userId", null);
+            JSONObject filt = taskParams.optJSONObject("matchingSetFilter");
+            if (filt != null) {
+                // locationId=FOO and locationIds=[FOO,BAR]
+                boolean useNullLocation = false;
+                List<String> rawLocationIds = new ArrayList<String>();
+                String tmp = Util.basicSanitize(filt.optString("locationId", null));
+                if (Util.stringExists(tmp)) rawLocationIds.add(tmp);
+                JSONArray larr = filt.optJSONArray("locationIds");
+                if (larr != null) {
+                    for (int i = 0; i < larr.length(); i++) {
+                        tmp = Util.basicSanitize(larr.optString(i));
+                        if ("__NULL__".equals(tmp)) {
+                            useNullLocation = true;
+                        } else if (Util.stringExists(tmp) && !rawLocationIds.contains(tmp)) {
+                            rawLocationIds.add(tmp);
+                        }
+                    }
                 }
-            }
-            arr = additionalQuery.optJSONArray("must_not");
-            if (arr != null) {
-                for (int i = 0; i < arr.length(); i++) {
-                    JSONObject clause = arr.optJSONObject(i);
-                    if (clause != null)
-                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
-                            "must_not").put(clause);
+                List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
+                if (expandedLocationIds.size() > 0) {
+                    arg = new JSONObject();
+                    arg.put("encounterLocationId", new JSONArray(expandedLocationIds));
+                    wrapper = new JSONObject();
+                    wrapper.put("terms", arg);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        wrapper);
+                }
+/*
+                if (useNullLocation) {
+                    // FIXME
+                }
+ */
+                // owner ... which requires we have userId in the taskParams
+                JSONArray owner = filt.optJSONArray("owner");
+                JSONArray uids = new JSONArray();
+                if ((owner != null) && (userId != null)) {
+                    for (int i = 0; i < owner.length(); i++) {
+                        String opt = owner.optString(i, null);
+                        if (!Util.stringExists(opt)) continue;
+                        if (opt.equals("me")) {
+                            uids.put(userId);
+                        } else {
+                            uids.put(opt);
+                        }
+                    }
+                }
+                if (uids.length() > 0) {
+                    arg = new JSONObject();
+                    arg.put("encounterUserUuid", uids);
+                    wrapper = new JSONObject();
+                    wrapper.put("terms", arg);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        wrapper);
+                }
+                // projectId
+                String projectId = filt.optString("projectId", null);
+                if (Util.stringExists(projectId)) {
+                    arg = new JSONObject();
+                    arg.put("encounterProjectIds", projectId);
+                    wrapper = new JSONObject();
+                    wrapper.put("match", arg);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        wrapper);
                 }
             }
         }
+        /* saving this for possible future passing raw queries
+           JSONArray arr = additionalQuery.optJSONArray("filter");
+           if (arr != null) {
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject clause = arr.optJSONObject(i);
+                if (clause != null)
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                        "filter").put(clause);
+            }
+           }
+           arr = additionalQuery.optJSONArray("must_not");
+           if (arr != null) {
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject clause = arr.optJSONObject(i);
+                if (clause != null)
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                        "must_not").put(clause);
+            }
+           }
+         */
         System.out.println("getMatchingSetQuery() returning query=" + query.toString(4));
         return query;
     }
@@ -853,14 +932,14 @@ public class Annotation extends Base implements java.io.Serializable {
         return getMatchingSet(myShepherd, null, true);
     }
 
-    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject additionalQuery) {
-        return getMatchingSet(myShepherd, additionalQuery, true);
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject taskParams) {
+        return getMatchingSet(myShepherd, taskParams, true);
     }
 
-    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject additionalQuery,
+    public ArrayList<Annotation> getMatchingSet(Shepherd myShepherd, JSONObject taskParams,
         boolean useClauses) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        JSONObject query = getMatchingSetQuery(myShepherd, additionalQuery, useClauses);
+        JSONObject query = getMatchingSetQuery(myShepherd, taskParams, useClauses);
         OpenSearch os = new OpenSearch();
         long startTime = System.currentTimeMillis();
 
