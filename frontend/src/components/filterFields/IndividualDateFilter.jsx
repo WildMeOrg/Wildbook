@@ -66,7 +66,7 @@ export default function IndividualDateFilter({ onChange }) {
                 clause: "filter",
                 query: {
                   match: {
-                    individualTimeofBirth: e.target.value,
+                    individualTimeofBirth: `${e.target.value}T00:00:00.000Z`,
                   },
                 },
               });
@@ -88,7 +88,7 @@ export default function IndividualDateFilter({ onChange }) {
                 clause: "filter",
                 query: {
                   match: {
-                    individualTimeofDeath: e.target.value,
+                    individualTimeofDeath: `${e.target.value}T00:00:00.000Z`,
                   },
                 },
               });
