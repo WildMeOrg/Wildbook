@@ -61,19 +61,16 @@ export default function IndividualDateFilter({ onChange }) {
             onChange={(e) => {
               setBirthDate(e.target.value);
               onChange({
-                filterId: "individualTimeofBirth",
+                filterId: "individualTimeOfBirth",
                 filterKey: "Birth Date",
                 clause: "filter",
                 query: {
                   range: {
-                    individualTimeofBirth: {
+                    individualTimeOfBirth: {
                       gte: `${e.target.value}T00:00:00.000Z`,
                       lte: `${e.target.value}T23:59:59.000Z`,
                     },
-                  }
-                  // match: {
-                  //   individualTimeofBirth: `${e.target.value}T00:00:00.000Z`,
-                  // },
+                  }                  
                 },
               });
             }}
@@ -89,13 +86,16 @@ export default function IndividualDateFilter({ onChange }) {
             onChange={(e) => {
               setDeathDate(e.target.value);
               onChange({
-                filterId: "individualTimeofDeath",
+                filterId: "individualTimeOfDeath",
                 filterKey: "Death Date",
                 clause: "filter",
                 query: {
-                  match: {
-                    individualTimeofDeath: `${e.target.value}T00:00:00.000Z`,
-                  },
+                  range: {
+                    individualTimeOfDeath: {
+                      gte: `${e.target.value}T00:00:00.000Z`,
+                      lte: `${e.target.value}T23:59:59.000Z`,
+                    },
+                  } 
                 },
               });
             }}
