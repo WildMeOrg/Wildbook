@@ -224,6 +224,46 @@ if(request.getUserPrincipal()!=null){
               $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
             }
           );
+
+          const searchInput = document.getElementById("quick-search-input");
+          const closeButton = document.getElementById("quick-search-clear");
+          const resultsDropdown = document.getElementById("quick-search-results");
+
+          // Event listener for input changes
+          searchInput.addEventListener("input", function() {
+            console.log("Input changed");
+            const query = searchInput.value;
+            if (query.length > 0) {
+              $.ajax({
+                url: wildbookGlobals.baseUrl + '../quickSearch',
+                type: 'GET',
+                data: {
+                  query: query
+                },
+                success: function(data) {
+                  resultsDropdown.innerHTML = data;
+                },
+                error: function(x, y, z) {
+                  console.warn('%o %o %o', x, y, z);
+                }
+              });
+            } else {
+              resultsDropdown.innerHTML = "";
+            }
+          });
+
+          // Event listener for close button
+          closeButton.addEventListener("click", function() {
+            searchInput.value = "";
+            resultsDropdown.innerHTML = "";
+          });
+         
+          // Event listener to close dropdown when clicking outside
+          document.addEventListener("click", function(event) {
+            if (!event.target.closest(".search-wrapper")) {
+              resultsDropdown.innerHTML = "";
+            }
+          });
         });
       </script>
 
@@ -357,6 +397,8 @@ if(request.getUserPrincipal()!=null){
 
 
       </script>
+
+      
       <%
         }
       %>
@@ -529,8 +571,30 @@ if(request.getUserPrincipal()!=null){
                             }
                             %>
                         </ul>
-
                       </li>
+
+                      <div class="search-wrapper w-100"
+                        style="display: flex; justify-content: center; align-items: center; margin: 0 10px; "
+                      >
+                        <div class="search-box"
+                          style="background-color: transparent; border: 1px solid white; border-radius: 20px; color: white; height: 33px; width: 150px; position: relative; display: flex; "
+                        >
+                          <input 
+                            type="text" 
+                            id="quick-search-input" 
+                            placeholder="<%=props.getProperty("search")%>" 
+                            style="background-color: transparent; border: none; color: white; width: 100%; height: 100%; outline: none; border-radius: 20px; padding: 0 10px;"
+                            autocomplete="off" 
+                          />
+                          <span 
+                            id="quick-search-clear"
+                            style="color: white; cursor: pointer; font-size: 1.2rem; padding: 0 5px; position: absolute; right: 5px; top: 0; height: 100%; display: flex; align-items: center; justify-content: center;">
+                              &times;
+                          </span>
+                        </div>
+                        <div class="quick-search-results" id="search-results"></div>
+                      </div>
+                      
                       <div class="search-and-secondary-wrapper d-flex" >
                         <!-- notifications -->
                         <div id="notifications">
