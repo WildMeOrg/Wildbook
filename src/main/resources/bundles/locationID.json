@@ -353,15 +353,6 @@
 									"long": 153.56529707505752
 								},
 								"locationID":[]
-							},
-							{
-								"name": "Wreck Bay",
-								"id": "WB",
-								"geospatialInfo": {
-									"lat": -12.228611,
-									"long": 143.874722
-								},
-								"locationID": []
 							}
 						]
 					},
@@ -435,6 +426,15 @@
 								"geospatialInfo": {
 									"lat": -25.9111111,
 									"long": 153.2055556
+								},
+								"locationID": []
+							},
+							{
+								"name": "Wreck Bay",
+								"id": "WB",
+								"geospatialInfo": {
+									"lat": -12.228611,
+									"long": 143.874722
 								},
 								"locationID": []
 							}
