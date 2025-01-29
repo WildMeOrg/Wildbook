@@ -65,9 +65,15 @@ export default function IndividualDateFilter({ onChange }) {
                 filterKey: "Birth Date",
                 clause: "filter",
                 query: {
-                  match: {
-                    individualTimeofBirth: `${e.target.value}T00:00:00.000Z`,
-                  },
+                  range: {
+                    individualTimeofBirth: {
+                      gte: `${e.target.value}T00:00:00.000Z`,
+                      lte: `${e.target.value}T23:59:59.000Z`,
+                    },
+                  }
+                  // match: {
+                  //   individualTimeofBirth: `${e.target.value}T00:00:00.000Z`,
+                  // },
                 },
               });
             }}
