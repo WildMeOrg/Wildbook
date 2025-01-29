@@ -760,7 +760,8 @@ public class Annotation extends Base implements java.io.Serializable {
             String[] viewpoints = this.getViewpointAndNeighbors();
             if (viewpoints == null) {
                 System.out.println(
-                    "WARNING: getMatchingSet() could not find neighboring viewpoints for " + this);
+                    "WARNING: getMatchingSetQuery() could not find neighboring viewpoints for " +
+                    this);
                 return null;
             }
             arg = new JSONObject();
@@ -823,7 +824,7 @@ public class Annotation extends Base implements java.io.Serializable {
                 }
             }
         }
-        System.out.println("getMatchingSet() returning query=" + query.toString(4));
+        System.out.println("getMatchingSetQuery() returning query=" + query.toString(4));
         return query;
     }
 
@@ -839,9 +840,34 @@ public class Annotation extends Base implements java.io.Serializable {
         boolean useClauses) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         JSONObject query = getMatchingSetQuery(myShepherd, additionalQuery, useClauses);
+        OpenSearch os = new OpenSearch();
+        long startTime = System.currentTimeMillis();
 
         if (query == null) return anns;
-        // TODO query it, duh
+        JSONObject queryRes = null;
+        int hitSize = -1;
+        try {
+            int pageSize = 10000;
+            try {
+                pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
+            os.deletePit("annotation");
+            queryRes = os.queryPit("annotation", query, 0, pageSize, null, null);
+            hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
+        } catch (Exception ex) {
+            System.out.println("getMatchingSet() exception: " + ex);
+            ex.printStackTrace();
+        }
+        JSONArray hits = OpenSearch.getHits(queryRes);
+        for (int i = 0; i < hits.length(); i++) {
+            JSONObject hit = hits.optJSONObject(i);
+            if (hit == null) continue;
+            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
+            if (ann != null) anns.add(ann);
+        }
+        System.out.println("getMatchingSet() results: hitSize=" + hitSize + "; hits length=" +
+            hits.length() + "; anns size=" + anns.size() + "; " +
+            (System.currentTimeMillis() - startTime) + "ms");
         return anns;
     }
 
