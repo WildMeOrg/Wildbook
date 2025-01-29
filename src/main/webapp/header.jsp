@@ -233,23 +233,103 @@ if(request.getUserPrincipal()!=null){
           searchInput.addEventListener("input", function() {
             console.log("Input changed");
             const query = searchInput.value;
+            resultsDropdown.style.display = "block";
             if (query.length > 0) {
-              $.ajax({
-                url: wildbookGlobals.baseUrl + '../quickSearch',
-                type: 'GET',
-                data: {
-                  query: query
+
+              console.log("Query: ", query);
+              //$.ajax({
+                //url: wildbookGlobals.baseUrl + '../quickSearch',
+                //type: 'GET',
+                //data: {
+                //  query: query
+                //},
+               // success: function(data) {
+               //   resultsDropdown.innerHTML = data;
+               // },
+               // error: function(x, y, z) {
+               //   console.warn('%o %o %o', x, y, z);
+               // }
+              //});
+
+              // Mock data
+
+              const datas = [
+                {
+                  id: 1,
+                  value: searchInput.value,
+                  species: "Test 1",
+                  context: "Context 1",
                 },
-                success: function(data) {
-                  resultsDropdown.innerHTML = data;
+                {
+                  id: 2,
+                  value: searchInput.value,
+                  species: "Test 2",
+                  context: "Context 2",
                 },
-                error: function(x, y, z) {
-                  console.warn('%o %o %o', x, y, z);
-                }
-              });
+                {
+                  id: 3,
+                  value: searchInput.value,
+                  species: "Test 3",
+                  context: "Context 3",
+                },
+                {
+                  id: 4,
+                  value: searchInput.value,
+                  species: "Test 4",
+                  context: "Context 4",
+                },
+                {
+                  id: 5,
+                  value: searchInput.value,
+                  species: "Test 5",
+                  context: "Context 5",
+                },
+                {
+                  id: 6,
+                  value: searchInput.value,
+                  species: "Test 1",
+                  context: "Context 1",
+                },
+                {
+                  id: 7,
+                  value: searchInput.value,
+                  species: "Test 2",
+                  context: "Context 2",
+                },
+                {
+                  id: 8,
+                  value: searchInput.value,
+                  species: "Test 3",
+                  context: "Context 3",
+                },
+                {
+                  id: 9,
+                  value: searchInput.value,
+                  species: "Test 4",
+                  context: "Context 4",
+                },
+                {
+                  id: 10,
+                  value: searchInput.value,
+                  species: "Test 5",
+                  context: "Context 5",
+                },
+              ];
+              resultsDropdown.innerHTML = datas.map(data => {
+                const { id, value, species, context } = data;
+                console.log("value: ", JSON.stringify(value));
+                return '<a href="<%=urlLoc %>/react/individual/' + data.id +'">' +
+                  '<div class="search-result" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; paddingLeft: 10px; border-bottom: 1px solid #ddd">' +
+                  '<div class="search-result-content" style="display: flex; flex-direction: column;"> ' + 
+                  '<div class="search-result-value" style="color: black; width: 180px; overflow: hidden;">'+ data.value +'</div>' +
+                  '<div class="search-result-species" style="color: black">'+ data.species +'</div></div>' +
+                  '<div class="search-result-context" style="height: 25px; width: 100px; background-color: #00ACCE; border-radius: 4px; display: flex; align-items: center; justify-content: center">'+ data.context +'</div></div>' + 
+                '</a>' ;
+              }).join("");
             } else {
-              resultsDropdown.innerHTML = "";
-            }
+              resultsDropdown.innerHTML = "Your search results will appear here.";
+            } 
+            
           });
 
           // Event listener for close button
@@ -573,8 +653,9 @@ if(request.getUserPrincipal()!=null){
                         </ul>
                       </li>
 
+                     <% if(user != null && !loggingOut){ %>
                       <div class="search-wrapper w-100"
-                        style="display: flex; justify-content: center; align-items: center; margin: 0 10px; "
+                        style="display: flex; justify-content: center; align-items: center; margin: 0 10px; position: relative;"
                       >
                         <div class="search-box"
                           style="background-color: transparent; border: 1px solid white; border-radius: 20px; color: white; height: 33px; width: 150px; position: relative; display: flex; "
@@ -592,8 +673,9 @@ if(request.getUserPrincipal()!=null){
                               &times;
                           </span>
                         </div>
-                        <div class="quick-search-results" id="search-results"></div>
+                        <div id="quick-search-results" style="position: absolute; top: 50px; left: 0; width: 300px; background-color: white; height: 300px; overflow: auto; display: none; border-radius: 5px; color: black; padding: 10px"></div>
                       </div>
+                      <% } %>
                       
                       <div class="search-and-secondary-wrapper d-flex" >
                         <!-- notifications -->
