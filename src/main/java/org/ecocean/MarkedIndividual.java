@@ -1,5 +1,7 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -94,6 +96,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     private Vector interestedResearchers = new Vector();
 
     private String dateTimeCreated;
+    private long version = System.currentTimeMillis();
 
     private String dateTimeLatestSighting;
 
@@ -2595,10 +2598,77 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
+/*
+   all name context:value pairs [flexible list] [needs custom values exposed through site settings]
+   alternate ID
+   birth date
+   death date
+   sex
+   taxonomy
+   number of encounters
+   number of sightings
+   list of gps locations
+   list of collaborating researchers
+   number if images
+   all social groups [flexible list] [needs custom values exposed through site settings]
+   social group name
+   social role name
+   social group members (names and IDs)
+   membership start
+   membership end
+   all social relationships [flexible list] [needs custom values exposed through site settings]
+   relationship partner (name and ID)
+   relationship role
+   relationship start
+   relationship end
+   all co-occurrences
+   individual name (name and ID)
+   number of occurrences with that individual
+ */
+    public org.json.JSONObject opensearchMapping() {
+        org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+
+/*
+        JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+ */
+
+        // "id" is done in Base
+        map.put("sex", keywordType);
+        map.put("taxonomy", keywordType);
+
+        // all case-insensitive keyword-ish types
+        // map.put("fubar", keywordNormalType);
+
+        return map;
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
+
+        jgen.writeStringField("sex", this.getSex());
+        jgen.writeStringField("taxonomy", this.getTaxonomyString());
+        if (this.getNumEncounters() > 0) {
+            jgen.writeNumberField("numberEncounters", this.getNumEncounters());
+            Set<String> occIds = new HashSet<String>();
+            for (Encounter enc : this.encounters) {
+                Occurrence occ = enc.getOccurrence(myShepherd);
+                if (occ != null) occIds.add(occ.getId());
+            }
+            jgen.writeNumberField("numberOccurrences", occIds.size());
+        } else {
+            jgen.writeNumberField("numberEncounters", 0);
+            jgen.writeNumberField("numberOccurrences", 0);
+        }
+    }
+
     public void opensearchIndexDeep()
     throws IOException {
         this.opensearchIndex();
 
+/*
         final String indivId = this.getId();
         ExecutorService executor = Executors.newFixedThreadPool(4);
         Runnable rn = new Runnable() {
@@ -2644,6 +2714,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         executor.execute(rn);
         System.out.println("opensearchIndexDeep() [foreground] finished for MarkedIndividual " +
             indivId);
+ */
     }
 
     public String toString() {
@@ -2662,8 +2733,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     @Override public long getVersion() {
-        // Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
-        return 0;
+        return version;
+    }
+
+    public long setVersion() {
+        version = System.currentTimeMillis();
+        return version;
     }
 
     @Override public String getAllVersionsSql() {
