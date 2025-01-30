@@ -131,6 +131,7 @@
     "FILTER_DATE": "Fecha",
     "FILTER_DATE_DESC": "Utilice los campos a continuación para limitar el período de su búsqueda",
     "FILTER_SIGHTING_DATE": "Fecha del Avistamiento",
+    "FILTER_ENCOUNTER_DATE" : "Fecha del Encuentro",
     "FILTER_FROM": "Desde",
     "FILTER_TO": "Hasta",
     "FILTER_VERBATIM_EVENT_DATE": "Fecha del Evento Literal",

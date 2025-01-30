@@ -131,6 +131,7 @@
     "FILTER_DATE": "Data",
     "FILTER_DATE_DESC": "Utilizza i campi sottostanti per limitare il periodo della tua ricerca",
     "FILTER_SIGHTING_DATE": "Data dell'Avvistamento",
+    "FILTER_ENCOUNTER_DATE" : "Data dell'Incontro",
     "FILTER_FROM": "Da",
     "FILTER_TO": "A",
     "FILTER_VERBATIM_EVENT_DATE": "Data dell'Evento Testuale",

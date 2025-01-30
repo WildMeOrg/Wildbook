@@ -94,7 +94,7 @@ export default function DateFilter({ onChange, data }) {
       </Description>
       <>
         <FormLabel>
-          <FormattedMessage id="FILTER_SIGHTING_DATE" />
+          <FormattedMessage id="FILTER_ENCOUNTER_DATE" />
         </FormLabel>
         <div className="d-flex flex-row w-100 mb-2">
           <FormGroup className="w-50" style={{ marginRight: "10px" }}>

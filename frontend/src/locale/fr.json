@@ -131,6 +131,7 @@
     "FILTER_DATE": "Date",
     "FILTER_DATE_DESC": "Utilisez les champs ci-dessous pour limiter la période de votre recherche",
     "FILTER_SIGHTING_DATE": "Date d'Observation",
+    "FILTER_ENCOUNTER_DATE" : "Date de Rencontre",
     "FILTER_FROM": "De",
     "FILTER_TO": "À",
     "FILTER_VERBATIM_EVENT_DATE": "Date de l'Événement Exacte",

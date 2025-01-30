@@ -132,6 +132,7 @@
     "FILTER_DATE": "Date",
     "FILTER_DATE_DESC": "Use the fields below to limit the timeframe of your search",
     "FILTER_SIGHTING_DATE": "Sighting Date",
+    "FILTER_ENCOUNTER_DATE" : "Encounter Date",
     "FILTER_FROM": "From",
     "FILTER_TO": "To",
     "FILTER_VERBATIM_EVENT_DATE": "Verbatim Event Date",
