@@ -792,7 +792,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
+        <label class="control-label"><%=props.getProperty("where") %></label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <input name="location" type="text" id="location" size="40" class="form-control">
@@ -1363,11 +1363,11 @@ function sendButtonClicked() {
 	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
 	// 	return false;
 	// }
-	if(!$('#location').val()){
-		$('#location').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must provide the Site Name/Description and/or REEF Zone Code if available.'); }, 100);
-		return false;
-	}
+	//if(!$('#location').val()){
+	//	$('#location').closest('.form-group').addClass('required-missing');
+	//	window.setTimeout(function() { alert('You must provide the Site Name/Description and/or REEF Zone Code if available.'); }, 100);
+	//	return false;
+	//}
 	if(!$('#locationID').val()){
 		$('#locationID').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide the Country/Location ID.'); }, 100);
