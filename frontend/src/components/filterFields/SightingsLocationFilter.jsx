@@ -8,8 +8,8 @@ import Description from "../Form/Description";
 
 export default function SightingsLocationFilter({ onChange, data }) {
   const intl = useIntl();
-  const mapCenterLat = data?.mapCenterLat || 51;
-  const mapCenterLon = data?.mapCenterLon || 7;
+  const mapCenterLat = data?.mapCenterLat || 0;
+  const mapCenterLon = data?.mapCenterLon || 0;
   const mapZoom = data?.mapZoom || 4;
   const mapKey = data?.googleMapsKey || "";
   const mapRef = useRef(null);
