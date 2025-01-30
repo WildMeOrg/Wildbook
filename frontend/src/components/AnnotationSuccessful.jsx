@@ -52,8 +52,7 @@ export default function AnnotationSuccessful({ encounterId, rect, imageData }) {
           scaledRect.height,
         );
 
-        // console.log("drawing line by line");
-
+        // save for future use: draw bounding box line by line to indicate top border
         // context.strokeStyle = "blue";
         // context.lineWidth = 2;
         // context.beginPath();
@@ -61,7 +60,6 @@ export default function AnnotationSuccessful({ encounterId, rect, imageData }) {
         // context.lineTo(scaledRect.width / 2, -scaledRect.height / 2);  // Top-right corner
         // context.stroke();
 
-        // // Draw the other borders in yellow
         // context.strokeStyle = "yellow";
         // context.lineWidth = 1;
         // context.beginPath();

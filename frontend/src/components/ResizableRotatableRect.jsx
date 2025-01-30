@@ -8,34 +8,28 @@ const ResizableRotatableRect = ({
   setRect,
   setValue,
   drawStatus,
-  existingBoundingBoxes = [],
-  scaleFactor
 }) => {
   const [rectProps, setRectProps] = useState({});
 
   useEffect(() => {
     if (drawStatus !== "DELETE") {
-      setRectProps(
-        {
-          x: rect.x,
-          y: rect.y,
-          width: rect.width,
-          height: rect.height,
-          fill: null,
-          stroke: "red",
-          strokeWidth: 2,
-          draggable: true,
-        }
-      );
+      setRectProps({
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        fill: null,
+        stroke: "red",
+        strokeWidth: 2,
+        draggable: true,
+      });
     }
   }, [rect.x, rect.y, rect.width, rect.height, drawStatus]);
 
-
   const rectRef = useRef(null);
-  const transformerRef = useRef(null);  
+  const transformerRef = useRef(null);
 
   const handleTransform = () => {
-
     const node = rectRef.current;
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
@@ -48,7 +42,7 @@ const ResizableRotatableRect = ({
       y: node.y(),
       width: newWidth,
       height: newHeight,
-      rotation: node.rotation(), 
+      rotation: node.rotation(),
     };
     setRectProps({
       ...rectProps,
@@ -63,8 +57,6 @@ const ResizableRotatableRect = ({
     node.scaleX(1);
     node.scaleY(1);
     setValue(node.rotation());
-    console.log("x after resizing: ", node.x());
-    console.log("y after resizing:", node.y());
   };
 
   const handleDragEnd = () => {
@@ -85,33 +77,14 @@ const ResizableRotatableRect = ({
     });
   };
 
-  const handleSelect = (e) => {
+  const handleSelect = () => {
     transformerRef.current.nodes([rectRef.current]);
     transformerRef.current.getLayer().batchDraw();
   };
 
-  // const existingBoundingBoxes = [
-  //   { x: 50, y: 50, width: 100, height: 80, stroke: "green" },
-  //   { x: 200, y: 150, width: 120, height: 60, stroke: "blue" },
-  // ];
-
   return (
     <Stage width={imgWidth} height={imgHeight}>
       <Layer>
-      {/* {existingBoundingBoxes.map((box, index) => (
-          <Rect
-            key={index}
-            x={box.x/scaleFactor.x}
-            y={box.y/scaleFactor.y}
-            width={box.width/scaleFactor.x}
-            height={box.height/scaleFactor.y}
-            rotation={box.theta * 180 / Math.PI || 0}
-            fill={box.fill || "transparent"}
-            stroke={box.stroke || "yellow"}
-            strokeWidth={1}
-            draggable={false} 
-          />
-        ))} */}
         <Rect
           {...rectProps}
           ref={rectRef}
