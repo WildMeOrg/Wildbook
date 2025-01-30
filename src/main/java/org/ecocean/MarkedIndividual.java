@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.joda.time.DateTime;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -2601,15 +2602,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 /*
    all name context:value pairs [flexible list] [needs custom values exposed through site settings]
    alternate ID
-   birth date
-   death date
-   sex
-   taxonomy
-   number of encounters
-   number of sightings
-   list of gps locations
-   list of collaborating researchers
-   number if images
    all social groups [flexible list] [needs custom values exposed through site settings]
    social group name
    social role name
@@ -2629,18 +2621,22 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
 
-/*
-        JSONObject keywordNormalType = new org.json.JSONObject(
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
- */
 
         // "id" is done in Base
         map.put("sex", keywordType);
         map.put("taxonomy", keywordType);
+        map.put("users", keywordType);
 
         // all case-insensitive keyword-ish types
-        // map.put("fubar", keywordNormalType);
+        map.put("names", keywordNormalType);
 
+        map.put("timeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("timeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("locationsGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+
+        map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\"}"));
         return map;
     }
 
@@ -2650,17 +2646,65 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("taxonomy", this.getTaxonomyString());
+        if (this.getTimeOfBirth() > 0) {
+            String birthTime = Util.getISO8601Date(new DateTime(this.getTimeOfBirth()).toString());
+            jgen.writeStringField("timeOfBirth", birthTime);
+        }
+        if (this.getTimeofDeath() > 0) {
+            String deathTime = Util.getISO8601Date(new DateTime(this.getTimeofDeath()).toString());
+            jgen.writeStringField("timeOfDeath", deathTime);
+        }
+        if (this.getNames() != null) {
+            jgen.writeArrayFieldStart("names");
+            Set<String> names = this.getAllNamesList();
+            if (names != null)
+                for (String name : names) {
+                    jgen.writeString(name);
+                }
+            jgen.writeEndArray();
+            jgen.writeFieldName("nameMap");
+            jgen.writeRawValue(this.getNames().getValues().toString());
+        }
         if (this.getNumEncounters() > 0) {
+            Set<String> users = new HashSet<String>();
             jgen.writeNumberField("numberEncounters", this.getNumEncounters());
             Set<String> occIds = new HashSet<String>();
+            List<Double> dlats = new ArrayList<Double>();
+            List<Double> dlons = new ArrayList<Double>();
+            int numMAs = 0;
             for (Encounter enc : this.encounters) {
+                numMAs += enc.numAnnotations();
+                users.addAll(enc.getAllSubmitterIds(myShepherd));
                 Occurrence occ = enc.getOccurrence(myShepherd);
                 if (occ != null) occIds.add(occ.getId());
+                Double dlat = enc.getDecimalLatitudeAsDouble();
+                Double dlon = enc.getDecimalLongitudeAsDouble();
+                if (Util.isValidDecimalLatitude(dlat) && Util.isValidDecimalLongitude(dlon)) {
+                    dlats.add(dlat);
+                    dlons.add(dlon);
+                }
             }
+            jgen.writeNumberField("numberMediaAssets", numMAs);
+
+            jgen.writeArrayFieldStart("locationGeoPoints");
+            for (int i = 0; i < dlats.size(); i++) {
+                jgen.writeStartObject();
+                jgen.writeNumberField("lat", dlats.get(i));
+                jgen.writeNumberField("lon", dlons.get(i));
+                jgen.writeEndObject();
+            }
+            jgen.writeEndArray();
+
             jgen.writeNumberField("numberOccurrences", occIds.size());
+            jgen.writeArrayFieldStart("users");
+            for (String uid : users) {
+                jgen.writeString(uid);
+            }
+            jgen.writeEndArray();
         } else {
             jgen.writeNumberField("numberEncounters", 0);
             jgen.writeNumberField("numberOccurrences", 0);
+            jgen.writeNumberField("numberMediaAssets", 0);
         }
     }
 
@@ -2742,6 +2786,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     @Override public String getAllVersionsSql() {
-        return "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
+        return
+                "SELECT \"INDIVIDUALID\", \"VERSION\" AS version FROM \"MARKEDINDIVIDUAL\" ORDER BY version";
     }
 }
