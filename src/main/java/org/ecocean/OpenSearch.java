@@ -670,7 +670,9 @@ public class OpenSearch {
     throws IOException {
         if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
         JSONObject clean = new JSONObject();
-        // this is just punting future classes to later development (should never happen)
+        // these classes we let anyone see as-is
+        if ("annotation".equals(indexName) || "individual".equals(indexName)) return sourceDoc;
+        // this is just punting future classes to later development
         if (!"encounter".equals(indexName)) return clean;
         boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
         if (hasAccess) {
