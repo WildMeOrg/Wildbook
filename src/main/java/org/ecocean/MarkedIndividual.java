@@ -2600,7 +2600,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
 /*
-   all name context:value pairs [flexible list] [needs custom values exposed through site settings]
    alternate ID
    all social groups [flexible list] [needs custom values exposed through site settings]
    social group name
@@ -2628,6 +2627,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("sex", keywordType);
         map.put("taxonomy", keywordType);
         map.put("users", keywordType);
+        map.put("socialUnits", keywordType);
+        map.put("relationshipRoles", keywordType);
+        map.put("cooccurrenceIndividualIds", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("names", keywordNormalType);
@@ -2636,7 +2638,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("timeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoints", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
 
-        map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        // map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        // map.put("cooccurrenceIndividualMap", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("cooccurrenceIndividualMap",
+            new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
         return map;
     }
 
@@ -2676,24 +2682,71 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             }
             jgen.writeEndObject();
         }
+/*
+   social group name
+   social role name
+   social group members (names and IDs)
+   membership start
+   membership end
+   all social relationships [flexible list] [needs custom values exposed through site settings]
+   relationship partner (name and ID)
+   relationship role
+   relationship start
+   relationship end
+ */
+        jgen.writeArrayFieldStart("socialUnits");
+        for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(this)) {
+            Membership mem = su.getMembershipForMarkedIndividual(this);
+            if (mem != null) jgen.writeString(su.getSocialUnitName());
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("relationshipRoles");
+        for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(this.getId())) {
+            jgen.writeString(relRole);
+        }
+        jgen.writeEndArray();
         if (this.getNumEncounters() > 0) {
             Set<String> users = new HashSet<String>();
             jgen.writeNumberField("numberEncounters", this.getNumEncounters());
             Set<String> occIds = new HashSet<String>();
             List<Double> dlats = new ArrayList<Double>();
             List<Double> dlons = new ArrayList<Double>();
+            Map<MarkedIndividual, Integer> coMap = new HashMap<MarkedIndividual, Integer>();
             int numMAs = 0;
             for (Encounter enc : this.encounters) {
                 numMAs += enc.numAnnotations();
                 users.addAll(enc.getAllSubmitterIds(myShepherd));
                 Occurrence occ = enc.getOccurrence(myShepherd);
-                if (occ != null) occIds.add(occ.getId());
+                if (occ != null) {
+                    occIds.add(occ.getId());
+                    Set<MarkedIndividual> coIndivs = occ.getMarkedIndividuals(this);
+                    for (MarkedIndividual coInd : coIndivs) {
+                        if (!coMap.containsKey(coInd)) {
+                            coMap.put(coInd, 1);
+                        } else {
+                            coMap.put(coInd, coMap.get(coInd) + 1);
+                        }
+                    }
+                }
                 Double dlat = enc.getDecimalLatitudeAsDouble();
                 Double dlon = enc.getDecimalLongitudeAsDouble();
                 if (Util.isValidDecimalLatitude(dlat) && Util.isValidDecimalLongitude(dlon)) {
                     dlats.add(dlat);
                     dlons.add(dlon);
                 }
+            }
+            if (coMap.size() > 0) {
+                // json is a quick hacky way to write out using writeRawValue()
+                // JSONArray coNamesArr = new JSONArray(); TODO unsure how names should be used in index???
+                org.json.JSONObject coMapJ = new org.json.JSONObject();
+                jgen.writeArrayFieldStart("cooccurrenceIndividualIds");
+                for (MarkedIndividual ind : coMap.keySet()) {
+                    jgen.writeString(ind.getId());
+                    coMapJ.put(ind.getId(), coMap.get(ind));
+                }
+                jgen.writeEndArray();
+                jgen.writeFieldName("cooccurrenceIndividualMap");
+                jgen.writeRawValue(coMapJ.toString());
             }
             jgen.writeNumberField("numberMediaAssets", numMAs);
 
