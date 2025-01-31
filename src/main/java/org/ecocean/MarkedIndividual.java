@@ -25,6 +25,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.Membership;
 import org.ecocean.social.Relationship;
 import org.ecocean.social.SocialUnit;
+import org.json.JSONArray;
 
 import java.text.DecimalFormat;
 
@@ -2627,7 +2628,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("sex", keywordType);
         map.put("taxonomy", keywordType);
         map.put("users", keywordType);
-        map.put("socialUnits", keywordType);
         map.put("relationshipRoles", keywordType);
         map.put("cooccurrenceIndividualIds", keywordType);
 
@@ -2639,6 +2639,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("locationGeoPoints", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
 
         map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        map.put("socialUnits", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("cooccurrenceIndividualMap",
             new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
         return map;
@@ -2649,6 +2650,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         super.opensearchDocumentSerializer(jgen, myShepherd);
 
         jgen.writeStringField("sex", this.getSex());
+        jgen.writeStringField("displayName", this.getDisplayName());
         jgen.writeStringField("taxonomy", this.getTaxonomyString());
         if (this.getTimeOfBirth() > 0) {
             String birthTime = Util.getISO8601Date(new DateTime(this.getTimeOfBirth()).toString());
@@ -2681,12 +2683,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             jgen.writeEndObject();
         }
 /*
-   social group name
-   social role name
-   social group members (names and IDs)
-   membership start
-   membership end
-   all social relationships [flexible list] [needs custom values exposed through site settings]
+   SOCIAL RELATIONSHIPS
    relationship partner (name and ID)
    relationship role
    relationship start
@@ -2694,8 +2691,27 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
  */
         jgen.writeArrayFieldStart("socialUnits");
         for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(this)) {
+            jgen.writeStartObject();
+            jgen.writeStringField("name", su.getSocialUnitName());
+            JSONArray memIds = new JSONArray();
+            JSONArray memNames = new JSONArray();
+            for (Membership mem : su.getAllMembers()) {
+                memIds.put(mem.getMarkedIndividual().getId());
+                memNames.put(mem.getMarkedIndividual().getDisplayName());
+            }
+            jgen.writeArrayFieldStart("memberIds");
+            jgen.writeRawValue(memIds.toString());
+            jgen.writeEndArray();
+            jgen.writeArrayFieldStart("memberNames");
+            jgen.writeRawValue(memNames.toString());
+            jgen.writeEndArray();
             Membership mem = su.getMembershipForMarkedIndividual(this);
-            if (mem != null) jgen.writeString(su.getSocialUnitName());
+            if (mem != null) {
+                jgen.writeStringField("role", mem.getRole());
+                jgen.writeStringField("startDate", mem.getStartDate());
+                jgen.writeStringField("endDate", mem.getEndDate());
+            }
+            jgen.writeStartObject();
         }
         jgen.writeEndArray();
         jgen.writeArrayFieldStart("relationshipRoles");
@@ -2772,7 +2788,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     throws IOException {
         this.opensearchIndex();
 
-/*
         final String indivId = this.getId();
         ExecutorService executor = Executors.newFixedThreadPool(4);
         Runnable rn = new Runnable() {
@@ -2818,7 +2833,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         executor.execute(rn);
         System.out.println("opensearchIndexDeep() [foreground] finished for MarkedIndividual " +
             indivId);
- */
     }
 
     public String toString() {
