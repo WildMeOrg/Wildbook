@@ -2600,23 +2600,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
-/*
-   alternate ID
-   all social groups [flexible list] [needs custom values exposed through site settings]
-   social group name
-   social role name
-   social group members (names and IDs)
-   membership start
-   membership end
-   all social relationships [flexible list] [needs custom values exposed through site settings]
-   relationship partner (name and ID)
-   relationship role
-   relationship start
-   relationship end
-   all co-occurrences
-   individual name (name and ID)
-   number of occurrences with that individual
- */
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
@@ -2628,7 +2611,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("sex", keywordType);
         map.put("taxonomy", keywordType);
         map.put("users", keywordType);
-        map.put("relationshipRoles", keywordType);
         map.put("cooccurrenceIndividualIds", keywordType);
 
         // all case-insensitive keyword-ish types
@@ -2640,6 +2622,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
         map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
         map.put("socialUnits", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("relationships", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("cooccurrenceIndividualMap",
             new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
         return map;
@@ -2682,13 +2665,6 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             }
             jgen.writeEndObject();
         }
-/*
-   SOCIAL RELATIONSHIPS
-   relationship partner (name and ID)
-   relationship role
-   relationship start
-   relationship end
- */
         jgen.writeArrayFieldStart("socialUnits");
         for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(this)) {
             jgen.writeStartObject();
@@ -2711,12 +2687,26 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 jgen.writeStringField("startDate", mem.getStartDate());
                 jgen.writeStringField("endDate", mem.getEndDate());
             }
-            jgen.writeStartObject();
+            jgen.writeEndObject();
         }
         jgen.writeEndArray();
-        jgen.writeArrayFieldStart("relationshipRoles");
-        for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(this.getId())) {
-            jgen.writeString(relRole);
+        jgen.writeArrayFieldStart("relationships");
+        for (Relationship rel : myShepherd.getAllRelationshipsForMarkedIndividual(this.getId())) {
+            jgen.writeStartObject();
+            MarkedIndividual partner = rel.getOtherMarkedIndividual(this);
+            if (partner != null) {
+                jgen.writeStringField("partnerName", partner.getDisplayName());
+                jgen.writeStringField("partnerId", partner.getId());
+                jgen.writeStringField("partnerRole", rel.getRoleFor(partner));
+            }
+            if (rel.getStartTime() > 0)
+                jgen.writeStringField("startTime",
+                    Util.getISO8601Date(new DateTime(rel.getStartTime()).toString()));
+            if (rel.getEndTime() > 0)
+                jgen.writeStringField("endTime",
+                    Util.getISO8601Date(new DateTime(rel.getEndTime()).toString()));
+            jgen.writeStringField("role", rel.getRoleFor(this));
+            jgen.writeEndObject();
         }
         jgen.writeEndArray();
         if (this.getNumEncounters() > 0) {
