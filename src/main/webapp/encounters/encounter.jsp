@@ -1284,7 +1284,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
 
-	   			marker.setVisible(true);
+	   			marker.setVisible(false);
 
 	   		<%
 	   		}

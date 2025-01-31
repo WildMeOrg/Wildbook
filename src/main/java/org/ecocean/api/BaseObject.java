@@ -152,20 +152,41 @@ public class BaseObject extends ApiBase {
                 // these are needed for display in results
                 rtn.put("locationId", enc.getLocationID());
                 rtn.put("submissionDate", enc.getDWCDateAdded());
-                rtn.put("statusCode", 200);
                 break;
             case "occurrences":
-                obj = Occurrence.createFromApi(payload, files, myShepherd);
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    obj = Occurrence.createFromApi(payload, files, myShepherd);
+                }
                 break;
             case "individuals":
-                obj = MarkedIndividual.createFromApi(payload, files, myShepherd);
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    obj = MarkedIndividual.createFromApi(payload, files, myShepherd);
+                }
+                break;
+            case "annotations":
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    obj = Annotation.createFromApi(payload, files, myShepherd);
+                }
                 break;
             default:
                 throw new ApiException("bad class");
             }
-            rtn.put("id", obj.getId());
-            rtn.put("class", cls);
-            rtn.put("success", true);
+            // add for any flavor of Base
+            if (obj != null) {
+                rtn.put("id", obj.getId());
+                rtn.put("class", cls);
+                rtn.put("statusCode", 200);
+                rtn.put("success", true);
+            }
         } catch (ApiException apiEx) {
             System.out.println("BaseObject.processPost() returning 400 due to " + apiEx +
                 " [errors=" + apiEx.getErrors() + "] on payload " + payload);
@@ -176,12 +197,14 @@ public class BaseObject extends ApiBase {
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
             System.out.println("BaseObject.processPost() success (200) creating " + obj +
                 " from payload " + payload);
-            OpenSearch.setPermissionsNeeded(myShepherd, true);
-            myShepherd.commitDBTransaction();
-            MediaAsset.updateStandardChildrenBackground(context, maIds);
-            if (encounterForIA != null) {
+            if (encounterForIA != null) { // encounter-specific needs
+                OpenSearch.setPermissionsNeeded(myShepherd, true);
+                myShepherd.commitDBTransaction();
+                MediaAsset.updateStandardChildrenBackground(context, maIds);
                 encounterForIA.sendToIA(myShepherd);
                 encounterForIA.sendCreationEmails(myShepherd, langCode);
+            } else {
+                myShepherd.commitDBTransaction();
             }
             // not sure what this is for, but servlet/EncounterForm did it so guessing its important
             org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
