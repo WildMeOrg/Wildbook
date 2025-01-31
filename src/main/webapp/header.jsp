@@ -224,6 +224,134 @@ if(request.getUserPrincipal()!=null){
               $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
             }
           );
+
+          const searchInput = document.getElementById("quick-search-input");
+          const closeButton = document.getElementById("quick-search-clear");
+          const resultsDropdown = document.getElementById("quick-search-results");
+
+          // Event listener for input changes
+          searchInput.addEventListener("focus", function() {
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = "Your search results will appear here.";
+          });
+          searchInput.addEventListener("input", function() {
+            const query = searchInput.value;
+            resultsDropdown.style.display = "block";
+            
+              console.log("Query: ", query);
+              //$.ajax({
+                //url: wildbookGlobals.baseUrl + '../quickSearch',
+                //type: 'GET',
+                //data: {
+                //  query: query
+                //},
+               // success: function(data) {
+               //   resultsDropdown.innerHTML = data;
+               // },
+               // error: function(x, y, z) {
+               //   console.warn('%o %o %o', x, y, z);
+               // }
+              //});
+
+              // Mock data
+
+              const datas = [
+                {
+                  id: 1,
+                  value: searchInput.value,
+                  species: "Test 1",
+                  context: "Context 1",
+                },
+                {
+                  id: 2,
+                  value: searchInput.value,
+                  species: "Test 2",
+                  context: "Context 2",
+                },
+                {
+                  id: 3,
+                  value: searchInput.value,
+                  species: "Test 3",
+                  context: "Context 3",
+                },
+                {
+                  id: 4,
+                  value: searchInput.value,
+                  species: "Test 4",
+                  context: "Context 4",
+                },
+                {
+                  id: 5,
+                  value: searchInput.value,
+                  species: "Test 5",
+                  context: "Context 5",
+                },
+                {
+                  id: 6,
+                  value: searchInput.value,
+                  species: "Test 1",
+                  context: "Context 1",
+                },
+                {
+                  id: 7,
+                  value: searchInput.value,
+                  species: "Test 2",
+                  context: "Context 2",
+                },
+                {
+                  id: 8,
+                  value: searchInput.value,
+                  species: "Test 3",
+                  context: "Context 3",
+                },
+                {
+                  id: 9,
+                  value: searchInput.value,
+                  species: "Test 4",
+                  context: "Context 4",
+                },
+                {
+                  id: 10,
+                  value: searchInput.value,
+                  species: "Test 5",
+                  context: "Context 5",
+                },
+              ];
+
+              if(datas.length > 0) {
+                resultsDropdown.innerHTML = datas.map(data => {
+                  const { id, value, species, context } = data;
+                  console.log("value: ", JSON.stringify(value));
+                  return '<a href="<%=urlLoc %>/individuals.jsp&id=' + data.id +'" target="_blank">' +
+                    '<div class="quick-search-result">' +
+                    '<div class="quick-search-result-content">' + 
+                    '<div class="quick-search-result-value">'+ data.value +'</div>' +
+                    '<div class="quick-search-result-species">'+ data.species +'</div></div>' +
+                    '<div class="quick-search-result-context">'+ data.context +'</div></div>' + 
+                  '</a>' ;
+                }).join("");
+              }
+              else {
+                resultsDropdown.innerHTML = "No matching results.";
+              }
+          });
+
+          // Event listener for close button
+          closeButton.addEventListener("click", function() {
+            searchInput.value = "";
+            resultsDropdown.style.display = "none";
+          });
+         
+          // Event listener to close dropdown when clicking outside
+          document.addEventListener("click", function(event) {
+          const searchInput = document.getElementById("quick-search-input");
+          const resultsDropdown = document.getElementById("quick-search-results");
+
+          if (!searchInput.contains(event.target) && !resultsDropdown.contains(event.target)) {
+            resultsDropdown.style.display = "none";
+            searchInput.value = "";
+            }
+          });
         });
       </script>
 
@@ -357,6 +485,8 @@ if(request.getUserPrincipal()!=null){
 
 
       </script>
+
+      
       <%
         }
       %>
@@ -529,8 +659,23 @@ if(request.getUserPrincipal()!=null){
                             }
                             %>
                         </ul>
-
                       </li>
+
+                     <% if(user != null && !loggingOut){ %>
+                      <div class="quick-search-wrapper w-100">
+                        <div class="search-box">
+                          <input 
+                            type="text" 
+                            id="quick-search-input" 
+                            placeholder="<%=props.getProperty("search")%>"                             
+                            autocomplete="off" 
+                          />
+                          <span id="quick-search-clear"> &times;</span>
+                        </div>
+                        <div id="quick-search-results"></div>
+                      </div>
+                      <% } %>
+                      
                       <div class="search-and-secondary-wrapper d-flex" >
                         <!-- notifications -->
                         <div id="notifications">

@@ -30,7 +30,7 @@ export default function AvatarAndUserProfile({ avatar }) {
   };
 
   return (
-    <Nav style={{ alignItems: "center", marginLeft: "20px", width: 50 }}>
+    <Nav style={{ alignItems: "center", marginLeft: "5px", width: 50 }}>
       <NavDropdown
         title={<Avatar avatar={avatar} />}
         id="basic-nav-dropdown"
