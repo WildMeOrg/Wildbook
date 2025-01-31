@@ -358,5 +358,8 @@
     "BEARING": "Cap",
     "DISTANCE": "Distance",
     "FILTER_BIRTH" : "Naissance",
-    "FILTER_DEATH" : "Décès"
+    "FILTER_DEATH" : "Décès",
+    "NO_MATCHING_RESULTS": "Aucun résultat correspondant",
+    "SYSTEM_ID": "ID du Système",
+    "SEARCH_INDIVIDUALS": "Rechercher des Individus"
 }

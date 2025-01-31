@@ -358,5 +358,8 @@
     "BEARING": "Rumbo",
     "DISTANCE": "Distancia",
     "FILTER_BIRTH" : "Nacimiento",
-    "FILTER_DEATH" : "Muerte"
+    "FILTER_DEATH" : "Muerte",
+    "NO_MATCHING_RESULTS": "No hay resultados coincidentes",
+    "SYSTEM_ID": "ID del Sistema",
+    "SEARCH_INDIVIDUALS": "Buscar Individuos"
 }

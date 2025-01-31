@@ -358,5 +358,8 @@
     "BEARING": "Direzione",
     "DISTANCE": "Distanza",
     "FILTER_BIRTH" : "Nascita",
-    "FILTER_DEATH" : "Morte"
+    "FILTER_DEATH" : "Morte",
+    "NO_MATCHING_RESULTS": "Nessun risultato corrispondente",
+    "SYSTEM_ID": "ID di sistema",
+    "SEARCH_INDIVIDUALS": "Cerca individui"
 }
