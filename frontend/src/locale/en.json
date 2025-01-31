@@ -328,5 +328,9 @@
     "ITEMS" : "items",
     "INPUT_PAGE_ALERT" : "Please enter a valid page number between 1 and {totalPages}.",
     "NO_PROJECTS" : "No Projects",
-    "PROJECT_LIST_TITLE": "Wildbook - My Projects"
+    "PROJECT_LIST_TITLE": "Wildbook - My Projects",
+    "NO_MATCHING_RESULTS": "No matching results",
+    "SYSTEM_ID": "System ID",
+    "SEARCH_INDIVIDUALS": "Search Individuals"
+
 }
