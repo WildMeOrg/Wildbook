@@ -2638,9 +2638,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("timeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoints", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
 
-        // map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
-        // map.put("cooccurrenceIndividualMap", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("cooccurrenceIndividualMap",
             new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
         return map;
@@ -2735,19 +2733,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     dlons.add(dlon);
                 }
             }
-            if (coMap.size() > 0) {
-                // json is a quick hacky way to write out using writeRawValue()
-                // JSONArray coNamesArr = new JSONArray(); TODO unsure how names should be used in index???
-                org.json.JSONObject coMapJ = new org.json.JSONObject();
-                jgen.writeArrayFieldStart("cooccurrenceIndividualIds");
-                for (MarkedIndividual ind : coMap.keySet()) {
-                    jgen.writeString(ind.getId());
-                    coMapJ.put(ind.getId(), coMap.get(ind));
-                }
-                jgen.writeEndArray();
-                jgen.writeFieldName("cooccurrenceIndividualMap");
-                jgen.writeRawValue(coMapJ.toString());
+            // json is a quick hacky way to write out using writeRawValue()
+            // JSONArray coNamesArr = new JSONArray(); TODO unsure how names should be used in index???
+            org.json.JSONObject coMapJ = new org.json.JSONObject();
+            jgen.writeArrayFieldStart("cooccurrenceIndividualIds");
+            for (MarkedIndividual ind : coMap.keySet()) {
+                jgen.writeString(ind.getId());
+                coMapJ.put(ind.getId(), coMap.get(ind));
             }
+            jgen.writeEndArray();
+            jgen.writeFieldName("cooccurrenceIndividualMap");
+            jgen.writeRawValue(coMapJ.toString());
             jgen.writeNumberField("numberMediaAssets", numMAs);
 
             jgen.writeArrayFieldStart("locationGeoPoints");
