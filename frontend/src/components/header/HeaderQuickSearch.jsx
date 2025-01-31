@@ -1,13 +1,16 @@
 
 import React, { useState } from "react";
-import { Col, Dropdown, FormControl } from "react-bootstrap";
+import { Dropdown, FormControl } from "react-bootstrap";
 import MainButton from "../MainButton";
 import { FormattedMessage } from "react-intl";
 import ThemeColorContext from "../../ThemeColorProvider";
+import { useNavigate } from "react-router-dom";
 
 export default function HeaderQuickSearch() {
     const [search, setSearch] = useState("");
+    const navigate = useNavigate();
     const [searchResults, setSearchResults] = useState([{
+        uuid: "5a746580-df85-40cd-976f-ae0d53155ec4",
         name: "5a746580-df85-40cd-976f-ae0d53155ec4",
         species: "Species 1",
     }, {
@@ -16,22 +19,22 @@ export default function HeaderQuickSearch() {
     }, {
         name: "Name 3",
         species: "Species 3",
-    },{
+    }, {
         name: "Name 3",
         species: "Species 3",
-    },{
+    }, {
         name: "Name 3",
         species: "Species 3",
-    },{
+    }, {
         name: "Name 3",
         species: "Species 3",
-    },{
+    }, {
         name: "Name 3",
         species: "Species 3",
-    },{
+    }, {
         name: "Name 3",
         species: "Species 3",
-    },{
+    }, {
         name: "Name 3",
         species: "Species 3",
     },
@@ -40,7 +43,7 @@ export default function HeaderQuickSearch() {
         species: "Species 3",
     },
 
-]);
+    ]);
     const [showDropdown, setShowDropdown] = useState(false);
     const theme = React.useContext(ThemeColorContext);
 
@@ -99,7 +102,16 @@ export default function HeaderQuickSearch() {
                     maxHeight: "400px",
                 }}>
                     {searchResults.map((result, index) => (
-                        <Dropdown.Item key={index}>
+                        <Dropdown.Item key={index}
+                            as="button"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                console.log("clicked", result);
+                                navigate(`/individuals&id=${result.uuid || result.id}`);
+                            }}
+                        >
                             <div className="d-flex flex-row justify-content-between">
                                 <div className="individual-name" style={{
                                     width: "180px",

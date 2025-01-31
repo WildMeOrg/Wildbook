@@ -78,3 +78,9 @@
       display: none !important;
   }
 }
+
+.header-quick-search-input::placeholder {
+  color: gray; 
+  opacity: 0.6; 
+  font-size: 0.9rem;
+}
