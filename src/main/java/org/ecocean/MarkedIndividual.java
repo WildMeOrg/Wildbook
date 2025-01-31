@@ -157,6 +157,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // Sets the Individual Id.
     @Override public void setId(String id) {
         individualID = id;
+        setVersion();
     }
 
     // this is "something to show" (by default)... it falls back to the id,
@@ -262,6 +263,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public void setNames(MultiValue mv) {
         names = mv;
         refreshNamesCache();
+        setVersion();
     }
 
     public MultiValue getNames() {
@@ -301,6 +303,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
         this.names = new MultiValue();
         if (Util.stringExists(legacy)) addName(NAMES_KEY_LEGACYINDIVIDUALID, legacy);
+        setVersion();
     }
 
     // this adds to the default
@@ -308,12 +311,14 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         if (names == null) names = new MultiValue();
         names.addValuesDefault(name);
         refreshNamesCache();
+        setVersion();
     }
 
     public void addName(Object keyHint, String name) {
         if (names == null) names = new MultiValue();
         names.addValues(keyHint, name);
         refreshNamesCache();
+        setVersion();
     }
 
     // adds a name and inserts a comment describing who, when, and (optionally) why that was done
@@ -338,6 +343,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         if (names == null) names = new MultiValue();
         names.addValuesByKey(key, value);
         refreshNamesCache();
+        setVersion();
     }
 
     public boolean hasName(String value) {
@@ -398,6 +404,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 names.addValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
             }
         }
+        setVersion();
         return names;
     }
 
@@ -447,6 +454,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     ". Individual already has an Id from project " + project.getProjectIdPrefix() +
                     ".");
             }
+            setVersion();
         } else {
             System.out.println(
                 "[WARN]: Passed a null project to MarkedIndividual.addIncrementalProjectId() on " +
@@ -471,6 +479,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             encounters.add(newEncounter);
             numberEncounters++;
             refreshDependentProperties();
+            setVersion();
         }
         setTaxonomyFromEncounters(); // will only set if has no value
         setSexFromEncounters(); // likewise
@@ -493,6 +502,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             encounters.add(newEncounter);
             numberEncounters++;
             refreshDependentProperties();
+            setVersion();
         }
         return isNew;
     }
@@ -515,6 +525,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         localHaplotypeReflection = null;
         getHaplotype();
 
+        setVersion();
         return changed;
     }
 
@@ -542,6 +553,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         String d = new Integer(first.getYear()).toString();
         if (first.getMonth() > 0) d = new Integer(first.getMonth()).toString() + "/" + d;
         this.dateFirstIdentified = d;
+        setVersion();
         return d;
     }
 
@@ -552,6 +564,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         Encounter last = sorted[0];
         if (last.getYear() < 1) return null;
         this.dateTimeLatestSighting = last.getDate();
+        setVersion();
         return last.getDate();
     }
 
@@ -852,12 +865,14 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // TODO: evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
     public void setIndividualID(String id) {
         individualID = id;
+        setVersion();
     }
 
     public void setAlternateID(String alt) {
         System.out.println(
             "WARNING: indiv.setAlternateID() is depricated, please consider modifying .names according to a hint/context");
         this.addNameByKey(NAMES_KEY_ALTERNATEID, alt);
+        setVersion();
     }
 
     // Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored for this MarkedIndividual.
@@ -956,11 +971,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         } else {
             comments = newComments;
         }
+        setVersion();
     }
 
     // Sets any additional, general comments recorded for this MarkedIndividual as a whole.
     @Override public void setComments(String comments) {
         this.comments = comments;
+        setVersion();
     }
 
     // Returns the complete Vector of stored satellite tag data files for this MarkedIndividual.
@@ -976,6 +993,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // Sets the sex of this MarkedIndividual.
     public void setSex(String newSex) {
         if (newSex != null) { sex = newSex; } else { sex = null; }
+        setVersion();
     }
 
     public boolean hasSex() {
@@ -990,6 +1008,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setGenus(String newGenus) {
         genus = newGenus;
+        setVersion();
     }
 
     public String getSpecificEpithet() {
@@ -998,6 +1017,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setSpecificEpithet(String newEpithet) {
         specificEpithet = newEpithet;
+        setVersion();
     }
 
     public void setTaxonomyString(String tax) {
@@ -1029,6 +1049,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             if ((enc.getGenus() != null) && (enc.getSpecificEpithet() != null)) {
                 genus = enc.getGenus();
                 specificEpithet = enc.getSpecificEpithet();
+                setVersion();
                 return getTaxonomyString();
             }
         }
@@ -1046,6 +1067,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         for (Encounter enc : encounters) {
             if (enc.getSex() != null && !enc.getSex().equals("unknown")) {
                 sex = enc.getSex();
+                setVersion();
                 return getSex();
             }
         }
@@ -1185,6 +1207,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public void addInterestedResearcher(String email) {
         if (interestedResearchers == null) { interestedResearchers = new Vector(); }
         interestedResearchers.add(email);
+        setVersion();
     }
 
     public void removeInterestedResearcher(String email) {
@@ -1196,16 +1219,19 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 }
             }
         }
+        setVersion();
     }
 
     public void setSeriesCode(String newCode) {
         seriesCode = newCode;
+        setVersion();
     }
 
     // Adds a satellite tag data file for this MarkedIndividual.
     public void addDataFile(String dataFile) {
         if (dataFiles == null) { dataFiles = new Vector(); }
         dataFiles.add(dataFile);
+        setVersion();
     }
 
     // Removes a satellite tag data file for this MarkedIndividual.
@@ -1213,6 +1239,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         if (dataFiles != null) {
             dataFiles.remove(dataFile);
         }
+        setVersion();
     }
 
     public int getNumberTrainableEncounters() {
@@ -1465,10 +1492,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setDateTimeCreated(String time) {
         dateTimeCreated = time;
+        setVersion();
     }
 
     public void setDateTimeLatestSighting(String time) {
         dateTimeLatestSighting = time;
+        setVersion();
     }
 
     public String getDynamicProperties() {
@@ -1477,6 +1506,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setDynamicProperties(String dprop) {
         this.dynamicProperties = dprop;
+        setVersion();
     }
 
     public void setDynamicProperty(String name, String value) {
@@ -1506,6 +1536,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 dynamicProperties = dynamicProperties + name + "=" + value + ";";
             }
         }
+        setVersion();
     }
 
     public String getDynamicPropertyValue(String name) {
@@ -1547,6 +1578,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     ";") + ";";
             }
         }
+        setVersion();
     }
 
     public ArrayList<Keyword> getAllAppliedKeywordNames(Shepherd myShepherd) {
@@ -1631,7 +1663,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // Sets the patterning type evident on this MarkedIndividual instance.
-    public void setPatterningCode(String newCode) { this.patterningCode = newCode; }
+    public void setPatterningCode(String newCode) {
+        this.patterningCode = newCode;
+        setVersion();
+    }
 
     public void resetMaxNumYearsBetweenSightings() {
         int maxYears = 0;
@@ -1649,6 +1684,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             }
         }
         maxYearsBetweenResightings = maxYears;
+        setVersion();
     }
 
     public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay,
@@ -1952,8 +1988,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public long getTimeOfBirth() { return timeOfBirth; }
     public long getTimeofDeath() { return timeOfDeath; }
 
-    public void setTimeOfBirth(long newTime) { timeOfBirth = newTime; }
-    public void setTimeOfDeath(long newTime) { timeOfDeath = newTime; }
+    public void setTimeOfBirth(long newTime) {
+        timeOfBirth = newTime;
+        setVersion();
+    }
+
+    public void setTimeOfDeath(long newTime) {
+        timeOfDeath = newTime;
+        setVersion();
+    }
 
     public List<Relationship> getAllRelationships(Shepherd myShepherd) {
         return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
@@ -2347,6 +2390,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         this.resetMaxNumYearsBetweenSightings();
         this.refreshDateFirstIdentified();
         this.refreshDateLastestSighting();
+        this.setVersion();
     }
 
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
