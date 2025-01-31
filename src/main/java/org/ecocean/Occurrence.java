@@ -385,6 +385,24 @@ public class Occurrence extends Base implements java.io.Serializable {
         return names;
     }
 
+    public Set<MarkedIndividual> getMarkedIndividuals() {
+        return getMarkedIndividuals(null);
+    }
+
+    public Set<MarkedIndividual> getMarkedIndividuals(MarkedIndividual skip) {
+        Set<MarkedIndividual> indivs = new HashSet<MarkedIndividual>();
+
+        if (this.encounters == null) return indivs;
+        String skipId = null;
+        if (skip != null) skipId = skip.getId();
+        for (Encounter enc : this.encounters) {
+            MarkedIndividual indiv = enc.getIndividual();
+            if ((indiv == null) || indiv.getId().equals(skipId)) continue;
+            indivs.add(indiv);
+        }
+        return indivs;
+    }
+
     // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setID(String id) {
         occurrenceID = id;

@@ -134,7 +134,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public JSONObject opensearchMapping() {
         JSONObject map = super.opensearchMapping();
-        JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+        JSONObject keywordType = new JSONObject("{\"type\": \"keyword\"}");
 
 /*
         JSONObject keywordNormalType = new org.json.JSONObject(
@@ -1373,7 +1373,7 @@ public class Annotation extends Base implements java.io.Serializable {
     public static Object validateFieldValue(String fieldName, JSONObject data)
     throws ApiException {
         if (data == null) throw new ApiException("empty payload");
-        org.json.JSONObject error = new org.json.JSONObject();
+        JSONObject error = new JSONObject();
         error.put("fieldName", fieldName);
         String exMessage = "invalid value for " + fieldName;
         Object returnValue = null;
