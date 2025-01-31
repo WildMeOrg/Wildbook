@@ -2634,7 +2634,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
         map.put("timeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("timeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
-        map.put("locationsGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        map.put("locationGeoPoints", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
 
         map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\"}"));
         return map;
@@ -2659,11 +2659,22 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             Set<String> names = this.getAllNamesList();
             if (names != null)
                 for (String name : names) {
-                    jgen.writeString(name);
+                    if (!Util.stringIsEmptyOrNull(name)) jgen.writeString(name);
                 }
             jgen.writeEndArray();
-            jgen.writeFieldName("nameMap");
-            jgen.writeRawValue(this.getNames().getValues().toString());
+            jgen.writeObjectFieldStart("nameMap");
+            for (String key : this.getNames().getKeys()) {
+                if (Util.stringIsEmptyOrNull(key)) continue;
+                jgen.writeArrayFieldStart(key);
+                Set<String> uniq = new HashSet<String>(this.getNames().getValuesByKey(key));
+                uniq.remove("");
+                uniq.remove(null);
+                for (String nm : uniq) {
+                    jgen.writeString(nm);
+                }
+                jgen.writeEndArray();
+            }
+            jgen.writeEndObject();
         }
         if (this.getNumEncounters() > 0) {
             Set<String> users = new HashSet<String>();
