@@ -230,12 +230,14 @@ if(request.getUserPrincipal()!=null){
           const resultsDropdown = document.getElementById("quick-search-results");
 
           // Event listener for input changes
+          searchInput.addEventListener("focus", function() {
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = "Your search results will appear here.";
+          });
           searchInput.addEventListener("input", function() {
-            console.log("Input changed");
             const query = searchInput.value;
             resultsDropdown.style.display = "block";
-            if (query.length > 0) {
-
+            
               console.log("Query: ", query);
               //$.ajax({
                 //url: wildbookGlobals.baseUrl + '../quickSearch',
@@ -315,33 +317,39 @@ if(request.getUserPrincipal()!=null){
                   context: "Context 5",
                 },
               ];
-              resultsDropdown.innerHTML = datas.map(data => {
-                const { id, value, species, context } = data;
-                console.log("value: ", JSON.stringify(value));
-                return '<a href="<%=urlLoc %>/react/individual/' + data.id +'">' +
-                  '<div class="search-result" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; paddingLeft: 10px; border-bottom: 1px solid #ddd">' +
-                  '<div class="search-result-content" style="display: flex; flex-direction: column;"> ' + 
-                  '<div class="search-result-value" style="color: black; width: 180px; overflow: hidden;">'+ data.value +'</div>' +
-                  '<div class="search-result-species" style="color: black">'+ data.species +'</div></div>' +
-                  '<div class="search-result-context" style="height: 25px; width: 100px; background-color: #00ACCE; border-radius: 4px; display: flex; align-items: center; justify-content: center">'+ data.context +'</div></div>' + 
-                '</a>' ;
-              }).join("");
-            } else {
-              resultsDropdown.innerHTML = "Your search results will appear here.";
-            } 
-            
+
+              if(datas.length > 0) {
+                resultsDropdown.innerHTML = datas.map(data => {
+                  const { id, value, species, context } = data;
+                  console.log("value: ", JSON.stringify(value));
+                  return '<a href="<%=urlLoc %>/individuals.jsp&id=' + data.id +'" target="_blank">' +
+                    '<div class="quick-search-result">' +
+                    '<div class="quick-search-result-content">' + 
+                    '<div class="quick-search-result-value">'+ data.value +'</div>' +
+                    '<div class="quick-search-result-species">'+ data.species +'</div></div>' +
+                    '<div class="quick-search-result-context">'+ data.context +'</div></div>' + 
+                  '</a>' ;
+                }).join("");
+              }
+              else {
+                resultsDropdown.innerHTML = "No matching results.";
+              }
           });
 
           // Event listener for close button
           closeButton.addEventListener("click", function() {
             searchInput.value = "";
-            resultsDropdown.innerHTML = "";
+            resultsDropdown.style.display = "none";
           });
          
           // Event listener to close dropdown when clicking outside
           document.addEventListener("click", function(event) {
-            if (!event.target.closest(".search-wrapper")) {
-              resultsDropdown.innerHTML = "";
+          const searchInput = document.getElementById("quick-search-input");
+          const resultsDropdown = document.getElementById("quick-search-results");
+
+          if (!searchInput.contains(event.target) && !resultsDropdown.contains(event.target)) {
+            resultsDropdown.style.display = "none";
+            searchInput.value = "";
             }
           });
         });
@@ -654,26 +662,17 @@ if(request.getUserPrincipal()!=null){
                       </li>
 
                      <% if(user != null && !loggingOut){ %>
-                      <div class="search-wrapper w-100"
-                        style="display: flex; justify-content: center; align-items: center; margin: 0 10px; position: relative;"
-                      >
-                        <div class="search-box"
-                          style="background-color: transparent; border: 1px solid white; border-radius: 20px; color: white; height: 33px; width: 150px; position: relative; display: flex; "
-                        >
+                      <div class="quick-search-wrapper w-100">
+                        <div class="search-box">
                           <input 
                             type="text" 
                             id="quick-search-input" 
-                            placeholder="<%=props.getProperty("search")%>" 
-                            style="background-color: transparent; border: none; color: white; width: 100%; height: 100%; outline: none; border-radius: 20px; padding: 0 10px;"
+                            placeholder="<%=props.getProperty("search")%>"                             
                             autocomplete="off" 
                           />
-                          <span 
-                            id="quick-search-clear"
-                            style="color: white; cursor: pointer; font-size: 1.2rem; padding: 0 5px; position: absolute; right: 5px; top: 0; height: 100%; display: flex; align-items: center; justify-content: center;">
-                              &times;
-                          </span>
+                          <span id="quick-search-clear"> &times;</span>
                         </div>
-                        <div id="quick-search-results" style="position: absolute; top: 50px; left: 0; width: 300px; background-color: white; height: 300px; overflow: auto; display: none; border-radius: 5px; color: black; padding: 10px"></div>
+                        <div id="quick-search-results"></div>
                       </div>
                       <% } %>
                       
