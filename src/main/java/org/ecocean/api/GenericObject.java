@@ -9,6 +9,8 @@ import javax.servlet.ServletException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.Annotation;
+import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.servlet.ServletUtilities;
@@ -56,6 +58,27 @@ public class GenericObject extends ApiBase {
                         rtn.put("url", url.toString());
                         rtn.put("width", ma.getWidth());
                         rtn.put("height", ma.getHeight());
+                        JSONArray janns = new JSONArray();
+                        for (Annotation ann : ma.getAnnotations()) {
+                            JSONObject jann = new JSONObject();
+                            if (ann.getFeatures() != null) {
+                                for (Feature ft : ann.getFeatures()) {
+                                    if (ft.isUnity()) {
+                                        jann.put("trivial", true);
+                                        jann.put("x", 0);
+                                        jann.put("y", 0);
+                                        jann.put("width", (int)ma.getWidth());
+                                        jann.put("height", (int)ma.getHeight());
+                                    } else {
+                                        // basically if we have more than one feature, only one wins
+                                        if (ft.getParameters() != null) jann = ft.getParameters();
+                                    }
+                                }
+                            }
+                            jann.put("id", ann.getId());
+                            janns.put(jann);
+                        }
+                        rtn.put("annotations", janns);
                     }
                 }
                 break;
