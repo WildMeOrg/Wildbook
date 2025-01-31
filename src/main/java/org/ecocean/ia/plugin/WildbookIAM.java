@@ -11,10 +11,10 @@ import java.util.List;
 import javax.servlet.ServletContextEvent;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.acm.AcmUtil;
+import org.ecocean.Annotation;
 import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
-import org.ecocean.Annotation;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
@@ -80,48 +80,6 @@ public class WildbookIAM extends IAPlugin {
         IA.log("INFO: WildbookIAM.prime(" + this.context +
             ") called - NOTE this is deprecated and does nothing now.");
         IBEISIA.setIAPrimed(true);
-    }
-
-    public void _OLD_prime() {
-        IA.log("INFO: WildbookIAM.prime(" + this.context + ") called");
-        IBEISIA.setIAPrimed(false);
-        if (!isEnabled()) return;
-        final List<String> iaAnnotIds = iaAnnotationIds();
-        final List<String> iaImageIds = iaImageIds();
-        Runnable r = new Runnable() {
-            public void run() {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("WildbookIAM.prime");
-                myShepherd.beginDBTransaction();
-                ArrayList<Annotation> matchingSet = Annotation.getAllMatchAgainstTrue(myShepherd);
-                ArrayList<Annotation> sendAnns = new ArrayList<Annotation>();
-                ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-                for (Annotation ann : matchingSet) {
-                    if (iaAnnotIds.contains(ann.getAcmId())) continue; // no need to send
-                    sendAnns.add(ann);
-                    MediaAsset ma = ann.getDerivedMediaAsset();
-                    if (ma == null) ma = ann.getMediaAsset();
-                    if (ma == null) continue;
-                    if (iaImageIds.contains(ma.getAcmId())) continue;
-                    mas.add(ma);
-                }
-                IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() +
-                    " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
-                try {
-                    // think we can checkFirst on both of these -- no need to re-send anything during priming
-                    sendMediaAssets(mas, true);
-                    sendAnnotations(sendAnns, true, myShepherd);
-                } catch (Exception ex) {
-                    IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
-                    ex.printStackTrace();
-                }
-                myShepherd.commitDBTransaction(); // MAs and annots may have had acmIds changed
-                myShepherd.closeDBTransaction();
-                IBEISIA.setIAPrimed(true);
-                IA.log("INFO: WildbookIAM.prime(" + context + ") complete");
-            }
-        };
-        new Thread(r).start();
     }
 
 /*
@@ -317,33 +275,28 @@ public class WildbookIAM extends IAPlugin {
     public static List<String> iaAnnotationIds(String context) {
         List<String> ids = new ArrayList<String>();
         JSONArray jids = null;
-        String cacheName="iaAnnotationIds";
+        String cacheName = "iaAnnotationIds";
+
         try {
-        	
-        	
-        	QueryCache qc = QueryCacheFactory.getQueryCache(context);
+            QueryCache qc = QueryCacheFactory.getQueryCache(context);
             if (qc.getQueryByName(cacheName) != null &&
                 System.currentTimeMillis() <
                 qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
-            	
-            	     org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-            	     jids=Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
+                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+                jids = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+            } else {
+                jids = apiGetJSONArray("/api/annot/json/", context);
+                if (jids != null) {
+                    org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                        new org.datanucleus.api.rest.orgjson.JSONObject();
+                    jobj.put("iaAnnotationIds", Util.toggleJSONArray(jids));
+                    CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
+                    cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
+                    qc.addCachedQuery(cq);
+                }
             }
-            else {
-            	jids = apiGetJSONArray("/api/annot/json/", context);
-            	if(jids!=null) {
-	            	org.datanucleus.api.rest.orgjson.JSONObject jobj =new org.datanucleus.api.rest.orgjson.JSONObject();
-	            	jobj.put("iaAnnotationIds",Util.toggleJSONArray(jids));
-	            	CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
-	                cq.nextExpirationTimeout = System.currentTimeMillis() + (15*60*1000);
-	                qc.addCachedQuery(cq);
-            	}
-            	
-            }
-            
-            
-        } 
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
                 ex.toString());
