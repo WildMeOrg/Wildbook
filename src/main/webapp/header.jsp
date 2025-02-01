@@ -226,6 +226,7 @@ if(request.getUserPrincipal()!=null){
           );
 
           const searchInput = document.getElementById("quick-search-input");
+          console.log("Search Input: ", searchInput); 
           const closeButton = document.getElementById("quick-search-clear");
           const resultsDropdown = document.getElementById("quick-search-results");
 
@@ -236,104 +237,88 @@ if(request.getUserPrincipal()!=null){
           });
           searchInput.addEventListener("input", function() {
             const query = searchInput.value;
+            console.log("Query: ", query);
+            if (query === "") {
+              resultsDropdown.innerHTML = ""; 
+              resultsDropdown.style.display = "none";
+              return;
+            }
+            let searchResults = [];
             resultsDropdown.style.display = "block";
-            
+            resultsDropdown.innerHTML = "<div class='loading'>Loading...</div>";
               console.log("Query: ", query);
-              //$.ajax({
-                //url: wildbookGlobals.baseUrl + '../quickSearch',
-                //type: 'GET',
-                //data: {
-                //  query: query
-                //},
-               // success: function(data) {
-               //   resultsDropdown.innerHTML = data;
-               // },
-               // error: function(x, y, z) {
-               //   console.warn('%o %o %o', x, y, z);
-               // }
-              //});
+              $.ajax({
+                url: "/api/v3/search/individual?size=10",
+                type: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    query: {
+                        bool: {
+                            should: [
+                                {
+                                    wildcard: {
+                                        names: {
+                                            value: '*' + searchInput.value + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                },
+                                {
+                                    wildcard: {
+                                        id: {
+                                            value: '*' + searchInput.value + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }),
+                beforeSend: function () {
+            resultsDropdown.innerHTML = "<div class='loading'>Loading</div>"; 
+        },
+        success: function (response) {
+            console.log("Search Results: ", response.hits);
+            searchResults = response.hits || [];      
+            if(searchResults.length > 0) {
+                resultsDropdown.innerHTML = searchResults.map(data => {
+                  const taxonomy = data.taxonomy ? data.taxonomy : " ";
+                  let context = "UNKNOWN";
+                  if(data.id.includes(searchInput.value)){
+                    context = "ID";
+                  }else if(data.names.some(data => data.includes(searchInput.value))){
+                    context = "NAME";
+                  }else {
+                    context = "UNKNOWN";
+                  }
 
-              // Mock data
-
-              const datas = [
-                {
-                  id: 1,
-                  value: searchInput.value,
-                  species: "Test 1",
-                  context: "Context 1",
-                },
-                {
-                  id: 2,
-                  value: searchInput.value,
-                  species: "Test 2",
-                  context: "Context 2",
-                },
-                {
-                  id: 3,
-                  value: searchInput.value,
-                  species: "Test 3",
-                  context: "Context 3",
-                },
-                {
-                  id: 4,
-                  value: searchInput.value,
-                  species: "Test 4",
-                  context: "Context 4",
-                },
-                {
-                  id: 5,
-                  value: searchInput.value,
-                  species: "Test 5",
-                  context: "Context 5",
-                },
-                {
-                  id: 6,
-                  value: searchInput.value,
-                  species: "Test 1",
-                  context: "Context 1",
-                },
-                {
-                  id: 7,
-                  value: searchInput.value,
-                  species: "Test 2",
-                  context: "Context 2",
-                },
-                {
-                  id: 8,
-                  value: searchInput.value,
-                  species: "Test 3",
-                  context: "Context 3",
-                },
-                {
-                  id: 9,
-                  value: searchInput.value,
-                  species: "Test 4",
-                  context: "Context 4",
-                },
-                {
-                  id: 10,
-                  value: searchInput.value,
-                  species: "Test 5",
-                  context: "Context 5",
-                },
-              ];
-
-              if(datas.length > 0) {
-                resultsDropdown.innerHTML = datas.map(data => {
-                  const { id, value, species, context } = data;
-                  console.log("value: ", JSON.stringify(value));
-                  return '<a href="<%=urlLoc %>/individuals.jsp&id=' + data.id +'" target="_blank">' +
+                  return '<a href="<%=urlLoc %>/individuals.jsp?id=' + data.id +'" target="_blank">' +
                     '<div class="quick-search-result">' +
                     '<div class="quick-search-result-content">' + 
-                    '<div class="quick-search-result-value">'+ data.value +'</div>' +
-                    '<div class="quick-search-result-species">'+ data.species +'</div></div>' +
-                    '<div class="quick-search-result-context">'+ data.context +'</div></div>' + 
+                    '<div class="quick-search-result-value">'+ searchInput.value +'</div>' +
+                    '<div class="quick-search-result-species">'+ taxonomy  +'</div></div>' +
+                    '<div class="quick-search-result-context">'+ "NAME" +'</div></div>' + 
                   '</a>' ;
                 }).join("");
               }
               else {
                 resultsDropdown.innerHTML = "No matching results.";
-              }
+              }       
+        },
+        error: function (xhr, status, error) {
+            console.error("Error: ", error);
+            resultsDropdown.innerHTML = "An error occurred while fetching search results.";
+        },
+        complete: function () {
+            document.querySelector(".loading")?.remove();
+        }
+            });
+
+            console.log("Search Results: ", searchResults); 
+              
+              
           });
 
           // Event listener for close button
