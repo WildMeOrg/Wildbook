@@ -1,0 +1,20 @@
+services:
+  wildbook:
+    image: wildbook_image
+    ports:
+      - "81:8080"
+      - "8000:8000"
+    environment:
+      DB_USER: "${WILDBOOK_DB_USER}"
+      DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
+      DB_CONNECTION_URL: "${WILDBOOK_DB_CONNECTION_URL}"
+      WILDBOOK_APP_URL: "${WILDBOOK_APP_URL}"
+      # Admin user created on startup,
+      # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
+      # JAVA_OPTS from old-world wildbook, which gives us 4G heap memory
+      JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
+      JPDA_ADDRESS: "8000"
+      JPDA_TRANSPORT: "dt_socket"
+    
+    # volumes:
+    #   - "$WILDBOOK_BASE_DIR/webapps/wildbook_data_dir:/usr/local/tomcat/webapps/wildbook_data_dir"
