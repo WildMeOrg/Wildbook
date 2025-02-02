@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "sideEffect": false,
   "dependencies": {
     "@flowjs/flow.js": "^2.14.1",
     "@testing-library/user-event": "^13.5.0",
@@ -82,7 +83,9 @@
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "bootstrap-icons": "^1.11.3",
+    "compression-webpack-plugin": "^11.1.0",
     "css-loader": "^6.10.0",
+    "customize-cra": "^1.0.0",
     "date-fns": "^4.1.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.35.0",
@@ -98,7 +101,7 @@
     "terser-webpack-plugin": "^5.3.10",
     "unused-webpack-plugin": "^2.4.0",
     "webpack": "^5.94.0",
-    "webpack-bundle-analyzer": "^4.10.1",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   },
