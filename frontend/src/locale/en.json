@@ -362,6 +362,7 @@
     "FILTER_DEATH" : "Death",
     "NO_MATCHING_RESULTS": "No matching results",
     "SYSTEM_ID": "System ID",
-    "SEARCH_INDIVIDUALS": "Search Individuals"
+    "SEARCH_INDIVIDUALS": "Search Individuals",
+    "SEARCH_RESULT_DISPLAY" : "Your search results will appear here"
 
 }

@@ -361,5 +361,6 @@
     "FILTER_DEATH" : "Décès",
     "NO_MATCHING_RESULTS": "Aucun résultat correspondant",
     "SYSTEM_ID": "ID du Système",
-    "SEARCH_INDIVIDUALS": "Rechercher des Individus"
+    "SEARCH_INDIVIDUALS": "Rechercher des Individus",
+    "SEARCH_RESULT_DISPLAY": "Vos résultats de recherche apparaîtront ici"
 }

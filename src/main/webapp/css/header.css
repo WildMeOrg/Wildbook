@@ -431,7 +431,8 @@
   position: absolute; 
   top: 50px; left: 0; 
   width: 300px; 
-  background-color: white; 
+  background-color: white;
+  min-height: 100px; 
   max-height: 300px; 
   overflow: auto; 
   display: none; 
@@ -457,6 +458,7 @@
   align-items: center; 
   margin: 0 10px; 
   position: relative;
+  width: 200px;
 }
 
 .quick-search-result{

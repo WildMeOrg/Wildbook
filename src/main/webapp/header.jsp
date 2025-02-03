@@ -226,28 +226,31 @@ if(request.getUserPrincipal()!=null){
           );
 
           const searchInput = document.getElementById("quick-search-input");
-          console.log("Search Input: ", searchInput); 
           const closeButton = document.getElementById("quick-search-clear");
           const resultsDropdown = document.getElementById("quick-search-results");
 
-          // Event listener for input changes
-          searchInput.addEventListener("focus", function() {
-            resultsDropdown.style.display = "block";
-            resultsDropdown.innerHTML = "Your search results will appear here.";
-          });
-          searchInput.addEventListener("input", function() {
-            const query = searchInput.value;
-            console.log("Query: ", query);
-            if (query === "") {
-              resultsDropdown.innerHTML = ""; 
-              resultsDropdown.style.display = "none";
-              return;
+          let debounceTimer;
+
+          function debounce(func, delay) {
+            return function (...args) {
+              clearTimeout(debounceTimer);
+              debounceTimer = setTimeout(() => func.apply(this, args), delay);
             }
-            let searchResults = [];
+          }
+
+          function performSearch() {
+            const query = searchInput.value.trim();
+
+            if (query === "") {
+                resultsDropdown.innerHTML = "";
+                resultsDropdown.style.display = "none";
+                return;
+            }
+
             resultsDropdown.style.display = "block";
-            resultsDropdown.innerHTML = "<div class='loading'>Loading...</div>";
-              console.log("Query: ", query);
-              $.ajax({
+            resultsDropdown.innerHTML = "<div class='loading'><%=props.getProperty('loading') %></div>";
+
+            $.ajax({
                 url: "/api/v3/search/individual?size=10",
                 type: "POST",
                 contentType: "application/json",
@@ -259,7 +262,7 @@ if(request.getUserPrincipal()!=null){
                                 {
                                     wildcard: {
                                         names: {
-                                            value: '*' + searchInput.value + '*',
+                                            value: '*' + query + '*',
                                             case_insensitive: true
                                         }
                                     }
@@ -267,7 +270,7 @@ if(request.getUserPrincipal()!=null){
                                 {
                                     wildcard: {
                                         id: {
-                                            value: '*' + searchInput.value + '*',
+                                            value: '*' + query + '*',
                                             case_insensitive: true
                                         }
                                     }
@@ -277,49 +280,55 @@ if(request.getUserPrincipal()!=null){
                     }
                 }),
                 beforeSend: function () {
-            resultsDropdown.innerHTML = "<div class='loading'>Loading</div>"; 
-        },
-        success: function (response) {
-            console.log("Search Results: ", response.hits);
-            searchResults = response.hits || [];      
-            if(searchResults.length > 0) {
-                resultsDropdown.innerHTML = searchResults.map(data => {
-                  const taxonomy = data.taxonomy ? data.taxonomy : " ";
-                  let context = "UNKNOWN";
-                  if(data.id.includes(searchInput.value)){
-                    context = "ID";
-                  }else if(data.names.some(data => data.includes(searchInput.value))){
-                    context = "NAME";
-                  }else {
-                    context = "UNKNOWN";
-                  }
+                    resultsDropdown.innerHTML = "<div class='loading'><%=props.getProperty('loading') %></div>";
+                },
+                success: function (response) {
+                    console.log("Search Results: ", response.hits);
+                    const searchResults = response.hits || [];
 
-                  return '<a href="<%=urlLoc %>/individuals.jsp?id=' + data.id +'" target="_blank">' +
-                    '<div class="quick-search-result">' +
-                    '<div class="quick-search-result-content">' + 
-                    '<div class="quick-search-result-value">'+ searchInput.value +'</div>' +
-                    '<div class="quick-search-result-species">'+ taxonomy  +'</div></div>' +
-                    '<div class="quick-search-result-context">'+ "NAME" +'</div></div>' + 
-                  '</a>' ;
-                }).join("");
-              }
-              else {
-                resultsDropdown.innerHTML = "No matching results.";
-              }       
-        },
-        error: function (xhr, status, error) {
-            console.error("Error: ", error);
-            resultsDropdown.innerHTML = "An error occurred while fetching search results.";
-        },
-        complete: function () {
-            document.querySelector(".loading")?.remove();
-        }
+                    if (searchResults.length > 0) {
+                        resultsDropdown.innerHTML = searchResults.map(data => {
+                            const taxonomy = data.taxonomy ? data.taxonomy : " ";
+                            let context = "UNKNOWN";
+                            if (data.id.includes(query)) {
+                                context = "<%=props.getProperty('SystemId') %>";
+                            } else if (data.names.some(name => name.includes(query))) {
+                                context = "<%=props.getProperty('Name') %>";
+                            } else {
+                                context = "<%=props.getProperty('Unknown') %>";
+                            }
+
+                            return `
+                                <a href="<%=urlLoc %>/individuals.jsp?id=${data.id}" target="_blank">
+                                    <div class="quick-search-result">
+                                        <div class="quick-search-result-content">
+                                            <div class="quick-search-result-value">${query}</div>
+                                            <div class="quick-search-result-species">${taxonomy}</div>
+                                        </div>
+                                        <div class="quick-search-result-context">${context}</div>
+                                    </div>
+                                </a>`;
+                        }).join("");
+                    } else {
+                        resultsDropdown.innerHTML = <%=props.getProperty('noMatchResults') %>;
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error: ", error);
+                    resultsDropdown.innerHTML = <%=props.getProperty('errorOccurred') %>;
+                },
+                complete: function () {
+                    document.querySelector(<%=props.getProperty('loading') %>)?.remove();
+                }
             });
+        }
 
-            console.log("Search Results: ", searchResults); 
-              
-              
+          // Event listener for input changes
+          searchInput.addEventListener("focus", function() {
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = <%=props.getProperty('searchResultDisplay') %>;
           });
+          searchInput.addEventListener("input", debounce(performSearch, 300));
 
           // Event listener for close button
           closeButton.addEventListener("click", function() {
@@ -647,7 +656,7 @@ if(request.getUserPrincipal()!=null){
                       </li>
 
                      <% if(user != null && !loggingOut){ %>
-                      <div class="quick-search-wrapper w-100">
+                      <div class="quick-search-wrapper">
                         <div class="search-box">
                           <input 
                             type="text" 
