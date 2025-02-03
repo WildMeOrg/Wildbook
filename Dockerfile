@@ -14,11 +14,13 @@ RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/
 # FROM portolano/maven-3.3.9-jdk-8:v1 as builder
 FROM maven:3.8-openjdk-8 as builder
 
+RUN apt-get update && apt-get install -y git npm rsync
+
 WORKDIR /app
 
 COPY --from=react-builder /app/war_output/react /app/war_output/react  
 
-COPY . /app  
+COPY . /app
 
 # Build the project using Maven
 RUN mvn clean install -DskipTests
