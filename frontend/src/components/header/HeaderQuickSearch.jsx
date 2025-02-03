@@ -71,7 +71,9 @@ export default function HeaderQuickSearch() {
           {loading && (
             <Dropdown.Item className="text-center">
               <Spinner animation="border" size="sm" />
-              <span className="ms-2">Loading...</span>
+              <span className="ms-2">
+                <FormattedMessage id="LOADING" />
+              </span>
             </Dropdown.Item>
           )}
           {!loading && searchResults.length === 0 && search.trim() === "" && (
