@@ -124,10 +124,14 @@ export default function HeaderQuickSearch() {
                     >
                       <FormattedMessage
                         id={
-                          result?.id?.includes(search)
+                          result?.id
+                            ?.toLowerCase()
+                            .includes(search.toLowerCase())
                             ? "SYSTEM_ID"
                             : result?.names?.some((name) =>
-                                  name.includes(search),
+                                  name
+                                    .toLowerCase()
+                                    .includes(search.toLowerCase()),
                                 )
                               ? "FILTER_NAME"
                               : "UNKNOWN"

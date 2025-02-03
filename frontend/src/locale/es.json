@@ -362,5 +362,6 @@
     "NO_MATCHING_RESULTS": "No hay resultados coincidentes",
     "SYSTEM_ID": "ID del Sistema",
     "SEARCH_INDIVIDUALS": "Buscar Individuos",
-    "SEARCH_RESULT_DISPLAY": "Tus resultados de búsqueda aparecerán aquí."
+    "SEARCH_RESULT_DISPLAY": "Tus resultados de búsqueda aparecerán aquí.",
+    "UNKNOWN" : "Desconocido"
 }

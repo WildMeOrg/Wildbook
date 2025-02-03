@@ -298,9 +298,9 @@ if(request.getUserPrincipal()!=null){
                         resultsDropdown.innerHTML = searchResults.map(data => {
                             const taxonomy = data.taxonomy ? data.taxonomy : " ";
                             let context = Unknown;
-                            if (data.id.includes(query)) {
+                            if (data.id.toLowerCase().includes(query.toLowerCase())) {
                                 context = SystemId;
-                            } else if (data.names.some(name => name.includes(query))) {
+                            } else if (data.names.some(name => name.toLowerCase().includes(query.toLowerCase()))) {
                                 context = Name;
                             } else {
                                 context = Unknown;
