@@ -21,7 +21,7 @@ WORKDIR /app
 COPY . /app  
 
 # Build the project using Maven
-RUN mvn clean install -X
+RUN mvn clean install -DskipTests
 
 RUN mkdir -p /app/war_output && \
     cp target/*.war /app/war_output/wildbook.war && \
