@@ -2840,8 +2840,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     int ct = 0;
                     for (Encounter enc : indiv.getEncounters()) {
                         ct++;
-                        System.out.println("opensearchIndexDeep() background indexing " +
-                            enc.getId() + " via " + indivId + " [" + ct + "/" + total + "]");
+                        System.out.println("opensearchIndexDeep() background indexing enc " +
+                            enc.getId() + " via indiv " + indivId + " [" + ct + "/" + total + "]");
                         try {
                             enc.opensearchIndex();
                         } catch (Exception ex) {
