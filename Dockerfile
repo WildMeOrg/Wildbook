@@ -12,7 +12,8 @@ RUN npm install && npm run build
 
 RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/
 
-FROM portolano/maven-3.3.9-jdk-8:v1 as builder
+#FROM portolano/maven-3.3.9-jdk-8:v1 as builder
+FROM maven:3.8.7-eclipse-temurin-8 as builder
 
 WORKDIR /app
 
