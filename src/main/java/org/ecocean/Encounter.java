@@ -4350,6 +4350,51 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    public void opensearchIndexDeep()
+    throws IOException {
+        this.opensearchIndex();
+
+        final String encId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
+                bgShepherd.beginDBTransaction();
+                try {
+                    Encounter enc = bgShepherd.getEncounter(encId);
+                    if ((enc == null) || !enc.hasMarkedIndividual()) {
+                        // bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    MarkedIndividual indiv = enc.getIndividual();
+                    System.out.println("opensearchIndexDeep() background indexing indiv " +
+                        indiv.getId() + " via enc " + encId);
+                    try {
+                        indiv.opensearchIndex();
+                    } catch (Exception ex) {
+                        System.out.println("opensearchIndexDeep() background indexing " +
+                            indiv.getId() + " FAILED: " + ex.toString());
+                        ex.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    System.out.println("opensearchIndexDeep() backgrounding Encounter " + encId +
+                        " hit an exception.");
+                    e.printStackTrace();
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                System.out.println("opensearchIndexDeep() backgrounding Encounter " + encId +
+                    " finished.");
+                executor.shutdown();
+            }
+        };
+        System.out.println("opensearchIndexDeep() begin backgrounding indiv for " + this);
+        executor.execute(rn);
+        System.out.println("opensearchIndexDeep() [foreground] finished for Encounter " + encId);
+    }
+
     // given a doc from opensearch, can user access it?
     public static boolean opensearchAccess(org.json.JSONObject doc, User user,
         Shepherd myShepherd) {
