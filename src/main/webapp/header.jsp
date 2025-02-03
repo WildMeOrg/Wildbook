@@ -669,7 +669,7 @@ if(request.getUserPrincipal()!=null){
                           <input 
                             type="text" 
                             id="quick-search-input" 
-                            placeholder="<%=props.getProperty("search")%>"                             
+                            placeholder="<%=props.getProperty("searchIndividuals")%>"                             
                             autocomplete="off" 
                           />
                           <span id="quick-search-clear"> &times;</span>
