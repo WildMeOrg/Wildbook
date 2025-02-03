@@ -1,22 +1,22 @@
 
-# FROM node:22 as react-builder
+FROM node:22 as react-builder
 
-# # Set working directory
+# Set working directory
 
-# WORKDIR /app/frontend
+WORKDIR /app/frontend
 
-# COPY frontend/ .
+COPY frontend/ .
 
-# RUN npm install && npm run build
+RUN npm install && npm run build
 
-# RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/
+RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/
 
 # FROM portolano/maven-3.3.9-jdk-8:v1 as builder
 FROM maven:3.8-openjdk-8 as builder
 
 WORKDIR /app
 
-# COPY --from=react-builder /app/war_output/react /app/war_output/react  
+COPY --from=react-builder /app/war_output/react /app/war_output/react  
 
 COPY . /app  
 
