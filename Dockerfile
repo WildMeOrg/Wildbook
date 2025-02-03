@@ -21,7 +21,7 @@ COPY --from=react-builder /app/war_output/react /app/war_output/react
 COPY . /app  
 
 # Build the project using Maven
-RUN mvn clean install
+RUN mvn clean install -X
 
 RUN mkdir -p /app/war_output && \
     cp target/*.war /app/war_output/wildbook.war && \
