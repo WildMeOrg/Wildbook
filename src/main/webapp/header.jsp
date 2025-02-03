@@ -291,7 +291,6 @@ if(request.getUserPrincipal()!=null){
                     resultsDropdown.innerHTML = "<div class='loading'>"+ loadingText +"</div>";
                 },
                 success: function (response) {
-                    console.log("Search Results: ", response.hits);
                     const searchResults = response.hits || [];
 
                     if (searchResults.length > 0) {
