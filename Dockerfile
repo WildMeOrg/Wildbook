@@ -7,6 +7,8 @@ WORKDIR /app/frontend
 
 COPY frontend/ .
 
+ENV PUBLIC_URL=/react/
+
 RUN npm install && npm run build
 
 RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/

@@ -5,16 +5,16 @@
 export PUBLIC_URL=/react/
 export SITE_NAME="Test Site Name"
 
-# npm install react-app-rewired
+npm install react-app-rewired
 
-# cd frontend
-# npm run build
+cd frontend
+npm run build
 
-# rsync -a build/ ../src/main/webapp/react
+rsync -a build/ ../src/main/webapp/react
 
 
 
 # hacky cleanup of changes left over
-# cd ..
-# git checkout -- package.json package-lock.json
+cd ..
+git checkout -- package.json package-lock.json
 
