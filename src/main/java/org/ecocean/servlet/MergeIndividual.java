@@ -43,7 +43,7 @@ public class MergeIndividual extends HttpServlet {
                 "<strong>Error:</strong> Missing two valid individualIDs for MergeIndividual. ";
             if (id1 == null) msg += "<br>Bad id1: " + id1;
             if (id2 == null) msg += "<br>Bad id2: " + id2;
-            errorAndClose(msg, response);
+            errorAndClose(msg, response,out);
             return;
         }
         String oldName1;
@@ -64,7 +64,7 @@ public class MergeIndividual extends HttpServlet {
                     "<strong>Error:</strong> Could not find both individuals in our database. ";
                 if (mark1 == null) msg += "<br>could not find individual " + mark1;
                 if (mark2 == null) msg += "<br>could not find individual " + mark2;
-                errorAndClose(msg, response);
+                errorAndClose(msg, response,out);
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
                 return;
@@ -165,7 +165,7 @@ public class MergeIndividual extends HttpServlet {
             }
         } catch (Exception le) {
             le.printStackTrace();
-            errorAndClose("An exception occurred. Please contact the admins.", response);
+            errorAndClose("An exception occurred. Please contact the admins.", response, out);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             return;
@@ -194,11 +194,11 @@ public class MergeIndividual extends HttpServlet {
         } else {
             errorAndClose(
                 "<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.",
-                response);
+                response,out);
         }
     }
 
-    private void errorAndClose(String msg, HttpServletResponse response) {
+    private void errorAndClose(String msg, HttpServletResponse response, PrintWriter out) {
         // out.println(ServletUtilities.getHeader(request));
         out.println(msg);
         // out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to
