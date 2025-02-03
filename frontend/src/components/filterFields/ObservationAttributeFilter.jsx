@@ -2,7 +2,6 @@ import React from "react";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
-import FormGroupText from "../Form/FormGroupText";
 import DynamicInputs from "../Form/DynamicInputs";
 import { FormLabel, FormGroup } from "react-bootstrap";
 import FormMeasurements from "../Form/FormMeasurements";
@@ -58,9 +57,9 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         overflow: "visible",
       }}
     >
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE_DESC" />
       </Description>
@@ -108,16 +107,6 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         filterKey={"Genus and Species"}
       />
 
-      <FormGroupText
-        label="FILTER_SIGHTING_ID"
-        noDesc={true}
-        onChange={onChange}
-        term="match"
-        field="occurrenceId"
-        filterId={"occurrenceId"}
-        filterKey={"Sighting ID"}
-      />
-
       <FormGroup className="mt-2">
         <FormLabel>
           <FormattedMessage id="FILTER_OBSERVATION_SEARCH" />
@@ -125,14 +114,6 @@ export default function ObservationAttributeFilter({ onChange, data }) {
 
         <DynamicInputs onChange={onChange} />
       </FormGroup>
-      <FormGroupText
-        label="FILTER_OBSERVATION_COMMENTS"
-        onChange={onChange}
-        term="match"
-        field="occurrenceRemarks"
-        filterId={"occurrenceRemarks"}
-        filterKey={"Observation Comments"}
-      />
 
       <FormGroupMultiSelect
         isMulti={true}

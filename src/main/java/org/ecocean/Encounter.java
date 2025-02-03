@@ -4029,7 +4029,9 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.beginDBTransaction();
         try {
             opensearchDocumentSerializer(jgen, myShepherd);
-        } catch (Exception e) {} finally {
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
             myShepherd.rollbackAndClose();
         }
     }
@@ -4210,6 +4212,7 @@ public class Encounter extends Base implements java.io.Serializable {
         } else {
             jgen.writeStringField("individualId", indiv.getId());
             jgen.writeStringField("individualSex", indiv.getSex());
+            jgen.writeStringField("individualTaxonomy", indiv.getTaxonomyString());
             jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
             jgen.writeStringField("individualDisplayName", indiv.getDisplayName());
             jgen.writeArrayFieldStart("individualNames");
@@ -4224,6 +4227,11 @@ public class Encounter extends Base implements java.io.Serializable {
                 String birthTime = Util.getISO8601Date(new DateTime(
                     indiv.getTimeOfBirth()).toString());
                 jgen.writeStringField("individualTimeOfBirth", birthTime);
+            }
+            if (indiv.getTimeOfDeath() > 0) {
+                String deathTime = Util.getISO8601Date(new DateTime(
+                    indiv.getTimeOfDeath()).toString());
+                jgen.writeStringField("individualTimeOfDeath", deathTime);
             }
             Encounter[] encs = indiv.getDateSortedEncounters(true);
             if ((encs != null) && (encs.length > 0)) {
@@ -4275,6 +4283,37 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNullField("occurrenceId");
         } else {
             jgen.writeStringField("occurrenceId", occ.getId());
+            jgen.writeStringField("occurrenceGroupBehavior", occ.getGroupBehavior());
+            jgen.writeStringField("occurrenceGroupComposition", occ.getGroupComposition());
+            jgen.writeStringField("occurrenceComments", occ.getComments());
+            if (occ.getVisibilityIndex() != null)
+                jgen.writeNumberField("occurrenceVisibilityIndex", occ.getVisibilityIndex());
+            if (occ.getIndividualCount() != null)
+                jgen.writeNumberField("occurrenceIndividualCount", occ.getIndividualCount());
+            if (occ.getMinGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceMinGroupSizeEstimate",
+                    occ.getMinGroupSizeEstimate());
+            if (occ.getMaxGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceMaxGroupSizeEstimate",
+                    occ.getMaxGroupSizeEstimate());
+            if (occ.getBestGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceBestGroupSizeEstimate",
+                    occ.getBestGroupSizeEstimate());
+            if (occ.getBearing() != null)
+                jgen.writeNumberField("occurrenceBearing", occ.getBearing());
+            if (occ.getDistance() != null)
+                jgen.writeNumberField("occurrenceDistance", occ.getDistance());
+            Double odlat = occ.getDecimalLatitude();
+            Double odlon = occ.getDecimalLongitude();
+            if ((odlat == null) || !Util.isValidDecimalLatitude(odlat) || (odlon == null) ||
+                !Util.isValidDecimalLongitude(odlon)) {
+                jgen.writeNullField("occurrenceLocationGeoPoint");
+            } else {
+                jgen.writeObjectFieldStart("occurrenceLocationGeoPoint");
+                jgen.writeNumberField("lat", odlat);
+                jgen.writeNumberField("lon", odlon);
+                jgen.writeEndObject();
+            }
         }
         jgen.writeArrayFieldStart("organizations");
         User owner = this.getSubmitterUser(myShepherd);
@@ -4391,7 +4430,10 @@ public class Encounter extends Base implements java.io.Serializable {
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("individualTimeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("individualTimeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        map.put("occurrenceLocationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
 
         // if we want to sort on it (and it is texty), it needs to be keyword
         // (ints, dates, etc are all sortable)
@@ -4400,6 +4442,8 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("occurrenceId", keywordType);
         map.put("state", keywordType);
         map.put("submitterUserId", keywordType);
+        map.put("individualTaxonomy", keywordType);
+        map.put("individualId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);

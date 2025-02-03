@@ -86,15 +86,15 @@ export default function DateFilter({ onChange, data }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_DATE" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_DATE_DESC" />
       </Description>
       <>
         <FormLabel>
-          <FormattedMessage id="FILTER_SIGHTING_DATE" />
+          <FormattedMessage id="FILTER_ENCOUNTER_DATE" />
         </FormLabel>
         <div className="d-flex flex-row w-100 mb-2">
           <FormGroup className="w-50" style={{ marginRight: "10px" }}>
