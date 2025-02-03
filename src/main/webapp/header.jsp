@@ -229,13 +229,21 @@ if(request.getUserPrincipal()!=null){
           const closeButton = document.getElementById("quick-search-clear");
           const resultsDropdown = document.getElementById("quick-search-results");
 
+          const loadingText = "<%= props.getProperty("loading") %>" || "Loading...";
+          const noMatchResults = "<%= props.getProperty("noMatchResults") %>" || "No matching results found.";
+          const errorOccurred = "<%= props.getProperty("errorOccurred") %>" || "An error occurred while fetching search results.";
+          const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
+          const SystemId = "<%= props.getProperty("SystemId") %>" || "System ID";
+          const Name = "<%= props.getProperty("Name") %>" || "Name";
+          const Unknown = "<%= props.getProperty("Unknown") %>" || "Unknown";
+
           let debounceTimer;
 
           function debounce(func, delay) {
-            return function (...args) {
+            return function() {
               clearTimeout(debounceTimer);
-              debounceTimer = setTimeout(() => func.apply(this, args), delay);
-            }
+              debounceTimer = setTimeout(func, delay);
+            };
           }
 
           function performSearch() {
@@ -248,7 +256,7 @@ if(request.getUserPrincipal()!=null){
             }
 
             resultsDropdown.style.display = "block";
-            resultsDropdown.innerHTML = "<div class='loading'><%=props.getProperty('loading') %></div>";
+            resultsDropdown.innerHTML = "<div class='loading'>" + loadingText + "</div>";
 
             $.ajax({
                 url: "/api/v3/search/individual?size=10",
@@ -280,7 +288,7 @@ if(request.getUserPrincipal()!=null){
                     }
                 }),
                 beforeSend: function () {
-                    resultsDropdown.innerHTML = "<div class='loading'><%=props.getProperty('loading') %></div>";
+                    resultsDropdown.innerHTML = "<div class='loading'>"+ loadingText +"</div>";
                 },
                 success: function (response) {
                     console.log("Search Results: ", response.hits);
@@ -289,13 +297,13 @@ if(request.getUserPrincipal()!=null){
                     if (searchResults.length > 0) {
                         resultsDropdown.innerHTML = searchResults.map(data => {
                             const taxonomy = data.taxonomy ? data.taxonomy : " ";
-                            let context = "UNKNOWN";
+                            let context = Unknown;
                             if (data.id.includes(query)) {
-                                context = "<%=props.getProperty('SystemId') %>";
+                                context = SystemId;
                             } else if (data.names.some(name => name.includes(query))) {
-                                context = "<%=props.getProperty('Name') %>";
+                                context = Name;
                             } else {
-                                context = "<%=props.getProperty('Unknown') %>";
+                                context = Unknown;
                             }
 
                             return `
@@ -310,15 +318,15 @@ if(request.getUserPrincipal()!=null){
                                 </a>`;
                         }).join("");
                     } else {
-                        resultsDropdown.innerHTML = <%=props.getProperty('noMatchResults') %>;
+                        resultsDropdown.innerHTML = noMatchResults;
                     }
                 },
                 error: function (xhr, status, error) {
                     console.error("Error: ", error);
-                    resultsDropdown.innerHTML = <%=props.getProperty('errorOccurred') %>;
+                    resultsDropdown.innerHTML = errorOccurred;
                 },
                 complete: function () {
-                    document.querySelector(<%=props.getProperty('loading') %>)?.remove();
+                    document.querySelector(".loading")?.remove();
                 }
             });
         }
@@ -326,7 +334,7 @@ if(request.getUserPrincipal()!=null){
           // Event listener for input changes
           searchInput.addEventListener("focus", function() {
             resultsDropdown.style.display = "block";
-            resultsDropdown.innerHTML = <%=props.getProperty('searchResultDisplay') %>;
+            resultsDropdown.innerHTML = searchResultDisplay;
           });
           searchInput.addEventListener("input", debounce(performSearch, 300));
 
