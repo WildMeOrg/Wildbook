@@ -24,6 +24,6 @@ phases:
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo "Build completed successfully!"
 
-artifacts:
-  files:
-    - "**/*"
+# artifacts:
+#   files:
+#     - "**/*"
