@@ -1,5 +1,7 @@
 package org.ecocean.media;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
+import org.ecocean.Base;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
@@ -42,8 +45,9 @@ import org.json.JSONObject;
 /**
  * MediaAsset describes a photo or video that can be displayed or used for processing and analysis.
  */
-public class MediaAsset implements java.io.Serializable {
+public class MediaAsset extends Base implements java.io.Serializable {
     static final long serialVersionUID = 8844223450447974780L;
+    @Override public String opensearchIndexName() { return "individual"; }
     protected int id = MediaAssetFactory.NOT_SAVED;
 
     protected String uuid = null;
@@ -148,6 +152,16 @@ public class MediaAsset implements java.io.Serializable {
 
     public int getId() {
         return id;
+    }
+
+/*
+    public String getId() {
+        return String.valueOf(id);
+    }
+*/
+
+    public void setId(String s) {
+        id = Integer.parseInt(s);
     }
 
     public void setId(int i) {
@@ -344,6 +358,10 @@ public class MediaAsset implements java.io.Serializable {
                 je.toString());
             derivationMethod = null;
         }
+    }
+
+    public long getVersion() {
+        return this.revision;
     }
 
     public long setRevision() {
@@ -1613,5 +1631,70 @@ public class MediaAsset implements java.io.Serializable {
 
     public void setIsValidImageForIA(Boolean value) {
         if (value == null) { validImageForIA = null; } else { validImageForIA = value; }
+    }
+
+    public JSONObject opensearchMapping() {
+        JSONObject map = super.opensearchMapping();
+        JSONObject keywordType = new JSONObject("{\"type\": \"keyword\"}");
+
+        // "id" is done in Base
+        map.put("acmId", keywordType);
+        map.put("uuid", keywordType);
+        map.put("detectionStatus", keywordType);
+
+        map.put("encounters", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("annotations", new org.json.JSONObject("{\"type\": \"nested\"}"));
+
+        return map;
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
+
+        jgen.writeStringField("acmId", this.getAcmId());
+        jgen.writeStringField("uuid", this.getUUID());
+        jgen.writeStringField("filename", this.getFilename());
+        jgen.writeStringField("userFilename", this.getUserFilename());
+        jgen.writeStringField("detectionStatus", this.getDetectionStatus());
+        URL url = this.safeURL();
+        jgen.writeStringField("url", (url == null) ? null : url.toString());
+        jgen.writeArrayFieldStart("encounters");
+        for (Encounter enc : Encounter.findAllByMediaAsset(this, myShepherd)) {
+            jgen.writeStartObject();
+            jgen.writeStringField("id", enc.getId());
+            jgen.writeStringField("taxonomy", enc.getTaxonomyString());
+            jgen.writeEndObject();
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("annotations");
+        for (Annotation ann : this.getAnnotations()) {
+            jgen.writeStartObject();
+            jgen.writeStringField("id", ann.getId());
+            jgen.writeStringField("acmId", ann.getAcmId());
+            jgen.writeStringField("iaClass", ann.getIAClass());
+            jgen.writeStringField("viewpoint", ann.getViewpoint());
+            jgen.writeEndObject();
+        }
+        jgen.writeEndArray();
+    }
+
+    @Override public String getAllVersionsSql() {
+        return "SELECT \"ID\"::text, \"REVISION\" AS version FROM \"ANNOTATION\" ORDER BY version";
+    }
+
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getMediaAsset(id);
+    }
+
+    // comment cruft only needed for Base class
+    @Override public String getComments() {
+        return null;
+    }
+
+    @Override public void setComments(final String comments) {
+    }
+
+    @Override public void addComments(final String newComments) {
     }
 }
