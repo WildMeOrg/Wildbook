@@ -543,7 +543,8 @@ if(request.getUserPrincipal()!=null){
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
           <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
-              <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
+              <div class="header" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center">
+                <div style="height: 100%; display: flex; flex-direction: row; align-items: center; ">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">        
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
@@ -785,7 +786,7 @@ if(request.getUserPrincipal()!=null){
                   <!-- end profile wrapper -->              
                 </div> 
                                 
-
+</div>
               </div>              
 
                 <script>
