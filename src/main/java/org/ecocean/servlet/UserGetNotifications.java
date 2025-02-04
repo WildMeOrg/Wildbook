@@ -101,13 +101,14 @@ public class UserGetNotifications extends HttpServlet {
             if (pendingMerge.isUserParticipent(username)) {
                 System.out.println("Is pending merge ignored by user? : " +
                     pendingMerge.ignoredByUser(username));
-                if (pendingMerge.isDenied() && !pendingMerge.ignoredByUser(username)) {
-                    notificationArr.put(individualMergeDeniedNotification(pendingMerge, username,
-                        myShepherd, request));
-                } else if (!pendingMerge.ignoredByUser(username)) {
+                if (!pendingMerge.isDenied() && !pendingMerge.ignoredByUser(username)) {
                     notificationArr.put(individualMergePendingNotification(pendingMerge, username,
                         myShepherd, request));
-                }
+                } 
+                //else if (!pendingMerge.isDenied() && !pendingMerge.ignoredByUser(username)) {
+                //    notificationArr.put(individualMergePendingNotification(pendingMerge, username,
+                //        myShepherd, request));
+                //}
             }
         }
         ArrayList<ScheduledIndividualMerge> completeMergesOwnedByUser =
@@ -117,10 +118,16 @@ public class UserGetNotifications extends HttpServlet {
         for (ScheduledIndividualMerge completeMerge : completeMergesOwnedByUser) {
             System.out.println("Is merge ignored by user? : " +
                 completeMerge.ignoredByUser(username));
-            if (!completeMerge.ignoredByUser(username)) {
+            if (!completeMerge.isDenied()&&!completeMerge.ignoredByUser(username)) {
                 notificationArr.put(individualMergeCompleteNotification(completeMerge, username,
                     myShepherd, request));
+                System.out.println("...not denied");
             }
+            else if (completeMerge.isDenied() && !completeMerge.ignoredByUser(username)) {
+                notificationArr.put(individualMergeDeniedNotification(completeMerge, username,
+                        myShepherd, request));
+                System.out.println("...denied");
+             }
         }
         return notificationArr;
     }

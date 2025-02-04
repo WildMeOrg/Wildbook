@@ -290,19 +290,18 @@ public class StartupWildbook implements ServletContextListener {
                 System.out.println("[INFO]: checking for scheduled tasks to execute...");
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("WildbookScheduledTaskThread");
+                myShepherd.beginDBTransaction();
                 try {
-                    ArrayList<WildbookScheduledTask> scheduledTasks =
-                    myShepherd.getAllIncompleteWildbookScheduledTasks();
+                    ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
                     for (WildbookScheduledTask scheduledTask : scheduledTasks) {
                         if (scheduledTask.isTaskEligibleForExecution()) {
                             scheduledTask.execute(myShepherd);
                         }
                     }
                 } catch (Exception e) {
-                    myShepherd.rollbackAndClose();
                     e.printStackTrace();
                 }
-                myShepherd.closeDBTransaction();
+                myShepherd.rollbackAndClose();
             }
         }, 0, 1, TimeUnit.HOURS);
     }
