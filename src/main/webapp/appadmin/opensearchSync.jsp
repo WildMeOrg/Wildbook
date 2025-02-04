@@ -21,6 +21,9 @@ if (indexName.equals("encounter")) {
 } else if (indexName.equals("annotation")) {
     cls = Annotation.class;
     obj = new Annotation();
+} else if (indexName.equals("media_asset")) {
+    cls = MediaAsset.class;
+    obj = new MediaAsset();
 } else if (indexName.equals("individual")) {
     cls = MarkedIndividual.class;
     obj = new MarkedIndividual();
@@ -92,6 +95,9 @@ if (endNum > 0) {
         itr = myShepherd.getAllEncounters("catalogNumber");
     } else if (indexName.equals("annotation")) {
         itr = myShepherd.getAnnotationsFilter("matchAgainst == true && acmId != null ORDER BY id");
+        itr = myShepherd.getAllAnnotations("id");
+    } else if (indexName.equals("media_asset")) {
+        itr = myShepherd.getAllMediaAssets();
     } else if (indexName.equals("individual")) {
         itr = myShepherd.getAllMarkedIndividuals();
     } else if (indexName.equals("occurrence")) {
