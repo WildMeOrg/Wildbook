@@ -25,8 +25,8 @@ phases:
       - echo "Build completed successfully!"   
   
       - echo "Writing image definitions file..."
-      - ECR_NAME=wilbook_repository
-      - printf '[{"name":"%s","imageUri":"%s"}]' $ECR_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - CONTAINER_NAME=wildbook-container
+      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
 
 artifacts:
