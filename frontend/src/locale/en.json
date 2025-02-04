@@ -359,5 +359,11 @@
     "BEARING" : "Bearing",
     "DISTANCE" : "Distance",
     "FILTER_BIRTH" : "Birth",
-    "FILTER_DEATH" : "Death"
+    "FILTER_DEATH" : "Death",
+    "NO_MATCHING_RESULTS": "No matching results",
+    "SYSTEM_ID": "System ID",
+    "SEARCH_INDIVIDUALS": "Search Individuals",
+    "SEARCH_RESULT_DISPLAY" : "Your search results will appear here",
+    "UNKNOWN" : "Unknown"
+
 }
