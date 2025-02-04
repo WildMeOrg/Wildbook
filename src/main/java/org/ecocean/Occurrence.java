@@ -1,5 +1,7 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1369,6 +1371,93 @@ public class Occurrence extends Base implements java.io.Serializable {
         }
         // return sanitizeJson(request, decorateJson(request, json));
         return json;
+    }
+
+    public org.json.JSONObject opensearchMapping() {
+        org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("encounters", new org.json.JSONObject("{\"type\": \"nested\"}"));
+
+        // if we want to sort on it (and it is texty), it needs to be keyword
+        // (ints, dates, etc are all sortable)
+        // note: "id" is done in Base.java
+        map.put("taxonomies", keywordType);
+
+        // all case-insensitive keyword-ish types
+        map.put("groupBehavior", keywordNormalType);
+        map.put("groupComposition", keywordNormalType);
+        map.put("initialCue", keywordNormalType);
+        map.put("humanActivityNearby", keywordNormalType);
+        map.put("fieldStudySite", keywordNormalType);
+        map.put("fieldSurveyCode", keywordNormalType);
+        map.put("sightingPlatform", keywordNormalType);
+        map.put("seaState", keywordNormalType);
+        return map;
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
+
+        Double dlat = this.getDecimalLatitude();
+        Double dlon = this.getDecimalLongitude();
+        if ((dlat == null) || !Util.isValidDecimalLatitude(dlat) || (dlon == null) ||
+            !Util.isValidDecimalLongitude(dlon)) {
+            jgen.writeNullField("locationGeoPoint");
+        } else {
+            jgen.writeObjectFieldStart("locationGeoPoint");
+            jgen.writeNumberField("lat", dlat);
+            jgen.writeNumberField("lon", dlon);
+            jgen.writeEndObject();
+        }
+        if (this.getDateTimeLong() != null) {
+            DateTime dt = new DateTime(this.getDateTimeLong());
+            jgen.writeStringField("date", dt.toString());
+        }
+        if (this.dateTimeCreated != null)
+            jgen.writeStringField("dateSubmitted", Util.getISO8601Date(this.dateTimeCreated));
+        jgen.writeArrayFieldStart("taxonomies");
+        for (String tx : this.getAllSpeciesDeep()) {
+            jgen.writeString(tx);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeStringField("groupBehavior", this.getGroupBehavior());
+        jgen.writeStringField("groupComposition", this.getGroupComposition());
+        jgen.writeStringField("initialCue", this.getInitialCue());
+        jgen.writeStringField("humanActivityNearby", this.getHumanActivityNearby());
+        jgen.writeStringField("fieldStudySite", this.getFieldStudySite());
+        jgen.writeStringField("fieldSurveyCode", this.getFieldSurveyCode());
+        jgen.writeStringField("sightingPlatform", this.getSightingPlatform());
+        jgen.writeStringField("seaState", this.getSeaState());
+        jgen.writeStringField("observer", this.getObserver());
+        jgen.writeStringField("comments", this.getComments());
+
+        jgen.writeArrayFieldStart("encounters");
+        if (this.encounters != null)
+            for (Encounter enc : this.getEncounters()) {
+                jgen.writeStartObject();
+                jgen.writeStringField("id", enc.getId());
+                jgen.writeStringField("submitterId", enc.getSubmitterID());
+                User submitter = enc.getSubmitterUser(myShepherd);
+                if (submitter != null) {
+                    jgen.writeStringField("submitterUserId", submitter.getId());
+                    if (submitter.getOrganizations() != null) {
+                        jgen.writeArrayFieldStart("submitterOrganizations");
+                        for (Organization org : submitter.getOrganizations()) {
+                            jgen.writeString(org.getId());
+                        }
+                        jgen.writeEndArray();
+                    }
+                }
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
     }
 
     // note this does not seem to cover *removing an encounter* as it seems the
