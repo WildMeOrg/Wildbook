@@ -62,7 +62,7 @@ public class OpenSearch {
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = {
-        "encounter", "individual", "occurrence", "annotation"
+        "encounter", "individual", "occurrence", "annotation", "media_asset"
     };
     public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
         "backgroundDelayMinutes", 20);
