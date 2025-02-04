@@ -862,14 +862,19 @@ public class Annotation extends Base implements java.io.Serializable {
                     arg.put("encounterLocationId", new JSONArray(expandedLocationIds));
                     wrapper = new JSONObject();
                     wrapper.put("terms", arg);
-                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
-                        wrapper);
+                    if (useNullLocation) {
+                        JSONArray should = new JSONArray(
+                            "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"encounterLocationId\"}}}}]");
+                        should.put(wrapper);
+                        JSONObject bool = new JSONObject("{\"bool\": {}}");
+                        bool.getJSONObject("bool").put("should", should);
+                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                            "filter").put(bool);
+                    } else {
+                        query.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                            "filter").put(wrapper);
+                    }
                 }
-/*
-                if (useNullLocation) {
-                    // FIXME
-                }
- */
                 // owner ... which requires we have userId in the taskParams
                 JSONArray owner = filt.optJSONArray("owner");
                 JSONArray uids = new JSONArray();
