@@ -24,6 +24,9 @@ if (indexName.equals("encounter")) {
 } else if (indexName.equals("individual")) {
     cls = MarkedIndividual.class;
     obj = new MarkedIndividual();
+} else if (indexName.equals("occurrence")) {
+    cls = Occurrence.class;
+    obj = new Occurrence();
 }
 
 System.out.println("opensearchSync.jsp begun...");
@@ -91,6 +94,8 @@ if (endNum > 0) {
         itr = myShepherd.getAllAnnotations("id");
     } else if (indexName.equals("individual")) {
         itr = myShepherd.getAllMarkedIndividuals();
+    } else if (indexName.equals("occurrence")) {
+        itr = myShepherd.getAllOccurrencesNoQuery();
     }
     while (itr.hasNext()) {
             Base iObj = (Base)itr.next();
