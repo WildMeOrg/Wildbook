@@ -74,9 +74,9 @@ export default function LocationFilterMap({ onChange, data }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_LOCATION" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_LOCATION_DESC" />
       </Description>
