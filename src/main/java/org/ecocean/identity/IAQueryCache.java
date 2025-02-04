@@ -25,7 +25,7 @@ public class IAQueryCache {
         // qanns can "in theory" contain more than one annot, but we arent ready for that universe yet anyway...
         if ((qanns == null) || (qanns.size() < 1)) return -1; // :(
         // we want *non* excluding version of this:
-        ArrayList<Annotation> anns = qanns.get(0).getMatchingSetForTaxonomy(myShepherd, null);
+        ArrayList<Annotation> anns = qanns.get(0).getMatchingSet(myShepherd);
         if (anns == null) return -2;
         JSONObject jdata = new JSONObject();
         JSONArray idArr = new JSONArray();
@@ -149,7 +149,6 @@ public class IAQueryCache {
             log("WARNING: addTargetAnnotation() found empty current arrays!  weird.");
             return null;
         }
-
         String indivId = ann.findIndividualId(myShepherd);
         // cheap fix to handle name-conflict potential: we dont add an annot which is already on list in cache!
         if (indivId == null) {
