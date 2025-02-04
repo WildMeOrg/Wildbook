@@ -22,8 +22,13 @@ phases:
     commands:
       - echo "Pushing the Docker image to Amazon ECR..."
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo "Build completed successfully!"
+      - echo "Build completed successfully!"   
+  
+      - echo "Writing image definitions file..."
+      - ECR_NAME=wilbook_repository
+      - printf '[{"name":"%s","imageUri":"%s"}]' $ECR_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json
 
-# artifacts:
-#   files:
-#     - "**/*"
+artifacts:
+  files:
+    - imagedefinitions.json
