@@ -233,7 +233,7 @@ if(request.getUserPrincipal()!=null){
           const noMatchResults = "<%= props.getProperty("noMatchResults") %>" || "No matching results found.";
           const errorOccurred = "<%= props.getProperty("errorOccurred") %>" || "An error occurred while fetching search results.";
           const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
-          const SystemId = "<%= props.getProperty("SystemId") %>" || "System ID";
+          const SystemId = "<%= props.getProperty("systemId") %>" || "System ID";
           const Name = "<%= props.getProperty("Name") %>" || "Name";
           const Unknown = "<%= props.getProperty("Unknown") %>" || "Unknown";
 
@@ -305,16 +305,17 @@ if(request.getUserPrincipal()!=null){
                                 context = Unknown;
                             }
 
-                            return `
-                                <a href="<%=urlLoc %>/individuals.jsp?id=${data.id}" target="_blank">
-                                    <div class="quick-search-result">
-                                        <div class="quick-search-result-content">
-                                            <div class="quick-search-result-value">${query}</div>
-                                            <div class="quick-search-result-species">${taxonomy}</div>
-                                        </div>
-                                        <div class="quick-search-result-context">${context}</div>
-                                    </div>
-                                </a>`;
+                            return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
+                              "    <div class=\"quick-search-result\">" +
+                              "        <div class=\"quick-search-result-content\">" +
+                              "            <div class=\"quick-search-result-value\">" + query + "</div>" +
+                              "            <div class=\"quick-search-result-species\">" + taxonomy + "</div>" +
+                              "        </div>" +
+                              "        <div class=\"quick-search-result-context\">" + context + "</div>" +
+                              "    </div>" +
+                              "</a>";
+
+
                         }).join("");
                     } else {
                         resultsDropdown.innerHTML = noMatchResults;
