@@ -228,6 +228,15 @@ if(request.getUserPrincipal()!=null){
           const searchInput = document.getElementById("quick-search-input");
           const closeButton = document.getElementById("quick-search-clear");
           const resultsDropdown = document.getElementById("quick-search-results");
+          const searchButton = document.getElementById("quick-search-button");
+
+          searchButton.addEventListener("click", function() {
+            searchInput.value = "";
+            resultsDropdown.innerHTML = "";
+            resultsDropdown.style.display = "none";
+            searchButton.innerHTML = "🔍";
+            searchInput.focus();
+          });
 
           const loadingText = "<%= props.getProperty("loading") %>" || "Loading...";
           const noMatchResults = "<%= props.getProperty("noMatchResults") %>" || "No matching results found.";
@@ -252,9 +261,10 @@ if(request.getUserPrincipal()!=null){
             if (query === "") {
                 resultsDropdown.innerHTML = "";
                 resultsDropdown.style.display = "none";
+                searchButton.innerHTML = "🔍";
                 return;
             }
-
+            searchButton.innerHTML = "&times;";
             resultsDropdown.style.display = "block";
             resultsDropdown.innerHTML = "<div class='loading'>" + loadingText + "</div>";
 
@@ -680,9 +690,9 @@ if(request.getUserPrincipal()!=null){
                             placeholder="<%=props.getProperty("searchIndividuals")%>"                             
                             autocomplete="off" 
                           />
-                          <span id="quick-search-clear"> &times;</span>
+                          <span id="quick-search-button" style="display: flex; align-items: center; margin-right: 5px; cursor: pointer">🔍</span>
                         </div>
-                        <div id="quick-search-results"></div>
+                        <div id="quick-search-results" ></div>
                       </div>
                       <% } %>
                       
