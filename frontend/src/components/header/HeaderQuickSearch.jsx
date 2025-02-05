@@ -1,6 +1,5 @@
 import React, { useState, useContext } from "react";
 import { Dropdown, FormControl, Spinner } from "react-bootstrap";
-import MainButton from "../MainButton";
 import { FormattedMessage } from "react-intl";
 import ThemeColorContext from "../../ThemeColorProvider";
 import usePostHeaderQuickSearch from "../../models/usePostHeaderQuickSearch";
@@ -17,7 +16,7 @@ export default function HeaderQuickSearch() {
   };
 
   const handleClearSearch = () => {
-    setSearch(""); //
+    setSearch("");
     setShowDropdown(false);
   };
 
@@ -55,7 +54,11 @@ export default function HeaderQuickSearch() {
             }}
             onClick={handleClearSearch}
           >
-            <i className="bi bi-x"></i>
+            {search ? (
+              <i className="bi bi-x"></i>
+            ) : (
+              <i className="bi bi-search"></i>
+            )}
           </button>
         </div>
 
@@ -131,19 +134,19 @@ export default function HeaderQuickSearch() {
                         <div>{value}</div>
                         <div>{result.taxonomy}</div>
                       </div>
-                      <MainButton
-                        noArrow={true}
+                      <div
+                        className="text-center d-flex justify-content-center align-items-center ms-2 me-2"
                         style={{
                           width: "80px",
                           height: "30px",
                           color: "white",
                           fontSize: "0.8rem",
-                          marginRight: 0,
+                          borderRadius: "5px",
+                          backgroundColor: theme.primaryColors.primary500,
                         }}
-                        backgroundColor={theme.primaryColors.primary500}
                       >
                         <FormattedMessage id={context} />
-                      </MainButton>
+                      </div>
                     </div>
                     {index < searchResults.length - 1 && <Dropdown.Divider />}
                   </Dropdown.Item>
