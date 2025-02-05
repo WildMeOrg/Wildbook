@@ -235,7 +235,7 @@ if(request.getUserPrincipal()!=null){
           const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
           const SystemId = "<%= props.getProperty("systemId") %>" || "System ID";
           const Name = "<%= props.getProperty("Name") %>" || "Name";
-          const Unknown = "<%= props.getProperty("Unknown") %>" || "Unknown";
+          const Unknown = "<%= props.getProperty("unknown") %>" || "Unknown";
 
           let debounceTimer;
 
@@ -305,10 +305,17 @@ if(request.getUserPrincipal()!=null){
                                 context = Unknown;
                             }
 
+                            let value = data.id;
+                            if(context === Name){
+                                value = data.names.find(name => name.toLowerCase().includes(query.toLowerCase()));
+                            }else {
+                                value = data.id;
+                            }
+
                             return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
                               "    <div class=\"quick-search-result\">" +
                               "        <div class=\"quick-search-result-content\">" +
-                              "            <div class=\"quick-search-result-value\">" + query + "</div>" +
+                              "            <div class=\"quick-search-result-value\">" + value + "</div>" +
                               "            <div class=\"quick-search-result-species\">" + taxonomy + "</div>" +
                               "        </div>" +
                               "        <div class=\"quick-search-result-context\">" + context + "</div>" +
