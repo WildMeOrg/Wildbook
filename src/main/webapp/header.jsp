@@ -233,9 +233,9 @@ if(request.getUserPrincipal()!=null){
           const noMatchResults = "<%= props.getProperty("noMatchResults") %>" || "No matching results found.";
           const errorOccurred = "<%= props.getProperty("errorOccurred") %>" || "An error occurred while fetching search results.";
           const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
-          const SystemId = "<%= props.getProperty("SystemId") %>" || "System ID";
+          const SystemId = "<%= props.getProperty("systemId") %>" || "System ID";
           const Name = "<%= props.getProperty("Name") %>" || "Name";
-          const Unknown = "<%= props.getProperty("Unknown") %>" || "Unknown";
+          const Unknown = "<%= props.getProperty("unknown") %>" || "Unknown";
 
           let debounceTimer;
 
@@ -305,16 +305,24 @@ if(request.getUserPrincipal()!=null){
                                 context = Unknown;
                             }
 
-                            return `
-                                <a href="<%=urlLoc %>/individuals.jsp?id=${data.id}" target="_blank">
-                                    <div class="quick-search-result">
-                                        <div class="quick-search-result-content">
-                                            <div class="quick-search-result-value">${query}</div>
-                                            <div class="quick-search-result-species">${taxonomy}</div>
-                                        </div>
-                                        <div class="quick-search-result-context">${context}</div>
-                                    </div>
-                                </a>`;
+                            let value = data.id;
+                            if(context === Name){
+                                value = data.names.find(name => name.toLowerCase().includes(query.toLowerCase()));
+                            }else {
+                                value = data.id;
+                            }
+
+                            return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
+                              "    <div class=\"quick-search-result\">" +
+                              "        <div class=\"quick-search-result-content\">" +
+                              "            <div class=\"quick-search-result-value\">" + value + "</div>" +
+                              "            <div class=\"quick-search-result-species\">" + taxonomy + "</div>" +
+                              "        </div>" +
+                              "        <div class=\"quick-search-result-context\">" + context + "</div>" +
+                              "    </div>" +
+                              "</a>";
+
+
                         }).join("");
                     } else {
                         resultsDropdown.innerHTML = noMatchResults;
@@ -542,7 +550,8 @@ if(request.getUserPrincipal()!=null){
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
           <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
-              <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
+              <div class="header" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center">
+                <div style="height: 100%; display: flex; flex-direction: row; align-items: center; ">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">        
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
@@ -784,7 +793,7 @@ if(request.getUserPrincipal()!=null){
                   <!-- end profile wrapper -->              
                 </div> 
                                 
-
+</div>
               </div>              
 
                 <script>

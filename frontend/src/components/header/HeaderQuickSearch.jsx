@@ -87,62 +87,69 @@ export default function HeaderQuickSearch() {
             </Dropdown.Item>
           )}
           {!loading &&
-            searchResults.map((result, index) => (
-              <React.Fragment key={index}>
-                <Dropdown.Item
-                  key={index}
-                  as="button"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    window.open(`/individuals.jsp?id=${result.id}`);
-                  }}
-                >
-                  <div className="d-flex flex-row justify-content-between">
-                    <div
-                      className="individual-name"
-                      style={{
-                        width: "180px",
-                        fontSize: "0.8rem",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div>{search}</div>
-                      <div>{result.taxonomy}</div>
+            searchResults.map((result, index) => {
+              const context = result?.id
+                ?.toLowerCase()
+                .includes(search.toLowerCase())
+                ? "SYSTEM_ID"
+                : result?.names?.some((name) =>
+                      name.toLowerCase().includes(search.toLowerCase()),
+                    )
+                  ? "FILTER_NAME"
+                  : "UNKNOWN";
+
+              let value = result.id;
+              if (context === "SYSTEM_ID") {
+                value = result.id;
+              } else if (context === "FILTER_NAME") {
+                value = result.names.find((name) =>
+                  name.toLowerCase().includes(search.toLowerCase()),
+                );
+              }
+
+              return (
+                <React.Fragment key={index}>
+                  <Dropdown.Item
+                    key={index}
+                    as="button"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      window.open(`/individuals.jsp?id=${result.id}`);
+                    }}
+                  >
+                    <div className="d-flex flex-row justify-content-between">
+                      <div
+                        className="individual-name"
+                        style={{
+                          width: "180px",
+                          fontSize: "0.8rem",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div>{value}</div>
+                        <div>{result.taxonomy}</div>
+                      </div>
+                      <MainButton
+                        noArrow={true}
+                        style={{
+                          width: "80px",
+                          height: "30px",
+                          color: "white",
+                          fontSize: "0.8rem",
+                          marginRight: 0,
+                        }}
+                        backgroundColor={theme.primaryColors.primary500}
+                      >
+                        <FormattedMessage id={context} />
+                      </MainButton>
                     </div>
-                    <MainButton
-                      noArrow={true}
-                      style={{
-                        width: "80px",
-                        height: "30px",
-                        color: "white",
-                        fontSize: "0.8rem",
-                        marginRight: 0,
-                      }}
-                      backgroundColor={theme.primaryColors.primary500}
-                    >
-                      <FormattedMessage
-                        id={
-                          result?.id
-                            ?.toLowerCase()
-                            .includes(search.toLowerCase())
-                            ? "SYSTEM_ID"
-                            : result?.names?.some((name) =>
-                                  name
-                                    .toLowerCase()
-                                    .includes(search.toLowerCase()),
-                                )
-                              ? "FILTER_NAME"
-                              : "UNKNOWN"
-                        }
-                      />
-                    </MainButton>
-                  </div>
-                  {index < searchResults.length - 1 && <Dropdown.Divider />}
-                </Dropdown.Item>
-              </React.Fragment>
-            ))}
+                    {index < searchResults.length - 1 && <Dropdown.Divider />}
+                  </Dropdown.Item>
+                </React.Fragment>
+              );
+            })}
         </Dropdown.Menu>
       </Dropdown>
     </div>
