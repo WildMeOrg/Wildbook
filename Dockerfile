@@ -7,9 +7,9 @@ WORKDIR /app/frontend
 
 COPY frontend/ .
 
-ENV PUBLIC_URL=/react/
+# ENV PUBLIC_URL=/react1/
 
-ENV SITE_NAME="Test Site Name"
+# ENV SITE_NAME="Test Site Name"
 
 
 RUN npm install && npm run build
