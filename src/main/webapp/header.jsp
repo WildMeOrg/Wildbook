@@ -226,7 +226,6 @@ if(request.getUserPrincipal()!=null){
           );
 
           const searchInput = document.getElementById("quick-search-input");
-          const closeButton = document.getElementById("quick-search-clear");
           const resultsDropdown = document.getElementById("quick-search-results");
           const searchButton = document.getElementById("quick-search-button");
 
@@ -354,12 +353,6 @@ if(request.getUserPrincipal()!=null){
             resultsDropdown.innerHTML = searchResultDisplay;
           });
           searchInput.addEventListener("input", debounce(performSearch, 300));
-
-          // Event listener for close button
-          closeButton.addEventListener("click", function() {
-            searchInput.value = "";
-            resultsDropdown.style.display = "none";
-          });
          
           // Event listener to close dropdown when clicking outside
           document.addEventListener("click", function(event) {
