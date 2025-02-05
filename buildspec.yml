@@ -1,16 +1,15 @@
 version: 0.2
 
-env:
-  variables:
-    IMAGE_REPO_NAME: "wilbook_repository" # Change this to your repository name
-    IMAGE_TAG: "latest"
-    AWS_REGION: "us-east-1"
+# env:
+#   variables:
+#     IMAGE_TAG: "latest"
+#     AWS_REGION: "us-east-1"
 
 phases:
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
-      - REPOSITORY_URI=435742404953.dkr.ecr.us-east-1.amazonaws.com/wilbook_repository
+      #- REPOSITORY_URI=435742404953.dkr.ecr.us-east-1.amazonaws.com/wilbook_repository
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
 
   build:
@@ -25,7 +24,7 @@ phases:
       - echo "Build completed successfully!"   
   
       - echo "Writing image definitions file..."
-      - CONTAINER_NAME=wildbook-container
+      #- CONTAINER_NAME=wildbook-container
       - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
 
