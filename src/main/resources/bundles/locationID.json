@@ -4,24 +4,24 @@
 	"locationID": [
 		{
 			"name": "Antarctica",
-			"id": "0249eb6d-0813-4d13-8d4d-5d4912784f31",
+			"id": "Antarctica",
 			"geospatialInfo": {},
 			"locationID": [
 				{
 					"name": "Cape Washington",
-					"id": "0aab80ed-8534-4243-b5f1-f50e723d635b",
+					"id": "Cape Washington",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Inexpressible Island",
-					"id": "5f9e3e90-733c-4fbe-a5ef-a805a83e42be",
+					"id": "Inexpressible Island",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Terra Nova Bay",
-					"id": "dcbd4d6c-d1d4-48f4-abd6-bd5a6cee9a1d",
+					"id": "Terra Nova Bay",
 					"geospatialInfo": {},
 					"locationID": []
 				}
@@ -29,30 +29,30 @@
 		},
 		{
 			"name": "Arctic Sea",
-			"id": "ab57c3a4-455f-46d6-9704-a6c22cbc8b60",
+			"id": "Arctic Sea",
 			"geospatialInfo": {},
 			"locationID": [
 				{
 					"name": "Beaufort Sea",
-					"id": "d8f3134b-d8fb-4080-a690-4d58389df982",
+					"id": "Beaufort Sea",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Chukchi Sea",
-					"id": "4b236f66-c436-4e27-989e-052341b412aa",
+					"id": "Chukchi Sea",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Greenland Sea",
-					"id": "bf15b8cc-03b4-44f7-9936-c601ace9ed77",
+					"id": "Greenland Sea",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Hudson Bay",
-					"id": "dfb77b99-8452-4d25-bca2-6c8aed7f4052",
+					"id": "Hudson Bay",
 					"geospatialInfo": {},
 					"locationID": []
 				}
@@ -60,12 +60,12 @@
 		},
 		{
 			"name": "Baltic Sea",
-			"id": "d25918f5-294e-4d75-8185-0d4688a1eb76",
+			"id": "Baltic Sea",
 			"geospatialInfo": {},
 			"locationID": [
 				{
 					"name": "Archipelago Sea",
-					"id": "e4a91463-c21c-4f78-ae68-67fe94bcbad0",
+					"id": "Archipelago Sea",
 					"geospatialInfo": {},
 					"locationID": []
 				}
@@ -73,17 +73,17 @@
 		},
 		{
 			"name": "English Channel",
-			"id": "ea43e2d0-8050-404c-b251-bcb56b24d12e",
+			"id": "English Channel",
 			"geospatialInfo": {},
 			"locationID": [
 				{
 					"name": "England",
-					"id": "3e669b15-b347-458e-b47b-7c307b9b5110",
+					"id": "England",
 					"geospatialInfo": {},
 					"locationID": [
 						{
 						"name": "Brixham",
-						"id": "f1457758-eea7-47fc-9c68-0f1e34f232cb",
+						"id": "Brixham",
 						"geospatialInfo": {},
 						"locationID": []
 					}
@@ -93,65 +93,65 @@
 		},
 		{
 			"name": "Lake Saimaa",
-			"id": "e98f5a78-f4b3-4843-9e5e-9513e7ec52cb",
+			"id": "Lake Saimaa",
 			"locationID": [
 				{
 					"name": "Etelä-Saimaa",
-					"id": "d6180b57-91f1-4b99-ab21-0a00d3a3973f",
+					"id": "Etelä-Saimaa",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Haukivesi",
-					"id": "057b6bd8-019a-4ce8-beef-cdcb66a72e6d",
+					"id": "Haukivesi",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Joutenvesi",
-					"id": "da22a6bf-bc2a-4a67-acbf-142a7dbf9d88",
+					"id": "Joutenvesi",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Katosselkä",
-					"id": "d38e63a2-480d-4462-b956-8aacf3f9981a",
+					"id": "Katosselkä",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Kolovesi",
-					"id": "df48b66c-0a2d-4448-ad18-425d821dd90b",
+					"id": "Kolovesi",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Luonteri-Lietvesi",
-					"id": "5ba3fd1c-7237-4ef2-8374-b4e36f4c756e",
+					"id": "Luonteri-Lietvesi",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Pihlajavesi",
-					"id": "18f84bee-fb11-4466-8368-e3b4f3358721",
+					"id": "Pihlajavesi",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Pohjois-Saimaa",
-					"id": "01c88da5-9ab1-4481-9e10-0884f02ad580",
+					"id": "Pohjois-Saimaa",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Puruvesi",
-					"id": "c571759e-37dc-45ec-933d-b7799f632bcb",
+					"id": "Puruvesi",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Pyyvesi-Enonvesi",
-					"id": "82542928-7e04-4ea3-a217-123ed0649a5a",
+					"id": "Pyyvesi-Enonvesi",
 					"geospatialInfo": {},
 					"locationID": []
 				}
@@ -159,35 +159,35 @@
 		},
 		{
 			"name": "Mediterranean Sea",
-			"id": "2f6f829c-c409-4eb8-a0b4-b57484cc97c5",
+			"id": "Mediterranean Sea",
 			"geospatialInfo": {},
 			"locationID": [
 				{
 					"name": "Cyprus",
-					"id": "542fea11-852e-4889-997e-2b2a5e1763d4",
+					"id": "Cyprus",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Greece",
-					"id": "9a4e3a71-e5f8-4152-b52f-0de4d3cc4d0d",
+					"id": "Greece",
 					"geospatialInfo": {},
 					"locationID": []
 				},
 				{
 					"name": "Israel",
-					"id": "227cfbb2-c9fc-4499-89a5-67a9513b6f9c",
+					"id": "Israel",
 					"geospatialInfo": {},
 					"locationID": [
 						{
 						"name": "Herzeliya",
-						"id": "26d1fc92-7b0d-46dd-a81e-465c47c05768",
+						"id": "Herzeliya",
 						"geospatialInfo": {},
 						"locationID": []
 					},
 					{
 						"name": "Rosh Hanikra",
-						"id": "ea7bf5cd-870f-4534-9db5-83f859101c16",
+						"id": "Rosh Hanikra",
 						"geospatialInfo": {},
 						"locationID": []
 					}
@@ -195,7 +195,7 @@
 				},
 				{
 					"name": "Turkey",
-					"id": "c901d294-a1d8-4554-8791-6fae6bffdfdc",
+					"id": "Turkey",
 					"geospatialInfo": {},
 					"locationID": []
 				}
@@ -203,17 +203,17 @@
 		},
 		{
 			"name": "US Atlantic",
-			"id": "1f59e703-6e53-44e5-ad29-8f152c187323",
+			"id": "US Atlantic",
 			"geospatialInfo": {},
 			"locationID": [
 				{
 					"name": "Delaware",
-					"id": "3e2914be-25eb-4590-9851-4341ca32863c",
+					"id": "Delaware",
 					"geospatialInfo": {},
 					"locationID": [
 						{
 						"name": "Delaware Bay",
-						"id": "2cb6cf92-7e6a-41c4-80a9-64d399d5231e",
+						"id": "Delaware Bay",
 						"geospatialInfo": {},
 						"locationID": []
 					}
@@ -221,17 +221,17 @@
 				},
 				{
 					"name": "New York",
-					"id": "42bc8141-b7ae-4981-85ca-7028bbfa1b6e",
+					"id": "New York",
 					"geospatialInfo": {},
 					"locationID": [
 						{
 						"name": "Long Island",
-						"id": "e1340466-f33c-45a5-adba-d0fe511697dc",
+						"id": "Long Island",
 						"geospatialInfo": {},
 						"locationID": [
 							{
 								"name": "Moriches Bay",
-								"id": "ce2c0b28-ec6d-455d-9626-4c4764312a30",
+								"id": "Moriches Bay",
 								"geospatialInfo": {},
 								"locationID": []
 							}
@@ -243,22 +243,22 @@
 		},
 		{
 			"name": "US Pacific",
-			"id": "a80c7db7-dad8-4014-8bae-fe45615957d6",
+			"id": "US Pacific",
 			"geospatialInfo": {},
 			"locationID": [
 				{
 					"name": "Washington",
-					"id": "ae301a82-ccd2-4e7e-8040-9a26b17d58ca",
+					"id": "Washington",
 					"geospatialInfo": {},
 					"locationID": [
 						{
 						"name": "Anacortes",
-						"id": "8928e0c4-ae07-4a03-a0f5-21f1f7da6fea",
+						"id": "Anacortes",
 						"geospatialInfo": {},
 						"locationID": [
 							{
 								"name": "Salish Sea",
-								"id": "41fc498b-81d4-41ec-9a4a-89fcce8db199",
+								"id": "Salish Sea",
 								"geospatialInfo": {},
 								"locationID": []
 							}
