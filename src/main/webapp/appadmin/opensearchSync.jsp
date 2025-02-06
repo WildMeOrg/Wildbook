@@ -88,7 +88,7 @@ if (endNum > 0) {
     if (indexName.equals("encounter")) {
         itr = myShepherd.getAllEncounters("catalogNumber");
     } else if (indexName.equals("annotation")) {
-        itr = myShepherd.getAllAnnotations("id");
+        itr = myShepherd.getAnnotationsFilter("matchAgainst == true && acmId != null ORDER BY id");
     } else if (indexName.equals("individual")) {
         itr = myShepherd.getAllMarkedIndividuals();
     }
