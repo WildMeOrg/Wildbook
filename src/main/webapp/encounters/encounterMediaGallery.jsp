@@ -158,8 +158,8 @@ function forceLink(el) {
 		      MediaAsset ma = ann.getMediaAsset();
 				if (ma == null) continue;
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
-                        maIds.add(Integer.toString(ma.getId()));
-                        MediaAssetOwner.put(Integer.toString(ma.getId()),isEncounterOwner); 
+                        maIds.add(ma.getId());
+                        MediaAssetOwner.put(ma.getId(),isEncounterOwner); 
 
 
 
