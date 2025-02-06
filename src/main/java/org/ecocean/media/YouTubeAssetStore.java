@@ -255,7 +255,7 @@ public class YouTubeAssetStore extends AssetStore {
         sp.put("key", parent.getUUID() + "/" + f.getName());
         MediaAsset kid = new MediaAsset(astore, sp);
         kid.copyIn(f);
-        kid.setParentId(parent.getId());
+        kid.setParentId(parent.getIdInt());
         kid.addLabel("_thumb");
         kid.updateMinimalMetadata();
         MediaAssetFactory.save(kid, myShepherd);
@@ -280,7 +280,7 @@ public class YouTubeAssetStore extends AssetStore {
         sp.put("key", parent.getUUID() + "/" + f.getName());
         MediaAsset kid = new MediaAsset(astore, sp);
         kid.copyIn(f);
-        kid.setParentId(parent.getId());
+        kid.setParentId(parent.getIdInt());
         kid.addLabel("_video");
         kid.updateMinimalMetadata();
         MediaAssetFactory.save(kid, myShepherd);
@@ -318,7 +318,7 @@ public class YouTubeAssetStore extends AssetStore {
         sp.put("extractOffset", offset);
         MediaAsset kid = new MediaAsset(astore, sp);
         kid.copyIn(f);
-        kid.setParentId(parent.getId());
+        kid.setParentId(parent.getIdInt());
         kid.addLabel("_frame");
         kid.updateMinimalMetadata();
         MediaAssetFactory.save(kid, myShepherd);
@@ -367,7 +367,7 @@ public class YouTubeAssetStore extends AssetStore {
             public void run() {
                 myShepherd.setAction("YouTubeAssetStore.backgroundGrabAndParse");
                 myShepherd.beginDBTransaction();
-                MediaAsset ma = MediaAssetFactory.load(otherMa.getId(), myShepherd);
+                MediaAsset ma = MediaAssetFactory.load(otherMa.getIdInt(), myShepherd);
                 System.out.println("about to grab!");
                 boolean ok = false;
                 try {
