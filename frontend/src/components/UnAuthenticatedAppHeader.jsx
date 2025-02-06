@@ -54,7 +54,7 @@ export default function AuthenticatedAppHeader({ showAlert }) {
         style={{ marginLeft: "1rem" }}
       >
         <Logo />
-        {process.env.SITE_NAME}
+        {process.env.SITE_NAME}2
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse
