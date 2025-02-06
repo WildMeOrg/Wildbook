@@ -1460,6 +1460,8 @@ public class Occurrence extends Base implements java.io.Serializable {
         jgen.writeEndArray();
     }
 
+    // FIXME we need Encounter.opensearchIndexDeep() to also reach Occurrences now ... but after we get matchingSet PR into main...
+
     // note this does not seem to cover *removing an encounter* as it seems the
     // encounters cling to the occurrence after it was removed. so for now this
     // has to be handled at the point of removal, e.g. OccurrenceRemoveEncounter servlet
