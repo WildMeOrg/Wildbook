@@ -26,7 +26,7 @@ jobs:
         mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
         mvn -B package --file pom.xml
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: wildmeorg
         password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN  }}

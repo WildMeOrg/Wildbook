@@ -2018,7 +2018,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
     }
 
-    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+    // see note on Base class
+    public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
@@ -2027,7 +2028,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return ids;
     }
 
-    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+    // see note on Base class
+    public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
@@ -2602,12 +2604,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         Runnable rn = new Runnable() {
             public void run() {
                 Shepherd bgShepherd = new Shepherd("context0");
-                bgShepherd.setAction("MarkedIndividual.opensearchIndexDeep");
+                bgShepherd.setAction("MarkedIndividual.opensearchIndexDeep_" + indivId);
                 bgShepherd.beginDBTransaction();
                 try {
                     MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
                     if ((indiv == null) || (indiv.getEncounters() == null)) {
-                        bgShepherd.rollbackAndClose();
+                        //bgShepherd.rollbackAndClose();
                         executor.shutdown();
                         return;
                     }
@@ -2625,6 +2627,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                             ex.printStackTrace();
                         }
                     }
+                } catch (Exception e) {
+                    System.out.println("opensearchIndexDeep() backgrounding MarkedIndividual " +
+                        indivId + " hit an exception.");
+                    e.printStackTrace();
                 } finally {
                     bgShepherd.rollbackAndClose();
                 }

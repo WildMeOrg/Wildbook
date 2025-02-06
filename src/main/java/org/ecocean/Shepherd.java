@@ -923,6 +923,8 @@ public class Shepherd {
     }
 
     public boolean doesUserHaveRole(String username, String rolename, String context) {
+        if (username == null) return false;
+        if (rolename == null) return false;
         username = username.replaceAll("\\'", "\\\\'");
         rolename = rolename.replaceAll("\\'", "\\\\'");
         String filter = "this.username == '" + username + "' && this.rolename == '" + rolename +
@@ -2001,7 +2003,14 @@ public class Shepherd {
         return (Util.count(taxis));
     }
 
+    // tragically this mixes Taxonomy (class, via db) with commonConfiguration-based values. SIGH
+    // TODO when property files go away (yay) this should become just db
     public List<String> getAllTaxonomyNames() {
+        return getAllTaxonomyNames(false);
+    }
+
+    // forceSpaces will turn `Foo bar_bar` into `Foo bar bar` - use with caution!
+    public List<String> getAllTaxonomyNames(boolean forceSpaces) {
         Iterator<Taxonomy> allTaxonomies = getAllTaxonomies();
         Set<String> allNames = new HashSet<String>();
 
@@ -2015,8 +2024,18 @@ public class Shepherd {
 
         List<String> allNamesList = new ArrayList<String>(allNames);
         java.util.Collections.sort(allNamesList);
-        // return (allNamesList);
-        return (configNames);
+        if (forceSpaces) {
+            List<String> spacey = new ArrayList<String>();
+            for (String tx : allNamesList) {
+                spacey.add(tx.replaceAll("_", " "));
+            }
+            return spacey;
+        }
+        return allNamesList;
+    }
+
+    public boolean isValidTaxonomyName(String sciName) {
+        return getAllTaxonomyNames(true).contains(sciName.replaceAll("_", " "));
     }
 
     public Iterator<Survey> getAllSurveysNoQuery() {
@@ -2521,9 +2540,32 @@ public class Shepherd {
         return null;
     }
 
+    // note: if existing user is found *and* fullName is set, user will get updated with new name!
+    // (this is to replicate legacy behavior of creating users during encounter submission)
+    public User getOrCreateUserByEmailAddress(String email, String fullName) {
+        if (Util.stringIsEmptyOrNull(email)) return null;
+        User user = getUserByEmailAddress(email);
+        if (user == null) user = new User(email, Util.generateUUID());
+        if (!Util.stringIsEmptyOrNull(fullName)) user.setFullName(fullName);
+        getPM().makePersistent(user);
+        return user;
+    }
+
     public List<User> getUsersWithEmailAddresses() {
         ArrayList<User> users = new ArrayList<User>();
         String filter = "SELECT FROM org.ecocean.User WHERE emailAddress != null";
+        Query query = getPM().newQuery(filter);
+        Collection c = (Collection)(query.execute());
+
+        if (c != null) users = new ArrayList<User>(c);
+        query.closeAll();
+        return users;
+    }
+
+    // this seems more what we want
+    public List<User> getUsersWithEmailAddressesWhoReceiveEmails() {
+        ArrayList<User> users = new ArrayList<User>();
+        String filter = "SELECT FROM org.ecocean.User WHERE emailAddress != null && receiveEmails";
         Query query = getPM().newQuery(filter);
         Collection c = (Collection)(query.execute());
 
@@ -3988,6 +4030,19 @@ public class Shepherd {
             }
         }
         return addresses;
+    }
+
+    // you probably dont like the above one, so:
+    public Set<String> getAllUserEmailAddressesForLocationIDAsSet(String locationID,
+        String context) {
+        Set<String> emails = new HashSet<String>();
+
+        if (Util.stringIsEmptyOrNull(locationID)) return emails;
+        for (User user : getUsersWithEmailAddressesWhoReceiveEmails()) {
+            if (doesUserHaveRole(user.getUsername(), locationID, context))
+                emails.add(user.getEmailAddress());
+        }
+        return emails;
     }
 
     public Iterator getAllOccurrences() {
