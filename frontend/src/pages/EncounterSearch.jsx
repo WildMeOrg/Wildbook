@@ -87,7 +87,18 @@ export default function EncounterSearch() {
 
   useEffect(() => {
     setQueryID(searchParams.get("searchQueryId"));
+    if (searchParams.get("searchQueryId")) {
+      setFormFilters(
+        sessionStorage.getItem("formData")
+          ? JSON.parse(sessionStorage.getItem("formData"))
+          : [],
+      );
+    }
   }, [searchParams]);
+
+  useEffect(() => {
+    sessionStorage.setItem("formData", JSON.stringify(formFilters));
+  }, [formFilters]);
 
   const { data: encounterData, loading } = useFilterEncounters({
     queries: formFilters,
@@ -144,7 +155,6 @@ export default function EncounterSearch() {
             ),
           );
           setFilterPanel(false);
-          // setResultPage(true);
         })
         .catch((error) => {
           console.error("Error fetching search data:", error);
@@ -293,9 +303,8 @@ export default function EncounterSearch() {
         formFilters={formFilters}
         setFilterPanel={setFilterPanel}
         setFormFilters={setFormFilters}
-        // setRefresh={setRefresh}
         searchQueryId={searchQueryId}
-        queryID={queryID}
+        queryID={false}
       />
     </div>
   );
