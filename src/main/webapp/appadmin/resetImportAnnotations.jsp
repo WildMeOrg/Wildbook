@@ -81,7 +81,7 @@ try{
 							if (oldStatus!=null && !oldStatus.equals(ma.getDetectionStatus())) {
 								nulledStatuses++;
 							}
-							mediaAssetIds.add(ma.getId());
+							mediaAssetIds.add(ma.getIdInt());
 							mediaAssetAcmIds.add(ma.getAcmId());
 							myShepherd.updateDBTransaction();
 						}
