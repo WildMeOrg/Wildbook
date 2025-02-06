@@ -9,8 +9,7 @@ COPY frontend/ .
 
 ENV PUBLIC_URL=/react/
 
-ENV SITE_NAME="Test Site Names"
-
+ENV SITE_NAME="Test Site Name"
 
 RUN npm install && npm run build
 
