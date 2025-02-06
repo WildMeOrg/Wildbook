@@ -86,11 +86,7 @@ export default function EncounterSearch() {
   }, [paramsFormFilters]);
 
   useEffect(() => {
-    if (regularQuery) {
-      setQueryID("");
-    } else {
-      setQueryID(searchParams.get("searchQueryId"));
-    }
+    setQueryID(searchParams.get("searchQueryId"));
   }, [searchParams]);
 
   const { data: encounterData, loading } = useFilterEncounters({
