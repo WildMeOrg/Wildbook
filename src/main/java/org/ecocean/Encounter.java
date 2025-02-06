@@ -1353,7 +1353,7 @@ public class Encounter extends Base implements java.io.Serializable {
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma != null) {
             ma.addLabel(label);
-            if (parentMA != null) ma.setParentId(parentMA.getId());
+            if (parentMA != null) ma.setParentId(parentMA.getIdInt());
             return ma;
         }
         System.out.println("creating new MediaAsset for key=" + key);
@@ -1365,7 +1365,7 @@ public class Encounter extends Base implements java.io.Serializable {
             return null;
         }
         if (parentMA != null) {
-            ma.setParentId(parentMA.getId());
+            ma.setParentId(parentMA.getIdInt());
             ma.updateMinimalMetadata(); // for children (ostensibly derived?) MediaAssets, really only need minimal metadata or so i claim
         } else {
             try {
@@ -1417,7 +1417,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
             }
         }
-        ma.setParentId(parent.getId());
+        ma.setParentId(parent.getIdInt());
         return ma;
     }
 
@@ -2897,7 +2897,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (int i = 0; i < annotations.size(); i++) {
             MediaAsset ma = annotations.get(i).getMediaAsset();
             if (ma == null) continue;
-            if (ma.getId() == id) return i;
+            if (ma.getIdInt() == id) return i;
         }
         return -1;
     }
@@ -2928,7 +2928,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void removeMediaAsset(MediaAsset ma) {
-        removeAnnotation(indexOfMediaAsset(ma.getId()));
+        removeAnnotation(indexOfMediaAsset(ma.getIdInt()));
     }
 
     // this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
@@ -4069,7 +4069,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeArrayFieldStart("mediaAssets");
         for (MediaAsset ma : mas) {
             jgen.writeStartObject();
-            jgen.writeNumberField("id", ma.getId());
+            jgen.writeNumberField("id", ma.getIdInt());
             jgen.writeStringField("uuid", ma.getUUID());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root

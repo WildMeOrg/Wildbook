@@ -161,7 +161,7 @@ public class TwitterAssetStore extends AssetStore {
             kid.addLabel("_entity");
             setEntityMetadata(kid);
             kid.getMetadata().getDataAsString();
-            kid.setParentId(ma.getId());
+            kid.setParentId(ma.getIdInt());
             // derivationMethods?  metadata? (of image) etc.... ??
             mas.add(kid);
         }

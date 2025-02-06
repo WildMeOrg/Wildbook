@@ -165,7 +165,7 @@ public class Annotation extends Base implements java.io.Serializable {
         jgen.writeStringField("iaClass", this.getIAClass());
         MediaAsset ma = this.getMediaAsset();
         if (ma != null) {
-            jgen.writeNumberField("mediaAssetId", ma.getId());
+            jgen.writeNumberField("mediaAssetId", ma.getIdInt());
         }
         Encounter enc = this.findEncounter(myShepherd);
         if (enc != null) {

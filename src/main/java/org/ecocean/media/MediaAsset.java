@@ -150,15 +150,13 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return url.toExternalForm();
     }
 
-    public int getId() {
+    public int getIdInt() {
         return id;
     }
 
-/*
     public String getId() {
         return String.valueOf(id);
     }
-*/
 
     public void setId(String s) {
         id = Integer.parseInt(s);
@@ -1161,7 +1159,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     public void updateStandardChildrenBackground(String context) { // convenience
-        updateStandardChildrenBackground(context, this.getId());
+        updateStandardChildrenBackground(context, this.getIdInt());
     }
 
     public void setKeywords(ArrayList<Keyword> kws) {
@@ -1381,7 +1379,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     public void refreshIAStatus(Shepherd myShepherd) {
-        String s = IBEISIA.parseDetectionStatus(Integer.toString(this.getId()), myShepherd);
+        String s = IBEISIA.parseDetectionStatus(Integer.toString(this.getIdInt()), myShepherd);
 
         if (s != null) this.setDetectionStatus(s);
         String cumulative = null;
