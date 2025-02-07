@@ -3370,7 +3370,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return true;
     }
 
-///////// these are bunk now - dont use Features  TODO: fix these - perhaps by crawlng thru ma.getAnnotations() ?
+///////// this is bunk now: see fix for findAllByMediaAsset() if you need this
     public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
         String queryString =
             "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
@@ -3391,8 +3391,8 @@ public class Encounter extends Base implements java.io.Serializable {
 
         try {
             String queryString =
-                "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
-                + ma.getId();
+                "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(feat) && mediaAsset.features.contains(feat) && mediaAsset.id =="
+                + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset mediaAsset; org.ecocean.Annotation ann; org.ecocean.media.Feature feat";
             Query query = myShepherd.getPM().newQuery(queryString);
             Collection results = (Collection)query.execute();
             returnEncs = new ArrayList<Encounter>(results);
