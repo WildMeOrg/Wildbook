@@ -2,6 +2,7 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 java.util.Iterator,
+org.ecocean.media.*,
 org.ecocean.*
 "%>
 
@@ -23,7 +24,7 @@ if (indexName.equals("encounter")) {
     obj = new Annotation();
 } else if (indexName.equals("media_asset")) {
     cls = MediaAsset.class;
-    obj = new MediaAsset();
+    obj = new MediaAsset(null, null);
 } else if (indexName.equals("individual")) {
     cls = MarkedIndividual.class;
     obj = new MarkedIndividual();
@@ -93,7 +94,8 @@ if (endNum > 0) {
     } else if (indexName.equals("annotation")) {
         itr = myShepherd.getAllAnnotations("id");
     } else if (indexName.equals("media_asset")) {
-        itr = myShepherd.getAllMediaAssets();
+        String range = ((startNum > 0) ? startNum : 1) + "," + (endNum + 1);
+        itr = myShepherd.getMediaAssetsFilter("parentId == null ORDER BY id " + range);
     } else if (indexName.equals("individual")) {
         itr = myShepherd.getAllMarkedIndividuals();
     }

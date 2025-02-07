@@ -47,7 +47,7 @@ import org.json.JSONObject;
  */
 public class MediaAsset extends Base implements java.io.Serializable {
     static final long serialVersionUID = 8844223450447974780L;
-    @Override public String opensearchIndexName() { return "individual"; }
+    @Override public String opensearchIndexName() { return "media_asset"; }
     protected int id = MediaAssetFactory.NOT_SAVED;
 
     protected String uuid = null;

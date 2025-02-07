@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.SystemValue;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -158,6 +159,8 @@ public class OpenSearch {
                         Base.opensearchSyncIndex(myShepherd, Annotation.class,
                         BACKGROUND_SLICE_SIZE);
                         Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, MediaAsset.class,
                         BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
