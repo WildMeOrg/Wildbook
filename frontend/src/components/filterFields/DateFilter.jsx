@@ -3,12 +3,34 @@ import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import { FormLabel, FormGroup, FormControl } from "react-bootstrap";
+import { useSearchQueryParams } from "../../models/useSearchQueryParams";
+import { useStoredFormValue } from "../../models/useStoredFormValue";
 
 export default function DateFilter({ onChange, data }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [submissionStartDate, setSubmissionStartDate] = useState("");
   const [submissionEndDate, setSubmissionEndDate] = useState("");
+
+  const paramsObject = useSearchQueryParams();
+  const savedEncounterDateValues = useStoredFormValue("date", "range", "date");
+  const savedSubmissionDateValues = useStoredFormValue(
+    "dateSubmitted",
+    "range",
+    "dateSubmitted",
+  );
+
+  useEffect(() => {
+    if (paramsObject.searchQueryId && savedEncounterDateValues) {
+      setStartDate(savedEncounterDateValues.gte.split("T")[0]);
+      setEndDate(savedEncounterDateValues.lte.split("T")[0]);
+    }
+    if (paramsObject.searchQueryId && savedSubmissionDateValues) {
+      setSubmissionStartDate(savedSubmissionDateValues.gte.split("T")[0]);
+      setSubmissionEndDate(savedSubmissionDateValues.lte.split("T")[0]);
+    }
+  }, [paramsObject, savedEncounterDateValues, savedSubmissionDateValues]);
+
   const verbatimeventdateOptions =
     data?.verbatimEventDate?.map((data) => {
       return {
