@@ -243,7 +243,6 @@ if(request.getUserPrincipal()!=null){
           const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
           const SystemId = "<%= props.getProperty("systemId") %>" || "System ID";
           const Name = "<%= props.getProperty("Name") %>" || "Name";
-          const Unknown = "<%= props.getProperty("unknown") %>" || "Unknown";
 
           let debounceTimer;
 
@@ -305,20 +304,18 @@ if(request.getUserPrincipal()!=null){
                     if (searchResults.length > 0) {
                         resultsDropdown.innerHTML = searchResults.map(data => {
                             const taxonomy = data.taxonomy ? data.taxonomy : " ";
-                            let context = Unknown;
+                            let context = Name;
                             if (data.id.toLowerCase().includes(query.toLowerCase())) {
                                 context = SystemId;
-                            } else if (data.names.some(name => name.toLowerCase().includes(query.toLowerCase()))) {
-                                context = Name;
                             } else {
-                                context = Unknown;
+                                context = Name;
                             }
 
                             let value = data.id;
-                            if(context === Name){
-                                value = data.names.find(name => name.toLowerCase().includes(query.toLowerCase()));
+                            if(context === SystemId){
+                              value = data.id;  
                             }else {
-                                value = data.id;
+                              value = data.names.find(name => name.toLowerCase().includes(query.toLowerCase())) || data.names.join(" | ");
                             }
 
                             return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +

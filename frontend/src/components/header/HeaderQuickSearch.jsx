@@ -95,19 +95,17 @@ export default function HeaderQuickSearch() {
                 ?.toLowerCase()
                 .includes(search.toLowerCase())
                 ? "SYSTEM_ID"
-                : result?.names?.some((name) =>
-                      name.toLowerCase().includes(search.toLowerCase()),
-                    )
-                  ? "FILTER_NAME"
-                  : "UNKNOWN";
+                : "FILTER_NAME";
 
               let value = result.id;
+
               if (context === "SYSTEM_ID") {
                 value = result.id;
-              } else if (context === "FILTER_NAME") {
-                value = result.names.find((name) =>
-                  name.toLowerCase().includes(search.toLowerCase()),
-                );
+              } else {
+                value =
+                  result.names.find((name) =>
+                    name.toLowerCase().includes(search.toLowerCase()),
+                  ) || result.names.join(" | ");
               }
 
               return (
