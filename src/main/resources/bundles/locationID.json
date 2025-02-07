@@ -3,6 +3,11 @@
 	"source": "http://en.wikipedia.org/wiki/List_of_seas",
 	"locationID": [
 		  {
+			"name": "Alte Rinne",
+			"id": "Alte Rinne",
+			"locationID": []
+		  },
+		  {
 			  "name": "Botanischer Garten Bielefeld",
 			  "id": "BGBi",
 			  "geospatialInfo": {
@@ -38,6 +43,11 @@
 			  ]
 		  },
 		  {
+			"name": "Eulenberger See",
+			"id": "Eulenberger See",
+			"locationID": []
+		  },
+		  {
 			"name": "Fambach",
 			"id": "FAM",
 			"locationID": []
@@ -55,6 +65,16 @@
 		  {
 			"name": "Hümpfershausen",
 			"id": "HUEM",
+			"locationID": []
+		  },
+		  {
+			"name": "Jachen",
+			"id": "Jachen",
+			"locationID": []
+		  },
+		  {
+			"name": "Kaolingrube Oedingen",
+			"id": "Kaolingrube Oedingen",
 			"locationID": []
 		  },
 		  {
@@ -105,6 +125,16 @@
 		  {
 			"name": "Römhild",
 			"id": "RH",
+			"locationID": []
+		  },
+		  {
+			"name": "Steinbachholz",
+			"id": "Steinbachholz",
+			"locationID": []
+		  },
+		  {
+			"name": "Steinbruch Dettlebach",
+			"id": "Steinbruch Dettlebach",
 			"locationID": []
 		  },
 		  {
@@ -511,7 +541,7 @@
 					}
 				]
 			},
-					{
+			{
 				"name": "Remscheid",
 				"id": "Remscheid",
 				"locationID": [
@@ -554,7 +584,7 @@
 			"id": "Wolbecker Tiergarten",
 			"locationID": []
 		  },
-				  {
+		  {
 			"name": "Wuppertal",
 			"id": "Wuppertal",
 			"locationID": [
