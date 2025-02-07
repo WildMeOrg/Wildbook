@@ -1062,6 +1062,11 @@
 					"id": "UmPhafa Private Nature Reserve",
 					"description": "UmPhafa Private Nature Reserve",
 					"locationID":[]
+				},
+				{
+					"name": "Zingela Nature Reserve",
+					"id": "Zingela Nature Reserve",
+					"locationID":[]
 				}
 			 ]
 		},
