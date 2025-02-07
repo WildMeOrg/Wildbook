@@ -3,6 +3,8 @@ import Select from "react-select";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
+import { useSearchQueryParams } from "../models/useSearchQueryParams";
+import { useStoredFormValue } from "../models/useStoredFormValue";
 
 const colourStyles = {
   option: (styles) => ({
@@ -26,6 +28,17 @@ export default function MultiSelect({
   const [selectedOptions, setSelectedOptions] = useState([]);
   const navigate = useNavigate();
   const intl = useIntl();
+
+  const paramsObject = useSearchQueryParams();
+  const resultValue = useStoredFormValue(field, term, field);
+
+  useEffect(() => {
+    if (paramsObject.searchQueryId && resultValue) {
+      setSelectedOptions(
+        resultValue.map((item) => ({ value: item, label: item })),
+      );
+    }
+  }, [paramsObject, resultValue]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -61,7 +74,6 @@ export default function MultiSelect({
       value={selectedOptions}
       onChange={(e) => {
         const params = new URLSearchParams(location.search);
-
         if (field === "assignedUsername") {
           params.delete("username");
           onChange(null, "assignedUsername");
