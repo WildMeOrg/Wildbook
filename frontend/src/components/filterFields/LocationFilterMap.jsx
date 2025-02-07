@@ -5,12 +5,33 @@ import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import Description from "../Form/Description";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
-import _ from "lodash";
+import _ from "lodash-es";
 import { useIntl } from "react-intl";
+import { useSearchQueryParams } from "../../models/useSearchQueryParams";
+import { useStoredFormValue } from "../../models/useStoredFormValue";
 
 export default function LocationFilterMap({ onChange, data }) {
   const [bounds, setBounds] = useState(null);
   const intl = useIntl();
+
+  const paramsObject = useSearchQueryParams();
+  const resultValue = useStoredFormValue(
+    "locationMap",
+    "geo_bounding_box",
+    "locationGeoPoint",
+  );
+  console.log("resultValue", resultValue);
+
+  useEffect(() => {
+    if (paramsObject.searchQueryId && resultValue) {
+      setTempBounds({
+        north: resultValue.top_left.lat,
+        east: resultValue.bottom_right.lon,
+        south: resultValue.bottom_right.lat,
+        west: resultValue.top_left.lon,
+      });
+    }
+  }, [paramsObject, resultValue]);
 
   useEffect(() => {
     if (bounds) {
