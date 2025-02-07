@@ -114,7 +114,7 @@ if(request.getUserPrincipal()!=null){
 %>
 
 
-<html>
+
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -224,6 +224,135 @@ if(request.getUserPrincipal()!=null){
               $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
             }
           );
+
+          const searchInput = document.getElementById("quick-search-input");
+          const closeButton = document.getElementById("quick-search-clear");
+          const resultsDropdown = document.getElementById("quick-search-results");
+
+          const loadingText = "<%= props.getProperty("loading") %>" || "Loading...";
+          const noMatchResults = "<%= props.getProperty("noMatchResults") %>" || "No matching results found.";
+          const errorOccurred = "<%= props.getProperty("errorOccurred") %>" || "An error occurred while fetching search results.";
+          const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
+          const SystemId = "<%= props.getProperty("SystemId") %>" || "System ID";
+          const Name = "<%= props.getProperty("Name") %>" || "Name";
+          const Unknown = "<%= props.getProperty("Unknown") %>" || "Unknown";
+
+          let debounceTimer;
+
+          function debounce(func, delay) {
+            return function() {
+              clearTimeout(debounceTimer);
+              debounceTimer = setTimeout(func, delay);
+            };
+          }
+
+          function performSearch() {
+            const query = searchInput.value.trim();
+
+            if (query === "") {
+                resultsDropdown.innerHTML = "";
+                resultsDropdown.style.display = "none";
+                return;
+            }
+
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = "<div class='loading'>" + loadingText + "</div>";
+
+            $.ajax({
+                url: "/api/v3/search/individual?size=10",
+                type: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    query: {
+                        bool: {
+                            should: [
+                                {
+                                    wildcard: {
+                                        names: {
+                                            value: '*' + query + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                },
+                                {
+                                    wildcard: {
+                                        id: {
+                                            value: '*' + query + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }),
+                beforeSend: function () {
+                    resultsDropdown.innerHTML = "<div class='loading'>"+ loadingText +"</div>";
+                },
+                success: function (response) {
+                    const searchResults = response.hits || [];
+
+                    if (searchResults.length > 0) {
+                        resultsDropdown.innerHTML = searchResults.map(data => {
+                            const taxonomy = data.taxonomy ? data.taxonomy : " ";
+                            let context = Unknown;
+                            if (data.id.toLowerCase().includes(query.toLowerCase())) {
+                                context = SystemId;
+                            } else if (data.names.some(name => name.toLowerCase().includes(query.toLowerCase()))) {
+                                context = Name;
+                            } else {
+                                context = Unknown;
+                            }
+
+                            return `
+                                <a href="<%=urlLoc %>/individuals.jsp?id=${data.id}" target="_blank">
+                                    <div class="quick-search-result">
+                                        <div class="quick-search-result-content">
+                                            <div class="quick-search-result-value">${query}</div>
+                                            <div class="quick-search-result-species">${taxonomy}</div>
+                                        </div>
+                                        <div class="quick-search-result-context">${context}</div>
+                                    </div>
+                                </a>`;
+                        }).join("");
+                    } else {
+                        resultsDropdown.innerHTML = noMatchResults;
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error: ", error);
+                    resultsDropdown.innerHTML = errorOccurred;
+                },
+                complete: function () {
+                    document.querySelector(".loading")?.remove();
+                }
+            });
+        }
+
+          // Event listener for input changes
+          searchInput.addEventListener("focus", function() {
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = searchResultDisplay;
+          });
+          searchInput.addEventListener("input", debounce(performSearch, 300));
+
+          // Event listener for close button
+          closeButton.addEventListener("click", function() {
+            searchInput.value = "";
+            resultsDropdown.style.display = "none";
+          });
+         
+          // Event listener to close dropdown when clicking outside
+          document.addEventListener("click", function(event) {
+          const searchInput = document.getElementById("quick-search-input");
+          const resultsDropdown = document.getElementById("quick-search-results");
+
+          if (!searchInput.contains(event.target) && !resultsDropdown.contains(event.target)) {
+            resultsDropdown.style.display = "none";
+            searchInput.value = "";
+            }
+          });
         });
       </script>
 
@@ -357,6 +486,8 @@ if(request.getUserPrincipal()!=null){
 
 
       </script>
+
+      
       <%
         }
       %>
@@ -529,8 +660,23 @@ if(request.getUserPrincipal()!=null){
                             }
                             %>
                         </ul>
-
                       </li>
+
+                     <% if(user != null && !loggingOut){ %>
+                      <div class="quick-search-wrapper">
+                        <div class="search-box">
+                          <input 
+                            type="text" 
+                            id="quick-search-input" 
+                            placeholder="<%=props.getProperty("searchIndividuals")%>"                             
+                            autocomplete="off" 
+                          />
+                          <span id="quick-search-clear"> &times;</span>
+                        </div>
+                        <div id="quick-search-results"></div>
+                      </div>
+                      <% } %>
+                      
                       <div class="search-and-secondary-wrapper d-flex" >
                         <!-- notifications -->
                         <div id="notifications">
