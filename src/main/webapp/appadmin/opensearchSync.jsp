@@ -24,7 +24,7 @@ if (indexName.equals("encounter")) {
     obj = new Annotation();
 } else if (indexName.equals("media_asset")) {
     cls = MediaAsset.class;
-    obj = new MediaAsset(null, null);
+    obj = new MediaAsset();
 } else if (indexName.equals("individual")) {
     cls = MarkedIndividual.class;
     obj = new MarkedIndividual();
@@ -99,6 +99,7 @@ if (endNum > 0) {
     } else if (indexName.equals("individual")) {
         itr = myShepherd.getAllMarkedIndividuals();
     }
+    System.out.println("opensearchSync.jsp: query all complete");
     while (itr.hasNext()) {
             Base iObj = (Base)itr.next();
             if (!Util.stringExists(iObj.getId())) continue;
@@ -120,6 +121,7 @@ if (endNum > 0) {
     }
 
 } else {
+    OpenSearch.unsetActiveIndexingForeground(); // is set by opensearchSyncIndex
     int[] res = Base.opensearchSyncIndex(myShepherd, cls, 0);
     out.println("<p>re-indexed: <b>" + res[0] + "</b></p>");
     out.println("<p>removed: <b>" + res[1] + "</b></p>");

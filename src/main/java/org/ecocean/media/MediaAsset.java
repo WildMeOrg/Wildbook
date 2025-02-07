@@ -97,6 +97,10 @@ public class MediaAsset extends Base implements java.io.Serializable {
      * To be called by AssetStore factory method.
      */
 
+    public MediaAsset() {
+        this(MediaAssetFactory.NOT_SAVED, null, null);
+    }
+
     public MediaAsset(final AssetStore store, final JSONObject params) {
         // this(store, params, null);
         this(MediaAssetFactory.NOT_SAVED, store, params);
@@ -1678,7 +1682,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     @Override public String getAllVersionsSql() {
-        return "SELECT \"ID\"::text, \"REVISION\" AS version FROM \"ANNOTATION\" ORDER BY version";
+        return "SELECT CAST(\"ID\" AS text), \"REVISION\" AS version FROM \"MEDIAASSET\" WHERE \"PARENTID\" IS NULL ORDER BY version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
