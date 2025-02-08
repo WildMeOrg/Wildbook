@@ -11,7 +11,7 @@ class FormStore {
     this.formFilters = newFilters;
   }
 
-  addFilter(newFilter) {
+  addFilter(field, value, filterKey, term, filterId) {
     const existingIndex = this.formFilters.findIndex(
       (f) => f.filterId === newFilter.filterId,
     );

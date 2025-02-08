@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import { useSearchQueryParams } from "../models/useSearchQueryParams";
 import { useStoredFormValue } from "../models/useStoredFormValue";
+import { remove } from "lodash-es";
 
 const colourStyles = {
   option: (styles) => ({
@@ -29,37 +30,37 @@ export default function MultiSelect({
   const navigate = useNavigate();
   const intl = useIntl();
 
-  const paramsObject = useSearchQueryParams();
-  const resultValue = useStoredFormValue(field, term, field);
+  // const paramsObject = useSearchQueryParams();
+  // const resultValue = useStoredFormValue(field, term, field);
 
-  useEffect(() => {
-    if (paramsObject.searchQueryId && resultValue) {
-      setSelectedOptions(
-        resultValue.map((item) => ({ value: item, label: item })),
-      );
-    }
-  }, [paramsObject, resultValue]);
+  // useEffect(() => {
+  //   if (paramsObject.searchQueryId && resultValue) {
+  //     setSelectedOptions(
+  //       resultValue.map((item) => ({ value: item, label: item })),
+  //     );
+  //   }
+  // }, [paramsObject, resultValue]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (field === "assignedUsername") {
-      const fieldValue = params.get("username");
-      if (fieldValue) {
-        const selectedItems = options.filter(
-          (option) => fieldValue === option.label,
-        );
-        setSelectedOptions(selectedItems);
-      }
-    } else if (field === "state") {
-      const fieldValue = params.get("state");
-      if (fieldValue) {
-        const selectedItems = options.filter(
-          (option) => fieldValue === option.label,
-        );
-        setSelectedOptions(selectedItems);
-      }
-    }
-  }, [location.search, field, options, isMulti]);
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   if (field === "assignedUsername") {
+  //     const fieldValue = params.get("username");
+  //     if (fieldValue) {
+  //       const selectedItems = options.filter(
+  //         (option) => fieldValue === option.label,
+  //       );
+  //       setSelectedOptions(selectedItems);
+  //     }
+  //   } else if (field === "state") {
+  //     const fieldValue = params.get("state");
+  //     if (fieldValue) {
+  //       const selectedItems = options.filter(
+  //         (option) => fieldValue === option.label,
+  //       );
+  //       setSelectedOptions(selectedItems);
+  //     }
+  //   }
+  // }, [location.search, field, options, isMulti]);
 
   return (
     <Select
@@ -73,38 +74,27 @@ export default function MultiSelect({
       placeholder={intl.formatMessage({ id: "SELECT_ONE_OR_MORE" })}
       value={selectedOptions}
       onChange={(e) => {
-        const params = new URLSearchParams(location.search);
-        if (field === "assignedUsername") {
-          params.delete("username");
-          onChange(null, "assignedUsername");
-          // setFormFilters(formFilters.filter(filter => filter.filterId !== "assignedUsername"));
-          navigate(`${location.pathname}?${params.toString()}`, {
-            replace: true,
-          });
-        } else if (field === "state") {
-          params.delete("state");
-          // setFormFilters(formFilters.filter(filter => filter.filterId !== "state"));
-          onChange(null, "state");
-          navigate(`${location.pathname}?${params.toString()}`, {
-            replace: true,
-          });
-        }
+        // const params = new URLSearchParams(location.search);
+        // if (field === "assignedUsername") {
+        //   params.delete("username");
+        //   onChange(null, "assignedUsername");
+        //   navigate(`${location.pathname}?${params.toString()}`, {
+        //     replace: true,
+        //   });
+        // } else if (field === "state") {
+        //   params.delete("state");
+        //   onChange(null, "state");
+        //   navigate(`${location.pathname}?${params.toString()}`, {
+        //     replace: true,
+        //   });
+        // }
 
-        setSelectedOptions(e || []);
+        // setSelectedOptions(e || []);
 
         if (e?.value || e.length > 0) {
-          onChange({
-            filterId: field,
-            clause: "filter",
-            filterKey: filterKey,
-            query: {
-              [term]: {
-                [field]: isMulti ? e.map((item) => item.value) : e.value,
-              },
-            },
-          });
+          addFilter(e, field, filterKey);
         } else {
-          onChange(null, field);
+          removeFilter(field);
         }
       }}
     />

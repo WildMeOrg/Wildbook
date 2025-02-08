@@ -7,47 +7,44 @@ import BrutalismButton from "./BrutalismButton";
 import useGetSiteSettings from "../models/useGetSiteSettings";
 import { Col, Row } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
+import formStore from "../pages/SearchPages/encounterFormStore";
 
-function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
-  const matchingFilterIndex = tempFormFilters.findIndex(
-    (f) => f.filterId === newFilter.filterId,
-  );
-  if (matchingFilterIndex === -1) {
-    if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci")) {
-      tempFormFilters.splice(
-        0,
-        tempFormFilters.length,
-        newFilter,
-        ...tempFormFilters,
-      );
-    } else {
-      setTempFormFilters([...tempFormFilters, newFilter]);
-    }
-  } else {
-    if (
-      newFilter?.filterId?.startsWith("microsatelliteMarkers.loci") ||
-      newFilter?.filterId?.startsWith("measurements")
-    ) {
-      tempFormFilters[matchingFilterIndex] = newFilter;
-    } else {
-      const newFormFilters = [...tempFormFilters];
-      newFormFilters[matchingFilterIndex] = newFilter;
-      setTempFormFilters(newFormFilters);
-    }
-  }
-}
+// function setFilter(newFilter, tempFormFilters, setTempFormFilters) { 
+//   const matchingFilterIndex = tempFormFilters.findIndex(
+//     (f) => f.filterId === newFilter.filterId,
+//   );
+//   if (matchingFilterIndex === -1) {
+//     if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci")) {
+//       tempFormFilters.splice(
+//         0,
+//         tempFormFilters.length,
+//         newFilter,
+//         ...tempFormFilters,
+//       );
+//     } else {
+//       setTempFormFilters([...tempFormFilters, newFilter]);
+//     }
+//   } else {
+//     if (
+//       newFilter?.filterId?.startsWith("microsatelliteMarkers.loci") ||
+//       newFilter?.filterId?.startsWith("measurements")
+//     ) {
+//       tempFormFilters[matchingFilterIndex] = newFilter;
+//     } else {
+//       const newFormFilters = [...tempFormFilters];
+//       newFormFilters[matchingFilterIndex] = newFilter;
+//       setTempFormFilters(newFormFilters);
+//     }
+//   }
+// }
 
 export default function FilterPanel({
   schemas,
-  formFilters = [],
-  setFormFilters = () => {},
   setFilterPanel,
   style = {},
   handleSearch = () => {},
-  setSearchParams = () => {},
-  setQueryID = "",
+  refetch = () => {},
 }) {
-  const [tempFormFilters, setTempFormFilters] = useState([]);
   const { data } = useGetSiteSettings();
   const safeSchemas = schemas || [];
   const [clicked, setClicked] = useState(safeSchemas[0]?.id);
@@ -56,6 +53,8 @@ export default function FilterPanel({
   const schemaRefs = useRef([]);
   const isScrollingByClick = useRef(false);
   const scrollTimeout = useRef(null);
+
+  const { formFilters, setFilters, addFilter, removeFilter, resetFilters } = formStore;
 
   useEffect(() => {
     safeSchemas.forEach((schema, index) => {
@@ -97,28 +96,6 @@ export default function FilterPanel({
     });
   };
 
-  useEffect(() => {
-    setTempFormFilters(formFilters);
-  }, [formFilters]);
-
-  useEffect(() => {}, [tempFormFilters]);
-
-  const handleFilterChange = (filter = null, remove) => {
-    if (remove) {
-      setTempFormFilters((prevFilters) => {
-        const newFilters = prevFilters.filter((f) => f.filterId !== remove);
-        return newFilters;
-      });
-    } else {
-      setFilter(filter, tempFormFilters, setTempFormFilters);
-    }
-  };
-
-  const clearFilter = (filterId) => {
-    const newFormFilters = formFilters.filter((f) => f.filterId !== filterId);
-    setTempFormFilters(newFormFilters);
-  };
-
   return (
     <Container
       style={{
@@ -142,7 +119,6 @@ export default function FilterPanel({
               backdropFilter: "blur(3px)",
               WebkitBackdropFilter: "blur(2px)",
               fontSize: "20px",
-              // flexWrap: "wrap",
             }}
           >
             {safeSchemas.map((schema, index) => {
@@ -195,25 +171,11 @@ export default function FilterPanel({
                 backgroundColor={theme.primaryColors.primary700}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  const uniqueFilters = Array.from(
-                    new Map(
-                      tempFormFilters.map((filter) => [
-                        filter.filterId,
-                        filter,
-                      ]),
-                    ).values(),
-                  );
-                  setFormFilters(uniqueFilters);
+                  refetch().then(({ data }) => {
+                    console.log("Refetched data:", data);
+                  });
                   setFilterPanel(false);
                   handleSearch();
-                  setQueryID(null);
-                  setSearchParams((prevSearchParams) => {
-                    const newSearchParams = new URLSearchParams(
-                      prevSearchParams,
-                    );
-                    newSearchParams.delete("searchQueryId");
-                    return newSearchParams;
-                  });
                 }}
                 noArrow={true}
                 style={{
@@ -231,9 +193,7 @@ export default function FilterPanel({
                 }}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  setFormFilters([]);
-                  setTempFormFilters([]);
-                  setSearchParams(new URLSearchParams());
+                  resetFilters();
                   window.location.reload();
                 }}
                 noArrow={true}
@@ -271,13 +231,12 @@ export default function FilterPanel({
                     <schema.FilterComponent
                       key={schema.id}
                       labelId={schema.labelId}
-                      onChange={handleFilterChange}
-                      onClearFilter={clearFilter}
                       {...schema.filterComponentProps}
                       data={data}
-                      tempFormFilters={tempFormFilters}
-                      setFormFilters={setFormFilters}
                       formFilters={formFilters}
+                      setFilters = {setFilters}
+                      addFilter = {addFilter}
+                      removeFilter = {removeFilter}
                     />
                   ) : (
                     <div>

@@ -20,7 +20,6 @@ export default function LocationFilterMap({ onChange, data }) {
     "geo_bounding_box",
     "locationGeoPoint",
   );
-  console.log("resultValue", resultValue);
 
   useEffect(() => {
     if (paramsObject.searchQueryId && resultValue) {

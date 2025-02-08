@@ -44,11 +44,11 @@ export default function FormGroupText({
         placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
         value={value}
         onChange={(e) => {
+          setValue(e.target.value);
           if (e.target.value === "") {
             onChange(null, field);
             return;
-          }
-          setValue(e.target.value);
+          }          
           onChange({
             filterId: filterId,
             clause: "filter",

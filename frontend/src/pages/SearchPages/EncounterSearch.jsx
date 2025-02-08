@@ -8,10 +8,11 @@ import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
 import axios from "axios";
-import { get } from "lodash";
+import { get } from "lodash-es";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
 import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
+import formStore from "./encounterFormStore";
 
 export default function EncounterSearch() {
   const columns = encounterSearchColumns;
@@ -25,6 +26,8 @@ export default function EncounterSearch() {
   const [sort, setSort] = useState({ sortname: "date", sortorder: "desc" });
   const { sortname, sortorder } = sort;
 
+  const { formFilters } = formStore;
+
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
 
@@ -32,7 +35,7 @@ export default function EncounterSearch() {
   const [paramsFormFilters, setParamsFormFilters] = useState([]);
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
 
-  const [formFilters, setFormFilters] = useState([]);
+  // const [formFilters, setFormFilters] = useState([]);
 
   const regularQuery = searchParams.get("regularQuery");
 
@@ -57,18 +60,18 @@ export default function EncounterSearch() {
     }
   }, [queryID, sortname, sortorder]);
 
-  useEffect(() => {
-    setFormFilters(
-      Array.from(
-        new Map(
-          [...paramsFormFilters, ...formFilters].map((filter) => [
-            filter.filterId,
-            filter,
-          ]),
-        ).values(),
-      ),
-    );
-  }, [paramsFormFilters]);
+  // useEffect(() => {
+  //   setFormFilters(
+  //     Array.from(
+  //       new Map(
+  //         [...paramsFormFilters, ...formFilters].map((filter) => [
+  //           filter.filterId,
+  //           filter,
+  //         ]),
+  //       ).values(),
+  //     ),
+  //   );
+  // }, [paramsFormFilters]);
 
   useEffect(() => {
     setQueryID(searchParams.get("searchQueryId"));
@@ -235,14 +238,11 @@ export default function EncounterSearch() {
         style={{
           display: filterPanel ? "block" : "none",
         }}
-        formFilters={formFilters}
-        setFormFilters={(input) => {
-          setFormFilters(input);
-        }}
+        // setFormFilters={(input) => {
+        //   setFormFilters(input);
+        // }}
         setFilterPanel={setFilterPanel}
-        updateFilters={Function.prototype}
         schemas={schemas}
-        // setRefresh={setRefresh}
         handleSearch={handleSearch}
         setQueryID={setQueryID}
         setSearchParams={setSearchParams}
@@ -290,9 +290,7 @@ export default function EncounterSearch() {
         }}
       />
       <SideBar
-        formFilters={formFilters}
-        setFilterPanel={setFilterPanel}
-        setFormFilters={setFormFilters}
+        // setFormFilters={setFormFilters}
         searchQueryId={searchQueryId}
         queryID={false}
       />
