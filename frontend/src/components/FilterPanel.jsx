@@ -7,7 +7,7 @@ import BrutalismButton from "./BrutalismButton";
 import useGetSiteSettings from "../models/useGetSiteSettings";
 import { Col, Row } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-import formStore from "../pages/SearchPages/encounterFormStore";
+import { globalEncounterFormStore } from "../pages/SearchPages/encounterFormStore";
 
 // function setFilter(newFilter, tempFormFilters, setTempFormFilters) { 
 //   const matchingFilterIndex = tempFormFilters.findIndex(
@@ -44,6 +44,7 @@ export default function FilterPanel({
   style = {},
   handleSearch = () => {},
   refetch = () => {},
+  // store,
 }) {
   const { data } = useGetSiteSettings();
   const safeSchemas = schemas || [];
@@ -53,8 +54,6 @@ export default function FilterPanel({
   const schemaRefs = useRef([]);
   const isScrollingByClick = useRef(false);
   const scrollTimeout = useRef(null);
-
-  const { formFilters, setFilters, addFilter, removeFilter, resetFilters } = formStore;
 
   useEffect(() => {
     safeSchemas.forEach((schema, index) => {
@@ -193,7 +192,7 @@ export default function FilterPanel({
                 }}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  resetFilters();
+                  globalEncounterFormStore.resetFilters();
                   window.location.reload();
                 }}
                 noArrow={true}
@@ -233,10 +232,7 @@ export default function FilterPanel({
                       labelId={schema.labelId}
                       {...schema.filterComponentProps}
                       data={data}
-                      formFilters={formFilters}
-                      setFilters = {setFilters}
-                      addFilter = {addFilter}
-                      removeFilter = {removeFilter}
+                      // store={store}
                     />
                   ) : (
                     <div>

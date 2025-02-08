@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import { useSearchQueryParams } from "../models/useSearchQueryParams";
 import { useStoredFormValue } from "../models/useStoredFormValue";
-import { remove } from "lodash-es";
+import { iteratee, remove } from "lodash-es";
+import EncounterFormStore, { globalEncounterFormStore } from "../pages/SearchPages/encounterFormStore";
+import { useLocalObservable } from "mobx-react-lite";
+import { observer } from "mobx-react-lite";
 
 const colourStyles = {
   option: (styles) => ({
@@ -17,18 +20,18 @@ const colourStyles = {
   control: (base) => ({ ...base, zIndex: 1, backgroundColor: "white" }),
 };
 
-export default function MultiSelect({
-  isMulti,
+const MultiSelect = observer(({ isMulti,
   options,
   onChange,
   field,
   filterKey,
-  term,
-}) {
+  term, }) => {
   const location = useLocation();
   const [selectedOptions, setSelectedOptions] = useState([]);
   const navigate = useNavigate();
   const intl = useIntl();
+
+  // const store = useLocalObservable(() => new EncounterFormStore());
 
   // const paramsObject = useSearchQueryParams();
   // const resultValue = useStoredFormValue(field, term, field);
@@ -62,41 +65,37 @@ export default function MultiSelect({
   //   }
   // }, [location.search, field, options, isMulti]);
 
+
   return (
     <Select
       isMulti={isMulti}
-      options={options}
+      options={[
+        {
+          value: "all",
+          label: "all",
+        },
+        {
+          value: "none",
+          label: "none",
+        }
+      ]}
       className="basic-multi-select"
       classNamePrefix="select"
       styles={colourStyles}
       menuPlacement="auto"
       menuPortalTarget={document.body}
       placeholder={intl.formatMessage({ id: "SELECT_ONE_OR_MORE" })}
-      value={selectedOptions}
+      value={globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]}
       onChange={(e) => {
-        // const params = new URLSearchParams(location.search);
-        // if (field === "assignedUsername") {
-        //   params.delete("username");
-        //   onChange(null, "assignedUsername");
-        //   navigate(`${location.pathname}?${params.toString()}`, {
-        //     replace: true,
-        //   });
-        // } else if (field === "state") {
-        //   params.delete("state");
-        //   onChange(null, "state");
-        //   navigate(`${location.pathname}?${params.toString()}`, {
-        //     replace: true,
-        //   });
-        // }
-
-        // setSelectedOptions(e || []);
-
+        const value = e?.value || e.map(item => item.value);
         if (e?.value || e.length > 0) {
-          addFilter(e, field, filterKey);
+          globalEncounterFormStore.addFilter(field, e, filterKey, term, field);
         } else {
-          removeFilter(field);
+          globalEncounterFormStore.removeFilter(field);
         }
       }}
     />
   );
-}
+});
+
+export default MultiSelect;

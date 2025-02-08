@@ -1,25 +1,51 @@
 import { makeAutoObservable } from "mobx";
 
-class FormStore {
-  formFilters = [];
+class EncounterFormStore {
+  _formFilters;
 
   constructor() {
+    this.formFilters = [];
     makeAutoObservable(this);
   }
 
-  setFilters(newFilters) {
-    this.formFilters = newFilters;
+  get formFilters() {
+    return this._formFilters;
+  }
+
+  set formFilters(newFilters) {
+    this._formFilters = newFilters;
   }
 
   addFilter(field, value, filterKey, term, filterId) {
+
     const existingIndex = this.formFilters.findIndex(
-      (f) => f.filterId === newFilter.filterId,
+      (f) => f.filterId === filterId,
     );
     if (existingIndex === -1) {
-      this.formFilters.push(newFilter);
+      console.log(1);
+      this.formFilters.push({
+        filterId: filterId,
+        clause: "filter",
+        query: {
+          [term]: {
+            [field]: value,
+          },
+        },
+        filterKey: filterKey,
+      });
     } else {
-      this.formFilters[existingIndex] = newFilter;
+      this.formFilters[existingIndex] = {
+        filterId: filterId,
+        clause: "filter",
+        query: {
+          [term]: {
+            [field]: value,
+          },
+        },
+        filterKey: filterKey
+      }
     }
+    console.log("----------------------", JSON.stringify(this.formFilters));
   }
 
   removeFilter(filterId) {
@@ -31,5 +57,8 @@ class FormStore {
   }
 }
 
-const formStore = new FormStore();
-export default formStore;
+const globalEncounterFormStore = new EncounterFormStore();
+
+export { globalEncounterFormStore };
+
+export default EncounterFormStore;

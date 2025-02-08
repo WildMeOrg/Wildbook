@@ -1,25 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import Description from "./Description";
 import { FormattedMessage } from "react-intl";
 import { useIntl } from "react-intl";
 import { useSearchQueryParams } from "../../models/useSearchQueryParams";
 import { useStoredFormValue } from "../../models/useStoredFormValue";
+import { globalEncounterFormStore } from "../../pages/SearchPages/encounterFormStore";
+import { useLocalObservable } from "mobx-react-lite";
+import { observer } from "mobx-react-lite";
 
-export default function FormGroupText({
+const FormGroupText = observer(({
   noLabel = false,
   noDesc = false,
   label = "",
-  onChange,
   filterId,
   field,
   term,
   filterKey,
-}) {
+}) => {
   const intl = useIntl();
-  const [value, setValue] = React.useState("");
+  // const store = useLocalObservable(() => new EncounterFormStore());
   const paramsObject = useSearchQueryParams();
-  const resultValue = useStoredFormValue(filterId, term, field);
+  const resultValue = useStoredFormValue(field, term, field);
+  const [value, setValue] = useState("");
 
   useEffect(() => {
     if (paramsObject.searchQueryId && resultValue) {
@@ -42,25 +45,19 @@ export default function FormGroupText({
       <FormControl
         type="text"
         placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
-        value={value}
+        value={globalEncounterFormStore.formFilters.find((f) => f.filterId === filterId)?.query[term][field]}
         onChange={(e) => {
           setValue(e.target.value);
           if (e.target.value === "") {
-            onChange(null, field);
+            globalEncounterFormStore.removeFilter(filterId);
             return;
-          }          
-          onChange({
-            filterId: filterId,
-            clause: "filter",
-            filterKey: filterKey,
-            query: {
-              [term]: {
-                [field]: e.target.value,
-              },
-            },
-          });
+          }
+          globalEncounterFormStore.addFilter(field, e.target.value, filterKey, term, filterId);          
         }}
       />
     </FormGroup>
   );
 }
+);
+
+export default FormGroupText;
