@@ -6,7 +6,6 @@ import { useIntl } from "react-intl";
 import { useSearchQueryParams } from "../../models/useSearchQueryParams";
 import { useStoredFormValue } from "../../models/useStoredFormValue";
 import { globalEncounterFormStore } from "../../pages/SearchPages/encounterFormStore";
-import { useLocalObservable } from "mobx-react-lite";
 import { observer } from "mobx-react-lite";
 
 const FormGroupText = observer(({
@@ -19,16 +18,15 @@ const FormGroupText = observer(({
   filterKey,
 }) => {
   const intl = useIntl();
-  // const store = useLocalObservable(() => new EncounterFormStore());
-  const paramsObject = useSearchQueryParams();
-  const resultValue = useStoredFormValue(field, term, field);
-  const [value, setValue] = useState("");
+  // const paramsObject = useSearchQueryParams();
+  // const resultValue = useStoredFormValue(field, term, field);
+  // const [value, setValue] = useState("");
 
-  useEffect(() => {
-    if (paramsObject.searchQueryId && resultValue) {
-      setValue(resultValue);
-    }
-  }, [paramsObject, resultValue]);
+  // useEffect(() => {
+  //   if (paramsObject.searchQueryId && resultValue) {
+  //     setValue(resultValue);
+  //   }
+  // }, [paramsObject, resultValue]);
 
   return (
     <FormGroup className="mt-2">
@@ -47,7 +45,7 @@ const FormGroupText = observer(({
         placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
         value={globalEncounterFormStore.formFilters.find((f) => f.filterId === filterId)?.query[term][field]}
         onChange={(e) => {
-          setValue(e.target.value);
+          // setValue(e.target.value);
           if (e.target.value === "") {
             globalEncounterFormStore.removeFilter(filterId);
             return;

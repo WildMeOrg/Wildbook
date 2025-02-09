@@ -9,6 +9,7 @@ import { iteratee, remove } from "lodash-es";
 import EncounterFormStore, { globalEncounterFormStore } from "../pages/SearchPages/encounterFormStore";
 import { useLocalObservable } from "mobx-react-lite";
 import { observer } from "mobx-react-lite";
+import { toJS } from "mobx";
 
 const colourStyles = {
   option: (styles) => ({
@@ -27,10 +28,21 @@ const MultiSelect = observer(({ isMulti,
   filterKey,
   term, }) => {
   const location = useLocation();
-  const [selectedOptions, setSelectedOptions] = useState([]);
+  // const [selectedOptions, setSelectedOptions] = useState([]);
   const navigate = useNavigate();
   const intl = useIntl();
 
+  // const selectedValues = JSON.stringify(globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]);
+  //   console.log("555555555555555555", selectedValues);
+  // const selectedOptions = options.filter(option => 
+  //   selectedValues.some(value => value === option.value)
+  // );
+
+  const filterItem = globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey);
+const queryTerm = filterItem ? toJS(filterItem.query[term]) : {};
+const selectedValues = queryTerm ? queryTerm[field] : [];
+
+  console.log("4444444444444selectedValues", selectedValues);
   // const store = useLocalObservable(() => new EncounterFormStore());
 
   // const paramsObject = useSearchQueryParams();
@@ -65,6 +77,8 @@ const MultiSelect = observer(({ isMulti,
   //   }
   // }, [location.search, field, options, isMulti]);
 
+  // console.log("111111111111111", JSON.stringify(globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]));
+
 
   return (
     <Select
@@ -85,11 +99,13 @@ const MultiSelect = observer(({ isMulti,
       menuPlacement="auto"
       menuPortalTarget={document.body}
       placeholder={intl.formatMessage({ id: "SELECT_ONE_OR_MORE" })}
-      value={globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]}
+      // value={selectedOptions}
       onChange={(e) => {
+        console.log("222222222222222", e)
         const value = e?.value || e.map(item => item.value);
+        console.log("333333333333333", value)
         if (e?.value || e.length > 0) {
-          globalEncounterFormStore.addFilter(field, e, filterKey, term, field);
+          globalEncounterFormStore.addFilter(field, value, filterKey, term, field);
         } else {
           globalEncounterFormStore.removeFilter(field);
         }
