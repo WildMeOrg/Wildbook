@@ -12,8 +12,7 @@ import { get } from "lodash-es";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
 import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
-import EncounterFormStore, { globalEncounterFormStore } from "./encounterFormStore";
-import { useLocalObservable } from "mobx-react-lite";
+import { globalEncounterFormStore as store } from "./encounterFormStore";
 
 export default function EncounterSearch() {
   const columns = encounterSearchColumns;
@@ -94,7 +93,7 @@ export default function EncounterSearch() {
     loading,
     refetch,
   } = useFilterEncounters({
-    queries: globalEncounterFormStore.formFilters,
+    queries: store.formFilters,
     params: {
       sort: encounterSortName,
       sortOrder: encounterSortOrder,
@@ -248,7 +247,7 @@ export default function EncounterSearch() {
         setQueryID={setQueryID}
         setSearchParams={setSearchParams}
         refetch={refetch}
-        // store={store}
+        store={store}
       />
       <DataTable
         isLoading={loading}
@@ -293,10 +292,10 @@ export default function EncounterSearch() {
       />
       <SideBar
         // formFilters={store.formFilters}
-        setFilterPanel = {setFilterPanel}
+        setFilterPanel={setFilterPanel}
         searchQueryId={searchQueryId}
         queryID={false}
-        // store={store}
+        store={store}
       />
     </div>
   );
