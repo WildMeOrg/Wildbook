@@ -16,8 +16,7 @@ class EncounterFormStore {
     this._formFilters = newFilters;
   }
 
-  addFilter(field, value, filterKey, term, filterId) {
-
+  addFilter(filterId, clause, query, filterKey, path = null) {
     const existingIndex = this.formFilters.findIndex(
       (f) => f.filterId === filterId,
     );
@@ -25,25 +24,19 @@ class EncounterFormStore {
       console.log(1);
       this.formFilters.push({
         filterId: filterId,
-        clause: "filter",
-        query: {
-          [term]: {
-            [field]: value,
-          },
-        },
+        clause: clause,
+        query: query,
         filterKey: filterKey,
+        path: path,
       });
     } else {
       this.formFilters[existingIndex] = {
         filterId: filterId,
-        clause: "filter",
-        query: {
-          [term]: {
-            [field]: value,
-          },
-        },
-        filterKey: filterKey
-      }
+        clause: clause,
+        query: query,
+        filterKey: filterKey,
+        path: path,
+      };
     }
     console.log("----------------------", JSON.stringify(this.formFilters));
   }
