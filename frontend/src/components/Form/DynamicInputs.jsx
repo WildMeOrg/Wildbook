@@ -3,10 +3,11 @@ import { Form } from 'react-bootstrap';
 import BrutalismButton from '../BrutalismButton';
 import { FormattedMessage } from 'react-intl';
 import { useIntl } from 'react-intl';
+import { observer } from 'mobx-react-lite';
 
-function DynamicInputs({
-  onChange,
-}) {
+const DynamicInputs = observer(({
+  store,
+}) => {
   const intl = useIntl();
   const [inputs, setInputs] = useState([{ name: '', value: '' }]);
 
@@ -24,20 +25,14 @@ function DynamicInputs({
         const updatedInput = { ...input, name: nameField, value: valueField, originalName };
 
         if (updatedInput.name && updatedInput.value) {
-          onChange({
-            filterId: `dynamicProperties.${updatedInput.name}`,
-            clause: "filter",
-            query: {
-              match: {
-                [`dynamicProperties.${updatedInput.name}`]: updatedInput.value
-              }
-            },
-            term: "match",
-
-          });
+          store.addFilter(`dynamicProperties.${updatedInput.name}`, "filter", {
+            match: {
+              [`dynamicProperties.${updatedInput.name}`]: updatedInput.value
+            }
+          }, `dynamicProperties.${updatedInput.name}`);
         } else {
           if (updatedInput.originalName) {
-            onChange(null, `dynamicProperties.${updatedInput.originalName}`);
+            store.removeFilter(`dynamicProperties.${updatedInput.originalName}`);
           }
         }
         return updatedInput;
@@ -84,6 +79,6 @@ function DynamicInputs({
       </BrutalismButton>
     </Form>
   );
-}
+});
 
 export default DynamicInputs;

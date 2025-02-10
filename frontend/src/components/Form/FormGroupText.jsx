@@ -5,7 +5,7 @@ import { FormattedMessage } from "react-intl";
 import { useIntl } from "react-intl";
 import { useSearchQueryParams } from "../../models/useSearchQueryParams";
 import { useStoredFormValue } from "../../models/useStoredFormValue";
-import { globalEncounterFormStore } from "../../pages/SearchPages/encounterFormStore";
+import { store } from "../../pages/SearchPages/encounterFormStore";
 import { observer } from "mobx-react-lite";
 
 const FormGroupText = observer(({
@@ -16,6 +16,7 @@ const FormGroupText = observer(({
   field,
   term,
   filterKey,
+  store,
 }) => {
   const intl = useIntl();
   // const paramsObject = useSearchQueryParams();
@@ -43,14 +44,18 @@ const FormGroupText = observer(({
       <FormControl
         type="text"
         placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
-        value={globalEncounterFormStore.formFilters.find((f) => f.filterId === filterId)?.query[term][field]}
+        value={store.formFilters.find((f) => f.filterId === filterId)?.query[term][field]}
         onChange={(e) => {
           // setValue(e.target.value);
           if (e.target.value === "") {
-            globalEncounterFormStore.removeFilter(filterId);
+            store.removeFilter(filterId);
             return;
           }
-          globalEncounterFormStore.addFilter(field, e.target.value, filterKey, term, filterId);          
+          store.addFilter(field, "filter", {
+            [term]: {
+              [field]: e.target.value,
+            },
+          }, filterKey);          
         }}
       />
     </FormGroup>

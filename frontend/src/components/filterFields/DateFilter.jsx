@@ -5,31 +5,34 @@ import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import { FormLabel, FormGroup, FormControl } from "react-bootstrap";
 import { useSearchQueryParams } from "../../models/useSearchQueryParams";
 import { useStoredFormValue } from "../../models/useStoredFormValue";
+import { observer } from "mobx-react-lite";
 
-export default function DateFilter({ onChange, data }) {
+const DateFilter = observer(({ data, store }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [submissionStartDate, setSubmissionStartDate] = useState("");
   const [submissionEndDate, setSubmissionEndDate] = useState("");
 
-  const paramsObject = useSearchQueryParams();
-  const savedEncounterDateValues = useStoredFormValue("date", "range", "date");
-  const savedSubmissionDateValues = useStoredFormValue(
-    "dateSubmitted",
-    "range",
-    "dateSubmitted",
-  );
+  console.log("store11111", JSON.stringify(store));
 
-  useEffect(() => {
-    if (paramsObject.searchQueryId && savedEncounterDateValues) {
-      setStartDate(savedEncounterDateValues.gte.split("T")[0]);
-      setEndDate(savedEncounterDateValues.lte.split("T")[0]);
-    }
-    if (paramsObject.searchQueryId && savedSubmissionDateValues) {
-      setSubmissionStartDate(savedSubmissionDateValues.gte.split("T")[0]);
-      setSubmissionEndDate(savedSubmissionDateValues.lte.split("T")[0]);
-    }
-  }, [paramsObject, savedEncounterDateValues, savedSubmissionDateValues]);
+  // const paramsObject = useSearchQueryParams();
+  // const savedEncounterDateValues = useStoredFormValue("date", "range", "date");
+  // const savedSubmissionDateValues = useStoredFormValue(
+  //   "dateSubmitted",
+  //   "range",
+  //   "dateSubmitted",
+  // );
+
+  // useEffect(() => {
+  //   if (paramsObject.searchQueryId && savedEncounterDateValues) {
+  //     setStartDate(savedEncounterDateValues.gte.split("T")[0]);
+  //     setEndDate(savedEncounterDateValues.lte.split("T")[0]);
+  //   }
+  //   if (paramsObject.searchQueryId && savedSubmissionDateValues) {
+  //     setSubmissionStartDate(savedSubmissionDateValues.gte.split("T")[0]);
+  //     setSubmissionEndDate(savedSubmissionDateValues.lte.split("T")[0]);
+  //   }
+  // }, [paramsObject, savedEncounterDateValues, savedSubmissionDateValues]);
 
   const verbatimeventdateOptions =
     data?.verbatimEventDate?.map((data) => {
@@ -69,14 +72,10 @@ export default function DateFilter({ onChange, data }) {
       if (endDate) {
         query.range.date.lte = endDate + "T23:59:59Z";
       }
-      onChange({
-        filterId: "date",
-        filterKey: "Sighting Date",
-        clause: "filter",
-        query: query,
-      });
+
+      store.addFilter("date", "filter", query, "Sighting Date");
     } else {
-      onChange(null, "date");
+      store.removeFilter("date");
     }
   };
 
@@ -95,14 +94,10 @@ export default function DateFilter({ onChange, data }) {
       if (submissionEndDate) {
         query.range.dateSubmitted.lte = submissionEndDate + "T23:59:59Z";
       }
-      onChange({
-        filterId: "dateSubmitted",
-        filterKey: "Date Submitted",
-        clause: "filter",
-        query: query,
-      });
+
+      store.addFilter("dateSubmitted", "filter", query, "Date Submitted");
     } else {
-      onChange(null, "dateSubmitted");
+      store.removeFilter("dateSubmitted");
     }
   };
 
@@ -153,10 +148,10 @@ export default function DateFilter({ onChange, data }) {
         noDesc
         label="FILTER_VERBATIM_EVENT_DATE"
         options={verbatimeventdateOptions}
-        onChange={onChange}
         term="terms"
         field="verbatimEventDate"
         filterKey="Verbatim Event Date"
+        store={store}
       />
 
       <>
@@ -195,4 +190,6 @@ export default function DateFilter({ onChange, data }) {
       </>
     </div>
   );
-}
+});
+
+export default DateFilter;

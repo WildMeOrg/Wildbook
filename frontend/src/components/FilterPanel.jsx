@@ -7,7 +7,6 @@ import BrutalismButton from "./BrutalismButton";
 import useGetSiteSettings from "../models/useGetSiteSettings";
 import { Col, Row } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-import { globalEncounterFormStore } from "../pages/SearchPages/encounterFormStore";
 
 // function setFilter(newFilter, tempFormFilters, setTempFormFilters) { 
 //   const matchingFilterIndex = tempFormFilters.findIndex(
@@ -44,7 +43,7 @@ export default function FilterPanel({
   style = {},
   handleSearch = () => {},
   refetch = () => {},
-  // store,
+  store,
 }) {
   const { data } = useGetSiteSettings();
   const safeSchemas = schemas || [];
@@ -192,7 +191,7 @@ export default function FilterPanel({
                 }}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  globalEncounterFormStore.resetFilters();
+                  store.resetFilters();
                   window.location.reload();
                 }}
                 noArrow={true}
@@ -232,7 +231,7 @@ export default function FilterPanel({
                       labelId={schema.labelId}
                       {...schema.filterComponentProps}
                       data={data}
-                      // store={store}
+                      store={store}
                     />
                   ) : (
                     <div>

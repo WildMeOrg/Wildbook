@@ -3,7 +3,7 @@ import { Form, Col, Row, Container } from "react-bootstrap";
 import { FormControl } from "react-bootstrap";
 import { useIntl } from "react-intl";
 
-function FormMeasurements({ data, onChange, field, filterId }) {
+function FormMeasurements({ data, field, filterId, store }) {
   const [inputs, setInputs] = useState(
     data?.map((item) => ({ type: item, operator: "gte", value: "" })),
   );
@@ -42,7 +42,7 @@ function FormMeasurements({ data, onChange, field, filterId }) {
       if (value !== "") {
         updateQuery(updatedInputs);
       } else {
-        onChange(null, id);
+        store.removeFilter(id);
       }
     }
   };
@@ -57,24 +57,39 @@ function FormMeasurements({ data, onChange, field, filterId }) {
               range: { [`${field}.value`]: { [input.operator]: input.value } },
             };
       if (input.value) {
-        onChange({
-          filterId: id,
-          clause: "nested",
-          path: field,
-          query: {
-            bool: {
-              filter: [
-                {
-                  match: {
-                    [`${filterId}.type`]: input.type,
-                  },
-                },
+        // onChange({
+        //   filterId: id,
+        //   clause: "nested",
+        //   path: field,
+        //   query: {
+        //     bool: {
+        //       filter: [
+        //         {
+        //           match: {
+        //             [`${filterId}.type`]: input.type,
+        //           },
+        //         },
 
-                query,
-              ],
-            },
+        //         query,
+        //       ],
+        //     },
+        //   },
+        // });
+        store.addFilter(id, "nested", {
+          bool: {
+            filter: [
+              {
+                match: {
+                  [`${field}.type`]: input.type,
+                },
+              },
+              query,
+            ],
           },
+          id,
+          field
         });
+        
       }
 
       return {

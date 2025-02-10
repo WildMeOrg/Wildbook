@@ -15,7 +15,7 @@ const colourStyles = {
   control: (base) => ({ ...base, zIndex: 1, backgroundColor: "white" }),
 };
 
-export default function LabelledKeywordFilter({ data, onChange }) {
+export default function LabelledKeywordFilter({ data, store }) {
   const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
   const labelledKeywordsOptions =
     Object.entries(data?.labeledKeyword || {}).map(([key, _]) => {
@@ -51,10 +51,11 @@ export default function LabelledKeywordFilter({ data, onChange }) {
     setLabelledKeywordPairs(newPairs);
 
     if (selectedOptions.length === 0) {
-      onChange(
-        null,
-        `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
-      );
+      // onChange(
+      //   null,
+      //   `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
+      // );
+      store.removeFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`)
       return;
     }
 
@@ -68,14 +69,22 @@ export default function LabelledKeywordFilter({ data, onChange }) {
         };
       });
 
-      onChange({
-        filterId: `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
-        filterKey: "Media Asset Labeled Keywords",
-        clause: "array",
-        name: newPairs[index].labelledKeyword,
-        value: selectedValues,
-        query: query,
-      });
+      // onChange({
+      //   filterId: `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
+      //   filterKey: "Media Asset Labeled Keywords",
+      //   clause: "array",
+      //   name: newPairs[index].labelledKeyword,
+      //   value: selectedValues,
+      //   query: query,
+      // });
+
+      store.addFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`, 
+        "array", 
+        query,
+        "Media Asset Labeled Keywords",
+        // null,
+        // newPairs[index].labelledKeyword
+      )
     } else {
       const query = {
         terms: {
@@ -84,14 +93,21 @@ export default function LabelledKeywordFilter({ data, onChange }) {
         },
       };
 
-      onChange({
-        filterId: `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
-        filterKey: "Media Asset Labeled Keywords",
-        clause: "filter",
-        name: newPairs[index].labelledKeyword,
-        value: selectedValues,
-        query: query,
-      });
+      // onChange({
+      //   filterId: `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
+      //   filterKey: "Media Asset Labeled Keywords",
+      //   clause: "filter",
+      //   name: newPairs[index].labelledKeyword,
+      //   value: selectedValues,
+      //   query: query,
+      // });
+      store.addFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
+        "filter",
+        query,
+        "Media Asset Labeled Keywords",
+        null,
+        newPairs[index].labelledKeyword
+      )
     }
   };
 
@@ -103,7 +119,8 @@ export default function LabelledKeywordFilter({ data, onChange }) {
 
     newPairs.forEach((pair) => {
       if (pair.labelledKeyword) {
-        onChange(null, `mediaAssetLabeledKeywords.${pair.labelledKeyword}`);
+        // onChange(null, `mediaAssetLabeledKeywords.${pair.labelledKeyword}`);
+        store.removeFilter(`mediaAssetLabeledKeywords.${pair.labelledKeyword}`)
       }
     });
 

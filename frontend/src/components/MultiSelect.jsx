@@ -6,7 +6,7 @@ import { useIntl } from "react-intl";
 import { useSearchQueryParams } from "../models/useSearchQueryParams";
 import { useStoredFormValue } from "../models/useStoredFormValue";
 import { iteratee, remove } from "lodash-es";
-import EncounterFormStore, { globalEncounterFormStore } from "../pages/SearchPages/encounterFormStore";
+import EncounterFormStore, { store } from "../pages/SearchPages/encounterFormStore";
 import { useLocalObservable } from "mobx-react-lite";
 import { observer } from "mobx-react-lite";
 import { toJS } from "mobx";
@@ -23,26 +23,26 @@ const colourStyles = {
 
 const MultiSelect = observer(({ isMulti,
   options,
-  onChange,
   field,
   filterKey,
-  term, }) => {
+  term,
+  store
+}) => {
   const location = useLocation();
   // const [selectedOptions, setSelectedOptions] = useState([]);
   const navigate = useNavigate();
   const intl = useIntl();
 
-  // const selectedValues = JSON.stringify(globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]);
+  // const selectedValues = JSON.stringify(store.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]);
   //   console.log("555555555555555555", selectedValues);
   // const selectedOptions = options.filter(option => 
   //   selectedValues.some(value => value === option.value)
   // );
 
-  const filterItem = globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey);
-const queryTerm = filterItem ? toJS(filterItem.query[term]) : {};
-const selectedValues = queryTerm ? queryTerm[field] : [];
+  const filterItem = store.formFilters.find((f) => f.filterKey === filterKey);
+  const queryTerm = filterItem ? toJS(filterItem.query[term]) : {};
+  const selectedValues = queryTerm ? queryTerm[field] : [];
 
-  console.log("4444444444444selectedValues", selectedValues);
   // const store = useLocalObservable(() => new EncounterFormStore());
 
   // const paramsObject = useSearchQueryParams();
@@ -77,22 +77,13 @@ const selectedValues = queryTerm ? queryTerm[field] : [];
   //   }
   // }, [location.search, field, options, isMulti]);
 
-  // console.log("111111111111111", JSON.stringify(globalEncounterFormStore.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]));
+  // console.log("111111111111111", JSON.stringify(store.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]));
 
 
   return (
     <Select
       isMulti={isMulti}
-      options={[
-        {
-          value: "all",
-          label: "all",
-        },
-        {
-          value: "none",
-          label: "none",
-        }
-      ]}
+      options={options}
       className="basic-multi-select"
       classNamePrefix="select"
       styles={colourStyles}
@@ -101,13 +92,15 @@ const selectedValues = queryTerm ? queryTerm[field] : [];
       placeholder={intl.formatMessage({ id: "SELECT_ONE_OR_MORE" })}
       // value={selectedOptions}
       onChange={(e) => {
-        console.log("222222222222222", e)
         const value = e?.value || e.map(item => item.value);
-        console.log("333333333333333", value)
         if (e?.value || e.length > 0) {
-          globalEncounterFormStore.addFilter(field, value, filterKey, term, field);
+          store.addFilter(field, "filter",{
+            [term]: {
+              [field]: value,
+            },
+          }, filterKey);
         } else {
-          globalEncounterFormStore.removeFilter(field);
+          store.removeFilter(field);
         }
       }}
     />

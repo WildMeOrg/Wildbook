@@ -6,9 +6,7 @@ import FormGroupText from "../Form/FormGroupText";
 
 export default function MetadataFilter({
   data,
-  onChange,
-  setFormFilters,
-  formFilters,
+  store
 }) {
   const encounterStatusOptions =
     data?.encounterState?.map((item) => {
@@ -58,21 +56,19 @@ export default function MetadataFilter({
         noDesc={true}
         label="FILTER_ENCOUNTERS_STATE"
         options={encounterStatusOptions}
-        onChange={onChange}
         term="terms"
         field="state"
-        setFormFilters={setFormFilters}
-        formFilters={formFilters}
         filterKey={"Encounter State"}
+        store={store}
       />
       <FormGroupText
         label="FILTER_SUBMITTER"
         noDesc={true}
-        onChange={onChange}
         field="submitters"
         term="match"
         filterId="submitters"
         filterKey={"Submitter, Photographer, or Email Address"}
+        store={store}
       />
 
       <FormGroupMultiSelect
@@ -80,35 +76,33 @@ export default function MetadataFilter({
         noDesc={true}
         label="FILTER_ORGANIZATION_ID"
         options={organizationOptions}
-        onChange={onChange}
         term="terms"
         field="organizations"
         filterId="organizations"
         filterKey={"Organization"}
+        store={store}
       />
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_PROJECT_NAME"
         options={projectOptions}
-        onChange={onChange}
         term="terms"
         field="projects"
         filterId="projects"
         filterKey={"Project Name"}
+        store={store}
       />
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_ASSIGNED_USER"
         options={assignedUserOptions}
-        onChange={onChange}
         term="terms"
         field="assignedUsername"
         filterId="assignedUsername"
-        // setFormFilters={setFormFilters}
-        // formFilters = {formFilters}
         filterKey={"Assigned User"}
+        store={store}
       />
     </div>
   );

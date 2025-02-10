@@ -3,8 +3,9 @@ import { Form, Col, Row, Container } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { FormControl } from "react-bootstrap";
 import { useIntl } from "react-intl";
+import { observer } from "mobx-react-lite";
 
-function FormMeasurements({ data, onChange, filterId }) {
+const FormMeasurements = observer(({ data, filterId, store }) => {
   const [inputs, setInputs] = useState(
     data?.map((item) => ({ type: item, operator: "gte", value: "" })),
   );
@@ -35,7 +36,7 @@ function FormMeasurements({ data, onChange, filterId }) {
       if (value !== "") {
         updateQuery(updatedInputs);
       } else {
-        onChange(null, id);
+        store.removeFilter(id);
       }
     }
   };
@@ -47,17 +48,25 @@ function FormMeasurements({ data, onChange, filterId }) {
       const value = input.value;
       const field = `biologicalMeasurements.${input.type}`;
       if (input.value) {
-        onChange({
-          filterId: id,
-          clause: "filter",
-          query: {
-            range: {
-              [field]: {
-                [operator]: value,
-              },
+        // onChange({
+        //   filterId: id,
+        //   clause: "filter",
+        //   query: {
+        //     range: {
+        //       [field]: {
+        //         [operator]: value,
+        //       },
+        //     },
+        //   },
+        // });
+        store.addFilter(id, "filter", {
+          range: {
+            [field]: {
+              [operator]: value,
             },
           },
-        });
+          
+        },"biologicalMeasurements.${input.type}");
       }
     });
   };
@@ -107,6 +116,6 @@ function FormMeasurements({ data, onChange, filterId }) {
       ))}
     </Container>
   );
-}
+});
 
 export default React.memo(FormMeasurements);

@@ -22,18 +22,18 @@ export default function AndSelector({
   label,
   isMulti,
   options,
-  onChange,
   field,
   filterKey,
+  store,
 }) {
   const [selectedOptions, setSelectedOptions] = useState([]);
   const selectedOptionsRef = useRef(selectedOptions);
 
   useEffect(() => {
-    onChange(null, field);
+    store.removeFilter(field);
     return () => {
       options.forEach((option) => {
-        onChange(null, `${field}.${option.value}`);
+        store.removeFilter(`${field}.${option.value}`);
       });
     };
   }, []);
@@ -51,22 +51,22 @@ export default function AndSelector({
 
     if (addedOptions.length > 0) {
       addedOptions.forEach((option) => {
-        onChange({
-          filterId: `${field}.${option.value}`,
-          clause: "filter",
-          filterKey: filterKey,
-          query: {
+        store.addFilter(
+          `${field}.${option.value}`,
+          "filter",
+          {
             term: {
               [field]: option.value,
             },
           },
-        });
+          filterKey,
+        );
       });
     }
 
     if (removedOptions.length > 0) {
       removedOptions.forEach((option) => {
-        onChange(null, `${field}.${option.value}`);
+        store.removeFilter(`${field}.${option.value}`);
       });
     }
   };

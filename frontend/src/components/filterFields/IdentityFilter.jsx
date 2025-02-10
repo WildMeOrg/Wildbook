@@ -5,12 +5,11 @@ import Description from "../Form/Description";
 import FormGroupText from "../Form/FormGroupText";
 import FormControl from "react-bootstrap/FormControl";
 import { useIntl } from "react-intl";
+import { observer } from "mobx-react-lite";
 
-export default function IdentityFilter({ onChange }) {
+const IdentityFilter = observer(({ store }) => {
   const includeEncounters = <FormattedMessage id="FILTER_NO_INDIVIDUAL_ID" />;
-  // const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
-  // const [times, setTimes] = React.useState(0);
   const intl = useIntl();
 
   return (
@@ -21,29 +20,7 @@ export default function IdentityFilter({ onChange }) {
       <Description>
         <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>
-      <Form className="d-flex flex-row aligh-items-center">
-        {/* <Form.Check className="me-2"
-          type="checkbox"
-          id="custom-checkbox"
-          checked={isChecked1}
-          onChange={(e) => {
-            setIsChecked1(!isChecked1);
-            if (e.target.checked && times) {
-              onChange({
-                filterId: "individualNumberEncounters",
-                clause: "filter",
-                filterKey: "Number of Encounters",
-                query: {
-                  "range": {
-                    "individualNumberEncounters": { "gte": times }
-                  }
-                },
-              });
-            }else {             
-                onChange(null, "individualNumberEncounters");            
-            }
-          }}
-        /> */}
+      <Form className="d-flex flex-row aligh-items-center">        
         <FormattedMessage id="FILTER_SIGHTED_AT_LEAST" />
         <FormControl
           type="number"
@@ -54,20 +31,19 @@ export default function IdentityFilter({ onChange }) {
           }}
           placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
           onChange={(e) => {
-            // setTimes(e.target.value);
             if (e.target.value) {
-              onChange({
-                filterId: "individualNumberEncounters",
-                filterKey: "Number of Encounters",
-                clause: "filter",
-                query: {
+              store.addFilter(
+                "individualNumberEncounters",
+                "filter",
+                {
                   range: {
                     individualNumberEncounters: { gte: e.target.value },
                   },
                 },
-              });
+                "Number of Encounters",
+              );
             } else {
-              onChange(null, "individualNumberEncounters");
+              store.removeFilter("individualNumberEncounters");
             }
           }}
         />
@@ -83,19 +59,18 @@ export default function IdentityFilter({ onChange }) {
           onChange={(e) => {
             setIsChecked2(!isChecked2);
             if (e.target.checked) {
-              onChange({
-                filterId: "individualId",
-                filterKey:
-                  "Include only encounters with no assigned Individual ID",
-                clause: "must_not",
-                query: {
+              store.addFilter(
+                "individualId",
+                "must_not",
+                {
                   exists: {
                     field: "individualId",
                   },
                 },
-              });
+                "Include only encounters with no assigned Individual ID",
+              );
             } else {
-              onChange(null, "individualId");
+              store.removeFilter("individualId");
             }
           }}
         />
@@ -106,8 +81,8 @@ export default function IdentityFilter({ onChange }) {
         field={"occurrenceIndividualCount"}
         term={"match"}
         filterId={"occurrenceIndividualCount"}
-        onChange={onChange}
         filterKey={"Number of Reported Marked Individuals"}
+        store={store}
       />
       <FormGroupText
         label="FILTER_ALTERNATIVE_ID"
@@ -115,17 +90,19 @@ export default function IdentityFilter({ onChange }) {
         field={"otherCatalogNumbers"}
         term={"match"}
         filterId={"otherCatalogNumbers"}
-        onChange={onChange}
         filterKey={"Alternative ID"}
+        store={store}
       />
       <FormGroupText
         label="FILTER_INDIVIDUAL_NAME"
         field={"individualNames"}
         term={"match"}
         filterId={"individualNames"}
-        onChange={onChange}
         filterKey={"Individual Names"}
+        store={store}
       />
     </div>
   );
-}
+});
+
+export default IdentityFilter;
