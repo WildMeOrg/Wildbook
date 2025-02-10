@@ -9,51 +9,48 @@ import _ from "lodash-es";
 import { useIntl } from "react-intl";
 import { useSearchQueryParams } from "../../models/useSearchQueryParams";
 import { useStoredFormValue } from "../../models/useStoredFormValue";
+import { observer } from "mobx-react-lite";
 
-export default function LocationFilterMap({ onChange, data }) {
+const LocationFilterMap = observer(({  data, store }) => {
   const [bounds, setBounds] = useState(null);
   const intl = useIntl();
 
-  const paramsObject = useSearchQueryParams();
-  const resultValue = useStoredFormValue(
-    "locationMap",
-    "geo_bounding_box",
-    "locationGeoPoint",
-  );
+  // const paramsObject = useSearchQueryParams();
+  // const resultValue = useStoredFormValue(
+  //   "locationMap",
+  //   "geo_bounding_box",
+  //   "locationGeoPoint",
+  // );
 
-  useEffect(() => {
-    if (paramsObject.searchQueryId && resultValue) {
-      setTempBounds({
-        north: resultValue.top_left.lat,
-        east: resultValue.bottom_right.lon,
-        south: resultValue.bottom_right.lat,
-        west: resultValue.top_left.lon,
-      });
-    }
-  }, [paramsObject, resultValue]);
+  // useEffect(() => {
+  //   if (paramsObject.searchQueryId && resultValue) {
+  //     setTempBounds({
+  //       north: resultValue.top_left.lat,
+  //       east: resultValue.bottom_right.lon,
+  //       south: resultValue.bottom_right.lat,
+  //       west: resultValue.top_left.lon,
+  //     });
+  //   }
+  // }, [paramsObject, resultValue]);
 
   useEffect(() => {
     if (bounds) {
-      onChange({
-        filterId: "locationMap",
-        clause: "filter",
-        query: {
-          geo_bounding_box: {
-            locationGeoPoint: {
-              top_left: {
-                lat: bounds.north,
-                lon: bounds.west,
-              },
-              bottom_right: {
-                lat: bounds.south,
-                lon: bounds.east,
-              },
+            store.addFilter("locationMap", "filter", {
+        geo_bounding_box: {
+          locationGeoPoint: {
+            top_left: {
+              lat: bounds.north,
+              lon: bounds.west,
+            },
+            bottom_right: {
+              lat: bounds.south,
+              lon: bounds.east,
             },
           },
         },
-      });
+      }, "locationGeoPoint");
     } else {
-      onChange(null, "locationMap");
+      store.removeFilter("locationMap");
     }
   }, [bounds]);
 
@@ -166,18 +163,19 @@ export default function LocationFilterMap({ onChange, data }) {
         bounds={bounds}
         setBounds={setBounds}
         setTempBounds={setTempBounds}
-        onChange={onChange}
       />
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_LOCATION_ID"
         options={locationIDOptions}
-        onChange={onChange}
         term="terms"
         field="locationId"
         filterKey="Location ID"
+        store={store}
       />
     </div>
   );
-}
+});
+
+export default LocationFilterMap;

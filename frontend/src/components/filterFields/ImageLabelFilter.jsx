@@ -5,8 +5,9 @@ import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import Description from "../Form/Description";
 import AndSelector from "../AndSelector";
 import LabelledKeywordFilter from "../Form/LabelledKeywordFilter";
+import { observer } from "mobx-react-lite";
 
-export default function ImageLabelFilter({ data, onChange }) {
+const ImageLabelFilter = observer(({ data, store }) => {
   const keywordsOptions =
     data?.keyword?.map((item) => {
       return {
@@ -39,20 +40,20 @@ export default function ImageLabelFilter({ data, onChange }) {
 
   useEffect(() => {
     if (isChecked_photo) {
-      onChange({
-        filterId: "numberMediaAssets",
-        clause: "filter",
-        filterKey: "Number Media Assets",
-        query: {
+      store.addFilter(
+        "numberMediaAssets",
+        "filter",
+        {
           range: {
             numberMediaAssets: {
               gte: 1,
             },
           },
         },
-      });
+        "Number Media Assets",
+      );
     } else {
-      onChange(null, "numberMediaAssets");
+      store.removeFilter("numberMediaAssets");
     }
   }, [isChecked_photo]);
 
@@ -97,12 +98,12 @@ export default function ImageLabelFilter({ data, onChange }) {
           isMulti={true}
           noLabel={true}
           label="FILTER_KEYWORDS"
-          onChange={onChange}
           options={keywordsOptions}
           field="mediaAssetKeywords"
           term="terms"
           filterId={"mediaAssetKeywords"}
           filterKey={"Media Asset Keywords"}
+          store={store}
         />
       ) : (
         <FormGroupMultiSelect
@@ -110,14 +111,14 @@ export default function ImageLabelFilter({ data, onChange }) {
           noLabel={true}
           label="FILTER_KEYWORDS"
           options={keywordsOptions}
-          onChange={onChange}
           field="mediaAssetKeywords"
           term="terms"
           filterKey="Media Asset Keywords"
+          store={store}
         />
       )}
 
-      <LabelledKeywordFilter data={data} onChange={onChange} />
+      <LabelledKeywordFilter data={data} store={store} />
 
       <FormGroupMultiSelect
         isMulti={true}
@@ -127,8 +128,8 @@ export default function ImageLabelFilter({ data, onChange }) {
         filterId="annotationViewpoints"
         term="terms"
         field={"annotationViewpoints"}
-        onChange={onChange}
         filterKey={"View Point"}
+        store={store}
       />
 
       <FormGroupMultiSelect
@@ -139,9 +140,11 @@ export default function ImageLabelFilter({ data, onChange }) {
         filterId="annotationIAClasses"
         field={"annotationIAClasses"}
         term="terms"
-        onChange={onChange}
         filterKey={"IA Class"}
+        store={store}
       />
     </div>
   );
-}
+});
+
+export default ImageLabelFilter;
