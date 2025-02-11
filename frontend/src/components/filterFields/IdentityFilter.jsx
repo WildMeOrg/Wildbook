@@ -9,7 +9,6 @@ import { observer } from "mobx-react-lite";
 
 const IdentityFilter = observer(({ store }) => {
   const includeEncounters = <FormattedMessage id="FILTER_NO_INDIVIDUAL_ID" />;
-  const [isChecked2, setIsChecked2] = React.useState(false);
   const intl = useIntl();
 
   return (
@@ -20,7 +19,7 @@ const IdentityFilter = observer(({ store }) => {
       <Description>
         <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>
-      <Form className="d-flex flex-row aligh-items-center">        
+      <Form className="d-flex flex-row aligh-items-center">
         <FormattedMessage id="FILTER_SIGHTED_AT_LEAST" />
         <FormControl
           type="number"
@@ -30,6 +29,11 @@ const IdentityFilter = observer(({ store }) => {
             marginRight: "10px",
           }}
           placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
+          value={
+            store.formFilters.find(
+              (filter) => filter.filterId === "individualNumberEncounters",
+            )?.query?.range?.individualNumberEncounters?.gte || ""
+          }
           onChange={(e) => {
             if (e.target.value) {
               store.addFilter(
@@ -55,9 +59,14 @@ const IdentityFilter = observer(({ store }) => {
           label={includeEncounters}
           type="checkbox"
           id="custom-checkbox"
-          checked={isChecked2}
+          checked={
+            store.formFilters.find(
+              (filter) =>
+                filter.filterId === "individualId" &&
+                filter.clause === "must_not",
+            )?.query?.exists?.field === "individualId"
+          }
           onChange={(e) => {
-            setIsChecked2(!isChecked2);
             if (e.target.checked) {
               store.addFilter(
                 "individualId",
