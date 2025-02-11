@@ -476,12 +476,3 @@
   color: black;
   height: 25px;
 }
-
-.quick-search-result-context{
-  height: 25px; width: 100px; 
-  background-color: #00ACCE; 
-  border-radius: 4px; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center
-}

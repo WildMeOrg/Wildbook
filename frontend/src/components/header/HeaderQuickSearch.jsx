@@ -1,13 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Dropdown, FormControl, Spinner } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-import ThemeColorContext from "../../ThemeColorProvider";
 import usePostHeaderQuickSearch from "../../models/usePostHeaderQuickSearch";
 
 export default function HeaderQuickSearch() {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const theme = useContext(ThemeColorContext);
 
   const { searchResults, loading } = usePostHeaderQuickSearch(search);
 
@@ -120,30 +118,21 @@ export default function HeaderQuickSearch() {
                       window.open(`/individuals.jsp?id=${result.id}`);
                     }}
                   >
-                    <div className="d-flex flex-row justify-content-between">
+                    <div
+                      className="d-flex flex-row justify-content-between"
+                      style={{
+                        height: "40px",
+                      }}
+                    >
                       <div
-                        className="individual-name"
+                        className="individual-name w-100"
                         style={{
-                          width: "180px",
                           fontSize: "0.8rem",
                           overflow: "hidden",
                         }}
                       >
                         <div>{value}</div>
                         <div>{result.taxonomy}</div>
-                      </div>
-                      <div
-                        className="text-center d-flex justify-content-center align-items-center ms-2 me-2"
-                        style={{
-                          width: "80px",
-                          height: "30px",
-                          color: "white",
-                          fontSize: "0.8rem",
-                          borderRadius: "5px",
-                          backgroundColor: theme.primaryColors.primary500,
-                        }}
-                      >
-                        <FormattedMessage id={context} />
                       </div>
                     </div>
                     {index < searchResults.length - 1 && <Dropdown.Divider />}

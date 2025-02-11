@@ -323,12 +323,11 @@ if(request.getUserPrincipal()!=null){
                             }
 
                             return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
-                              "    <div class=\"quick-search-result\">" +
+                              "    <div class=\"quick-search-result\" style=\"height: 60px; font-size: 14px\">" +
                               "        <div class=\"quick-search-result-content\">" +
-                              "            <div class=\"quick-search-result-value\">" + value + "</div>" +
+                              "            <div class=\"quick-search-result-value\" style=\"width: 100%; red; overflow: hidden\">" + value + "</div>" +
                               "            <div class=\"quick-search-result-species\">" + taxonomy + "</div>" +
-                              "        </div>" +
-                              "        <div class=\"quick-search-result-context\">" + context + "</div>" +
+                              "        </div>" +                             
                               "    </div>" +
                               "</a>";
 
@@ -688,7 +687,7 @@ if(request.getUserPrincipal()!=null){
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                           </svg></span>
                         </div>
-                        <div id="quick-search-results" ></div>
+                        <div id="quick-search-results" style="width: 330px" ></div>
                       </div>
                       <% } %>
                       
