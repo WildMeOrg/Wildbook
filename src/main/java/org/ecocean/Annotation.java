@@ -176,6 +176,8 @@ public class Annotation extends Base implements java.io.Serializable {
             jgen.writeStringField("encounterSubmitterId", enc.getSubmitterID());
             jgen.writeStringField("encounterLocationId", enc.getLocationID());
             jgen.writeStringField("encounterTaxonomy", enc.getTaxonomyString());
+            // per discussion on issue 874, including this in indexing, but not (yet) using in matchingSet
+            jgen.writeStringField("encounterLivingStatus", enc.getLivingStatus());
             User owner = enc.getSubmitterUser(myShepherd);
             if (owner != null) jgen.writeStringField("encounterUserUuid", owner.getId());
             List<Project> projects = enc.getProjects(myShepherd);
@@ -185,6 +187,10 @@ public class Annotation extends Base implements java.io.Serializable {
                     jgen.writeString(proj.getId());
                 }
                 jgen.writeEndArray();
+            }
+            if (enc.getIndividual() != null) {
+                long tod = enc.getIndividual().getTimeOfDeath();
+                if (tod > 0) jgen.writeNumberField("encounterIndividualTimeOfDeath", tod);
             }
         }
     }
@@ -836,6 +842,15 @@ public class Annotation extends Base implements java.io.Serializable {
         wrapper = new JSONObject();
         wrapper.put("match", arg);
         query.getJSONObject("query").getJSONObject("bool").getJSONArray("must_not").put(wrapper);
+
+        // skip dead animals
+        Long dateMS = enc.getDateInMillisecondsFallback();
+        if (dateMS != null) {
+            wrapper = new JSONObject(
+                "{\"range\": {\"encounterIndividualTimeOfDeath\": { \"lte\": " + dateMS + " } } }");
+            query.getJSONObject("query").getJSONObject("bool").getJSONArray("must_not").put(
+                wrapper);
+        }
         // now process taskParams
         if (taskParams != null) {
             String userId = taskParams.optString("userId", null);
