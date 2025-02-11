@@ -1,11 +1,14 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.joda.time.DateTime;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -22,6 +25,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.Membership;
 import org.ecocean.social.Relationship;
 import org.ecocean.social.SocialUnit;
+import org.json.JSONArray;
 
 import java.text.DecimalFormat;
 
@@ -94,6 +98,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     private Vector interestedResearchers = new Vector();
 
     private String dateTimeCreated;
+    private long version = System.currentTimeMillis();
 
     private String dateTimeLatestSighting;
 
@@ -152,6 +157,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // Sets the Individual Id.
     @Override public void setId(String id) {
         individualID = id;
+        setVersion();
     }
 
     // this is "something to show" (by default)... it falls back to the id,
@@ -257,6 +263,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public void setNames(MultiValue mv) {
         names = mv;
         refreshNamesCache();
+        setVersion();
     }
 
     public MultiValue getNames() {
@@ -296,6 +303,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
         this.names = new MultiValue();
         if (Util.stringExists(legacy)) addName(NAMES_KEY_LEGACYINDIVIDUALID, legacy);
+        setVersion();
     }
 
     // this adds to the default
@@ -303,12 +311,14 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         if (names == null) names = new MultiValue();
         names.addValuesDefault(name);
         refreshNamesCache();
+        setVersion();
     }
 
     public void addName(Object keyHint, String name) {
         if (names == null) names = new MultiValue();
         names.addValues(keyHint, name);
         refreshNamesCache();
+        setVersion();
     }
 
     // adds a name and inserts a comment describing who, when, and (optionally) why that was done
@@ -333,6 +343,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         if (names == null) names = new MultiValue();
         names.addValuesByKey(key, value);
         refreshNamesCache();
+        setVersion();
     }
 
     public boolean hasName(String value) {
@@ -393,6 +404,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 names.addValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
             }
         }
+        setVersion();
         return names;
     }
 
@@ -442,6 +454,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     ". Individual already has an Id from project " + project.getProjectIdPrefix() +
                     ".");
             }
+            setVersion();
         } else {
             System.out.println(
                 "[WARN]: Passed a null project to MarkedIndividual.addIncrementalProjectId() on " +
@@ -466,6 +479,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             encounters.add(newEncounter);
             numberEncounters++;
             refreshDependentProperties();
+            setVersion();
         }
         setTaxonomyFromEncounters(); // will only set if has no value
         setSexFromEncounters(); // likewise
@@ -488,6 +502,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             encounters.add(newEncounter);
             numberEncounters++;
             refreshDependentProperties();
+            setVersion();
         }
         return isNew;
     }
@@ -510,6 +525,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         localHaplotypeReflection = null;
         getHaplotype();
 
+        setVersion();
         return changed;
     }
 
@@ -537,6 +553,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         String d = new Integer(first.getYear()).toString();
         if (first.getMonth() > 0) d = new Integer(first.getMonth()).toString() + "/" + d;
         this.dateFirstIdentified = d;
+        setVersion();
         return d;
     }
 
@@ -547,6 +564,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         Encounter last = sorted[0];
         if (last.getYear() < 1) return null;
         this.dateTimeLatestSighting = last.getDate();
+        setVersion();
         return last.getDate();
     }
 
@@ -847,12 +865,14 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // TODO: evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
     public void setIndividualID(String id) {
         individualID = id;
+        setVersion();
     }
 
     public void setAlternateID(String alt) {
         System.out.println(
             "WARNING: indiv.setAlternateID() is depricated, please consider modifying .names according to a hint/context");
         this.addNameByKey(NAMES_KEY_ALTERNATEID, alt);
+        setVersion();
     }
 
     // Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored for this MarkedIndividual.
@@ -951,11 +971,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         } else {
             comments = newComments;
         }
+        setVersion();
     }
 
     // Sets any additional, general comments recorded for this MarkedIndividual as a whole.
     @Override public void setComments(String comments) {
         this.comments = comments;
+        setVersion();
     }
 
     // Returns the complete Vector of stored satellite tag data files for this MarkedIndividual.
@@ -971,6 +993,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // Sets the sex of this MarkedIndividual.
     public void setSex(String newSex) {
         if (newSex != null) { sex = newSex; } else { sex = null; }
+        setVersion();
     }
 
     public boolean hasSex() {
@@ -985,6 +1008,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setGenus(String newGenus) {
         genus = newGenus;
+        setVersion();
     }
 
     public String getSpecificEpithet() {
@@ -993,6 +1017,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setSpecificEpithet(String newEpithet) {
         specificEpithet = newEpithet;
+        setVersion();
     }
 
     public void setTaxonomyString(String tax) {
@@ -1024,6 +1049,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             if ((enc.getGenus() != null) && (enc.getSpecificEpithet() != null)) {
                 genus = enc.getGenus();
                 specificEpithet = enc.getSpecificEpithet();
+                setVersion();
                 return getTaxonomyString();
             }
         }
@@ -1041,6 +1067,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         for (Encounter enc : encounters) {
             if (enc.getSex() != null && !enc.getSex().equals("unknown")) {
                 sex = enc.getSex();
+                setVersion();
                 return getSex();
             }
         }
@@ -1180,6 +1207,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public void addInterestedResearcher(String email) {
         if (interestedResearchers == null) { interestedResearchers = new Vector(); }
         interestedResearchers.add(email);
+        setVersion();
     }
 
     public void removeInterestedResearcher(String email) {
@@ -1191,16 +1219,19 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 }
             }
         }
+        setVersion();
     }
 
     public void setSeriesCode(String newCode) {
         seriesCode = newCode;
+        setVersion();
     }
 
     // Adds a satellite tag data file for this MarkedIndividual.
     public void addDataFile(String dataFile) {
         if (dataFiles == null) { dataFiles = new Vector(); }
         dataFiles.add(dataFile);
+        setVersion();
     }
 
     // Removes a satellite tag data file for this MarkedIndividual.
@@ -1208,6 +1239,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         if (dataFiles != null) {
             dataFiles.remove(dataFile);
         }
+        setVersion();
     }
 
     public int getNumberTrainableEncounters() {
@@ -1460,10 +1492,12 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setDateTimeCreated(String time) {
         dateTimeCreated = time;
+        setVersion();
     }
 
     public void setDateTimeLatestSighting(String time) {
         dateTimeLatestSighting = time;
+        setVersion();
     }
 
     public String getDynamicProperties() {
@@ -1472,6 +1506,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void setDynamicProperties(String dprop) {
         this.dynamicProperties = dprop;
+        setVersion();
     }
 
     public void setDynamicProperty(String name, String value) {
@@ -1501,6 +1536,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 dynamicProperties = dynamicProperties + name + "=" + value + ";";
             }
         }
+        setVersion();
     }
 
     public String getDynamicPropertyValue(String name) {
@@ -1542,6 +1578,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     ";") + ";";
             }
         }
+        setVersion();
     }
 
     public ArrayList<Keyword> getAllAppliedKeywordNames(Shepherd myShepherd) {
@@ -1626,7 +1663,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // Sets the patterning type evident on this MarkedIndividual instance.
-    public void setPatterningCode(String newCode) { this.patterningCode = newCode; }
+    public void setPatterningCode(String newCode) {
+        this.patterningCode = newCode;
+        setVersion();
+    }
 
     public void resetMaxNumYearsBetweenSightings() {
         int maxYears = 0;
@@ -1644,6 +1684,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             }
         }
         maxYearsBetweenResightings = maxYears;
+        setVersion();
     }
 
     public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay,
@@ -1945,10 +1986,18 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     public long getTimeOfBirth() { return timeOfBirth; }
-    public long getTimeofDeath() { return timeOfDeath; }
+    public long getTimeOfDeath() { return timeOfDeath; }
+    public long getTimeofDeath() { return timeOfDeath; } // whats up with this of
 
-    public void setTimeOfBirth(long newTime) { timeOfBirth = newTime; }
-    public void setTimeOfDeath(long newTime) { timeOfDeath = newTime; }
+    public void setTimeOfBirth(long newTime) {
+        timeOfBirth = newTime;
+        setVersion();
+    }
+
+    public void setTimeOfDeath(long newTime) {
+        timeOfDeath = newTime;
+        setVersion();
+    }
 
     public List<Relationship> getAllRelationships(Shepherd myShepherd) {
         return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
@@ -2342,6 +2391,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         this.resetMaxNumYearsBetweenSightings();
         this.refreshDateFirstIdentified();
         this.refreshDateLastestSighting();
+        this.setVersion();
     }
 
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
@@ -2595,6 +2645,180 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
+    public org.json.JSONObject opensearchMapping() {
+        org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+
+        // "id" is done in Base
+        map.put("sex", keywordType);
+        map.put("taxonomy", keywordType);
+        map.put("users", keywordType);
+        map.put("cooccurrenceIndividualIds", keywordType);
+
+        // all case-insensitive keyword-ish types
+        map.put("names", keywordNormalType);
+
+        map.put("timeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("timeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("locationGeoPoints", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+
+        map.put("nameMap", new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        map.put("socialUnits", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("relationships", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("cooccurrenceIndividualMap",
+            new org.json.JSONObject("{\"type\": \"nested\", \"dynamic\": false}"));
+        return map;
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
+
+        jgen.writeStringField("sex", this.getSex());
+        jgen.writeStringField("displayName", this.getDisplayName());
+        jgen.writeStringField("taxonomy", this.getTaxonomyString());
+        if (this.getTimeOfBirth() > 0) {
+            String birthTime = Util.getISO8601Date(new DateTime(this.getTimeOfBirth()).toString());
+            jgen.writeStringField("timeOfBirth", birthTime);
+        }
+        if (this.getTimeofDeath() > 0) {
+            String deathTime = Util.getISO8601Date(new DateTime(this.getTimeofDeath()).toString());
+            jgen.writeStringField("timeOfDeath", deathTime);
+        }
+        if (this.getNames() != null) {
+            jgen.writeArrayFieldStart("names");
+            Set<String> names = this.getAllNamesList();
+            if (names != null)
+                for (String name : names) {
+                    if (!Util.stringIsEmptyOrNull(name)) jgen.writeString(name);
+                }
+            jgen.writeEndArray();
+            jgen.writeObjectFieldStart("nameMap");
+            for (String key : this.getNames().getKeys()) {
+                if (Util.stringIsEmptyOrNull(key)) continue;
+                jgen.writeArrayFieldStart(key);
+                Set<String> uniq = new HashSet<String>(this.getNames().getValuesByKey(key));
+                uniq.remove("");
+                uniq.remove(null);
+                for (String nm : uniq) {
+                    jgen.writeString(nm);
+                }
+                jgen.writeEndArray();
+            }
+            jgen.writeEndObject();
+        }
+        jgen.writeArrayFieldStart("socialUnits");
+        for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(this)) {
+            jgen.writeStartObject();
+            jgen.writeStringField("name", su.getSocialUnitName());
+            JSONArray memIds = new JSONArray();
+            JSONArray memNames = new JSONArray();
+            for (Membership mem : su.getAllMembers()) {
+                memIds.put(mem.getMarkedIndividual().getId());
+                memNames.put(mem.getMarkedIndividual().getDisplayName());
+            }
+            jgen.writeArrayFieldStart("memberIds");
+            jgen.writeRawValue(memIds.toString());
+            jgen.writeEndArray();
+            jgen.writeArrayFieldStart("memberNames");
+            jgen.writeRawValue(memNames.toString());
+            jgen.writeEndArray();
+            Membership mem = su.getMembershipForMarkedIndividual(this);
+            if (mem != null) {
+                jgen.writeStringField("role", mem.getRole());
+                jgen.writeStringField("startDate", mem.getStartDate());
+                jgen.writeStringField("endDate", mem.getEndDate());
+            }
+            jgen.writeEndObject();
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("relationships");
+        for (Relationship rel : myShepherd.getAllRelationshipsForMarkedIndividual(this.getId())) {
+            jgen.writeStartObject();
+            MarkedIndividual partner = rel.getOtherMarkedIndividual(this);
+            if (partner != null) {
+                jgen.writeStringField("partnerName", partner.getDisplayName());
+                jgen.writeStringField("partnerId", partner.getId());
+                jgen.writeStringField("partnerRole", rel.getRoleFor(partner));
+            }
+            if (rel.getStartTime() > 0)
+                jgen.writeStringField("startTime",
+                    Util.getISO8601Date(new DateTime(rel.getStartTime()).toString()));
+            if (rel.getEndTime() > 0)
+                jgen.writeStringField("endTime",
+                    Util.getISO8601Date(new DateTime(rel.getEndTime()).toString()));
+            jgen.writeStringField("role", rel.getRoleFor(this));
+            jgen.writeEndObject();
+        }
+        jgen.writeEndArray();
+        if (this.getNumEncounters() > 0) {
+            Set<String> users = new HashSet<String>();
+            jgen.writeNumberField("numberEncounters", this.getNumEncounters());
+            Set<String> occIds = new HashSet<String>();
+            List<Double> dlats = new ArrayList<Double>();
+            List<Double> dlons = new ArrayList<Double>();
+            Map<MarkedIndividual, Integer> coMap = new HashMap<MarkedIndividual, Integer>();
+            int numMAs = 0;
+            for (Encounter enc : this.encounters) {
+                numMAs += enc.numAnnotations();
+                users.addAll(enc.getAllSubmitterIds(myShepherd));
+                Occurrence occ = enc.getOccurrence(myShepherd);
+                if (occ != null) {
+                    occIds.add(occ.getId());
+                    Set<MarkedIndividual> coIndivs = occ.getMarkedIndividuals(this);
+                    for (MarkedIndividual coInd : coIndivs) {
+                        if (!coMap.containsKey(coInd)) {
+                            coMap.put(coInd, 1);
+                        } else {
+                            coMap.put(coInd, coMap.get(coInd) + 1);
+                        }
+                    }
+                }
+                Double dlat = enc.getDecimalLatitudeAsDouble();
+                Double dlon = enc.getDecimalLongitudeAsDouble();
+                if (Util.isValidDecimalLatitude(dlat) && Util.isValidDecimalLongitude(dlon)) {
+                    dlats.add(dlat);
+                    dlons.add(dlon);
+                }
+            }
+            // json is a quick hacky way to write out using writeRawValue()
+            // JSONArray coNamesArr = new JSONArray(); TODO unsure how names should be used in index???
+            org.json.JSONObject coMapJ = new org.json.JSONObject();
+            jgen.writeArrayFieldStart("cooccurrenceIndividualIds");
+            for (MarkedIndividual ind : coMap.keySet()) {
+                jgen.writeString(ind.getId());
+                coMapJ.put(ind.getId(), coMap.get(ind));
+            }
+            jgen.writeEndArray();
+            jgen.writeFieldName("cooccurrenceIndividualMap");
+            jgen.writeRawValue(coMapJ.toString());
+            jgen.writeNumberField("numberMediaAssets", numMAs);
+
+            jgen.writeArrayFieldStart("locationGeoPoints");
+            for (int i = 0; i < dlats.size(); i++) {
+                jgen.writeStartObject();
+                jgen.writeNumberField("lat", dlats.get(i));
+                jgen.writeNumberField("lon", dlons.get(i));
+                jgen.writeEndObject();
+            }
+            jgen.writeEndArray();
+
+            jgen.writeNumberField("numberOccurrences", occIds.size());
+            jgen.writeArrayFieldStart("users");
+            for (String uid : users) {
+                jgen.writeString(uid);
+            }
+            jgen.writeEndArray();
+        } else {
+            jgen.writeNumberField("numberEncounters", 0);
+            jgen.writeNumberField("numberOccurrences", 0);
+            jgen.writeNumberField("numberMediaAssets", 0);
+        }
+    }
+
     public void opensearchIndexDeep()
     throws IOException {
         this.opensearchIndex();
@@ -2617,8 +2841,8 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                     int ct = 0;
                     for (Encounter enc : indiv.getEncounters()) {
                         ct++;
-                        System.out.println("opensearchIndexDeep() background indexing " +
-                            enc.getId() + " via " + indivId + " [" + ct + "/" + total + "]");
+                        System.out.println("opensearchIndexDeep() background indexing enc " +
+                            enc.getId() + " via indiv " + indivId + " [" + ct + "/" + total + "]");
                         try {
                             enc.opensearchIndex();
                         } catch (Exception ex) {
@@ -2662,11 +2886,16 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     @Override public long getVersion() {
-        // Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
-        return 0;
+        return version;
+    }
+
+    public long setVersion() {
+        version = System.currentTimeMillis();
+        return version;
     }
 
     @Override public String getAllVersionsSql() {
-        return "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
+        return
+                "SELECT \"INDIVIDUALID\", \"VERSION\" AS version FROM \"MARKEDINDIVIDUAL\" ORDER BY version";
     }
 }

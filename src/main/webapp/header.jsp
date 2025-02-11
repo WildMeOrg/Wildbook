@@ -114,7 +114,7 @@ if(request.getUserPrincipal()!=null){
 %>
 
 
-<html>
+
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -224,6 +224,146 @@ if(request.getUserPrincipal()!=null){
               $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
             }
           );
+
+          const searchInput = document.getElementById("quick-search-input");
+          const resultsDropdown = document.getElementById("quick-search-results");
+          const searchButton = document.getElementById("quick-search-button");
+
+          const searchIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">' +
+            '<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>' +
+          '</svg>';
+
+          searchButton.addEventListener("click", function() {
+            searchInput.value = "";
+            resultsDropdown.innerHTML = "";
+            resultsDropdown.style.display = "none";
+            searchButton.innerHTML = searchIcon;
+            searchInput.focus();
+          });
+
+          const loadingText = "<%= props.getProperty("loading") %>" || "Loading...";
+          const noMatchResults = "<%= props.getProperty("noMatchResults") %>" || "No matching results found.";
+          const errorOccurred = "<%= props.getProperty("errorOccurred") %>" || "An error occurred while fetching search results.";
+          const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
+          const SystemId = "<%= props.getProperty("systemId") %>" || "System ID";
+          const Name = "<%= props.getProperty("Name") %>" || "Name";
+
+          let debounceTimer;
+
+          function debounce(func, delay) {
+            return function() {
+              clearTimeout(debounceTimer);
+              debounceTimer = setTimeout(func, delay);
+            };
+          }
+
+          function performSearch() {
+            const query = searchInput.value.trim();
+
+            if (query === "") {
+                resultsDropdown.innerHTML = "";
+                resultsDropdown.style.display = "none";
+                searchButton.innerHTML = searchIcon;
+                return;
+            }
+            searchButton.innerHTML = "&times;";
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = "<div class='loading'>" + loadingText + "</div>";
+
+            $.ajax({
+                url: "/api/v3/search/individual?size=10",
+                type: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    query: {
+                        bool: {
+                            should: [
+                                {
+                                    wildcard: {
+                                        names: {
+                                            value: '*' + query + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                },
+                                {
+                                    wildcard: {
+                                        id: {
+                                            value: '*' + query + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }),
+                beforeSend: function () {
+                    resultsDropdown.innerHTML = "<div class='loading'>"+ loadingText +"</div>";
+                },
+                success: function (response) {
+                    const searchResults = response.hits || [];
+
+                    if (searchResults.length > 0) {
+                        resultsDropdown.innerHTML = searchResults.map(data => {
+                            const taxonomy = data.taxonomy ? data.taxonomy : " ";
+                            let context = Name;
+                            if (data.id.toLowerCase().includes(query.toLowerCase())) {
+                                context = SystemId;
+                            } else {
+                                context = Name;
+                            }
+
+                            let value = data.id;
+                            if(context === SystemId){
+                              value = data.id;  
+                            }else {
+                              value = data.names.find(name => name.toLowerCase().includes(query.toLowerCase())) || data.names.join(" | ");
+                            }
+
+                            return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
+                              "    <div class=\"quick-search-result\" style=\"height: 60px; font-size: 14px\">" +
+                              "        <div class=\"quick-search-result-content\">" +
+                              "            <div class=\"quick-search-result-value\" style=\"width: 100%; red; overflow: hidden\">" + value + "</div>" +
+                              "            <div class=\"quick-search-result-species\">" + taxonomy + "</div>" +
+                              "        </div>" +                             
+                              "    </div>" +
+                              "</a>";
+
+
+                        }).join("");
+                    } else {
+                        resultsDropdown.innerHTML = noMatchResults;
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error: ", error);
+                    resultsDropdown.innerHTML = errorOccurred;
+                },
+                complete: function () {
+                    document.querySelector(".loading")?.remove();
+                }
+            });
+        }
+
+          // Event listener for input changes
+          searchInput.addEventListener("focus", function() {
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = searchResultDisplay;
+          });
+          searchInput.addEventListener("input", debounce(performSearch, 300));
+         
+          // Event listener to close dropdown when clicking outside
+          document.addEventListener("click", function(event) {
+          const searchInput = document.getElementById("quick-search-input");
+          const resultsDropdown = document.getElementById("quick-search-results");
+
+          if (!searchInput.contains(event.target) && !resultsDropdown.contains(event.target)) {
+            resultsDropdown.style.display = "none";
+            searchInput.value = "";
+            }
+          });
         });
       </script>
 
@@ -357,6 +497,8 @@ if(request.getUserPrincipal()!=null){
 
 
       </script>
+
+      
       <%
         }
       %>
@@ -411,7 +553,8 @@ if(request.getUserPrincipal()!=null){
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
           <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
-              <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
+              <div class="header" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center">
+                <div style="height: 100%; display: flex; flex-direction: row; align-items: center; ">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">        
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
@@ -529,8 +672,25 @@ if(request.getUserPrincipal()!=null){
                             }
                             %>
                         </ul>
-
                       </li>
+
+                     <% if(user != null && !loggingOut){ %>
+                      <div class="quick-search-wrapper">
+                        <div class="search-box">
+                          <input 
+                            type="text" 
+                            id="quick-search-input" 
+                            placeholder="<%=props.getProperty("searchIndividuals")%>"                             
+                            autocomplete="off" 
+                          />
+                          <span id="quick-search-button" style="display: flex; align-items: center; margin-right: 5px; cursor: pointer"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                          </svg></span>
+                        </div>
+                        <div id="quick-search-results" style="width: 330px" ></div>
+                      </div>
+                      <% } %>
+                      
                       <div class="search-and-secondary-wrapper d-flex" >
                         <!-- notifications -->
                         <div id="notifications">
@@ -638,7 +798,7 @@ if(request.getUserPrincipal()!=null){
                   <!-- end profile wrapper -->              
                 </div> 
                                 
-
+</div>
               </div>              
 
                 <script>

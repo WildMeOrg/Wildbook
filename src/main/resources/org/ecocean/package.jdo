@@ -101,6 +101,11 @@
     <class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
       <field name="individualID" primary-key="true" />
 
+		<field jdbc-type="BIGINT" name="version" allows-null="false" >
+			<column default-value="-1" />
+			<index name="MARKEDINDIVIDUAL_VERSION_IDX" />
+		</field>
+
       	<field name="names" persistence-modifier="persistent" element-type="org.ecocean.MultiValue" default-fetch-group="true" />
 
       <field name="comments" persistence-modifier="persistent" default-fetch-group="false">

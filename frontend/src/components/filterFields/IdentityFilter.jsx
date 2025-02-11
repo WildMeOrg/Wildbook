@@ -15,9 +15,9 @@ export default function IdentityFilter({ onChange }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_IDENTITY" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>
@@ -100,6 +100,15 @@ export default function IdentityFilter({ onChange }) {
           }}
         />
       </Form>
+      <FormGroupText
+        label="FILTER_NUMBER_REPORTED_MARKED_INDIVIDUALS"
+        noDesc={true}
+        field={"occurrenceIndividualCount"}
+        term={"match"}
+        filterId={"occurrenceIndividualCount"}
+        onChange={onChange}
+        filterKey={"Number of Reported Marked Individuals"}
+      />
       <FormGroupText
         label="FILTER_ALTERNATIVE_ID"
         noDesc={true}

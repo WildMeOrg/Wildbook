@@ -111,9 +111,9 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
 
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE_DESC" />
       </Description>
