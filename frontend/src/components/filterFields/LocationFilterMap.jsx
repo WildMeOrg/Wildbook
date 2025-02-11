@@ -11,7 +11,7 @@ import { useSearchQueryParams } from "../../models/useSearchQueryParams";
 import { useStoredFormValue } from "../../models/useStoredFormValue";
 import { observer } from "mobx-react-lite";
 
-const LocationFilterMap = observer(({  data, store }) => {
+const LocationFilterMap = observer(({ data, store }) => {
   const [bounds, setBounds] = useState(null);
   const intl = useIntl();
 
@@ -34,24 +34,34 @@ const LocationFilterMap = observer(({  data, store }) => {
   // }, [paramsObject, resultValue]);
 
   useEffect(() => {
-    if (bounds) {
-            store.addFilter("locationMap", "filter", {
-        geo_bounding_box: {
-          locationGeoPoint: {
-            top_left: {
-              lat: bounds.north,
-              lon: bounds.west,
-            },
-            bottom_right: {
-              lat: bounds.south,
-              lon: bounds.east,
-            },
+    if (!bounds) {
+      store.removeFilter("locationMap");
+      return;
+    }
+
+    // const allFieldsFilled =
+    //   Object.values(bounds).length === 4 &&
+    //   Object.values(bounds).every(
+    //     (value) => value !== undefined && value !== "",
+    //   );
+    // if (Object.values(bounds).length) {
+    store.addFilter("locationMap", "filter", {
+      geo_bounding_box: {
+        locationGeoPoint: {
+          top_left: {
+            lat: bounds.north,
+            lon: bounds.west,
+          },
+          bottom_right: {
+            lat: bounds.south,
+            lon: bounds.east,
           },
         },
-      }, "locationGeoPoint");
-    } else {
-      store.removeFilter("locationMap");
-    }
+      },
+    }, "locationGeoPoint");
+    // } else {
+
+    // }
   }, [bounds]);
 
   function flattenLocationData(data) {
@@ -88,6 +98,44 @@ const LocationFilterMap = observer(({  data, store }) => {
       };
     }) || [];
   const [tempBounds, setTempBounds] = useState(bounds);
+
+  const getValue = (index) => {
+    console.log("index", index)
+    if (index === 0) {
+      console.log(store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.top_left.lat || "");
+      return store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.top_left.lat || ""
+    }
+    if (index === 1) {
+      console.log(store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.top_left.lon || "");
+
+      return store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.top_left.lon || ""
+    }
+    if (index === 2) {
+      console.log(store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.bottom_right.lat || "");
+      return store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.bottom_right.lat || ""
+    }
+    if (index === 3) {
+      console.log(store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.bottom_right.lon || "");
+
+      return store.formFilters.find(
+        (filter) => filter.filterId === "locationMap",
+      )?.query?.geo_bounding_box?.locationGeoPoint?.bottom_right.lon || ""
+    }
+  }
 
   return (
     <div>
@@ -131,11 +179,12 @@ const LocationFilterMap = observer(({  data, store }) => {
                     : intl.formatMessage({ id: "TYPE_NUMBER" })
                 }
                 value={
-                  bounds
-                    ? bounds[Object.values(item)[0]]
-                    : tempBounds
-                      ? tempBounds[Object.values(item)[0]]
-                      : ""
+                  // bounds
+                  //   ? bounds[Object.values(item)[0]]
+                  //   : tempBounds
+                  //     ? tempBounds[Object.values(item)[0]]
+                  //     : ""
+                  getValue(index)
                 }
                 onChange={(e) => {
                   const newTempBounds = {
@@ -150,9 +199,9 @@ const LocationFilterMap = observer(({  data, store }) => {
                     Object.values(newTempBounds).every(
                       (value) => value !== undefined && value !== "",
                     );
-                  if (allFieldsFilled) {
-                    setBounds(newTempBounds);
-                  }
+                  // if (allFieldsFilled) {
+                  setBounds(newTempBounds);
+                  // }
                 }}
               />
             </FormGroup>

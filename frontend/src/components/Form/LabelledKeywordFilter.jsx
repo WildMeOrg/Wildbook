@@ -51,10 +51,6 @@ export default function LabelledKeywordFilter({ data, store }) {
     setLabelledKeywordPairs(newPairs);
 
     if (selectedOptions.length === 0) {
-      // onChange(
-      //   null,
-      //   `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
-      // );
       store.removeFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`)
       return;
     }
@@ -69,21 +65,10 @@ export default function LabelledKeywordFilter({ data, store }) {
         };
       });
 
-      // onChange({
-      //   filterId: `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
-      //   filterKey: "Media Asset Labeled Keywords",
-      //   clause: "array",
-      //   name: newPairs[index].labelledKeyword,
-      //   value: selectedValues,
-      //   query: query,
-      // });
-
       store.addFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`, 
         "array", 
         query,
         "Media Asset Labeled Keywords",
-        // null,
-        // newPairs[index].labelledKeyword
       )
     } else {
       const query = {
@@ -93,20 +78,10 @@ export default function LabelledKeywordFilter({ data, store }) {
         },
       };
 
-      // onChange({
-      //   filterId: `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
-      //   filterKey: "Media Asset Labeled Keywords",
-      //   clause: "filter",
-      //   name: newPairs[index].labelledKeyword,
-      //   value: selectedValues,
-      //   query: query,
-      // });
       store.addFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
         "filter",
         query,
         "Media Asset Labeled Keywords",
-        null,
-        newPairs[index].labelledKeyword
       )
     }
   };
@@ -119,7 +94,6 @@ export default function LabelledKeywordFilter({ data, store }) {
 
     newPairs.forEach((pair) => {
       if (pair.labelledKeyword) {
-        // onChange(null, `mediaAssetLabeledKeywords.${pair.labelledKeyword}`);
         store.removeFilter(`mediaAssetLabeledKeywords.${pair.labelledKeyword}`)
       }
     });

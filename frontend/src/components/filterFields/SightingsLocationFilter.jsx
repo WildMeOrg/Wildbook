@@ -12,7 +12,7 @@ const SightingsLocationFilter = observer(({ data, store }) => {
   const mapCenterLat = data?.mapCenterLat || 0;
   const mapCenterLon = data?.mapCenterLon || 0;
   const mapZoom = data?.mapZoom || 4;
-  const mapKey = "AIzaSyBp0XgdcCh6jF9B2OJtsL1JtYvT5zdrllk";
+  const mapKey = data?.googleMapsKey || "";
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -20,10 +20,13 @@ const SightingsLocationFilter = observer(({ data, store }) => {
   const [location, setLocation] = useState({});
 
   useEffect(() => {
+    if (location.lat === null || location.lng === null) {
+      store.removeFilter("occurrenceLocationGeoPoint");
+    }
     const allFieldsFilled =
       Object.values(location).length === 2 &&
       Object.values(location).every(
-        (value) => value !== undefined && value !== "",
+        (value) => value !== undefined && value !== "" && !value.isNaN,
       );
     if (location && allFieldsFilled) {      
       store.addFilter(
@@ -130,10 +133,17 @@ const SightingsLocationFilter = observer(({ data, store }) => {
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.lat}
             onChange={(e) => {
-              setLocation((prevLocation) => ({
-                ...prevLocation,
-                lat: parseFloat(e.target.value),
-              }));
+              const value = e.target.value;
+              setLocation((prevLocation) => {
+                if(value === "") {
+                  const { lat, ...rest } = prevLocation;
+                  return rest;
+                }
+                return {
+                  ...prevLocation,
+                  lat: parseFloat(value),
+                };
+              });              
             }}
           />
         </FormGroup>
@@ -151,11 +161,18 @@ const SightingsLocationFilter = observer(({ data, store }) => {
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.lng}
-            onChange={(e) => {
-              setLocation((prevLocation) => ({
-                ...prevLocation,
-                lng: parseFloat(e.target.value),
-              }));
+            onChange={(e) => { 
+              const value = e.target.value;
+              setLocation((prevLocation) => {
+                if(value === "") {
+                  const { lng, ...rest } = prevLocation;
+                  return rest;
+                }
+                return {
+                  ...prevLocation,
+                  lng: parseFloat(value),
+                };
+              });
             }}
           />
         </FormGroup>
@@ -172,7 +189,11 @@ const SightingsLocationFilter = observer(({ data, store }) => {
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.bearing}
-            onChange={(e) => {
+            onChange={(e) => {         
+              if (e.target.value === "") {
+                store.removeFilter("occurrenceBearing");
+                return;
+              }     
               store.addFilter(
                 "occurrenceBearing",
                 "filter",
@@ -199,7 +220,11 @@ const SightingsLocationFilter = observer(({ data, store }) => {
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
             value={location.distance}
-            onChange={(e) => {              
+            onChange={(e) => {     
+              if (e.target.value === "") {
+                store.removeFilter("occurrenceDistance");
+                return;
+              }         
               store.addFilter(
                 "occurrenceDistance",
                 "filter",
@@ -223,7 +248,9 @@ const SightingsLocationFilter = observer(({ data, store }) => {
           overflow: "hidden",
         }}
       >
-        <div ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
+        <div ref={mapRef} style={{ width: "100%", height: "100%" }}>
+          <FormattedMessage id="MAP_IS_LOADING"/>
+        </div>
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
 import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
 import { globalEncounterFormStore as store } from "./encounterFormStore";
+import { helperFunction } from "./getAllSearchParamsAndParse";
 
 export default function EncounterSearch() {
   const columns = encounterSearchColumns;
@@ -26,29 +27,24 @@ export default function EncounterSearch() {
   const [sort, setSort] = useState({ sortname: "date", sortorder: "desc" });
   const { sortname, sortorder } = sort;
 
-  // const store = useLocalObservable(() => new EncounterFormStore());
-  // const formFilters = store.getFilters();
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
-
   const [searchParams, setSearchParams] = useSearchParams();
-  const [paramsFormFilters, setParamsFormFilters] = useState([]);
-  const paramsObject = Object.fromEntries(searchParams.entries()) || {};
-
-  // const [formFilters, setFormFilters] = useState([]);
-
   const regularQuery = searchParams.get("regularQuery");
-
   const [queryID, setQueryID] = useState(
     regularQuery ? null : searchParams.get("searchQueryId"),
   );
+
   const [searchData, setSearchData] = useState([]);
   const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
-
   const [encounterSortName, setEncounterSortName] = useState("date");
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
+  
+  useEffect(() => { 
+    helperFunction(searchParams, store, setFilterPanel);
+  }, [searchParams, store]); 
 
   useEffect(() => {
     if (!queryID) {
@@ -61,28 +57,15 @@ export default function EncounterSearch() {
   }, [queryID, sortname, sortorder]);
 
   // useEffect(() => {
-  //   setFormFilters(
-  //     Array.from(
-  //       new Map(
-  //         [...paramsFormFilters, ...formFilters].map((filter) => [
-  //           filter.filterId,
-  //           filter,
-  //         ]),
-  //       ).values(),
-  //     ),
-  //   );
-  // }, [paramsFormFilters]);
-
-  useEffect(() => {
-    setQueryID(searchParams.get("searchQueryId"));
-    // if (searchParams.get("searchQueryId")) {
-    //   setFormFilters(
-    //     sessionStorage.getItem("formData")
-    //       ? JSON.parse(sessionStorage.getItem("formData"))
-    //       : [],
-    //   );
-    // }
-  }, [searchParams]);
+  //   setQueryID(searchParams.get("searchQueryId"));
+  //   // if (searchParams.get("searchQueryId")) {
+  //   //   setFormFilters(
+  //   //     sessionStorage.getItem("formData")
+  //   //       ? JSON.parse(sessionStorage.getItem("formData"))
+  //   //       : [],
+  //   //   );
+  //   // }
+  // }, [searchParams]);
 
   // useEffect(() => {
   //   sessionStorage.setItem("formData", JSON.stringify(formFilters));
@@ -176,51 +159,7 @@ export default function EncounterSearch() {
       newSearchParams.set("results", "true");
       return newSearchParams;
     });
-  };
-
-  if (
-    paramsObject.username &&
-    paramsFormFilters.find((opt) => opt.filterId === "assignedUsername") ===
-      undefined
-  ) {
-    setFilterPanel(false);
-    setParamsFormFilters((prevFilters) => {
-      return [
-        ...prevFilters,
-        {
-          clause: "filter",
-          filterId: "assignedUsername",
-          filterKey: "Assigned User",
-          query: {
-            term: {
-              assignedUsername: paramsObject.username,
-            },
-          },
-        },
-      ];
-    });
-  }
-
-  if (
-    paramsObject.state &&
-    paramsFormFilters.find((opt) => opt.filterId === "state") === undefined
-  ) {
-    setParamsFormFilters((prevFilters) => {
-      return [
-        ...prevFilters,
-        {
-          clause: "filter",
-          filterId: "state",
-          filterKey: "Encounter State",
-          query: {
-            term: {
-              state: paramsObject.state,
-            },
-          },
-        },
-      ];
-    });
-  }
+  };  
 
   return (
     <div
@@ -238,9 +177,6 @@ export default function EncounterSearch() {
         style={{
           display: filterPanel ? "block" : "none",
         }}
-        // setFormFilters={(input) => {
-        //   setFormFilters(input);
-        // }}
         setFilterPanel={setFilterPanel}
         schemas={schemas}
         handleSearch={handleSearch}
@@ -291,7 +227,6 @@ export default function EncounterSearch() {
         }}
       />
       <SideBar
-        // formFilters={store.formFilters}
         setFilterPanel={setFilterPanel}
         searchQueryId={searchQueryId}
         queryID={false}

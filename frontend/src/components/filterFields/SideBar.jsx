@@ -6,16 +6,14 @@ import Chip from "../Chip";
 import BrutalismButton from "../BrutalismButton";
 import ThemeContext from "../../ThemeColorProvider";
 import { useSearchParams } from "react-router-dom";
-import { globalEncounterFormStore } from "../../pages/SearchPages/encounterFormStore";
 import { observer } from "mobx-react-lite";
 
 const Sidebar = observer(({  
   setFilterPanel,
   searchQueryId,
   queryID,
-  // store,
+  store,
 }) => {
-  // const formFilters = store.getFilters();
   const theme = React.useContext(ThemeContext);
   const [show, setShow] = useState(false);
   const sidebarWidth = 400;
@@ -25,7 +23,7 @@ const Sidebar = observer(({
   // eslint-disable-next-line no-unused-vars
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const num = () => queryID ? 1 : globalEncounterFormStore.formFilters.length;
+  const num = () => queryID ? 1 : store.formFilters.length;
 
   const handleCopy = () => {
     console.log("Copied to clipboard: ", searchQueryId);
@@ -120,7 +118,7 @@ const Sidebar = observer(({
             </div>
           ) : (
             <div style={{ overflowY: "auto" }}>
-              {globalEncounterFormStore.formFilters.map((filter, index) => (
+              {store.formFilters.map((filter, index) => (
                 <Chip key={index}>{filter}</Chip>
               ))}
             </div>
@@ -164,7 +162,7 @@ const Sidebar = observer(({
               color={theme.primaryColors.primary700}
               noArrow
               onClick={() => {
-                globalEncounterFormStore.resetFilters();
+                store.resetFilters();
                 handleClose();
                 // setFilterPanel(false);
                 // localStorage.removeItem("formData");

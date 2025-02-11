@@ -29,19 +29,15 @@ const MultiSelect = observer(({ isMulti,
   store
 }) => {
   const location = useLocation();
-  // const [selectedOptions, setSelectedOptions] = useState([]);
   const navigate = useNavigate();
   const intl = useIntl();
 
-  // const selectedValues = JSON.stringify(store.formFilters.find((f) => f.filterKey === filterKey)?.query[term][field]);
-  //   console.log("555555555555555555", selectedValues);
-  // const selectedOptions = options.filter(option => 
-  //   selectedValues.some(value => value === option.value)
-  // );
-
-  const filterItem = store.formFilters.find((f) => f.filterKey === filterKey);
+  const filterItem = toJS(store.formFilters).find((f) => f.filterId === field);
   const queryTerm = filterItem ? toJS(filterItem.query[term]) : {};
   const selectedValues = queryTerm ? queryTerm[field] : [];
+  const selectedOptions = options.filter(option =>
+    selectedValues?.some(value => value === option.value)
+  );
 
   // const store = useLocalObservable(() => new EncounterFormStore());
 
@@ -71,6 +67,9 @@ const MultiSelect = observer(({ isMulti,
   //     if (fieldValue) {
   //       const selectedItems = options.filter(
   //         (option) => fieldValue === option.label,
+
+
+  
   //       );
   //       setSelectedOptions(selectedItems);
   //     }
@@ -89,12 +88,12 @@ const MultiSelect = observer(({ isMulti,
       styles={colourStyles}
       menuPlacement="auto"
       menuPortalTarget={document.body}
+      value={selectedOptions}
       placeholder={intl.formatMessage({ id: "SELECT_ONE_OR_MORE" })}
-      // value={selectedOptions}
       onChange={(e) => {
         const value = e?.value || e.map(item => item.value);
         if (e?.value || e.length > 0) {
-          store.addFilter(field, "filter",{
+          store.addFilter(field, "filter", {
             [term]: {
               [field]: value,
             },

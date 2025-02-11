@@ -13,8 +13,6 @@ const DateFilter = observer(({ data, store }) => {
   const [submissionStartDate, setSubmissionStartDate] = useState("");
   const [submissionEndDate, setSubmissionEndDate] = useState("");
 
-  console.log("store11111", JSON.stringify(store));
-
   // const paramsObject = useSearchQueryParams();
   // const savedEncounterDateValues = useStoredFormValue("date", "range", "date");
   // const savedSubmissionDateValues = useStoredFormValue(
