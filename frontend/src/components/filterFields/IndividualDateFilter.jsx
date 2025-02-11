@@ -1,13 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
 import { FormGroup, FormControl } from "react-bootstrap";
 import { observer } from "mobx-react-lite";
 
 const IndividualDateFilter = observer(({ store }) => {
-  const [birthDate, setBirthDate] = useState("");
-  const [deathDate, setDeathDate] = useState("");
-
   return (
     <div>
       <h4>
@@ -23,9 +20,12 @@ const IndividualDateFilter = observer(({ store }) => {
           </p>
           <FormControl
             type="date"
-            value={birthDate}
+            value={
+              store.formFilters
+                .find((filter) => filter.filterId === "individualTimeOfBirth")
+                ?.query?.range?.individualTimeOfBirth?.gte.split("T")[0] || ""
+            }
             onChange={(e) => {
-              setBirthDate(e.target.value);
               if (e.target.value) {
                 store.addFilter(
                   "individualTimeOfBirth",
@@ -38,12 +38,11 @@ const IndividualDateFilter = observer(({ store }) => {
                       },
                     },
                   },
-                  "Birth Date"
+                  "Birth Date",
                 );
               } else {
                 store.removeFilter("individualTimeOfBirth");
               }
-                            
             }}
           />
         </FormGroup>
@@ -53,9 +52,12 @@ const IndividualDateFilter = observer(({ store }) => {
           </p>
           <FormControl
             type="date"
-            value={deathDate}
+            value={
+              store.formFilters
+                .find((filter) => filter.filterId === "individualTimeOfDeath")
+                ?.query?.range?.individualTimeOfDeath?.gte.split("T")[0] || ""
+            }
             onChange={(e) => {
-              setDeathDate(e.target.value);
               if (e.target.value) {
                 store.addFilter(
                   "individualTimeOfDeath",
@@ -68,12 +70,11 @@ const IndividualDateFilter = observer(({ store }) => {
                       },
                     },
                   },
-                  "Death Date"
+                  "Death Date",
                 );
-              }else{
+              } else {
                 store.removeFilter("individualTimeOfDeath");
               }
-              
             }}
           />
         </FormGroup>
