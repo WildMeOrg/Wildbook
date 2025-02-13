@@ -8,25 +8,61 @@ function FormMeasurements({ data, field, filterId, store }) {
     data?.map((item) => ({ type: item, operator: "gte", value: "" })),
   );
   const intl = useIntl();
+
   useEffect(() => {
-    if (data) {
-      const newInputs = data.map((item) => ({
-        type: item,
-        operator: "gte",
-        value: "",
-      }));
-      setInputs((prevInputs) => {
-        // Only update if data has changed
-        if (
-          JSON.stringify(prevInputs.map((input) => input.type)) !==
-          JSON.stringify(data)
-        ) {
-          return newInputs;
-        }
-        return prevInputs;
-      });
+    if (data.length > 0) {
+      const formData = store.formFilters.filter((item) =>
+        item.filterId.includes(filterId),
+      );
+
+      const inputs = [];
+      if (formData.length > 0) {
+        formData.forEach((item) => {
+          const type = item.filterId.split(".")[1];
+          const filters = item.query?.bool?.filter;
+          const range = filters.find((filter) => "range" in filter)?.range[
+            `${field}.value`
+          ];
+          const term = filters.find((filter) => "term" in filter)?.term[
+            `${field}.value`
+          ];
+          let operator = "gte";
+          let value = "";
+          if (range) {
+            operator = Object.keys(range)[0];
+            value = Object.values(range)[0];
+          } else if (term) {
+            operator = "term";
+            value = term;
+          }
+
+          inputs.push({
+            type: type,
+            operator: operator,
+            value: value,
+          });
+        });
+        const newInputs = data
+          .filter((item) => !inputs.some((input) => input.type === item))
+          .map((item) => ({
+            type: item,
+            operator: "gte",
+            value: "",
+          }));
+        setInputs([...inputs, ...newInputs]);
+      } else {
+        const newInputs = data.map((item) => ({
+          type: item,
+          operator: "gte",
+          value: "",
+        }));
+        setInputs(newInputs);
+      }
     }
-  }, [data]);
+  }, [
+    store.formFilters.find((item) => item.filterId.includes(filterId)),
+    data,
+  ]);
 
   const handleInputChange = (index, field, value) => {
     const updatedInputs = inputs.map((input, i) => {
@@ -57,24 +93,6 @@ function FormMeasurements({ data, field, filterId, store }) {
               range: { [`${field}.value`]: { [input.operator]: input.value } },
             };
       if (input.value) {
-        // onChange({
-        //   filterId: id,
-        //   clause: "nested",
-        //   path: field,
-        //   query: {
-        //     bool: {
-        //       filter: [
-        //         {
-        //           match: {
-        //             [`${filterId}.type`]: input.type,
-        //           },
-        //         },
-
-        //         query,
-        //       ],
-        //     },
-        //   },
-        // });
         store.addFilter(id, "nested", {
           bool: {
             filter: [
@@ -87,16 +105,13 @@ function FormMeasurements({ data, field, filterId, store }) {
             ],
           },
           id,
-          field
+          field,
         });
-        
       }
-
       return {
         match: {
           [`${field}.type`]: input.type,
         },
-
         range: {
           [`${field}.value`]: { [input.operator]: [input.value] },
         },
@@ -106,39 +121,42 @@ function FormMeasurements({ data, field, filterId, store }) {
 
   return (
     <Container className="mt-3">
-      {inputs.map((input, index) => (
-        <Row key={index} className="mb-3">
-          <Col md={4} className="d-flex align-items-center">
-            {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
-          </Col>
-          <Col md={2}>
-            <Form.Select
-              aria-label="Select operator"
-              value={input.operator}
-              onChange={(e) =>
-                handleInputChange(index, "operator", e.target.value)
-              }
-            >
-              <option value="gte">&ge;</option>
-              <option value="lte">&le;</option>
-              <option value="term">=</option>
-            </Form.Select>
-          </Col>
-          <Col md={6}>
-            <FormControl
-              className="w-100"
-              type="number"
-              style={{
-                marginRight: "10px",
-              }}
-              placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-              onChange={(e) => {
-                handleInputChange(index, "value", e.target.value);
-              }}
-            />
-          </Col>
-        </Row>
-      ))}
+      {inputs.map((input, index) => {
+        return (
+          <Row key={index} className="mb-3">
+            <Col md={4} className="d-flex align-items-center">
+              {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
+            </Col>
+            <Col md={2}>
+              <Form.Select
+                aria-label="Select operator"
+                value={input.operator}
+                onChange={(e) =>
+                  handleInputChange(index, "operator", e.target.value)
+                }
+              >
+                <option value="gte">&ge;</option>
+                <option value="lte">&le;</option>
+                <option value="term">=</option>
+              </Form.Select>
+            </Col>
+            <Col md={6}>
+              <FormControl
+                className="w-100"
+                type="number"
+                style={{
+                  marginRight: "10px",
+                }}
+                placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
+                onChange={(e) => {
+                  handleInputChange(index, "value", e.target.value);
+                }}
+                value={input.value}
+              />
+            </Col>
+          </Row>
+        );
+      })}
     </Container>
   );
 }
