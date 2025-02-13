@@ -28,7 +28,7 @@ const SightingsLocationFilter = observer(({ data, store }) => {
       Object.values(location).every(
         (value) => value !== undefined && value !== "" && !value.isNaN,
       );
-    if (location && allFieldsFilled) {      
+    if (location && allFieldsFilled) {
       store.addFilter(
         "occurrenceLocationGeoPoint",
         "filter",
@@ -131,11 +131,14 @@ const SightingsLocationFilter = observer(({ data, store }) => {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.lat}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceLocationGeoPoint",
+            )?.query?.geo_distance?.occurrenceLocationGeoPoint?.lat
+              || ""}
             onChange={(e) => {
               const value = e.target.value;
               setLocation((prevLocation) => {
-                if(value === "") {
+                if (value === "") {
                   const { lat, ...rest } = prevLocation;
                   return rest;
                 }
@@ -143,13 +146,13 @@ const SightingsLocationFilter = observer(({ data, store }) => {
                   ...prevLocation,
                   lat: parseFloat(value),
                 };
-              });              
+              });
             }}
           />
         </FormGroup>
 
         <FormGroup
-          key={"bearing"}
+          key={"lng"}
           style={{
             marginRight: "10px",
           }}
@@ -160,11 +163,13 @@ const SightingsLocationFilter = observer(({ data, store }) => {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.lng}
-            onChange={(e) => { 
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceLocationGeoPoint",
+            )?.query?.geo_distance?.occurrenceLocationGeoPoint?.lon || ""}
+            onChange={(e) => {
               const value = e.target.value;
               setLocation((prevLocation) => {
-                if(value === "") {
+                if (value === "") {
                   const { lng, ...rest } = prevLocation;
                   return rest;
                 }
@@ -188,12 +193,14 @@ const SightingsLocationFilter = observer(({ data, store }) => {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.bearing}
-            onChange={(e) => {         
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceBearing",
+            )?.query?.term?.occurrenceBearing || ""}
+            onChange={(e) => {
               if (e.target.value === "") {
                 store.removeFilter("occurrenceBearing");
                 return;
-              }     
+              }
               store.addFilter(
                 "occurrenceBearing",
                 "filter",
@@ -219,12 +226,15 @@ const SightingsLocationFilter = observer(({ data, store }) => {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.distance}
-            onChange={(e) => {     
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceDistance",
+            )?.query?.term?.occurrenceDistance || ""
+            }
+            onChange={(e) => {
               if (e.target.value === "") {
                 store.removeFilter("occurrenceDistance");
                 return;
-              }         
+              }
               store.addFilter(
                 "occurrenceDistance",
                 "filter",
@@ -249,7 +259,7 @@ const SightingsLocationFilter = observer(({ data, store }) => {
         }}
       >
         <div ref={mapRef} style={{ width: "100%", height: "100%" }}>
-          <FormattedMessage id="MAP_IS_LOADING"/>
+          <FormattedMessage id="MAP_IS_LOADING" />
         </div>
       </div>
     </div>

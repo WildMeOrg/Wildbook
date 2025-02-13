@@ -35,14 +35,17 @@ const TagsFilter = observer(({ data, store }) => {
 
             <FormControl
               type="text"
+              value={store.formFilters.find(
+                (filter) => filter.filterId === `metalTag.${location.label}`
+              )?.query?.bool?.filter?.[1]?.match?.["metalTags.number"] || ""
+              }
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
                 if (e.target.value === "") {
                   store.removeFilter(`metalTag.${location.label}`);
                   return;
                 }
-                
-                store.addFilter(`metalTag.${location.label}`, "nested", 
+                store.addFilter(`metalTag.${location.label}`, "nested",
                   {
                     bool: {
                       filter: [
@@ -83,6 +86,9 @@ const TagsFilter = observer(({ data, store }) => {
           <FormControl
             type="text"
             placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "acousticTag.serialNumber"
+            )?.query?.match?.["acousticTag.serialNumber"] || ""}
             onChange={(e) => {
               if (e.target.value === "") {
                 store.removeFilter(`acousticTag.serialNumber`);
@@ -105,6 +111,9 @@ const TagsFilter = observer(({ data, store }) => {
           <FormControl
             type="text"
             placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "acousticTag.idNumber"
+            )?.query?.match?.["acousticTag.idNumber"] || ""}
             onChange={(e) => {
               if (e.target.value === "") {
                 store.removeFilter(`acousticTag.idNumber`);

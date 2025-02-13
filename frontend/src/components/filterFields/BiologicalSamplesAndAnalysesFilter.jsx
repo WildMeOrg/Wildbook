@@ -12,7 +12,6 @@ import { observer } from "mobx-react-lite";
 const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
   const intl = useIntl();
   const label = <FormattedMessage id="FILTER_HAS_BIOLOGICAL_SAMPLE" />;
-  const [isChecked, setIsChecked] = React.useState(false);
   const bioMeasurementOptions =
     Object.entries(data?.bioMeasurement || {}).map((item) => item[0]) || [];
 
@@ -124,9 +123,8 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
           type="checkbox"
           id="custom-checkbox"
           label={label}
-          checked={isChecked}
-          onChange={(e) => {
-            setIsChecked(!isChecked);
+          checked={!!store.formFilters.find(filter => filter.filterId === "biologicalSampleId")}
+          onChange={(e) => {            
             if (!e.target.checked) {
               store.removeFilter(`biologicalSampleId`);
               return;

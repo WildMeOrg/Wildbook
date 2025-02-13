@@ -26,6 +26,18 @@ const SocialFilter = observer(({ data, store }) => {
       };
     }) || [];
 
+  const socialGroupFormValue = store.formFilters?.find(
+    (filter) => filter.filterId.includes("individualSocialUnits"))?.query?.term;
+  const socialGroupANDChecked = socialGroupFormValue && ("individualSocialUnits" in socialGroupFormValue) ? true : isUnitChecked;
+  const formValuesSoialGroup = store.formFilters.filter(item => item.filterId.includes("individualSocialUnits"));
+  const socialGroupValue = formValuesSoialGroup?.map(item => item.query?.term?.individualSocialUnits);
+
+  const socialRelationshipFormValue = store.formFilters?.find(
+    (filter) => filter.filterId.includes("individualRelationshipRoles"))?.query?.term;
+  const socialRelationshipANDChecked = socialRelationshipFormValue && ("individualRelationshipRoles" in socialRelationshipFormValue) ? true : isRoleChecked;
+  const formValuesRole = store.formFilters.filter(item => item.filterId.includes("individualRelationshipRoles"));
+  const socialRelationshipValue = formValuesRole?.map(item => item.query?.term?.individualRelationshipRoles);
+  
   return (
     <div>
       <h4>
@@ -63,14 +75,17 @@ const SocialFilter = observer(({ data, store }) => {
           type="checkbox"
           id="custom-checkbox_unit"
           label={<FormattedMessage id="USE_AND_OPERATOR" />}
-          checked={isUnitChecked}
-          onChange={() => {
+          checked={socialGroupANDChecked}
+          onChange={(e) => {
+            if (!e.target.checked) {
+              store.removeFilterByFilterKey("Social Group Unit");
+            }
             setIsUnitChecked(!isUnitChecked);
           }}
         />
       </div>
 
-      {isUnitChecked ? (
+      {socialGroupANDChecked ? (
         <AndSelector
           isMulti={true}
           noLabel={true}
@@ -82,6 +97,7 @@ const SocialFilter = observer(({ data, store }) => {
           filterId={"individualSocialUnits"}
           filterKey={"Social Group Unit"}
           store={store}
+          value={socialGroupValue}
         />
       ) : (
         <FormGroupMultiSelect
@@ -107,14 +123,17 @@ const SocialFilter = observer(({ data, store }) => {
           type="checkbox"
           id="custom-checkbox_role"
           label={<FormattedMessage id="USE_AND_OPERATOR" />}
-          checked={isRoleChecked}
-          onChange={() => {
+          checked={socialRelationshipANDChecked}
+          onChange={(e) => {
+            if (!e.target.checked) {
+              store.removeFilterByFilterKey("Relationship Role");
+            }
             setIsRoleChecked(!isRoleChecked);
           }}
         />
       </div>
 
-      {isRoleChecked ? (
+      {socialRelationshipANDChecked ? (
         <AndSelector
           isMulti={true}
           noDesc={true}
@@ -126,6 +145,7 @@ const SocialFilter = observer(({ data, store }) => {
           filterId={"individualRelationshipRoles"}
           filterKey={"Relationship Role"}
           store={store}
+          value={socialRelationshipValue}
         />
       ) : (
         <FormGroupMultiSelect

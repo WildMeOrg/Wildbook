@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React  from "react";
 import { FormattedMessage } from "react-intl";
 import Form from "react-bootstrap/Form";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
@@ -35,27 +35,16 @@ const ImageLabelFilter = observer(({ data, store }) => {
   const label = (
     <FormattedMessage id="FILTER_HAS_AT_LEAST_ONE_ASSOCIATED_PHOTO_OR_VIDEO" />
   );
-  const [isChecked_photo, setIsChecked_photo] = React.useState(false);
+
   const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
-  useEffect(() => {
-    if (isChecked_photo) {
-      store.addFilter(
-        "numberMediaAssets",
-        "filter",
-        {
-          range: {
-            numberMediaAssets: {
-              gte: 1,
-            },
-          },
-        },
-        "Number Media Assets",
-      );
-    } else {
-      store.removeFilter("numberMediaAssets");
-    }
-  }, [isChecked_photo]);
+  const keywordsFormValue = store.formFilters?.find(
+    (filter) => filter.filterId.includes("mediaAssetKeywords"))?.query?.term;
+  const keywordsANDChecked = keywordsFormValue && ("mediaAssetKeywords" in keywordsFormValue) ? true : isChecked_keyword;
+  const formValues = store.formFilters.filter(item => item.filterId.includes("mediaAssetKeywords"));
+  const value = formValues?.map(item => item.query?.term?.mediaAssetKeywords);
+
+
 
   return (
     <div>
@@ -70,9 +59,27 @@ const ImageLabelFilter = observer(({ data, store }) => {
           type="checkbox"
           id="custom-checkbox"
           label={label}
-          checked={isChecked_photo}
-          onChange={() => {
-            setIsChecked_photo(!isChecked_photo);
+          checked={store.formFilters?.find(
+            (filter) => filter.filterId === "numberMediaAssets")?.query?.range?.numberMediaAssets?.gte === 1}
+          onChange={(e) => {
+            if (e.target.checked) {
+              console.log(1);
+              store.addFilter(
+                "numberMediaAssets",
+                "filter",
+                {
+                  range: {
+                    numberMediaAssets: {
+                      gte: 1,
+                    },
+                  },
+                },
+                "Number Media Assets",
+              );
+            }
+            else {
+              store.removeFilter("numberMediaAssets");
+            }
           }}
         />
       </Form>
@@ -86,14 +93,18 @@ const ImageLabelFilter = observer(({ data, store }) => {
           type="checkbox"
           id="custom-checkbox_keyword"
           label={<FormattedMessage id="USE_AND_OPERATOR" />}
-          checked={isChecked_keyword}
-          onChange={() => {
+          checked={keywordsANDChecked}
+          onChange={(e) => {
+            console.log(e.target.checked);
+            if (!e.target.checked) {
+              store.removeFilterByFilterKey("Media Asset Keywords");
+            }
             setIsChecked_keyword(!isChecked_keyword);
           }}
         />
       </div>
 
-      {isChecked_keyword ? (
+      {keywordsANDChecked ? (
         <AndSelector
           isMulti={true}
           noLabel={true}
@@ -104,6 +115,7 @@ const ImageLabelFilter = observer(({ data, store }) => {
           filterId={"mediaAssetKeywords"}
           filterKey={"Media Asset Keywords"}
           store={store}
+          value={value}
         />
       ) : (
         <FormGroupMultiSelect
