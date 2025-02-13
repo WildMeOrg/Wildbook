@@ -11,17 +11,6 @@ const FormMeasurements = observer(({ data, filterId, store }) => {
   );
   const intl = useIntl();
 
-  useEffect(() => {
-    if (data) {
-      const newInputs = data?.map((item) => ({
-        type: item,
-        operator: "gte",
-        value: "",
-      }));
-      setInputs(newInputs);
-    }
-  }, [JSON.stringify(data)]);
-
   const handleInputChange = (index, field, value) => {
     const updatedInputs = inputs.map((input, i) => {
       if (i === index) {
@@ -47,73 +36,110 @@ const FormMeasurements = observer(({ data, filterId, store }) => {
       const operator = input.operator;
       const value = input.value;
       const field = `biologicalMeasurements.${input.type}`;
+
       if (input.value) {
-        // onChange({
-        //   filterId: id,
-        //   clause: "filter",
-        //   query: {
-        //     range: {
-        //       [field]: {
-        //         [operator]: value,
-        //       },
-        //     },
-        //   },
-        // });
-        store.addFilter(id, "filter", {
-          range: {
-            [field]: {
-              [operator]: value,
+        store.addFilter(
+          id,
+          "filter",
+          {
+            range: {
+              [field]: {
+                [operator]: value,
+              },
             },
           },
-          
-        },"biologicalMeasurements.${input.type}");
+          `biologicalMeasurements.${input.type}`,
+        );
       }
     });
   };
+
+  useEffect(() => {
+    if (data.length > 0) {
+      const formData = store.formFilters.filter((item) =>
+        item.filterId.includes(filterId),
+      );
+      const inputs = [];
+      if (formData.length > 0) {
+        formData.forEach((item) => {
+          const type = item.filterId.split(".")[1];
+          const range = item.query.range[item.filterId];
+          const operator = Object.keys(range)[0];
+          const value = Object.values(range)[0];
+          inputs.push({
+            type: type,
+            operator: operator,
+            value: value,
+          });
+        });
+        const newInputs = data
+          .filter((item) => !inputs.some((input) => input.type === item))
+          .map((item) => ({
+            type: item,
+            operator: "gte",
+            value: "",
+          }));
+        setInputs([...inputs, ...newInputs]);
+      } else {
+        const newInputs = data.map((item) => ({
+          type: item,
+          operator: "gte",
+          value: "",
+        }));
+        setInputs(newInputs);
+      }
+    }
+  }, [
+    store.formFilters.find((item) => item.filterId.includes(filterId)),
+    data,
+  ]);
 
   return (
     <Container className="mt-3">
       <h5>
         <FormattedMessage id={"FILTER_BIOLOGICAL_MEASUREMENTS"} />
       </h5>
-      {inputs.map((input, index) => (
-        <Row key={index} className="mb-3">
-          <Col md={4} className="d-flex align-items-center">
-            {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
-          </Col>
-          <Col
-            md={2}
-            style={{
-              marginBotton: "10px",
-            }}
-          >
-            <Form.Select
-              aria-label="Select operator"
-              value={input.operator}
-              onChange={(e) =>
-                handleInputChange(index, "operator", e.target.value)
-              }
-            >
-              <option value="gte">&ge;</option>
-              <option value="lte">&le;</option>
-              <option value="term">=</option>
-            </Form.Select>
-          </Col>
-          <Col md={6}>
-            <FormControl
-              className="w-100"
-              type="number"
+      {inputs.map((input, index) => {
+        return (
+          <Row key={index} className="mb-3">
+            <Col md={4} className="d-flex align-items-center">
+              {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
+            </Col>
+            <Col
+              md={2}
               style={{
-                marginRight: "10px",
+                marginBotton: "10px",
               }}
-              placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-              onChange={(e) => {
-                handleInputChange(index, "value", e.target.value);
-              }}
-            />
-          </Col>
-        </Row>
-      ))}
+            >
+              <Form.Select
+                aria-label="Select operator"
+                value={input.operator}
+                onChange={(e) =>
+                  handleInputChange(index, "operator", e.target.value)
+                }
+              >
+                <option value="gte">&ge;</option>
+                <option value="lte">&le;</option>
+                <option value="term">=</option>
+              </Form.Select>
+            </Col>
+            <Col md={6}>
+              <FormControl
+                className="w-100"
+                type="number"
+                style={{
+                  marginRight: "10px",
+                }}
+                placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
+                onChange={(e) => {
+                  handleInputChange(index, "value", e.target.value);
+                }}
+                value={input.value}
+              />
+            </Col>
+          </Row>
+        );
+      })}
     </Container>
   );
 });
