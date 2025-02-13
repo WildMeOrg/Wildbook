@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Form, FormGroup } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
@@ -17,6 +17,7 @@ const colourStyles = {
 
 export default function LabelledKeywordFilter({ data, store }) {
   const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
+
   const labelledKeywordsOptions =
     Object.entries(data?.labeledKeyword || {}).map(([key, _]) => {
       return {
@@ -51,7 +52,9 @@ export default function LabelledKeywordFilter({ data, store }) {
     setLabelledKeywordPairs(newPairs);
 
     if (selectedOptions.length === 0) {
-      store.removeFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`)
+      store.removeFilter(
+        `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
+      );
       return;
     }
 
@@ -65,11 +68,12 @@ export default function LabelledKeywordFilter({ data, store }) {
         };
       });
 
-      store.addFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`, 
-        "array", 
+      store.addFilter(
+        `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
+        "array",
         query,
         "Media Asset Labeled Keywords",
-      )
+      );
     } else {
       const query = {
         terms: {
@@ -78,11 +82,12 @@ export default function LabelledKeywordFilter({ data, store }) {
         },
       };
 
-      store.addFilter(`mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
+      store.addFilter(
+        `mediaAssetLabeledKeywords.${newPairs[index].labelledKeyword}`,
         "filter",
         query,
         "Media Asset Labeled Keywords",
-      )
+      );
     }
   };
 
@@ -94,13 +99,48 @@ export default function LabelledKeywordFilter({ data, store }) {
 
     newPairs.forEach((pair) => {
       if (pair.labelledKeyword) {
-        store.removeFilter(`mediaAssetLabeledKeywords.${pair.labelledKeyword}`)
+        store.removeFilter(`mediaAssetLabeledKeywords.${pair.labelledKeyword}`);
       }
     });
 
     setLabelledKeywordPairs(newPairs);
     setIsChecked_keyword(!isChecked_keyword);
   };
+
+  const keywordsFormValueArray_1 = store.formFilters?.find((filter) =>
+    filter.filterId.includes("mediaAssetLabeledKeywords"),
+  )?.query?.terms;
+
+  const keywordsFormValueArray_2 = store.formFilters?.find((filter) =>
+    filter.filterId.includes("mediaAssetLabeledKeywords"),
+  )?.query;
+
+  const keywordsANDChecked =
+    Array.isArray(keywordsFormValueArray_2) || isChecked_keyword;
+
+  const paris = [];
+
+  useEffect(() => {
+    store.formFilters
+      .filter((item) => item.filterId.includes("mediaAssetLabeledKeywords"))
+      .forEach((item) => {
+        const query = item.query;
+        const name = item.filterId.replace("mediaAssetLabeledKeywords.", "");
+        if (keywordsANDChecked && !!keywordsFormValueArray_2) {
+          const values = query.map((data) => {
+            return Object.values(data.term)[0];
+          });
+          paris.push({ labelledKeyword: name, labelledKeywordValues: values });
+        } else if (keywordsFormValueArray_1) {
+          const terms = JSON.parse(JSON.stringify(query.terms));
+          paris.push({
+            labelledKeyword: name,
+            labelledKeywordValues: Object.values(terms)[0],
+          });
+        }
+        setLabelledKeywordPairs(paris);
+      });
+  }, [store.formFilters]);
 
   return (
     <FormGroup className="mt-3">
@@ -113,7 +153,7 @@ export default function LabelledKeywordFilter({ data, store }) {
           type="checkbox"
           id="custom-checkbox"
           label={<FormattedMessage id="USE_AND_OPERATOR" />}
-          checked={isChecked_keyword}
+          checked={keywordsANDChecked}
           onChange={handleCheckboxChange}
         />
       </div>
