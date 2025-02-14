@@ -4520,7 +4520,7 @@ public class Encounter extends Base implements java.io.Serializable {
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
         if (CommonConfiguration.getProperty("encounterState0", context) != null) {
-            enc.setState(CommonConfiguration.getProperty("encounterState0", context));
+            enc.setState(CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()));
         }
         enc.setComments(payload.optString("comments", null));
         if (user == null) {
