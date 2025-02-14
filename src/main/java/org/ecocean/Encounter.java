@@ -4519,7 +4519,7 @@ public class Encounter extends Base implements java.io.Serializable {
         enc.setDecimalLongitude(decimalLongitude);
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
-        if (CommonConfiguration.getProperty("encounterState0", context) != null) {
+        if (CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()) != null) {
             enc.setState(CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()));
         }
         enc.setComments(payload.optString("comments", null));
