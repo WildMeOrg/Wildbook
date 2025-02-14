@@ -4519,6 +4519,9 @@ public class Encounter extends Base implements java.io.Serializable {
         enc.setDecimalLongitude(decimalLongitude);
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
+        if (CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()) != null) {
+            enc.setState(CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()));
+        }
         enc.setComments(payload.optString("comments", null));
         if (user == null) {
             enc.setSubmitterID("public"); // this seems to be what EncounterForm servlet does so...
