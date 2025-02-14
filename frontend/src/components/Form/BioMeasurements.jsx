@@ -33,23 +33,30 @@ const FormMeasurements = observer(({ data, filterId, store }) => {
   const updateQuery = (inputs) => {
     inputs.map((input) => {
       const id = `${filterId}.${input.type}`;
-      const operator = input.operator;
-      const value = input.value;
       const field = `biologicalMeasurements.${input.type}`;
 
-      if (input.value) {
-        store.addFilter(
-          id,
-          "filter",
-          {
-            range: {
-              [field]: {
-                [operator]: value,
-              },
-            },
-          },
-          `biologicalMeasurements.${input.type}`,
-        );
+      let query = null;
+
+      if (input.operator === "term") {
+        if (input.value !== "") {
+          query = { term: { [field]: input.value } };
+        }
+      } else {
+        if (input.value !== "") {
+          query = { range: { [field]: { [input.operator]: input.value } } };
+        }
+      }
+      if (query) {
+        if (input.value) {
+          store.addFilter(
+            id,
+            "filter",
+            query,
+            `biologicalMeasurements.${input.type}`,
+          );
+        }
+      } else {
+        store.removeFilter(id);
       }
     });
   };
@@ -63,9 +70,19 @@ const FormMeasurements = observer(({ data, filterId, store }) => {
       if (formData.length > 0) {
         formData.forEach((item) => {
           const type = item.filterId.split(".")[1];
-          const range = item.query.range[item.filterId];
-          const operator = Object.keys(range)[0];
-          const value = Object.values(range)[0];
+          let operator = "gte";
+          let value = "";
+          const rangeFilter = item.query?.range?.[item.filterId];
+          const termFilter = item.query?.term?.[item.filterId];
+
+          if (rangeFilter) {
+            operator = Object.keys(rangeFilter)[0];
+            value = Object.values(rangeFilter)[0];
+          } else if (termFilter) {
+            operator = "term";
+            value = termFilter;
+          }
+
           inputs.push({
             type: type,
             operator: operator,

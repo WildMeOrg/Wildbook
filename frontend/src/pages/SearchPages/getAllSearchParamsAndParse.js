@@ -2,19 +2,11 @@
 const helperFunction = (searchParams, store, setFilterPanel) => {
 
     const params = Object.fromEntries(searchParams.entries()) || {};
-
-    if (!("searchQueryId" in params)) {
+    if(params.length === 0) {
         return;
     }
-
-    Object.entries(params).map(([key, value]) => {
-        if (key === "searchQueryId") {
-            console.log("3333333", sessionStorage.getItem("formData"));
-            store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
-        }
-
+    Object.entries(params).map(([key, _]) => {
         if (key === "username") {
-            console.log("username", value);
             store.addFilter(
                 "assignedUsername",
                 "filter",
@@ -28,7 +20,6 @@ const helperFunction = (searchParams, store, setFilterPanel) => {
 
         }
         if (key === "state") {
-            console.log("state", value);
             store.addFilter(
                 "state",
                 "filter",
@@ -40,35 +31,9 @@ const helperFunction = (searchParams, store, setFilterPanel) => {
                 "Encounter State",
             );
         }
-
-
-
-        // if (key === "organization") {
-        //     console.log("organization", value);
-        //     store.addFilter(
-        //         "organizations",
-        //         "filter", 
-        //         {
-        //             term: {
-        //               organizations: params.organization,
-        //             },
-        //           },
-        //         "Organization",
-        //     );            
-        // }
-        // if (key === "project") {
-        //     console.log("project", value);
-        //     store.addFilter(
-        //         "projects",
-        //         "filter", 
-        //         {
-        //             term: {
-        //               projects: params.project,
-        //             },
-        //           },
-        //         "Project",
-        //     );            
-        // }
+        if (key === "searchQueryId") {
+            store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
+        }        
     });
     setFilterPanel(false);
 };

@@ -40,8 +40,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
   const [currentValues, setCurrentValues] = useState({});
 
   const buildQuery_range = (data, i, value) => {
-
-    store.addFilter(`microsatelliteMarkers.loci.${data}.allele${i}`, 
+    store.addFilter(`microsatelliteMarkers.loci.${data}.allele${i}`,
       "filter",
       {
         range: {
@@ -54,6 +53,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
       `microsatelliteMarkers.loci.${data}.allele${i}`
     )
   };
+
   const buildQuery_match = (data, i, value) => {
     store.addFilter(`microsatelliteMarkers.loci.${data}.allele${i}`,
       "filter",
@@ -109,6 +109,80 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
       }
     }
   };
+
+  useEffect(() => {    
+    const formFilters = store.formFilters.filter(item => item.filterId.includes("microsatelliteMarkers.loci"));
+  
+    if (data?.loci) {
+      if (formFilters.length > 0) {  
+        const formFiltersLociFields = Array.from(new Set(formFilters.map(item => item.filterId.split(".")[2])));  
+        const newCurrentValues = {};
+        const newCheckedState = {};
+  
+        formFiltersLociFields.forEach(item => {
+          const formallele0 = formFilters.find(filter => filter.filterId === `microsatelliteMarkers.loci.${item}.allele0`);
+          const formallele1 = formFilters.find(filter => filter.filterId === `microsatelliteMarkers.loci.${item}.allele1`);
+          
+          const isMatchFilter = formFilters.some(filter =>
+            filter.filterId.includes(`microsatelliteMarkers.loci.${item}`) &&
+            filter.query.match
+          );
+  
+          const isRangeFilter = formFilters.some(filter =>
+            filter.filterId.includes(`microsatelliteMarkers.loci.${item}`) &&
+            filter.query.range
+          );  
+  
+          if (isMatchFilter) {
+            newCheckedState[item] = false;
+            let allele0 = "";
+            let allele1 = "";
+            setLength(0);
+            setAlleleLength(false);
+            if (formallele0) {
+              allele0 = formallele0.query.match[`microsatelliteMarkers.loci.${item}.allele0`];              
+            }
+            if (formallele1) {
+              allele1 = formallele1.query.match[`microsatelliteMarkers.loci.${item}.allele1`];
+            }
+              
+            newCurrentValues[item] = {
+              allele0,
+              allele1,
+            };
+  
+          } else if (isRangeFilter) {            
+            newCheckedState[item] = true;
+            let allele0 = "";
+            let allele1 = "";
+            let checkboxValue = "";
+            
+            if (formallele0) {
+              const gte = parseInt(formallele0.query.range[`microsatelliteMarkers.loci.${item}.allele0`].gte);
+              const lte = parseInt(formallele0.query.range[`microsatelliteMarkers.loci.${item}.allele0`].lte);
+              allele0 = (gte + lte) / 2;
+              checkboxValue = (lte - gte) / 2;
+            }
+            if (formallele1) {
+              const gte = parseInt(formallele1.query.range[`microsatelliteMarkers.loci.${item}.allele1`].gte);
+              const lte = parseInt(formallele1.query.range[`microsatelliteMarkers.loci.${item}.allele1`].lte);
+              allele1 = (gte + lte) / 2;
+            }  
+
+            setLength(checkboxValue);
+            setAlleleLength(true);
+  
+            newCurrentValues[item] = {
+              allele0,
+              allele1,
+            };
+          }
+        });   
+        setCurrentValues(newCurrentValues);  
+        setCheckedState(newCheckedState);   
+      }
+    }
+  }, [JSON.stringify(store.formFilters), data?.loci]); 
 
   return (
     <div>
@@ -200,6 +274,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
               width: "70px",
               marginLeft: "10px",
             }}
+            value={length}
             onChange={(e) => {
               setLength(e.target.value);
             }}
@@ -220,7 +295,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
               type="checkbox"
               id="custom-checkbox"
               label={data}
-              checked={checkedState[data] || false}
+              checked={checkedState[data]}
               onChange={() => {
                 handleCheckboxChange(data);
                 if (checkedState[data]) {
@@ -255,6 +330,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
                 <FormControl
                   className="mr-2"
                   type="text"
+                  value = {currentValues[data]?.allele0 || ""}
                   placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
                   onChange={(e) => handleInputChange(data, 0, e.target.value)}
                 />
@@ -269,6 +345,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
                 <FormControl
                   type="text"
                   placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+                  value = {currentValues[data]?.allele1 || ""}
                   onChange={(e) => handleInputChange(data, 1, e.target.value)}
                 />
               </div>

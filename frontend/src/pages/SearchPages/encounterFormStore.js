@@ -16,12 +16,11 @@ class EncounterFormStore {
     this._formFilters = newFilters;
   }
 
-  addFilter(filterId, clause, query, filterKey, path = null) {
+  addFilter(filterId, clause, query, filterKey, path = "") {
     const existingIndex = this.formFilters.findIndex(
       (f) => f.filterId === filterId,
     );
     if (existingIndex === -1) {
-      console.log(1);
       this.formFilters.push({
         filterId: filterId,
         clause: clause,
@@ -37,12 +36,15 @@ class EncounterFormStore {
         filterKey: filterKey,
         path: path,
       };
-    }
-    console.log("----------------------", JSON.stringify(this.formFilters));
+    }    
   }
 
   removeFilter(filterId) {
     this.formFilters = this.formFilters.filter((f) => f.filterId !== filterId);
+  }
+
+  removeFilterByFilterKey(filterKey) {
+    this.formFilters = this.formFilters.filter((f) => f.filterKey !== filterKey);
   }
 
   resetFilters() {

@@ -90,8 +90,8 @@ function FormMeasurements({ data, field, filterId, store }) {
         input.operator === "term"
           ? { term: { [`${field}.value`]: input.value } }
           : {
-              range: { [`${field}.value`]: { [input.operator]: input.value } },
-            };
+            range: { [`${field}.value`]: { [input.operator]: input.value } },
+          };
       if (input.value) {
         store.addFilter(id, "nested", {
           bool: {
@@ -104,9 +104,9 @@ function FormMeasurements({ data, field, filterId, store }) {
               query,
             ],
           },
-          id,
-          field,
-        });
+
+        }, id,
+          field,);
       }
       return {
         match: {

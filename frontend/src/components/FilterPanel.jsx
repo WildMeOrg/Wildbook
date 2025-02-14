@@ -7,42 +7,14 @@ import BrutalismButton from "./BrutalismButton";
 import useGetSiteSettings from "../models/useGetSiteSettings";
 import { Col, Row } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-
-// function setFilter(newFilter, tempFormFilters, setTempFormFilters) { 
-//   const matchingFilterIndex = tempFormFilters.findIndex(
-//     (f) => f.filterId === newFilter.filterId,
-//   );
-//   if (matchingFilterIndex === -1) {
-//     if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci")) {
-//       tempFormFilters.splice(
-//         0,
-//         tempFormFilters.length,
-//         newFilter,
-//         ...tempFormFilters,
-//       );
-//     } else {
-//       setTempFormFilters([...tempFormFilters, newFilter]);
-//     }
-//   } else {
-//     if (
-//       newFilter?.filterId?.startsWith("microsatelliteMarkers.loci") ||
-//       newFilter?.filterId?.startsWith("measurements")
-//     ) {
-//       tempFormFilters[matchingFilterIndex] = newFilter;
-//     } else {
-//       const newFormFilters = [...tempFormFilters];
-//       newFormFilters[matchingFilterIndex] = newFilter;
-//       setTempFormFilters(newFormFilters);
-//     }
-//   }
-// }
+import { useSearchParams } from "react-router-dom";
 
 export default function FilterPanel({
   schemas,
   setFilterPanel,
   style = {},
-  handleSearch = () => {},
-  refetch = () => {},
+  handleSearch = () => { },
+  refetch = () => { },
   store,
 }) {
   const { data } = useGetSiteSettings();
@@ -53,6 +25,7 @@ export default function FilterPanel({
   const schemaRefs = useRef([]);
   const isScrollingByClick = useRef(false);
   const scrollTimeout = useRef(null);
+  const [,setSearchParams] = useSearchParams();
 
   useEffect(() => {
     safeSchemas.forEach((schema, index) => {
@@ -172,9 +145,11 @@ export default function FilterPanel({
                   // refetch().then(({ data }) => {
                   //   console.log("Refetched data:", data);
                   // });
+                  setSearchParams(new URLSearchParams());
                   sessionStorage.setItem("formData", JSON.stringify(store.formFilters));
                   setFilterPanel(false);
                   handleSearch();
+                  setSearchParams(new URLSearchParams());
                 }}
                 noArrow={true}
                 style={{
@@ -193,6 +168,7 @@ export default function FilterPanel({
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
                   store.resetFilters();
+                  setSearchParams(new URLSearchParams());
                   window.location.reload();
                 }}
                 noArrow={true}

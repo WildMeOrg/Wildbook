@@ -56,21 +56,6 @@ export default function EncounterSearch() {
     }
   }, [queryID, sortname, sortorder]);
 
-  // useEffect(() => {
-  //   setQueryID(searchParams.get("searchQueryId"));
-  //   // if (searchParams.get("searchQueryId")) {
-  //   //   setFormFilters(
-  //   //     sessionStorage.getItem("formData")
-  //   //       ? JSON.parse(sessionStorage.getItem("formData"))
-  //   //       : [],
-  //   //   );
-  //   // }
-  // }, [searchParams]);
-
-  // useEffect(() => {
-  //   sessionStorage.setItem("formData", JSON.stringify(formFilters));
-  // }, [formFilters]);
-
   const {
     data: encounterData,
     loading,
@@ -181,7 +166,6 @@ export default function EncounterSearch() {
         schemas={schemas}
         handleSearch={handleSearch}
         setQueryID={setQueryID}
-        setSearchParams={setSearchParams}
         refetch={refetch}
         store={store}
       />

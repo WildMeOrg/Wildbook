@@ -20,13 +20,11 @@ const Sidebar = observer(({
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  // eslint-disable-next-line no-unused-vars
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   const num = () => queryID ? 1 : store.formFilters.length;
 
   const handleCopy = () => {
-    console.log("Copied to clipboard: ", searchQueryId);
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard
         .writeText(searchQueryId)
@@ -37,7 +35,6 @@ const Sidebar = observer(({
           console.error("Failed to copy text: ", err);
         });
     } else {
-      console.error("Clipboard API not supported or permissions denied.");
       alert("Clipboard API not supported or permissions denied.");
     }
   };
@@ -164,8 +161,6 @@ const Sidebar = observer(({
               onClick={() => {
                 store.resetFilters();
                 handleClose();
-                // setFilterPanel(false);
-                // localStorage.removeItem("formData");
                 setSearchParams(new URLSearchParams());
                 window.location.reload();
               }}
