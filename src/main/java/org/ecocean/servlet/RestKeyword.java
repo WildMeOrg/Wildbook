@@ -152,7 +152,7 @@ public class RestKeyword extends HttpServlet {
                                 ma.setKeywords(newList);
                             }
                             System.out.println("getKeywords() -> " + ma.getKeywords());
-                            jassigned.put(Integer.toString(ma.getId()), mj);
+                            jassigned.put(Integer.toString(ma.getIdInt()), mj);
                             MediaAssetFactory.save(ma, myShepherd);
                         }
                         jout.put("results", jassigned);

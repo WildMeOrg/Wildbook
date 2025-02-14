@@ -96,8 +96,8 @@ public class MediaAssetAttach extends HttpServlet {
                 if (ma == null)
                     throw new ServletException("No MediaAsset with id " + maId +
                             " found in database.");
-                if (enc.hasTopLevelMediaAsset(ma.getId())) {
-                    alreadyAttachedIds.put(ma.getId());
+                if (enc.hasTopLevelMediaAsset(ma.getIdInt())) {
+                    alreadyAttachedIds.put(ma.getIdInt());
                     alreadyAttached.add(ma);
                 } else {
                     mas.add(ma);

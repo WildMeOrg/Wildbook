@@ -256,9 +256,9 @@ public class MediaAssetCreate extends HttpServlet {
                     artn.put("type", "Encounter");
                     artn.put("assets", new JSONArray());
                     for (MediaAsset ema : mas) {
-                        if (enc.hasTopLevelMediaAsset(ema.getId())) continue;
+                        if (enc.hasTopLevelMediaAsset(ema.getIdInt())) continue;
                         enc.addMediaAsset(ema);
-                        artn.getJSONArray("assets").put(ema.getId());
+                        artn.getJSONArray("assets").put(ema.getIdInt());
                     }
                     System.out.println("MediaAssetCreate.attachToEncounter added " +
                         artn.getJSONArray("assets").length() + " assets to Enc " +

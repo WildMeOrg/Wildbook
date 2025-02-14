@@ -215,7 +215,7 @@ public abstract class AssetStore implements java.io.Serializable {
        3) restricting to store is kinda silly cuz id is primary key so would never have duplicate id across more than one store anyway
      */
     public ArrayList<MediaAsset> findAllChildren(MediaAsset parent, Shepherd myShepherd) {
-        if ((parent == null) || (parent.getId() < 1)) return null;
+        if ((parent == null) || (parent.getIdInt() < 1)) return null;
         ArrayList<MediaAsset> all = new ArrayList<MediaAsset>();
         Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
         Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId());
@@ -294,7 +294,7 @@ public abstract class AssetStore implements java.io.Serializable {
         MediaAsset ma = this.copyIn(targetFile, sp);
         if (ma == null) return null; // not sure how this would happen *without* an exception, but meh.
         ma.addLabel("_" + type);
-        ma.setParentId(parent.getId());
+        ma.setParentId(parent.getIdInt());
         if ((opts != null) && (opts.get("feature") != null)) {
             Feature ft = (Feature)opts.get("feature");
             ma.addDerivationMethod("feature", ft.getId());

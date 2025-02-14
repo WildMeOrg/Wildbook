@@ -2088,6 +2088,26 @@ public class Shepherd {
         }
     }
 
+    // note: where clause can also contain " ORDER BY xxx"
+    public Iterator getMediaAssetsFilter(String jdoWhereClause) {
+        Query query = null;
+
+        try {
+            query = pm.newQuery("SELECT FROM org.ecocean.media.MediaAsset WHERE " + jdoWhereClause);
+            Collection c = (Collection)(query.execute());
+            List list = new ArrayList(c);
+            Iterator it = list.iterator();
+            query.closeAll();
+            return it;
+        } catch (Exception npe) {
+            System.out.println(
+                "Error encountered when trying to execute getAllAnnotationsFilter. Returning a null iterator.");
+            npe.printStackTrace();
+            if (query != null) query.closeAll();
+            return null;
+        }
+    }
+
     public ArrayList<MediaAsset> getAllMediaAssetsAsArray() {
         try {
             Extent maClass = pm.getExtent(MediaAsset.class, true);
