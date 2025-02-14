@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import Description from "./Description";
 import { FormattedMessage } from "react-intl";
 import { useIntl } from "react-intl";
-import { useSearchQueryParams } from "../../models/useSearchQueryParams";
-import { useStoredFormValue } from "../../models/useStoredFormValue";
-import { store } from "../../pages/SearchPages/encounterFormStore";
 import { observer } from "mobx-react-lite";
 
 const FormGroupText = observer(({
@@ -19,15 +16,6 @@ const FormGroupText = observer(({
   store,
 }) => {
   const intl = useIntl();
-  // const paramsObject = useSearchQueryParams();
-  // const resultValue = useStoredFormValue(field, term, field);
-  // const [value, setValue] = useState("");
-
-  // useEffect(() => {
-  //   if (paramsObject.searchQueryId && resultValue) {
-  //     setValue(resultValue);
-  //   }
-  // }, [paramsObject, resultValue]);
 
   return (
     <FormGroup className="mt-2">

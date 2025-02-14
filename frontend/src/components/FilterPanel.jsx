@@ -149,7 +149,6 @@ export default function FilterPanel({
                   sessionStorage.setItem("formData", JSON.stringify(store.formFilters));
                   setFilterPanel(false);
                   handleSearch();
-                  setSearchParams(new URLSearchParams());
                 }}
                 noArrow={true}
                 style={{
