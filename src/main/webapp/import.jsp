@@ -857,6 +857,36 @@ try{
 	    });
 	    
 	}
+	
+	function resendToIDHotspotterOnly() {
+	    if (!confirmCommitID()) return;
+	    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
+	    //var locationIds = $('#id-locationids').val();
+	    var locationIds = '';
+	    $("#id-locationids option:selected").each(function(){
+	    	locationIds+='&locationID='+this.value;
+	    });
+	    if(locationIds.indexOf('ALL locations')>-1)locationIds='';
+	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+	
+	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
+	    
+	    $.ajax({
+	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportIDHotspotterOnly.jsp?importIdTask=<%=taskId%>'+locationIds,
+	        dataType: 'json',
+	        type: 'GET',
+	        contentType: 'application/javascript',
+	        complete: function(x) {
+	            console.log('resendToID() response: %o', x);
+		    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+		        $('#ia-send-wait').html('<i>ID requests resubmitted to Hotspotter for unidentified Encounters only. Refresh this page to track progress.</i>');
+		    } else {
+		        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+		    }
+	        }
+	    });
+	    
+	}
 	 
 	</script>
 	</p>
@@ -902,6 +932,15 @@ try{
 		   </div>
 		    	
 		    <%
+		    
+		    if(request.isUserInRole("admin")){
+		    	%>
+		    	<div style="margin-bottom: 20px;">   	
+		    		<a class="button" style="margin-left: 20px;" onClick="resendToIDHotspotterOnly(); return false;">Resend unidentified encounters to Hotspotter only</a> matching against <b>location(s):</b>
+                        <%=LocationID.getHTMLSelector(true, locationIds, null, "id-locationids", "locationID", "") %>
+		   		</div>
+		    	<%
+		    }
 	}
 
 	
