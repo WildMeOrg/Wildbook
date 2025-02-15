@@ -51,12 +51,12 @@ public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
         List<List<Annotation> > annotsByIaClass = IA.binAnnotsByIaClass(anns);
         for (List<Annotation> annsOneIAClass : annotsByIaClass) {
             List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
-            // now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
                 while (itr.hasNext()) {
+                	JSONObject nextOne = itr.next();
                     //if (!itr.next().optBoolean("default", true)) itr.remove();
-                    if(itr.next().optJSONObject("query_config_dict")==null||!itr.next().optJSONObject("query_config_dict").optBoolean("sv_on"))itr.remove();
+                    if(nextOne.optJSONObject("query_config_dict")==null||!nextOne.optJSONObject("query_config_dict").optBoolean("sv_on"))itr.remove();
                 }
             }
             System.out.println("identOpts: " + opts);
