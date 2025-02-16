@@ -16,6 +16,7 @@ org.json.JSONObject,
 org.json.JSONArray,
 java.util.Properties" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdPMF" %>
 
 <%!
 	//public Shepherd myShepherd = null;
@@ -520,7 +521,7 @@ function drawFeature(id) {
 
 String context = "context0";
 if (Util.requestParameterSet(request.getParameter("evict"))) {
-    org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+    ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
     out.println("<p style=\"padding: 10px 0; text-align: center; background-color: #FAA;\"><b>.evictAll()</b> called on PMF data store cache.</p>");
 }
 
