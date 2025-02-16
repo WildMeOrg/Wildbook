@@ -41,6 +41,7 @@ import org.ecocean.OpenSearch;
 import org.ecocean.Project;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
@@ -913,7 +914,7 @@ public class EncounterForm extends HttpServlet {
                 }
                 OpenSearch.setPermissionsNeeded(myShepherd, true);
                 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
-                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+                ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }
             if (newnum.equals("fail")) {
                 request.setAttribute("number", "fail");
