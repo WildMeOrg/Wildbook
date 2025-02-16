@@ -5,6 +5,7 @@ import org.ecocean.Organization;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.io.File;
 import java.io.FileInputStream;

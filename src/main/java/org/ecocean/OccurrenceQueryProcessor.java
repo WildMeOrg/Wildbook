@@ -143,7 +143,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     }
 
     public static OccurrenceQueryResult processQuery(Shepherd myShepherd,
-                                                     HttpServletRequest request, String order) {
+        HttpServletRequest request, String order) {
         Vector<Occurrence> rOccurrences = new Vector<Occurrence>();
         Iterator<Occurrence> allOccurrences;
         String filter = "";

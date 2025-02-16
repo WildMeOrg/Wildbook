@@ -513,7 +513,7 @@ public class TwitterBot {
 
     // annotPairDict is from the IA results.  in the future we could let this be null and if so fetch it
     public static String processIdentificationResults(Shepherd myShepherd,
-                                                      final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
+        final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
         if ((anns == null) || (anns.size() < 1)) return null;
         Task task = Task.load(taskId, myShepherd);
         Task rootTask = null;
@@ -658,7 +658,7 @@ public class TwitterBot {
          *
          */
         try {
-            LinkedProperties props = (LinkedProperties) ShepherdProperties.getProperties(
+            LinkedProperties props = (LinkedProperties)ShepherdProperties.getProperties(
                 "submitActionClass.properties", "", context);
             String lowercaseRemarks = DetectTranslate.translateIfNotEnglish(
                 tweet.getText()).toLowerCase();

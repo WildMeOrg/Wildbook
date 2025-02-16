@@ -303,8 +303,8 @@ public class Collaborate extends HttpServlet {
      *
      */
     private HashMap sendCollaborationInvite(Shepherd myShepherd, String username,
-                                            String currentUsername, Properties props, HashMap rtn, HttpServletRequest request,
-                                            String context, boolean isEdit) {
+        String currentUsername, Properties props, HashMap rtn, HttpServletRequest request,
+        String context, boolean isEdit) {
         String optionalMessage = request.getParameter("message");
 
         System.out.println("Entering sendCollaborationInvite");

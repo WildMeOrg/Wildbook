@@ -46,6 +46,10 @@ import java.util.Properties;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.WordUtils;
+import org.ecocean.servlet.ServletUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServletUtilities {
     public static String getHeader(HttpServletRequest request) {
