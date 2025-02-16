@@ -17,6 +17,7 @@ org.ecocean.metrics.Prometheus,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdPMF" %>
 
 
 <%
@@ -26,7 +27,7 @@ String langCode = ServletUtilities.getLanguageCode(request);
 
 
 
-org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
 String scoreType = request.getParameter("scoreType");
 // we'll show individualScores unless the url specifies scoreType = image (aka annotation)

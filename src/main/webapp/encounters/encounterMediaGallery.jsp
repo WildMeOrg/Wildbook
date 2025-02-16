@@ -9,6 +9,7 @@ org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdPMF" %>
 
 
 <%!
@@ -129,7 +130,7 @@ function forceLink(el) {
 		  //System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
-        org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+        ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
       }
 
       if (!enc.canUserAccess(request)) {
