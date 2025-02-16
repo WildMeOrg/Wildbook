@@ -2,7 +2,7 @@ package org.ecocean.security;
 
 import org.ecocean.MarkedIndividual;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;

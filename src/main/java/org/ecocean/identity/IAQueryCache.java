@@ -7,7 +7,7 @@ import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

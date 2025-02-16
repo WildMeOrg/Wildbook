@@ -8,7 +8,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.json.JSONArray;

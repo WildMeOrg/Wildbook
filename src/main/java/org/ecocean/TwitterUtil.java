@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Properties;
 
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 import java.util.ArrayList;

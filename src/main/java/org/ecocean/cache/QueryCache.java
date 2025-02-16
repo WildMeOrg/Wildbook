@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 // A singleton responsible for storing, retrieving, and eventually executing queries that are desired for caching. It will have all necessary getters

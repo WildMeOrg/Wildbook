@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 import org.json.JSONArray;

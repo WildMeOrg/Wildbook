@@ -1,6 +1,6 @@
 package org.ecocean.security;
 
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.*;
 

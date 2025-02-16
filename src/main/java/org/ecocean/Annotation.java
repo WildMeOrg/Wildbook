@@ -25,6 +25,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

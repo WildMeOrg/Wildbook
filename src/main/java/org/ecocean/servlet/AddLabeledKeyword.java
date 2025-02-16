@@ -3,7 +3,7 @@ package org.ecocean.servlet;
 import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.json.JSONObject;
 

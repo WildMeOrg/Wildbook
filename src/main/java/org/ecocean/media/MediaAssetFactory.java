@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import javax.jdo.*;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 public class MediaAssetFactory {

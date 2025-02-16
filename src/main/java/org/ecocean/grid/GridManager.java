@@ -2,7 +2,7 @@ package org.ecocean.grid;
 
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 // import org.ecocean.CommonConfiguration;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 // import org.ecocean.servlet.ServletUtilities;
 

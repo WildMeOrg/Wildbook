@@ -7,7 +7,7 @@ import org.ecocean.Encounter;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 public class IAUtils {

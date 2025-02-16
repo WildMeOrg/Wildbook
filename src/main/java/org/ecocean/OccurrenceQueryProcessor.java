@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.format.*;
 
 import javax.jdo.Query;
@@ -141,7 +143,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     }
 
     public static OccurrenceQueryResult processQuery(Shepherd myShepherd,
-        HttpServletRequest request, String order) {
+                                                     HttpServletRequest request, String order) {
         Vector<Occurrence> rOccurrences = new Vector<Occurrence>();
         Iterator<Occurrence> allOccurrences;
         String filter = "";

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 public class SubmitSpotsAndTransformImage extends HttpServlet {
