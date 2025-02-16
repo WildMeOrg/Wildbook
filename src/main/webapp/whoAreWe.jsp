@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%
 
 //setup our Properties object to hold all properties
@@ -12,7 +13,7 @@
 	//set up the file input stream
 	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
 	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
-	props=ShepherdProperties.getProperties("whoweare.properties", langCode, context);
+	props= ShepherdProperties.getProperties("whoweare.properties", langCode, context);
     
 	
 %>

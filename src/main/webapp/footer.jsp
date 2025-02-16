@@ -3,7 +3,7 @@
 		language="java"
      	import="org.ecocean.CommonConfiguration,
       org.ecocean.ContextConfiguration,
-      org.ecocean.ShepherdProperties,
+      org.ecocean.shepherd.core.ShepherdProperties,
       org.ecocean.servlet.ServletUtilities,
       org.ecocean.shepherd.core.Shepherd,
       org.ecocean.User,

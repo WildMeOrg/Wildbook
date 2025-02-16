@@ -5,7 +5,7 @@
         import="org.ecocean.CommonConfiguration"
         import="org.ecocean.Encounter"
         import="org.ecocean.shepherd.core.Shepherd"
-        import="org.ecocean.ShepherdProperties"
+        import="org.ecocean.shepherd.core.ShepherdProperties"
         import="org.ecocean.mmutil.*"
         import="org.ecocean.mmutil.MMAResultsProcessor.MMAMatch"
         import="org.ecocean.servlet.MantaMatcher"

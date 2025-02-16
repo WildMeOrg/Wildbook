@@ -7,6 +7,7 @@
 		org.joda.time.format.ISODateTimeFormat
          " %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%

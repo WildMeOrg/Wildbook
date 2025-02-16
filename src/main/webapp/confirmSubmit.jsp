@@ -2,6 +2,7 @@
          import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, 
          java.io.File, java.util.*, javax.servlet.http.HttpSession" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
