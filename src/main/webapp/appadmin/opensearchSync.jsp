@@ -6,6 +6,7 @@ org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.shepherd.core.*
 "%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 String indexName = request.getParameter("indexName");
