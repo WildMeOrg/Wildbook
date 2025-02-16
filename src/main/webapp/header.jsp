@@ -19,7 +19,7 @@
 <!DOCTYPE html>
 <html>
 <%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.ShepherdProperties,
+     import="org.ecocean.shepherd.core.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
              org.ecocean.shepherd.core.Shepherd,

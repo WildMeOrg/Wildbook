@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%
@@ -13,7 +14,7 @@
 
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
+    map_props= ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
 
 		Properties collabProps = new Properties();
  		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);

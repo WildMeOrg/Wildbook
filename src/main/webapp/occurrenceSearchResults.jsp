@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%

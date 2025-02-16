@@ -10,6 +10,7 @@ org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, o
 java.util.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdPMF" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%!

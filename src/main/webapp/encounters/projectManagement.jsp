@@ -8,13 +8,14 @@
          java.nio.charset.StandardCharsets,
          java.net.URLEncoder " %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties projProps = new Properties();
-projProps=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+projProps= ShepherdProperties.getProperties("searchResults.properties", langCode, context);
 Properties props = new Properties();
 props=ShepherdProperties.getProperties("projectManagement.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
