@@ -11,6 +11,7 @@ org.ecocean.security.HiddenIndividualReporter,
 org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 org.datanucleus.api.rest.orgjson.JSONObject" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 

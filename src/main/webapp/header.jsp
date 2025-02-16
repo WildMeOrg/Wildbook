@@ -22,7 +22,7 @@
      import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
-             org.ecocean.Shepherd,
+             org.ecocean.shepherd.core.Shepherd,
              org.ecocean.Util,
              org.ecocean.Organization,
              org.ecocean.User,

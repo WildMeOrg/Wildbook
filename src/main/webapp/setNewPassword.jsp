@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
 <%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat, java.io.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
 <%

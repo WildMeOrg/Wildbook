@@ -7,6 +7,7 @@
          org.datanucleus.api.jdo.JDOPersistenceManager,
          java.nio.charset.StandardCharsets,
          java.net.URLEncoder " %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 String context="context0";

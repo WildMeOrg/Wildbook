@@ -6,6 +6,7 @@
          org.ecocean.tag.*,
          org.datanucleus.api.rest.orgjson.JSONObject
          " %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 

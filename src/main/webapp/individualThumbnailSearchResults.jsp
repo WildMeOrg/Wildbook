@@ -1,8 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.security.HiddenIndividualReporter,org.ecocean.*,java.io.File,java.io.FileInputStream, java.util.*, org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
-  <%
+<%
   String context="context0";
   context=ServletUtilities.getContext(request);
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory,org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <style type="text/css">
   .red-alert {

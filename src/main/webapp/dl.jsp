@@ -1,5 +1,5 @@
 <%@ page language="java"
-     import="org.ecocean.Shepherd,
+     import="org.ecocean.shepherd.core.Shepherd,
 org.ecocean.Util,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.CommonConfiguration,

@@ -10,6 +10,7 @@ java.nio.charset.StandardCharsets,
 java.io.UnsupportedEncodingException
 
 " %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 String context = ServletUtilities.getContext(request);

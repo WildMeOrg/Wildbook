@@ -3,6 +3,7 @@ java.util.Properties,
 org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.movement.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
 <%

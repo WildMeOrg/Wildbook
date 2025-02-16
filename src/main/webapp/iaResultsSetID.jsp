@@ -11,7 +11,7 @@ org.datanucleus.api.jdo.JDOPersistenceManager,
 org.ecocean.media.*,
 org.ecocean.cache.*,
 java.util.zip.GZIPOutputStream,org.ecocean.servlet.importer.*,org.json.JSONObject,
-java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%><%@ page import="org.ecocean.shepherd.core.Shepherd"%>
 <%!
 //try to see if encounter was part of ImportTask so we can mark complete
 //  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
