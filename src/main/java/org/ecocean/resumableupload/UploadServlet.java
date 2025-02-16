@@ -20,15 +20,11 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-import org.ecocean.resumableupload.FlowInfo;
-import org.ecocean.resumableupload.FlowInfoStorage;
-import org.ecocean.resumableupload.HttpUtils;
-
 import org.ecocean.AccessControl;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 public class UploadServlet extends HttpServlet {

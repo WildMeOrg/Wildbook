@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 
 import com.amazonaws.util.StringUtils;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -205,7 +206,7 @@ public class ProjectUpdate extends HttpServlet {
     }
 
     private JSONArray removeUnauthorizedEncounters(JSONArray encountersToAddJSONArr,
-        Shepherd myShepherd, HttpServletRequest request) {
+                                                   Shepherd myShepherd, HttpServletRequest request) {
         JSONArray filteredResults = new JSONArray();
 
         if (encountersToAddJSONArr != null) {

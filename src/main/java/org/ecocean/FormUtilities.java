@@ -1,4 +1,6 @@
 package org.ecocean;
+import org.ecocean.shepherd.core.Shepherd;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

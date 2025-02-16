@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class ScheduledIndividualMerge extends WildbookScheduledTask {
     private static final long serialVersionUID = 1L;

@@ -3,7 +3,7 @@ package org.ecocean.servlet;
 import org.ecocean.Encounter;
 import org.ecocean.media.*;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.io.IOException;
 import java.io.PrintWriter;

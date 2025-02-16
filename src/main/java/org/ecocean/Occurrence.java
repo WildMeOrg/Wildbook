@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -26,6 +24,7 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.datacollection.Instant;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 
 import org.ecocean.media.AssetStoreType;

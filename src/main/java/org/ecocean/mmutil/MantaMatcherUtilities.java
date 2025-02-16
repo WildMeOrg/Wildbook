@@ -5,7 +5,7 @@ import java.util.*;
 import javax.jdo.Extent;
 import javax.jdo.Query;
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

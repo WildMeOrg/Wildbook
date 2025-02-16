@@ -2,7 +2,7 @@ package org.ecocean.grid;
 
 import org.ecocean.Encounter;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.util.List;
 import javax.jdo.PersistenceManager;

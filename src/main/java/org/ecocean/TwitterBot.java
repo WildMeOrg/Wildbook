@@ -7,6 +7,8 @@ package org.ecocean;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -510,7 +512,7 @@ public class TwitterBot {
 
     // annotPairDict is from the IA results.  in the future we could let this be null and if so fetch it
     public static String processIdentificationResults(Shepherd myShepherd,
-        final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
+                                                      final List<Annotation> anns, final JSONObject annotPairDict, String taskId) {
         if ((anns == null) || (anns.size() < 1)) return null;
         Task task = Task.load(taskId, myShepherd);
         Task rootTask = null;

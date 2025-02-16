@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class Taxonomy implements java.io.Serializable {
     private String id;

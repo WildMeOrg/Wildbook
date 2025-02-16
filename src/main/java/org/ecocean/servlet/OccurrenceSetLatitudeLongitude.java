@@ -10,7 +10,7 @@ import javax.servlet.ServletException;
 import org.apache.commons.lang3.StringUtils;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 /**
  * Updates latitude, longitude for an occurrence.

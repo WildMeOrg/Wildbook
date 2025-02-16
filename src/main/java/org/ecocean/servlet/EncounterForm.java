@@ -39,7 +39,7 @@ import org.ecocean.NotificationMailer;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
 import org.ecocean.Project;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;

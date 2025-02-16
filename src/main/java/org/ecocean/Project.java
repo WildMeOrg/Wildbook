@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -278,7 +279,7 @@ public class Project implements java.io.Serializable {
     }
 
     public JSONObject asJSONObjectWithEncounterMetadata(Shepherd myShepherd,
-        HttpServletRequest request) {
+                                                        HttpServletRequest request) {
         return asJSONObject("addEncounterMetadata", myShepherd, request);
     }
 

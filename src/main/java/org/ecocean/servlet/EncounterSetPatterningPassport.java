@@ -20,7 +20,7 @@ import javax.servlet.ServletException;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.PatterningPassport;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 
 import com.oreilly.servlet.MultipartRequest;

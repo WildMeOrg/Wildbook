@@ -18,6 +18,7 @@ import javax.servlet.ServletException;
 import org.ecocean.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.*;
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -490,7 +491,7 @@ public class UserConsolidate extends HttpServlet {
     }
 
     public static void consolidateOccurrenceData(Shepherd myShepherd, Occurrence currentOccurrence,
-        User useMe, User currentDupe) {
+                                                 User useMe, User currentDupe) {
         // System.out.println("dedupe transferring submitterId in occurence " + currentOccurrence.toString() + " from user " + currentDupe.toString()
         // + " to user " + useMe.toString());
 

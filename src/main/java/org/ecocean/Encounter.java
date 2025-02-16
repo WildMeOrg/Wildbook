@@ -30,7 +30,6 @@ import java.util.Vector;
 import javax.jdo.Query;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,6 +43,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.AcousticTag;

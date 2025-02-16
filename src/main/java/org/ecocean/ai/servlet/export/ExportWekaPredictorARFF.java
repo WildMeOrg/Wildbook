@@ -16,6 +16,7 @@ import java.lang.StringBuffer;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.utilities.AIUtilities;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class ExportWekaPredictorARFF extends HttpServlet {
     public void init(ServletConfig config)

@@ -10,12 +10,11 @@ import java.util.UUID;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 
 import java.util.regex.Pattern;
 import net.jpountz.xxhash.StreamingXXHash32;

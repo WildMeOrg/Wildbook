@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,11 +10,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public class ShepherdProperties {
