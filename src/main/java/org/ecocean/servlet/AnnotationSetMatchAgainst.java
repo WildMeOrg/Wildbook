@@ -3,6 +3,7 @@ package org.ecocean.servlet;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.Annotation;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +65,7 @@ public class AnnotationSetMatchAgainst extends HttpServlet {
                     if (madeChange) {
                         response.setStatus(HttpServletResponse.SC_OK);
                         myShepherd.updateDBTransaction();
-                        org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evict(
+                        ShepherdPMF.getPMF(context).getDataStoreCache().evict(
                             myShepherd.getPM().getObjectId(annot));
 
                         // jobj = RESTUtils.getJSONObjectFromPOJO(annot, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext());

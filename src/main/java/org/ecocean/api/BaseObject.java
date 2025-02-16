@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ecocean.shepherd.core.ShepherdPMF;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -204,7 +205,7 @@ public class BaseObject extends ApiBase {
                 myShepherd.commitDBTransaction();
             }
             // not sure what this is for, but servlet/EncounterForm did it so guessing its important
-            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+            ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
         } else {
             myShepherd.rollbackDBTransaction();
         }
