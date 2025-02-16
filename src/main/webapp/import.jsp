@@ -23,6 +23,7 @@ org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
 org.json.JSONObject,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 public static void intakeTask(Shepherd myShepherd, Task task) {

@@ -5,6 +5,7 @@
                  java.util.Properties,
                  java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
 <!-- Add reCAPTCHA -->

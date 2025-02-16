@@ -3,6 +3,7 @@ org.ecocean.media.MediaAsset,
 java.net.URL,
 java.util.Collections,
 org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <%

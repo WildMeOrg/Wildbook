@@ -4,6 +4,7 @@
 java.util.Iterator,
 org.ecocean.*
 "%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
 <%

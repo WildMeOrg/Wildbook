@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <%@ page contentType="text/xml; charset=utf-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.media.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.*, java.lang.NumberFormatException"%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 String context="context0";

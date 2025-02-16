@@ -6,6 +6,7 @@ java.util.List, java.util.ArrayList,
 org.json.JSONObject,
 org.ecocean.*
 "%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 

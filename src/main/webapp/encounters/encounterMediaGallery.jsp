@@ -8,10 +8,10 @@ org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
-
-  <%!
+<%!
 
   // if there is a MediaAsset with detection status not null and no annotation that is done
   boolean shouldEvict(Annotation ann) {
