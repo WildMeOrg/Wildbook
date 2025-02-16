@@ -8,6 +8,7 @@ org.ecocean.cache.*,
 org.json.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 
@@ -56,7 +57,7 @@ if(request.getParameter("delete")!=null){
 	
 	
 	//remove cache files
-	String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
+	String writePath= ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
 	File cacheDir=new File(writePath);
 	File[] files=cacheDir.listFiles();
 	for(int i=0;i<files.length;i++){

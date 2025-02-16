@@ -4,6 +4,7 @@ org.json.JSONObject,
 org.json.JSONArray,
 org.ecocean.movement.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%

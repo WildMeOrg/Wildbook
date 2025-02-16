@@ -5,6 +5,7 @@ org.ecocean.media.MediaAsset,
 org.ecocean.media.MediaAssetFactory,
 org.ecocean.security.Collaboration" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 

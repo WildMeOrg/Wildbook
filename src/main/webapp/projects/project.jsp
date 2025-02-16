@@ -11,6 +11,7 @@
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -33,7 +34,7 @@
 
   String langCode=ServletUtilities.getLanguageCode(request);
 
-  projectProps=ShepherdProperties.getProperties("project.properties", langCode, context);
+  projectProps= ShepherdProperties.getProperties("project.properties", langCode, context);
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>

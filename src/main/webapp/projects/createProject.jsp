@@ -12,6 +12,7 @@
          org.apache.commons.lang3.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -30,7 +31,7 @@
   boolean haveRendered = false;
   Properties collabProps = new Properties();
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+  collabProps= ShepherdProperties.getProperties("collaboration.properties", langCode, context);
   User currentUser = AccessControl.getUser(request, myShepherd);
   Properties props = new Properties();
   props = ShepherdProperties.getProperties("createProject.properties", langCode, context);

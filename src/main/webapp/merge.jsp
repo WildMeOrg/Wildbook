@@ -11,6 +11,7 @@ java.io.UnsupportedEncodingException
 
 " %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 String context = ServletUtilities.getContext(request);

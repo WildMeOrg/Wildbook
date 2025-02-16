@@ -4,6 +4,7 @@
          org.ecocean.social.*,
          org.datanucleus.FetchGroup,javax.jdo.*" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%

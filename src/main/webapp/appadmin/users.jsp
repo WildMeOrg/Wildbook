@@ -7,6 +7,7 @@
          org.datanucleus.ExecutionContext, org.datanucleus.PersistenceNucleusContext,
          org.datanucleus.api.jdo.JDOPersistenceManagerFactory" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <style type="text/css">

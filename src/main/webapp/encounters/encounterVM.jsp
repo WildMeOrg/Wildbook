@@ -7,6 +7,7 @@
 <%@ page import="org.ecocean.*" %>
 <%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%
