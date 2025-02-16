@@ -3,6 +3,7 @@
 <%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat,
 javax.servlet.http.HttpSession,
 java.io.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
 <%

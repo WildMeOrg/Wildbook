@@ -20,8 +20,9 @@ import="org.ecocean.*,
     org.ecocean.media.*
     "
     %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
-    <%!
+<%!
 
     private static void fetchLog(String msg) {
         System.out.println("[spotterFetch " + (new DateTime()).toString().substring(0,19) + "] " + msg);

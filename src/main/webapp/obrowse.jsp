@@ -15,6 +15,7 @@ java.util.ArrayList,
 org.json.JSONObject,
 org.json.JSONArray,
 java.util.Properties" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 	//public Shepherd myShepherd = null;

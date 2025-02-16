@@ -4,7 +4,7 @@
 <%@page contentType="text/html; charset=iso-8859-1" language="java"
         import="org.ecocean.CommonConfiguration"
         import="org.ecocean.Encounter"
-        import="org.ecocean.Shepherd"
+        import="org.ecocean.shepherd.core.Shepherd"
         import="org.ecocean.ShepherdProperties"
         import="org.ecocean.mmutil.*"
         import="org.ecocean.mmutil.MMAResultsProcessor.MMAMatch"

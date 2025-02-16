@@ -1,8 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
-  <%
+<%
   String context="context0";
   context=ServletUtilities.getContext(request);
 

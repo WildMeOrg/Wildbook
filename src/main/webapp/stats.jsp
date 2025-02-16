@@ -5,7 +5,7 @@ java.util.Map,
 org.json.JSONObject,
 org.json.JSONArray
               "
-%>
+%><%@ page import="org.ecocean.shepherd.core.Shepherd"%>
 
             <%
 String context = "context0";
