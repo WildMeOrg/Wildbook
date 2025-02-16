@@ -4,7 +4,7 @@ import org.ecocean.Encounter;
 import org.ecocean.grid.MatchComparator;
 import org.ecocean.grid.MatchObject;
 import org.ecocean.grid.VertexPointMatch;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

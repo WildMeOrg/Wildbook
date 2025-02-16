@@ -16,7 +16,7 @@ import org.apache.commons.io.IOUtils;
 import org.datanucleus.api.jdo.JDOPersistenceManager;
 import org.datanucleus.api.rest.RESTUtils;
 import org.datanucleus.ExecutionContext;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Util;
 import org.json.JSONArray;

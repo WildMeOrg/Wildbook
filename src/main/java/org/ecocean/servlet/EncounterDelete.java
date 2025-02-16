@@ -20,6 +20,7 @@ import java.util.Map;
 // import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -14,6 +14,8 @@ import org.ecocean.servlet.ServletUtilities;
 import java.io.File;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

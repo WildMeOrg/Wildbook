@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.lang.reflect.Method;
 

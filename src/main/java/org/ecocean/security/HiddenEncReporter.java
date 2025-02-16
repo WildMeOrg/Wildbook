@@ -1,7 +1,7 @@
 package org.ecocean.security;
 
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;

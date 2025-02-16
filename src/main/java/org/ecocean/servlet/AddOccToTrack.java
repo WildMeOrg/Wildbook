@@ -8,6 +8,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.*;
 import org.ecocean.movement.SurveyTrack;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class AddOccToTrack extends HttpServlet {
     /** @author Colin Kingen 2018

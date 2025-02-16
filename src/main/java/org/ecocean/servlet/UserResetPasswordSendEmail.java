@@ -9,6 +9,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.util.concurrent.ThreadPoolExecutor;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;

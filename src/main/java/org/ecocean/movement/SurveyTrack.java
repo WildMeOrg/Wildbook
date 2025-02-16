@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 /**
  *

@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 public class UserCreate extends HttpServlet {

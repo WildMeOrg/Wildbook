@@ -6,6 +6,7 @@ import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.*;
 
 import javax.jdo.Query;

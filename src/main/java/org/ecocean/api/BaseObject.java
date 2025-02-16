@@ -11,26 +11,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.joda.time.DateTime;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.ecocean.Annotation;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
-import org.ecocean.ia.Task;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
-import org.ecocean.Project;
 import org.ecocean.resumableupload.UploadServlet;
-import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 

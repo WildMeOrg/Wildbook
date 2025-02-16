@@ -21,7 +21,7 @@ import org.ecocean.Organization;
 import org.ecocean.Project;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.User;
 import org.ecocean.Util;

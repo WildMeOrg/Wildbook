@@ -16,6 +16,7 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.SecurityUtils;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 /**
  * Uses JSecurity to authenticate a user If user can be authenticated successfully forwards user to /welcome.jsp

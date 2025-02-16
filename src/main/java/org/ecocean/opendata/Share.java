@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Properties;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Organization;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.User;
 import org.ecocean.Util;

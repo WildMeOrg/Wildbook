@@ -34,7 +34,7 @@ import org.ecocean.IAJsonProperties;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Taxonomy;
 import org.ecocean.Util;

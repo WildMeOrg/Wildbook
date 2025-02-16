@@ -34,6 +34,7 @@ import org.apache.http.util.EntityUtils;
 import org.ecocean.ia.IA;
 import org.ecocean.metrics.Prometheus;
 import org.ecocean.queue.QueueUtil;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class MetricsBot {
     private static long collectorStartTime = 0l;

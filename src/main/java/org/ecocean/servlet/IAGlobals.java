@@ -8,6 +8,8 @@ import javax.servlet.ServletException;
 import org.ecocean.*;
 
 import java.io.*;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 import org.slf4j.Logger;

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
