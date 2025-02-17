@@ -11,32 +11,202 @@
     "get_job_status": "http://wbia:5000/api/engine/job/status/",
     "get_job_result": "http://wbia:5000/api/engine/job/result/"
   },
-  "Acinonyx": {
-    "jubatus": {
+  "Panthera": {
+    "onca": {
       "_detect_conf": [
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "jaguar_v3",
+          "model_tag": "jaguar_v2",
           "labeler_algo": "densenet",
-          "labeler_model_tag": "cheetah_v1",
-          "model_tag": "cheetah_v1",
-          "nms_aware": "byclass",
-          "nms_thresh": 0.6,
-          "sensitivity": 0.62
+          "sensitivity": 0.5,
+          "nms_thresh": 0.5
         }
       ],
-      "cheetah": {
+      "jaguar": {
         "_id_conf": [
           {
             "query_config_dict": {
               "sv_on": true
             }
-          },
+          }
+        ]
+      }
+    },
+    "pardus": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+      "leopard": {
+        "_id_conf": [
           {
             "query_config_dict": {
-              "pipeline_root": "MiewId"
-            },
-            "description": "MiewID Matcher",
-            "default": true
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    },
+    "uncia": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "snow_leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.44,
+          "nms_thresh": 0.4
+        }
+      ],
+      "snow_leopard": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    },
+    "leo": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "model_tag": "lions_v0",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.4,
+          "nms_aware": "ispart"
+        }
+      ],
+      "lion": {
+        "_id_conf": []
+      },
+      "lioness": {
+        "_id_conf": []
+      },
+      "lion_general": {
+        "_id_conf": []
+      },
+      "lion+head": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      },
+      "lioness+head": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      },
+      "lion_general+head": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Leopardus": {
+    "pardalis": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+      "ocelot": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    },
+    "guttulus": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "snow_leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.44,
+          "nms_thresh": 0.4
+        }
+      ],
+      "southern_tiger_cat": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    },
+    "wiedii": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+      "margay": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Neofelis": {
+    "nebulosa": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+      "clouded_leopard": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
           }
         ]
       }
@@ -48,14 +218,12 @@
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
-          "labeler_model_tag": "hyaena_v0",
           "model_tag": "hyaena_v0",
-          "nms_aware": null,
-          "nms_thresh": 0.7,
-          "sensitivity": 0.74
+          "sensitivity": 0.74,
+          "nms_thresh": 0.4
         }
       ],
-      "hyaena": {
+      "spotted_hyena": {
         "_id_conf": [
           {
             "query_config_dict": {
@@ -66,6 +234,174 @@
       }
     }
   },
+  "Hyaena": {
+    "hyaena": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "hyaena_v0",
+          "model_tag": "hyaena_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.7
+        }
+      ],
+      "striped_hyena": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Parahyaena": {
+    "brunnea": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "model_tag": "hyaena_v0",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.4
+        }
+      ],
+      "brown_hyena": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "Puma": {
+    "concolor": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "lions_v0",
+          "model_tag": "lions_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.7,
+          "nms_thresh": 0.4,
+          "nms_aware": "ispart"
+        }
+      ],
+      "cougar": {
+        "_id_conf": []
+      },
+      "cougar+head": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "Leptailurus": {
+    "serval": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "cheetah_v2",
+          "model_tag": "cheetah_v2",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4
+        }
+      ],
+      "serval": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "Genetta": {
+    "genetta": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "cheetah_v2",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4
+        }
+      ],
+      "small_spotted_genet": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    },
+    "tigrina": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "cheetah_v2",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4
+        }
+      ],
+      "large_spotted_genet": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "Acinonyx": {
+    "jubatus": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "cheetah_v2",
+          "model_tag": "cheetah_v2",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4,
+          "nms_aware": "byclass"
+        }
+      ],
+      "cheetah": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            }
+          }
+        ]
+      }
+    }
+  },
+
   "Lycaon": {
     "pictus": {
       "_detect_conf": [
@@ -153,53 +489,6 @@
         "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
         "_save_keyword": "BodyTan"
       }
-    }
-  },
-  "Panthera": {
-    "pardus": {
-      "_detect_conf": [
-        {
-          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
-
-          "labeler_algo": "densenet",
-          "model_tag": "leopard_v0",
-          "nms_aware": null,
-          "nms_thresh": 0.5,
-          "sensitivity": 0.73,
-          "viewpoint_model_tag": "leopard_v0"
-        }
-      ],
-      "leopard": {
-        "_id_conf": [
-          {
-            "query_config_dict": {
-              "sv_on": true
-            }
-          }
-        ]
-      }
-    }
-  },
-  "Leo": {
-    "_detect_conf": [
-      {
-        "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
-        "labeler_algo": "densenet",
-        "model_tag": "lions_v0",
-        "nms_aware": null,
-        "nms_thresh": 0.4,
-        "sensitivity": 0.74,
-        "viewpoint_model_tag": "lions_v0"
-      }
-    ],
-    "leopard": {
-      "_id_conf": [
-        {
-          "query_config_dict": {
-            "sv_on": true
-          }
-        }
-      ]
     }
   },
   "Lynx": {
