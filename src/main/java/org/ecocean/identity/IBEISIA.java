@@ -4782,7 +4782,7 @@ public class IBEISIA {
                 {
                     JSONArray mergedResults = new JSONArray();
     
-                    int batchSize = 50;
+                    int batchSize = 10;
                     int totalAnnotations = annsToSend.size();
                     for (int i = 0; i < totalAnnotations; i += batchSize) {
                         try{
@@ -4795,6 +4795,7 @@ public class IBEISIA {
                             }
                         }
                         catch (Exception ex) {
+
                             System.out.println("except? " + ex.toString());
                         }
                         
