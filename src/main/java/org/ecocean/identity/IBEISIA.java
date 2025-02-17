@@ -14,7 +14,6 @@ import org.ecocean.IAJsonProperties;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
 import org.ecocean.LinkedProperties;
-import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.importer.ImportTask;
@@ -4780,7 +4779,30 @@ public class IBEISIA {
                 rtn.put("sendMediaAssets", plugin.sendMediaAssets(masToSend, false));
             Util.mark("sendAnnotationsAsNeeded 4 ", tt);
             if (!Util.collectionIsEmptyOrNull(annsToSend))
-                rtn.put("sendAnnotations", plugin.sendAnnotations(annsToSend, false, myShepherd));
+                {
+                    JSONArray mergedResults = new JSONArray();
+    
+                    int batchSize = 50;
+                    int totalAnnotations = annsToSend.size();
+                    for (int i = 0; i < totalAnnotations; i += batchSize) {
+                        try{
+                            int end = Math.min(i + batchSize, totalAnnotations);
+                            ArrayList<Annotation> batch = new ArrayList<>(annsToSend.subList(i, end));
+    
+                            JSONObject batchResult = plugin.sendAnnotations(batch, false, myShepherd);
+                            if (batchResult != null) {
+                                mergedResults.put(batchResult);
+                            }
+                        }
+                        catch (Exception ex) {
+                            System.out.println("except? " + ex.toString());
+                        }
+                        
+                    }
+
+                    rtn.put("sendAnnotations", mergedResults);
+
+                }
         } catch (Exception ex) {
             rtn.put("sendAnnotMAException", ex.toString());
         }
