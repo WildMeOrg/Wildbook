@@ -256,6 +256,7 @@ public class WildbookIAM extends IAPlugin {
         map.put("annot_theta_list", new ArrayList<Double>());
 
         List<Annotation> acmList = new ArrayList<Annotation>(); // for rectifyAnnotationIds below
+        List<Integer> assetList = new ArrayList<Integer>();
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
             if (ann.getMediaAsset() == null) {
@@ -279,6 +280,11 @@ public class WildbookIAM extends IAPlugin {
                     ann.getMediaAsset() + " on " + ann + "; skipping!");
                 continue;
             }
+            if (assetList.contains(ann.getMediaAsset().getId())){
+               continue;
+            }
+            assetList.add(ann.getMediaAsset().getId());
+                
             acmList.add(ann);
             map.get("image_uuid_list").add(iid);
             int[] bbox = ann.getBbox();
