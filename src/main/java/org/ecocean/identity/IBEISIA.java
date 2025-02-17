@@ -4778,32 +4778,42 @@ public class IBEISIA {
             if (!Util.collectionIsEmptyOrNull(masToSend))
                 rtn.put("sendMediaAssets", plugin.sendMediaAssets(masToSend, false));
             Util.mark("sendAnnotationsAsNeeded 4 ", tt);
-            if (!Util.collectionIsEmptyOrNull(annsToSend))
-                {
-                    JSONArray mergedResults = new JSONArray();
-    
-                    int batchSize = 10;
-                    int totalAnnotations = annsToSend.size();
-                    for (int i = 0; i < totalAnnotations; i += batchSize) {
-                        try{
-                            int end = Math.min(i + batchSize, totalAnnotations);
-                            ArrayList<Annotation> batch = new ArrayList<>(annsToSend.subList(i, end));
-    
-                            JSONObject batchResult = plugin.sendAnnotations(batch, false, myShepherd);
-                            if (batchResult != null) {
-                                mergedResults.put(batchResult);
+            if (!Util.collectionIsEmptyOrNull(annsToSend)) {
+                JSONArray mergedResults = new JSONArray();
+            
+                int batchSize = 50;
+                int totalAnnotations = annsToSend.size();
+                for (int i = 0; i < totalAnnotations; i += batchSize) {
+                    int end = Math.min(i + batchSize, totalAnnotations);
+                    ArrayList<Annotation> batch = new ArrayList<>(annsToSend.subList(i, end));
+            
+                    try {
+                        JSONObject batchResult = plugin.sendAnnotations(batch, false, myShepherd);
+                        if (batchResult != null) {
+                            mergedResults.put(batchResult);
+                        }
+                    } catch (Exception batchException) {
+                        System.out.println("Batch failed, attempting individual sends: " + batchException.toString());
+            
+                        // Try sending each annotation individually
+                        for (Annotation ann : batch) {
+                            try {
+                                ArrayList<Annotation> singleAnnList = new ArrayList<>();
+                                singleAnnList.add(ann);
+                                JSONObject singleResult = plugin.sendAnnotations(singleAnnList, false, myShepherd);
+                                if (singleResult != null) {
+                                    mergedResults.put(singleResult);
+                                }
+                            } catch (Exception singleException) {
+                                System.out.println("Single annotation send failed: " + singleException.toString());
                             }
                         }
-                        catch (Exception ex) {
-
-                            System.out.println("except? " + ex.toString());
-                        }
-                        
                     }
-
-                    rtn.put("sendAnnotations", mergedResults);
-
                 }
+            
+                rtn.put("sendAnnotations", mergedResults);
+            }
+            
         } catch (Exception ex) {
             rtn.put("sendAnnotMAException", ex.toString());
         }
