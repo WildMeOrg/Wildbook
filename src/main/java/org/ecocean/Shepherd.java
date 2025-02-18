@@ -2063,6 +2063,26 @@ public class Shepherd {
         }
     }
 
+    // note: where clause can also contain " ORDER BY xxx"
+    public Iterator getAnnotationsFilter(String jdoWhereClause) {
+        Query query = null;
+
+        try {
+            query = pm.newQuery("SELECT FROM org.ecocean.Annotation WHERE " + jdoWhereClause);
+            Collection c = (Collection)(query.execute());
+            List list = new ArrayList(c);
+            Iterator it = list.iterator();
+            query.closeAll();
+            return it;
+        } catch (Exception npe) {
+            System.out.println(
+                "Error encountered when trying to execute getAllAnnotationsFilter. Returning a null iterator.");
+            npe.printStackTrace();
+            if (query != null) query.closeAll();
+            return null;
+        }
+    }
+
     public Iterator<Encounter> getAllAnnotations(String order) {
         Extent extClass = pm.getExtent(Annotation.class, true);
         Query q = pm.newQuery(extClass);
