@@ -4,7 +4,7 @@ package org.ecocean.ai.agent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.Util;
 
 /*

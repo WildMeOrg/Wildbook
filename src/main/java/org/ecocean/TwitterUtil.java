@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 import java.util.ArrayList;

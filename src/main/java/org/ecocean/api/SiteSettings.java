@@ -22,7 +22,7 @@ import org.ecocean.Project;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
