@@ -2,7 +2,7 @@ package org.ecocean.genetics;
 
 import java.util.Properties;
 
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdProperties;
 
 public class MitochondrialDNAAnalysis extends GeneticAnalysis {
     private static final long serialVersionUID = -677491893195428942L;

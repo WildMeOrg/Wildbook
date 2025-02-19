@@ -17,7 +17,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.*;
 
 import org.ecocean.media.MediaAsset;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdProperties;
 
 import java.net.*;
 import java.util.*;

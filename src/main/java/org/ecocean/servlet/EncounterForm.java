@@ -40,7 +40,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
 import org.ecocean.Project;
 import org.ecocean.shepherd.core.Shepherd;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;

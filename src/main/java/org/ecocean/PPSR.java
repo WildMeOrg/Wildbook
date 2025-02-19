@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.Properties;
 
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 public class PPSR {
