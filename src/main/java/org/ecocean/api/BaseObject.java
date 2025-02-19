@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ecocean.shepherd.core.ShepherdPMF;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,6 +28,7 @@ import org.ecocean.resumableupload.UploadServlet;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.User;
 import org.ecocean.Util;
 
