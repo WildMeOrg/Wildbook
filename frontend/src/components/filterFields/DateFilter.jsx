@@ -160,6 +160,7 @@ const DateFilter = observer(({ data, store }) => {
                 submissionStartDate
               }
               onChange={(e) => {
+                updateQuery2();
                 setSubmissionStartDate(e.target.value);
               }}
             />
@@ -177,6 +178,7 @@ const DateFilter = observer(({ data, store }) => {
                 submissionEndDate
               }
               onChange={(e) => {
+                updateQuery2();
                 setSubmissionEndDate(e.target.value);
               }}
             />

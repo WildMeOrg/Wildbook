@@ -38,8 +38,6 @@ export default function useFilterEncounters({ queries, params = {} }) {
   const compositeQuery = { query: { bool: boolQuery } };
   const { sortOrder, sort, size, from } = params;
 
-  console.log("sending request");
-
   return useFetch({
     method: "post",
     queryKey: getEncounterFilterQueryKey(queries, size, from, sort, sortOrder),
@@ -71,6 +69,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
     },
     queryOptions: {
       retry: 2,
+      enable: false,
     },
   });
 }

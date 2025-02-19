@@ -13,8 +13,8 @@ export default function FilterPanel({
   schemas,
   setFilterPanel,
   style = {},
-  handleSearch = () => { },
-  refetch = () => { },
+  handleSearch = () => {},
+  refetch = () => {},
   store,
 }) {
   const { data } = useGetSiteSettings();
@@ -25,7 +25,7 @@ export default function FilterPanel({
   const schemaRefs = useRef([]);
   const isScrollingByClick = useRef(false);
   const scrollTimeout = useRef(null);
-  const [,setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     safeSchemas.forEach((schema, index) => {
@@ -142,11 +142,14 @@ export default function FilterPanel({
                 backgroundColor={theme.primaryColors.primary700}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  // refetch().then(({ data }) => {
-                  //   console.log("Refetched data:", data);
-                  // });
+                  refetch().then(({ data }) => {
+                    console.log("Refetched data:", data);
+                  });
                   setSearchParams(new URLSearchParams());
-                  sessionStorage.setItem("formData", JSON.stringify(store.formFilters));
+                  sessionStorage.setItem(
+                    "formData",
+                    JSON.stringify(store.formFilters),
+                  );
                   setFilterPanel(false);
                   handleSearch();
                 }}

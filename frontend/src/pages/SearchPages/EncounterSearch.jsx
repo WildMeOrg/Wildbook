@@ -41,10 +41,10 @@ export default function EncounterSearch() {
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
-  
-  useEffect(() => { 
+
+  useEffect(() => {
     helperFunction(searchParams, store, setFilterPanel);
-  }, [searchParams, store]); 
+  }, [searchParams]);
 
   useEffect(() => {
     if (!queryID) {
@@ -144,7 +144,7 @@ export default function EncounterSearch() {
       newSearchParams.set("results", "true");
       return newSearchParams;
     });
-  };  
+  };
 
   return (
     <div
