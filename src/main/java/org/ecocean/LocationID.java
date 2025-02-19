@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

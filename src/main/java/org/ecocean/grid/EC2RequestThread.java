@@ -2,7 +2,7 @@ package org.ecocean.grid;
 
 import java.io.*;
 import java.util.*;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdProperties;
 
 // Amazon EC2 imports
 import com.amazonaws.auth.AWSCredentials;

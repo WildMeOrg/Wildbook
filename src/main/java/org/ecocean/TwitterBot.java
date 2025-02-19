@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -657,7 +658,7 @@ public class TwitterBot {
          *
          */
         try {
-            LinkedProperties props = (LinkedProperties)ShepherdProperties.getProperties(
+            LinkedProperties props = (LinkedProperties) ShepherdProperties.getProperties(
                 "submitActionClass.properties", "", context);
             String lowercaseRemarks = DetectTranslate.translateIfNotEnglish(
                 tweet.getText()).toLowerCase();

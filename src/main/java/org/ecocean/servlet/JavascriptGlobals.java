@@ -18,6 +18,7 @@ import com.google.gson.Gson;
 
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 
 
 public class JavascriptGlobals extends HttpServlet {

@@ -8,6 +8,7 @@ import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 public class AccessControl implements java.io.Serializable {

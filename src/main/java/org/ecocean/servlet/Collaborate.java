@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import com.google.gson.Gson;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 
 public class Collaborate extends HttpServlet {
     public void init(ServletConfig config)

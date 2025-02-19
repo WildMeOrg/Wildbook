@@ -18,6 +18,7 @@ import org.ecocean.media.URLAssetStore;
 import org.ecocean.movement.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
