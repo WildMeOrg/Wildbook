@@ -658,7 +658,7 @@ public class TwitterBot {
          *
          */
         try {
-            LinkedProperties props = (LinkedProperties)ShepherdProperties.getProperties(
+            LinkedProperties props = (LinkedProperties) ShepherdProperties.getProperties(
                 "submitActionClass.properties", "", context);
             String lowercaseRemarks = DetectTranslate.translateIfNotEnglish(
                 tweet.getText()).toLowerCase();
