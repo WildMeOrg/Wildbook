@@ -770,14 +770,6 @@ $(function() {
     							<!-- Google PLUS-ONE button -->
 								<g:plusone size="medium" annotation="none"></g:plusone>
 							</td>
-							<td>
-								<!--  Twitter TWEET THIS button -->
-								<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-								<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-							</td>
-							<td>
-								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
