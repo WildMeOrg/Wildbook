@@ -1,4 +1,10 @@
-const helperFunction = (searchParams, store, setFilterPanel) => {
+const helperFunction = (
+  searchParams,
+  store,
+  setFilterPanel,
+  setTempFormFilters = () => {},
+) => {
+  console.log("helperFunction -> searchParams1", searchParams);
   const params = Object.fromEntries(searchParams.entries()) || {};
   if (Object.keys(params).length === 0) {
     return;
@@ -30,6 +36,7 @@ const helperFunction = (searchParams, store, setFilterPanel) => {
     }
     if (key === "searchQueryId") {
       store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
+      setTempFormFilters([...store.formFilters]);
     }
   });
   setFilterPanel(false);

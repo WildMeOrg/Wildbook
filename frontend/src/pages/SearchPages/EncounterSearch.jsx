@@ -41,9 +41,10 @@ export default function EncounterSearch() {
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
+  const [tempFormFilters, setTempFormFilters] = useState([]);
 
   useEffect(() => {
-    helperFunction(searchParams, store, setFilterPanel);
+    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters);
   }, [searchParams]);
 
   useEffect(() => {
@@ -167,6 +168,7 @@ export default function EncounterSearch() {
         handleSearch={handleSearch}
         setQueryID={setQueryID}
         refetch={refetch}
+        setTempFormFilters={setTempFormFilters}
         store={store}
       />
       <DataTable
@@ -215,6 +217,7 @@ export default function EncounterSearch() {
         searchQueryId={searchQueryId}
         queryID={false}
         store={store}
+        tempFormFilters={tempFormFilters}
       />
     </div>
   );

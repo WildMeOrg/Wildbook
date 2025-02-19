@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import Map from "../Map";
@@ -19,20 +18,25 @@ const LocationFilterMap = observer(({ data, store }) => {
       return;
     }
 
-    store.addFilter("locationMap", "filter", {
-      geo_bounding_box: {
-        locationGeoPoint: {
-          top_left: {
-            lat: bounds.top_left?.lat,
-            lon: bounds.top_left?.lon,
-          },
-          bottom_right: {
-            lat: bounds.bottom_right?.lat,
-            lon: bounds.bottom_right?.lon,
+    store.addFilter(
+      "locationMap",
+      "filter",
+      {
+        geo_bounding_box: {
+          locationGeoPoint: {
+            top_left: {
+              lat: bounds.north,
+              lon: bounds.west,
+            },
+            bottom_right: {
+              lat: bounds.south,
+              lon: bounds.east,
+            },
           },
         },
       },
-    }, "locationGeoPoint");
+      "locationGeoPoint",
+    );
   }, [bounds]);
 
   function flattenLocationData(data) {
@@ -59,10 +63,11 @@ const LocationFilterMap = observer(({ data, store }) => {
   }
 
   const flattenedData = flattenLocationData(data?.locationData);
-  const locationIDOptions = flattenedData.map((location) => ({
-    value: location.id,
-    label: _.repeat("-", location.depth) + " " + location.name,
-  })) || [];
+  const locationIDOptions =
+    flattenedData.map((location) => ({
+      value: location.id,
+      label: _.repeat("-", location.depth) + " " + location.name,
+    })) || [];
 
   const keyMapping = {
     north: "top_left.lat",
@@ -76,7 +81,14 @@ const LocationFilterMap = observer(({ data, store }) => {
       (filter) => filter.filterId === "locationMap",
     )?.query?.geo_bounding_box?.locationGeoPoint;
 
-    return [values?.top_left?.lat, values?.top_left?.lon, values?.bottom_right?.lat, values?.bottom_right?.lon][index] || "";
+    return (
+      [
+        values?.top_left?.lat,
+        values?.top_left?.lon,
+        values?.bottom_right?.lat,
+        values?.bottom_right?.lon,
+      ][index] || ""
+    );
   };
 
   return (
@@ -106,7 +118,9 @@ const LocationFilterMap = observer(({ data, store }) => {
                 type="number"
                 placeholder={
                   bounds
-                    ? bounds?.[keyMapping[Object.values(item)[0]].split(".")[0]]?.[keyMapping[Object.values(item)[0]].split(".")[1]]
+                    ? bounds?.[
+                        keyMapping[Object.values(item)[0]].split(".")[0]
+                      ]?.[keyMapping[Object.values(item)[0]].split(".")[1]]
                     : intl.formatMessage({ id: "TYPE_NUMBER" })
                 }
                 value={getValue(index)}
@@ -130,7 +144,11 @@ const LocationFilterMap = observer(({ data, store }) => {
           );
         })}
       </div>
-      <Map bounds={bounds} setBounds={setBounds} setTempBounds={setTempBounds} />
+      <Map
+        bounds={bounds}
+        setBounds={setBounds}
+        setTempBounds={setTempBounds}
+      />
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}

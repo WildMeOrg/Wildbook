@@ -116,47 +116,49 @@ const FormMeasurements = observer(({ data, filterId, store }) => {
       <h5>
         <FormattedMessage id={"FILTER_BIOLOGICAL_MEASUREMENTS"} />
       </h5>
-      {inputs.map((input, index) => {
-        return (
-          <Row key={index} className="mb-3">
-            <Col md={4} className="d-flex align-items-center">
-              {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
-            </Col>
-            <Col
-              md={2}
-              style={{
-                marginBotton: "10px",
-              }}
-            >
-              <Form.Select
-                aria-label="Select operator"
-                value={input.operator}
-                onChange={(e) =>
-                  handleInputChange(index, "operator", e.target.value)
-                }
-              >
-                <option value="gte">&ge;</option>
-                <option value="lte">&le;</option>
-                <option value="term">=</option>
-              </Form.Select>
-            </Col>
-            <Col md={6}>
-              <FormControl
-                className="w-100"
-                type="number"
+      {inputs
+        .sort((a, b) => a.type.localeCompare(b.type))
+        .map((input, index) => {
+          return (
+            <Row key={index} className="mb-3">
+              <Col md={4} className="d-flex align-items-center">
+                {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
+              </Col>
+              <Col
+                md={2}
                 style={{
-                  marginRight: "10px",
+                  marginBotton: "10px",
                 }}
-                placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-                onChange={(e) => {
-                  handleInputChange(index, "value", e.target.value);
-                }}
-                value={input.value}
-              />
-            </Col>
-          </Row>
-        );
-      })}
+              >
+                <Form.Select
+                  aria-label="Select operator"
+                  value={input.operator}
+                  onChange={(e) =>
+                    handleInputChange(index, "operator", e.target.value)
+                  }
+                >
+                  <option value="gte">&ge;</option>
+                  <option value="lte">&le;</option>
+                  <option value="term">=</option>
+                </Form.Select>
+              </Col>
+              <Col md={6}>
+                <FormControl
+                  className="w-100"
+                  type="number"
+                  style={{
+                    marginRight: "10px",
+                  }}
+                  placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
+                  onChange={(e) => {
+                    handleInputChange(index, "value", e.target.value);
+                  }}
+                  value={input.value}
+                />
+              </Col>
+            </Row>
+          );
+        })}
     </Container>
   );
 });
