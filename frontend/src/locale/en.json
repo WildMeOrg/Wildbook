@@ -354,6 +354,7 @@
     "FILTER_BEST_ESTIMATE_INDIVIDUALS" : "Best Estimate Individuals",
     "FILTER_INDIVIDUAL_SEX" : "Individual Sex",
     "FILTER_INDIVIDUAL_TAXONOMY" : "Individual Taxonomy",
+    "FILTER_NOTICEABLE_SCARRING" : "Noticeable Scarring",
     "LATITUDE" : "Latitude",
     "LONGITUDE" : "Longitude",
     "BEARING" : "Bearing",

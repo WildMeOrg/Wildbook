@@ -5,6 +5,7 @@ import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import DynamicInputs from "../Form/DynamicInputs";
 import { FormLabel, FormGroup } from "react-bootstrap";
 import FormMeasurements from "../Form/FormMeasurements";
+import FormGroupText from "../Form/FormGroupText";
 
 export default function ObservationAttributeFilter({ data, store }) {
   const sexOptions =
@@ -74,6 +75,17 @@ export default function ObservationAttributeFilter({ data, store }) {
         filterKey="Sex"
         store={store}
       />
+
+      <FormGroupText
+        label="FILTER_NOTICEABLE_SCARRING"
+        noDesc={true}
+        term="match"
+        field="distinguishingScar"
+        filterId={"distinguishingScar"}
+        filterKey={"Noticeable Scarring"}
+        store={store}
+      />
+
       <FormGroupMultiSelect
         isMulti={true}
         label="FILTER_LIFE_STAGE"
@@ -112,7 +124,7 @@ export default function ObservationAttributeFilter({ data, store }) {
           <FormattedMessage id="FILTER_OBSERVATION_SEARCH" />
         </FormLabel>
 
-        <DynamicInputs store={store}/>
+        <DynamicInputs store={store} />
       </FormGroup>
 
       <FormGroupMultiSelect
