@@ -246,7 +246,13 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("+ ERROR: detection queue startup exception: " + ex.toString());
         }
-        if ((queue == null) || (queueCallback == null) || (detectionQ == null)) {
+        Queue acmidQ = null;
+        try {
+        	acmidQ = QueueUtil.getBest(context, "acmid");
+        } catch (IOException ex) {
+            System.out.println("+ ERROR: acmID queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null) || (detectionQ == null) || (acmidQ == null)) {
             System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
         }
@@ -279,6 +285,16 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() FAILED on " +
                 detectionQ.toString() + ": " + iox.toString());
+        }
+        IAMessageHandler qh4 = new IAMessageHandler();
+        try {
+            acmidQ.consume(qh4);
+            System.out.println(
+                "+ StartupWildbook.startIAQueues() acmidQ.consume() started on " +
+                acmidQ.toString());
+        } catch (IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() acmidQ.consume() FAILED on " +
+                acmidQ.toString() + ": " + iox.toString());
         }
     }
 

@@ -568,6 +568,13 @@ public class IAGateway extends HttpServlet {
         getDetectionQueue(context).publish(content);
         return true;
     }
+    
+    public static boolean addToACMIDQueue(String context, String content)
+    throws IOException {
+        System.out.println("IAGateway.addToACMIDQueue() publishing: " + content);
+        getACMIDQueue(context).publish(content);
+        return true;
+    }
 
     public static Queue getIAQueue(String context)
     throws IOException {
@@ -578,6 +585,12 @@ public class IAGateway extends HttpServlet {
     public static Queue getDetectionQueue(String context)
     throws IOException {
         detectionQueue = QueueUtil.getBest(context, "detection");
+        return detectionQueue;
+    }
+    
+    public static Queue getACMIDQueue(String context)
+    throws IOException {
+        detectionQueue = QueueUtil.getBest(context, "acmid");
         return detectionQueue;
     }
 
