@@ -81,13 +81,7 @@ try{
             <a href="submit.jsp">
                 <button class="large"><%=props.getProperty("buttonReport")%><span class="button-icon" aria-hidden="true"></button>
             </a>
-            <br>
-            <% if (CommonConfiguration.allowAdoptions(context)) { %>
-	            <a href="adoptananimal.jsp">
-	                <button class="large heroBtn">Adopt a Manta<span class="button-icon" aria-hidden="true"></button>
-	            </a>
-	            <br>
-            <% } %>
+
         </div>
 
 	</div>
@@ -348,51 +342,6 @@ try{
         <h2 class="section-header"><%=props.getProperty("help-title")%></h2>
         <p class="lead text-center"><%=props.getProperty("help-text")%></p>
 
-		<% if (CommonConfiguration.allowAdoptions(context)) { %>
-        <section class="adopt-section row">
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase"><%=props.getProperty("help-adopt-title")%></h3>
-                <ul>
-                    <li><%=props.getProperty("help-adopt-text1")%></li>
-                    <li><%=props.getProperty("help-adopt-text2")%></li>
-                    <li><%=props.getProperty("help-adopt-text3")%></li>
-                </ul>
-                <a href="adoptananimal.jsp" title="<%=props.getProperty("help-adopt-linkText")%>"><%=props.getProperty("help-adopt-linkText")%></a>
-            </div>
-            <%
-            //myShepherd.beginDBTransaction();
-            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-            if(adopt!=null){
-            %>
-            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-	                <div class="focusbox-inner" style="overflow: hidden;">
-	                	<%
-	                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-
-	                	%>
-	                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
-	                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-	                    <%
-	                    if(adopt.getAdopterQuote()!=null){
-	                    %>
-		                    <blockquote>
-		                        <%=adopt.getAdopterQuote() %>
-		                    </blockquote>
-	                    <%
-	                    }
-	                    %>
-	                </div>
-	            </div>
-
-            <%
-			}
-            //myShepherd.rollbackDBTransaction();
-            %>
-
-
-        </section>
-        <% } %>
-        <hr />
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3><%=props.getProperty("help-donate-title")%></h3>
