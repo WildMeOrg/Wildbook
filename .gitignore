@@ -30,6 +30,7 @@ src/main/caribwhale_data_dir
 /node_modules
 .vscode/
 *.swp
+/src/jsp/
 
 src/main/webapp/javascript/dev/MarkedIndividual.json
 src/main/webapp/javascript/dev/Relationship.json
@@ -44,3 +45,5 @@ catalina.base_IS_UNDEFINED
 /frontend/.env
 /frontend/build
 /frontend/.env
+/frontend/src/serviceWorkerRegistration.js
+/frontend/src/serviceWorker.js

@@ -1,26 +1,37 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import UnauthenticatedSwitch from "./UnAuthenticatedSwitch";
 import AuthenticatedSwitch from "./AuthenticatedSwitch";
 import axios from "axios";
 import AuthContext from "./AuthProvider";
 import getMergeNotifications from "./models/notifications/getMergeNotifications";
 import getCollaborationNotifications from "./models/notifications/getCollaborationNotifications";
-import NotFound from "./pages/errorPages/NotFound";
-import ServerError from "./pages/errorPages/ServerError";
 import LoadingScreen from "./components/LoadingScreen";
+import GoogleTagManager from "./GoogleTagManager";
+import Cookies from "js-cookie";
+import "./css/scrollBar.css";
+import SessionWarning from "./components/SessionWarning";
+import {
+  sessionWarningTime,
+  sessionCountdownTime,
+} from "./constants/sessionWarning";
+import useGetSiteSettings from "./models/useGetSiteSettings";
+import useDocumentTitle from "./hooks/useDocumentTitle";
 
 export default function FrontDesk() {
+  useDocumentTitle();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [error, setError] = useState();
   const [collaborationTitle, setCollaborationTitle] = useState();
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
-  const [showAlert, setShowAlert] = useState(true);
+  const [showAlert, setShowAlert] = useState(() =>
+    Cookies.get("showAlert") === "false" ? false : true,
+  );
   const [loading, setLoading] = useState(true);
-
+  const { data } = useGetSiteSettings();
+  const showclassicsubmit = data?.showClassicSubmit;
+  const showClassicEncounterSearch = data?.showClassicEncounters;
   const checkLoginStatus = () => {
-    console.log("Polling API...");
     axios
       .head("/api/v3/user")
       .then((response) => {
@@ -31,7 +42,6 @@ export default function FrontDesk() {
         console.log("Error", error);
         setLoading(false);
         setIsLoggedIn(false);
-        setError(error.response.status);
       });
   };
 
@@ -47,7 +57,6 @@ export default function FrontDesk() {
   };
 
   useEffect(() => {
-    getAllNotifications();
     checkLoginStatus();
     const intervalId = setInterval(() => {
       checkLoginStatus();
@@ -55,6 +64,12 @@ export default function FrontDesk() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      getAllNotifications();
+    }
+  }, [isLoggedIn]);
 
   if (loading) return <LoadingScreen />;
 
@@ -71,9 +86,16 @@ export default function FrontDesk() {
           getAllNotifications,
         }}
       >
+        <GoogleTagManager />
+        <SessionWarning
+          sessionWarningTime={sessionWarningTime}
+          sessionCountdownTime={sessionCountdownTime}
+        />
         <AuthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
+          showclassicsubmit={showclassicsubmit}
+          showClassicEncounterSearch={showClassicEncounterSearch}
         />
       </AuthContext.Provider>
     );
@@ -81,10 +103,18 @@ export default function FrontDesk() {
 
   if (!isLoggedIn) {
     return (
-      <UnauthenticatedSwitch
-        showAlert={showAlert}
-        setShowAlert={setShowAlert}
-      />
+      <AuthContext.Provider
+        value={{
+          isLoggedIn,
+        }}
+      >
+        <GoogleTagManager />
+        <UnauthenticatedSwitch
+          showAlert={showAlert}
+          setShowAlert={setShowAlert}
+          showclassicsubmit={showclassicsubmit}
+        />
+      </AuthContext.Provider>
     );
   }
 

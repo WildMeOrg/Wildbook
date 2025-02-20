@@ -1,0 +1,403 @@
+/* .navbar .dropdown-menu {
+  font-size: 16px;
+  background-color: white;
+} */
+
+.navbar .dropdown-toggle {
+  color: white !important;
+  font-size: 16px !important;
+  white-space: nowrap;
+}
+
+.navbar-collapse {
+  display: none !important;
+  justify-content: center;
+}
+
+.container {
+  position: relative;
+}
+
+.navbar-nav {
+  display: flex;
+  /* padding-left: 20px;
+  padding-right: 50px;     */
+  flex-grow: 1;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.navbar-nav>li {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.navbar .navbar-nav>li>a:hover {
+  background-color: inherit;
+  border-bottom: 2px solid white;
+}
+
+.navbar .navbar-nav>li>a {
+  border-bottom: 2px solid transparent;
+}
+
+.navbar .navbar-nav .dropdown-menu>li>a {
+  font-weight: normal;
+}
+
+.navbar .dropdown-menu>li>a:hover {
+  background-color: #CCF0FF !important;
+  box-sizing: border-box;
+  background-image: none;
+}
+
+/* .navbar .navbar-nav .dropdown-menu > li:hover{
+  background-color: red !important; 
+  border-bottom: 2px solid green; 
+  box-sizing: border-box;
+} */
+
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+}
+
+.dropdown-submenu:hover .dropdown-menu {
+  display: block;
+}
+
+.custom-select-wrapper {
+  position: relative;
+  width: 65px;
+  height: 35px;
+  border-radius: 30px;
+  background-color: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.custom-select {
+  position: relative;
+  cursor: pointer;
+}
+
+.custom-select-selected {
+  margin-top: 6px;
+  width: 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.selected-item {
+  /* margin-top: 5px; */
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+}
+
+.custom-select-items {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 99;
+  width: 150px;
+  border: 1px solid #ccc;
+  background: white;
+  color: black;
+  padding: 10px;
+  border-radius: 3px;
+  /* display: none; */
+}
+
+.custom-select-items div {
+  /* border-color: red; */
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  padding-top: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+.profile-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-size: cover;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  top: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 3px;
+  display: none;
+  position: absolute;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.profile-wrapper {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  margin-left: 35px;
+}
+
+.profile-wrapper:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu:hover {
+  display: block;
+}
+
+.dropdown-menu li a {
+  display: block;
+  padding: 8px;
+  text-decoration: none;
+  color: black;
+  background-color: white;
+}
+
+.dropdown-menu li a:hover {
+  background-color: #f0f0f0;
+}
+
+.secondary-nav {
+  display: flex;
+  flex-direction: row;
+}
+
+.site-name {
+  /* width: 250px; */
+  /* height: 100%; */
+  max-height: 60px;
+  margin-right: 60px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.nav-brand {
+  width: 100px;
+  height: 50px;
+  display: block !important;
+  background: url(../cust/mantamatcher/img/flukebook_logo_white.svg) no-repeat right center; 
+  background-size: contain; 
+}
+
+.site-name:hover {
+  text-decoration: none;
+}
+
+.search-and-secondary-wrapper {
+  margin-left: 50px;
+  margin-bottom: 0 !important;
+  display: flex;
+  flex-direction: row !important;
+  align-items: flex-end;
+  position: relative;
+}
+
+
+.header-font {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-weight: 400;
+}
+
+/* General styles for the header */
+.page-header {
+  padding: 0;
+}
+
+.navbar {
+  background-color: #303336;
+}
+
+.navbar-brand,
+.site-name,
+.search-and-secondary-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  max-height: 50px;
+}
+
+.site-name {
+  color: white;
+  font-size: 1.5em;
+  margin-left: 10px;
+}
+
+.navbar-brand,
+.site-name,
+.search-and-secondary-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  max-height: 50px;
+}
+
+.site-name {
+  color: white;
+  font-size: 1.5em;
+  /* margin-left: 10px; */
+}
+
+.navbar-header {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  justify-content: space-between;
+  /* width: 80%; */
+}
+
+/* .nav-brand img {
+  max-width: none !important;
+} */
+
+/* Hide the menu toggle button by default */
+/* .navbar-toggle {
+  display: none;
+} */
+
+/* Dropdown menus */
+
+
+/* Notifications and profile icon */
+/* #notifications svg, .profile-icon {
+  fill: white;
+} */
+/* 
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  background-size: cover;
+  border-radius: 50%;
+  margin-left: 10px;
+} */
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+
+  .site-name {
+    margin-right: 40px;
+  }
+
+  .navbar-toggle {
+    display: block;
+    margin-left: 20% !important;
+  }
+
+  .navbar-collapse {
+    display: none !important;
+  }
+
+  .navbar-collapse.collapse.in {
+    display: block !important;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    background-color: rgba(48, 51, 54, 0.9);
+    width: 100vw;
+
+  }
+
+
+  .nav-bar-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    height: 60px;
+  }
+
+  .navbar-nav {
+    width: 100%;
+  }
+
+  .navbar-nav>li {
+    width: 100%;
+  }
+
+  .navbar-nav>li>a {
+    width: 100%;
+    text-align: left;
+  }
+
+  .dropdown-menu {
+    position: static;
+    float: none;
+    width: 100%;
+    background-color: rgba(48, 51, 54, 0.9);
+    border: none;
+    box-shadow: none;
+  }
+
+  .profile-wrapper .dropdown-menu {
+    position: absolute;
+    top: 120%;
+    left: -300%;
+    background-color: rgba(48, 51, 54, 0.9);
+  }
+
+  .navbar-nav {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+  }
+
+  .navbar-nav>.dropdown>.dropdown-menu {
+    background-color: rgba(48, 51, 54, 0.9);
+  }
+
+  .dropdown-menu li a {
+    background-color: rgba(48, 51, 54, 0.9);
+    color: white !important;
+  }
+
+  .navbar .navbar-nav>li>a:hover {
+    border-bottom: none;
+  }
+
+}
+
+@media (min-width: 768px) and (max-width: 1200px) {
+  .container {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .site-name {
+    margin-right: 10px;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding-left: 5px;
+  }
+
+
+}

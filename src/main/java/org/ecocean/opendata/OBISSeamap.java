@@ -32,7 +32,6 @@ public class OBISSeamap extends Share {
         // do these once to get into cache
         getCollaborationUser();
         getShareAll();
-        // TODO support organizationId (when Organization makes it to master!)
     }
 
     public void generate()
@@ -195,7 +194,7 @@ public class OBISSeamap extends Share {
         fields.add(forceString(enc.getIndividualID()));
         fields.add(forceString(enc.getSex()));
         fields.add(forceString(enc.getLifeStage()));
-        //////fields.add("1");  //for encounter, always just one individual
+        // fields.add("1");  //for encounter, always just one individual
         ArrayList<MediaAsset> mas = enc.getMedia();
         if ((mas == null) || (mas.size() < 1)) {
             fields.add("");

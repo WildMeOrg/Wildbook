@@ -215,6 +215,15 @@ public class LocationID {
         return null;
     }
 
+    public static boolean isValidLocationID(String locationID) {
+        return isValidLocationID(locationID, null);
+    }
+
+    public static boolean isValidLocationID(String locationID, String qualifier) {
+        JSONObject j = recurseToFindID(locationID, getLocationIDStructure(qualifier));
+        return (j != null);
+    }
+
     public static String getPrefixForLocationID(String locationID, String qualifier) { // now a wrapper method
         if (locationID == null) return ""; // "" here for improved cosmetics on front end?
         String locPrefix = "";
@@ -261,7 +270,7 @@ public class LocationID {
     /*
      * Starting with a childID, get the IDs of its root parent all the way down to the child ID
      * @childLocationID - dig for a child with this @id
-     * @qualifier to use in the digging (e.g., to define user or org value, such as use the 'indocet' qualifier)
+     * @qualifier to use in the digging (e.g., to define user or org value)
      * @return a List of Strings of the lineage of the child ID, starting with its highest parent down to the ID itself.
      */
     public static List<String> getIDForChildAndParents(String childLocationIDToFind,
@@ -329,8 +338,8 @@ public class LocationID {
     /*
      * Return an HTML selector of hierarchical locationIDs with indenting
      */
-    public static String getHTMLSelector(boolean multiselect, String selectedID, String qualifier,
-        String htmlID, String htmlName, String htmlClass) {
+    public static String getHTMLSelector(boolean multiselect, List<String> selectedIDs,
+        String qualifier, String htmlID, String htmlName, String htmlClass) {
         String multiselector = "";
 
         if (multiselect) multiselector = " multiple=\"multiple\"";
@@ -338,14 +347,22 @@ public class LocationID {
             htmlName + "\" id=\"" + htmlID + "\" class=\"" + htmlClass + "\" " + multiselector +
             ">\n\r<option value=\"\"></option>\n\r");
 
-        createSelectorOptions(getLocationIDStructure(qualifier), selector, 0, selectedID);
+        createSelectorOptions(getLocationIDStructure(qualifier), selector, 0, selectedIDs);
 
         selector.append("</select>\n\r");
         return selector.toString();
     }
 
+    public static String getHTMLSelector(boolean multiselect, String selectedID, String qualifier,
+        String htmlID, String htmlName, String htmlClass) {
+        ArrayList<String> locationIDs = new ArrayList<String>();
+
+        locationIDs.add(selectedID);
+        return getHTMLSelector(multiselect, locationIDs, qualifier, htmlID, htmlName, htmlClass);
+    }
+
     private static void createSelectorOptions(JSONObject jsonobj, StringBuffer selector,
-        int nestingLevel, String selectedID) {
+        int nestingLevel, List<String> selectedIDs) {
         int localNestingLevel = nestingLevel;
         String selected = "";
         String spacing = "";
@@ -353,7 +370,7 @@ public class LocationID {
         for (int i = 0; i < localNestingLevel; i++) { spacing += "&nbsp;&nbsp;&nbsp;"; }
         // see if we can add this item to the list
         try {
-            if (selectedID != null && jsonobj.getString("id").equals(selectedID))
+            if (selectedIDs != null && selectedIDs.contains(jsonobj.getString("id")))
                 selected = " selected=\"selected\"";
             selector.append("<option value=\"" + jsonobj.getString("id") + "\" " + selected + ">" +
                 spacing + jsonobj.getString("name") + "</option>\n\r");
@@ -365,7 +382,7 @@ public class LocationID {
             int numLocs = locs.length();
             for (int i = 0; i < numLocs; i++) {
                 JSONObject loc = locs.getJSONObject(i);
-                createSelectorOptions(loc, selector, localNestingLevel, selectedID);
+                createSelectorOptions(loc, selector, localNestingLevel, selectedIDs);
             }
         } catch (JSONException e) {}
     }
