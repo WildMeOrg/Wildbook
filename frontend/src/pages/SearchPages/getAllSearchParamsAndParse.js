@@ -4,7 +4,6 @@ const helperFunction = (
   setFilterPanel,
   setTempFormFilters = () => {},
 ) => {
-  console.log("helperFunction -> searchParams1", searchParams);
   const params = Object.fromEntries(searchParams.entries()) || {};
   if (Object.keys(params).length === 0) {
     return;
