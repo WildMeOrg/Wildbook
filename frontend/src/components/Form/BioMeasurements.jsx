@@ -21,7 +21,10 @@ const FormMeasurements = observer(({ data, filterId, store }) => {
 
     setInputs(updatedInputs);
     const id = `${filterId}.${updatedInputs[index].type}`;
-    if (field === "value" || field === "operator") {
+
+    if (field === "operator") {
+      setInputs(updatedInputs);
+    } else if (field === "value") {
       if (value !== "") {
         updateQuery(updatedInputs);
       } else {

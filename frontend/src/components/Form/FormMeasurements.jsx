@@ -69,12 +69,22 @@ function FormMeasurements({ data, field, filterId, store }) {
       if (i === index) {
         return { ...input, [field]: value };
       }
-
       return input;
     });
+
     setInputs(updatedInputs);
     const id = `${filterId}.${updatedInputs[index].type}`;
-    if (field === "value" || field === "operator") {
+    // if (field === "value" || field === "operator") {
+    //   if (value !== "") {
+    //     console.log("1",updatedInputs);
+    //     updateQuery(updatedInputs);
+    //   } else {console.log("2",updatedInputs);
+    //     store.removeFilter(id);
+    //   }
+    // }
+    if (field === "operator") {
+      setInputs(updatedInputs);
+    } else if (field === "value") {
       if (value !== "") {
         updateQuery(updatedInputs);
       } else {
