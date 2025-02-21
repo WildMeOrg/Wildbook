@@ -26,8 +26,7 @@ export default function AndSelector({
   value,
 }) {
   const valuesSet = new Set(value);
-  const selectedOptions = options.filter(item => valuesSet.has(item.value));
-  console.log("selectedOptions", selectedOptions);
+  const selectedOptions = options.filter((item) => valuesSet.has(item.value));
 
   const handleChange = (selected) => {
     store.removeFilterByFilterKey(filterKey);
