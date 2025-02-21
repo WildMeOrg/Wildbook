@@ -2,12 +2,9 @@ import React from "react";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
-import FormGroupText from "../Form/FormGroupText";
+import SubmitterFilter from "./SubmitterFilter";
 
-export default function MetadataFilter({
-  data,
-  store
-}) {
+export default function MetadataFilter({ data, store }) {
   const encounterStatusOptions =
     data?.encounterState?.map((item) => {
       return {
@@ -61,15 +58,8 @@ export default function MetadataFilter({
         filterKey={"Encounter State"}
         store={store}
       />
-      <FormGroupText
-        label="FILTER_SUBMITTER"
-        noDesc={true}
-        field="submitters"
-        term="match"
-        filterId="submitters"
-        filterKey={"Submitter, Photographer, or Email Address"}
-        store={store}
-      />
+
+      <SubmitterFilter store={store} />
 
       <FormGroupMultiSelect
         isMulti={true}
