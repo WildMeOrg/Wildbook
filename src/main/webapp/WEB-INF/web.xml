@@ -480,7 +480,7 @@
 		  /surveys/surveyMapEmbed.jsp = authc
 		  /obrowse.jsp = authc
 
-
+		/EncounterAddMantaPattern = authc, roles[researcher]
 			</param-value>
         </init-param>
     </filter>
@@ -2864,5 +2864,15 @@
     <servlet-name>EncounterRemoveAnnotation</servlet-name>
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
+  
+        <servlet>
+    <servlet-name>EncounterAddMantaPattern</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterAddMantaPattern</servlet-class>
+  </servlet>
+
+        <servlet-mapping>
+      	<servlet-name>EncounterAddMantaPattern</servlet-name>
+      	<url-pattern>/EncounterAddMantaPattern</url-pattern>
+	</servlet-mapping>
 
 </web-app>
