@@ -46,8 +46,12 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
             
         } catch (Exception e) {
             this.setTaskIncomplete();
+            //rollback this Shepherd to unwind this task and re-open the Shepherd in case it is being reused by a subsequent Task
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
             e.printStackTrace();
-        } 
+        }
+
     }
 
     private void mergeIndividuals(MarkedIndividual primaryIndividual,
