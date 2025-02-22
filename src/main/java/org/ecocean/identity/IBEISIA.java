@@ -1510,6 +1510,12 @@ public class IBEISIA {
                		if (taskParameters == null) taskParameters = new JSONObject();
                		JSONObject tp = new JSONObject();
                     JSONObject mf = new JSONObject();
+            		Encounter enc=myShepherd.getEncounter(encUUID);
+                    if(enc!=null && enc.getLocationID()!=null) {
+                    	List<String> locationIDs = new ArrayList<String>(); 
+                    	locationIDs.add(enc.getLocationID());
+                    	mf.put("locationIds",locationIDs);
+                    }
                     taskParameters.put("matchingSetFilter", mf);
             		
                 	Task subParentTask = new Task();  
