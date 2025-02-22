@@ -621,7 +621,11 @@ System.out.println("params.get(\"path\") -> " + params.get("path"));
                       String speciesString = enc.getTaxonomyString();
                       Annotation ann = new Annotation(speciesString, crMa);
                       ann.setMatchAgainst(true);
+                      
+                      
                       String iaClass = "mantaCR"; // should we change this?
+                      if(enc.getGenus()!=null && enc.getGenus().equals("Mobula"))iaClass="manta_ray_giant";
+                      
                       ann.setIAClass(iaClass);
                       ann.setViewpoint("down");
                       enc.addAnnotation(ann);
