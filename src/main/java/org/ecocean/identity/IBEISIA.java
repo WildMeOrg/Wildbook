@@ -23,6 +23,7 @@ import org.ecocean.Taxonomy;
 import org.ecocean.TwitterBot;
 import org.ecocean.TwitterUtil;
 import org.ecocean.Util;
+import org.ecocean.LocationID;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1512,9 +1513,9 @@ public class IBEISIA {
                     JSONObject mf = new JSONObject();
             		Encounter enc=myShepherd.getEncounter(encUUID);
                     if(enc!=null && enc.getLocationID()!=null) {
-                    	List<String> locationIDs = new ArrayList<String>(); 
-                    	locationIDs.add(enc.getLocationID());
-                    	mf.put("locationIds",locationIDs);
+                    	ArrayList<String> locationIDs = new ArrayList<String>(); 
+                    	List<String> matchTheseLocationIDs = LocationID.getIDForParentAndChildren(enc.getLocationID(), locationIDs,null); 
+                    	mf.put("locationIds",matchTheseLocationIDs);
                     }
                     taskParameters.put("matchingSetFilter", mf);
             		
