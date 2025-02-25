@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 
 import java.util.concurrent.Executors;
@@ -24,6 +23,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.Membership;
 import org.ecocean.social.Relationship;
 import org.ecocean.social.SocialUnit;

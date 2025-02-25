@@ -2,10 +2,9 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 java.util.Iterator,
-org.ecocean.*
+org.ecocean.*,
+org.ecocean.shepherd.core.*
 "%>
-<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
-
 
 <%
 String indexName = request.getParameter("indexName");
