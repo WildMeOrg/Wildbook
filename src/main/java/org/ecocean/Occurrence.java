@@ -29,7 +29,6 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 
-import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 
 /**

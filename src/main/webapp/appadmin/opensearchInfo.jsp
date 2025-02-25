@@ -7,7 +7,6 @@ org.json.JSONObject,
 org.ecocean.*,
 org.ecocean.shepherd.core.*
 "%>
-<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 
