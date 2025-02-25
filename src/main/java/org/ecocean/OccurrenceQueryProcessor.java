@@ -6,13 +6,13 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.format.*;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;

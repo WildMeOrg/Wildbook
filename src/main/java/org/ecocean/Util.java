@@ -13,6 +13,8 @@ import java.util.Date;
 
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
+import org.ecocean.tag.MetalTag;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,8 +51,6 @@ import java.util.Set;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-
-import org.ecocean.tag.MetalTag;
 
 import com.reijns.I3S.Point2D;
 
