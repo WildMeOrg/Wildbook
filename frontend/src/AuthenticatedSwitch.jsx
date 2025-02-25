@@ -1,19 +1,27 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import NotFound from "./pages/errorPages/NotFound";
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
-import Home from "./pages/Home";
-import Footer from "./components/Footer";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
+import Footer from "./components/Footer";
 import useGetMe from "./models/auth/users/useGetMe";
-import EncounterSearch from "./pages/SearchPages/EncounterSearch";
-import Citation from "./pages/Citation";
-import AdminLogs from "./pages/AdminLogs";
-import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
-import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
-import ProjectList from "./pages/ProjectList";
-import ManualAnnotation from "./pages/ManualAnnotation";
+
+// Lazy load pages
+const Login = lazy(() => import("./pages/Login"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Home = lazy(() => import("./pages/Home"));
+const EncounterSearch = lazy(
+  () => import("./pages/SearchPages/EncounterSearch"),
+);
+const Citation = lazy(() => import("./pages/Citation"));
+const AdminLogs = lazy(() => import("./pages/AdminLogs"));
+const ReportEncounter = lazy(
+  () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
+);
+const ReportConfirm = lazy(
+  () => import("./pages/ReportsAndManagamentPages/ReportConfirm"),
+);
+const ProjectList = lazy(() => import("./pages/ProjectList"));
+const ManualAnnotation = lazy(() => import("./pages/ManualAnnotation"));
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
@@ -27,6 +35,7 @@ export default function AuthenticatedSwitch({
 
   return (
     <div className="d-flex flex-column min-vh-100">
+      {/* Header */}
       <div
         id="header"
         className="position-fixed top-0 mx-auto w-100"
@@ -44,6 +53,7 @@ export default function AuthenticatedSwitch({
         />
       </div>
 
+      {/* Main Content */}
       <div
         id="main-content"
         className="flex-grow-1 d-flex justify-content-center"
@@ -53,21 +63,22 @@ export default function AuthenticatedSwitch({
           paddingTop: header ? "48px" : "0",
         }}
       >
-        <Routes>
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/citation" element={<Citation />} />
-          <Route path="/projects/overview" element={<ProjectList />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/report" element={<ReportEncounter />} />
-          <Route path="/reportConfirm" element={<ReportConfirm />} />
-          <Route path="/encounter-search" element={<EncounterSearch />} />
-          <Route path="/admin/logs" element={<AdminLogs />} />
-          <Route path="/manual-annotation" element={<ManualAnnotation />} />
-
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound setHeader={setHeader} />} />
-        </Routes>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/citation" element={<Citation />} />
+            <Route path="/projects/overview" element={<ProjectList />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/report" element={<ReportEncounter />} />
+            <Route path="/reportConfirm" element={<ReportConfirm />} />
+            <Route path="/encounter-search" element={<EncounterSearch />} />
+            <Route path="/admin/logs" element={<AdminLogs />} />
+            <Route path="/manual-annotation" element={<ManualAnnotation />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Home />} />
+            <Route path="*" element={<NotFound setHeader={setHeader} />} />
+          </Routes>
+        </Suspense>
       </div>
 
       <Footer />
