@@ -2876,6 +2876,8 @@ public class Shepherd {
         return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
     }
 
+    /*
+    // marked for deletion
     public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) {
         String keywordQueryString = "SELECT FROM org.ecocean.Encounter WHERE genus == '" + genus +
             "' && specificEpithet == '" + specificEpithet + "'";
@@ -2886,7 +2888,10 @@ public class Shepherd {
         samples.closeAll();
         return myArray;
     }
+    */
 
+    /*
+    // marked for deletion
     public ArrayList<Encounter> getAllEncountersForSpeciesWithSpots(String genus,
         String specificEpithet) {
         String keywordQueryString = "SELECT FROM org.ecocean.Encounter WHERE genus == '" + genus +
@@ -2898,7 +2903,10 @@ public class Shepherd {
         samples.closeAll();
         return myArray;
     }
+    */
 
+    /*
+    // marked for deletion
     public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
         String milliString = String.valueOf(millis);
 
@@ -2929,7 +2937,10 @@ public class Shepherd {
             return null;
         }
     }
+    */
 
+    /*
+    // marked for deletion
     public List<Encounter> getEncountersSubmittedDuring(long start, long end) {
         String startStr = String.valueOf(start);
         String endStr = String.valueOf(end);
@@ -2957,7 +2968,10 @@ public class Shepherd {
             "; returning " + encs.size() + " (collection size " + colSize + ")");
         return encs;
     }
+    */
 
+    /*
+    // marked for deletion
     public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
         sd = sd.replace("/", "-");
         sd = sd.replace(".", "-");
@@ -2999,7 +3013,10 @@ public class Shepherd {
             return null;
         }
     }
+    */
 
+    /*
+    // marked for deletion
     public int getNumSinglePhotoVideosForEncounter(String encNum) {
         String filter = "correspondingEncounterNumber == \"" + encNum + "\"";
         Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
@@ -3010,6 +3027,7 @@ public class Shepherd {
         samples.closeAll();
         return numResults;
     }
+    */
 
     public Iterator<Encounter> getAllEncountersNoFilter(String order, String filter2use) {
         String filter = filter2use;
@@ -3026,6 +3044,8 @@ public class Shepherd {
         return it;
     }
 
+    /*
+    // marked for deletion
     public Query getAllEncountersNoFilterReturnQuery(String order, String filter2use) {
         String filter = filter2use;
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -3033,6 +3053,7 @@ public class Shepherd {
 
         return acceptedEncounters;
     }
+    */
 
     public ArrayList<ScheduledIndividualMerge> getAllIncompleteScheduledIndividualMerges() {
         List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter(
@@ -3101,6 +3122,8 @@ public class Shepherd {
      * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
      * @see encounter, java.util.Iterator
      */
+    /*
+    // marked for deletion
     public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
         rejectedEncounters.setFilter("this.state == \"unidentifiable\"");
         Collection c = (Collection)(rejectedEncounters.execute());
@@ -3110,6 +3133,7 @@ public class Shepherd {
         Iterator it = list.iterator();
         return it;
     }
+    */
 
     /**
      * Retrieves all new encounters that are stored in the database but which have been approved for public viewing in the visual database
@@ -3117,6 +3141,8 @@ public class Shepherd {
      * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
      * @see encounter, java.util.Iterator
      */
+    /*
+    // marked for deletion
     public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
         Collection c = (Collection)(acceptedEncounters.execute());
         ArrayList list = new ArrayList(c);
@@ -3124,14 +3150,20 @@ public class Shepherd {
 
         return it;
     }
+    */
 
+    /*
+    // marked for deletion
     public Iterator<Encounter> getUnapprovedEncounters(Query unapprovedEncounters, String order) {
         unapprovedEncounters.setOrdering(order);
         Collection c = (Collection)(unapprovedEncounters.execute());
         Iterator it = c.iterator();
         return it;
     }
+    */
 
+    /*
+    // marked for deletion
     // Returns encounters submitted by the specified user
     public Iterator<Encounter> getUserEncounters(Query userEncounters, String user) {
         Collection c = (Collection)(userEncounters.execute());
@@ -3140,13 +3172,17 @@ public class Shepherd {
 
         return it;
     }
+    */
 
+    /*
+    // marked for deletion
     public Iterator<Encounter> getSortedUserEncounters(Query userEncounters, String order2) {
         userEncounters.setOrdering(order2);
         Collection c = (Collection)(userEncounters.execute());
         Iterator it = c.iterator();
         return it;
     }
+    */
 
     /**
      * Retrieves all encounters that are stored in the database but which have been rejected for the visual database in the order identified by the
@@ -3155,6 +3191,8 @@ public class Shepherd {
      * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library in the String order
      * @see encounter, java.util.Iterator
      */
+    /*
+    // marked for deletion
     public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters,
         String order) {
         unacceptedEncounters.setOrdering(order);
@@ -3165,6 +3203,7 @@ public class Shepherd {
         Iterator it = list.iterator();
         return it;
     }
+    */
 
     public MarkedIndividual getMarkedIndividual(String id) {
         MarkedIndividual tempShark = null;
@@ -3648,6 +3687,8 @@ public class Shepherd {
         }
     }
 
+    /*
+    // marked for deletion
     public int getNumApprovedEncounters() {
         pm.getFetchPlan().setGroup("count");
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -3664,6 +3705,7 @@ public class Shepherd {
             return 0;
         }
     }
+    */
 
     public int getNumEncounters(String locationCode) {
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -3699,6 +3741,8 @@ public class Shepherd {
         }
     }
 
+    /*
+    // marked for deletion
     public int getNumUnidentifiableEncountersForMarkedIndividual(String individual) {
         Extent encClass = pm.getExtent(Encounter.class, true);
         String filter = "this.state == \"unidentifiable\" && this.individualID == \"" + individual +
@@ -3717,6 +3761,7 @@ public class Shepherd {
             return 0;
         }
     }
+    */
 
     public int getNumUnidentifiableEncounters() {
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -3780,6 +3825,8 @@ public class Shepherd {
         }
     }
 
+    /*
+    // marked for deletion
     public int getNumRejectedEncounters() {
         Extent allEncounters = null;
         String filter = "this.state == \"unidentifiable\"";
@@ -3799,7 +3846,10 @@ public class Shepherd {
             return 0;
         }
     }
+    */
 
+    /*
+    // marked for deletion
     public int getNumUnapprovedEncounters() {
         String filter = "this.state == \"unapproved\"";
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -3818,7 +3868,10 @@ public class Shepherd {
             return 0;
         }
     }
+    */
 
+    /*
+    // marked for deletion
     public int getNumUserEncounters(String user) {
         String filter = "this.submitterID == \"" + user + "\"";
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -3835,6 +3888,7 @@ public class Shepherd {
             return 0;
         }
     }
+    */
 
     /**
      * Returns the <i>i</i>th numbered encounter for a shark
@@ -4630,6 +4684,8 @@ public class Shepherd {
         return null;
     }
 
+    /*
+    // marked for deletion
     public List<Encounter> getEncountersByAlternateID(String altID) {
         String filter = "this.otherCatalogNumbers.toLowerCase() == \"" + altID.toLowerCase() + "\"";
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -4640,6 +4696,7 @@ public class Shepherd {
         acceptedEncounters.closeAll();
         return al;
     }
+    */
 
     public List<Encounter> getEncountersByField(String fieldName, String fieldVal) {
         String filter = "this." + fieldName + " == \"" + fieldVal + "\"";
@@ -4652,6 +4709,8 @@ public class Shepherd {
         return al;
     }
 
+    /*
+    //marked for deletion
     public List<Encounter> getEncountersByFieldSubstring(String fieldName, String fieldVal) {
         String filter = "this." + fieldName + ".indexOf('" + fieldVal + "') != -1";
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -4662,6 +4721,7 @@ public class Shepherd {
         acceptedEncounters.closeAll();
         return al;
     }
+    */
 
     public Encounter getEncounterByIndividualAndOccurrence(String indID, String occID) {
         List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
@@ -4670,6 +4730,8 @@ public class Shepherd {
         return null;
     }
 
+    /*
+    // marked for deletion
     public List<Encounter> getEncountersByIndividualAndOccurrence(String indID, String occID) {
         String filter = "this.individual.individualID == \"" + indID +
             "\" && this.occurrenceID == \"" + occID + "\"";
@@ -4681,7 +4743,10 @@ public class Shepherd {
         acceptedEncounters.closeAll();
         return al;
     }
+    */
 
+    /*
+    // marked for deletion
     public Encounter resolveEncounterDuplicates(String indID, String occID) {
         List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
 
@@ -4694,6 +4759,7 @@ public class Shepherd {
         }
         return keeperEnc;
     }
+    */
 
     public List<MarkedIndividual> getMarkedIndividualsByNickname(String altID) {
         String filter = "this.nickName.toLowerCase() == \"" + altID.toLowerCase() + "\"";
@@ -4939,9 +5005,12 @@ public class Shepherd {
         return al;
     }
 
+    /*
+    // marked for deletion
     public List<String> getAllEncounterStrVals(String fieldName) {
         return getAllStrVals(Encounter.class, fieldName);
     }
+    */
 
     public List<String> getAllStrVals(Class fromClass, String fieldName) {
         Query q = pm.newQuery(fromClass);
@@ -5029,6 +5098,8 @@ public class Shepherd {
         return svsIt;
     }
 
+    /*
+    // marked for deletion
     public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
         String filter = "((this.hashedSubmitterEmail.indexOf('" + hashedEmail +
             "') != -1)||(this.hashedPhotographerEmail.indexOf('" + hashedEmail +
@@ -5041,6 +5112,7 @@ public class Shepherd {
         acceptedEncounters.closeAll();
         return al;
     }
+    */
 
     public List<String> getAllPatterningCodes() {
         Query q = pm.newQuery(Encounter.class);
@@ -5196,6 +5268,8 @@ public class Shepherd {
         } else { return null; }
     }
 
+    /*
+    // marked for deletion
     public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
         String filter = "correspondingEncounterNumber == \"" + encNum + "\"";
         Extent encClass = pm.getExtent(Measurement.class, true);
@@ -5208,6 +5282,7 @@ public class Shepherd {
             return (al);
         } else { return null; }
     }
+    */
 
     public ArrayList<ScanTask> getAllScanTasksForUser(String user) {
         String filter = "submitter == \"" + user + "\"";
