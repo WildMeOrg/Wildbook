@@ -41,7 +41,7 @@ context=ServletUtilities.getContext(request);
 		        log.info(request.getRemoteUser()+" logged out.");
 	
 	    %>
-        <p><a href="<%= request.getContextPath() %>/react/login/"><%=props.getProperty("clickHere") %></a></p>
+        <p><a href="<%= request.getContextPath() %>/login.jsp"><%=props.getProperty("clickHere") %></a></p>
         
 
         <p>&nbsp;</p>

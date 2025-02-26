@@ -51,7 +51,7 @@
         }
         session.invalidate();
 
-        response.sendRedirect(request.getContextPath() + "/react/login/");
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
 %>
@@ -130,7 +130,7 @@ if(request.getUserPrincipal()!=null){
 
       <script>
         function logoutAndRedirect() {
-            window.location.href = 'header.jsp?action=logout';
+            window.location.href = '/header.jsp?action=logout';
         }
       </script>
 
@@ -633,7 +633,7 @@ if(request.getUserPrincipal()!=null){
                           }
                           else{
                             %>
-                              <a href="<%= request.getContextPath() %>/react/login/" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
+                              <a href="<%= request.getContextPath() %>/login.jsp" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
                         <%
                           }
 
