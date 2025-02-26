@@ -2,88 +2,535 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-
-	{"name": "Africa - All", "id":"Africa", "locationID":[
-
-		{"name": "Africa - South", "id": "Africa - South", "locationID":[
-		
-			{"name": "Great Limpopo TFCA", "id": "Great Limpopo TFCA", "locationID":[]},
-			{"name": "KAZA TFCA", "id": "KAZA TFCA", "locationID":[]},
-
-			{"name": "Angola", "id":"Angola", "locationID":[]},
-			{"name": "Botswana", "id":"Botswana", "locationID":[
-				{"name": "Kgalagadi", "id": "Kgalagadi", "locationID":[]}
-			]},
-			{"name": "Eswatini", "id": "Eswatini", "locationID":[]},
-			{"name": "Lesotho", "id":"Lesotho", "locationID":[]},
-			{"name": "Malawi", "id":"Malawi", "locationID":[]},
-			{"name": "Mozambique", "id":"Mozambique", "locationID":[]},
-			{"name": "Namibia", "id":"Namibia", "locationID":[]},
-			{"name": "South Africa", "id": "South Africa", "locationID":[
-				{"name": "Eastern Cape", "id":"Eastern Cape", "locationID":[]},
-				{"name": "Free State", "id":"Free State", "locationID":[]},
-				{"name": "Gauteng", "id": "Gauteng", "locationID":[]},
-				{"name": "Kwazulu-Natal", "id": "Kwazulu-Natal", "locationID":[]},
-				{"name": "Limpopo","id": "Limpopo", "locationID":[]},
-				{"name": "Lowveld", "id":"Lowveld", "locationID":[]},
-				{"name": "Mpumalanga", "id": "Mpumalanga", "locationID":[]},
-				{"name": "North West","id": "North West", "locationID":[]},
-				{"name": "Northern Cape","id": "Northern Cape", "locationID":[]},
-				{"name": "Western Cape","id": "Western Cape", "locationID":[]}
-
-			]},
-			{"name": "Zambia", "id": "Zambia", "locationID":[]},
-			{"name": "Zimbabwe", "id": "Zimbabwe", "locationID":[]}
-		
-		]},
-
-		{"name": "Africa - East", "id": "Africa - East", "locationID":[
-			{"name": "Burundi", "id": "Burundi", "locationID":[]},
-			{"name": "Djibouti", "id": "Djibouti", "locationID":[]},
-			{"name": "Eritrea", "id":"Eritrea", "locationID":[]},
-			{"name": "Ethiopia", "id": "Ethiopia", "locationID":[]},
-			{"name": "Kenya", "id": "Kenya", "locationID":[]},
-			{"name": "Rwanda", "id": "Rwanda", "locationID":[]},
-			{"name": "Somalia", "id": "Somalia", "locationID":[]},
-			{"name": "Somaliland", "id": "Somaliland", "locationID":[]},
-			{"name": "South Sudan", "id": "South Sudan", "locationID":[]},
-			{"name": "Sudan", "id": "Sudan", "locationID":[]},
-			{"name": "Tanzania", "id": "Tanzania", "locationID":[]},
-			{"name": "Uganda", "id": "Uganda", "locationID":[]}
-
-		]},
-		
-		{"name": "Africa - Central", "id": "Africa - Central", "locationID":[
-			{"name": "Cameroon", "id": "Cameroon", "locationID":[]},
-			{"name": "Chad", "id": "Chad", "locationID":[]},
-			{"name": "Congo", "id": "Congo", "locationID":[]},
-			{"name": "Democratic Republic of the Congo ", "id": "DRC", "locationID":[]},
-			{"name": "Equatorial Guinea", "id": "Equatorial Guinea", "locationID":[]},
-			{"name": "Gabon", "id": "Gabon", "locationID":[]},
-			{"name": "Central African Republic", "id": "CAR", "locationID":[]}
-
-		]},
-
-		{"name": "Africa - West", "id": "Africa - West", "locationID":[
-			{"name": "Benin", "id": "Benin", "locationID":[]},
-			{"name": "Burkina Faso", "id": "Burkina Faso", "locationID":[]},
-			{"name": "Cote d’Ivoire", "id": "Cote d’Ivoire", "locationID":[]},
-			{"name": "Ghana", "id": "Ghana", "locationID":[]},
-			{"name": "Guinea", "id": "Guinea", "locationID":[]},
-			{"name": "Guinea Bissau", "id": "Guinea Bissau", "locationID":[]},
-			{"name": "Liberia", "id": "Liberia", "locationID":[]},
-			{"name": "Nigeria", "id": "Nigeria", "locationID":[]},
-			{"name": "Senegal", "id": "Senegal", "locationID":[]},
-			{"name": "Sierra Leone", "id": "Sierra Leone", "locationID":[]},
-			{"name": "The Gambia", "id": "Gambia", "locationID":[]},
-			{"name": "Togo", "id": "Togo", "locationID":[]}
-
-		]},
-		
-		{"name": "Africa - North", "id": "Africa - North", "locationID":[
-			
-		]}
-
-	]}
+    {
+      "name": "Africa - All",
+      "id": "Africa",
+      "locationID": [
+        {
+          "name": "Africa - South",
+          "id": "Africa - South",
+          "locationID": [
+            {
+              "name": "Great Limpopo TFCA",
+              "id": "Great Limpopo TFCA",
+              "locationID": []
+            },
+            {
+              "name": "KAZA TFCA",
+              "id": "KAZA TFCA",
+              "locationID": []
+            },
+            {
+              "name": "Angola",
+              "id": "Angola",
+              "locationID": []
+            },
+            {
+              "name": "Botswana",
+              "id": "Botswana",
+              "locationID": [
+                {
+                  "name": "Kgalagadi",
+                  "id": "Kgalagadi",
+                  "locationID": []
+                }
+              ]
+            },
+            {
+              "name": "Eswatini",
+              "id": "Eswatini",
+              "locationID": []
+            },
+            {
+              "name": "Lesotho",
+              "id": "Lesotho",
+              "locationID": []
+            },
+            {
+              "name": "Malawi",
+              "id": "Malawi",
+              "locationID": []
+            },
+            {
+              "name": "Mozambique",
+              "id": "Mozambique",
+              "locationID": []
+            },
+            {
+              "name": "Namibia",
+              "id": "Namibia",
+              "locationID": []
+            },
+            {
+              "name": "South Africa",
+              "id": "South Africa",
+              "locationID": [
+                {
+                  "name": "Eastern Cape",
+                  "id": "Eastern Cape",
+                  "locationID": []
+                },
+                {
+                  "name": "Free State",
+                  "id": "Free State",
+                  "locationID": []
+                },
+                {
+                  "name": "Gauteng",
+                  "id": "Gauteng",
+                  "locationID": []
+                },
+                {
+                  "name": "Kwazulu-Natal",
+                  "id": "Kwazulu-Natal",
+                  "locationID": []
+                },
+                {
+                  "name": "Limpopo",
+                  "id": "Limpopo",
+                  "locationID": []
+                },
+                {
+                  "name": "Lowveld",
+                  "id": "Lowveld",
+                  "locationID": []
+                },
+                {
+                  "name": "Mpumalanga",
+                  "id": "Mpumalanga",
+                  "locationID": []
+                },
+                {
+                  "name": "North West",
+                  "id": "North West",
+                  "locationID": []
+                },
+                {
+                  "name": "Northern Cape",
+                  "id": "Northern Cape",
+                  "locationID": []
+                },
+                {
+                  "name": "Western Cape",
+                  "id": "Western Cape",
+                  "locationID": []
+                }
+              ]
+            },
+            {
+              "name": "Zambia",
+              "id": "Zambia",
+              "locationID": []
+            },
+            {
+              "name": "Zimbabwe",
+              "id": "Zimbabwe",
+              "locationID": []
+            }
+          ]
+        },
+        {
+          "name": "Africa - East",
+          "id": "Africa - East",
+          "locationID": [
+            {
+              "name": "Burundi",
+              "id": "Burundi",
+              "locationID": []
+            },
+            {
+              "name": "Djibouti",
+              "id": "Djibouti",
+              "locationID": []
+            },
+            {
+              "name": "Eritrea",
+              "id": "Eritrea",
+              "locationID": []
+            },
+            {
+              "name": "Ethiopia",
+              "id": "Ethiopia",
+              "locationID": []
+            },
+            {
+              "name": "Kenya",
+              "id": "Kenya",
+              "locationID": []
+            },
+            {
+              "name": "Rwanda",
+              "id": "Rwanda",
+              "locationID": []
+            },
+            {
+              "name": "Somalia",
+              "id": "Somalia",
+              "locationID": []
+            },
+            {
+              "name": "Somaliland",
+              "id": "Somaliland",
+              "locationID": []
+            },
+            {
+              "name": "South Sudan",
+              "id": "South Sudan",
+              "locationID": []
+            },
+            {
+              "name": "Sudan",
+              "id": "Sudan",
+              "locationID": []
+            },
+            {
+              "name": "Tanzania",
+              "id": "Tanzania",
+              "locationID": []
+            },
+            {
+              "name": "Uganda",
+              "id": "Uganda",
+              "locationID": []
+            }
+          ]
+        },
+        {
+          "name": "Africa - Central",
+          "id": "Africa - Central",
+          "locationID": [
+            {
+              "name": "Cameroon",
+              "id": "Cameroon",
+              "locationID": []
+            },
+            {
+              "name": "Chad",
+              "id": "Chad",
+              "locationID": []
+            },
+            {
+              "name": "Congo",
+              "id": "Congo",
+              "locationID": []
+            },
+            {
+              "name": "Democratic Republic of the Congo ",
+              "id": "DRC",
+              "locationID": []
+            },
+            {
+              "name": "Equatorial Guinea",
+              "id": "Equatorial Guinea",
+              "locationID": []
+            },
+            {
+              "name": "Gabon",
+              "id": "Gabon",
+              "locationID": []
+            },
+            {
+              "name": "Central African Republic",
+              "id": "CAR",
+              "locationID": []
+            }
+          ]
+        },
+        {
+          "name": "Africa - West",
+          "id": "Africa - West",
+          "locationID": [
+            {
+              "name": "Benin",
+              "id": "Benin",
+              "locationID": []
+            },
+            {
+              "name": "Burkina Faso",
+              "id": "Burkina Faso",
+              "locationID": []
+            },
+            {
+              "name": "Cote d\u2019Ivoire",
+              "id": "Cote d\u2019Ivoire",
+              "locationID": []
+            },
+            {
+              "name": "Ghana",
+              "id": "Ghana",
+              "locationID": []
+            },
+            {
+              "name": "Guinea",
+              "id": "Guinea",
+              "locationID": []
+            },
+            {
+              "name": "Guinea Bissau",
+              "id": "Guinea Bissau",
+              "locationID": []
+            },
+            {
+              "name": "Liberia",
+              "id": "Liberia",
+              "locationID": []
+            },
+            {
+              "name": "Nigeria",
+              "id": "Nigeria",
+              "locationID": []
+            },
+            {
+              "name": "Senegal",
+              "id": "Senegal",
+              "locationID": []
+            },
+            {
+              "name": "Sierra Leone",
+              "id": "Sierra Leone",
+              "locationID": []
+            },
+            {
+              "name": "The Gambia",
+              "id": "Gambia",
+              "locationID": []
+            },
+            {
+              "name": "Togo",
+              "id": "Togo",
+              "locationID": []
+            }
+          ]
+        },
+        {
+          "name": "Africa - North",
+          "id": "Africa - North",
+          "locationID": []
+        }
+      ]
+    },
+    {
+      "name": "Americas - All",
+      "id": "Americas",
+      "locationID": [
+        {
+          "name": "North America",
+          "id": "North America",
+          "locationID": [
+            {
+              "name": "United States",
+              "id": "United States",
+              "locationID": []
+            },
+            {
+              "name": "Canada",
+              "id": "Canada",
+              "locationID": []
+            },
+            {
+              "name": "Mexico",
+              "id": "Mexico",
+              "locationID": [
+                {
+                  "name": "Tamaulipas",
+                  "id": "Tamaulipas",
+                  "locationID": [
+                    {
+                      "name": "San Carlos",
+                      "id": "San Carlos",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Jimenez",
+                      "id": "Jimenez",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Victoria",
+                      "id": "Victoria",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Jaumave",
+                      "id": "Jaumave",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Xicotencatl",
+                      "id": "Xicotencatl",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Mante",
+                      "id": "Mante",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Antiguo Morelos",
+                      "id": "Antiguo Morelos",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Nuevo Morelos",
+                      "id": "Nuevo Morelos",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Altamira",
+                      "id": "Altamira",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Gonzalez",
+                      "id": "Gonzalez",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Aldama",
+                      "id": "Aldama",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Ocampo",
+                      "id": "Ocampo",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Llera",
+                      "id": "Llera",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Soto La Marina",
+                      "id": "Soto La Marina",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Casas",
+                      "id": "Casas",
+                      "locationID": []
+                    },
+                    {
+                      "name": "Gomez Farias",
+                      "id": "Gomez Farias",
+                      "locationID": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Central America",
+          "id": "Central America",
+          "locationID": [
+            {
+              "name": "Guatemala",
+              "id": "Guatemala",
+              "locationID": []
+            },
+            {
+              "name": "Nicaragua",
+              "id": "Nicaragua",
+              "locationID": []
+            },
+            {
+              "name": "Costa Rica",
+              "id": "Costa Rica",
+              "locationID": [
+                {
+                  "name": "Golfo Dulce Forest Reserve",
+                  "id": "Golfo Dulce Forest Reserve",
+                  "locationID": []
+                }
+              ]
+            },
+            {
+              "name": "Panama",
+              "id": "Panama",
+              "locationID": []
+            }
+          ]
+        },
+        {
+          "name": "South America",
+          "id": "South America",
+          "locationID": [
+            {
+              "name": "Argentina",
+              "id": "Argentina",
+              "locationID": []
+            },
+            {
+              "name": "Brazil",
+              "id": "Brazil",
+              "locationID": [
+                {
+                  "name": "Par\u00e1",
+                  "id": "Par\u00e1",
+                  "locationID": []
+                }
+              ]
+            },
+            {
+              "name": "Bolivia",
+              "id": "Bolivia",
+              "locationID": []
+            },
+            {
+              "name": "Chile",
+              "id": "Chile",
+              "locationID": []
+            },
+            {
+              "name": "Colombia",
+              "id": "Colombia",
+              "locationID": []
+            },
+            {
+              "name": "Ecuador",
+              "id": "Ecuador",
+              "locationID": []
+            },
+            {
+              "name": "French Guiana",
+              "id": "French Guiana",
+              "locationID": []
+            },
+            {
+              "name": "Guyana",
+              "id": "Guyana",
+              "locationID": []
+            },
+            {
+              "name": "Paraguay",
+              "id": "Paraguay",
+              "locationID": []
+            },
+            {
+              "name": "Peru",
+              "id": "Peru",
+              "locationID": []
+            },
+            {
+              "name": "Suriname",
+              "id": "Suriname",
+              "locationID": []
+            },
+            {
+              "name": "Uruguay",
+              "id": "Uruguay",
+              "locationID": []
+            },
+            {
+              "name": "Venezuela",
+              "id": "Venezuela",
+              "locationID": []
+            }
+          ]
+        }
+      ]
+    }
   ]
 }
