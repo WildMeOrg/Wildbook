@@ -535,6 +535,34 @@ public class Shepherd {
         return tempEnc;
     }
 
+    public Setting getSetting(String group, String id) {
+        if ((group == null) || (id == null)) return null;
+        Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group + "' && id=='" + id + "'");
+        Setting st = null;
+        Collection results = (Collection)(qry.execute());
+        if (!results.isEmpty()) st = (Setting)results.iterator().next();
+        qry.closeAll();
+        return st;
+    }
+
+    public Setting getOrCreateSetting(String group, String id) {
+        Setting st = getSetting(group, id);
+        if (st != null) return st;
+        st = new Setting(group, id);
+        pm.makePersistent(st);
+        return st;
+    }
+
+    public Object getSettingValue(String group, String id) {
+        Setting st = getSetting(group, id);
+        if (st == null) return null;
+        return st.getValue();
+    }
+
+    public void storeSetting(Setting st) {
+        pm.makePersistent(st);
+    }
+
     public Annotation getAnnotation(String uuid) {
         Annotation annot = null;
 
