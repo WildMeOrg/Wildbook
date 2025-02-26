@@ -52,7 +52,7 @@
 				        authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 
 
-                authc.loginUrl = /react
+                authc.loginUrl = /login.jsp
 
                 #this application will use all the default
                 #filters (see link above)
