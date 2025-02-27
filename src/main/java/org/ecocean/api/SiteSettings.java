@@ -63,7 +63,12 @@ public class SiteSettings extends ApiBase {
         for (int i = 0; i < nameArrayLen; i++) {
             JSONObject txj = new JSONObject();
             txj.put("scientificName", nameArray.get(0).get(i));
-            txj.put("commonName", nameArray.get(1).get(i));
+            if (i < nameArray.get(1).size()) {
+                txj.put("commonName", nameArray.get(1).get(i));
+            }
+            else {
+                txj.put("commonName", "");
+            }
             txArr.put(txj);
         }
         settings.put("siteTaxonomies", txArr);
