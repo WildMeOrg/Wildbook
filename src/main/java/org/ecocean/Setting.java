@@ -171,6 +171,22 @@ public class Setting implements java.io.Serializable {
         return SettingValidator.VALID_GROUPS_AND_IDS;
     }
 
+    // generic way to set up things not already set up, e.g. available languages
+    public static void initialize(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("Setting.initialize");
+        myShepherd.beginDBTransaction();
+        Setting st = myShepherd.getSetting("language", "available");
+        if (st == null) {
+            st = new Setting("language", "available");
+            List<String> langs = Arrays.asList(new String[]{"fr", "en", "sp", "de"});
+            st.setValue(langs);
+            myShepherd.storeSetting(st);
+        }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                    .append("group", group)
@@ -189,7 +205,7 @@ class SettingValidator {
     public static final Map<String,String[]> VALID_GROUPS_AND_IDS;
     static {
         VALID_GROUPS_AND_IDS = new HashMap<>();
-        VALID_GROUPS_AND_IDS.put("language", new String[]{"site"});
+        VALID_GROUPS_AND_IDS.put("language", new String[]{"site", "available"});
     }
 
     public static boolean isValidGroupAndId(String group, String id) {
