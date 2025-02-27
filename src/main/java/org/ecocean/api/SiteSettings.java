@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import org.ecocean.Organization;
 import org.ecocean.Project;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.Setting;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.User;
@@ -204,6 +206,22 @@ public class SiteSettings extends ApiBase {
             settings.put("projectsForUser", jp);
         }
         settings.put("isHuman", ReCAPTCHA.sessionIsHuman(request));
+
+        // new Setting values, built from valid options
+        Map<String,String[]> grp = Setting.getValidGroupsAndIds();
+        // note: if group was already set above, it will be overwritten TODO should we check? is this bad? is it on us?
+        for (String group : grp.keySet()) {
+            JSONObject jg = new JSONObject();
+            for (String id : grp.get(group)) {
+                Object val = myShepherd.getSettingValue(group, id);
+                if (val == null) {
+                    jg.put(id, JSONObject.NULL);
+                } else {
+                    jg.put(id, val);
+                }
+            }
+            settings.put(group, jg);
+        }
 
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
