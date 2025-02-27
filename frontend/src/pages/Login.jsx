@@ -114,6 +114,7 @@ function LoginPage() {
           >
             <Form
               className="login-form"
+              data-testid="login-form"
               style={{ width: "100%", maxWidth: "400px" }}
               onSubmit={handleSubmit}
             >
@@ -207,7 +208,9 @@ function LoginPage() {
                     className="spinner-border spinner-border-sm ms-1"
                     role="status"
                   >
-                    <span className="visually-hidden"><FormattedMessage id="LOADING"/></span>
+                    <span className="visually-hidden">
+                      <FormattedMessage id="LOADING" />
+                    </span>
                   </div>
                 )}
               </BrutalismButton>
