@@ -1,14 +1,15 @@
 module.exports = {
-  testMatch: [
-    "**/__tests__/**/*.[jt]s?(x)", // Looks inside __tests__ folders
-    "**/?(*.)+(spec|test).[tj]s?(x)", // Looks for .spec.js/.test.js files
-  ],
+  testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[tj]s?(x)"],
   transform: {
     "^.+\\.[t|j]sx?$": "babel-jest",
   },
   transformIgnorePatterns: ["/node_modules/(?!(axios)).+\\.js$"],
-  testEnvironment: "jsdom", // Set the environment for testing React components
+  testEnvironment: "jsdom",
   moduleNameMapper: {
     "^axios$": require.resolve("axios"),
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "\\.json$": "<rootDir>/__mocks__/jsonMock.js",
   },
+
+  setupFilesAfterEnv: ["<rootDir>/src/__tests__/setupTests.js"],
 };
