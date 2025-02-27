@@ -157,6 +157,7 @@ function LoginPage() {
                   <InputGroup.Text
                     onClick={togglePasswordVisibility}
                     style={{ cursor: "pointer" }}
+                    data-testid="password-toggle"
                   >
                     <i
                       className={
