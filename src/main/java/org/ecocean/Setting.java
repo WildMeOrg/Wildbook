@@ -6,6 +6,8 @@ import org.json.JSONException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Setting implements java.io.Serializable {
@@ -61,7 +63,7 @@ public class Setting implements java.io.Serializable {
         }
     }
 
-    public void setValue(String type, Object val) {
+    private void setValue(String type, Object val) {
         JSONObject jv = new JSONObject();
         jv.put("type", type);
         jv.put("data", val);
@@ -88,15 +90,43 @@ public class Setting implements java.io.Serializable {
         setValue("Boolean", val);
     }
 
+    public void setValue(List val) {
+        JSONArray jarr = new JSONArray();
+        if (!Util.collectionIsEmptyOrNull(val)) {
+            for (Object el : val) {
+                jarr.put(el);
+            }
+        }
+        setValue("Array", jarr);
+    }
+
+/*
+    this returns an Object, so to use this directly, you must cast to the expected
+    class. not ideal. some casting convenience methods are below, but may not act
+    graceful if casting fails. also, these are not (currently) accessible for the
+    convenience all-in-one method: Shepherd.getSettingValue()
+
+    getting List-types is a little sketchy now. you have to do something like:
+         List<String> list = (List)setting.getValue();
+    and trust that your values were cast correctly during conversion from JSONArray
+    since for now its likely we will only be using an array of strings, lets start with
+    this pattern and get more complicated when we need it
+*/
     public Object getValue() {
         JSONObject j = this.getValueRaw();
         if (j == null) return null;
         String type = j.optString("type", null);
         if (type == null) return null;
         Object rtn = null;
-        if (type.startsWith("Array")) {
+        if (type.equals("Array")) {
             JSONArray dataArr = j.optJSONArray("data");
             if (dataArr == null) return null;
+            List arr = new ArrayList();
+            for (int i = 0 ; i < dataArr.length() ; i++) {
+                arr.add(dataArr.get(i));
+            }
+            return arr;
+
         } else {
             try {
                 switch (type) {
@@ -123,6 +153,22 @@ public class Setting implements java.io.Serializable {
             }
         }
         return rtn;
+    }
+
+    public String getValueString() {
+        return (String)getValue();
+    }
+
+    public Integer getValueInteger() {
+        return (Integer)getValue();
+    }
+
+    public Double getValueDouble() {
+        return (Double)getValue();
+    }
+
+    public static Map<String,String[]> getValidGroupsAndIds() {
+        return SettingValidator.VALID_GROUPS_AND_IDS;
     }
 
     public String toString() {
