@@ -563,6 +563,10 @@ public class Shepherd {
         pm.makePersistent(st);
     }
 
+    public void deleteSetting(Setting st) {
+        pm.deletePersistent(st);
+    }
+
     public Annotation getAnnotation(String uuid) {
         Annotation annot = null;
 
