@@ -604,6 +604,10 @@
 		<servlet-name>SiteSettings</servlet-name>
 		<url-pattern>/api/v3/site-settings</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>SiteSettings</servlet-name>
+		<url-pattern>/api/v3/site-settings/*</url-pattern>
+	</servlet-mapping>
 
   <servlet>
     <servlet-name>ReactAppServlet</servlet-name>

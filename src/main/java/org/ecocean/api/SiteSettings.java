@@ -230,4 +230,67 @@ public class SiteSettings extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(settings.toString());
     }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        User currentUser = myShepherd.getUser(request);
+        if ((currentUser == null) || !currentUser.isAdmin(myShepherd)) {
+            myShepherd.rollbackAndClose();
+            response.setStatus(401);
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write("{\"success\": false}");
+            return;
+        }
+
+        JSONObject rtn = new JSONObject();
+        int statusCode = 500;
+        String uri = request.getRequestURI();
+        String[] args = uri.substring(22).split("/");
+        if (args.length < 1) throw new ServletException("Bad path");
+
+        if (!Setting.isValidGroupAndId(args[0], args[1])) {
+            statusCode = 400;
+            JSONObject error = new JSONObject();
+            error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+            JSONArray errArr = new JSONArray();
+            errArr.put(error);
+            rtn.put("errors", errArr);
+            rtn.put("debug", "invalid group [" + args[0] + "] or id [" + args[1] + "]");
+
+        } else {
+            Setting setting = myShepherd.getOrCreateSetting(args[0], args[1]);
+            JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            setting.setValueFromPayload(payload);
+            myShepherd.storeSetting(setting);
+            statusCode = 200;
+            rtn.put("setting", setting.toJSONObject());
+        }
+
+        response.setStatus(statusCode);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Type", "application/json");
+        response.getWriter().write(rtn.toString());
+
+        if (statusCode == 200) {
+            myShepherd.commitDBTransaction();
+        } else {
+            myShepherd.rollbackDBTransaction();
+        }
+        myShepherd.closeDBTransaction();
+    }
+
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        String uri = request.getRequestURI();
+        String[] args = uri.substring(8).split("/");
+        JSONObject rtn = null;
+        int statusCode = rtn.optInt("statusCode", 500);
+        response.setStatus(statusCode);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Type", "application/json");
+        response.getWriter().write(rtn.toString());
+    }
+ 
 }

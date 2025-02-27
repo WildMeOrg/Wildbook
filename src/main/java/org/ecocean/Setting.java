@@ -39,9 +39,35 @@ public class Setting implements java.io.Serializable {
         this.setValueRaw(value);
     }
 
+    public static boolean isValidGroupAndId(String group, String id) {
+        return SettingValidator.isValidGroupAndId(group, id);
+    }
+
     public JSONObject getValueRaw() { // only return as JSONObject!
         if (value == null) return null;
         return Util.stringToJSONObject(value);
+    }
+
+    public void setValueFromPayload(JSONObject payload) {
+        if (payload == null) return;
+        JSONObject value = new JSONObject();
+        if (payload.has("data")) {
+            value = new JSONObject(payload.toString());
+        } else {
+            value.put("data", payload);
+        }
+        if (value.optString("type", null) == null) value.put("type", typeFromData(value.get("data")));
+
+        SettingValidator sval = new SettingValidator(this.group, this.id, value);
+        this.setValueRaw(value);
+    }
+
+    public String typeFromData(Object data) {
+        if (data instanceof JSONArray) return "Array";
+        if (data instanceof String) return "String";
+        if (data instanceof Integer) return "Integer";
+        if (data instanceof Double) return "Double";
+        return "Unknown";
     }
 
     public void setValueRaw(String s) {
@@ -185,6 +211,16 @@ public class Setting implements java.io.Serializable {
         }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject j = new JSONObject();
+        j.put("group", group);
+        j.put("id", id);
+        j.put("value", this.getValueRaw());
+        j.put("created", created);
+        j.put("modified", modified);
+        return j;
     }
 
     public String toString() {
