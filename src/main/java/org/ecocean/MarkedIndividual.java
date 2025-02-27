@@ -2599,7 +2599,9 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             + other.getIndividualID() + "' || secondaryIndividual.individualID == '" +
             other.getIndividualID() + "'";
         Query q = myShepherd.getPM().newQuery(filter);
-        Collection c = (Collection)q.execute();
+        Collection cTemp = (Collection)q.execute();
+        ArrayList<ScheduledIndividualMerge> c = new ArrayList<ScheduledIndividualMerge>(cTemp); 
+        q.closeAll();
         ArrayList<ScheduledIndividualMerge> merges = new ArrayList<ScheduledIndividualMerge>(c);
         // throw out any scheduled merge related to this individual as it is now being merged.
         for (ScheduledIndividualMerge merge : merges) {

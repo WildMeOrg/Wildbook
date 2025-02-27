@@ -69,6 +69,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
     },
     queryOptions: {
       retry: 2,
+      enable: false,
     },
   });
 }
