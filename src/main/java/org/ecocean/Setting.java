@@ -62,6 +62,7 @@ public class Setting implements java.io.Serializable {
         this.setValueRaw(value);
     }
 
+    // currently used only for setValueFromPayload
     public String typeFromData(Object data) {
         if (data instanceof JSONArray) return "Array";
         if (data instanceof String) return "String";
@@ -71,6 +72,7 @@ public class Setting implements java.io.Serializable {
     }
 
     public void setValueRaw(String s) {
+        // TODO probably should eventually use SettingValidator here
         JSONObject test = Util.stringToJSONObject(s); // bad json => null
         this.modified = System.currentTimeMillis();
         if (test == null) {
@@ -251,6 +253,13 @@ class SettingValidator {
         return Arrays.asList(VALID_GROUPS_AND_IDS.get(group)).contains(id);
     }
 
+/*
+    right now this is going very light on any sort of validation of *value*
+    TODO this is meant to be improved upon as various use cases pop up. back in codex
+    world we had a complicated json structure of "definitions" that could be used to
+    validate setting values. ended up feeling like way overkill. leaning toward doing
+    it now just in code, here.
+*/
     public SettingValidator(String group, String id) {
         this(group, id, null);
     }
