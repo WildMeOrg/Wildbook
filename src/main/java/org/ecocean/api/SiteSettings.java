@@ -260,12 +260,22 @@ public class SiteSettings extends ApiBase {
             rtn.put("debug", "invalid group [" + args[0] + "] or id [" + args[1] + "]");
 
         } else {
-            Setting setting = myShepherd.getOrCreateSetting(args[0], args[1]);
-            JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
-            setting.setValueFromPayload(payload);
-            myShepherd.storeSetting(setting);
-            statusCode = 200;
-            rtn.put("setting", setting.toJSONObject());
+            try {
+                Setting setting = myShepherd.getOrCreateSetting(args[0], args[1]);
+                JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
+                setting.setValueFromPayload(payload);
+                myShepherd.storeSetting(setting);
+                statusCode = 200;
+                rtn.put("setting", setting.toJSONObject());
+            } catch (Exception ex) {
+                statusCode = 400;
+                JSONObject error = new JSONObject();
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                JSONArray errArr = new JSONArray();
+                errArr.put(error);
+                rtn.put("errors", errArr);
+                rtn.put("debug", ex.toString());
+            }
         }
 
         response.setStatus(statusCode);
