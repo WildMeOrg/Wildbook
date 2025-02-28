@@ -57,8 +57,8 @@ public class Setting implements java.io.Serializable {
             value.put("data", payload);
         }
         if (value.optString("type", null) == null) value.put("type", typeFromData(value.get("data")));
-
-        SettingValidator sval = new SettingValidator(this.group, this.id, value);
+        Object objValue = getValueFromJSONObject(value);
+        SettingValidator sval = new SettingValidator(this.group, this.id, objValue);
         this.setValueRaw(value);
     }
 
@@ -141,7 +141,10 @@ public class Setting implements java.io.Serializable {
     this pattern and get more complicated when we need it
 */
     public Object getValue() {
-        JSONObject j = this.getValueRaw();
+        return getValueFromJSONObject(this.getValueRaw());
+    }
+
+    static public Object getValueFromJSONObject(JSONObject j) {
         if (j == null) return null;
         String type = j.optString("type", null);
         if (type == null) return null;
@@ -207,7 +210,7 @@ public class Setting implements java.io.Serializable {
         Setting st = myShepherd.getSetting("language", "available");
         if (st == null) {
             st = new Setting("language", "available");
-            List<String> langs = Arrays.asList(new String[]{"fr", "en", "sp", "de"});
+            List<String> langs = Arrays.asList(new String[]{"fr", "en", "es", "de"});
             st.setValue(langs);
             myShepherd.storeSetting(st);
         }
@@ -265,6 +268,27 @@ class SettingValidator {
     }
     public SettingValidator(String group, String id, Object value) {
         if (!isValidGroupAndId(group, id)) throw new IllegalArgumentException("invalid group=" + group + " and/or id=" + id);
+        String groupId = group + "." + id;
+        switch (groupId) {
+            case "language.site":
+                if ((value == null) || !(value instanceof List)) throw new IllegalArgumentException("value must be a list");
+                List<String> langs = new ArrayList<String>((List)value);
+                if (langs.size() < 1) throw new IllegalArgumentException("value must have at least 1 value");
+
+                Shepherd myShepherd = new Shepherd("context0"); // hacky but only need to read other Setting(s)
+                myShepherd.setAction("SettingValidator");
+                myShepherd.beginDBTransaction();
+                Object alangs = myShepherd.getSettingValue("language", "available");
+                myShepherd.rollbackAndClose();
+                if ((alangs != null) && (alangs instanceof List)) {
+                    List<String> availableLangs = new ArrayList<String>((List)alangs);
+                    for (String lang : langs) {
+                        if (!availableLangs.contains(lang)) throw new IllegalArgumentException(lang + " is not a valid value");
+                    }
+                }
+                break;
+        }
+        // if we fall through, value is just allowed
     }
 }
 
