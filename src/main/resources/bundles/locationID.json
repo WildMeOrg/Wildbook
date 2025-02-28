@@ -4,38 +4,38 @@
   "locationID": [
 
 			 {
-			  "name": "Australia", "id": "1", "locationID": [
+			  "name": "Australia", "id": "Australia", "locationID": [
 			  {
 				"name": "West Australia",
 				"id": "West Australia",
 				"locationID":[
 					{
 						"name": "Ningaloo (non-specific)", 
-						"id": "1a", 
+						"id": "Ningaloo (non-specific)",
 						"prefix": "A-", 
 						"prefixDigitPadding": 3 
 					  },
 					  {
 						"name": "North Ningaloo", 
-						"id": "1a1", 
+						"id": "North Ningaloo", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3
 					  },
 					  {
 						"name": "South Ningaloo", 
-						"id": "1a2", 
+						"id": "South Ningaloo", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3 
 					  },
 					  {
 						"name": "Shark Bay Region", 
-						"id": "1a3", 
+						"id": "Shark Bay Region", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3 
 					  },
 					  {
 						"name": "North West shelf region", 
-						"id": "1a4", 
+						"id": "North West shelf region", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3 
 					  }
@@ -53,7 +53,7 @@
 						"locationID":[
 							{
 								"name": "Bait Grounds, Forster",
-								"id": "BT",
+								"id": "Bait Grounds, Forster",
 								"geospatialInfo": {
 									"lat": -32.166,
 									"long": 152.5166
@@ -62,7 +62,7 @@
 							},
 							{
 								"name": "Big Seal",
-								"id": "BS",
+								"id": "Big Seal",
 								"geospatialInfo": {
 									"lat": -32.4666,
 									"long": 152.55
@@ -89,7 +89,7 @@
 							},
 							{
 								"name": "Broughton Island",
-								"id": "BI",
+								"id": "Broughton Island",
 								"geospatialInfo":{
 									"lat":-32.6166,
 									"long":152.3333
@@ -112,7 +112,7 @@
 							},
 							{
 								"name": "Cod Grounds,Laurieton",
-								"id": "CG",
+								"id": "Cod Grounds,Laurieton",
 								"geospatialInfo": {
 									"lat": -31.6817,
 									"long": 152.901
@@ -121,7 +121,7 @@
 							},
 							{
 								"name": "Coffs Harbour",
-								"id": "CH",
+								"id": "Coffs Harbour",
 								"geospatialInfo": {
 									"lat": -30.2476,
 									"long": 153.36
@@ -130,7 +130,7 @@
 							},
 							{
 								"name": "Dalmeny Point",
-								"id": "DP",
+								"id": "Dalmeny Point",
 								"geospatialInfo": {
 									"lat": -36.167,
 									"long": 150.1333
@@ -139,7 +139,7 @@
 							},
 							{
 								"name": "Diamond Bay, Vaucluse, Sydney",
-								"id": "VAUCLUSE",
+								"id": "Diamond Bay, Vaucluse, Sydney",
 								"geospatialInfo": {
 									"lat": -33.862778,
 									"long": 151.283333
@@ -148,7 +148,7 @@
 							},
 							{
 								"name": "Drum Drumsticks",
-								"id": "DD",
+								"id": "Drum Drumsticks",
 								"geospatialInfo": {
 									"lat": -35.047,
 									"long": 150.54
@@ -157,7 +157,7 @@
 							},
 							{
 								"name": "Fairy Bower",
-								"id": "FB",
+								"id": "Fairy Bower",
 								"geospatialInfo": {
 									"lat": -34.0486111,
 									"long": 151.5372222
@@ -166,7 +166,7 @@
 							},
 							{
 								"name": "Fish Rock",
-								"id": "FR",
+								"id": "Fish Rock",
 								"geospatialInfo": {
 									"lat": -30.9402778,
 									"long": 153.0958333
@@ -175,7 +175,7 @@
 							},
 							{
 								"name": "Foggy Cave,Terrigal",
-								"id": "FC",
+								"id": "Foggy Cave,Terrigal",
 								"geospatialInfo": {
 									"lat": -33.4355556,
 									"long": 151.5844444
@@ -184,7 +184,7 @@
 							},
 							{
 								"name": "Green Island",
-								"id": "GI",
+								"id": "Green Island",
 								"geospatialInfo": {
 									"lat": -30.91090117278344,
 									"long": 153.0905965118779
@@ -193,7 +193,7 @@
 							},
 							{
 								"name": "Hayden's Rock, Forster",
-								"id": "HRF",
+								"id": "Hayden's Rock, Forster",
 								"geospatialInfo": {
 									"lat": -32.17726792019405,
 									"long": 152.51860079904705
@@ -202,7 +202,7 @@
 							},
 							{
 								"name": "Julian Rocks",
-								"id": "JR",
+								"id": "Julian Rocks",
 								"geospatialInfo": {
 									"lat": -28.6138889,
 									"long": 153.6263889
@@ -211,7 +211,7 @@
 							},
 							{
 								"name": "Latitude Reef, Forster",
-								"id": "LR",
+								"id": "Latitude Reef, Forster",
 								"geospatialInfo": {
 									"lat": -32.2088889,
 									"long": 152.5680556
@@ -220,7 +220,7 @@
 							},
 							{
 								"name": "Little Seal",
-								"id": "LS",
+								"id": "Little Seal",
 								"geospatialInfo": {
 									"lat": -32.4763889,
 									"long": 152.5472222
@@ -229,7 +229,7 @@
 							},
 							{
 								"name": "Long Reef, Sydney",
-								"id": "LF",
+								"id": "Long Reef, Sydney",
 								"geospatialInfo": {
 									"lat": -33.7361111,
 									"long": 151.3250000
@@ -238,7 +238,7 @@
 							},
 							{
 								"name": "Magic Point",
-								"id": "MP - Magic Point",
+								"id": "Magic Point",
 								"geospatialInfo": {
 									"lat": -33.9625000,
 									"long": 151.2638889
@@ -247,7 +247,7 @@
 							},
 							{
 								"name": "Mermaid Reef",
-								"id": "MR",
+								"id": "Mermaid Reef",
 								"geospatialInfo": {
 									"lat": -31.7680556,
 									"long": 152.8069444
@@ -256,7 +256,7 @@
 							},
 							{
 								"name": "Montague Island",
-								"id": "MI",
+								"id": "Montague Island",
 								"geospatialInfo": {
 									"lat": -36.2416667,
 									"long": 150.2263889
@@ -265,7 +265,7 @@
 							},
 							{
 								"name": "North Bondi",
-								"id": "NB",
+								"id": "North Bondi",
 								"geospatialInfo": {
 									"lat": -33.9013889,
 									"long": 151.2722222
@@ -274,7 +274,7 @@
 							},
 							{
 								"name": "North Solitary",
-								"id": "NS",
+								"id": "North Solitary",
 								"geospatialInfo": {
 									"lat": -29.9180556,
 									"long": 153.3833333
@@ -283,7 +283,7 @@
 							},
 							{
 								"name": "Pinnacle Forster",
-								"id": "PF",
+								"id": "Pinnacle Forster",
 								"geospatialInfo": {
 									"lat": -32.2402778,
 									"long": 152.6013889
@@ -292,7 +292,7 @@
 							},
 							{
 								"name": "Seal Rocks",
-								"id": "SR",
+								"id": "Seal Rocks",
 								"geospatialInfo": {
 									"lat": -32.4666667,
 									"long": 152.5500000
@@ -301,7 +301,7 @@
 							},
 							{
 								"name": "Skeleton Reef, Forster",
-								"id": "SK",
+								"id": "Skeleton Reef, Forster",
 								"geospatialInfo": {
 									"lat": -32.4083333,
 									"long": 152.5388889
@@ -310,12 +310,12 @@
 							},
 							{
 								"name": "South Bondi",
-								"id": "SB",
+								"id": "South Bondi",
 								"locationID": []
 							},
 							{
 								"name": "South Solitary Island",
-								"id": "SS",
+								"id": "South Solitary Island",
 								"geospatialInfo": {
 									"lat": -30.2083333,
 									"long": 153.2833333
@@ -329,7 +329,7 @@
 							},
 							{
 								"name": "The Barge",
-								"id": "TB",
+								"id": "The Barge",
 								"geospatialInfo": {
 									"lat": -32.1527778,
 									"long": 152.5388889
@@ -338,7 +338,7 @@
 							},
 							{
 								"name": "Tollgate",
-								"id": "TG",
+								"id": "Tollgate",
 								"geospatialInfo": {
 									"lat": -35.7555556,
 									"long": 150.2541667
@@ -364,7 +364,7 @@
 						"locationID":[
 							{
 								"name": "Cherubs Cave",
-								"id": "CC",
+								"id": "Cherubs Cave",
 								"geospatialInfo": {
 									"lat": -27.1166,
 									"long": 153.4666
@@ -373,7 +373,7 @@
 							},
 							{
 								"name": "Flat Rock",
-								"id": "FT",
+								"id": "Flat Rock",
 								"geospatialInfo": {
 									"lat": -27.1333333,
 									"long": 153.5583333
@@ -382,7 +382,7 @@
 							},
 							{
 								"name": "Flinders Reef",
-								"id": "FL",
+								"id": "Flinders Reef",
 								"geospatialInfo": {
 									"lat": -26.9833333,
 									"long": 153.4847222
@@ -422,7 +422,7 @@
 							},
 							{
 								"name": "Wolf Rock",
-								"id": "WR",
+								"id": "Wolf Rock",
 								"geospatialInfo": {
 									"lat": -25.9111111,
 									"long": 153.2055556
@@ -431,7 +431,7 @@
 							},
 							{
 								"name": "Wreck Bay",
-								"id": "WB",
+								"id": "Wreck Bay",
 								"geospatialInfo": {
 									"lat": -12.228611,
 									"long": 143.874722
@@ -649,57 +649,57 @@
 					]},
 			  
 			  {
-			  "name": "1g", 
-			  "id": "1g" },
+			  "name": "India", 
+			  "id": "India" },
 			  
 			  {
-			  "name": "2", 
-			  "id": "2", 
+			  "name": "Atlantic and Caribbean", 
+			  "id": "Atlantic and Caribbean", 
 			  "prefix": "CRB-", 
 			  "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2a", 
-			  "id": "2a", 
+			  "name": "Honduras", 
+			  "id": "Honduras", 
 			  "prefix": "H-", 
 			  "prefixDigitPadding": 3 },
 			 
 			{
-			  "name": "2b", 
-			  "id": "2b", 
+			  "name": "Belize", 
+			  "id": "Belize", 
 			  "prefix": "BZ-", 
 			  "prefixDigitPadding": 3 },
 			{
-			  "name": "2c", 
-			  "id": "2c", 
+			  "name": "Mexico Atlantic", 
+			  "id": "Mexico Atlantic", 
 			  "prefix": "MXA-", 
 			  "prefixDigitPadding": 3 },
 			  
 			  {
 			  "name": "Texas", 
-			  "id": "2d", 
+			  "id": "Texas", 
 			  "prefix": "TX-", 
 			  "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2e", 
-			  "id": "2e", 
+			  "name": "US Gulf Coast", 
+			  "id": "US Gulf Coast", 
 			  "prefix": "GC-", 
 			  "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2e1", 
-			  "id": "2e1", 
+			  "name": "Ewing Banks", 
+			  "id": "Ewing Banks", 
 			  "prefix": "GC-", 
 			  "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2f", 
-			  "id": "2f" },
+			  "name": "Cuba", 
+			  "id": "Cuba" },
 			  
 			  {
-			  "name": "2g", 
-			  "id": "2g", 
+			  "name": "Eastern US Coast", 
+			  "id": "Eastern US Coast", 
 			  "prefix": "USA-", 
 			  "prefixDigitPadding": 3 },
 			  
@@ -726,30 +726,24 @@
 			  ]},
 			  
 			  {
-			  "name": "South Atlantic", "id": "2h", "prefix": "SHA-", "prefixDigitPadding": 3, "locationID":[
+			  "name": "South Atlantic", "id": "South Atlantic", "prefix": "SHA-", "prefixDigitPadding": 3, "locationID":[
 				  {
-				  "name": "St. Helena Island", "id": "2h1", "prefix": "SHA-", "prefixDigitPadding": 3 },
+				  "name": "St. Helena Island", "id": "St. Helena Island", "prefix": "SHA-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Ascension Island", "id": "2h2", "prefix": "ID-", "prefixDigitPadding": 3 },
+				  "name": "Ascension Island", "id": "Ascension Island", "prefix": "ID-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Brazil", "id": "2h3", "prefix": "BRZ-", "prefixDigitPadding": 3 },
+				  "name": "Brazil", "id": "Brazil", "prefix": "BRZ-", "prefixDigitPadding": 3 },
 				   {
-				  "name": "Azores", "id": "2h4" }
+				  "name": "Azores", "id": "Azores" }
 			  ] 
 			  },
 			  
 			  { "name":"Mozambique", "id":"Mozambique", "locationID":[
 			  
-			  	{
-					"name": "4a", "id": "4a", "prefix": "MZ-", "prefixDigitPadding": 3 },
-			  
-					{
-					"name": "4a1", "id": "4a1", "prefix": "MZ-", "prefixDigitPadding": 3 },
-			  
 			  		{
-					"name": "4a2", "id": "4a2" },
+					"name": "Guinjata", "id": "Guinjata" },
 
 					{ "name":"Bazaruto", "id":"Bazaruto", "locationID":[] },
 
@@ -815,31 +809,31 @@
 			
 			  
 			   {
-			  "name": "4h", "id": "4h", "prefix": "Q-", "prefixDigitPadding": 3 },
+			  "name": "Arabian Peninsula", "id": "Arabian Peninsula", "prefix": "Q-", "prefixDigitPadding": 3 },
 			  
 			   {
-			  "name": "4h1", "id": "4h1", "prefix": "Q-", "prefixDigitPadding": 3 },
+			  "name": "Qatar", "id": "Qatar", "prefix": "Q-", "prefixDigitPadding": 3 },
 			  
 			   {
-			  "name": "4h1a", "id": "4h1a" },
+			  "name": "Al Shaheen", "id": "Al Shaheen" },
 			  
 			   {
-			  "name": "4h2", "id": "4h2" },
+			  "name": "Oman", "id": "Oman" },
 			  
 			   {
-			  "name": "4h2a", "id": "4h2a" },
+			  "name": "Musandam", "id": "Musandam" },
 			  
 			  			   {
-			  "name": "4h2b", "id": "4h2b" },
+			  "name": "Daymaniyat Islands", "id": "Daymaniyat Islands" },
 			  
 			  {
-			  "name": "4h2c", "id": "4h2c" },
+			  "name": "Muscat", "id": "Muscat" },
 			  
 			  {
-			  "name": "4h3", "id": "4h3" },
+			  "name": "UAE", "id": "UAE" },
 			  
 			  {
-			  "name": "4h4", "id": "4h4" },
+			  "name": "Bahrain", "id": "Bahrain" },
 			  
 			  {
 			  "name": "Maldives", "id": "Maldives", "prefix": "M-", "prefixDigitPadding": 3 },
@@ -848,22 +842,22 @@
 			  "name": "Seychelles", "id": "Seychelles", "prefix": "S-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a", "id": "6a", "prefix": "P-", "prefixDigitPadding": 3 },
+			  "name": "Phillippines", "id": "Phillippines", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a1", "id": "6a1", "prefix": "P-", "prefixDigitPadding": 3 },
+			  "name": "Donsol", "id": "Donsol", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a2", "id": "6a2", "prefix": "P-", "prefixDigitPadding": 3 },
+			  "name": "Cebu", "id": "Cebu", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a3", "id": "6a3", "prefix": "P-", "prefixDigitPadding": 3 },
+			  "name": "Limasawa Island", "id": "Limasawa Island", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a4", "id": "6a4", "prefix": "P-", "prefixDigitPadding": 3 },
+			  "name": "Palawan Island", "id": "Palawan Island", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6b", "id": "6b", "prefix": "TW-", "prefixDigitPadding": 3 },
+			  "name": "Taiwan", "id": "Taiwan", "prefix": "TW-", "prefixDigitPadding": 3 },
 			  
 
 
@@ -915,7 +909,7 @@
 				  
 			
 				  {
-				  "name": "Galapagos Islands", "id": "7a", "prefix": "G-", "prefixDigitPadding": 3 },
+				  "name": "Galapagos Islands", "id": "Galapagos Islands", "prefix": "G-", "prefixDigitPadding": 3 },
 				   
 				  
 				  {
@@ -925,7 +919,7 @@
 				  "name": "Mexico-BLP", "id": "Mexico-BLP", "locationID": [
 				  
 						{
-							"name": "7d", "id": "7d" }
+							"name": "Baja California", "id": "Baja California" }
 
 					], "prefix": "MX-", "prefixDigitPadding": 3
 				  },
@@ -950,7 +944,7 @@
 					  "name": "Oregon", "id": "Oregon" },
 
 				{
-				  "name": "8a", "id": "8a" },
+				  "name": "Eastern Australian Coast", "id": "Eastern Australian Coast" },
 				  	  
 				  {
 				  "name": "Panama", "id": "Panama", "prefix": "PAN-", "prefixDigitPadding": 3 },
