@@ -98,7 +98,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 	//res.put("encounterOther", otherEncIds);
 	List<Encounter> otherEncs = new ArrayList<Encounter>();
         List<MarkedIndividual> otherIndivs = new ArrayList<MarkedIndividual>();
-        for (String oeId : otherEncIds) {
+        if (otherEncIds != null) for (String oeId : otherEncIds) {
 		Encounter oenc = myShepherd.getEncounter(oeId);
 		myShepherd.getPM().refresh(oenc);
 
