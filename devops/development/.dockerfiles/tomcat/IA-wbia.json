@@ -27,8 +27,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -48,8 +56,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -69,8 +85,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -99,8 +123,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       },
@@ -108,8 +140,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       },
@@ -117,8 +157,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -140,8 +188,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -161,8 +217,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -182,8 +246,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -205,8 +277,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -227,8 +307,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -250,8 +338,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -272,8 +368,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -300,8 +404,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -324,8 +436,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -348,8 +468,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -369,8 +497,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -394,8 +530,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -423,7 +567,15 @@
             "query_config_dict": {
               "n": 20,
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
           }
         ]
       },
@@ -508,8 +660,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -530,8 +690,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -552,8 +720,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
@@ -574,8 +750,16 @@
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher"
           }
         ]
       }
