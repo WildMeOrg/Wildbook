@@ -2002,6 +2002,44 @@ public class Shepherd {
         return (Util.count(taxis));
     }
 
+    public List<List<String>> getAllTaxonomyCommonNames() {return getAllTaxonomyCommonNames(false);
+    }
+
+    // forceSpaces will turn `Foo bar_bar` into `Foo bar bar` - use with caution!
+    public List<List<String>> getAllTaxonomyCommonNames(boolean forceSpaces) {
+        Set<String> allSciNames = new HashSet<String>();
+        Set<String> allComNames = new HashSet<String>();
+
+        List<String> configNamesSci = CommonConfiguration.getIndexedPropertyValues("genusSpecies",
+                getContext());
+        List<String> configNamesCom = CommonConfiguration.getIndexedPropertyValues("commonName",
+                getContext());
+        allSciNames.addAll(configNamesSci);
+        allComNames.addAll(configNamesCom);
+
+        List<String> allSciNamesList = new ArrayList<String>(allSciNames);
+        List<String> allComNamesList = new ArrayList<String>(allComNames);
+
+        List<List<String>> result = new ArrayList<>();
+
+        if (forceSpaces) {
+            List<String> spaceySci = new ArrayList<String>();
+            for (String tx : allSciNamesList) {
+                spaceySci.add(tx.replaceAll("_", " "));
+            }
+            List<String> spaceyCom = new ArrayList<String>();
+            for (String tx : allComNamesList) {
+                spaceyCom.add(tx.replaceAll("_", " "));
+            }
+            result.add(spaceySci);
+            result.add(spaceyCom);
+        } else {
+            result.add(allSciNamesList);
+            result.add(allComNamesList);
+        }
+        return result;
+    }
+
     // tragically this mixes Taxonomy (class, via db) with commonConfiguration-based values. SIGH
     // TODO when property files go away (yay) this should become just db
     public List<String> getAllTaxonomyNames() {
