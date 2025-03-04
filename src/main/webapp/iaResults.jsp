@@ -1326,7 +1326,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
             if (illustrationUrl) {
             	var selector = '#task-' + taskId + ' .annot-summary-' + acmId;
             	// TODO: generify
-            	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
+            	var iaBase = 'https://staging.arguswild.ai/ai/'
             	illustrationUrl = iaBase+illustrationUrl
 				let resultIndex = $(selector).closest(".has-data-index").data("index");
 				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
