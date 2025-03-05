@@ -1,16 +1,26 @@
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, waitFor } from "@testing-library/react";
 import { useLocation } from "react-router-dom";
 import useLogin from "../../../models/auth/useLogin";
 import { wrapper } from "../../../utils/testWrapper";
-import { mockAxiosSuccess } from "../../../utils/utils";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
+import axios from "axios";
 
 jest.mock("axios");
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useLocation: jest.fn(),
 }));
+
+beforeEach(() => {
+  delete window.location;
+  window.location = {
+    href: "",
+    assign: jest.fn((url) => {
+      window.location.href = url;
+    }),
+  };
+});
 
 function TestComponent() {
   const { authenticate } = useLogin();
@@ -27,7 +37,13 @@ describe("useLogin - Open Redirect Protection", () => {
       search: "?redirect=https://malicious.com",
       hash: "",
     });
-    mockAxiosSuccess({ success: true });
+
+    axios.request.mockResolvedValue({
+      data: {
+        success: true,
+        redirectUrl: null,
+      },
+    });
 
     render(
       <MemoryRouter>
@@ -40,7 +56,8 @@ describe("useLogin - Open Redirect Protection", () => {
       screen.getByText("Login").click();
     });
 
-    // expect(window.location.href).toContain(`${process.env.PUBLIC_URL}/home`);
-    expect(window.location.href).toContain(`http://localhost/`);
+    await waitFor(() => {
+      expect(window.location.href).toBe(`${process.env.PUBLIC_URL}/home`);
+    });
   });
 });
