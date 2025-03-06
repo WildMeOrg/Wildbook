@@ -12,6 +12,7 @@ export default function MultiLanguageDropdown() {
   return (
     <div
       className="d-flex align-items-center justify-content-center border-0 rounded-pill m-2"
+      data-testid="language-dropdown"
       style={{
         backgroundColor: "rgba(255, 255, 255, 0.25)",
         width: "65px",

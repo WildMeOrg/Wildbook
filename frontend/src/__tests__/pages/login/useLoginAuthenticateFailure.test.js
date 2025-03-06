@@ -10,10 +10,6 @@ jest.mock("axios");
 function TestComponent() {
   const { authenticate, error } = useLogin();
 
-  React.useEffect(() => {
-    console.log("🔥 Error state updated:", error);
-  }, [error]);
-
   return (
     <div>
       <button
