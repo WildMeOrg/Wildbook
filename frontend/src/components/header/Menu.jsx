@@ -24,15 +24,16 @@ export default function Menu({
   };
 
   return (
-    <>
+    <div data-testid="menu">
       {authenticatedMenu(
         username,
         showclassicsubmit,
         showClassicEncounterSearch,
       ).map((item, idx) => (
-        <Nav className="me-auto" key={idx}>
+        <Nav className="me-auto nav-bar" key={idx}>
           <NavDropdown
             className="header-dropdown"
+            key={`${Object.keys(item)[0]}-${idx}`}
             title={
               <span style={{ color: "white" }}>
                 <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />{" "}
@@ -120,6 +121,6 @@ export default function Menu({
           </NavDropdown>
         </Nav>
       ))}
-    </>
+    </div>
   );
 }

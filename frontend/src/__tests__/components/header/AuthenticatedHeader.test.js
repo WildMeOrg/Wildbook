@@ -45,7 +45,6 @@ const renderComponent = (footerVisible = true, authContextValue = {}) => {
 describe("AuthenticatedAppHeader Component", () => {
   test("renders the header when footer is visible", () => {
     renderComponent(true);
-
     expect(screen.getByTestId("logo")).toBeInTheDocument();
     expect(screen.getByText(`${process.env.SITE_NAME}`)).toBeInTheDocument();
   });
