@@ -843,7 +843,7 @@ public class Annotation implements java.io.Serializable {
             Annotation ann = (Annotation)it.next();
             if (!IBEISIA.validForIdentification(ann)) continue;
             anns.add(ann);
-            if (anns.size() > 50) break;
+           // if (anns.size() > 50) break;
         }
         query.closeAll();
         System.out.println("INFO: getMatchingSetForFilter found " + anns.size() + " annots (" +
