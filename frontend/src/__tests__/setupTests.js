@@ -17,3 +17,5 @@ jest.mock("react-intl", () => {
 test("dummy test", () => {
   expect(true).toBe(true);
 });
+
+process.env.PUBLIC_URL = "";
