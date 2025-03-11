@@ -89,6 +89,6 @@ describe("AuthenticatedAppHeader Component", () => {
 
   test("renders submit menu", () => {
     renderComponent(true);
-    expect(screen.getByText("Submit")).toBeInTheDocument();
+    expect(screen.getByText("SUBMIT")).toBeInTheDocument();
   });
 });
