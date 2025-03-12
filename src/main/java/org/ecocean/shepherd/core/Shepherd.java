@@ -2558,36 +2558,6 @@ public class Shepherd {
         return users;
     }
 
-    /*
-    // marked for deletion
-    public User getUserByAffiliation(String affil) {
-        String filter = "SELECT FROM org.ecocean.User WHERE affiliation == \"" + affil + "\"";
-        Query query = getPM().newQuery(filter);
-        Collection c = (Collection)(query.execute());
-        Iterator it = c.iterator();
-
-        while (it.hasNext()) {
-            User myUser = (User)it.next();
-            query.closeAll();
-            return myUser;
-        }
-        query.closeAll();
-        return null;
-    }
-    */
-
-    /*
-    // marked for deletion
-    public User getUserBySocialId(String service, String id) {
-        if ((id == null) || (service == null)) return null;
-        List<User> users = getAllUsers();
-        for (int i = 0; i < users.size(); i++) {
-            if (id.equals(users.get(i).getSocial(service))) return users.get(i);
-        }
-        return null;
-    }
-    */
-
     public ArrayList<Project> getAllProjectsForMarkedIndividual(MarkedIndividual individual) {
         Query query = null;
         Iterator<Project> projectIter = null;
@@ -3237,25 +3207,6 @@ public class Shepherd {
         q.closeAll();
         return num;
     }
-
-    /*
-    // marked for deletion
-    public int getNumUsers() {
-        int num = 0;
-        Query q = pm.newQuery(User.class); // no filter, so all instances match
-
-        try {
-            Collection results = (Collection)q.execute();
-            num = results.size();
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            q.closeAll();
-            return num;
-        }
-        q.closeAll();
-        return num;
-    }
-    */
 
     public int getNumScanTasks() {
         Extent allTasks = null;
@@ -5035,21 +4986,6 @@ public class Shepherd {
         query.closeAll();
         return user;
     }
-
-    /*
-    // marked for deletion
-    // this tries (in this order) username, uuid, email and returns first user it finds
-    // note: we do *not* check validity of either uuid or email address, given that (undoubtedly) we have
-    // malformed values for both in the db.  is this a bug or a feature?  #philosophy
-    public User getUserByWhatever(String value) {
-        if (value == null) return null;
-        User u = getUser(value);
-        if (u != null) return u;
-        u = getUserByUUID(value);
-        if (u != null) return u;
-        return getUserByEmailAddress(value);
-    }
-    */
 
     public JSONArray getAllProjectACMIdsJSON(String projectId) {
         JSONArray allAnnotIds = new JSONArray();
