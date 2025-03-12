@@ -43,6 +43,14 @@ public class Setting implements java.io.Serializable {
         return SettingValidator.isValidGroupAndId(group, id);
     }
 
+    public String getGroup() {
+        return group;
+    }
+
+    public String getId() {
+        return id;
+    }
+
     public JSONObject getValueRaw() { // only return as JSONObject!
         if (value == null) return null;
         return Util.stringToJSONObject(value);
