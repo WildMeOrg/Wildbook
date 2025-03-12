@@ -9,13 +9,33 @@ import static org.junit.Assert.*;
 class SettingTest {
 
     static String groupGood = "language";
-    static String groupBad = "foo";
 
-    @Test void createSetting() {
+    @Test void basicSetting() {
         Setting st = new Setting();
         assertNotNull(st);
 
+        assertTrue(Setting.isValidGroupAndId(groupGood, "site"));
+        assertFalse(Setting.isValidGroupAndId(groupGood, "FAIL"));
+
         st = new Setting(groupGood, "available");  // no value is allowed here, even if wonky
+        assertNotNull(st);
+        assertEquals(st.getGroup(), groupGood);
+        assertEquals(st.getId(), "available");
+        JSONObject rtn = st.getValueRaw();
+        assertNull(rtn);
+
+        JSONObject dummyData = new JSONObject("{\"abc\": 123}");
+        st.setValueRaw((String)null);
+        assertNull(st.getValueRaw());
+        st.setValueRaw(dummyData.toString());
+        rtn = st.getValueRaw();
+        assertEquals(rtn.getInt("abc"), 123);
+
+        st = new Setting(groupGood, "available", "test");  // string value
+        assertNotNull(st);
+
+        JSONObject j = new JSONObject();
+        st = new Setting(groupGood, "available", j);  // json value
         assertNotNull(st);
 
         // this will fail, as language/site *must have* a value (list)
@@ -28,5 +48,8 @@ class SettingTest {
             Setting st2 = new Setting("foo", "bar");
         });
         assertEquals(ex.getMessage(), "invalid group=foo and/or id=bar");
+    }
+
+    @Test void apiRelated() {
     }
 }
