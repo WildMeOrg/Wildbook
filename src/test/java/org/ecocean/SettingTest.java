@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import org.ecocean.Setting;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,6 +28,8 @@ class SettingTest {
         JSONObject dummyData = new JSONObject("{\"abc\": 123}");
         st.setValueRaw((String)null);
         assertNull(st.getValueRaw());
+        st.setValueRaw((JSONObject)null);
+        assertNull(st.getValueRaw());
         st.setValueRaw(dummyData.toString());
         rtn = st.getValueRaw();
         assertEquals(rtn.getInt("abc"), 123);
@@ -51,5 +54,19 @@ class SettingTest {
     }
 
     @Test void apiRelated() {
+        Setting st = new Setting(groupGood, "available");
+        assertEquals(st.typeFromData(new JSONArray()), "Array");
+        assertEquals(st.typeFromData("test"), "String");
+        assertEquals(st.typeFromData(123), "Integer");
+        assertEquals(st.typeFromData(123.0D), "Double");
+        assertEquals(st.typeFromData(true), "Unknown");
+
+        JSONObject payload = new JSONObject();
+        st.setValueFromPayload(payload);
+        assertEquals(st.getValueRaw().getString("type"), "Unknown");
+        payload.put("data", 123);
+        st.setValueFromPayload(payload);
+        assertEquals(st.getValueRaw().getString("type"), "Integer");
+        assertEquals(st.getValueRaw().getInt("data"), 123);
     }
 }
