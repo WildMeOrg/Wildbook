@@ -225,7 +225,7 @@ public class Setting implements java.io.Serializable {
         Setting st = myShepherd.getSetting("language", "available");
         if (st == null) {
             st = new Setting("language", "available");
-            List<String> langs = Arrays.asList(new String[]{"fr", "en", "es", "de"});
+            List<String> langs = Arrays.asList(new String[]{"de", "en", "es", "fr", "it"});
             st.setValue(langs);
             myShepherd.storeSetting(st);
         }
