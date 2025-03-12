@@ -3832,6 +3832,8 @@ public class Shepherd {
         return num;
     }
 
+    /*
+    // marked for deletion
     public List<SinglePhotoVideo> getThumbnails(Shepherd myShepherd, HttpServletRequest request,
         ArrayList<String> encList, int startNum, int endNum, String[] keywords) {
         ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
@@ -3908,6 +3910,7 @@ public class Shepherd {
         } // end while
         return thumbs;
     }
+    */
 
     public List<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request,
         Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
@@ -3988,6 +3991,8 @@ public class Shepherd {
         return thumbs;
     }
 
+    /*
+    // marked for deletion
     public int getNumThumbnails(Iterator it, String[] keywords) {
         // Vector thumbs=new Vector();
         // boolean stopMe=false;
@@ -4029,7 +4034,10 @@ public class Shepherd {
         } // end while
         return count;
     }
+    */
 
+    /*
+    // marked for deletion
     public int getNumMarkedIndividualThumbnails(Iterator<MarkedIndividual> it, String[] keywords) {
         int count = 0;
 
@@ -4078,13 +4086,10 @@ public class Shepherd {
         } // end while
         return count;
     }
+    */
 
-    /**
-     * Returns the number of acceptable images/videos in the enter Iterator.
-     *
-     * @param it The filtered iterator of encounters to count the number of images/videos in.
-     * @return The number of acceptable images/videos in the Iterator of encounters.
-     */
+    /*
+    // marked for deletion
     public int getNumThumbnails(Vector it) {
         int count = 0;
         int numEncs = it.size();
@@ -4104,6 +4109,7 @@ public class Shepherd {
         } // end while
         return count;
     }
+    */
 
     static public boolean isAcceptableImageFile(String fileName) {
         Objects.requireNonNull(fileName);
