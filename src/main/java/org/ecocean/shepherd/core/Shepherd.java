@@ -2558,6 +2558,8 @@ public class Shepherd {
         return users;
     }
 
+    /*
+    // marked for deletion
     public User getUserByAffiliation(String affil) {
         String filter = "SELECT FROM org.ecocean.User WHERE affiliation == \"" + affil + "\"";
         Query query = getPM().newQuery(filter);
@@ -2572,7 +2574,10 @@ public class Shepherd {
         query.closeAll();
         return null;
     }
+    */
 
+    /*
+    // marked for deletion
     public User getUserBySocialId(String service, String id) {
         if ((id == null) || (service == null)) return null;
         List<User> users = getAllUsers();
@@ -2581,6 +2586,7 @@ public class Shepherd {
         }
         return null;
     }
+    */
 
     public ArrayList<Project> getAllProjectsForMarkedIndividual(MarkedIndividual individual) {
         Query query = null;
@@ -3232,6 +3238,8 @@ public class Shepherd {
         return num;
     }
 
+    /*
+    // marked for deletion
     public int getNumUsers() {
         int num = 0;
         Query q = pm.newQuery(User.class); // no filter, so all instances match
@@ -3247,6 +3255,7 @@ public class Shepherd {
         q.closeAll();
         return num;
     }
+    */
 
     public int getNumScanTasks() {
         Extent allTasks = null;
@@ -5027,6 +5036,8 @@ public class Shepherd {
         return user;
     }
 
+    /*
+    // marked for deletion
     // this tries (in this order) username, uuid, email and returns first user it finds
     // note: we do *not* check validity of either uuid or email address, given that (undoubtedly) we have
     // malformed values for both in the db.  is this a bug or a feature?  #philosophy
@@ -5038,6 +5049,7 @@ public class Shepherd {
         if (u != null) return u;
         return getUserByEmailAddress(value);
     }
+    */
 
     public JSONArray getAllProjectACMIdsJSON(String projectId) {
         JSONArray allAnnotIds = new JSONArray();
