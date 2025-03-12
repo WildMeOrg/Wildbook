@@ -2446,9 +2446,7 @@ public class Shepherd {
     }
 
     /*
-     * Retrieve the distinct User objects for all Encounters related to this Occurrence
-     *
-     */
+    // marked for deletion
     public List<User> getAllUsersForOccurrence(Occurrence indie) {
         ArrayList<User> relatedUsers = new ArrayList<User>();
         ArrayList<String> usernames = indie.getAllAssignedUsers();
@@ -2464,6 +2462,7 @@ public class Shepherd {
         }
         return relatedUsers;
     }
+    */
 
     /*
      * Retrieve the distinct User objects for all Encounters related to this MarkedIndividual
@@ -2479,9 +2478,8 @@ public class Shepherd {
         return relatedUsers;
     }
 
-    /* Retrieve the distinct User objects for all Encounters related to this Occurrence
-     *
-     */
+    /*
+    // marked for deletion
     public List<User> getAllUsersForOccurrence(String occur) {
         ArrayList<User> relatedUsers = new ArrayList<User>();
 
@@ -2491,6 +2489,7 @@ public class Shepherd {
         }
         return relatedUsers;
     }
+    */
 
     public Iterator<Encounter> getAllEncounters(Query acceptedEncounters, String order) {
         acceptedEncounters.setOrdering(order);
@@ -2538,6 +2537,8 @@ public class Shepherd {
         return null;
     }
 
+    /*
+    // marked for deletion
     public Occurrence getOccurrenceForSurvey(Survey svy) {
         String svyID = svy.getID();
         String filter = "SELECT FROM org.ecocean.Occurrence WHERE correspondingSurveyID == \"" +
@@ -2552,6 +2553,7 @@ public class Shepherd {
         }
         return null;
     }
+    */
 
     public User getUserByEmailAddress(String email) {
         String hashedEmailAddress = User.generateEmailHash(email);
@@ -2856,6 +2858,8 @@ public class Shepherd {
         return null;
     }
 
+    /*
+    // marked for deletion
     public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(
         String locationID) {
         ArrayList<MarkedIndividual> myArray = new ArrayList<MarkedIndividual>();
@@ -2871,10 +2875,14 @@ public class Shepherd {
         samples.closeAll();
         return myArray;
     }
+    */
 
+    /*
+    // marked for deletion
     public int getNumMarkedIndividualsSightedAtLocationID(String locationID) {
         return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
     }
+    */
 
     public Iterator<Encounter> getAllEncountersNoFilter(String order, String filter2use) {
         String filter = filter2use;
@@ -3084,6 +3092,8 @@ public class Shepherd {
         return (getMarkedIndividualQuiet(enc.getIndividualID()));
     }
 
+    /*
+    // marked for deletion
     // note, new indiv is *not* made persistent here!  so do that yourself if you want to. (shouldnt matter if not-new)
     public MarkedIndividual getOrCreateMarkedIndividual(String name, Encounter enc) {
         MarkedIndividual indiv = getMarkedIndividualQuiet(name);
@@ -3093,6 +3103,7 @@ public class Shepherd {
         enc.assignToMarkedIndividual(indiv);
         return indiv;
     }
+    */
 
     public Occurrence getOccurrence(String id) {
         Occurrence tempShark = null;
@@ -3265,6 +3276,8 @@ public class Shepherd {
         return it;
     }
 
+    /*
+    // marked for deletion
     public List<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
         Extent allSharks = null;
 
@@ -3286,6 +3299,7 @@ public class Shepherd {
         sharks.closeAll();
         return newList;
     }
+    */
 
     public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharks) {
         Collection c = (Collection)(sharks.execute());
@@ -4255,6 +4269,8 @@ public class Shepherd {
         return fileName.matches("^(.+)\\.(?i:mp4|mov|avi|mpg|wmv|flv)$");
     }
 
+    /*
+    // marked for deletion
     public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
         ArrayList al = new ArrayList();
 
@@ -4268,7 +4284,10 @@ public class Shepherd {
         } catch (Exception e) { e.printStackTrace(); }
         return al;
     }
+    */
 
+    /*
+    // marked for deletion
     public List<Occurrence> getOccurrencesByIDSubstring(String altID) {
         ArrayList al = new ArrayList();
 
@@ -4283,7 +4302,10 @@ public class Shepherd {
         } catch (Exception e) { e.printStackTrace(); }
         return al;
     }
+    */
 
+    /*
+    // marked for deletion
     public List<Occurrence> getOccurrencesByUser(User user) {
         ArrayList al = new ArrayList();
 
@@ -4306,12 +4328,10 @@ public class Shepherd {
         } catch (Exception e) { e.printStackTrace(); }
         return al;
     }
+    */
 
-    /**
-     * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
-     * @param myID The individual ID to return in any case.
-     * @return
-     */
+    /*
+    // marked for deletion
     public MarkedIndividual getMarkedIndividualCaseInsensitive(String myID) {
         String filter = "this.individualID.toLowerCase() == \"" + myID.toLowerCase() + "\"";
         Extent encClass = pm.getExtent(MarkedIndividual.class, true);
@@ -4323,6 +4343,7 @@ public class Shepherd {
         if ((al != null) && (al.size() > 0)) { return (MarkedIndividual)al.get(1); }
         return null;
     }
+    */
 
     public List<Encounter> getEncountersByField(String fieldName, String fieldVal) {
         String filter = "this." + fieldName + " == \"" + fieldVal + "\"";
@@ -4354,6 +4375,8 @@ public class Shepherd {
         return al;
     }
 
+    /*
+    // marked for deletion
     public List<MarkedIndividual> getMarkedIndividualsByNickname(String altID) {
         String filter = "this.nickName.toLowerCase() == \"" + altID.toLowerCase() + "\"";
         Extent encClass = pm.getExtent(MarkedIndividual.class, true);
@@ -4364,6 +4387,7 @@ public class Shepherd {
         acceptedEncounters.closeAll();
         return al;
     }
+    */
 
     // get earliest sighting year for setting search parameters
     public int getEarliestSightingYear() {
