@@ -5,12 +5,6 @@ import useGetHomePageInfo from "../../../models/useGetHomePageInfo";
 import { renderWithProviders } from "../../../utils/utils";
 
 jest.mock("../../../models/useGetHomePageInfo");
-jest.mock("../../../components/svg/Logo", () => {
-  const React = require("react");
-  const mockLogo = () => React.createElement("div", { "data-testid": "logo" });
-  mockLogo.displayName = "Logo";
-  return mockLogo;
-});
 jest.mock("../../../components/home/LandingImage", () => {
   const React = require("react");
   const MockLandingImage = () =>
