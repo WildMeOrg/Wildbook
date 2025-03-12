@@ -32,6 +32,13 @@ public class Setting implements java.io.Serializable {
         this.setValueRaw(value);
     }
 
+    public Setting(String group, String id, List value) {
+        SettingValidator sval = new SettingValidator(group, id, value);
+        this.group = group;
+        this.id = id;
+        this.setValue(value);
+    }
+
     public Setting(String group, String id, JSONObject value) {
         SettingValidator sval = new SettingValidator(group, id, value);
         this.group = group;
