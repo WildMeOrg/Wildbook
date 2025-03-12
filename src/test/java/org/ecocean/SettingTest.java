@@ -4,8 +4,9 @@ import org.ecocean.Setting;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.Assert.*;
 
@@ -113,5 +114,8 @@ class SettingTest {
         st.setValueFromPayload(payload);
         assertEquals(st.getValueRaw().getString("type"), "Integer");
         assertEquals(st.getValueRaw().getInt("data"), 123);
+
+        Map<String,String[]> gi = Setting.getValidGroupsAndIds();
+        assertTrue(gi.size() == 1);
     }
 }
