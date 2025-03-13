@@ -2,39 +2,44 @@ package org.ecocean.shepherd.core;
 
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdPMF;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ShepherdTest {
+
+    private MockedStatic<ShepherdPMF> mockedStatic;
+    private PersistenceManagerFactory mockPMF;
+
+    @BeforeEach
+    public void setUp() {
+        // Create your mock instance
+        mockPMF = mock(PersistenceManagerFactory.class);
+        // Open the static mock for PersistenceManagerFactory
+        mockedStatic = Mockito.mockStatic(ShepherdPMF.class);
+        // Configure the behavior for the static method
+        mockedStatic.when(() -> ShepherdPMF.getPMF(anyString()).getPersistenceManager())
+                .thenReturn(mockPMF);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        // Ensure that the static mock is closed after each test
+        mockedStatic.close();
+    }
 
     @Test
     public void testShepherdInitialization() {
-        // Mock the pmf
-        PersistenceManagerFactory mockPMF = mock(PersistenceManagerFactory.class);
+        Shepherd testShepherd = new Shepherd("testContext");
 
-        // Mock the shepherdpmf static method
-        try (MockedStatic<ShepherdPMF> mockedStatic = mockStatic(ShepherdPMF.class)) {
-            // Define the behavior for the static call
-            mockedStatic.when(() -> ShepherdPMF.getPMF(anyString()).getPersistenceManager())
-                    .thenReturn(mockPMF);
-
-            Shepherd testShepherd = new Shepherd("someContext");
-
-            // Check Shepherd
-            assertEquals(testShepherd.getContext(), "someContext");
-        }
+        assertEquals(testShepherd.getContext(), "testContext");
     }
 }
-
