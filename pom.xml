@@ -381,6 +381,11 @@
       <version>1.11.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>4.11.0</version>
+    </dependency>
 
     <dependency>
       <groupId>org.geotools</groupId>
