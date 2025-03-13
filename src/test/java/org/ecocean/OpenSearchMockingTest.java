@@ -25,6 +25,7 @@ import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.core.IndexResponse;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.opensearch.indices.CreateIndexResponse;
+import org.opensearch.client.opensearch.indices.GetIndexRequest;
 
 import org.ecocean.OpenSearch;
 
@@ -39,6 +40,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -91,6 +93,18 @@ public class OpenSearchMockingTest {
         when(restClient.performRequest(any(Request.class))).thenReturn(mockResponse);
         // all the sub-calls to os.getRestResponse() dont care about response, so the empty one works (!)
         os.createIndex("encounter", null);
+
+        // this should be true just via the cache
+        assertTrue(os.existsIndex("encounter"));
+        // now unset cache so it has to ask OpenSearch about index
+        OpenSearch.INDEX_EXISTS_CACHE.remove("encounter");
+        assertTrue(os.existsIndex("encounter"));  // ok cuz we previously mocked osClient.indices() so it "finds it"
+
+        // this will test osClient throwing exception (which gets swallowed but returns false)
+        doThrow(new RuntimeException("intentional fail")).when(osClient).indices();
+        OpenSearch.INDEX_EXISTS_CACHE.remove("encounter");
+        assertFalse(os.existsIndex("encounter"));
+
     }
 
 /*
