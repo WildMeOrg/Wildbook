@@ -5,7 +5,20 @@
         {
             "name": "Angola",
             "id": "Angola",
-            "locationID": []
+            "geospatialInfo":{
+                "lat": -12.27413,
+                "long": 17.54357
+            },
+            "locationID": [
+                {
+                    "name": "Iona National Park",
+                    "id": "Iona National Park",
+                    "geospatialInfo":{
+                        "lat": -16.36166,
+                        "long": 12.49976
+                    }
+                }
+            ]
         },
         {
             "name": "Kenya",
