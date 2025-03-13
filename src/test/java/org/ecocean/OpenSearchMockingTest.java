@@ -2,10 +2,7 @@ package testing_opensearch;
 
 /*
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
-import org.opensearch.client.Request;
-import org.opensearch.client.Response;
 import org.opensearch.client.ResponseException;
-import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
 
@@ -19,6 +16,9 @@ import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBui
 import org.opensearch.client.transport.OpenSearchTransport;
 */
 //import org.opensearch.client.IndicesClient;
+import org.opensearch.client.Request;
+import org.opensearch.client.Response;
+import org.opensearch.client.RestClient;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
@@ -37,7 +37,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
+
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHttpResponse;
+import java.nio.charset.StandardCharsets;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -46,6 +55,7 @@ import java.sql.SQLException;
 public class OpenSearchMockingTest {
 
     //ResultSet mockResultSet;
+    RestClient restClient;
     OpenSearchClient osClient;
     OpenSearch os;
 
@@ -54,6 +64,8 @@ public class OpenSearchMockingTest {
         //mockResultSet = mock(ResultSet.class);
         osClient = mock(OpenSearchClient.class);
         OpenSearch.client = osClient;
+        restClient = mock(RestClient.class);
+        OpenSearch.restClient = restClient;
         os = new OpenSearch();
     }
 
@@ -73,6 +85,23 @@ public class OpenSearchMockingTest {
         OpenSearchIndicesClient mockedIndicesClient = mock(OpenSearchIndicesClient.class);
         when(osClient.indices()).thenReturn(mockedIndicesClient);
         when(mockedIndicesClient.create(mock(CreateIndexRequest.class))).thenReturn(response);
+
+        HttpResponse mockHttpResponse = new BasicHttpResponse(new ProtocolVersion("HTTP", 1, 1), 200, "OK");
+        String jsonResponse = "{\"mock\": \"response\"}";
+        mockHttpResponse.setEntity(new StringEntity(jsonResponse, StandardCharsets.UTF_8));
+
+        Response mockResponse = mock(Response.class);
+
+        when(mockResponse.getEntity()).thenReturn(new StringEntity(jsonResponse, StandardCharsets.UTF_8));
+        when(restClient.performRequest(any(Request.class))).thenReturn(mockResponse);
+/*
+        when(restClient.performRequest(any(Request.class))).thenReturn(new Response(
+                null, null,
+                mockHttpResponse
+        ));
+*/
+
+
         os.createIndex("encounter", null);
     }
 
