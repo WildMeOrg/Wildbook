@@ -121,7 +121,11 @@
 				{ "name":"Florida", "id":"Florida", "locationID":[] }
 			  ]},
 			  { "name":"US - Virgin Islands", "id":"US - Virgin Islands", "locationID":[
+				{"name": "St. Croix", "id": "St.Croix", "locationID":[]},
+				{"name": "St. John", "id": "St. John", "locationID":[
 				{ "name":"Maho", "id":"Maho", "locationID":[] }
+				]},
+				{"name": "St. Thomas", "id": "St.Thomas", "locationID":[]}
 			  ]}
 		],
 		"id": "AtlanticOcean",
@@ -201,6 +205,7 @@
 	},
 	{ "name":"Brazil", "id":"Brazil", "locationID":[
 		{ "name":"Fernando de Noronha", "id":"Fernando de Noronha", "locationID":[] },
+		{"name": "Ilha da Trindade", "id": "Ilha da Trindade", "locationID":[]},
 		{ "name":"Rio de Janeiro, Arraial do Cabo", "id":"Rio de Janeiro, Arraial do Cabo", "locationID":[] }
 	] },
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
