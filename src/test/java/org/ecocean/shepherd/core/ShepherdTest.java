@@ -5,6 +5,7 @@ import org.ecocean.ShepherdPMF;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Transaction;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,11 +22,14 @@ public class ShepherdTest {
     private MockedStatic<ShepherdPMF> mockedStatic;
     private PersistenceManagerFactory mockPMF;
     private PersistenceManager mockPM;
+    private Transaction mockTransaction;
 
     @BeforeEach
     public void setUp() {
         // Create mock PersistenceManager and stub critical nested methods
+        mockTransaction = mock(Transaction.class, RETURNS_DEEP_STUBS);
         mockPM = mock(PersistenceManager.class, RETURNS_DEEP_STUBS);
+        when(mockPM.currentTransaction()).thenReturn(mockTransaction);
 
         // Create mock PersistenceManagerFactory and PM creation
         mockPMF = mock(PersistenceManagerFactory.class);
@@ -53,10 +57,11 @@ public class ShepherdTest {
 
     @Test
     public void testBeginTransaction() {
-        when(mockPM.currentTransaction().isActive()).thenReturn(false);
+        when(mockTransaction.isActive()).thenReturn(false);
         Shepherd testShepherd = new Shepherd("testContext");
         testShepherd.beginDBTransaction();
         // Shepherd should add the WildbookLifecycleListener() once when beginning a transaction
+        verify(mockTransaction, times(1)).begin();
         verify(mockPM, times(1)).addInstanceLifecycleListener(any(), isNull());
     }
 }
