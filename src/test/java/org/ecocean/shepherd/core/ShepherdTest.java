@@ -1,8 +1,10 @@
 package org.ecocean.shepherd.core;
 
+import org.dom4j.util.AttributeHelper;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdPMF;
 
+import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 
 import org.junit.jupiter.api.AfterEach;
@@ -12,21 +14,25 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class ShepherdTest {
 
     private MockedStatic<ShepherdPMF> mockedStatic;
     private PersistenceManagerFactory mockPMF;
+    private PersistenceManager mockPM;
 
     @BeforeEach
     public void setUp() {
-        // Create your mock instance
+        // Create mock PersistenceManager and factory
+        mockPM = mock(PersistenceManager.class);
         mockPMF = mock(PersistenceManagerFactory.class);
-        // Open the static mock for PersistenceManagerFactory
+        when(mockPMF.getPersistenceManager()).thenReturn(mockPM);
+        // Open the static mock for ShepherdPMF
         mockedStatic = Mockito.mockStatic(ShepherdPMF.class);
-        // Configure the behavior for the static method
-        mockedStatic.when(() -> ShepherdPMF.getPMF(anyString()).getPersistenceManager())
+        // Configure the behavior for static getPMF()
+        mockedStatic.when(() -> ShepherdPMF.getPMF(anyString()))
                 .thenReturn(mockPMF);
     }
 
@@ -37,9 +43,9 @@ public class ShepherdTest {
     }
 
     @Test
-    public void testShepherdInitialization() {
+    public void testBasicShepherdInitialization() {
         Shepherd testShepherd = new Shepherd("testContext");
-
         assertEquals(testShepherd.getContext(), "testContext");
+        assertEquals(testShepherd.getPM(), mockPM);
     }
 }
