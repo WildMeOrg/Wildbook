@@ -4380,6 +4380,18 @@ public class Encounter extends Base implements java.io.Serializable {
                             ex.printStackTrace();
                         }
                     }
+                    Occurrence occ = enc.getOccurrence(bgShepherd);
+                    if (occ != null) {
+                        System.out.println("opensearchIndexDeep() background indexing occ " +
+                            occ.getId() + " via enc " + encId);
+                        try {
+                            occ.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                occ.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
                     if (enc.hasAnnotations()) {
                         for (Annotation ann : enc.getAnnotations()) {
                             System.out.println("opensearchIndexDeep() background indexing annot " +
