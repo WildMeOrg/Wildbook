@@ -118,7 +118,8 @@
 				{ "name":"Argentina", "id":"Argentina", "locationID":[] }
 			  ]},
 			  { "name":"US - East Coast", "id":"US - East Coast", "locationID":[
-				{ "name":"Florida", "id":"Florida", "locationID":[] }
+				{ "name":"Florida", "id":"Florida", "locationID":[] },
+				{ "name" : "Kentucky", "id": "Kentucky", "locationID": [] }
 			  ]},
 			  { "name":"US - Virgin Islands", "id":"US - Virgin Islands", "locationID":[
 				{"name": "St. Croix", "id": "St.Croix", "locationID":[]},
