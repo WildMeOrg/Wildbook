@@ -184,7 +184,8 @@
           "nms_thresh": 0.5
         }
       ],
-      "ocelot": {
+      "leopard": {
+        "_save_as": "ocelot",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -200,6 +201,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "ocelot": {
+        "_id_conf": "@Leopardus.pardalis.leopard._id_conf"
       }
     },
     "guttulus": {
@@ -213,7 +217,8 @@
           "nms_thresh": 0.4
         }
       ],
-      "southern_tiger_cat": {
+      "snow_leopard": {
+        "_save_as": "tiger_cat",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -229,6 +234,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "tiger_cat": {
+        "_id_conf": "@Leopardus.guttulus.snow_leopard._id_conf"
       }
     },
     "wiedii": {
@@ -242,7 +250,8 @@
           "nms_thresh": 0.5
         }
       ],
-      "margay": {
+      "leopard": {
+        "_save_as": "margay",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -258,6 +267,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "margay": {
+        "_id_conf": "@Leopardus.wiedii.leopard._id_conf"
       }
     }
   },
@@ -303,7 +315,8 @@
           "nms_thresh": 0.4
         }
       ],
-      "spotted_hyena": {
+      "hyaena": {
+        "_save_as": "spotted_hyena",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -319,6 +332,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "spotted_hyena": {
+        "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
       }
     }
   },
@@ -334,7 +350,7 @@
           "nms_thresh": 0.7
         }
       ],
-      "striped_hyena": {
+      "hyaena": {
         "_id_conf": [
           {
             "query_config_dict": {
@@ -364,7 +380,8 @@
           "nms_thresh": 0.4
         }
       ],
-      "brown_hyena": {
+      "hyaena": {
+        "_save_as": "hyaena_brown",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -380,6 +397,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "hyaena_brown": {
+        "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
       }
     }
   },
@@ -432,7 +452,8 @@
           "nms_thresh": 0.4
         }
       ],
-      "serval": {
+      "cheetah": {
+        "_save_as": "serval",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -448,6 +469,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "serval": {
+        "_id_conf": "@Leptailurus.serval.cheetah._id_conf"
       }
     }
   },
@@ -464,7 +488,11 @@
           "nms_thresh": 0.4
         }
       ],
-      "small_spotted_genet": {
+      "genet": {
+        "_id_conf": "@Genetta.genetta.cheetah._id_conf"
+      },
+      "cheetah": {
+        "_save_as": "genet",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -493,7 +521,8 @@
           "nms_thresh": 0.4
         }
       ],
-      "large_spotted_genet": {
+      "cheetah": {
+        "_save_as": "genet",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -509,6 +538,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "genet": {
+        "_id_conf": "@Genetta.genetta.cheetah._id_conf"
       }
     }
   },
@@ -656,7 +688,8 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx_pardinus": {
+      "lynx": {
+        "_save_as": "lynx_canadensis",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -672,6 +705,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "lynx_canadensis": {
+        "_id_conf": "@Lynx.canadensis.lynx._id_conf"
       }
     },
     "rufus": {
@@ -686,7 +722,8 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx_pardinus": {
+      "lynx": {
+        "_save_as": "lynx_canadensis",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -702,6 +739,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "lynx_rufus": {
+        "_id_conf": "@Lynx.rufus.lynx._id_conf"
       }
     },
     "lynx": {
@@ -716,7 +756,8 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx_pardinus": {
+      "lynx": {
+        "_save_as": "lynx_lynx",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -732,6 +773,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "lynx_lynx": {
+        "_id_conf": "@Lynx.lynx.lynx._id_conf"
       }
     },
     "Pardinus": {
@@ -747,6 +791,7 @@
         }
       ],
       "lynx": {
+        "_save_as": "lynx_pardinus",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -762,6 +807,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "lynx_pardinus": {
+        "_id_conf": "@Lynx.Pardinus.lynx._id_conf"
       }
     }
   },
