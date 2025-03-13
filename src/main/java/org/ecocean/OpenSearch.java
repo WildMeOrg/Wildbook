@@ -399,6 +399,25 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
 
+    // just return the actual hit results
+    // note: each object in the array has _id but actual doc is in _source!!
+    public static JSONArray getHits(JSONObject queryResults) {
+        JSONArray failed = new JSONArray();
+
+        if (queryResults == null) return failed;
+        JSONObject outerHits = queryResults.optJSONObject("hits");
+        if (outerHits == null) {
+            System.out.println("could not find (outer) hits");
+            return failed;
+        }
+        JSONArray hits = outerHits.optJSONArray("hits");
+        if (hits == null) {
+            System.out.println("could not find hits");
+            return failed;
+        }
+        return hits;
+    }
+
     // https://opensearch.org/docs/2.3/opensearch/search/paginate/
     public JSONObject queryRawScroll(String indexName, final JSONObject query, int pageSize)
     throws IOException {

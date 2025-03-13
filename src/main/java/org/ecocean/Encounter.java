@@ -4363,20 +4363,35 @@ public class Encounter extends Base implements java.io.Serializable {
                 bgShepherd.beginDBTransaction();
                 try {
                     Encounter enc = bgShepherd.getEncounter(encId);
-                    if ((enc == null) || !enc.hasMarkedIndividual()) {
+                    if ((enc == null) || (!enc.hasMarkedIndividual() && !enc.hasAnnotations())) {
                         // bgShepherd.rollbackAndClose();
                         executor.shutdown();
                         return;
                     }
                     MarkedIndividual indiv = enc.getIndividual();
-                    System.out.println("opensearchIndexDeep() background indexing indiv " +
-                        indiv.getId() + " via enc " + encId);
-                    try {
-                        indiv.opensearchIndex();
-                    } catch (Exception ex) {
-                        System.out.println("opensearchIndexDeep() background indexing " +
-                            indiv.getId() + " FAILED: " + ex.toString());
-                        ex.printStackTrace();
+                    if (indiv != null) {
+                        System.out.println("opensearchIndexDeep() background indexing indiv " +
+                            indiv.getId() + " via enc " + encId);
+                        try {
+                            indiv.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                indiv.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                    if (enc.hasAnnotations()) {
+                        for (Annotation ann : enc.getAnnotations()) {
+                            System.out.println("opensearchIndexDeep() background indexing annot " +
+                                ann.getId() + " via enc " + encId);
+                            try {
+                                ann.opensearchIndex();
+                            } catch (Exception ex) {
+                                System.out.println("opensearchIndexDeep() background indexing " +
+                                    ann.getId() + " FAILED: " + ex.toString());
+                                ex.printStackTrace();
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     System.out.println("opensearchIndexDeep() backgrounding Encounter " + encId +
@@ -4390,7 +4405,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 executor.shutdown();
             }
         };
-        System.out.println("opensearchIndexDeep() begin backgrounding indiv for " + this);
+        System.out.println("opensearchIndexDeep() begin backgrounding for " + this);
         executor.execute(rn);
         System.out.println("opensearchIndexDeep() [foreground] finished for Encounter " + encId);
     }
@@ -4519,6 +4534,9 @@ public class Encounter extends Base implements java.io.Serializable {
         enc.setDecimalLongitude(decimalLongitude);
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
+        if (CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()) != null) {
+            enc.setState(CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()));
+        }
         enc.setComments(payload.optString("comments", null));
         if (user == null) {
             enc.setSubmitterID("public"); // this seems to be what EncounterForm servlet does so...

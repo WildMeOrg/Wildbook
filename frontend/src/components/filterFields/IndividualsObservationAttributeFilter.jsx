@@ -3,7 +3,7 @@ import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 
-export default function ObservationAttributeFilter({ onChange, data }) {
+export default function ObservationAttributeFilter({ data, store }) {
   const sexOptions =
     data?.sex?.map((item) => {
       return {
@@ -37,21 +37,21 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         noDesc={true}
         label="FILTER_INDIVIDUAL_SEX"
         options={sexOptions}
-        onChange={onChange}
         field="individualSex"
         term="terms"
         filterKey="individualSex"
+        store={store}
       />
       <FormGroupMultiSelect
         isMulti={true}
         label="FILTER_INDIVIDUAL_TAXONOMY"
         noDesc={true}
         options={genusAndSpeciesOptions}
-        onChange={onChange}
         field="individualTaxonomy"
         term="terms"
         filterId={"individualTaxonomy"}
         filterKey={"Individual Taxonomy"}
+        store={store}
       />
     </div>
   );

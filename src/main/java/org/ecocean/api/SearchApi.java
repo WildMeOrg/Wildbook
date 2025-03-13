@@ -53,6 +53,10 @@ public class SearchApi extends ApiBase {
                 } else if ((searchQueryId == null) && !OpenSearch.isValidIndexName(indexName)) {
                     response.setStatus(404);
                     res.put("error", "unknown index");
+                } else if ("annotation".equals(indexName) && !currentUser.isAdmin(myShepherd)) {
+                    // per discussion with jh today, api exposure of annotations admin-only currently
+                    response.setStatus(403);
+                    res.put("error", 403);
                 } else if ((query == null) && !"POST".equals(request.getMethod())) {
                     response.setStatus(405);
                     res.put("error", "method not allowed");

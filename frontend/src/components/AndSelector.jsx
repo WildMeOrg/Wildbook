@@ -1,7 +1,5 @@
 import Select from "react-select";
 import React from "react";
-import { useEffect, useState } from "react";
-import { useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { FormGroup, FormLabel } from "react-bootstrap";
 import Description from "./Form/Description";
@@ -22,53 +20,29 @@ export default function AndSelector({
   label,
   isMulti,
   options,
-  onChange,
   field,
   filterKey,
+  store,
+  value,
 }) {
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const selectedOptionsRef = useRef(selectedOptions);
-
-  useEffect(() => {
-    onChange(null, field);
-    return () => {
-      options.forEach((option) => {
-        onChange(null, `${field}.${option.value}`);
-      });
-    };
-  }, []);
+  const valuesSet = new Set(value);
+  const selectedOptions = options.filter((item) => valuesSet.has(item.value));
 
   const handleChange = (selected) => {
-    const addedOptions = selected.filter(
-      (option) => !selectedOptions.includes(option),
-    );
-    const removedOptions = selectedOptions.filter(
-      (option) => !selected.includes(option),
-    );
+    store.removeFilterByFilterKey(filterKey);
 
-    setSelectedOptions(selected || []);
-    selectedOptionsRef.current = selected || [];
-
-    if (addedOptions.length > 0) {
-      addedOptions.forEach((option) => {
-        onChange({
-          filterId: `${field}.${option.value}`,
-          clause: "filter",
-          filterKey: filterKey,
-          query: {
-            term: {
-              [field]: option.value,
-            },
+    selected.forEach((option) => {
+      store.addFilter(
+        `${field}.${option.value}`,
+        "filter",
+        {
+          term: {
+            [field]: option.value,
           },
-        });
-      });
-    }
-
-    if (removedOptions.length > 0) {
-      removedOptions.forEach((option) => {
-        onChange(null, `${field}.${option.value}`);
-      });
-    }
+        },
+        filterKey,
+      );
+    });
   };
 
   return (

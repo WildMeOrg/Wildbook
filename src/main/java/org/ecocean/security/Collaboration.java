@@ -357,8 +357,14 @@ public class Collaboration implements java.io.Serializable {
         try {
             ArrayList<ScheduledIndividualMerge> potentialForNotification =
                 myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
-            ArrayList<ScheduledIndividualMerge> incomplete =
-                myShepherd.getAllIncompleteScheduledIndividualMerges();
+            
+            System.out.println("Collaboration:potentialForNotification: "+potentialForNotification.size());
+            
+            ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
+            
+            System.out.println("Collaboration:incomplete: "+incomplete.size());
+            
+            
             potentialForNotification.addAll(incomplete);
             for (ScheduledIndividualMerge merge : potentialForNotification) {
                 if (!merge.ignoredByUser(username) && merge.isUserParticipent(username)) {

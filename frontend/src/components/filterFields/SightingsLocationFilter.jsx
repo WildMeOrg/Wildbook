@@ -5,8 +5,9 @@ import { FormControl, FormGroup, FormLabel } from "react-bootstrap";
 import { Loader } from "@googlemaps/js-api-loader";
 import { useIntl } from "react-intl";
 import Description from "../Form/Description";
+import { observer } from "mobx-react-lite";
 
-export default function SightingsLocationFilter({ onChange, data }) {
+const SightingsLocationFilter = observer(({ data, store }) => {
   const intl = useIntl();
   const mapCenterLat = data?.mapCenterLat || 0;
   const mapCenterLon = data?.mapCenterLon || 0;
@@ -19,18 +20,19 @@ export default function SightingsLocationFilter({ onChange, data }) {
   const [location, setLocation] = useState({});
 
   useEffect(() => {
+    if (location.lat === null || location.lng === null) {
+      store.removeFilter("occurrenceLocationGeoPoint");
+    }
     const allFieldsFilled =
       Object.values(location).length === 2 &&
       Object.values(location).every(
-        (value) => value !== undefined && value !== "",
+        (value) => value !== undefined && value !== "" && !value.isNaN,
       );
     if (location && allFieldsFilled) {
-      onChange({
-        filterId: "occurrenceLocationGeoPoint",
-        clause: "filter",
-        filterKey: "sightings location",
-        field: "occurrenceLocationGeoPoint",
-        query: {
+      store.addFilter(
+        "occurrenceLocationGeoPoint",
+        "filter",
+        {
           geo_distance: {
             distance: `10 km`,
             occurrenceLocationGeoPoint: {
@@ -39,9 +41,10 @@ export default function SightingsLocationFilter({ onChange, data }) {
             },
           },
         },
-      });
+        "sightings location",
+      );
     } else {
-      onChange(null, "occurrenceLocationGeoPoint");
+      store.removeFilter("occurrenceLocationGeoPoint");
     }
   }, [location]);
 
@@ -128,18 +131,28 @@ export default function SightingsLocationFilter({ onChange, data }) {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.lat}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceLocationGeoPoint",
+            )?.query?.geo_distance?.occurrenceLocationGeoPoint?.lat
+              || ""}
             onChange={(e) => {
-              setLocation((prevLocation) => ({
-                ...prevLocation,
-                lat: parseFloat(e.target.value),
-              }));
+              const value = e.target.value;
+              setLocation((prevLocation) => {
+                if (value === "") {
+                  const { lat, ...rest } = prevLocation;
+                  return rest;
+                }
+                return {
+                  ...prevLocation,
+                  lat: parseFloat(value),
+                };
+              });
             }}
           />
         </FormGroup>
 
         <FormGroup
-          key={"bearing"}
+          key={"lng"}
           style={{
             marginRight: "10px",
           }}
@@ -150,12 +163,21 @@ export default function SightingsLocationFilter({ onChange, data }) {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.lng}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceLocationGeoPoint",
+            )?.query?.geo_distance?.occurrenceLocationGeoPoint?.lon || ""}
             onChange={(e) => {
-              setLocation((prevLocation) => ({
-                ...prevLocation,
-                lng: parseFloat(e.target.value),
-              }));
+              const value = e.target.value;
+              setLocation((prevLocation) => {
+                if (value === "") {
+                  const { lng, ...rest } = prevLocation;
+                  return rest;
+                }
+                return {
+                  ...prevLocation,
+                  lng: parseFloat(value),
+                };
+              });
             }}
           />
         </FormGroup>
@@ -171,19 +193,24 @@ export default function SightingsLocationFilter({ onChange, data }) {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.bearing}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceBearing",
+            )?.query?.term?.occurrenceBearing || ""}
             onChange={(e) => {
-              onChange({
-                filterId: "occurrenceBearing",
-                clause: "filter",
-                filterKey: "Sighting Bearing",
-                field: "occurrenceBearing",
-                query: {
+              if (e.target.value === "") {
+                store.removeFilter("occurrenceBearing");
+                return;
+              }
+              store.addFilter(
+                "occurrenceBearing",
+                "filter",
+                {
                   term: {
                     occurrenceBearing: e.target.value,
                   },
                 },
-              });
+                "Sighting Bearing",
+              );
             }}
           />
         </FormGroup>
@@ -199,19 +226,25 @@ export default function SightingsLocationFilter({ onChange, data }) {
           <FormControl
             type="number"
             placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
-            value={location.distance}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "occurrenceDistance",
+            )?.query?.term?.occurrenceDistance || ""
+            }
             onChange={(e) => {
-              onChange({
-                filterId: "occurrenceDistance",
-                clause: "filter",
-                filterKey: "Sighting Distance",
-                field: "occurrenceDistance",
-                query: {
+              if (e.target.value === "") {
+                store.removeFilter("occurrenceDistance");
+                return;
+              }
+              store.addFilter(
+                "occurrenceDistance",
+                "filter",
+                {
                   term: {
                     occurrenceDistance: e.target.value,
                   },
                 },
-              });
+                "Sighting Distance",
+              );
             }}
           />
         </FormGroup>
@@ -225,8 +258,12 @@ export default function SightingsLocationFilter({ onChange, data }) {
           overflow: "hidden",
         }}
       >
-        <div ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
+        <div ref={mapRef} style={{ width: "100%", height: "100%" }}>
+          <FormattedMessage id="MAP_IS_LOADING" />
+        </div>
       </div>
     </div>
   );
-}
+});
+
+export default SightingsLocationFilter;

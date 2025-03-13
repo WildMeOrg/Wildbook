@@ -1,8 +1,8 @@
 import React from "react";
 import Select from "react-select";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
+import { observer } from "mobx-react-lite";
+import { toJS } from "mobx";
 
 const colourStyles = {
   option: (styles) => ({
@@ -14,39 +14,21 @@ const colourStyles = {
   control: (base) => ({ ...base, zIndex: 1, backgroundColor: "white" }),
 };
 
-export default function MultiSelect({
-  isMulti,
+const MultiSelect = observer(({ isMulti,
   options,
-  onChange,
   field,
   filterKey,
   term,
-}) {
-  const location = useLocation();
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const navigate = useNavigate();
+  store
+}) => {
   const intl = useIntl();
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (field === "assignedUsername") {
-      const fieldValue = params.get("username");
-      if (fieldValue) {
-        const selectedItems = options.filter(
-          (option) => fieldValue === option.label,
-        );
-        setSelectedOptions(selectedItems);
-      }
-    } else if (field === "state") {
-      const fieldValue = params.get("state");
-      if (fieldValue) {
-        const selectedItems = options.filter(
-          (option) => fieldValue === option.label,
-        );
-        setSelectedOptions(selectedItems);
-      }
-    }
-  }, [location.search, field, options, isMulti]);
+  const filterItem = toJS(store.formFilters).find((f) => f.filterId === field);
+  const queryTerm = filterItem ? toJS(filterItem.query[term]) : {};
+  const selectedValues = queryTerm ? queryTerm[field] : [];
+  const selectedOptions = options.filter(option =>
+    selectedValues?.some(value => value === option.value)
+  );
 
   return (
     <Select
@@ -57,44 +39,22 @@ export default function MultiSelect({
       styles={colourStyles}
       menuPlacement="auto"
       menuPortalTarget={document.body}
-      placeholder={intl.formatMessage({ id: "SELECT_ONE_OR_MORE" })}
       value={selectedOptions}
+      placeholder={intl.formatMessage({ id: "SELECT_ONE_OR_MORE" })}
       onChange={(e) => {
-        const params = new URLSearchParams(location.search);
-
-        if (field === "assignedUsername") {
-          params.delete("username");
-          onChange(null, "assignedUsername");
-          // setFormFilters(formFilters.filter(filter => filter.filterId !== "assignedUsername"));
-          navigate(`${location.pathname}?${params.toString()}`, {
-            replace: true,
-          });
-        } else if (field === "state") {
-          params.delete("state");
-          // setFormFilters(formFilters.filter(filter => filter.filterId !== "state"));
-          onChange(null, "state");
-          navigate(`${location.pathname}?${params.toString()}`, {
-            replace: true,
-          });
-        }
-
-        setSelectedOptions(e || []);
-
+        const value = e?.value || e.map(item => item.value);
         if (e?.value || e.length > 0) {
-          onChange({
-            filterId: field,
-            clause: "filter",
-            filterKey: filterKey,
-            query: {
-              [term]: {
-                [field]: isMulti ? e.map((item) => item.value) : e.value,
-              },
+          store.addFilter(field, "filter", {
+            [term]: {
+              [field]: value,
             },
-          });
+          }, filterKey);
         } else {
-          onChange(null, field);
+          store.removeFilter(field);
         }
       }}
     />
   );
-}
+});
+
+export default MultiSelect;
