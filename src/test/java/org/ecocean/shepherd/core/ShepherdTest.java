@@ -1,6 +1,5 @@
 package org.ecocean.shepherd.core;
 
-import org.dom4j.util.AttributeHelper;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdPMF;
 
@@ -13,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -25,10 +24,13 @@ public class ShepherdTest {
 
     @BeforeEach
     public void setUp() {
-        // Create mock PersistenceManager and factory
-        mockPM = mock(PersistenceManager.class);
+        // Create mock PersistenceManager and stub critical nested methods
+        mockPM = mock(PersistenceManager.class, RETURNS_DEEP_STUBS);
+
+        // Create mock PersistenceManagerFactory and PM creation
         mockPMF = mock(PersistenceManagerFactory.class);
         when(mockPMF.getPersistenceManager()).thenReturn(mockPM);
+
         // Open the static mock for ShepherdPMF
         mockedStatic = Mockito.mockStatic(ShepherdPMF.class);
         // Configure the behavior for static getPMF()
@@ -47,5 +49,14 @@ public class ShepherdTest {
         Shepherd testShepherd = new Shepherd("testContext");
         assertEquals(testShepherd.getContext(), "testContext");
         assertEquals(testShepherd.getPM(), mockPM);
+    }
+
+    @Test
+    public void testBeginTransaction() {
+        when(mockPM.currentTransaction().isActive()).thenReturn(false);
+        Shepherd testShepherd = new Shepherd("testContext");
+        testShepherd.beginDBTransaction();
+        // Shepherd should add the WildbookLifecycleListener() once when beginning a transaction
+        verify(mockPM, times(1)).addInstanceLifecycleListener(any(), isNull());
     }
 }
