@@ -86,22 +86,10 @@ public class OpenSearchMockingTest {
         when(osClient.indices()).thenReturn(mockedIndicesClient);
         when(mockedIndicesClient.create(mock(CreateIndexRequest.class))).thenReturn(response);
 
-        HttpResponse mockHttpResponse = new BasicHttpResponse(new ProtocolVersion("HTTP", 1, 1), 200, "OK");
-        String jsonResponse = "{\"mock\": \"response\"}";
-        mockHttpResponse.setEntity(new StringEntity(jsonResponse, StandardCharsets.UTF_8));
-
         Response mockResponse = mock(Response.class);
-
-        when(mockResponse.getEntity()).thenReturn(new StringEntity(jsonResponse, StandardCharsets.UTF_8));
+        when(mockResponse.getEntity()).thenReturn(new StringEntity("{}", StandardCharsets.UTF_8));
         when(restClient.performRequest(any(Request.class))).thenReturn(mockResponse);
-/*
-        when(restClient.performRequest(any(Request.class))).thenReturn(new Response(
-                null, null,
-                mockHttpResponse
-        ));
-*/
-
-
+        // all the sub-calls to os.getRestResponse() dont care about response, so the empty one works (!)
         os.createIndex("encounter", null);
     }
 
