@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 
 public class ShepherdTest {
 
-    private MockedStatic<ShepherdPMF> mockedStatic;
+    private MockedStatic<ShepherdPMF> mockedShepherdPMF;
     private PersistenceManagerFactory mockPMF;
     private PersistenceManager mockPM;
     private Transaction mockTransaction;
@@ -36,23 +36,23 @@ public class ShepherdTest {
         when(mockPMF.getPersistenceManager()).thenReturn(mockPM);
 
         // Open the static mock for ShepherdPMF
-        mockedStatic = Mockito.mockStatic(ShepherdPMF.class);
+        mockedShepherdPMF = Mockito.mockStatic(ShepherdPMF.class);
         // Configure the behavior for static getPMF()
-        mockedStatic.when(() -> ShepherdPMF.getPMF(anyString()))
+        mockedShepherdPMF.when(() -> ShepherdPMF.getPMF(anyString()))
                 .thenReturn(mockPMF);
     }
 
     @AfterEach
     public void tearDown() {
         // Ensure that the static mock is closed after each test
-        mockedStatic.close();
+        mockedShepherdPMF.close();
     }
 
     @Test
     public void testBasicShepherdInitialization() {
         Shepherd testShepherd = new Shepherd("testContext");
-        assertEquals(testShepherd.getContext(), "testContext");
-        assertEquals(testShepherd.getPM(), mockPM);
+        assertEquals("testContext", testShepherd.getContext());
+        assertEquals(mockPM, testShepherd.getPM());
     }
 
     @Test
@@ -63,5 +63,37 @@ public class ShepherdTest {
         // Shepherd should add the WildbookLifecycleListener() once when beginning a transaction
         verify(mockTransaction, times(1)).begin();
         verify(mockPM, times(1)).addInstanceLifecycleListener(any(), isNull());
+    }
+
+    @Test
+    public void testCommitTransaction() {
+        when(mockTransaction.isActive()).thenReturn(true);
+        Shepherd testShepherd = new Shepherd("testContext");
+        testShepherd.commitDBTransaction();
+        verify(mockTransaction, times(1)).commit();
+    }
+
+    @Test
+    public void testRollbackTransaction() {
+        when(mockTransaction.isActive()).thenReturn(true);
+        Shepherd testShepherd = new Shepherd("testContext");
+        testShepherd.rollbackDBTransaction();
+        verify(mockTransaction, times(1)).rollback();
+    }
+
+    @Test
+    public void testCloseTransaction() {
+        when(mockPM.isClosed()).thenReturn(false);
+        Shepherd testShepherd = new Shepherd("testContext");
+        testShepherd.closeDBTransaction();
+        verify(mockPM, times(1)).close();
+    }
+
+    @Test
+    public void testSetAction() {
+        Shepherd testShepherd = new Shepherd("testContext");
+        String action = "testAction";
+        testShepherd.setAction(action);
+        assertEquals(action, testShepherd.getAction());
     }
 }
