@@ -15,6 +15,8 @@
     <datanucleus.version>4.2.0-release</datanucleus.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
     <geotools.version>23.0</geotools.version>
+    <slf4j.version>1.7.12</slf4j.version>
+    <junit.version>5.11.0</junit.version>
   </properties>
 
   <repositories>
@@ -366,13 +368,13 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.11.0</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.11.0</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -423,7 +425,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.12</version>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
     </dependency>
 
     <dependency>
