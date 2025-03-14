@@ -56,7 +56,7 @@ public class ShepherdTest {
     }
 
     @Test
-    public void testBeginTransaction() {
+    public void testBeginTransactionWhenInactive() {
         when(mockTransaction.isActive()).thenReturn(false);
         Shepherd testShepherd = new Shepherd("testContext");
         testShepherd.beginDBTransaction();
@@ -66,7 +66,7 @@ public class ShepherdTest {
     }
 
     @Test
-    public void testCommitTransaction() {
+    public void testCommitTransactionWhenActive() {
         when(mockTransaction.isActive()).thenReturn(true);
         Shepherd testShepherd = new Shepherd("testContext");
         testShepherd.commitDBTransaction();
@@ -74,7 +74,7 @@ public class ShepherdTest {
     }
 
     @Test
-    public void testRollbackTransaction() {
+    public void testRollbackTransactionWhenActive() {
         when(mockTransaction.isActive()).thenReturn(true);
         Shepherd testShepherd = new Shepherd("testContext");
         testShepherd.rollbackDBTransaction();
@@ -82,10 +82,10 @@ public class ShepherdTest {
     }
 
     @Test
-    public void testCloseTransaction() {
+    public void testClosePMWhenOpen() {
         when(mockPM.isClosed()).thenReturn(false);
         Shepherd testShepherd = new Shepherd("testContext");
-        testShepherd.closeDBTransaction();
+        testShepherd.closeDBTransaction();  // note:  closeDBTransaction actually closes the persistence manager, not the transaction
         verify(mockPM, times(1)).close();
     }
 
