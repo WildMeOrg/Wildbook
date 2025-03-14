@@ -159,6 +159,8 @@ public class OpenSearch {
                         BACKGROUND_SLICE_SIZE);
                         Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
                         BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Occurrence.class,
+                        BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
                     } catch (Exception ex) {
@@ -527,7 +529,9 @@ public class OpenSearch {
     // updateData is { field0: value0, field1: value1, ... }
     public void indexUpdate(final String indexName, String id, JSONObject updateData)
     throws IOException {
+        if (!existsIndex(indexName)) throw new IOException("index does not exist: " + indexName);
         if ((id == null) || (updateData == null)) throw new IOException("missing id or updateData");
+        updateData.put("indexTimestamp", System.currentTimeMillis());
         JSONObject doc = new JSONObject();
         doc.put("doc", updateData);
         Request updateRequest = new Request("POST", indexName + "/_update/" + id);
