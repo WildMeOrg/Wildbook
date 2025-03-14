@@ -4,7 +4,7 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
-import ImageSection from "./ImageSection";
+import { ImageSection } from "./ImageSection";
 import { DateTimeSection } from "./DateTimeSection";
 import { PlaceSection } from "./PlaceSection";
 import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import "./recaptcha.css";
 
-export const ReportEncounter = observer(() => {
+const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
