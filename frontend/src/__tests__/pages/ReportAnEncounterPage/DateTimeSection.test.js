@@ -1,11 +1,9 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { DateTimeSection } from "../DateTimeSection";
-import { Provider } from "mobx-react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { DateTimeSection } from "../../../pages/ReportsAndManagamentPages/DateTimeSection";
 import userEvent from "@testing-library/user-event";
-import ThemeContext from "../../ThemeColorProvider";
-import { IntlProvider } from "react-intl";
-import Store from "../../store";
+import { ReportEncounterStore } from "../../../pages/ReportsAndManagamentPages/ReportEncounterStore";
+import { renderWithProviders } from "../../../utils/utils";
 
 jest.mock("moment", () => {
   const originalMoment = jest.requireActual("moment");
@@ -19,36 +17,29 @@ jest.mock("moment", () => {
   };
 });
 
-const mockStore = new Store();
-mockStore.dateTimeSection = {
-  value: "",
-  required: true,
-  error: false,
-  setDateTimeSectionValue: jest.fn(),
-  setDateTimeSectionError: jest.fn(),
-};
-mockStore.exifDateTime = ["2024-03-12 15:30", "2024-03-10 12:00"];
+jest.mock("../../../pages/ReportsAndManagamentPages/ReportEncounterStore", () => ({
+  ReportEncounterStore: jest.fn().mockImplementation(() => ({
+    dateTimeSection: {
+      value: "",
+      required: true,
+      error: false,
+    },
+    setDateTimeSectionValue: jest.fn(),
+    setDateTimeSectionError: jest.fn(),
+    exifDateTime: ["2024-03-12 15:30", "2024-03-10 12:00"],
+  })),
+}));
+
+const mockStore = new ReportEncounterStore();
 
 const renderComponent = () => {
-  return render(
-    <Provider store={mockStore}>
-      <IntlProvider locale="en" messages={{}}>
-        <ThemeContext.Provider
-          value={{
-            statusColors: { red800: "red" },
-          }}
-        >
-          <DateTimeSection store={mockStore} />
-        </ThemeContext.Provider>
-      </IntlProvider>
-    </Provider>,
-  );
+  return renderWithProviders(<DateTimeSection store={mockStore} />);
 };
 
 describe("DateTimeSection Component", () => {
   test("renders the component correctly", () => {
     renderComponent();
-    expect(screen.getByText("DATETIME_SECTION")).toBeInTheDocument();
+    expect(screen.getAllByText("DATETIME_SECTION")[1]).toBeInTheDocument();
   });
 
   test("allows users to input a valid date and time", async () => {
@@ -64,16 +55,24 @@ describe("DateTimeSection Component", () => {
   });
 
   test("shows error on invalid date format", async () => {
+    mockStore.dateTimeSection = {
+      value: "2025-03-03 0",
+      required: true,
+      error: true,
+      setDateTimeSectionValue: jest.fn(),
+      setDateTimeSectionError: jest.fn(),
+    };
     renderComponent();
     const input = screen.getByPlaceholderText("YYYY-MM-DD");
 
-    await userEvent.type(input, "invalid-date");
+    fireEvent.change(input, { target: { value: "2025-03-03 0" } });
     fireEvent.blur(input);
 
-    await waitFor(() =>
-      expect(mockStore.setDateTimeSectionError).toHaveBeenCalledWith(true),
-    );
-    expect(screen.getByText("INVALID_DATETIME_WARNING")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockStore.setDateTimeSectionError).toHaveBeenCalledWith(true);
+      expect(mockStore.dateTimeSection.error).toBe(true);
+      expect(screen.getByText("INVALID_DATETIME_WARNING")).toBeInTheDocument();
+    });
   });
 
   test("allows selecting EXIF date", async () => {

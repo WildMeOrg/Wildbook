@@ -185,5 +185,3 @@ export const PlaceSection = observer(({ store }) => {
     </div>
   );
 });
-
-export default PlaceSection;

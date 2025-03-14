@@ -19,3 +19,4 @@ test("dummy test", () => {
 });
 
 process.env.PUBLIC_URL = "";
+process.env.SITE_NAME = "Test Site";
