@@ -71,11 +71,12 @@ export const DateTimeSection = observer(({ store }) => {
           </Alert>
         )}
         <div className="position-relative d-inline-block w-100 mt-4">
-          <Form.Label>
+          <Form.Label htmlFor="exifDateTime">
             <FormattedMessage id="DATETIME_EXIF" />
           </Form.Label>
           <Form.Control
             as="select"
+            id="exifDateTime"
             onChange={(e) => {
               const inputDate = e.target.value;
               store.setDateTimeSectionValue(new Date(inputDate));
