@@ -66,6 +66,17 @@ public class ShepherdTest {
     }
 
     @Test
+    public void testBeginTransactionWhenActive() {
+        when(mockTransaction.isActive()).thenReturn(true);
+        Shepherd testShepherd = new Shepherd("testContext");
+        testShepherd.beginDBTransaction();
+        // Shepherd should not begin a trans
+        verify(mockTransaction, times(0)).begin();
+        // addInstanceLifecycleListener is called even if there is an active trans ... is this intended?
+        verify(mockPM, times(1)).addInstanceLifecycleListener(any(), isNull());
+    }
+
+    @Test
     public void testCommitTransactionWhenActive() {
         when(mockTransaction.isActive()).thenReturn(true);
         Shepherd testShepherd = new Shepherd("testContext");
@@ -74,11 +85,33 @@ public class ShepherdTest {
     }
 
     @Test
+    public void testCommitTransactionWhenInactive() {
+        when(mockTransaction.isActive()).thenReturn(false);
+        Shepherd testShepherd = new Shepherd("testContext");
+        testShepherd.commitDBTransaction();
+        verify(mockTransaction, times(0)).commit();
+    }
+
+    @Test
     public void testRollbackTransactionWhenActive() {
         when(mockTransaction.isActive()).thenReturn(true);
         Shepherd testShepherd = new Shepherd("testContext");
         testShepherd.rollbackDBTransaction();
         verify(mockTransaction, times(1)).rollback();
+    }
+
+    @Test
+    public void testCheckActiveTransaction() {
+        when(mockTransaction.isActive()).thenReturn(true);
+        Shepherd testShepherd = new Shepherd("testContext");
+        assertTrue(testShepherd.isDBTransactionActive());
+    }
+    @Test
+
+    public void testCheckInactiveTransaction() {
+        when(mockTransaction.isActive()).thenReturn(false);
+        Shepherd testShepherd = new Shepherd("testContext");
+        assertFalse(testShepherd.isDBTransactionActive());
     }
 
     @Test
