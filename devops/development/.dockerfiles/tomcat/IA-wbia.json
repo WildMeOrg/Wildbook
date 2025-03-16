@@ -285,7 +285,9 @@
           "nms_thresh": 0.5
         }
       ],
-      "clouded_leopard": {
+
+      "leopard": {
+        "_save_as": "clouded_leopard",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -301,6 +303,9 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "clouded_leopard": {
+        "_id_conf": "@Neofelis.nebulosa.leopard._id_conf"
       }
     }
   },
@@ -417,10 +422,12 @@
           "nms_aware": "ispart"
         }
       ],
-      "cougar": {
+      "lion": {
+        "_save_as": "cougar",
         "_id_conf": []
       },
-      "cougar+head": {
+      "lion+head": {
+        "_save_as": "cougar+head",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -436,6 +443,12 @@
             "description": "HotSpotter pattern-matcher"
           }
         ]
+      },
+      "cougar": {
+        "_id_conf": "@Puma.concolor.lion._id_conf"
+      },
+      "cougar+head": {
+        "_id_conf": "@Puma.concolor.lioness+head._id_conf"
       }
     }
   },
