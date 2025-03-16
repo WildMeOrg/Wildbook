@@ -61,8 +61,11 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener postStore() event on " + base);
             try {
-                base.opensearchIndexDeep();
-            } catch (IOException ex) {
+            	
+                //base.opensearchIndexDeep();
+            	IndexingManager.addIndexingQueueEntry(base.getId());
+                
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         } else if (Collaboration.class.isInstance(obj)) {
