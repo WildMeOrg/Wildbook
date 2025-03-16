@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 /*
  * Originally created to support allele export for kinship analysis with the University of Chicago's Kinalyzer tool (now gone), this export format has

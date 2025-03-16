@@ -16,6 +16,7 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

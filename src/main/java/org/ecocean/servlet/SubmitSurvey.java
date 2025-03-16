@@ -10,6 +10,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class SubmitSurvey extends HttpServlet {
     private static final long serialVersionUID = -3893945777300963422L;

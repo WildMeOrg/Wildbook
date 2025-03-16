@@ -17,6 +17,7 @@ java.util.Vector,
 java.util.Iterator,
 org.ecocean.servlet.importer.*,
 java.lang.NumberFormatException"%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 String context="context0";

@@ -17,6 +17,7 @@ java.util.*,
 org.ecocean.genetics.distance.*
               "
 %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 private String scrubUrl(URL u) {

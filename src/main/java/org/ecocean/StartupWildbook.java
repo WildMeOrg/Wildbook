@@ -17,12 +17,13 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.media.LocalAssetStore;
-import org.ecocean.OpenSearch;
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.servlet.ServletUtilities;
 
 import java.util.concurrent.ThreadPoolExecutor;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 import java.io.IOException;

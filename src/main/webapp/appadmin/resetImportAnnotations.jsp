@@ -10,6 +10,7 @@ java.io.*,java.util.*, java.io.FileInputStream,
 java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, 
 org.ecocean.servlet.importer.*,
 java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <jsp:include page="../header.jsp" flush="true" />
 

@@ -10,7 +10,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 public class OccurrenceSetMetadataField extends HttpServlet {

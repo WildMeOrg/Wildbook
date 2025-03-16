@@ -1,7 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8"
 		language="java"
  		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
-  <%
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%
 
   String context="context0";
   context=ServletUtilities.getContext(request);

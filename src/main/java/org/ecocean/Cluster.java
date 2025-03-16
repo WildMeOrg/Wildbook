@@ -2,6 +2,7 @@
 
 package org.ecocean;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 
 import java.io.*;

@@ -7,6 +7,8 @@
          org.datanucleus.api.jdo.JDOPersistenceManager,
          java.nio.charset.StandardCharsets,
          java.net.URLEncoder " %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%!
@@ -31,7 +33,7 @@ context=ServletUtilities.getContext(request);
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
-  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+  encprops= ShepherdProperties.getProperties("searchResults.properties", langCode, context);
 
 
   Shepherd myShepherd = new Shepherd(context);

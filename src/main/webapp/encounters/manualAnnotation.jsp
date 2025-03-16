@@ -20,6 +20,7 @@
 		org.apache.commons.collections4.CollectionUtils
 		"
 %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 //Method to encode a string value using `UTF-8` encoding scheme

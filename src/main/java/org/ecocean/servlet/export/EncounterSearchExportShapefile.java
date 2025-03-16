@@ -18,6 +18,7 @@ import java.io.Serializable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.geotools.data.*;
 import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.shapefile.*;

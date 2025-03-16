@@ -7,7 +7,7 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 
 import javax.servlet.http.HttpServlet;

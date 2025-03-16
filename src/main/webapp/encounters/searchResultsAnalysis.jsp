@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 String context="context0";
@@ -7,7 +8,7 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties encprops = new Properties();
 //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
-encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
+encprops= ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
 
 %>
 

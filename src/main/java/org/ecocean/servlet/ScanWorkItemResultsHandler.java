@@ -6,7 +6,7 @@ import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.grid.GridNode;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItemResult;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

@@ -14,7 +14,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Observation;
 import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class OccurrenceSetObservation extends HttpServlet {
     /**

@@ -8,7 +8,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.TwitterUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;

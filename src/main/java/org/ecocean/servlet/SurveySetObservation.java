@@ -10,7 +10,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Observation;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Survey;
 
 public class SurveySetObservation extends HttpServlet {
