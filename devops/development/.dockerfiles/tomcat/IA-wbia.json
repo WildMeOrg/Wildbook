@@ -462,6 +462,34 @@
           }
         ]
       },
+
+      "lioness": {
+        "_save_as": "cougar",
+        "_id_conf": []
+      },
+      "lion_general": {
+        "_save_as": "cougar",
+        "_id_conf": []
+      },
+      "lion_general+head": {
+        "_save_as": "cougar+head",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher"
+          }
+        ]
+      },
+
       "cougar": {
         "_id_conf": "@Puma.concolor.lion._id_conf"
       },
