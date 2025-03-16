@@ -320,7 +320,13 @@
             {
               "name": "United States",
               "id": "United States",
-              "locationID": []
+              "locationID": [
+                {
+                  "name": "California",
+                  "id": "California",
+                  "locationID": []
+                }
+              ]
             },
             {
               "name": "Canada",
