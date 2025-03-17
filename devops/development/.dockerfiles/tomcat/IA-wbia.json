@@ -510,7 +510,7 @@
         "_id_conf": "@Puma.concolor.lion._id_conf"
       },
       "cougar+head": {
-        "_id_conf": "@Puma.concolor.lioness+head._id_conf"
+        "_id_conf": "@Puma.concolor.lion+head._id_conf"
       }
     }
   },
