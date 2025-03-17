@@ -116,7 +116,7 @@ public class EncounterSetString extends HttpServlet {
             myShepherd.rollbackDBTransaction();
         }
         if (!locked) {
-            myShepherd.commitDBTransaction(action);
+            myShepherd.commitDBTransaction();
             response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> encounter " + fieldName +
                 " has been updated from " + oldVal + " to " + newVal + ".");
