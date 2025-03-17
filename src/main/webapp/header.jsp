@@ -572,11 +572,11 @@ if(request.getUserPrincipal()!=null){
                                   }
                               }
 
-                              
                               String selectedImgURL = "";
                               if (selectedLangCode != null) {
                                   selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + selectedLangCode + ".gif";
                               }
+
                             %>
                             
                             <div class="custom-select-selected" >
@@ -592,8 +592,7 @@ if(request.getUserPrincipal()!=null){
                                     String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif";
                                 %>
                                   <div onclick="selectItem(this, '<%= myLang %>', '<%= imgURL %>')">
-                                    <img src="<%= imgURL %>" alt="Flag" style="margin-right: 10px">
-                                    <%= langName %>
+                                    <%= WordUtils.capitalize(langName) %>
                                   </div>
                                 <%
                                 } 

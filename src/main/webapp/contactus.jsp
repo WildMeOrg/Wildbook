@@ -23,18 +23,6 @@
 
 <p><a href="mailto: info@tech4conservation.org">info@tech4conservation.org</a></p>
 
-<h3>BPCT</h3>
-
-<p><a href="https://www.bpctrust.org/"><img src="cust/mantamatcher/img/BPC_logo_dog.jpg" width="200px" height="*" /></a></p>
-
-<h3>Wild Me</h3>
-
-<p><a href="https://www.wildme.org/"><img src="images/WildMe-Logo-04.png" width="200px" height="*" /></a></p>
-
-<h3>Wildbook</h3>
-
-<p><a href="https://www.wildbook.org/"><img src="images/WildBook_logo_300dpi-04.png" width="200px" height="*" /></a></p>
-
 <h3>Tech 4 Conservation</h3>
 
 <p><a href="mailto: info@tech4conservation.org"><img src="images/T4C_full_white_cropped_web.jpg" alt="Tech 4 Conservation Logo" width="400px" height="*"></a></p>
