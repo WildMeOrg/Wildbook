@@ -788,7 +788,7 @@
         ]
       },
       "lynx_canadensis": {
-        "_id_conf": "@Lynx.canadensis.lynx._id_conf"
+        "_id_conf": "@Lynx.canadensis.lynx_pardinus._id_conf"
       }
     },
     "rufus": {
@@ -804,7 +804,7 @@
         }
       ],
       "lynx_pardinus": {
-        "_save_as": "lynx_canadensis",
+        "_save_as": "lynx_rufus",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -823,7 +823,7 @@
         ]
       },
       "lynx_rufus": {
-        "_id_conf": "@Lynx.rufus.lynx._id_conf"
+        "_id_conf": "@Lynx.rufus.lynx_pardinus._id_conf"
       }
     },
     "lynx": {
@@ -858,7 +858,7 @@
         ]
       },
       "lynx_lynx": {
-        "_id_conf": "@Lynx.lynx.lynx._id_conf"
+        "_id_conf": "@Lynx.lynx.lynx_pardinus._id_conf"
       }
     },
     "Pardinus": {
