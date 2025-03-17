@@ -768,7 +768,7 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_save_as": "lynx_canadensis",
         "_id_conf": [
           {
@@ -803,7 +803,7 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_save_as": "lynx_canadensis",
         "_id_conf": [
           {
@@ -838,7 +838,7 @@
           "viewpoint_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_save_as": "lynx_lynx",
         "_id_conf": [
           {
@@ -873,8 +873,7 @@
           "viewpoint_model_tag": "lynx_v0"
         }
       ],
-      "lynx": {
-        "_save_as": "lynx_pardinus",
+      "lynx_pardinus": {
         "_id_conf": [
           {
             "query_config_dict": {
@@ -891,9 +890,6 @@
             "default": false
           }
         ]
-      },
-      "lynx_pardinus": {
-        "_id_conf": "@Lynx.Pardinus.lynx._id_conf"
       }
     }
   },
