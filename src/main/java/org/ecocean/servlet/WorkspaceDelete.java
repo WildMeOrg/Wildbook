@@ -9,6 +9,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.io.*;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

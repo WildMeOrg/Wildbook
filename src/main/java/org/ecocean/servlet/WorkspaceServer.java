@@ -15,6 +15,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import java.util.Date;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 /**
  * A wildbook Workspace is a persisted/named TranslateQuery. This servlet lets the user create (POST) workspaces, and retrieve (GET) the MediaAssets

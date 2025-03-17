@@ -15,6 +15,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.*;
 import org.ecocean.grid.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadPoolExecutor;

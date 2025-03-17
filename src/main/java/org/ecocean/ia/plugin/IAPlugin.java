@@ -5,7 +5,7 @@ import javax.servlet.ServletContextEvent;
 import org.ecocean.Annotation;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 /*
     someday we might want to extend this with some more established/formal systems.  examples:

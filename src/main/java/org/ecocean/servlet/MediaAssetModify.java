@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-import org.ecocean.*;
 import org.ecocean.media.*;
 
 import javax.servlet.http.HttpServlet;
@@ -10,6 +9,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.io.*;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -31,7 +31,7 @@ import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Taxonomy;
 import org.ecocean.Util;
 import org.joda.time.DateTime;

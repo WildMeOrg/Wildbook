@@ -16,7 +16,7 @@ import javax.servlet.ServletException;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

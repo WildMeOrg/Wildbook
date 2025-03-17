@@ -9,6 +9,7 @@ import javax.servlet.ServletException;
 import java.io.*;
 import java.util.ArrayList;
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class WorkspacesForUser extends HttpServlet {
     public void init(ServletConfig config)

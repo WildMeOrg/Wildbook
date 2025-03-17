@@ -9,6 +9,7 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class SurveyQueryProcessor extends QueryProcessor {
     private static final String BASE_FILTER =
@@ -63,7 +64,7 @@ public class SurveyQueryProcessor extends QueryProcessor {
     }
 
     public static SurveyQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request,
-        String order) {
+                                                 String order) {
         Vector<Survey> rSurveys = new Vector<Survey>();
         Iterator<Survey> allSurveys;
         String filter = "";

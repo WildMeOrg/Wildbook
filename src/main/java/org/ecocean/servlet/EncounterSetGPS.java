@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 
 import java.io.*;
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 // Set alternateID for this encounter/sighting
 public class EncounterSetGPS extends HttpServlet {

@@ -15,7 +15,7 @@ import java.util.Map;
 
 import javax.jdo.Query;
 import org.ecocean.api.ApiException;
-import org.ecocean.OpenSearch;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 /**

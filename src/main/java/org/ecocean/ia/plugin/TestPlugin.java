@@ -9,7 +9,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.queue.*;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.json.JSONObject;
 
