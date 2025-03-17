@@ -36,7 +36,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -65,7 +66,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -94,7 +96,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -132,7 +135,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -149,7 +153,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -166,7 +171,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -198,7 +204,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -231,7 +238,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -264,7 +272,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -300,7 +309,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -334,7 +344,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -368,7 +379,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -399,7 +411,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -440,7 +453,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -458,7 +472,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -485,7 +500,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -525,7 +541,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -564,7 +581,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -594,7 +612,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -630,7 +649,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -659,7 +679,8 @@
               "n": 20,
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           },
           {
             "query_config_dict": {
@@ -761,7 +782,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -795,7 +817,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -829,7 +852,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -863,7 +887,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
