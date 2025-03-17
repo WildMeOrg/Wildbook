@@ -51,6 +51,7 @@ public class IndividualTest {
     public void testStoreNewMarkedIndividual() {
         when(mockTransaction.isActive()).thenReturn(false);
         Shepherd testShepherd = spy(new Shepherd("testContext"));
+        // should a null MarkedIndividual "work" here?
         MarkedIndividual markedIndividual = null;
         boolean returnValue = testShepherd.storeNewMarkedIndividual(markedIndividual);
 
@@ -65,6 +66,7 @@ public class IndividualTest {
     public void testStoreNewMarkedIndividualWithActiveTransaction() {
         when(mockTransaction.isActive()).thenReturn(true);
         Shepherd testShepherd = spy(new Shepherd("testContext"));
+        // should a null MarkedIndividual "work" here?
         MarkedIndividual markedIndividual = null;
         boolean returnValue = testShepherd.storeNewMarkedIndividual(markedIndividual);
 
@@ -84,11 +86,10 @@ public class IndividualTest {
         boolean returnValue = testShepherd.storeNewMarkedIndividual(markedIndividual);
 
         assertThrows(IllegalStateException.class, () -> mockPM.makePersistent(any()));
+        // test that exception leads to rollback
+        verify(testShepherd, times(1)).rollbackDBTransaction();
         assertFalse(returnValue);
     }
-
-    @Test
-    public void testStoreNewMarkedIndividualException() {}
 
     // deletion
     @Test
