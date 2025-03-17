@@ -10,6 +10,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.media.*;
 import org.ecocean.resumableupload.UploadServlet;
 import org.ecocean.servlet.*;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.tag.SatelliteTag;
 
 import org.apache.poi.ss.usermodel.Cell;

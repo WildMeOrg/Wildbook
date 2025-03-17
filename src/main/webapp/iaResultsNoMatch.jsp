@@ -13,7 +13,7 @@ org.datanucleus.api.jdo.JDOPersistenceManager,
 org.ecocean.media.*,
 org.ecocean.cache.*,
 java.util.zip.GZIPOutputStream,
-java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%><%@ page import="org.ecocean.shepherd.core.Shepherd"%>
 
 <%
 

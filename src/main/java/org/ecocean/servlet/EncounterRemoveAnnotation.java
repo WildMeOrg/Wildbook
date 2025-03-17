@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 import org.ecocean.ia.Task;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONException;
 import org.json.JSONObject;
 

@@ -4,7 +4,7 @@ org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.json.JSONObject
               "
-%>
+%><%@ page import="org.ecocean.shepherd.core.Shepherd"%>
 
 
 

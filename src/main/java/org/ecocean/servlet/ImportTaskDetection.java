@@ -3,7 +3,7 @@ package org.ecocean.servlet;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.ia.IAUtils;
 import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

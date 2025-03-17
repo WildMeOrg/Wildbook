@@ -3,7 +3,7 @@ package org.ecocean.scheduled;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 public abstract class WildbookScheduledTask implements java.io.Serializable {

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.jdo.Query;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class WBQuery implements java.io.Serializable {
     private static final long serialVersionUID = -7934850478934029842L;

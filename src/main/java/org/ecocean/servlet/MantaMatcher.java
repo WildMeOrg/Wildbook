@@ -19,6 +19,7 @@ import org.ecocean.mmutil.MantaMatcherUtilities;
 import org.ecocean.mmutil.MediaUtilities;
 import org.ecocean.mmutil.MMAResultsProcessor;
 import org.ecocean.mmutil.RegexFilenameFilter;
+import org.ecocean.shepherd.core.Shepherd;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

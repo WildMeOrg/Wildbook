@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%
 
 String context="context0";

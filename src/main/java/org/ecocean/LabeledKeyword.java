@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class LabeledKeyword extends Keyword {
     // ex. values are "Quality", "Distinctiveness", "Viewpoint"

@@ -3,6 +3,8 @@
 <%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat,
 javax.servlet.http.HttpSession,
 java.io.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%
@@ -14,7 +16,7 @@ String context="context0";
 String langCode = ServletUtilities.getLanguageCode(request);
 
 //load user props
-Properties props=ShepherdProperties.getProperties("users.properties", langCode,context);
+Properties props= ShepherdProperties.getProperties("users.properties", langCode,context);
 
 if (session.getAttribute("error") != null) {
 	%><script>var errorMessage = '<%=session.getAttribute("error").toString().replaceAll("'", "\\'")%>';</script><%

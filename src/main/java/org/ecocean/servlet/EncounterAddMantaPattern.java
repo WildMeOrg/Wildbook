@@ -7,6 +7,7 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.*;
 import org.ecocean.mmutil.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

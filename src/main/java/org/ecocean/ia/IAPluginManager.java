@@ -11,7 +11,7 @@ import javax.servlet.ServletContextEvent;
 import org.ecocean.Annotation;
 import org.ecocean.ia.plugin.*;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class IAPluginManager {
     private static Map<String, List<IAPlugin> > plugins = new HashMap<String, List<IAPlugin> >();

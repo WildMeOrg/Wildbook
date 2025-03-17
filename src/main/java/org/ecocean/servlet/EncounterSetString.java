@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 import javax.servlet.http.HttpServlet;
@@ -116,7 +116,7 @@ public class EncounterSetString extends HttpServlet {
             myShepherd.rollbackDBTransaction();
         }
         if (!locked) {
-            myShepherd.commitDBTransaction(action);
+            myShepherd.commitDBTransaction();
             response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> encounter " + fieldName +
                 " has been updated from " + oldVal + " to " + newVal + ".");

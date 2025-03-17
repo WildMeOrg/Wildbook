@@ -13,7 +13,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 
 public class UserResetAcceptedUserAgreement extends HttpServlet {

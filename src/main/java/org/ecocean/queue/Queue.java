@@ -1,6 +1,6 @@
 package org.ecocean.queue;
 import java.util.Properties;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.ShepherdProperties;
 
 public abstract class Queue {
     protected String type = null;

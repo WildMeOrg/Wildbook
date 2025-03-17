@@ -15,6 +15,7 @@ import java.util.Vector;
 
 import org.ecocean.*;
 import org.ecocean.security.HiddenEncReporter;
+import org.ecocean.shepherd.core.Shepherd;
 
 /**
  * Returns the results of an encounter search request in XML for display in a calendar.

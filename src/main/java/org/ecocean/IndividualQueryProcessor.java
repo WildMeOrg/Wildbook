@@ -14,6 +14,7 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.Util.MeasurementDesc;
 

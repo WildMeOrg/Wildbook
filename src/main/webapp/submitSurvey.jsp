@@ -5,6 +5,7 @@
                  java.util.Properties,
                  java.util.List,
                  java.util.Locale" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 

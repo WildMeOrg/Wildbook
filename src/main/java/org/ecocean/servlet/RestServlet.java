@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.ecocean.ShepherdPMF;
+import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.Util;
 
 import java.lang.reflect.Method;

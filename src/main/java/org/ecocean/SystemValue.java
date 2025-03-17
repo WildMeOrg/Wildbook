@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;

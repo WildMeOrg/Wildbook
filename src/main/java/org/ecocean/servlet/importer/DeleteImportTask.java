@@ -10,7 +10,7 @@ import org.ecocean.Project;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.SocialUnit;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

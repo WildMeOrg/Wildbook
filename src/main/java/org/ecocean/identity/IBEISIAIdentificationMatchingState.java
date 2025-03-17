@@ -3,7 +3,7 @@ package org.ecocean.identity;
 import java.util.Collection;
 import javax.jdo.Extent;
 import javax.jdo.Query;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 
 public class IBEISIAIdentificationMatchingState implements java.io.Serializable {
