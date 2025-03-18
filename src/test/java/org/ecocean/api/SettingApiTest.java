@@ -10,6 +10,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.ShepherdPMF;
 import org.ecocean.api.SiteSettings;
 import org.ecocean.Setting;
+import org.ecocean.User;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,9 +38,11 @@ import org.mockito.MockedStatic;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 class SettingApiTest {
 
+    PersistenceManagerFactory mockPMF;
     HttpServletRequest mockRequest;
     HttpServletResponse mockResponse;
     SiteSettings apiServlet;
@@ -49,6 +52,7 @@ class SettingApiTest {
     void setUp() throws IOException {
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
+        mockPMF = mock(PersistenceManagerFactory.class);
         apiServlet = new SiteSettings();
 
         responseOut = new StringWriter();
@@ -67,15 +71,53 @@ class SettingApiTest {
     }
 
 
-    @Test void apiPost() throws ServletException, IOException {
-        PersistenceManagerFactory mockPMF = mock(PersistenceManagerFactory.class);
+    @Test void apiPost401() throws ServletException, IOException {
         try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
             mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
             apiServlet.doPost(mockRequest, mockResponse);
             responseOut.flush();
             JSONObject jout = new JSONObject(responseOut.toString());
-System.out.println(jout.toString(4));
+            verify(mockResponse).setStatus(401);
+            assertFalse(jout.getBoolean("success"));
         }
     }
 
+    @Test void apiPostNonAdmin401() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(false);
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doPost(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(401);
+                assertFalse(jout.getBoolean("success"));
+            }
+        }
+    }
+
+    @Test void apiPostBadPath() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-uri");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                Exception ex = assertThrows(ServletException.class, () -> {
+                    apiServlet.doPost(mockRequest, mockResponse);
+                });
+                assertTrue(ex.getMessage().contains("Bad path"));
+            }
+        }
+    }
 }
