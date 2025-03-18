@@ -175,7 +175,6 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.startServices(context);
         MetricsBot.startServices(context);
         AcmIdBot.startServices(context);
-        OpenSearchIndexingBot.startServices(context);
         AnnotationLite.startup(sContext, context);
         OpenSearch.unsetActiveIndexingBackground(); // since tomcat is just starting, these reset to false
         OpenSearch.unsetActiveIndexingForeground();
@@ -319,7 +318,6 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.cleanup();
         MetricsBot.cleanup();
         AcmIdBot.cleanup();
-        OpenSearchIndexingBot.cleanup();
     }
 
     public static void createMatchGraph() {
