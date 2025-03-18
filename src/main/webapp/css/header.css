@@ -92,6 +92,10 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
+}
+.globle-image{
+  height: 20px;
 }
 .selected-item{
   /* margin-top: 5px; */
