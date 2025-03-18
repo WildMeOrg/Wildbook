@@ -1,14 +1,29 @@
 package org.ecocean;
 
 import org.ecocean.Setting;
+import org.ecocean.SettingValidator;
+import org.ecocean.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.Assert.*;
+
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+
 
 class SettingTest {
 
@@ -118,4 +133,29 @@ class SettingTest {
         Map<String,String[]> gi = Setting.getValidGroupsAndIds();
         assertTrue(gi.size() == 1);
     }
+
+    @Test void languageValidatorTest() {
+        PersistenceManagerFactory mockPMF = mock(PersistenceManagerFactory.class);
+        List langList = new ArrayList<String>();
+        langList.add("ok");
+        langList.add("yes");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getSettingValue("language", "available")).thenReturn(langList);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                List testLangs = new ArrayList<String>();
+                testLangs.add("ok");
+                new SettingValidator("language", "site", testLangs);
+                testLangs.set(0, "bad");
+                Exception ex = assertThrows(IllegalArgumentException.class, () -> {
+                    new SettingValidator("language", "site", testLangs);
+                });
+                assertEquals(ex.getMessage(), "bad is not a valid value");
+            }
+        }
+    }
+
+
 }
