@@ -6,19 +6,22 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router-dom';
 import messages from '../locale/en.json';
+import AuthContext from '../AuthProvider';
 
-jest.mock('axios'); 
+jest.mock('axios');
 
-const renderWithProviders = (ui) => {
-    const queryClient = new QueryClient();
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <IntlProvider locale="en" messages={messages}>
-          <MemoryRouter>{ui}</MemoryRouter>
-        </IntlProvider>
-      </QueryClientProvider>
-    );
-  };  
+const renderWithProviders = (ui, isLoggedIn = true) => {
+  const queryClient = new QueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <IntlProvider locale="en" messages={messages}>
+      <AuthContext.Provider value={{ isLoggedIn }}>
+        <MemoryRouter>{ui}</MemoryRouter>
+      </AuthContext.Provider>
+      </IntlProvider>
+    </QueryClientProvider>
+  );
+};
 
 const renderWithRouter = (ui, { route = '/' } = {}) => {
   window.history.pushState({}, 'Test page', route);
@@ -28,7 +31,7 @@ const renderWithRouter = (ui, { route = '/' } = {}) => {
 const fireInput = (placeholder, value) => {
   const input = screen.getByPlaceholderText(placeholder);
   fireEvent.change(input, { target: { value } });
-  return input; 
+  return input;
 };
 
 const clickButton = (buttonText) => {
@@ -47,6 +50,16 @@ const mockAxiosFailure = () => {
   axios.get.mockRejectedValue(new Error('Network error'));
 };
 
+const mockComponent = (testId) => {
+  return () => {
+    const React = require("react");
+    const MockLandingImage = () =>
+      React.createElement("div", { "data-testid": testId });
+    MockLandingImage.displayName = testId;
+    return MockLandingImage;
+  }
+}
+
 export * from '@testing-library/react';
 export {
   renderWithRouter as render,
@@ -56,4 +69,5 @@ export {
   mockAxiosSuccess,
   mockAxiosFailure,
   renderWithProviders,
+  mockComponent,
 };

@@ -6,7 +6,6 @@ import AuthContext from "../../../AuthProvider";
 import FooterVisibilityContext from "../../../FooterVisibilityContext";
 import LocaleContext from "../../../IntlProvider";
 
-// Mock the logo component to avoid unnecessary rendering issues
 jest.mock("../../../components/svg/Logo", () => {
   const React = require("react");
   const mockLogo = () => React.createElement("div", { "data-testid": "logo" });
@@ -14,7 +13,6 @@ jest.mock("../../../components/svg/Logo", () => {
   return mockLogo;
 });
 
-// Helper function to render with required context providers
 const renderComponent = (footerVisible = true, authContextValue = {}) => {
   const mockOnLocaleChange = jest.fn();
   return renderWithProviders(

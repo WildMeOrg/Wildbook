@@ -16,20 +16,6 @@ describe("usePostHeaderQuickSearch", () => {
     expect(result.current.loading).toBe(false);
   });
 
-  //   test("sets loading to true when searching", async () => {
-  //     axios.post.mockResolvedValue({ data: { hits: [{ id: "123", names: ["John Doe"] }] } });
-
-  //     const { result } = renderHook(() => usePostHeaderQuickSearch("John"));
-
-  //     expect(result.current.loading).toBe(false);
-
-  //     await act(async () => {
-  //       await new Promise((resolve) => setTimeout(resolve, 300));
-  //     });
-
-  //     expect(result.current.loading).toBe(true);
-  //   });
-
   test("fetches and updates search results", async () => {
     const mockData = { data: { hits: [{ id: "123", names: ["John Doe"] }] } };
     axios.post.mockResolvedValue(mockData);

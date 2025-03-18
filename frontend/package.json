@@ -57,7 +57,7 @@
     "test": "react-app-rewired test --transformIgnorePatterns \"node_modules/(?!axios|react)/\"",
     "eject": "react-scripts eject",
     "deploy-dev": "npm run build && node scripts/deploy-dev.js",
-    "jest": "jest"
+    "jest": "jest --verbose"
   },
   "eslintConfig": {
     "extends": [

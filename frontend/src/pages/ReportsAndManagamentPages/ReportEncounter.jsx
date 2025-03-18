@@ -381,6 +381,7 @@ const ReportEncounter = observer(() => {
               {store.isHumanLocal || isHuman ? null : (
                 <div
                   id="procaptcha-container"
+                  data-testid="procaptcha-container"
                   ref={captchaRef}
                   style={{ width: "300px", marginLeft: "30px" }}
                 ></div>
