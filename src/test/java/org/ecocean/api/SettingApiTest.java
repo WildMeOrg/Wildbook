@@ -6,11 +6,13 @@ import javax.servlet.ServletException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdPMF;
 import org.ecocean.api.SiteSettings;
 import org.ecocean.Setting;
 import org.ecocean.User;
+import org.ecocean.servlet.ReCAPTCHA;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -202,6 +204,48 @@ class SettingApiTest {
 System.out.println(">>> " + jout.toString(4));
                 verify(mockResponse).setStatus(400);
                 assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
+            }
+        }
+    }
+
+    // this will dump an exception about IA.json missing, but still pass; yeah, messy.
+    @Test void apiGetUser() throws ServletException, IOException {
+        User user = mock(User.class);
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<CommonConfiguration> mockService = mockStatic(CommonConfiguration.class)) {
+                mockService.when(() -> CommonConfiguration.getProperty(any(String.class), any(String.class))).thenReturn("test-value");
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doGet(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    // kinda meek test of results, but a decent start?
+                    assertTrue(jout.has("users"));  // only shown to logged in user
+                    assertEquals(jout.keySet().size(), 39);
+                }
+            }
+        }
+    }
+
+    @Test void apiGetAnon() throws ServletException, IOException {
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(null);
+            })) {
+            try (MockedStatic<CommonConfiguration> mockService = mockStatic(CommonConfiguration.class)) {
+                mockService.when(() -> CommonConfiguration.getProperty(any(String.class), any(String.class))).thenReturn("test-value");
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(HttpServletRequest.class))).thenReturn(false);
+                    apiServlet.doGet(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    // kinda meek test of results, but a decent start?
+                    assertFalse(jout.has("users"));  // only shown to logged in user
+                    assertEquals(jout.keySet().size(), 37);
+                }
             }
         }
     }
