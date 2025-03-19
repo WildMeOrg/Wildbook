@@ -40,7 +40,7 @@ public class SiteSettings extends ApiBase {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
 
-        myShepherd.setAction("api.SiteSettings");
+        myShepherd.setAction("api.SiteSettings.doGet");
         myShepherd.beginDBTransaction();
 
         String langCode = ServletUtilities.getLanguageCode(request);
@@ -243,6 +243,8 @@ public class SiteSettings extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.SiteSettings.doPost");
+        myShepherd.beginDBTransaction();
         User currentUser = myShepherd.getUser(request);
         if ((currentUser == null) || !currentUser.isAdmin(myShepherd)) {
             myShepherd.rollbackAndClose();
@@ -303,6 +305,8 @@ public class SiteSettings extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.SiteSettings.doDelete");
+        myShepherd.beginDBTransaction();
         User currentUser = myShepherd.getUser(request);
         if ((currentUser == null) || !currentUser.isAdmin(myShepherd)) {
             myShepherd.rollbackAndClose();
