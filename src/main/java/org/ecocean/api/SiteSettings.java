@@ -316,7 +316,7 @@ public class SiteSettings extends ApiBase {
         int statusCode = 500;
         String uri = request.getRequestURI();
         String[] args = uri.substring(22).split("/");
-        if (args.length < 1) throw new ServletException("Bad path");
+        if (args.length < 2) throw new ServletException("Bad path");
 
         if (!Setting.isValidGroupAndId(args[0], args[1])) {
             statusCode = 400;
