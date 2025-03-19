@@ -78,13 +78,18 @@ class SettingApiTest {
 
 
     @Test void apiPost401() throws ServletException, IOException {
-        try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-            mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-            apiServlet.doPost(mockRequest, mockResponse);
-            responseOut.flush();
-            JSONObject jout = new JSONObject(responseOut.toString());
-            verify(mockResponse).setStatus(401);
-            assertFalse(jout.getBoolean("success"));
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                doNothing().when(mock).beginDBTransaction();
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doPost(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(401);
+                assertFalse(jout.getBoolean("success"));
+            }
         }
     }
 
@@ -251,13 +256,18 @@ System.out.println(">>> " + jout.toString(4));
     }
 
     @Test void apiDelete401() throws ServletException, IOException {
-        try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-            mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-            apiServlet.doDelete(mockRequest, mockResponse);
-            responseOut.flush();
-            JSONObject jout = new JSONObject(responseOut.toString());
-            verify(mockResponse).setStatus(401);
-            assertFalse(jout.getBoolean("success"));
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                doNothing().when(mock).beginDBTransaction();
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doDelete(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(401);
+                assertFalse(jout.getBoolean("success"));
+            }
         }
     }
 
