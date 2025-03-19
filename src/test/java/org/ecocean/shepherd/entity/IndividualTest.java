@@ -4,6 +4,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdPMF;
 
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,9 +93,29 @@ public class IndividualTest {
         assertFalse(returnValue);
     }
 
+    @Test
+    public void testStoreNewScheduledIndividualMerge() {
+        when(mockTransaction.isActive()).thenReturn(false);
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        // should a null ScheduledIndividualMerge "work" here?
+        ScheduledIndividualMerge scheduledIndividualMerge = null;
+        boolean returnValue = testShepherd.storeNewScheduledIndividualMerge(scheduledIndividualMerge);
+
+        verify(testShepherd, times(1)).beginDBTransaction();
+        verify(mockPM, times(1)).makePersistent(scheduledIndividualMerge);
+        verify(testShepherd, times(1)).commitDBTransaction();
+        assertTrue(returnValue);
+    }
+
     // deletion
     @Test
-    public void testThrowAwayMarkedIndividual() {} // test call to opensearch unindex ...
+    public void testThrowAwayMarkedIndividual() {
+        MarkedIndividual markedIndividual = spy(new MarkedIndividual());
+        Shepherd testShepherd = new Shepherd("testContext");
+        testShepherd.throwAwayMarkedIndividual(markedIndividual);
+        verify(mockPM, times(1)).deletePersistent(markedIndividual);
+        verify(markedIndividual, times(1)).opensearchUnindexQuiet();
+    }
 
     // utilities
     @Test
