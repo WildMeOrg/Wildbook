@@ -107,6 +107,7 @@
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
+          "labeler_model_tag": "lions_v0",
           "model_tag": "lions_v0",
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
@@ -324,6 +325,7 @@
       "_detect_conf": [
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "hyaena_v0",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
           "sensitivity": 0.74,
@@ -393,6 +395,7 @@
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
+          "labeler_model_tag": "hyaena_v0",
           "sensitivity": 0.74,
           "nms_thresh": 0.4
         }
@@ -763,7 +766,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
@@ -798,7 +801,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
@@ -833,7 +836,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
@@ -868,7 +871,7 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
