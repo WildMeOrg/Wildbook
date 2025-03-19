@@ -120,4 +120,25 @@ class SettingApiTest {
             }
         }
     }
+
+    @Test void apiPostInvalidIdGroup() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-group/bad-id");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doPost(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(400);
+                assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
+            }
+        }
+    }
 }
