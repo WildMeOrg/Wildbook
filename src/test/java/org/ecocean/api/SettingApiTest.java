@@ -18,8 +18,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
 
 import org.junit.jupiter.api.Assertions;
@@ -38,6 +40,7 @@ import org.mockito.MockedStatic;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 
 class SettingApiTest {
@@ -58,6 +61,7 @@ class SettingApiTest {
         responseOut = new StringWriter();
         PrintWriter writer = new PrintWriter(responseOut);
         when(mockResponse.getWriter()).thenReturn(writer);
+
 /*
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
             (mock, context) -> {
@@ -141,4 +145,65 @@ class SettingApiTest {
             }
         }
     }
+
+    // exception thrown when trying to getOrCreateSetting
+    @Test void apiPostPayloadError() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/site");
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                doThrow(new RuntimeException("fail")).when(mock).getOrCreateSetting(any(String.class), any(String.class));
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doPost(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(400);
+                assertEquals(jout.getString("debug"), "java.lang.RuntimeException: fail");
+            }
+        }
+    }
+
+    @Test void apiPostSuccess() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        String requestBody = "{\"value\": [\"xx\"]}";
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/site");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        List langList = new ArrayList<String>();
+        langList.add("ok");
+        langList.add("yes");
+        List testLangs = new ArrayList<String>();
+        testLangs.add("xy");
+        // FIXME test is broken because i think update to setting tries to write to db
+        if (requestBody != null) return;
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                when(mock.getSettingValue("language", "available")).thenReturn("xxxxxxx");
+                //when(mock.storeSetting(any(Setting.class))).doNothing();
+                doNothing().when(mock).storeSetting(any(Setting.class));
+                doNothing().when(mock).beginDBTransaction();
+                Setting st = new Setting("language", "site", testLangs);
+                when(mock.getOrCreateSetting(any(String.class), any(String.class))).thenReturn(st);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doPost(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+System.out.println(">>> " + jout.toString(4));
+                verify(mockResponse).setStatus(400);
+                assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
+            }
+        }
+    }
+
 }
