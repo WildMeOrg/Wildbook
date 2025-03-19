@@ -705,7 +705,6 @@
       },
       "wild_dog+tail_general": {
         "_id_conf": [],
-        "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailGeneral"
       },
       "wild_dog+tail_long_black": {
@@ -738,7 +737,6 @@
       },
       "wild_dog_general": {
         "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_as": "wild_dog_general",
         "_save_keyword": "BodyGeneral"
       },
       "wild_dog_puppy": {
@@ -866,11 +864,11 @@
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
-          "model_tag": "lynx_v0",
+          "model_tag": "lynx",
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v0"
+          "viewpoint_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
