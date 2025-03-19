@@ -257,6 +257,7 @@ public class Shepherd {
         }
     }
 
+    //TODO:  should this accept a null param?
     public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
         beginDBTransaction();
         try {
@@ -1839,6 +1840,7 @@ public class Shepherd {
         return true;
     }
 
+    // TODO: getIndividualID() is deprecated ... see implementation
     public boolean isMarkedIndividual(MarkedIndividual mark) {
         return (mark != null && isMarkedIndividual(mark.getIndividualID()));
     }

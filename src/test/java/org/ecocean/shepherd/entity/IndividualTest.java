@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
+import javax.jdo.JDONullIdentityException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Transaction;
@@ -94,6 +95,36 @@ public class IndividualTest {
     // deletion
     @Test
     public void testThrowAwayMarkedIndividual() {} // test call to opensearch unindex ...
+
+    // utilities
+    @Test
+    public void testIsMarkedIndividualWithString() {
+        when(mockPM.getObjectById(any(), anyBoolean())).thenReturn(new MarkedIndividual());
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        assertTrue(testShepherd.isMarkedIndividual("testIndividual"));
+    }
+
+    // perhaps the edge case of an empty string should be handled?
+    @Test
+    public void testIsMarkedIndividualWithEmptyString() {
+        when(mockPM.getObjectById(any(), anyBoolean())).thenReturn(new MarkedIndividual());
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        assertTrue(testShepherd.isMarkedIndividual(""));
+    }
+
+    @Test
+    public void testIsMarkedIndividualWithStringWithException() {
+        when(mockPM.getObjectById(any(), anyBoolean())).thenThrow(JDONullIdentityException.class);
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        assertFalse(testShepherd.isMarkedIndividual(""));
+    }
+
+    @Test
+    public void testIsMarkedIndividualWithMIisFalseWithNull() {
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        MarkedIndividual markedIndividual = null;
+        assertFalse(testShepherd.isMarkedIndividual(markedIndividual));
+    }
 
     // getters ... replace all with OpenSearch?
     @Test
