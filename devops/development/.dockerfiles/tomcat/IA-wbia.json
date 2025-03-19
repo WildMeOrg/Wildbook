@@ -859,7 +859,7 @@
         "_id_conf": "@Lynx.lynx.lynx_pardinus._id_conf"
       }
     },
-    "Pardinus": {
+    "pardinus": {
       "_detect_conf": [
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
