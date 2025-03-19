@@ -22,6 +22,8 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("footer.properties", langCode, context);
 
 
+
+
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
