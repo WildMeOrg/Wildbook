@@ -250,4 +250,113 @@ System.out.println(">>> " + jout.toString(4));
         }
     }
 
+    @Test void apiDelete401() throws ServletException, IOException {
+        try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+            mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+            apiServlet.doDelete(mockRequest, mockResponse);
+            responseOut.flush();
+            JSONObject jout = new JSONObject(responseOut.toString());
+            verify(mockResponse).setStatus(401);
+            assertFalse(jout.getBoolean("success"));
+        }
+    }
+
+    @Test void apiDeleteNonAdmin401() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(false);
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doDelete(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(401);
+                assertFalse(jout.getBoolean("success"));
+            }
+        }
+    }
+
+    @Test void apiDeleteBadPath() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-uri");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                Exception ex = assertThrows(ServletException.class, () -> {
+                    apiServlet.doDelete(mockRequest, mockResponse);
+                });
+                assertTrue(ex.getMessage().contains("Bad path"));
+            }
+        }
+    }
+
+    @Test void apiDeleteInvalidIdGroup() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-group/bad-id");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doDelete(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(400);
+                assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
+            }
+        }
+    }
+
+    @Test void apiDelete404() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/site");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                when(mock.getSetting(any(String.class), any(String.class))).thenReturn(null);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doDelete(mockRequest, mockResponse);
+                verify(mockResponse).setStatus(404);
+            }
+        }
+    }
+
+    @Test void apiDeleteSuccess() throws ServletException, IOException {
+        User user = mock(User.class);
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+        Setting fakeSetting = new Setting("language", "available");
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/available");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                when(mock.getSetting(any(String.class), any(String.class))).thenReturn(fakeSetting);
+                doNothing().when(mock).beginDBTransaction();
+                doNothing().when(mock).deleteSetting(any(Setting.class));
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doDelete(mockRequest, mockResponse);
+                responseOut.flush();
+                verify(mockResponse).setStatus(204);
+            }
+        }
+    }
 }
