@@ -265,6 +265,20 @@ public class IAJsonProperties extends JsonProperties {
         return result;
     }
 
+    public List<String> getValidIAClassesMatchAgaint(Taxonomy taxy) {
+        List<String> result = new ArrayList<String>();
+
+        if (!hasIA(taxy)) return result;
+        List<String> keys = this.getValidIAClassesIgnoreRedirects(taxy);
+        for (String key : keys) {
+            if (identOpts(taxy, key).size() > 0) {
+                result.add(key);
+            }
+        }
+        
+        return result;
+    }
+
     // for a given taxonomy (input during submission) and an iaClass (returned from IA), we'll save the annotation only if this check is passed.
     // e.g., if we get a whale_shark detection on a humpback whale: false. If we get an orca_dorsal detection on a bottlenose dolphin: true.
     // this just checks if the iaClass has a defined behavior in the IA.json file.

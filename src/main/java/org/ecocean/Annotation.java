@@ -768,6 +768,12 @@ public class Annotation implements java.io.Serializable {
         return getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, enc, params, true);
     }
 
+    public List<String> getValidIAClasses(Taxonomy tax){
+        IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        return iaConf.getValidIAClassesMatchAgaint(tax);
+    }
+
+
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
         Encounter enc, JSONObject params, boolean filterIAClass) {
         String filter = "";
@@ -788,7 +794,7 @@ public class Annotation implements java.io.Serializable {
             filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " +
                 this.getMatchingSetFilterFromParameters(params) +
                 this.getMatchingSetFilterIAClassClause(filterIAClass,
-                this.getIAClass()) + this.getMatchingSetFilterViewpointClause(myShepherd) +
+                this.getValidIAClasses(enc.getTaxonomy(myShepherd))) + this.getMatchingSetFilterViewpointClause(myShepherd) +
                 this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" +
                 enc.getCatalogNumber()
                 // + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
@@ -839,11 +845,13 @@ public class Annotation implements java.io.Serializable {
         Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
         ArrayList<Annotation> anns = new ArrayList<Annotation>(c.size());
+        ArrayList<String> acmidList = new ArrayList<String>();
         while (it.hasNext()) {
             Annotation ann = (Annotation)it.next();
             if (!IBEISIA.validForIdentification(ann)) continue;
+            if (acmidList.contains(ann.getAcmId())) continue;
             anns.add(ann);
-           // if (anns.size() > 50) break;
+            acmidList.add(ann.getAcmId());
         }
         query.closeAll();
         System.out.println("INFO: getMatchingSetForFilter found " + anns.size() + " annots (" +
@@ -895,6 +903,25 @@ public class Annotation implements java.io.Serializable {
         if (!filterIAClass) return "";
         String iaClassClause = " && iaClass.equals('" + iaClass + "') ";
         return iaClassClause;
+    }
+
+    private String getMatchingSetFilterIAClassClause(boolean filterIAClass, List<String> iaClasses) {
+        if (iaClasses == null || iaClasses.isEmpty() || !filterIAClass) {
+            return "";
+        }
+        
+        StringBuilder iaClassesClause = new StringBuilder("&& (");
+        
+        for (int i = 0; i < iaClasses.size(); i++) {
+            iaClassesClause.append(" iaClass.equals('").append(iaClasses.get(i)).append("') ");
+            if (i < iaClasses.size() - 1) {
+                iaClassesClause.append("||");
+            }
+        }
+        
+        iaClassesClause.append(") ");
+        
+        return iaClassesClause.toString();
     }
 
     private String getPartClause(Shepherd myShepherd) {
