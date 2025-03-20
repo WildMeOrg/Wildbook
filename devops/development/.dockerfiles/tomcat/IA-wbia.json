@@ -118,9 +118,11 @@
         "_id_conf": []
       },
       "lioness": {
+        "_save_as": "lion",
         "_id_conf": []
       },
       "lion_general": {
+        "_save_as": "lion",
         "_id_conf": []
       },
       "lion+head": {
@@ -142,6 +144,7 @@
         ]
       },
       "lioness+head": {
+        "_save_as": "lion+head",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -160,6 +163,7 @@
         ]
       },
       "lion_general+head": {
+        "_save_as": "lion+head",
         "_id_conf": [
           {
             "query_config_dict": {
