@@ -1861,8 +1861,8 @@ public class IBEISIA {
         ann.setViewpoint(vp);
         if (validForIdentification(ann, context) && iaConf.isValidIAClass(taxonomyBeforeDetection,
             iaClass)) {
-                //matchAgainst = true; only do this if we have a valid IA class
-            if (iaConf.getValidIAClasses(taxonomyBeforeDetection).size() > 0){
+                //matchAgainst = true; only do this if we have a valid IA class with identification
+            if (iaConf.identOpts(taxonomyBeforeDetection, iaClass).size() > 0){
                 ann.setMatchAgainst(true);
             }
         }

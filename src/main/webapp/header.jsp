@@ -450,15 +450,11 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu solid-menu-background" role="menu">
 
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
-
                             <!-- <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li> -->
 
                             <li><a href="<%=urlLoc %>/aboutUs.jsp"><%=props.getProperty("aboutUs")%></a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li class="divider"></li>
-                            <li><a target="_blank" href="<%=urlLoc %>/learnMore.jsp"><%=props.getProperty("learnAboutShepherd")%></a></li>
                             <li><a target="_blank" href="<%=urlLoc %>/privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a></li>
                             <li><a target="_blank" href="<%=urlLoc %>/termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a></li>
                         	
