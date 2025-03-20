@@ -1861,7 +1861,10 @@ public class IBEISIA {
         ann.setViewpoint(vp);
         if (validForIdentification(ann, context) && iaConf.isValidIAClass(taxonomyBeforeDetection,
             iaClass)) {
-            ann.setMatchAgainst(true);
+                //matchAgainst = true; only do this if we have a valid IA class
+            if (iaConf.getValidIAClasses(taxonomyBeforeDetection).size() > 0){
+                ann.setMatchAgainst(true);
+            }
         }
         // record whether we do an iaClass swap, letting WBIA know - part 3
         if (madeIAClassSwap) {
@@ -2161,8 +2164,7 @@ public class IBEISIA {
                             Annotation annot = asset.getAnnotations().get(0);
                             Encounter enc = annot.findEncounter(myShepherd);
                             if (enc.getGenus() != null && enc.getSpecificEpithet() != null &&
-                                IA.getProperty(context, "matchTrivial",
-                                enc.getTaxonomy(myShepherd)) != null) {
+                                IA.getProperty(context, "matchTrivial", enc.getTaxonomy(myShepherd)) != null) {
                                 if (IA.getProperty(context, "matchTrivial",
                                     enc.getTaxonomy(myShepherd)).equals("true")) {
                                     annot.setMatchAgainst(true);
