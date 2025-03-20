@@ -31,21 +31,21 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         <div class="container d-flex flex-column align-items-center footer-font footer-container">
             <div class="row w-100 text-center text-lg-left">
                 <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
-                    <a href="https://conservationxlabs.com/support" class="footer-link text-reset px-2 footer-text">Donate</a>
-                    <a href="https://wildbook.docs.wildme.org/getting-started-with-wildbook.html" class="footer-link footer-text">Documentation</a>
+                    <a href="mailto:info@tech4conservation.org" class="footer-link text-reset px-2 footer-text">Request an Account</a>
+                    <a href="mailto:support@tech4conservation.org" class="footer-link footer-text">Password Reset</a>
                 </div>
                 <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
-                    <a href="https://community.wildme.org/" class="footer-link text-reset px-2 footer-text">Community Forum</a>
-                    <a href="https://github.com/WildMeOrg" class="footer-link text-reset px-2 footer-text">GitHub</a>
+                    <a href="http://forum.arguswild.ai/" class="footer-link text-reset px-2 footer-text">Community Support Forum</a>
                 </div>
                 <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
-                    <a href="https://www.instagram.com/conservationxlabs" class="footer-link text-reset px-2 footer-text">Instagram</a>
-                    <a href="https://www.facebook.com/ConservationXLabs" class="footer-link text-reset px-2 footer-text">Facebook</a>
-                    <a href="https://twitter.com/conservationx" class="footer-link text-reset px-2 footer-text">X (Twitter)</a>
-                    <a href="https://www.linkedin.com/company/conservationxlabs/" class="footer-link text-reset px-2 footer-text">LinkedIn</a>
+                    <a href="mailto:info@tech4conservation.org" class="footer-link text-reset px-2 footer-text">General Inquiries</a>
+                    <a href="https://github.com/Tech-4-Conservation" class="footer-link text-reset px-2 footer-text">GitHub</a>
                 </div>
             </div>
-            <div class="footer-text w-100 py-3 text-center">2024 © Conservation X Labs | All Rights Reserved</div>
+            <div class="footer-powered-by w-100 py-3 text-center">
+                <span>Powered by</span> 
+                <a href="http://www.tech4conservation.org" class="footer-link text-reset px-2 footer-text">Tech 4 Conservation</a>
+            </div>
         </div>
 
 

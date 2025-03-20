@@ -11,7 +11,7 @@
   text-decoration: none; 
 }
 .footer-container {
-  background-color: #CDE0FE;
+  background-color: #303336;
   padding-left: 30%;
   padding-right: 30%;
   padding-top: 10px;
@@ -26,13 +26,21 @@
   align-items: start;
 }
 .footer-text {
-  color: black !important; 
+  color: white !important; 
   text-decoration: none;
   font-size: 16px;
   font-weight: 400;
   margin-bottom: 5px;
   display: block;
 
+}
+
+.footer-powered-by{
+  display: flex;
+  justify-content: center;
+  color: white;
+  gap: 5px;
+  margin-top: 50px;
 }
 .footer-row {
   height: 150px;
