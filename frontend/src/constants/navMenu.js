@@ -1,5 +1,5 @@
-import React from "react";
-import { FormattedMessage } from "react-intl";
+import React from 'react'
+import { FormattedMessage } from 'react-intl'
 
 const authenticatedMenu = (username) => [
   {
@@ -11,7 +11,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Report an Encounter"
           />
         ),
-        href: "/submit.jsp",
+        href: '/submit.jsp',
       },
       {
         name: (
@@ -20,7 +20,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Bulk Import"
           />
         ),
-        href: "/import/instructions.jsp",
+        href: '/import/instructions.jsp',
       },
     ],
   },
@@ -33,7 +33,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="About Wildbook"
           />
         ),
-        href: "/overview.jsp",
+        href: '/overview.jsp',
       },
       {
         name: (
@@ -42,7 +42,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Contact Us"
           />
         ),
-        href: "/contactus.jsp",
+        href: '/contactus.jsp',
       },
       {
         name: (
@@ -51,16 +51,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/citing.jsp",
-      },
-      {
-        name: (
-          <FormattedMessage
-            id="menu.learn.howToPhotograph"
-            defaultMessage="How to Photograph"
-          />
-        ),
-        href: "/photographing.jsp",
+        href: '/citing.jsp',
       },
       // { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
       // { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
@@ -132,7 +123,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="My Bulk Imports"
           />
         ),
-        href: "/imports.jsp",
+        href: '/imports.jsp',
       },
       {
         name: (
@@ -141,7 +132,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="My Projects"
           />
         ),
-        href: "/projects/projectList.jsp",
+        href: '/projects/projectList.jsp',
       },
     ],
   },
@@ -154,7 +145,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Encounters"
           />
         ),
-        href: "/encounters/encounterSearch.jsp",
+        href: '/encounters/encounterSearch.jsp',
       },
       {
         name: (
@@ -163,7 +154,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Individuals"
           />
         ),
-        href: "/individualSearch.jsp",
+        href: '/individualSearch.jsp',
       },
       {
         name: (
@@ -172,7 +163,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Sightings"
           />
         ),
-        href: "/occurrenceSearch.jsp",
+        href: '/occurrenceSearch.jsp',
       },
     ],
   },
@@ -185,7 +176,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Individual Gallery"
           />
         ),
-        href: "/gallery.jsp",
+        href: '/gallery.jsp',
       },
       {
         name: (
@@ -194,7 +185,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Animal Calendar"
           />
         ),
-        href: "/xcalendar/calendar.jsp",
+        href: '/xcalendar/calendar.jsp',
       },
     ],
   },
@@ -207,7 +198,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Manage My Accounts"
           />
         ),
-        href: "/myUsers.jsp",
+        href: '/myUsers.jsp',
       },
       {
         name: (
@@ -216,7 +207,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="User Management"
           />
         ),
-        href: "/appadmin/users.jsp?context=context0",
+        href: '/appadmin/users.jsp?context=context0',
       },
       {
         name: (
@@ -225,13 +216,13 @@ const authenticatedMenu = (username) => [
             defaultMessage="Library Administration"
           />
         ),
-        href: "/appadmin/admin.jsp",
+        href: '/appadmin/admin.jsp',
       },
       {
         name: (
           <FormattedMessage id="menu.administer.logs" defaultMessage="Logs" />
         ),
-        href: "/appadmin/logs.jsp",
+        href: '/appadmin/logs.jsp',
       },
       {
         name: (
@@ -240,7 +231,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Photo Keywords"
           />
         ),
-        href: "/appadmin/kwAdmin.jsp",
+        href: '/appadmin/kwAdmin.jsp',
       },
       {
         name: (
@@ -249,7 +240,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Software Documentation"
           />
         ),
-        href: "https://docs.wildme.org/product-docs/en/wildbook/introduction/",
+        href: 'https://docs.wildme.org/product-docs/en/wildbook/introduction/',
       },
       {
         name: (
@@ -258,7 +249,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Data Integrity"
           />
         ),
-        href: "/appadmin/dataIntegrity.jsp",
+        href: '/appadmin/dataIntegrity.jsp',
       },
       {
         name: (
@@ -267,11 +258,11 @@ const authenticatedMenu = (username) => [
             defaultMessage="Bulk Import Logs"
           />
         ),
-        href: "/imports.jsp",
+        href: '/imports.jsp',
       },
     ],
   },
-];
+]
 
 const unAuthenticatedMenu = [
   {
@@ -283,7 +274,7 @@ const unAuthenticatedMenu = [
             defaultMessage="Report an Encounter"
           />
         ),
-        href: "/submit.jsp",
+        href: '/submit.jsp',
       },
     ],
   },
@@ -296,7 +287,7 @@ const unAuthenticatedMenu = [
             defaultMessage="About Wildbook"
           />
         ),
-        href: "/overview.jsp",
+        href: '/overview.jsp',
       },
       {
         name: (
@@ -305,7 +296,7 @@ const unAuthenticatedMenu = [
             defaultMessage="Contact Us"
           />
         ),
-        href: "/photographing.jsp",
+        href: '/photographing.jsp',
       },
       {
         name: (
@@ -314,17 +305,9 @@ const unAuthenticatedMenu = [
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/citing.jsp",
+        href: '/citing.jsp',
       },
-      {
-        name: (
-          <FormattedMessage
-            id="menu.learn.howToPhotograph"
-            defaultMessage="How to Photograph"
-          />
-        ),
-        href: "/photographing.jsp",
-      },
+
       //   {
       //     name: (
       //       <FormattedMessage
@@ -355,7 +338,7 @@ const unAuthenticatedMenu = [
             defaultMessage="Individual Gallery"
           />
         ),
-        href: "/gallery.jsp",
+        href: '/gallery.jsp',
       },
       {
         name: (
@@ -364,10 +347,10 @@ const unAuthenticatedMenu = [
             defaultMessage="Animal Calendar"
           />
         ),
-        href: "/xcalendar/calendar.jsp",
+        href: '/xcalendar/calendar.jsp',
       },
     ],
   },
-];
+]
 
-export { authenticatedMenu, unAuthenticatedMenu };
+export { authenticatedMenu, unAuthenticatedMenu }

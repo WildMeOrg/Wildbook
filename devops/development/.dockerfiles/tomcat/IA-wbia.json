@@ -36,7 +36,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -65,7 +66,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -94,7 +96,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -104,6 +107,7 @@
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
+          "labeler_model_tag": "lions_v0",
           "model_tag": "lions_v0",
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
@@ -114,9 +118,11 @@
         "_id_conf": []
       },
       "lioness": {
+        "_save_as": "lion",
         "_id_conf": []
       },
       "lion_general": {
+        "_save_as": "lion",
         "_id_conf": []
       },
       "lion+head": {
@@ -132,11 +138,13 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
       "lioness+head": {
+        "_save_as": "lion+head",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -149,11 +157,13 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
       "lion_general+head": {
+        "_save_as": "lion+head",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -166,7 +176,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -198,7 +209,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -231,7 +243,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -264,7 +277,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -300,7 +314,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -314,6 +329,7 @@
       "_detect_conf": [
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "hyaena_v0",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
           "sensitivity": 0.74,
@@ -334,7 +350,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -368,7 +385,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -381,6 +399,7 @@
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
+          "labeler_model_tag": "hyaena_v0",
           "sensitivity": 0.74,
           "nms_thresh": 0.4
         }
@@ -399,7 +418,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -440,7 +460,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -458,7 +479,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -485,7 +507,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -494,7 +517,7 @@
         "_id_conf": "@Puma.concolor.lion._id_conf"
       },
       "cougar+head": {
-        "_id_conf": "@Puma.concolor.lioness+head._id_conf"
+        "_id_conf": "@Puma.concolor.lion+head._id_conf"
       }
     }
   },
@@ -525,7 +548,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -564,7 +588,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -594,7 +619,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
@@ -630,7 +656,8 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
@@ -659,7 +686,8 @@
               "n": 20,
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           },
           {
             "query_config_dict": {
@@ -684,7 +712,6 @@
       },
       "wild_dog+tail_general": {
         "_id_conf": [],
-        "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailGeneral"
       },
       "wild_dog+tail_long_black": {
@@ -717,7 +744,6 @@
       },
       "wild_dog_general": {
         "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_as": "wild_dog_general",
         "_save_keyword": "BodyGeneral"
       },
       "wild_dog_puppy": {
@@ -744,10 +770,10 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_save_as": "lynx_canadensis",
         "_id_conf": [
           {
@@ -761,12 +787,13 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
       "lynx_canadensis": {
-        "_id_conf": "@Lynx.canadensis.lynx._id_conf"
+        "_id_conf": "@Lynx.canadensis.lynx_pardinus._id_conf"
       }
     },
     "rufus": {
@@ -778,11 +805,11 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
-        "_save_as": "lynx_canadensis",
+      "lynx_pardinus": {
+        "_save_as": "lynx_rufus",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -795,12 +822,13 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
       "lynx_rufus": {
-        "_id_conf": "@Lynx.rufus.lynx._id_conf"
+        "_id_conf": "@Lynx.rufus.lynx_pardinus._id_conf"
       }
     },
     "lynx": {
@@ -812,10 +840,10 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
+      "lynx_pardinus": {
         "_save_as": "lynx_lynx",
         "_id_conf": [
           {
@@ -829,28 +857,28 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       },
       "lynx_lynx": {
-        "_id_conf": "@Lynx.lynx.lynx._id_conf"
+        "_id_conf": "@Lynx.lynx.lynx_pardinus._id_conf"
       }
     },
-    "Pardinus": {
+    "pardinus": {
       "_detect_conf": [
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
-          "model_tag": "lynx_v0",
+          "model_tag": "lynx",
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v0"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
-      "lynx": {
-        "_save_as": "lynx_pardinus",
+      "lynx_pardinus": {
         "_id_conf": [
           {
             "query_config_dict": {
@@ -863,12 +891,10 @@
             "query_config_dict": {
               "sv_on": true
             },
-            "description": "HotSpotter pattern-matcher"
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
-      },
-      "lynx_pardinus": {
-        "_id_conf": "@Lynx.Pardinus.lynx._id_conf"
       }
     }
   },
