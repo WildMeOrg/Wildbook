@@ -22,7 +22,7 @@ public class SiteSettings extends ApiBase {
 
         JSONObject settings = new JSONObject();
         // note: there is a CommonConfiguration property: htmlShortcutIcon=images/favicon.ico?v=2
-        settings.put("siteFavicon", "/images/favicon.ico");
+        settings.put("siteFavicon", "/images/browser.png");
         settings.put("siteName", CommonConfiguration.getHTMLTitle(context));
 
         myShepherd.rollbackDBTransaction();
