@@ -118,6 +118,11 @@
 			"locationID": []
 		  },
 		  {
+			"name": "Reifenstein",
+			"id": "Reifenstein",
+			"locationID":[]
+		  },
+		  {
 			  "name": "Rochlitzer Berg",
 			  "id": "06",
 			  "locationID": []
