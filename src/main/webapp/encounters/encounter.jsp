@@ -1066,13 +1066,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
               <%
             }
           } else {
-            String[] locales = Locale.getISOCountries();
-            for (String countryCode : locales) {
-              Locale obj = new Locale("", countryCode);
-              %>
-              <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-              <%
-            }
+            List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
+              for (String country: countries) {
+                %>
+                <option value="<%=country%>"><%=country%></option>
+                <%
+              }
           }
           %>
         </select>
