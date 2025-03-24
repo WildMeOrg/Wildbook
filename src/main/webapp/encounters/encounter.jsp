@@ -1178,6 +1178,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   });
 </script>
 
+<%
+  if (CommonConfiguration.showProperty("maximumDepthInMeters",context)) {
+%>
+
 <div>
   <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
 
@@ -1198,6 +1202,11 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     </div>
   </form>
 </div>
+
+<%
+    }
+
+  %>
 
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
