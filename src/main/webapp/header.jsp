@@ -428,7 +428,7 @@ if(request.getUserPrincipal()!=null){
                   </button>
 
                   <div id="navbar" class="navbar-collapse collapse">                
-                    <ul class="nav navbar-nav">
+                    <ul class="nav navbar-nav" style="align-items: center; margin-left: 25px;">
 
                       <%-- <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
                       </li> --%>
@@ -531,6 +531,16 @@ if(request.getUserPrincipal()!=null){
 
                       </li>
                       <div class="search-and-secondary-wrapper d-flex" >
+                        <div class="search-wrapper">
+                          <label class="search-field-header">
+                                <form name="form2" id="header-search" style="margin: 0px;" method="get" action="<%=urlLoc %>/individuals.jsp">
+                                  <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                                  <input type="hidden" name="langCode" value="<%=langCode%>"/>
+                                  <span class="el el-lg el-search"></span>
+                              </form>
+                          </label>
+                        </div>
+                      </div>
                         <!-- notifications -->
                         <div id="notifications">
                           <% if(user != null && !loggingOut)
@@ -677,6 +687,97 @@ if(request.getUserPrincipal()!=null){
               
           </script>
         </header>
+
+        <script>
+          $('#search-site').autocomplete({
+              // sortResults: true, // they're already sorted
+              appendTo: $('#navbar-top'),
+              response: function(ev, ui) {
+                  if (ui.content.length < 1) {
+                      $('#search-help').show();
+                  } else {
+                      $('#search-help').hide();
+                  }
+              },
+              select: function(ev, ui) {
+                  if (ui.item.type == "individual") {
+                      window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
+                  }
+                  else if (ui.item.type == "encounter") {
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
+                  }
+                  else if (ui.item.type == "locationID") {
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                  }
+                  /*
+                  //restore user later
+                  else if (ui.item.type == "user") {
+                      window.location.replace("/user/" + ui.item.value);
+                  }
+                  else {
+                      alertplus.alert("Unknown result [" + ui.item.value + "] of type [" + ui.item.type + "]");
+                  }
+                  */
+                  return false;
+              },
+              //source: app.config.wildbook.proxyUrl + "/search"
+              source: function( request, response ) {
+                  $.ajax({
+                      url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
+                      dataType: "json",
+                      data: {
+                          term: request.term
+                      },
+                      success: function( data ) {
+                          var res = $.map(data, function(item) {
+                              var label="";
+                              var nickname="";
+                              if ((item.type == "individual")&&(item.species!=null)) {
+  //                                label = item.species + ": ";
+                              }
+                              else if (item.type == "user") {
+                                  label = "User: ";
+                              } else {
+                                  label = "";
+                              }
+  
+                              if(item.nickname != null){
+                                nickname = " ("+item.nickname+")";
+                              }
+  
+                              return {label: label + item.label+nickname,
+                                      value: item.value,
+                                      type: item.type,
+                                      nickname: nickname};
+                              });
+  
+                          response(res);
+                      }
+                  });
+              }
+          });
+          //prevent enter key on tyeahead
+          $('#search-site').keydown(function (e) {
+                        if (e.keyCode == 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+          });
+  
+  
+          // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
+          let urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.has("organization")) {
+            let orgParam = urlParams.get("organization");
+            $.cookie("wildbookOrganization", orgParam, {
+                path    : '/',
+                secure  : false,
+                expires : 1
+            });
+          }
+  
+  
+          </script>
 
         <!-- ****/header**** -->
 
