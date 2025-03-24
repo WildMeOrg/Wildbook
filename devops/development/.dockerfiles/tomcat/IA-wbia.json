@@ -698,6 +698,31 @@
           }
         ]
       },
+
+      "wild_dog_ambiguous": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyAmbiguous"
+      },
+      "wild_dog_dark": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyDark"
+      },
+      "wild_dog_general": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyGeneral"
+      },
+      "wild_dog_puppy": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "Puppy"
+      },
+      "wild_dog_standard": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyStandard"
+      },
+      "wild_dog_tan": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyTan"
+      },
       "wild_dog+tail_ambiguous": {
         "_id_conf": [],
         "_save_keyword": "TailAmbiguous"
@@ -733,30 +758,6 @@
       "wild_dog+tail_triple_black": {
         "_id_conf": [],
         "_save_keyword": "TailTripleBlack"
-      },
-      "wild_dog_ambiguous": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyAmbiguous"
-      },
-      "wild_dog_dark": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyDark"
-      },
-      "wild_dog_general": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyGeneral"
-      },
-      "wild_dog_puppy": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "Puppy"
-      },
-      "wild_dog_standard": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyStandard"
-      },
-      "wild_dog_tan": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyTan"
       }
     }
   },

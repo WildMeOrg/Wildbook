@@ -99,7 +99,7 @@
 				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
 				/import/** = authc, roles[researcher]
-
+				/submit.jsp = authc
 				/gallery.jsp = authc
 				/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
