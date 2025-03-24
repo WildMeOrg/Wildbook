@@ -587,6 +587,42 @@ function FSControl(controlDiv, map) {
 							<input name="unapproved" type="hidden" value="allEncounters"></input>
 							<input name="unidentifiable" type="hidden" value="allEncounters"></input>
       <table align="left">
+        
+        <%
+	        if(CommonConfiguration.showProperty("showTaxonomy",context)){
+	        %>
+	        <tr>
+	        <td>
+	         <strong><%=props.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
+			<option value=""></option>
+
+					       <%
+					       boolean hasMoreTax=true;
+					       int taxNum=0;
+					       while(hasMoreTax){
+					       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+					       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+					       	  	%>
+
+					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
+					       	  	<%
+					       		taxNum++;
+					          }
+					          else{
+					             hasMoreTax=false;
+					          }
+
+					       }
+					       %>
+
+
+				      </select>
+	        </td>
+		</tr>
+		<%
+		}
+	%>
+        
         <tr>
           <td>
           <table width="357" align="left">
@@ -761,40 +797,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 
 
-                <%
-	        if(CommonConfiguration.showProperty("showTaxonomy",context)){
-	        %>
-	        <tr>
-	        <td>
-	         <strong><%=props.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
-			<option value=""></option>
-
-					       <%
-					       boolean hasMoreTax=true;
-					       int taxNum=0;
-					       while(hasMoreTax){
-					       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-					       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-					       	  	%>
-
-					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
-					       	  	<%
-					       		taxNum++;
-					          }
-					          else{
-					             hasMoreTax=false;
-					          }
-
-					       }
-					       %>
-
-
-				      </select>
-	        </td>
-		</tr>
-		<%
-		}
-	%>
+                
 
 	</table>
 </p>
