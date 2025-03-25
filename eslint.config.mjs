@@ -20,6 +20,10 @@ export default [
       globals: {
         ...globals.browser,
         process: "readonly",
+        "jest/globals": "readonly",
+        module: "readonly",
+        require: "readonly",
+        __dirname: "readonly",
       },
       parser: babelParser,
     },
