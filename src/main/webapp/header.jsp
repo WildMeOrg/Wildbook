@@ -62,6 +62,10 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
+
+//WWF Lynx customization
+Properties stuprops = ShepherdProperties.getProperties("studySite.properties", langCode, context);
+
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 String gaId = CommonConfiguration.getGoogleAnalyticsId(context);
@@ -628,6 +632,53 @@ if(request.getUserPrincipal()!=null){
 
                         </ul>
                       </li>
+                      
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="encounter-dropdown"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li class="dropdown-header"><%=props.getProperty("states")%></li>
+
+                        <!-- list encounters by state -->
+                          <% boolean moreStates=true;
+                             int cNum=0;
+                             while(moreStates) {
+                                 String currentLifeState = "encounterState"+cNum;
+                                 if (CommonConfiguration.getProperty(currentLifeState,context)!=null) { %>
+                                   <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>"><%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%></a></li>
+                                 <% cNum++;
+                                 } else {
+                                     moreStates=false;
+                                 }
+                            } //end while %>
+                          <li class="divider"></li>
+                          <!-- <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li> -->
+                          <!-- <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li> -->
+                          <% if(request.getUserPrincipal()!=null) { %>
+                            <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
+                          <% } %>
+                        </ul>
+                      </li>
+
+
+                      <li class="dropdown">
+                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("studySites")%> <span class="caret"></span></a>
+                         <ul class="dropdown-menu" role="menu">
+                           <li>
+                             <a href="<%=urlLoc %>/studySite.jsp"><%=props.getProperty("newStudySite")%></a>
+                           </li>
+                           <li>
+                             <a href="<%=urlLoc %>/studySiteSearch.jsp"><%=props.getProperty("searchStudySites")%></a>
+                           </li>
+                           <li>
+                             <a href="<%=urlLoc %>/studySiteSearchResults.jsp"><%=props.getProperty("allStudySites")%></a>
+                           </li>
+                           <% if (request.isUserInRole("admin")) { %>
+                           <li>
+                             <a href="<%=urlLoc %>/mergeStudySites.jsp"><%=stuprops.getProperty("mergeHeader")%></a>
+                           </li>
+                           <% } %>
+                         </ul>
+                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
