@@ -1131,8 +1131,11 @@ public class Util {
 
     public static String roundISO8601toMillis(final String input) {
         if ((input == null) || (input.length() < 24)) return input;
-        float seconds = Float.parseFloat(input.substring(17)) + 0.0005f;
-        return input.substring(0, 17) + String.valueOf(seconds).substring(0, 6);
+        try {
+            float seconds = Float.parseFloat(input.substring(17)) + 0.0005f;
+            return input.substring(0, 17) + String.valueOf(seconds).substring(0, 6);
+        } catch (Exception ex) {}
+        return input;
     }
 
     // note: this respect user.receiveEmails - you have been warned
