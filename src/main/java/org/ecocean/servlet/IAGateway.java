@@ -99,9 +99,7 @@ public class IAGateway extends HttpServlet {
             // sendtoIAscripts for bulk command line detection use this v2 option
             // uses detection queue
             if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) { // short circuits and just blindly writes out to queue and is done!
-                                                                               // magic?
-                // TODO if queue is not active/okay, fallback to synchronous???
-                // TODO could probably add other stuff (e.g. security/user etc)
+                // TODO: if queue is not active/okay, fallback to synchronous
                 j.put("__context", context);
                 j.put("__baseUrl", baseUrl);
                 j.put("__enqueuedByIAGateway", System.currentTimeMillis());
@@ -184,7 +182,6 @@ public class IAGateway extends HttpServlet {
         out.close();
     }
 
-    // TODO wedge in IA.intake here i guess? (once it exists)
     public static JSONObject _doDetect(JSONObject jin, JSONObject res, Shepherd myShepherd,
         String baseUrl)
     throws ServletException, IOException {
@@ -194,7 +191,7 @@ public class IAGateway extends HttpServlet {
         if (taskId == null)
             throw new RuntimeException("IAGateway._doDetect() has no taskId passed in");
         System.out.println("PRELOADED");
-        Task task = Task.load(taskId, myShepherd); // might be null in some cases, such as non-queued  ... maybe FIXME when we dump cruft?
+        Task task = Task.load(taskId, myShepherd); // might be null in some cases, such as non-queued
         System.out.println("LOADED???? " + taskId + " --> " + task);
         String context = myShepherd.getContext();
         if (baseUrl == null) return res;
@@ -219,15 +216,6 @@ public class IAGateway extends HttpServlet {
                 }
             }
         }
-        /*
-           else if (j.optJSONArray("mediaAssetSetIds") != null) {
-            JSONArray ids = j.getJSONArray("mediaAssetSetIds");
-            for (int i = 0 ; i < ids.length() ; i++) {
-                MediaAssetSet set = myShepherd.getMediaAssetSet(ids.optString(i));
-                if ((set != null) && (set.getMediaAssets() != null) && (set.getMediaAssets().size() > 0)) mas.addAll(set.getMediaAssets());
-            }
-           }
-         */
         else {
             res.put("success", false);
             res.put("error", "unknown detect value");
@@ -253,7 +241,6 @@ public class IAGateway extends HttpServlet {
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas, context));
                 JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd, detectArgs,
                     detectUrl);
-                // JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
                 res.put("sendDetect", sent);
                 String jobId = null;
                 if ((sent.optJSONObject("status") != null) &&
@@ -280,7 +267,7 @@ public class IAGateway extends HttpServlet {
         return res;
     }
 
-    // TODO not sure why we pass 'res' in but also it is the return value... potentially should be fixed; likely when we create IA package
+    // we pass 'res' in but also it is the return value
     public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd,
         String context, String baseUrl, boolean fastlane)
     throws ServletException, IOException {
@@ -294,7 +281,6 @@ public class IAGateway extends HttpServlet {
         JSONObject j = jin.optJSONObject("identify");
         if (j == null) return res; // "should never happen"
 /*
-    TODO? right now this 'opt' is directly from IBEISIA.identOpts() ????? hmmmm....
     note then that for IBEIS this effectively gets mapped via queryConfigDict to usable values we also might consider incorporating j.opt (passed
        within identify:{} object itself, from the api/gateway) ???
  */
@@ -303,8 +289,7 @@ public class IAGateway extends HttpServlet {
         ArrayList<String> validIds = new ArrayList<String>();
         int limitTargetSize = j.optInt("limitTargetSize", -1); // really "only" for debugging/testing, so use if you know what you are doing
 
-        // currently this implies each annotation should be sent one-at-a-time TODO later will be allow clumping (to be sent as multi-annotation
-        // query lists.... *when* that is supported by IA
+        // currently this implies each annotation should be sent one-at-a-time 
         JSONArray alist = j.optJSONArray("annotationIds");
         if ((alist != null) && (alist.length() > 0)) {
             for (int i = 0; i < alist.length(); i++) {
@@ -317,9 +302,7 @@ public class IAGateway extends HttpServlet {
                 validIds.add(aid);
             }
         }
-        // i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for
-        // that
-        // now, we just send these all in one at a time.  hope that is good enough!   TODO
+        // i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for that now, we just send these all in one at a time. 
         JSONArray olist = j.optJSONArray("occurrenceIds");
         if ((olist != null) && (olist.length() > 0)) {
             for (int i = 0; i < olist.length(); i++) {
@@ -415,7 +398,6 @@ public class IAGateway extends HttpServlet {
         String baseUrl, JSONObject queryConfigDict, JSONObject userConfidence, int limitTargetSize,
         Task task, Shepherd myShepherd, boolean fastlane)
     throws IOException {
-        // String iaClass = ann.getIAClass();
         boolean success = true;
         String annTaskId = "UNKNOWN_" + Util.generateUUID();
 
@@ -429,13 +411,9 @@ public class IAGateway extends HttpServlet {
         JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes,
             myShepherd);
         if (shortCut != null) return shortCut;
-        // Shepherd myShepherd = new Shepherd(context);
-        // myShepherd.setAction("IAGateway._sendIdentificationTask");
-        // myShepherd.beginDBTransaction();
 
         try {
-            // TODO we might want to cache this examplars list (per species) yes?
-
+            // TODO: cache this examplars list (per species)
             ///note: this can all go away if/when we decide not to need limitTargetSize
             ArrayList<Annotation> matchingSet = null;
             if (limitTargetSize > -1) {
@@ -488,7 +466,7 @@ public class IAGateway extends HttpServlet {
             IBEISIA.log(annTaskId, ann.getId(), jobId,
                 new JSONObject("{\"_action\": \"initIdentify\"}"), context);
 
-            // WB-1665: log as error when we cannot send ident task
+            // log as error when we cannot send ident task
             System.out.println("WB-1665 checking for error state in sent=" + sent);
             if (!sent.optBoolean("success", false) || (sent.optJSONObject("error") != null)) {
                 System.out.println("_sendIdentificationTask() unable to initiate identification: " +
@@ -505,48 +483,10 @@ public class IAGateway extends HttpServlet {
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
         }
-/* TODO ?????????
-            if (!success) {
-                for (MediaAsset ma : mas) {
-                    ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
-                }
-            }
- */
+
         return taskRes;
     }
 
-    /*
-       public static JSONObject expandAnnotation(String annID, Shepherd myShepherd, HttpServletRequest request) {
-        if (annID == null) return null;
-        JSONObject rtn = new JSONObject();
-        Annotation ann = null;
-        try {
-            ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annID), true)));
-        } catch (Exception ex) {}
-        if (ann != null) {
-            rtn.put("annotationID", annID);
-            Encounter enc = Encounter.findByAnnotation(ann, myShepherd);
-            if (enc != null) {
-                JSONObject jenc = new JSONObject();
-                jenc.put("catalogNumber", enc.getCatalogNumber());
-                jenc.put("date", enc.getDate());
-                jenc.put("sex", enc.getSex());
-                jenc.put("verbatimLocality", enc.getVerbatimLocality());
-                jenc.put("locationID", enc.getLocationID());
-                jenc.put("individualID", enc.getIndividualID());
-                jenc.put("otherCatalogNumbers", enc.getOtherCatalogNumbers());
-                rtn.put("encounter", jenc);
-            }
-            MediaAsset ma = ann.getMediaAsset();
-            if (ma != null) {
-                try {
-                    rtn.put("mediaAsset", new JSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString()));
-                } catch (Exception ex) {}
-            }
-        }
-        return rtn;
-       }
-     */
     public static JSONObject taskSummary(JSONArray taskIds, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
 
@@ -631,26 +571,22 @@ public class IAGateway extends HttpServlet {
 
     public static Queue getIAQueue(String context)
     throws IOException {
-        // if (IAQueue != null) return IAQueue;
         IAQueue = QueueUtil.getBest(context, "IA");
         return IAQueue;
     }
 
     public static Queue getDetectionQueue(String context)
     throws IOException {
-        // if (detectionQueue != null) return detectionQueue;
         detectionQueue = QueueUtil.getBest(context, "detection");
         return detectionQueue;
     }
 
     public static Queue getIACallbackQueue(String context)
     throws IOException {
-        // if (IACallbackQueue != null) return IACallbackQueue;
         IACallbackQueue = QueueUtil.getBest(context, "IACallback");
         return IACallbackQueue;
     }
 
-    // TODO clean this up!  now that this is moved here, there is probably lots of redundancy with above no?
     public static void processQueueMessage(String message) {
 // System.out.println("DEBUG: IAGateway.processQueueMessage -> " + message);
         if (message == null) return;
@@ -696,7 +632,6 @@ public class IAGateway extends HttpServlet {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " +
                     ex.toString());
-                // now for certain returns, we want to increment our retry-ticker (this is TODO research in progress!)
                 if (ex.toString().contains("HTTP error code : 500")) {
                     requeueIncrement = true;
                     requeue = true;
@@ -911,27 +846,12 @@ public class IAGateway extends HttpServlet {
             System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask +
                 " to link to " + itask);
         }
-        // JSONObject maMap = jin.optJSONObject("bulkImport");
-        // System.out.println("IAGateway.handleBulkImport() preparing to parse " + maMap.keySet().size() + " encounter detection jobs");
-        // if (maMap == null) return res;  // "should never happen"
-        /*
-            maMap is just js_jarrs from imports.jsp, basically { encID0: [ma0, ... maN], ... encIDX: [maY, .. maZ] }
-            so we need 1 detection job per element
-         */
-        // JSONObject mapRes = new JSONObject();
         int okCount = 0;
         JSONArray maIds = new JSONArray();
         for (MediaAsset asset : itask.getMediaAssets()) {
             maIds.put(asset.getId());
         }
-        // for (Object e: maMap.keySet()) {
-        // String encId = (String)e;
-        // JSONArray maIds = maMap.optJSONArray(encId);
-        // if (maIds == null) {
-        // mapRes.put(encId, "no JSONArray");
-        // System.out.println("[ERROR] IAGateway.handleBulkImport() maMap could not find JSONArray of MediaAsset ids at encId key=" + encId);
-        // continue;
-        // }
+
         Task task = new Task();
         task.setParameters(taskParameters);
         myShepherd.storeNewTask(task);
@@ -949,11 +869,7 @@ public class IAGateway extends HttpServlet {
         task.setQueueResumeMessage(qjob.toString());
         boolean ok = addToDetectionQueue(context, qjob.toString());
         if (ok) okCount++;
-        // mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
-        // }
-        // res.put("encounterCount", maMap.keySet().size());
         res.put("queuedCount", okCount);
-        // res.put("mapResults", mapRes);
         res.remove("error");
         res.put("success", true);
         return res;

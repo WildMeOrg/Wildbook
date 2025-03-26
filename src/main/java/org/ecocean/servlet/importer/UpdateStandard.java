@@ -52,7 +52,7 @@ public class UpdateStandard extends HttpServlet {
     int numEncsFound = 0;
     int numEncsMissing = 0;
     int numMediaAssetCols = -1;
-    int numNameCols = 2; // TODO: set this dynamically
+    int numNameCols = 2; 
     int rownum = -1; // so we can print this to logs from wherever in the file
     Map<String, MarkedIndividual> individualCache = new HashMap<String, MarkedIndividual>();
     HttpServletRequest request;
@@ -198,30 +198,6 @@ public class UpdateStandard extends HttpServlet {
                 mark = loadIndividual(row, enc);
                 if (mark != null) individualCache.put(mark.getName(), mark);
                 if (committing) {
-                    // for (Annotation ann: annotations) {
-                    // try {
-                    // MediaAsset ma = ann.getMediaAsset();
-                    // if (ma!=null) {
-                    // myShepherd.storeNewAnnotation(ann);
-                    // ma.setMetadata();
-                    //// may want to skip below for runtime and fix later w script
-                    //// ma.updateStandardChildren(myShepherd);
-                    // }
-                    // }
-                    // catch (Exception e) {
-                    // System.out.println("EXCEPTION on annot/ma persisting!");
-                    // e.printStackTrace();
-                    // }
-                    // }
-
-                    // myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-                    // if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
-                    // if ((mark!=null)&&!myShepherd.isMarkedIndividual(mark)) {
-                    // mark.refreshDependentProperties();
-                    // myShepherd.storeNewMarkedIndividual(mark);
-                    // }
-
-                    // enc.setIndividual(mark);
 
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
@@ -435,11 +411,6 @@ public class UpdateStandard extends HttpServlet {
         for (int i = 0; i < 3; i++) {
             loadEncounterName(row, enc, i);
         }
-        // if (Util.stringExists(individualID) && Util.stringExists(occurrenceID)) enc =
-        // myShepherd.getEncounterByIndividualAndOccurrence(individualID, occurrenceID);
-        // if (enc!=null) enc.addAnnotations(annotations);
-        // else enc = new Encounter (annotations);
-        // if (individualID!=null) enc.setIndividualID(individualID);
         if (occurrenceID != null) enc.setOccurrenceID(occurrenceID);
         // Data source
         if (dataSource != null) enc.setDataSource(dataSource);
@@ -706,24 +677,6 @@ public class UpdateStandard extends HttpServlet {
             MediaAsset ma = getMediaAsset(enc, row, i);
             if (ma == null) continue;
         }
-        // String species = getSpeciesString(row);
-        // Annotation ann = new Annotation(species, ma);
-        // ann.setIsExemplar(true);
-
-        // Double quality = getDouble(row, "Encounter.quality"+i);
-        // if (quality != null) ann.setQuality(quality);
-
-        ////ann.setMatchAgainst(true);
-        // annots.add(ann);
-
-        // }
-        // if (annots.size()>0) {
-        // for (int i=0; i<annots.size(); i++) {
-        // String maName = "Encounter.mediaAsset"+i;
-        // String localPath = getString(row, maName);
-        ////if (localPath!=null) foundPhotos.add(photoDirectory+localPath);
-        // }
-        // }
         return annots;
     }
 
@@ -846,16 +799,6 @@ public class UpdateStandard extends HttpServlet {
             System.out.println("on row " + rownum + " returning " + kws.size() + " kws: " + kws);
             ma.setKeywords(kws);
         }
-        // ArrayList<Keyword> kws = getKeywordForAsset(row, i);
-        // ma.setKeywords(kws);
-
-        // Keyword keyword = null;
-        // String keywordI = getString(row, "Encounter.keyword"+i);
-        // if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
-        // String keywordOIKey = "Encounter.keyword0"+i;
-        // String keywordOI = getString(row, keywordOIKey);
-        // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
-        // if (keyword!=null) ma.addKeyword(keyword);
         System.out.println("getMediaAsset got asset from filename " + filename + ": " + ma);
         return ma;
     }
@@ -1005,8 +948,6 @@ public class UpdateStandard extends HttpServlet {
 
     private int getNumMediaAssets() {
         return 12;
-        // if (numMediaAssets==null) setNumMediaAssets();
-        // return numMediaAssets.intValue();
     }
 
     private void setNumMediaAssets() {
@@ -1069,20 +1010,6 @@ public class UpdateStandard extends HttpServlet {
         MarkedIndividual mark = enc.getIndividual();
 
         if (mark == null) return null;
-        // MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(individualID);
-        // else {
-        // System.out.println("StandardImport got individual "+mark+" from individualCache");
-        // }
-        // if (mark==null) { // new individual
-        // mark = new MarkedIndividual(enc);
-        // System.out.println("Creating new marked individual");
-        // newIndividual = true;
-        // }
-        // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
-        // Organization org = getOrganization(row);
-        // if (org!=null) mark.addName(org, individualID);
-        // else mark.addName(request, individualID);
-        // else mark.addName(individualID);
         if (mark == null) {
             System.out.println(
                 "StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
@@ -1392,22 +1319,5 @@ public class UpdateStandard extends HttpServlet {
 
     private AssetStore getAssetStore(Shepherd myShepherd) {
         return AssetStore.getDefault(myShepherd);
-        // return AssetStore.get(myShepherd, 1);
-
-        // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
-        //// TODO: fix this for flukebook
-        //// String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-        // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
-
-        // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
-
-        // if (committing) {
-        // myShepherd.beginDBTransaction();
-        // myShepherd.getPM().makePersistent(as);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
-        // }
-
-        // return as;
     }
 }

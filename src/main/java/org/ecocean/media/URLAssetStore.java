@@ -61,7 +61,7 @@ public class URLAssetStore extends AssetStore {
     @Override public boolean cacheLocal(MediaAsset ma, boolean force) {
         Path lpath = localPath(ma);
 
-        if (lpath == null) return false; // TODO or throw Exception?
+        if (lpath == null) return false; 
         if (!force && Files.exists(lpath)) return true; // we assume if we have it, then we should be cool
         System.out.println("URL.cacheLocal() trying to write to " + lpath);
         String url = urlFromParameters(ma.getParameters());
@@ -95,13 +95,11 @@ public class URLAssetStore extends AssetStore {
 
     @Override public void copyAsset(final MediaAsset fromMA, final MediaAsset toMA)
     throws IOException {
-        throw new IOException("oops, URL.copyAsset() still not implemented. :/"); // TODO
+        throw new IOException("oops, URL.copyAsset() still not implemented. :/"); 
     }
 
     @Override public void deleteFrom(final MediaAsset ma) {
-        return; // TODO exception?
-        // if (!this.contains(ma)) return;
-        // if (!this.writable) return;
+        return; 
     }
 
     @Override public URL webURL(final MediaAsset ma) {
@@ -127,7 +125,6 @@ public class URLAssetStore extends AssetStore {
     @Override public JSONObject createParameters(File file, String grouping) {
         JSONObject p = new JSONObject();
 
-        // will we even ever need this for a read-only system???  TODO so returning empty [or should be null?]
         return p;
     }
 

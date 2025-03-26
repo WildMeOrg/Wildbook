@@ -25,7 +25,7 @@ export default function LatestData({ data, username, loading = true }) {
         })}
 
         <More
-          href={`/react/encounter-search?username=${username}`}
+          href={`${process.env.PUBLIC_URL}/encounter-search?username=${username}`}
           loading={loading}
         />
       </div>

@@ -1,9 +1,10 @@
 import React from "react";
-import logoPath from "./logo.svg"
+import logoPath from "./logo.svg";
 
 export default function Logo({ style }) {
   return (
-    <div className="navbar-brand"
+    <div
+      className="navbar-brand"
       style={{
         height: "50px",
         width: "100px",
@@ -15,7 +16,6 @@ export default function Logo({ style }) {
         backgroundPosition: "right center",
         ...style,
       }}
-    >
-    </div>
+    ></div>
   );
 }

@@ -17,27 +17,6 @@ const customStyles = {
   },
 };
 
-const conditionalRowStyles = (theme) => [
-  {
-    when: (row) => row.tableID % 2 === 0,
-    style: {
-      backgroundColor: "#ffffff", // Light gray color
-      "&:hover": {
-        backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
-      },
-    },
-  },
-  {
-    when: (row) => row.tableID % 2 !== 0,
-    style: {
-      backgroundColor: "#f2f2f2", // White color
-      "&:hover": {
-        backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
-      },
-    },
-  },
-];
-
 const MyDataTable = ({
   title = "",
   columnNames = [],
@@ -52,6 +31,7 @@ const MyDataTable = ({
   style = {},
   tabs = [],
   isLoading = false,
+  extraStyles = [],
   onSelectedRowsChange = () => {},
   onRowClicked = () => {},
 }) => {
@@ -60,6 +40,28 @@ const MyDataTable = ({
   const [goToPage, setGoToPage] = useState("");
   const perPageOptions = [10, 20, 30, 40, 50];
   const intl = useIntl();
+
+  const conditionalRowStyles = (theme) =>
+    [
+      {
+        when: (row) => row.tableID % 2 === 0,
+        style: {
+          backgroundColor: "#ffffff", // Light gray color
+          "&:hover": {
+            backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
+          },
+        },
+      },
+      {
+        when: (row) => row.tableID % 2 !== 0,
+        style: {
+          backgroundColor: "#f2f2f2", // White color
+          "&:hover": {
+            backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
+          },
+        },
+      },
+    ].concat(extraStyles);
 
   const wrappedColumns = useMemo(
     () =>

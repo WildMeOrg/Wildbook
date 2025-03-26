@@ -175,9 +175,7 @@ URLCodec urlCodec = new URLCodec();
 //let's load encounters.properties
   //Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-
-  //Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context, "indocet");
-
+  
   pageContext.setAttribute("num", num);
 
 
@@ -326,35 +324,6 @@ label.item-checked {
 
     .style4 {
       color: #000000
-    }
-
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
     }
 
     div.scroll {
@@ -514,16 +483,6 @@ function setIndivAutocomplete(el) {
 						//alert("Clicked map!");
 					    placeMarker(event.latLng);
 				  });
-
-
-		//adding the fullscreen control to exit fullscreen
-	    	//  var fsControlDiv = document.createElement('DIV');
-	    	//  var fsControl = new FSControl(fsControlDiv, map);
-	    	//  fsControlDiv.index = 1;
-	    	//  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-
-
         }
 
 var encounterNumber = '<%=num%>';
@@ -540,25 +499,7 @@ var encounterNumber = '<%=num%>';
 
 
 
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
 
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
-</head>
 
 <style type="text/css">
 
@@ -805,22 +746,6 @@ $(function() {
 <div style="display: inline-block; padding: 1px 5px; background-color: #AAA; color: #833; border-radius: 4px;">This encounter is marked as a <b>duplicate of <a href="encounter.jsp?number=<%=dup%>"><%=dup%></a></b>.</div><% } %>
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
- 					<table style="border-spacing: 10px;margin-left:-10px;border-collapse: inherit;">
- 						<tr valign="middle">
-  							<td>
-    							<!-- Google PLUS-ONE button -->
-								<g:plusone size="medium" annotation="none"></g:plusone>
-							</td>
-							<td>
-								<!--  Twitter TWEET THIS button -->
-								<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-								<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-							</td>
-							<td>
-								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
-						</tr>
-					</table>
           </div>
         </div>
 <!-- end main header row -->
@@ -1325,7 +1250,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
 
-	   			marker.setVisible(true);
+	   			marker.setVisible(false);
 
 	   		<%
 	   		}
@@ -1541,7 +1466,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
         <!-- START IDENTITY ATTRIBUTE -->
         <% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
-	        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
+	        <h2><img align="absmiddle" src="../images/WildMe-Logo-100x100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
 	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
 	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
 	      </h2>
@@ -1591,7 +1516,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         }
         else {
 	         %>
-	         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+	         <h2><img align="absmiddle" src="../images/WildMe-Logo-100x100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
 	         <%
 	     }
          %>
@@ -5276,17 +5201,6 @@ if(!isOwner){isOwnerValue="false";}
 
 
 
-<%
-  if (CommonConfiguration.allowAdoptions(context)) {
-%>
-<div class="module">
-  <jsp:include page="encounterAdoptionEmbed.jsp" flush="true">
-    <jsp:param name="encounterNumber" value="<%=enc.getCatalogNumber()%>"/>
-  </jsp:include>
-</div>
-<%
-  }
-%>
 </td>
 </tr>
 </table>
@@ -6855,7 +6769,6 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
         wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
     });
     iaMatchFilterAnnotationIds = [];  //clear it out in case user sends again from this page
-    //TODO uncheck everything????
     $('.ia-match-filter-dialog').hide();
 }
 
@@ -6931,7 +6844,6 @@ $(window).on('load',function() {
     <div id="ia-match-filter-location" class="option-cols">
 
     	<div>
-	    	<!-- TODO maybe an option here to not recurse to children locations? -->
 	        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
 	            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
 	        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
@@ -7021,16 +6933,6 @@ $(".search-collapse-header").click(function(){
         <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
         <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
     </div>
-<!--  not yet implemented!
-    <div class="item">
-        <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
-        <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
-    </div>
-    <div class="item">
-        <input type="checkbox" id="match-filter-owner-none" name="match-filter-owner" value="__NULL__" />
-        <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
-    </div>
--->
 
   <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
   <%

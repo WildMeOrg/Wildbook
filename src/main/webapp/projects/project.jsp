@@ -97,9 +97,9 @@
 	                    <table class="row project-style js-sort-table" >
 	                      <thead>
 	                        <tr>
-	                          <th class="project-style"><%= projectProps.getProperty("OccurrenceTableHeader")%></th>
-	                          <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
-	                          <th class="project-style" data-js-sort-colnum="0"><%= projectProps.getProperty("IndividualTableHeader")%></th>
+	                          <th class="project-style" style="max-width: 180px; word-break: break-all; over-flow:hidden"><%= projectProps.getProperty("OccurrenceTableHeader")%></th>
+	                          <th class="project-style" style="max-width: 180px; word-break: break-all; over-flow:hidden"><%= projectProps.getProperty("EncounterTableHeader")%></th>
+	                          <th class="project-style" style="max-width: 180px; word-break: break-all; over-flow:hidden" data-js-sort-colnum="0"><%= projectProps.getProperty("IndividualTableHeader")%></th>
 	                          <th class="project-style js-sort-date" data-js-sort-colnum="1"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("LocationTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("DataOwnerTableHeader")%></th>
@@ -296,9 +296,9 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
 
   let projectHTML = '';
   projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">';
-  projectHTML +=  '<td id="occurrenceID-'+encounterId+'" class="project-style"><a target="_new" href="../occurrence.jsp?number='+occurrenceUUID+'">'+occurrenceUUID+'</a></td>';
-  projectHTML +=  '<td id="catalogNumber-'+encounterId+'" class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
-  projectHTML +=  '<td id="indivID-'+encounterId+'" class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
+  projectHTML +=  '<td id="occurrenceID-'+encounterId+'" class="project-style" style="max-width: 180px; word-break: break-all; over-flow:hidden"><a target="_new" href="../occurrence.jsp?number='+occurrenceUUID+'">'+occurrenceUUID+'</a></td>';
+  projectHTML +=  '<td id="catalogNumber-'+encounterId+'" class="project-style" style="max-width: 180px; word-break: break-all; over-flow:hidden"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
+  projectHTML +=  '<td id="indivID-'+encounterId+'" class="project-style" style="max-width: 180px; word-break: break-all; over-flow:hidden"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
@@ -321,7 +321,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
 
   //upper row action
   projectHTML +=  '<div class="row">';
-  projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
+  projectHTML +=  '   <div class="col-sm-12 col-md-12 col-lg-6">';
               // add JS check for ia availability onload
   projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this, \'' + encounterId + '\')">'+txt.startMatch+'</button>';
   projectHTML +=  '     <button id="disabled-encId-'+encounterId+'" class="disabled-btn proj-action-btn" style="display: none;">'+txt.startMatch+'</button>';
@@ -329,7 +329,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML +=  '   </div>';
               // add JS check for exisitng results onload (add .disabled-btn if appropriate)
 
-  projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
+  projectHTML +=  '   <div class="col-sm-12 col-md-12 col-lg-6">';
   projectHTML +=  '     <button id="disabled-match-results-encId-'+encounterId+'" style="display: none;" class="disabled-btn visitResultsButton proj-action-btn">'+txt.matchResults+'</button>';
   projectHTML +=  '     <button id="match-results-encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.matchResults+'</button>';
   projectHTML +=  '     </br>';
@@ -339,7 +339,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
 
   //lower row action
   projectHTML += '<div class="row">';
-  projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
+  projectHTML += '   <div class="col-sm-12 col-md-12 col-lg-6">';
 
   let disabledMarkNew = '  <button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
   if(!hasNameKeyMatchingProject){
@@ -357,7 +357,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
 
   projectHTML += '   </div>';
 
-  projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
+  projectHTML += '   <div class="col-sm-12 col-md-12 col-lg-6">';
   projectHTML += '    <button class="btn-warn proj-action-btn" onclick="removeEncounterFromProject(this)" title="remove encounter from project">'+txt.remove+'</button>';
   projectHTML += '    <span class="deleteMessage text-danger"></span>';
   projectHTML += '   </div>';

@@ -44,7 +44,7 @@ export default function ErrorPage({
       style={{
         zIndex: 200,
         height: "100vh",
-        backgroundImage: `url("/react/images/${errorCode}_background.png")`,
+        backgroundImage: `url("${process.env.PUBLIC_URL}/images/${errorCode}_background.png")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -111,7 +111,7 @@ export default function ErrorPage({
                 <BrutalismButton
                   color="white"
                   borderColor="white"
-                  link={loginRequired ? "/react/login" : "/react/home"}
+                  link={loginRequired ? `${process.env.PUBLIC_URL}/login` : `${process.env.PUBLIC_URL}/home`}
                   style={{ fontSize: "16px" }}
                 >
                   <FormattedMessage
@@ -262,7 +262,7 @@ export default function ErrorPage({
               </clipPath>
             </defs>
             <image
-              href={`/react/images/${errorCode}_animal.png`}
+              href={`${process.env.PUBLIC_URL}/images/${errorCode}_animal.png`}
               alt="notFound-hedgehog"
               width={errorCode === "404" ? "20%" : "30%"}
               height={errorCode === "403" ? "80%" : "55%"}

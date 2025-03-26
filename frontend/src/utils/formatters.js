@@ -6,7 +6,7 @@ export const formatDate = (input, fancy = false, fallback = "") => {
     const jsDate = typeof input === "string" ? new Date(input) : input;
     const formattedDate = format(jsDate, formatter);
     return formattedDate;
-  } catch (error) {
+  } catch (_error) {
     // console.error(error);
     return fallback;
   }

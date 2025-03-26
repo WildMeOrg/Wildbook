@@ -2,12 +2,12 @@ import React from "react";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
-import FormGroupText from "../Form/FormGroupText";
 import DynamicInputs from "../Form/DynamicInputs";
 import { FormLabel, FormGroup } from "react-bootstrap";
 import FormMeasurements from "../Form/FormMeasurements";
+import FormGroupText from "../Form/FormGroupText";
 
-export default function ObservationAttributeFilter({ onChange, data }) {
+export default function ObservationAttributeFilter({ data, store }) {
   const sexOptions =
     data?.sex?.map((item) => {
       return {
@@ -17,6 +17,13 @@ export default function ObservationAttributeFilter({ onChange, data }) {
     }) || [];
   const livingStatusOptions =
     data?.livingStatus?.map((item) => {
+      return {
+        value: item,
+        label: item,
+      };
+    }) || [];
+  const lifeStageOptions =
+    data?.lifeStage?.map((item) => {
       return {
         value: item,
         label: item,
@@ -51,9 +58,9 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         overflow: "visible",
       }}
     >
-      <h3>
+      <h4>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE" />
-      </h3>
+      </h4>
       <Description>
         <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE_DESC" />
       </Description>
@@ -63,20 +70,41 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         noDesc={true}
         label="FILTER_SEX"
         options={sexOptions}
-        onChange={onChange}
         field="sex"
         term="terms"
         filterKey="Sex"
+        store={store}
+      />
+
+      <FormGroupText
+        label="FILTER_NOTICEABLE_SCARRING"
+        noDesc={true}
+        term="match"
+        field="distinguishingScar"
+        filterId={"distinguishingScar"}
+        filterKey={"Noticeable Scarring"}
+        store={store}
+      />
+
+      <FormGroupMultiSelect
+        isMulti={true}
+        label="FILTER_LIFE_STAGE"
+        noDesc={true}
+        options={lifeStageOptions}
+        field="lifeStage"
+        term="terms"
+        filterKey="Life Stage"
+        store={store}
       />
       <FormGroupMultiSelect
         isMulti={true}
-        label="FILTER_LIFE_STATUS"
+        label="FILTER_LIVING_STATUS"
         noDesc={true}
         options={livingStatusOptions}
-        onChange={onChange}
         field="livingStatus"
         term="terms"
-        filterKey="Life Status"
+        filterKey="Living Status"
+        store={store}
       />
 
       <FormGroupMultiSelect
@@ -84,21 +112,11 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         label="FILTER_GENUS_AND_SPECIES"
         noDesc={true}
         options={genusAndSpeciesOptions}
-        onChange={onChange}
         field="taxonomy"
         term="terms"
         filterId={"Taxonomy"}
         filterKey={"Genus and Species"}
-      />
-
-      <FormGroupText
-        label="FILTER_SIGHTING_ID"
-        noDesc={true}
-        onChange={onChange}
-        term="match"
-        field="occurrenceId"
-        filterId={"occurrenceId"}
-        filterKey={"Sighting ID"}
+        store={store}
       />
 
       <FormGroup className="mt-2">
@@ -106,37 +124,29 @@ export default function ObservationAttributeFilter({ onChange, data }) {
           <FormattedMessage id="FILTER_OBSERVATION_SEARCH" />
         </FormLabel>
 
-        <DynamicInputs onChange={onChange} />
+        <DynamicInputs store={store} />
       </FormGroup>
-      <FormGroupText
-        label="FILTER_OBSERVATION_COMMENTS"
-        onChange={onChange}
-        term="match"
-        field="occurrenceRemarks"
-        filterId={"occurrenceRemarks"}
-        filterKey={"Observation Comments"}
-      />
 
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_BEHAVIOUR"
-        onChange={onChange}
         options={behaviourOptions}
         field="behavior"
         term="terms"
         filterKey="Behavior"
+        store={store}
       />
 
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_PATTERNING_CODE"
-        onChange={onChange}
         options={patternCodeOptions}
         field={"patterningCode"}
         term={"terms"}
         filterKey={"Patterning Code"}
+        store={store}
       />
 
       <FormGroup className="mt-2">
@@ -145,9 +155,9 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         </FormLabel>
         <FormMeasurements
           data={measurementsOptions}
-          onChange={onChange}
           filterId={"measurements"}
           field={"measurements"}
+          store={store}
         />
       </FormGroup>
     </div>

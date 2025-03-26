@@ -145,8 +145,6 @@ public class DeleteImportTask extends HttpServlet {
                 out.println(
                     "<strong>Failure!</strong> I failed to delete this ImportTask. Check the logs for more details.");
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) +
-                    "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
                 out.println(ServletUtilities.getFooter(context));
             }
         } else {

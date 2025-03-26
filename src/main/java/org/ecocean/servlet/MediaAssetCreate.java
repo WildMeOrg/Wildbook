@@ -43,7 +43,7 @@ public class MediaAssetCreate extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAssetCreate.class");
 
-        // note: a null status will be considered throw-away, cuz we no doubt will get aborted uploads etc.  TODO cleanup of these with cronjob?
+        // note: a null status will be considered throw-away, cuz we no doubt will get aborted uploads etc.
         MediaAssetSet maSet = new MediaAssetSet();
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(maSet);
@@ -58,28 +58,6 @@ public class MediaAssetCreate extends HttpServlet {
         out.println(res.toString());
     }
 
-/*
-
-   NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefixed with it* -- this is for security purposes, so that users dont
-      fish out files stored in temporary bucket as their own.  unlikely? yes. impossible? no.
-   {
-    "MediaAssetCreate" : [
-        {
-            "setId" : "xxx",
-            "assetStoreId" : 4,  ///DISABLED FOR NOW (TODO enable later if we need it?? how to handle security? need valid targets)
-            "assets" : [
-                { "filename" : "foo.jpg" },   //this should live in uploadTmpDir (see below) on local drive
-                { "bucket" : "A", "key" : "xxx/B" },
-                { "bucket" : "Y", "key" : "xxx/Z" },
-   ....
-            ]
-        },
-    "skipIA": false,  //default is do-not-skipIA, but you may want off when done later (e.g. match.jsp which does in CreateEncounter)
-   .... (other types) ...
-    ]
-
-   }
- */
     public void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
@@ -170,7 +148,6 @@ public class MediaAssetCreate extends HttpServlet {
         out.close();
     }
 
-    // TODO could also return failures? errors?
     private JSONObject createMediaAssets(JSONArray jarr, Shepherd myShepherd,
         HttpServletRequest request)
     throws IOException {
@@ -193,18 +170,6 @@ public class MediaAssetCreate extends HttpServlet {
         for (int i = 0; i < jarr.length(); i++) {
             JSONObject st = jarr.optJSONObject(i);
             if (st == null) continue;
-/*  disabled now for security(?) reasons ... TODO fix this -- if we have a need???
-            int storeId = st.optInt("assetStoreId");
-            if (storeId < 1) {
-                System.out.println("WARNING: createMediaAssets() - no assetStoreId on i=" + i);
-                continue;
-            }
-            AssetStore store = AssetStore.get(myShepherd, storeId);
-            if (store == null) {
-                System.out.println("WARNING: createMediaAssets() - AssetStore.get() failed for assetStoreId=" + storeId + ", i=" + i);
-                continue;
-            }
- */
 
             String setId = st.optString("setId", null);
             // attempt to validate setId (if we have one)
@@ -233,14 +198,12 @@ public class MediaAssetCreate extends HttpServlet {
             for (int j = 0; j < assets.length(); j++) {
                 boolean success = true;
                 MediaAsset targetMA = null;
-                JSONObject params = assets.optJSONObject(j); // TODO sanitize
+                JSONObject params = assets.optJSONObject(j);
                 if (params == null) continue;
-                // TODO we should probably also use the "SETID/" prefix (see below) standard for local too right?????
                 String fname = params.optString("filename", null);
                 String userFilename = params.optString("userFilename", fname);
                 String url = params.optString("url", null);
-                String accessKey = params.optString("accessKey", null); // kinda specialty use to validate certain anon-uploaded cases (e.g.
-                                                                        // match.jsp)
+                String accessKey = params.optString("accessKey", null); // kinda specialty use to validate certain anon-uploaded cases (e.g. match.jsp)
                 if (fname != null) { // this is local
                     if (fname.indexOf("..") > -1) continue; // no hax0ring plz
                     File inFile = new File(uploadTmpDir, fname);
@@ -265,14 +228,6 @@ public class MediaAssetCreate extends HttpServlet {
                     }
                 }
                 if (success) {
-/*
-   TODO  when annotation-building no longer needs dimensions, technically this Metadata building will not be required. however, we likely will need to
-      eat the cost of s3 cacheLocal() anyway for the children creation.  however[2], we can likely just do it in the background.
-         at least doing this now will avoid collision of it happening twice during form submission... ug yeah what about that?  ug, locking!
-
-         update:  errrr, maybe not.  i think we *must* grab "real" (exif) metadata so we can get (primarily) date/time for image. :/
-         but probably still could be done in the background....
- */
                     targetMA.validateSourceImage();
                     targetMA.updateMetadata();
                     targetMA.addLabel("_original");
@@ -290,7 +245,7 @@ public class MediaAssetCreate extends HttpServlet {
                 }
             }
             // this duplicates some of MediaAssetAttach, but lets us get done in one API call
-            // TODO we dont sanity-check *ownership* of the encounter.... :/
+            // TODO: sanity-check *ownership* of the encounter
             JSONObject attEnc = st.optJSONObject("attachToEncounter");
             JSONObject attOcc = st.optJSONObject("attachToOccurrence");
             if (attEnc != null) {

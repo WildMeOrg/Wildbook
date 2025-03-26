@@ -1,4 +1,4 @@
-package ec.com.mapache.ngflow.upload;
+package org.ecocean.resumableupload;
 
 public class HttpUtils {
     public static boolean isEmpty(String value) {

@@ -3,13 +3,21 @@ import GoogleMapReact from "google-map-react";
 import BrutalismButton from "./BrutalismButton";
 import ThemeContext from "../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
+import useGetSiteSettings from "../models/useGetSiteSettings";
 
-const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
+const MapComponent = ({ setBounds, setTempBounds = () => {} }) => {
   const theme = useContext(ThemeContext);
-
   const [rectangle, setRectangle] = useState(null);
   const drawingRef = useRef(false);
   const [isDrawing, setIsDrawing] = useState(false);
+
+  const { data } = useGetSiteSettings();
+  const key = data?.googleMapsKey;
+  const center = {
+    lat: data?.mapCenterLat || 0,
+    lng: data?.mapCenterLon || 0,
+  };
+  const zoom = data?.mapZoom || 4;
 
   const handleApiLoaded = (map, maps) => {
     let rect = new maps.Rectangle({
@@ -74,8 +82,6 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
     drawingRef.current = !drawingRef.current;
   };
 
-  const key = window?.wildbookGlobals?.gtmKey || "";
-
   return (
     <div style={{ height: "400px", width: "100%" }}>
       <BrutalismButton
@@ -102,13 +108,25 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
           <FormattedMessage id="DRAW" />
         )}
       </BrutalismButton>
-      <GoogleMapReact
-        bootstrapURLKeys={{ key: key }}
-        defaultCenter={center}
-        defaultZoom={zoom}
-        yesIWantToUseGoogleMapApiInternals
-        onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
-      />
+      {key ? (
+        <GoogleMapReact
+          key={key}
+          bootstrapURLKeys={{ key: key }}
+          defaultCenter={center}
+          defaultZoom={zoom}
+          yesIWantToUseGoogleMapApiInternals
+          onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
+        />
+      ) : (
+        <div
+          className="d-flex justify-content-center align-items-center text-center w-100 h-100"
+          style={{
+            fontSize: "24px",
+          }}
+        >
+          <FormattedMessage id="MAP_IS_LOADING" />
+        </div>
+      )}
     </div>
   );
 };

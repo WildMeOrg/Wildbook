@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useContext } from "react";
 import { Navbar, Nav } from "react-bootstrap";
 import "../css/dropdown.css";
@@ -9,8 +8,14 @@ import AvatarAndUserProfile from "./header/AvatarAndUserProfile";
 import Menu from "./header/Menu";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
+import HeaderQuickSearch from "./header/HeaderQuickSearch";
 
-export default function AuthenticatedAppHeader({ username, avatar }) {
+export default function AuthenticatedAppHeader({
+  username,
+  avatar,
+  showclassicsubmit,
+  showClassicEncounterSearch,
+}) {
   const { visible } = useContext(FooterVisibilityContext);
 
   const {
@@ -33,7 +38,7 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
         className="container"
         style={{
           height: "50px",
-          paddingLeft: "5%",
+          paddingLeft: 0,
           paddingRight: "5%",
         }}
       >
@@ -56,7 +61,7 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
               href="/"
             >
               <Logo />
-              {process.env.SITE_NAME}
+              <span className="site-name">{process.env.SITE_NAME}</span>
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
@@ -68,8 +73,13 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
                   marginLeft: "auto",
                 }}
               >
-                <Menu username={username} />
+                <Menu
+                  username={username}
+                  showclassicsubmit={showclassicsubmit}
+                  showClassicEncounterSearch={showClassicEncounterSearch}
+                />
               </Nav>
+              <HeaderQuickSearch />
               <NotificationButton
                 collaborationTitle={collaborationTitle}
                 collaborationData={collaborationData}

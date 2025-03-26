@@ -21,7 +21,7 @@ export default function MultiLanguageDropdown() {
       <Dropdown>
         <Dropdown.Toggle variant="basic" id="dropdown-basic">
           <img
-            src={`/react/flags/${flag}.png`}
+            src={`${process.env.PUBLIC_URL}/flags/${flag}.png`}
             alt="flag"
             style={{ width: "20px", height: "12px" }}
           />
@@ -40,7 +40,7 @@ export default function MultiLanguageDropdown() {
               }}
             >
               <img
-                src={`/react/flags/${localeMap[locale]}.png`}
+                src={`${process.env.PUBLIC_URL}/flags/${localeMap[locale]}.png`}
                 alt={locale}
                 style={{ width: "20px", height: "12px", marginRight: "10px" }}
               />

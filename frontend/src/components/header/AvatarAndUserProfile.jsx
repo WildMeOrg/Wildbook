@@ -30,7 +30,7 @@ export default function AvatarAndUserProfile({ avatar }) {
   };
 
   return (
-    <Nav style={{ alignItems: "center", marginLeft: "20px", width: 50 }}>
+    <Nav style={{ alignItems: "center", marginLeft: "5px", width: 50 }}>
       <NavDropdown
         title={<Avatar avatar={avatar} />}
         id="basic-nav-dropdown"
@@ -43,7 +43,7 @@ export default function AvatarAndUserProfile({ avatar }) {
         }}
         show={shows}
       >
-        <NavDropdown.Item href={"/react/home/"} style={{ color: "black" }}>
+        <NavDropdown.Item href={`${process.env.PUBLIC_URL}/home/`} style={{ color: "black" }}>
           <FormattedMessage id="LANDING_PAGE" />
         </NavDropdown.Item>
         <NavDropdown.Item href={"/myAccount.jsp"} style={{ color: "black" }}>

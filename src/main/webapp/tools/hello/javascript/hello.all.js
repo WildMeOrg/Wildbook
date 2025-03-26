@@ -2414,7 +2414,6 @@ hello.utils.extend(hello.utils, {
 			}, timeout);
 		}
 
-		// TODO: add fix for IE,
 		// However: unable recreate the bug of firing off the onreadystatechange before the script content has been executed and the value of "result" has been defined.
 		// Inject script tag into the head element
 		head.appendChild(script);

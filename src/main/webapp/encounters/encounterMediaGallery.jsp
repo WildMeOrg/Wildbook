@@ -202,7 +202,7 @@ function forceLink(el) {
 
 		      //end caption render JSP side
 
-		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
+		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! 
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
 
@@ -253,8 +253,7 @@ function forceLink(el) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 
-							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
-							//   also: prob should check *what* is detected. :) somewhere....
+							// here we skip unity feature annots. also: prob should check *what* is detected.
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
 System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
 							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
@@ -962,7 +961,6 @@ console.info(' ===========>   %o %o', el, enh);
 	if (!opt.init) opt.init = []; //maybe created if logged in?
 
 	opt.init.push(
-		//function(el, enh) { enhancerDisplayAnnots(el, enh); },  //TODO fix for scaled/watermark image
 		function(el, enh) { enhancerCaption(el, enh); }
 	);
 
@@ -1070,7 +1068,6 @@ function featureSortOrder(feat) {
 function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
-    //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     let widthScale = el; //.width;// / el.naturalWidth;
@@ -1133,7 +1130,6 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 }
 
 function checkImageEnhancerResize() {
-//TODO update enhancerScale when this happens!
 	var needUpdate = false;
 	$('.image-enhancer-wrapper').each(function(i,el) {
             var jel = $(el);
@@ -1335,8 +1331,6 @@ function refreshKeywordsForMediaAsset(mid, data) {
             });
         }
     }
-
-    //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
 
     console.log("in refreshKeywordsForMediaAsset, looking for #asset-id-"+mid);
     $('#asset-id-'+mid).each(function(i,el) {
@@ -1700,8 +1694,7 @@ function _parseDetection(task) {
             rtn.msg = 'Detection task found, but no results.  Possibly still processing?';
         } else {
             for (var i = 0 ; i < task.results.length ; i++) {
-                if (!task.results[i].status) continue;  //kinda cheap hack.. should probably investigate this TODO
-                //TODO actually check out what most recent has to say here....
+                if (!task.results[i].status) continue;  //kinda cheap hack
                 rtn.state = 'complete';
                 rtn.msg = 'most recent result status _action=' + task.results[i].status._action;
                 break;

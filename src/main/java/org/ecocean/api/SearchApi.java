@@ -53,6 +53,10 @@ public class SearchApi extends ApiBase {
                 } else if ((searchQueryId == null) && !OpenSearch.isValidIndexName(indexName)) {
                     response.setStatus(404);
                     res.put("error", "unknown index");
+                } else if ("annotation".equals(indexName) && !currentUser.isAdmin(myShepherd)) {
+                    // per discussion with jh today, api exposure of annotations admin-only currently
+                    response.setStatus(403);
+                    res.put("error", 403);
                 } else if ((query == null) && !"POST".equals(request.getMethod())) {
                     response.setStatus(405);
                     res.put("error", "method not allowed");
@@ -61,8 +65,8 @@ public class SearchApi extends ApiBase {
                     String sizeStr = request.getParameter("size");
                     String sort = request.getParameter("sort");
                     String sortOrder = request.getParameter("sortOrder");
-                    // for now, we delete pit by default. we will need to let frontend decide when to keep it
-                    // by passing in the previous pit (e.g. for pagination)  TODO
+                    // for now, we delete pit by default. TODO: let frontend decide when to keep it
+                    // by passing in the previous pit (e.g. for pagination)
                     // boolean deletePit = Util.requestParameterSet(request.getParameter("deletePit"));
                     boolean deletePit = true;
                     int numFrom = 0;
@@ -77,7 +81,7 @@ public class SearchApi extends ApiBase {
                         indexName = query.optString("indexName", null);
                         query = OpenSearch.queryScrubStored(query);
                     }
-                    query = OpenSearch.querySanitize(query, currentUser);
+                    query = OpenSearch.querySanitize(query, currentUser, myShepherd);
                     System.out.println("SearchApi (sanitized) indexName=" + indexName + "; query=" +
                         query);
 
@@ -101,10 +105,8 @@ public class SearchApi extends ApiBase {
                             JSONObject doc = h.optJSONObject("_source");
                             if (doc == null)
                                 throw new IOException("failed to parse doc in hits[" + i + "]");
-                            // these are kind of noisy
-                            doc.remove("viewUsers");
-                            doc.remove("editUsers");
-                            hitsArr.put(doc);
+                            hitsArr.put(OpenSearch.sanitizeDoc(doc, indexName, myShepherd,
+                                currentUser));
                         }
                         response.setHeader("X-Wildbook-Total-Hits", Integer.toString(totalHits));
                         response.setHeader("X-Wildbook-Search-Query-Id", searchQueryId);

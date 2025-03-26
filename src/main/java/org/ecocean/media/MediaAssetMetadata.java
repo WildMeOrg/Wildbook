@@ -115,7 +115,6 @@ public class MediaAssetMetadata implements java.io.Serializable {
         // we attempt to find "the most prevalant" one.  ugh.  give me a break.
         HashMap<DateTime, Integer> count = new HashMap<DateTime, Integer>();
         SimpleDateFormat dateParser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss"); // note: exif doesnt carry tz :(
-        // TODO maybe?  we could also try just yyyy:MM:dd which sometimes exists.  sigh.  (etc x infinity)
         for (String key : matches.keySet()) {
             String val = matches.get(key);
             DateTime dt = null;
@@ -238,13 +237,4 @@ public class MediaAssetMetadata implements java.io.Serializable {
         ??
  */
 
-/*
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .append("rev", revision)
-                .append("type", type.toString())
-                .toString();
-    }
- */
 }

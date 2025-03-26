@@ -454,64 +454,6 @@ h2.vidcap {
 </div>
 
 
-<%
-if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
-%>
-<div class="container-fluid">
-    <section class="container main-section">
-
-        <!-- Complete header for adoption section in index properties file -->
-        <%=props.getProperty("adoptionHeader") %>
-        <section class="adopt-section row">
-
-            <!-- Complete text body for adoption section in index properties file -->
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-              <%=props.getProperty("adoptionBody") %>
-            </div>
-            <%
-            myShepherd.beginDBTransaction();
-            try{
-	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-	            if(adopt!=null){
-	            %>
-	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-		                <div class="focusbox-inner" style="overflow: hidden;">
-		                	<%
-		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-
-		                	%>
-		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
-		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-		                    <%
-		                    if(adopt.getAdopterQuote()!=null){
-		                    %>
-			                    <blockquote>
-			                        <%=adopt.getAdopterQuote() %>
-			                    </blockquote>
-		                    <%
-		                    }
-		                    %>
-		                </div>
-		            </div>
-
-	            <%
-				}
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
-
-            %>
-
-
-        </section>
-
-        <hr/>
-        <%= props.getProperty("donationText") %>
-    </section>
-</div>
-<%
-}
-%>
 
 <jsp:include page="footer.jsp" flush="true"/>
 

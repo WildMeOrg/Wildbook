@@ -1,5 +1,6 @@
 /*
     aka "Tweet-a-Whale" .. implements listening for and processing tweets
+    TODO: deprecate and remove
  */
 package org.ecocean;
 
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
-import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
@@ -47,7 +47,7 @@ public class TwitterBot {
     private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000); // only care about last 48 hrs
 
     // kind of convenience method (to TwitterUtil) but also swallows exception
-    // TODO yeah this really should be based off context.  :(
+    //  yeah this really should be based off context.  :(
     public static twitter4j.User myUser() {
         try {
             return TwitterUtil.myUser();
@@ -103,7 +103,7 @@ public class TwitterBot {
                     }
                 }
             } else {
-                ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
+                /// ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
                 System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " +
                     tweet.getId() + " already stored, so skipping");
                 myShepherd.rollbackDBTransaction();
@@ -156,7 +156,7 @@ public class TwitterBot {
         }
     }
 
-    // TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
+    //  this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
     private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context,
         String baseUrl, String taskId) {
         JSONObject qj = new JSONObject();
@@ -175,9 +175,7 @@ public class TwitterBot {
     }
 
     public static void sendCourtesyTweet(String context, Status originTweet, MediaAsset ma) {
-        Map<String, String> vars = new HashMap<String, String>(); // %SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV,
-
-        // %URL_SUBMIT
+        Map<String, String> vars = new HashMap<String, String>(); 
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
@@ -226,7 +224,7 @@ public class TwitterBot {
     private static void messageOutHandler(String msg) {
         int lastHour = outgoingRL.numSinceHoursAgo(1);
 
-        while (lastHour > 10) { // TODO maybe this is configurable? must adhere to twitter policy etc
+        while (lastHour > 10) { // maybe this is configurable? must adhere to twitter policy etc
             System.out.println(
                 "INFO: TwitterBot.messageOutHandler() got message.  Last hour rate = " + lastHour +
                 ", so stalling...");
@@ -307,7 +305,7 @@ public class TwitterBot {
         return true;
     }
 
-    // TODO could potentially read listenHashtags from twitter.properties, perhaps???
+    // could potentially read listenHashtags from twitter.properties, perhaps???
     public static String searchString() {
         String handle = null;
 
@@ -388,7 +386,7 @@ public class TwitterBot {
 
     // gets the template string and substitutes (using 'vars' Map)
     // substitution keys (so far):  %SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
-    // TODO might want to live in TwitterUtil
+    // might want to live in TwitterUtil
     public static String tweetText(String context, String key, Map<String, String> vars) {
         String text = TwitterUtil.getProperty(context, key);
 
@@ -406,8 +404,8 @@ public class TwitterBot {
     // basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     // just checks for tweets at regular intervals
     private static void startCollector(final String context) { // throws IOException {
-        collectorStartTime = System.currentTimeMillis(); // TODO should really be keyed off context!
-        // note: up to user discretion not to violate twitter rate limits  TODO maybe handle this in code?  (value in seconds)
+        collectorStartTime = System.currentTimeMillis(); // should really be keyed off context!
+        // note: up to user discretion not to violate twitter rate limits maybe handle this in code?  (value in seconds)
         long interval = 600;
         String ci = TwitterUtil.getProperty(context, "collectorInterval");
         if (ci != null) {
@@ -497,7 +495,7 @@ public class TwitterBot {
                        tweetMA;
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         // vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
-        // TODO: only send below tweet if every detection job for the tweet has returned negative. This will take some research.
+        //  only send below tweet if every detection job for the tweet has returned negative. This will take some research.
         sendTweet(tweetText(context, "tweetTextIANone", vars), originTweet.getId());
         return "Failed to find any Annotations; sent tweet";
     }
@@ -562,9 +560,11 @@ public class TwitterBot {
         if ((originTweet == null) || (anns == null)) return;
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
 
+        // ParseDateLocation has been deprecated
         // use NLP to get Date/Location if available in Tweet
-        String newDetectedDate = ParseDateLocation.parseDate(rootDir, myShepherd.getContext(),
-            originTweet);
+        // String newDetectedDate = ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
+        String newDetectedDate = null;
+
         for (Annotation ann : anns) {
             Encounter enc = ann.findEncounter(myShepherd);
             if (enc == null) continue;
@@ -606,25 +606,6 @@ public class TwitterBot {
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
     public static void cleanup() {
-/*
-        for (ScheduledExecutorService ses : runningSES) {
-            ses.shutdown();
-            try {
-                if (ses.awaitTermintation(20, TimeUnit.SECONDS)) {
-                    ses.shutdownNow();
-                    if (ses.awaitTermintation(20, TimeUnit.SECONDS)) {
-                        System.out.println("!!! QueueUtil.cleanup() -- ExecutorService did not terminate");
-                    }
-                }
-            } catch (InterruptedException ie) {
-                ses.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-        }
-        for (ScheduledFuture sf : runningSF) {
-            sf.cancel(true);
-        }
- */
         System.out.println(
             "================ = = = = = = ===================== TwitterBot.cleanup() finished.");
     }

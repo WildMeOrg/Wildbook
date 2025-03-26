@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useContext, useState } from "react";
 import { Navbar, Nav, NavDropdown } from "react-bootstrap";
 import "../css/dropdown.css";
@@ -10,7 +9,7 @@ import { FormattedMessage } from "react-intl";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader() {
+export default function AuthenticatedAppHeader({ showclassicsubmit }) {
   const { visible } = useContext(FooterVisibilityContext);
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,
@@ -74,7 +73,7 @@ export default function AuthenticatedAppHeader() {
                   marginLeft: "auto",
                 }}
               >
-                {unAuthenticatedMenu.map((item, idx) => (
+                {unAuthenticatedMenu(showclassicsubmit).map((item, idx) => (
                   <Nav key={idx} className="me-auto">
                     <NavDropdown
                       title={
@@ -131,7 +130,7 @@ export default function AuthenticatedAppHeader() {
                 padding: 5,
                 // marginRight: "10%",
               }}
-              href={"/react/login"}
+              href={`${process.env.PUBLIC_URL}/login`}
             >
               {<FormattedMessage id="LOGIN_LOGIN" />}
             </Button>

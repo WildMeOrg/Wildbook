@@ -178,10 +178,6 @@ public class User implements Serializable {
 
     public static boolean hasCustomProperties(Shepherd myShepherd, HttpServletRequest request) {
         if (request == null) return false;
-        String manualOrg = request.getParameter("organization");
-        if (Util.stringExists(manualOrg)) {
-            if (ShepherdProperties.orgHasOverwrite(manualOrg)) return true;
-        }
         User user = myShepherd.getUser(request);
         if (user == null) return false;
         return user.hasCustomProperties();
@@ -382,7 +378,7 @@ public class User implements Serializable {
         social.remove(type);
     }
 
-    // TODO this needs to be dealt with better.  see: rant about saving usernames from forms
+    // TODO: this needs to be dealt with better.  see: rant about saving usernames from forms
     public static boolean isUsernameAnonymous(String uname) {
         return ((uname == null) || uname.trim().equals("") || uname.equals("N/A") ||
                    uname.equals("public"));
@@ -414,10 +410,6 @@ public class User implements Serializable {
         Set<String> rtn = new HashSet<String>();
 
         rtn.add("_userId_:" + uuid); // kinda like "private" key?
-/*  these should migrate to Organizations!!
-        if (Util.stringExists(userProject)) rtn.add("_userProject_:" + userProject.toLowerCase());
-        if (Util.stringExists(affiliation)) rtn.add("_affiliation_:" + affiliation.toLowerCase());
- */
         // if the best context we have is a user, we add all the (toplevel) groups they are members of
         if (organizations != null) {}
         return rtn;

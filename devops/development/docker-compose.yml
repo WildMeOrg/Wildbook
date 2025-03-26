@@ -63,7 +63,7 @@ services:
       JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
 
   opensearch:
-    image: opensearchproject/opensearch:latest
+    image: opensearchproject/opensearch:2.15.0
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
       interval: 10s

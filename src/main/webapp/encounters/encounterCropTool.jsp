@@ -24,10 +24,6 @@ if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
 Encounter enc = Encounter.findByMediaAsset(ma, myShepherd);
 if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
 
-
-//TODO we might(?) want to get the _mid sized image at some point??
-
-
 //allow passing of dorsal-ness by way of param:
 boolean passedDorsal = (request.getParameter("isDorsalFin") != null);
 boolean isDorsalFin = false;
@@ -205,7 +201,6 @@ function spotsSave() {
 	var sp = itool.spotsVisible();
 	console.log('sp = %o', sp);
 	if (sp.length < 1) return;
-//TODO verify we really have all we need (like when we updateSaveButton())
 
 	$('#imageTools-buttons').hide();
 	$('#imageTools-message').html('saving spot data...');
