@@ -3,6 +3,9 @@
 <jdo>
   <package name="org.ecocean">
 
+    <class name="StudySite" identity-type="application">
+      <field name="id" primary-key="true"> </field>
+    </class>
 
     <class name="Survey" identity-type="application" table="SURVEY">
       <field name="surveyID" primary-key="true">
@@ -446,6 +449,17 @@
       <field name="satelliteTag" persistence-modifier="persistent"></field>
 
       <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
+
+		<!-- WWF Lynx customizations-->
+      <field name="population" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
+      <field name="governmentArea" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
+      <field name="huntingState" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
 
 
 	  <fetch-group name="searchResults">
