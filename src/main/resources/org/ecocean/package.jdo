@@ -98,54 +98,13 @@
       <fetch-group name="count"/>
     </class>
 
-    <class name="StudySite" identity-type="application">
-      <field name="id" primary-key="true"> </field>
-    </class>
-
-    <class name="Adoption" identity-type="application">
-      <field name="adopterName" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterAddress" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterEmail" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterImage" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adopterQuote" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="adoptionStartDate" persistence-modifier="persistbent">
-        <column length="100"/>
-      </field>
-      <field name="adoptionEndDate" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="adoptionManager" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="individual" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="encounter" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="adoptionType" persistence-modifier="persistent">
-        <column length="100"/>
-      </field>
-      <field name="notes" persistence-modifier="persistent">
-        <column jdbc-type="LONGVARCHAR"/>
-      </field>
-      <field name="id" persistence-modifier="persistent" primary-key="true">
-        <column length="100"/>
-      </field>
-    </class>
-
     <class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
       <field name="individualID" primary-key="true" />
+
+		<field jdbc-type="BIGINT" name="version" allows-null="false" >
+			<column default-value="-1" />
+			<index name="MARKEDINDIVIDUAL_VERSION_IDX" />
+		</field>
 
       	<field name="names" persistence-modifier="persistent" element-type="org.ecocean.MultiValue" default-fetch-group="true" />
 
@@ -213,7 +172,10 @@
         <join/>
       </field>
 
-      <field name="behaviors" persistence-modifier="persistent" default-fetch-group="true" serialized="true" />
+      <field name="behaviors" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.datacollection.Instant"/>
+        <join/>
+      </field>
 
       <field name="taxonomies" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.Taxonomy" dependent-element="false"/>
@@ -355,16 +317,6 @@
         <column length="512"/>
       </field>
 
-      <field name="population" persistence-modifier="persistent">
-        <column length="512"/>
-      </field>
-      <field name="governmentArea" persistence-modifier="persistent">
-        <column length="512"/>
-      </field>
-      <field name="huntingState" persistence-modifier="persistent">
-        <column length="512"/>
-      </field>
-
       <field name="genus" persistence-modifier="persistent">
         <column length="128"/>
       </field>
@@ -487,6 +439,8 @@
         <join/>
       </field>
 
+      <field name="opensearchProcessPermissions" persistence-modifier="none" />
+
       <field name="acousticTag" persistence-modifier="persistent"></field>
 
       <field name="satelliteTag" persistence-modifier="persistent"></field>
@@ -602,10 +556,15 @@
 			<index name="ANNOTATION_VIEWPOINT_IDX" />
 		</field>
 
-    	<field name="features" persistence-modifier="persistent" default-fetch-group="true" recursion-depth="2" mapped-by="annotation" cacheable="false" >
-        	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
-        	<join />
-    	</field>
+		<field jdbc-type="BIGINT" name="version" allows-null="false" >
+			<column default-value="-1" />
+			<index name="ANNOTATION_VERSION_IDX" />
+		</field>
+
+            	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
+                	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
+                	<join />
+            	</field>
 
       <field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" recursion-depth="3"/>
 
@@ -706,10 +665,6 @@
       </field>
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
-
-	  <field name="webURL" persistence-modifier="none"></field>
-
-
     </class>
 
     <class name="Observation" identity-type="data-store">

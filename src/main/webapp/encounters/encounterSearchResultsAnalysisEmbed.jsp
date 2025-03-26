@@ -5,7 +5,7 @@
     
 
   <%
-  System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
+  // System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
   String context="context0";
   context=ServletUtilities.getContext(request);
   

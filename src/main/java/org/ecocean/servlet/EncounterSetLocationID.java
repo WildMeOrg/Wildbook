@@ -70,6 +70,7 @@ public class EncounterSetLocationID extends HttpServlet {
             myShepherd.beginDBTransaction();
             String encNum = request.getParameter("number").trim();
             Encounter changeMe = myShepherd.getEncounter(encNum);
+            changeMe.setOpensearchProcessPermissions(true);
             setDateLastModified(changeMe);
             try {
                 oldCode = changeMe.getLocationCode();
@@ -78,10 +79,12 @@ public class EncounterSetLocationID extends HttpServlet {
                     (new java.util.Date()).toString() + "</em><br>Changed location code from " +
                     oldCode + " to " + request.getParameter("code") + ".</p>");
                 // update numberLocations on  a dependent MarkedIndividual too
+/*
                 if (changeMe.getIndividual() != null) {
                     MarkedIndividual indy = changeMe.getIndividual();
                     indy.refreshDependentProperties();
                 }
+ */
             } catch (Exception le) {
                 locked = true;
                 le.printStackTrace();

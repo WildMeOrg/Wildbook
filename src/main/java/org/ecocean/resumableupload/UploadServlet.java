@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -18,27 +20,22 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-import ec.com.mapache.ngflow.upload.FlowInfo;
-import ec.com.mapache.ngflow.upload.FlowInfoStorage;
-import ec.com.mapache.ngflow.upload.HttpUtils;
+import org.ecocean.resumableupload.FlowInfo;
+import org.ecocean.resumableupload.FlowInfoStorage;
+import org.ecocean.resumableupload.HttpUtils;
 
 import org.ecocean.AccessControl;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
 
-/**
- *
- * This is a servlet demo, for using Flow.js to upload files.
- *
- * by fanxu123
- */
 public class UploadServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     /*
-     * In ORDER to allow CORS  to multiple domains you can set a list of valid domains here
+     * In ORDER to allow CORS to multiple domains you can set a list of valid domains here
      */
     private List<String> authorizedUrl = Arrays.asList("http://localhost", "http://example.com");
 
@@ -47,7 +44,7 @@ public class UploadServlet extends HttpServlet {
         String subdir = ServletUtilities.getParameterOrAttribute("subdir", request);
 
         if (subdir == null) {
-            System.out.println("No subidr is set for upload; setting subdir to username");
+            System.out.println("No subdir is set for upload; setting subdir to username");
             subdir = myShepherd.getUsername(request);
         }
         return subdir;
@@ -70,18 +67,23 @@ public class UploadServlet extends HttpServlet {
         if (request.getHeader("Access-Control-Request-Headers") != null)
             response.setHeader("Access-Control-Allow-Headers",
                 request.getHeader("Access-Control-Request-Headers"));
-        // response.setContentType("text/plain");
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!accessAllowed(request)) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().print("{\"success\": false}");
+            response.getWriter().close();
+            return;
+        }
         System.out.println("UploadServlet.java. About to Print Params");
         ServletUtilities.printParams(request);
         System.out.println("(Those were the params)");
         if (!ServletFileUpload.isMultipartContent(request))
             throw new IOException("doPost is not multipart");
         ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
-        // upload.setHeaderEncoding("UTF-8");
         List<FileItem> multiparts = null;
         try {
             multiparts = upload.parseRequest(request);
@@ -100,7 +102,6 @@ public class UploadServlet extends HttpServlet {
                 break; // we only do first one.  ?
             }
         }
-        if (!ReCAPTCHA.sessionIsHuman(request)) throw new IOException("failed sessionIsHuman()");
         if (fileChunk == null) throw new IOException("doPost could not find file chunk");
         System.out.println("Do Post");
 
@@ -113,7 +114,6 @@ public class UploadServlet extends HttpServlet {
         response.setHeader("Expires", "-1");
 
         response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
-        // response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Methods", "POST");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -130,10 +130,8 @@ public class UploadServlet extends HttpServlet {
         raf.seek((flowChunkNumber - 1) * info.flowChunkSize);
 
         // Save to file
-        // InputStream is = request.getInputStream();
         InputStream is = fileChunk.getInputStream();
         long readed = 0;
-        // long content_length = request.getContentLength();
         long content_length = fileChunk.getSize();
         byte[] bytes = new byte[1024 * 100];
         while (readed < content_length) {
@@ -149,8 +147,7 @@ public class UploadServlet extends HttpServlet {
         // Mark as uploaded.
         info.uploadedChunks.add(new FlowInfo.flowChunkNumber(flowChunkNumber));
         String archivoFinal = info.checkIfUploadFinished();
-        if (archivoFinal != null) { // Check if all chunks uploaded, and
-            // change filename
+        if (archivoFinal != null) { // Check if all chunks uploaded, and change filename
             FlowInfoStorage.getInstance().remove(info);
             response.getWriter().print("{\"success\": true, \"uploadComplete\": true}");
         } else {
@@ -163,11 +160,18 @@ public class UploadServlet extends HttpServlet {
         out.close();
     }
 
-/*  UGH TODO i think doGet is broken, so best skip testChunk with testChunks: false essentially, i doubt GET will be multipart -- so we need to also
+/* TODO: verifiy doGet works. skip testChunk with testChunks: false essentially, i doubt GET will be multipart -- so we need to also
    support that, esp getflowChunkNumber() and getFlowInfo() ... :(
  */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!accessAllowed(request)) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().print("{\"success\": false}");
+            response.getWriter().close();
+            return;
+        }
         if (!ServletFileUpload.isMultipartContent(request))
             throw new IOException("doGet is not multipart");
         ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
@@ -190,7 +194,6 @@ public class UploadServlet extends HttpServlet {
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Expires", "-1");
 
-        // response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
         response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
         response.setHeader("Access-Control-Allow-Methods", "GET");
         response.setHeader("Access-Control-Allow-Credentials", "true");
@@ -204,8 +207,7 @@ public class UploadServlet extends HttpServlet {
         Object fcn = new FlowInfo.flowChunkNumber(flowChunkNumber);
         if (info.uploadedChunks.contains(fcn)) {
             System.out.println("Do Get arriba");
-            response.getWriter().print("Uploaded."); // This Chunk has been
-            // Uploaded.
+            response.getWriter().print("Uploaded."); // This Chunk has been Uploaded.
         } else {
             System.out.println("Do Get something is wrong");
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -222,22 +224,38 @@ public class UploadServlet extends HttpServlet {
         return -1;
     }
 
-    private String getOriginDomain(HttpServletRequest request) {
-        return "pod.scribble.com";
+    public static String getUploadDir(HttpServletRequest request) {
+        return getUploadDir(request, null);
     }
 
-    public static String getUploadDir(HttpServletRequest request) {
-        System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
+    public static String getUploadDir(HttpServletRequest request, Map<String, String> values) {
         ServletUtilities.printParams(request);
         String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
             request);
+        String submissionId = null;
+        if (values != null) submissionId = values.get("submissionId");
+        if (Util.isUUID(submissionId)) {
+/*  for now we cannot use username due to the fact that a user can upload while anon, and login later! :(
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("UploadServlet.getUploadDir");
+            String username = myShepherd.getUsername(request);
+            myShepherd.rollbackAndClose();
+            if (username == null) {
+                subDir = "_anonymous/submission/" + submissionId;
+            } else {
+                subDir = username + "/submission/" + submissionId;
+            }
+*/
+            subDir = "_anonymous/submission/" + submissionId;
+        }
         System.out.println("UploadServlet got subdir " + subDir);
         if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
         String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request)) +
             subDir;
-        System.out.println("UploadServlet got uploadDir = " + fullDir);
+        System.out.println("UploadServlet got uploadDir fullDir = " + fullDir);
         ensureDirectoryExists(fullDir);
-        return (fullDir);
+        return fullDir;
     }
 
     private static void ensureDirectoryExists(String fullPath) {
@@ -253,10 +271,13 @@ public class UploadServlet extends HttpServlet {
         String FlowIdentifier = null;
         String FlowFilename = null;
         String FlowRelativePath = null;
+        Map<String, String> values = new HashMap<String, String>();
 
         for (FileItem item : parts) {
             if (!item.isFormField()) continue;
-            System.out.println(item.getFieldName() + " -> " + item);
+            // System.out.println(item.getFieldName() + " -> " + item);
+            // System.out.println(item.getFieldName() + " -> " + item.getString());
+            values.put(item.getFieldName(), item.getString());
             switch (item.getFieldName()) {
             case "flowChunkSize":
                 FlowChunkSize = HttpUtils.toInt(item.getString(), -1);
@@ -275,22 +296,23 @@ public class UploadServlet extends HttpServlet {
                 break;
             }
         }
-        String base_dir = getUploadDir(request);
+        String base_dir = getUploadDir(request, values);
         System.out.println("[INFO] UploadServlet got base_dir=" + base_dir);
 
         // Here we add a ".temp" to every upload file to indicate NON-FINISHED
-        System.out.println("aaaa ==> " + FlowFilename);
+        // System.out.println("aaaa ==> " + FlowFilename);
         String FlowFilePath = new File(base_dir, FlowFilename).getAbsolutePath() + ".temp";
-        System.out.println("FlowFilePath ---> " + FlowFilePath);
-
+        // System.out.println("FlowFilePath ---> " + FlowFilePath);
         FlowInfoStorage storage = FlowInfoStorage.getInstance();
 
+/*
         System.out.println("FlowChunkSize: " + FlowChunkSize);
         System.out.println("FlowTotalSize: " + FlowTotalSize);
         System.out.println("FlowIdentifier: " + FlowIdentifier);
         System.out.println("FlowFilename: " + FlowFilename);
         System.out.println("FlowRelativePath: " + FlowRelativePath);
         System.out.println("FlowFilePath: " + FlowFilePath);
+ */
 
         // hacky, but gets us userFilename
         request.getSession().setAttribute("userFilename:" + FlowFilename, FlowRelativePath);
@@ -302,5 +324,11 @@ public class UploadServlet extends HttpServlet {
             throw new ServletException("Invalid request params.");
         }
         return info;
+    }
+
+    // a simple wrapper, in case we want to change the logic here
+    private boolean accessAllowed(HttpServletRequest request) {
+        // note: this will return true for logged-in user (indifferent to captcha)
+        return ReCAPTCHA.sessionIsHuman(request);
     }
 }

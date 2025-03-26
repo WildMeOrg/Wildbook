@@ -389,7 +389,7 @@ public class MultiValue implements java.io.Serializable {
     }
 
     // returns N, where N is the lowest number that is NOT a value in a name w/ nameKey.
-    // valuePrefix comes before N for weird double-labeled values like indocet-
+    // valuePrefix comes before N for weird double-labeled values
 
     public static String nextUnusedValueForKey(String nameKey, String valuePrefix,
         Shepherd myShepherd) {

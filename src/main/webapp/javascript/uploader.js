@@ -25,7 +25,6 @@ var randomPrefix = Math.floor(Math.random() * 100000);  //this is only used for 
 var keyToFilename = {};
 var pendingUpload = -1;
 
-//TODO we should make this more generic wrt elements and events
 function uploaderInit(completionCallback) {
 
     if (useS3Direct()) {
@@ -147,19 +146,6 @@ function requestMediaAssetSet(callback) {
         },
     });
 }
-
-/*
-{
-"MediaAssetCreate": [
-	{
-    	"setId":"567d00b5-b44e-485a-9d77-10987f6dd3e6",
-      "assets": [
-        {"bucket": "flukebook-dev-upload-tmp", "key": "567d00b5-b44e-485a-9d77-10987f6dd3e6/11854-r043-4f25.jpg"},
-        {"bucket": "abc", "key": "xyz"}
-        ]
-    }
-]
-}*/
 
 function createMediaAssets(setId, bucket, keys, callback) {
     var assetData = [];

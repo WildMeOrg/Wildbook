@@ -93,7 +93,7 @@ public class UserResetPassword extends HttpServlet {
                             out.println("<strong>Success:</strong> Password successfully reset.");
 
                             out.println("<p><a href=\"" + request.getScheme() + "://" +
-                                CommonConfiguration.getURLLocation(request) + "/login.jsp" +
+                                CommonConfiguration.getURLLocation(request) + "/react/login" +
                                 "\">Return to login page" + "</a></p>\n");
                             out.println(ServletUtilities.getFooter(context));
                         } else {

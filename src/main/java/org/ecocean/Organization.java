@@ -29,7 +29,6 @@ public class Organization implements java.io.Serializable {
     private List<Organization> children = null;
 
     // if individualNameKey != null, this organization has a special nameKey that is used to create an org-wide catalog
-    // e.g. IndoCet wants to generate IndoCet names;
     private String individualNameKey = null;
 
     public Organization() {
@@ -215,11 +214,6 @@ public class Organization implements java.io.Serializable {
         return true;
     }
 
-/*  not sure if this is evil ??
-    public void setParent(Organization t) {
-        parent = t;
-    }
- */
     public Organization getParent() {
         return parent;
     }
@@ -299,7 +293,7 @@ public class Organization implements java.io.Serializable {
         if (user == null) return false;
         if (user.hasRoleByName("admin", myShepherd) || user.hasRoleByName(ROLE_ADMIN, myShepherd))
             return true;
-        if (!this.hasMember(user)) return false; // TODO should this be .hasMemberDeep() ?
+        if (!this.hasMember(user)) return false;
         return user.hasRoleByName(ROLE_MANAGER, myShepherd);
     }
 
@@ -429,29 +423,4 @@ public class Organization implements java.io.Serializable {
         } catch (Exception ex) {}; // swallow jdo not found noise
         return o;
     }
-
-/*
-    public static List<Organization> getOrganizationsFor(Annotation ann, Shepherd myShepherd) {
-        String qstr = "SELECT FROM org.ecocean.ia.Organization WHERE objectAnnotations.contains(obj) && obj.id == \"" + ann.getId() + "\" VARIABLES
-           org.ecocean.Annotation obj";
-        Query query = myShepherd.getPM().newQuery(qstr);
-        query.setOrdering("created");
-        return (List<Organization>) query.execute();
-    }
-    public static List<Organization> getRootOrganizationsFor(Annotation ann, Shepherd myShepherd) {
-        return onlyRoots(getOrganizationsFor(ann, myShepherd));
-    }
-
-    public static List<Organization> getOrganizationsFor(MediaAsset ma, Shepherd myShepherd) {
-        String qstr = "SELECT FROM org.ecocean.ia.Organization WHERE objectMediaAssets.contains(obj) && obj.id == " + ma.getId() + " VARIABLES
-           org.ecocean.media.MediaAsset obj";
-        Query query = myShepherd.getPM().newQuery(qstr);
-        query.setOrdering("created");
-        return (List<Organization>) query.execute();
-    }
-    public static List<Organization> getRootOrganizationsFor(MediaAsset ma, Shepherd myShepherd) {
-        return onlyRoots(getOrganizationsFor(ma, myShepherd));
-    }
-
- */
 }

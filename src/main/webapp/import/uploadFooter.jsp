@@ -42,8 +42,9 @@ String commitStr = request.getParameter("commit");
 boolean committing = (commitStr!=null);
 
 String filename = request.getParameter("filename");
-String uuid=Util.generateUUID();
-String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload=true&taskID="+uuid;
+String originalFilename = request.getParameter("originalFilename");
+String uuid = Util.generateUUID();
+String uploadAction = "standard-upload?filename=" + filename + "&originalFilename=" + originalFilename + "&commit=true&isUserUpload=true&taskID=" + uuid;
 
 // This file is for window-dressing at the bottom of the (java-servlet) uploader at WebImport.java
 

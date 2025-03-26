@@ -3,7 +3,6 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.Map,
                  java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
 
@@ -55,7 +54,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     Properties recaptchaProps=ShepherdProperties.getProperties("recaptcha.properties", "", context);
 
-    Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
@@ -89,13 +87,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
-    System.out.println("line 1");
-    String userId = "";
-    String userNull = "true";
-    if (user!=null) {
-      userNull = "false";
-      userId = user.getId();
-    };
 
 %>
 
@@ -105,7 +96,7 @@ $(document).ready( function() {
    $('#locationID').select2({width: '100%', height:'50px'});
    $('#country').select2({width: '100%', height:'50px'});
 
-	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	populateProjectNameDropdown([],[],"", false);
 	<%
 	if(user != null){
 		%>
@@ -116,40 +107,34 @@ $(document).ready( function() {
 		doAjaxForProject(requestForProjectNames,userId);
 		<%
 	}
-	// else{
+	else{
 		%>
+
+		<%
+	}
+	%>
 });
 
-function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-  let useCustomStyle =  '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>';
-  console.log("waht this var??? "+useCustomStyle);
-	if(useCustomStyle){
-		//do nothing unusual
-	}else{
-		defaultSelectItem = null;
-		defaultSelectItemId = null;
-		loggedOutDefaultDesired = false;
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId){
+
+	defaultSelectItem = null;
+	defaultSelectItemId = null;
+	
+	if(options.length<1){
+	 	isVisible=false;
 	}
-	// if(options.length<1){
-	// 	isVisible=false;
-	// }
 		let projectNameHtml = '';
-		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		if(loggedOutDefaultDesired){
-			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
-			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
-		}
+
 		if(isVisible){
-			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
-			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
-		}else{
-			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+			projectNameHtml += '<div class="col-xs-6 col-md-4"><label class="control-label"><%=props.getProperty("projectMultiSelectLabel") %></label></div><div class="col-xs-6 col-lg-8"><select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}
-		projectNameHtml += '<option value=""></option>';
-		if(defaultSelectItem){
+
+		//options
+    if(defaultSelectItem){
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 			options = options.remove(defaultSelectItem);
 		}
+    projectNameHtml += '<option value=""></option>';
 		for(let i=0; i<options.length; i++){
 			if(options[i] === selectedOption){
 				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
@@ -157,7 +142,8 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
 			}
 		}
-		projectNameHtml += '</div>';
+    
+		projectNameHtml += '</div></div>';
 		$("#proj-id-dropdown-container").empty();
 		$("#proj-id-dropdown-container").append(projectNameHtml);
 }
@@ -173,29 +159,7 @@ Array.prototype.remove = function() {
     return this;
 };
 
-function getDefaultSelectedProject(){
-  let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
-	return defaultProject;
-  //return "";
-}
-
-function getDefaultProjectOrganizationParameter(){
-	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
-	return defaultProjectOrganizationParameter;
-}
-
-function getDefaultSelectedProjectId(){
-	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
-	return defaultProjectId;
-}
-
-function getLoggedOutDefaultDesired(){
-	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
-	return loggedOutDefaultDesired;
-}
-
 function doAjaxForProject(requestJSON,userId){
-  console.log("gettin ajax");
 	$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
 			type: 'POST',
@@ -203,13 +167,12 @@ function doAjaxForProject(requestJSON,userId){
 			dataType: 'json',
 			contentType: 'application/json',
 			success: function(data) {
-        console.log("ajax success");
 				let projectNameResults = data.projects;
 				let projNameOptions = null;
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
 					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
-					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true);
 				}
 			},
 			error: function(x,y,z) {
@@ -278,8 +241,7 @@ function doAjaxForProject(requestJSON,userId){
 	%>
 	<script src="javascript/pages/submit.js"></script>
 	<%
-  }
-  System.out.println("line 2");
+	}
 	%>
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
   <script type="text/javascript">
@@ -316,18 +278,6 @@ function validate() {
        */
       requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
     }
-
-      /*
-      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-
-           requiredfields += "\n   *  valid Email address";
-      }
-      if ((document.encounter_submission.location.value.length == 0)) {
-          requiredfields += "\n   *  valid sighting location";
-      }
-      */
 
     if (requiredfields != "") {
       requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
@@ -385,12 +335,12 @@ $(function() {
     //
     resetMap();
 
-    var dateFormat='dd-mm-yy';
+
 
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
-      dateFormat: dateFormat,
+      dateFormat: 'yy-mm-dd',
       maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false,
@@ -404,7 +354,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker({
         changeMonth: true,
         changeYear: true,
-        dateFormat: dateFormat
+        dateFormat: 'yy-mm-dd'
     });
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
@@ -575,6 +525,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
       <p><%=props.getProperty("submit_overview") %></p>
 
+      <p class="bg-danger text-danger">
+        <%=props.getProperty("submit_note_red") %>
+      </p>
   </div>
 
 
@@ -654,7 +607,6 @@ function updateList(inp) {
 var dtList = [];
 var llList = [];
 var commentJson = {};
-//TODO Bearing, Altitude
 function gotExif(file) {
     exifFindDateTimes(file.exifdata);
 console.log('dtList => %o', dtList);
@@ -796,43 +748,19 @@ function showUploadBox() {
 
 </fieldset>
 
-<p class="text-center">
-	<button class="large" type="submit" onclick="return sendButtonClicked();">
-		<%=props.getProperty("submit_send") %>
-		<span class="button-icon" aria-hidden="true" />
-	</button>
-</p>
-
-<p>
-	<em><%=props.getProperty("submit_photo_only_comment")%></em>
-</p>
-
-
-
 <hr />
 
 <fieldset>
 <h3><%=props.getProperty("dateAndLocation")%></h3>
 
-<div>
+<div class="form-group required">
 
     <div class="form-group required">
-      	<div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        	<label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        </div>
-      	<div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        	<input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-		</div>
-    </div>
-
-    <!-- Herein trying out new html date input -->
-    <!--
-    <div class="form-group">
 
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        <input class="form-control" type="datetime-local" style="position: relative; z-index: 101;" name="dateinput" size="20" />
-	</div>
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+			</div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p class="help-block">
@@ -847,7 +775,6 @@ function showUploadBox() {
       </div>
 
     </div>
--->
 
 <%
 if(CommonConfiguration.showReleaseDate(context)){
@@ -887,12 +814,12 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 %>
     <div class="form-group required">
-      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label"><%=props.getProperty("studySites") %></label>
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label"><%=props.getProperty("locationID") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+          <%=LocationID.getHTMLSelector(false,(String)null,qualifier,"locationID","locationID","form-control") %>
 
       </div>
     </div>
@@ -940,72 +867,19 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <div>
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
-          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %></label>&nbsp
-          <input class="form-control" name="lat" type="text" id="lat">
+          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
+          <input class="form-control" name="lat" type="text" id="lat"> &deg;
         </div>
 
         <div class="col-xs-12 col-sm-6">
-          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %></label>&nbsp
-          <input class="form-control" name="longitude" type="text" id="longitude">
+          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
+          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
         </div>
       </div>
 
       <p class="help-block">
         <%=props.getProperty("gpsConverter") %></p>
     </div>
-
-		<div>
-			<p class="help-block"><%=props.getProperty("submit_utm_comment") %></p>
-			<div class=" form-group form-inline">
-				<div class="col-xs-12 col-sm-6">
-					<label class="control-label pull-left"><%=props.getProperty("submit_utm_easting") %>&nbsp;</label>
-					<input class="form-control" name="easting" type="text" id="easting">
-				</div>
-				<div class="col-xs-12 col-sm-6">
-					<label class="control-label  pull-left"><%=props.getProperty("submit_utm_northing") %>&nbsp;</label>
-					<input class="form-control" name="northing" type="text" id="northing">
-				</div>
-
-				<div class="col-xs-12 col-sm-6">
-
-					<label class="control-label  pull-left"><%=props.getProperty("submit_epsg_proj_code") %>&nbsp;</label>
-
-				</div>
-
-				<div class="col-xs-12 col-sm-6">
-
-					<select class="form-control" name="epsgProjCode" id="epsgProjCode">
-						<%
-						System.out.println("The reference map size = " +GeocoordConverter.epsgCodeToUtmZone.size());
-						System.out.println("and get(EPSG:25830)="+GeocoordConverter.epsgCodeToUtmZone.get("EPSG:25830"));
-
-						// Iterate through the epsg codes and list them in a dropdown
-						for (Map.Entry<String, Integer> codeToZone : GeocoordConverter.epsgCodeToUtmZone.entrySet()) {
-
-							String webDisplayCode;
-							if (codeToZone.getValue()!=null) {
-								webDisplayCode=codeToZone.getValue()+"N ("+codeToZone.getKey()+")";
-							} else webDisplayCode = codeToZone.getKey();
-							String webCodeValue = codeToZone.getKey();
-							System.out.println("epsg webDisplay, webValue: ("+webDisplayCode+", "+webCodeValue+")");
-							String selectString="";
-							if (webCodeValue.equals(GeocoordConverter.DEFAULT_EPSG_CODE_STRING)) {
-								selectString="selected=\"selected\"";
-							}
-
-							// for code "EPSG:23029" zone 29, webDisplay = "29N (EPSG:23029)"
-							// but the actual value is EPSG:23029
-							%>
-							<option value="<%=webCodeValue%>" <%=selectString%>> <%=webDisplayCode%> </option>
-							<%
-						}
-						%>
-					</select>
-
-				</div>
-			</div>
-		</div>
-
 
 
 <%
@@ -1030,38 +904,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 }
 %>
 
-<hr />
-<div>
-	<div class="row">
-		<div class="col-xs-6">
-			<label class="control-label pull-left"><%=props.getProperty("submit_population") %>&nbsp;</label>
-		</div>
-		<div class="col-xs-6">
-			<input class="form-control" name="population" type="text" id="population">
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-6">
-			<label class="control-label  pull-left"><%=props.getProperty("submit_huntingstate") %>&nbsp;</label>
-		</div>
-		<div class="col-xs-6">
-			<input class="form-control" name="huntingState" type="text" id="huntingState">
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-6">
-			<label class="control-label  pull-left"><%=props.getProperty("submit_governmentarea") %>&nbsp;</label>
-		</div>
-		<div class="col-xs-6">
-			<input class="form-control" name="governmentArea" type="text" id="governmentArea">
-		</div>
-	</div>
-</div>
-
-
 </fieldset>
 <hr />
-
 
   <fieldset>
     <div class="row">
@@ -1116,7 +960,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
   <fieldset>
 
-		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		<div class="form-group" id="proj-id-dropdown-container">
 		</div>
 
     <div class="form-group">
@@ -1238,30 +1082,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-
-        <!--
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("manual_id") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="manualID" type="text" id="manualID" size="75">
-          </div>
-        </div>
-        -->
-
-<!--
-				<div class="form-group">
-					<div class="col-xs-6 col-md-4">
-						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
-					</div>
-
-					<div class="col-xs-6 col-lg-8">
-						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
-					</div>
-				</div>
--->
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1513,57 +1333,33 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	// $('.required-missing').removeClass('required-missing')
-	// if an mediaAsset is ever required
-	// if(!$('#theFiles').val()){
-	// 	console.log("No file submitted!");
-	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
-	// 	return false;
-	// }
-	// if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
-	// 	$('#location').closest('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
-	// 	return false;
-	// }
+	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
+		$('#location').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+		return false;
+	}
 
-	// if ($('#submitterEmail').val()) {
-	// 		var email = $('#submitterEmail').val();
-	//     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-	//     if(!re.test(email.toLowerCase())){
-	// 			$('#submitterEmail').closest('.form-group').addClass('required-missing');
-	// 			window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
-	// 			return false;
-	// 		}
-	// }
+	if ($('#submitterEmail').val()) {
+			var email = $('#submitterEmail').val();
+	    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	    if(!re.test(email.toLowerCase())){
+				$('#submitterEmail').closest('.form-group').addClass('required-missing');
+				window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
+				return false;
+			}
+	}
 
-	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
-	// 	// console.log("email address not present");
-	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
-	// 	return false;
-	// }else{
-	// 	var email = $('#submitterEmail').val();
-  //   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  //   if(!re.test(email.toLowerCase())){
-	// 		console.log("not a valid email address");
-	// 		$('#submitterEmail').closest('.form-group').addClass('required-missing');
-	// 		window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
-	// 		return false;
-	// 	}
-  // }
+	if (!$('#datepicker').val()) {
+		$('#datepicker').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
+		return false;
+	}
 
-	// if (!$('#datepicker').val()) {
-	// 	$('#datepicker').closest('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must set a date first.'); }, 100);
-	// 	return false;
-	// }
-	//
-	// if (!$('#genusSpecies').val()) {
-	// 	$('#genusSpecies').closest('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must set a species first.'); }, 100);
-	// 	return false;
-	// }
+	if (!$('#genusSpecies').val()) {
+		$('#genusSpecies').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+		return false;
+	}
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');

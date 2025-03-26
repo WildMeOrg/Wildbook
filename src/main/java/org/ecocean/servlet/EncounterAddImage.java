@@ -75,13 +75,10 @@ public class EncounterAddImage extends HttpServlet {
                         encounterNumber = value;
                     }
                 }
-////TODO this will need to be generified for offsite storage prob via SinglePhotoVideo? as in EncounterForm?
                 if (part.isFile()) {
                     FilePart filePart = (FilePart)part;
                     fileName = ServletUtilities.cleanFileName(filePart.getFileName());
                     if (fileName != null) {
-                        // fileName = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(fileName);
-                        // File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ Encounter.subdir(encounterNumber));
                         File thisSharkDir = new File(Encounter.dir(shepherdDataDir,
                             encounterNumber));
                         if (!thisSharkDir.exists()) { thisSharkDir.mkdirs(); }
@@ -91,7 +88,6 @@ public class EncounterAddImage extends HttpServlet {
                     }
                 }
             }
-            // File thisEncounterDir = new File(encountersDir, Encounter.subdir(encounterNumber));
             File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
 
             myShepherd.beginDBTransaction();
@@ -102,8 +98,6 @@ public class EncounterAddImage extends HttpServlet {
                     SinglePhotoVideo newSPV = new SinglePhotoVideo(encounterNumber,
                         (new File(fullPathFilename)));
                     enc.addSinglePhotoVideo(newSPV);
-                    ///// NOT YET -->  enc.refreshAssetFormats(myShepherd);
-                    // enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath), newSPV, false);
                     enc.addComments("<p><em>" + request.getRemoteUser() + " on " +
                         (new java.util.Date()).toString() + "</em><br>" +
                         "Submitted new encounter image graphic: " + fileName + ".</p>");

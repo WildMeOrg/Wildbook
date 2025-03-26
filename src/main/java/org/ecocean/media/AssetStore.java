@@ -62,9 +62,7 @@ public abstract class AssetStore implements java.io.Serializable {
     // probably also will be used to denote S3 temporary upload asset
     protected String usage;
 
-    /**
-     * Create a new AssetStore.
-     */
+    // Create a new AssetStore.
     protected AssetStore(final Integer id, final String name, final AssetStoreType type,
         final AssetStoreConfig config, final boolean writable) {
         if (name == null) throw new IllegalArgumentException("null name");
@@ -133,9 +131,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
     public abstract URL webURL(MediaAsset ma);
 
-    public abstract String getFilename(MediaAsset ma); // this should be null if there is no such thing.  "filename" is subjective here (e.g. youtube
-
-    // id?)
+    public abstract String getFilename(MediaAsset ma); // this should be null if there is no such thing.  "filename" is subjective here (e.g. youtube id?)
 
     // human-facing, "user-chosen" filename that may include complex characters like utf8 etc
     // defaults to just using getFilename() above, but can and should be overridden if applicable
@@ -155,8 +151,7 @@ public abstract class AssetStore implements java.io.Serializable {
         return null;
     }
 
-    // these have to do with "child types" which are essentially derived MediaAssets ... much work TODO here -- including possibly making this its own
-    // class?
+    // these have to do with "child types" which are essentially derived MediaAssets. TODO: evaluate if this should be its own class
     // i am not making this an abstract now but rather subclass can override. maybe silly? future will decide
     // also, order matters here!  should be from "best" to "worst" so that things can degrade nicely when better ones are not available
     public List<String> allChildTypes() {
@@ -197,13 +192,10 @@ public abstract class AssetStore implements java.io.Serializable {
         try {
             Collection c = (Collection)(matches.execute());
             all = new ArrayList<MediaAsset>(c);
-            // matches.closeAll();
-            // return all;
         } catch (javax.jdo.JDOException ex) {
             System.out.println(this.toString() + " .findAll(" + hashCode + ") threw exception " +
                 ex.toString());
             ex.printStackTrace();
-            // return null;
         }
         matches.closeAll();
         return all;
@@ -217,21 +209,19 @@ public abstract class AssetStore implements java.io.Serializable {
     }
 
     /*
-       hello!  2017-03-09 important paradigm shift here!  now this no longer limiting search to parent-store.
-       (1) this "should be" backwards compatible; (2) we now have parent-child assets that cross store boundaries (YouTubeAssetStore / children) (3)
-          restricting to store is kinda silly cuz id is primary key so would never have duplicate id across more than one store anyway
+       this no longer limiting search to parent-store.
+       1) this "should be" backwards compatible
+       2) we now have parent-child assets that cross store boundaries (YouTubeAssetStore / children) 
+       3) restricting to store is kinda silly cuz id is primary key so would never have duplicate id across more than one store anyway
      */
     public ArrayList<MediaAsset> findAllChildren(MediaAsset parent, Shepherd myShepherd) {
         if ((parent == null) || (parent.getId() < 1)) return null;
         ArrayList<MediaAsset> all = new ArrayList<MediaAsset>();
         Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
-        // Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId() + " && this.store.id == " + this.id);
         Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId());
         try {
             Collection c = (Collection)(matches.execute());
             all = new ArrayList<MediaAsset>(c);
-            // matches.closeAll();
-            // return all;
         } catch (javax.jdo.JDOException ex) {
             System.out.println(this.toString() + " .findAllChildren(" + parent.toString() +
                 ") threw exception " + ex.toString());
@@ -276,7 +266,7 @@ public abstract class AssetStore implements java.io.Serializable {
         boolean skipCropping)
     throws IOException {
         if (parent == null) return null;
-        // right now we strictly bail on non-images. in the future we *should* let various methods try to do whatever this means for their type  TODO
+        // right now we strictly bail on non-images. TODO: let various methods try to do whatever this means for their type
         if (!parent.isMimeTypeMajor("image")) {
             System.out.println("NOTICE: updateChild(" + parent +
                 ") aborted due to non-image; major mime type = " + parent.getMimeTypeMajor());
@@ -353,22 +343,13 @@ public abstract class AssetStore implements java.io.Serializable {
             width = 250;
             height = 200;
             break;
-/*
-            case "spot":  //really now comes from Annotation too, so kinda weirdly maybe should be "annot"ish....
-                needsTransform = true;
-                transformArray = (float[])opts.get("transformArray");
-                break;
- */
         case "feature":
             needsTransform = true;
             Feature ft = (Feature)opts.get("feature");
             if (ft == null)
                 throw new IOException(
                           "updateChild() has 'feature' type without a Feature passed in via opts");
-            /*
-                right now we only handle bbox (xywh) and transforms ... so we kinda get ugly here in the future, all this would be place with better
-                   FeatureType-specific magic.  :/  TODO !?
-             */
+            // right now we only handle bbox (xywh) and transforms
             JSONObject params = ft.getParameters();
             System.out.println("updateChild() is trying feature! --> params = " + params);
             width = (int)Math.round(params.optDouble("width", -1));
@@ -396,12 +377,10 @@ public abstract class AssetStore implements java.io.Serializable {
         }
         System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetFile);
 
-/* a quandry - i *think* "we all" (?) have generally agreed that a *new* MediaAsset should be created for each change in the contents of the source
-   file.
-   as such, finding an existing child MediaAsset of the type desired probably means it should either be deleted or orphaned ... or maybe simply marked
-      older?
-   in short: "revisioning".  further, if the *parent has changed* should it also then not be a NEW MediaAsset itself anyway!? as such, we "should
-      never" be altering an existing child type on an existing parent.  i think.  ???  sigh.... not sure what TODO  -jon */
+        /* generally agreed that a *new* MediaAsset should be created for each change in the contents of the source file.
+        as such, finding an existing child MediaAsset of the type desired probably means it should either be deleted or orphaned ... or maybe simply marked older?
+        in short: "revisioning".  further, if the *parent has changed* should it also then not be a NEW MediaAsset itself anyway!? as such, we "should
+        never" be altering an existing child type on an existing parent. */
 
         ImageProcessor iproc = null;
         if (needsTransform) {
@@ -423,11 +402,6 @@ public abstract class AssetStore implements java.io.Serializable {
             throw new IOException("updateChild() failed to create " + targetFile.toString());
         return true;
     }
-
-/*  do we even want to allow this?
-    public MediaAsset create(String jsonString) {
-    }
- */
 
     /**
      * Create a new asset from a File. The file is copied in to the store as part of this process.
@@ -464,8 +438,8 @@ public abstract class AssetStore implements java.io.Serializable {
      */
     public void copyAssetAny(final MediaAsset fromMA, final MediaAsset toMA)
     throws IOException {
-// System.out.println("FROM " + fromMA);
-// System.out.println("TO " + toMA);
+        // System.out.println("FROM " + fromMA);
+        // System.out.println("TO " + toMA);
         if (fromMA == null) throw new IOException("copyAssetAny(): fromMA is null");
         if (toMA == null) throw new IOException("copyAssetAny(): toMA is null");
         if (fromMA.getStore() == null)
@@ -486,20 +460,6 @@ public abstract class AssetStore implements java.io.Serializable {
     private void copyAssetAcross(final MediaAsset fromMA, final MediaAsset toMA)
     throws IOException {
         throw new IOException("copyAssetAcross() not yet implemented!  :/");
-/*
-        //we basically always use a local version as the go-between... Path fromPath = null;
-        try {
-            fromMa.cacheLocal();
-            fromPath = fromMa.localPath();
-        } catch (Exception ex) {
-            throw new IOException("error creating local copy of " + fromMA.toString() + ": " + ex.toString());
-        }
-        try {
-            toMA.copyIn(fromPath.toFile());
-        } catch (Exception ex) {
-            throw new IOException("error copying to " + toMA.toString() + ": " + ex.toString());
-        }
- */
     }
 
     /**
@@ -534,36 +494,6 @@ public abstract class AssetStore implements java.io.Serializable {
         return get(id);
     }
 
-/*
-    public static AssetStore getByUsage(Shepherd myShepherd, String usage) {
-        if (usage == null) return null;
-        init(AssetStoreFactory.getStores(myShepherd));
-        if ((stores == null) || (stores.size() < 1)) return null;
-        for (AssetStore st : stores.values()) {
-            if (usage.equals(st.getUsage())) return st;
-        }
-        return null;
-    }
- */
-
-/*
-    {
-        for (AssetStore store : getMap().values()) {
-            if (store.type == AssetStoreType.LOCAL) {
-                return store;
-            }
-        }
-
-        //
-        // Otherwise return the first one in the map?
-        //
-        if (stores.values().iterator().hasNext()) {
-            return stores.values().iterator().next();
-        }
-
-        return null;
-    }
- */
     public static Map<Integer, AssetStore> getStores() {
         return stores;
     }
@@ -608,21 +538,11 @@ public abstract class AssetStore implements java.io.Serializable {
         if (url == null)
             return "<div id=\"media-asset-" + ma.getId() +
                        "\" class=\"media-asset no-media-url\">no webURL</div>";
-// TODO branch based upon permissions
 
         String more = "";
         ArrayList<MediaAsset> kids = new ArrayList<MediaAsset>();
-// FOR NOW (TODO) we are disabling non-trivial annotations display, such is life?
+// FOR NOW we are disabling non-trivial annotations display
         if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotation -->";
-/*
-        //for non-trivial annotations, lets try to find the
-        if ((ann != null) && !ann.isTrivial()) {
-            kids = ma.findChildrenByLabel(myShepherd, "_annotation");
-            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) ma = kids.get(0);
-            url = ma.webURL();
-        }
-        if (ann != null) more += " data-annotation-id=\"" + ann.getId() + "\" ";
- */
 
         String smallUrl = url.toString();
         kids = ma.findChildrenByLabel(myShepherd, "_watermark");
@@ -692,7 +612,7 @@ public abstract class AssetStore implements java.io.Serializable {
         return j;
     }
 
-    /////////////// regarding pulling "useful" Metadata, see: https://github.com/drewnoakes/metadata-extractor/issues/10
+    // regarding pulling "useful" Metadata, see: https://github.com/drewnoakes/metadata-extractor/issues/10
     public static JSONObject extractMetadataExif(File file)
     throws IOException {
         Metadata md = null;
@@ -745,9 +665,6 @@ public abstract class AssetStore implements java.io.Serializable {
                     System.out.println("WARNING: isValidImage(" + file + ") is truncated[1]");
                     return false;
                 } else {
-                    // no need to announce this in the logs
-
-                    // System.out.println("INFO: isValidImage(" + file + ") is valid JPEG");
                     return true;
                 }
             }

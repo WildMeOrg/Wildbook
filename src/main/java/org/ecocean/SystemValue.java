@@ -57,7 +57,11 @@ public class SystemValue implements java.io.Serializable {
 
     public void store(Shepherd myShepherd) {
         this.version = System.currentTimeMillis();
-        myShepherd.getPM().makePersistent(this);
+        try {
+            myShepherd.getPM().makePersistent(this);
+        } catch (Exception ex) {
+            System.out.println("SystemValue.store() failed to store " + this + ": " + ex);
+        }
     }
 
     private static SystemValue _set(Shepherd myShepherd, String key, String type, Object val) {
@@ -89,6 +93,10 @@ public class SystemValue implements java.io.Serializable {
 
     public static SystemValue set(Shepherd myShepherd, String key, JSONObject val) {
         return _set(myShepherd, key, "JSONObject", val);
+    }
+
+    public static SystemValue set(Shepherd myShepherd, String key, Boolean val) {
+        return _set(myShepherd, key, "Boolean", val);
     }
 
     public static JSONObject getValue(Shepherd myShepherd, String key) {
@@ -144,6 +152,19 @@ public class SystemValue implements java.io.Serializable {
         if (v.isNull("value")) return null;
         try {
             return v.getString("value");
+        } catch (JSONException ex) {
+            System.out.println("WARNING: parse error on " + v.toString() + ": " + ex.toString());
+            return null;
+        }
+    }
+
+    public static Boolean getBoolean(Shepherd myShepherd, String key) {
+        JSONObject v = getValue(myShepherd, key);
+
+        if (v == null) return null;
+        if (v.isNull("value")) return null;
+        try {
+            return v.getBoolean("value");
         } catch (JSONException ex) {
             System.out.println("WARNING: parse error on " + v.toString() + ": " + ex.toString());
             return null;

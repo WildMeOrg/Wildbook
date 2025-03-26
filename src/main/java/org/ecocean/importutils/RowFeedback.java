@@ -76,13 +76,12 @@ public class RowFeedback {
                     // if (!cellFeedback.isBlank()) {
                     this.cells[colNum].setSuccess(false);
                     this.cells[colNum].setIsBlank(false);
-                    // TODO replace this universal NOT FOUND for an overwrite with something specific.
+                    // TODO: replace this universally NOT FOUND for an overwrite with something specific.
                     if (exactMessageToDisplay != null) {
                         this.cells[colNum].setValueString(exactMessageToDisplay);
                     } else {
                         this.cells[colNum].setValueString(value + " NOT FOUND");
                     }
-                    // }
                 } else {
                     System.out.println("Setting ERROR value on NEW CellFeedback for col " + colNum +
                         " val " + String.valueOf(value) + " row " + row.getRowNum());
@@ -104,22 +103,3 @@ public class RowFeedback {
         return this.num;
     }
 }
-
-// public String getStringNoLog(Row row, int i) {
-// String str = null;
-// try {
-// str = row.getCell(i).getStringCellValue().trim();
-// if (str.equals("")) return null;
-// }
-// catch (Exception e) {}
-// return str;
-// }
-
-//// cannot put this inside CellFeedback bc java inner classes are not allowed static methods or vars (this is stupid).
-// static String nullCellHtml() {
-// return "<td class=\"cellFeedback null\" title=\"The importer was unable to retrieve this cell, or it did not exist. This is possible if it is a
-// duplicate column, it relies on another column, or only some rows contain the cell. You may proceed if this cell OK to
-// ignore.\"><span></span></td>";
-// }
-
-// }

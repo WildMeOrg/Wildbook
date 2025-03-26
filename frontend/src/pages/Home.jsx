@@ -14,7 +14,7 @@ import Forbidden from "./errorPages/Forbidden";
 
 export default function Home() {
   useDocumentTitle("HOME");
-  const { data, loading, error, statusCode } = useGetHomePageInfo();
+  const { data, loading, statusCode } = useGetHomePageInfo();
 
   const errorComponents = {
     404: NotFound,

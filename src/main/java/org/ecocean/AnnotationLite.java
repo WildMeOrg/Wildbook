@@ -16,11 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class AnnotationLite {
-    /*
-        should imageId and individualId be stored as UUID?  it is 16 bytes vs 36 (string)... but is it slower to convert?  TODO
-
-        also note:  we dont (seem to) need imageId, bbox, or theta, as they are available via the ann already
-     */
     // private String imageId;
     private String individualId = null;
     // private int[] bbox;
@@ -46,25 +41,6 @@ public class AnnotationLite {
 
     public AnnotationLite() {}
 
-/*
-    public AnnotationLite(Annotation ann) {
-        this();
-        if (ann != null) {
-            if (ann.getMediaAsset() != null) this.setImageId(ann.getMediaAsset().getAcmId());
-            this.setBbox(ann.getBbox());
-            this.setTheta(ann.getTheta());
-        }
-    }
-    public AnnotationLite(Annotation ann, String indivId) {
-        this(ann);
-        this.setIndividualId(indivId);
-    }
-    public AnnotationLite(Annotation ann, String indivId, String tax) {
-        this(ann);
-        this.setIndividualId(indivId);
-        this.setTaxonomy(tax);
-    }
- */
     public AnnotationLite(String indivId) {
         this();
         this.setIndividualId(indivId);
@@ -89,29 +65,6 @@ public class AnnotationLite {
         validForIdentification = b;
     }
 
-/*
-    public String getImageId() {
-        return imageId;
-    }
-    public void setImageId(String id) {
-        imageId = id;
-    }
-
-
-    public int[] getBbox() {
-        return bbox;
-    }
-    public void setBbox(int[] b) {
-        bbox = b;
-    }
-
-    public double getTheta() {
-        return theta;
-    }
-    public void setTheta(double t) {
-        theta = t;
-    }
- */
     public String getIndividualId() {
         return individualId;
     }
@@ -219,7 +172,7 @@ public class AnnotationLite {
                 taxonomyList.add(tlist.optString(i, null)); // we add nulls too (snh,flw) to maintain offset
             }
         }
-        // i guess??? we should zero out this cache when reading
+        // we should zero out this cache when reading
         cache = new ConcurrentHashMap<String, AnnotationLite>();
         Iterator it = jcache.keys();
         while (it.hasNext()) {
@@ -253,7 +206,7 @@ public class AnnotationLite {
             cache.size() + " objects in " + (System.currentTimeMillis() - t) + "ms");
     }
 
-    // this reads the cache from disk *and* starts a thread for saving upon shutdown, oy
+    // this reads the cache from disk *and* starts a thread for saving upon shutdown
     public static void startup(final ServletContext sContext, final String context) {
         try {
             cacheRead(CommonConfiguration.getDataDirectory(sContext,

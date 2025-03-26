@@ -15,6 +15,10 @@
       <field name="scheduledTaskType" persistence-modifier="persistent">
         <column length="128" allows-null="false" />
       </field>
+	  
+	  <field name="taskComplete" persistence-modifier="persistent">
+      </field>
+	  
     </class>
 
     <class name="ScheduledIndividualMerge" identity-type="application">
