@@ -217,20 +217,20 @@ public class StartupWildbook implements ServletContextListener {
         //which handles ACM ID registration for MediaAssets
         class AcmIdMessageHandler extends QueueMessageHandler {
             public boolean handler(String mediaAssetID) {
-
             	Shepherd myShepherd = new Shepherd(context);
             	myShepherd.setAction("AcmIdMessageHandler.handler"+mediaAssetID);
             	myShepherd.beginDBTransaction();
             	try {
-	                MediaAsset asset=myShepherd.getMediaAsset(mediaAssetID);    
-            		ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
-	                fixMe.add(asset);
+            		MediaAsset asset=myShepherd.getMediaAsset(mediaAssetID);
+	                ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+            		fixMe.add(asset);
 	                IBEISIA.sendMediaAssetsNew(fixMe, context);
+	                myShepherd.updateDBTransaction();
                 	
             	} 
                 catch (Exception ex) {
-                    System.out.println("WARNING: AcmIdMessageHandler processQueueMessage() threw " +
-                        ex.toString());
+                    System.out.println("\r\n\r\nWARNING: AcmIdMessageHandler processQueueMessage() threw " +
+                        ex.toString()+"\r\n\r\n");
                     ex.printStackTrace();
                     
                     try {
@@ -347,18 +347,19 @@ public class StartupWildbook implements ServletContextListener {
                 System.out.println("[INFO]: checking for scheduled tasks to execute...");
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("WildbookScheduledTaskThread");
-                myShepherd.beginDBTransaction();
                 try {
-                    ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
+                    ArrayList<WildbookScheduledTask> scheduledTasks =
+                    myShepherd.getAllIncompleteWildbookScheduledTasks();
                     for (WildbookScheduledTask scheduledTask : scheduledTasks) {
                         if (scheduledTask.isTaskEligibleForExecution()) {
                             scheduledTask.execute(myShepherd);
                         }
                     }
                 } catch (Exception e) {
+                    myShepherd.rollbackAndClose();
                     e.printStackTrace();
                 }
-                myShepherd.rollbackAndClose();
+                myShepherd.closeDBTransaction();
             }
         }, 0, 1, TimeUnit.HOURS);
     }
