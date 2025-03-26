@@ -479,8 +479,14 @@
 		  /individualDistanceSearchResults.jsp = authc
 		  /surveys/surveyMapEmbed.jsp = authc
 		  /obrowse.jsp = authc
-
-
+		  
+		  #WWF Spain Iberian lynx customizations
+		  /studySiteSearchResults.jsp = authc, roles[researcher]
+		  /studySiteSearch.jsp = authc, roles[researcher]
+          /studySite.jsp = authc, roles[researcher]
+          /mergeStudySites.jsp = authc, roles[admin]
+          /StudySiteDelete = authc, roles[researcher]
+          /StudySiteMerge = authc, roles[researcher]
 			</param-value>
         </init-param>
     </filter>
@@ -2877,5 +2883,64 @@
     <servlet-name>EncounterRemoveAnnotation</servlet-name>
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
+  
+  <!-- WWF Iberian Lynx Customizations, Legacy-->
+    <servlet>
+    <servlet-name>EncounterSetStudySite</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetStudySite</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>StudySiteDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.StudySiteDelete</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>StudySiteMerge</servlet-name>
+    <servlet-class>org.ecocean.servlet.StudySiteMerge</servlet-class>
+  </servlet>
+  
+    <servlet>
+    <servlet-name>EncounterSetPopulation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetPopulation</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterSetGovernmentArea</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetGovernmentArea</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>EncounterSetHuntingState</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetHuntingState</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>EncounterSetPopulation</servlet-name>
+    <url-pattern>/EncounterSetPopulation</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSetGovernmentArea</servlet-name>
+    <url-pattern>/EncounterSetGovernmentArea</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>EncounterSetHuntingState</servlet-name>
+    <url-pattern>/EncounterSetHuntingState</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>EncounterSetStudySite</servlet-name>
+    <url-pattern>/EncounterSetStudySite</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>StudySiteDelete</servlet-name>
+    <url-pattern>/StudySiteDelete</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StudySiteMerge</servlet-name>
+    <url-pattern>/StudySiteMerge</url-pattern>
+  </servlet-mapping>
+  
+
 
 </web-app>
