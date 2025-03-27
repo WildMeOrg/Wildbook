@@ -1,19 +1,20 @@
 package org.ecocean.shepherd.entity;
 
-import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdPMF;
+import org.ecocean.*;
 
+import org.ecocean.cache.StoredQuery;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.mockito.stubbing.OngoingStubbing;
 
-import javax.jdo.JDONullIdentityException;
-import javax.jdo.PersistenceManager;
-import javax.jdo.PersistenceManagerFactory;
-import javax.jdo.Transaction;
+import javax.jdo.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -24,13 +25,16 @@ public class IndividualTest {
     private PersistenceManagerFactory mockPMF;
     private PersistenceManager mockPM;
     private Transaction mockTransaction;
+    private Query mockQuery;
 
     @BeforeEach
     public void setUp() {
         // Create mock PersistenceManager and stub critical nested methods
         mockTransaction = mock(Transaction.class, RETURNS_DEEP_STUBS);
+        mockQuery = mock(Query.class, RETURNS_DEEP_STUBS);
         mockPM = mock(PersistenceManager.class, RETURNS_DEEP_STUBS);
         when(mockPM.currentTransaction()).thenReturn(mockTransaction);
+        when(mockPM.newQuery(anyString())).thenReturn(mockQuery);
 
         // Create mock PersistenceManagerFactory and PM creation
         mockPMF = mock(PersistenceManagerFactory.class);
@@ -147,34 +151,64 @@ public class IndividualTest {
         assertFalse(testShepherd.isMarkedIndividual(markedIndividual));
     }
 
-    // getters ... replace all with OpenSearch?
+    // getters
+    @Test
+    public void testGetMarkedIndividualQuiet() {
+        when(mockPM.getObjectById(any(), anyBoolean())).thenReturn(new MarkedIndividual());
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        assertInstanceOf(MarkedIndividual.class, testShepherd.getMarkedIndividualQuiet("some individual"));
+    }
+
+    @Test
+    public void testGetMarkedIndividualByProject() {
+        // null project returns empty list?
+        Project testProject = null;
+        List<MarkedIndividual> expected = new ArrayList<>();
+        List<MarkedIndividual> returned = new ArrayList<>();
+
+        when(mockQuery.execute(testProject)).thenReturn(returned);
+        Shepherd testShepherd = spy(new Shepherd("testContext"));
+        assertEquals(expected, testShepherd.getMarkedIndividualsFromProject(testProject));
+    }
+
+    @Test
+    public void testGetMarkedIndividualByNullEncounter() {
+        Shepherd testShepherd = new Shepherd("testContext");
+        Encounter testEncounter = null;
+        assertNull(testShepherd.getMarkedIndividual(testEncounter));
+    }
+
+    @Test
+    public void testGetMarkedIndividualByEmptyEncounter() {
+        Encounter mockEncounter;
+
+        Shepherd testShepherd = new Shepherd("testContext");
+        mockEncounter = mock(Encounter.class);
+        when(mockEncounter.getIndividualID()).thenReturn("");
+        assertNull(testShepherd.getMarkedIndividual(mockEncounter));
+    }
+
+    /*
+    // todo:  verify these are removed or refactored after Shepherd method cleanup.
+    @Test
+    public void testGetMarkedIndividualThumbnails() {} // one usage ...
+
+    @Test
+    public void testGetMarkedIndividualHard() {}  // deprecated
+
     @Test
     public void testGetMarkedIndividualById() {}  // used in getAllUsersForMarkedIndividual ... which is not used
 
     @Test
-    public void testGetMarkedIndividualByProject() {}
+    public void testGetOrCreateMarkedIndividual() {} // no usage?
 
     @Test
-    public void testGetMarkedIndividualHard() {}
+    public void testGetMarkedIndividualsByAlternateID() {} // no usage?
 
     @Test
-    public void testGetMarkedIndividualQuiet() {}
-
-    @Test
-    public void testGetMarkedIndividualByEncounter() {}
-
-    @Test
-    public void testGetOrCreateMarkedIndividual() {}
-
-    @Test
-    public void testGetMarkedIndividualThumbnails() {}
-
-    @Test
-    public void testGetMarkedIndividualsByAlternateID() {}
-
-    @Test
-    public void testGetMarkedIndividualCaseInsensitive() {}
+    public void testGetMarkedIndividualCaseInsensitive() {} // no usage?
 
     @Test
     public void testGetMarkedIndividualsByNickname() {} // no usage?
+    */
 }
