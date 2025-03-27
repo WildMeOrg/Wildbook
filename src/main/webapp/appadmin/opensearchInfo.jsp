@@ -20,6 +20,13 @@ private String wrap(final String input, int len) {
 }
 
 %>
+<style>
+h2 {
+    margin-top: 2em;
+    padding: 20px;
+    background-color: #AAA;
+}
+</style>
 
 <%
 
@@ -47,11 +54,12 @@ out.println(wrap(rtn, 123));
 </textarea>
 <%
 
-
-req = new Request("GET", "encounter/_mappings");
-JSONObject res = new JSONObject(os.getRestResponse(req));
+for (String indexName : OpenSearch.VALID_INDICES) {
+    out.println("<h2>" + indexName + "</h2>");
+    req = new Request("GET", indexName + "/_mappings");
+    JSONObject res = new JSONObject(os.getRestResponse(req));
 %>
-<h3>Encounter mapping</h3>
+<h3><%=indexName%> mapping</h3>
 <textarea style="height: 30em; width: 100em;">
 <%
 out.println(res.toString(4));
@@ -59,9 +67,9 @@ out.println(res.toString(4));
 </textarea>
 <%
 
-res = os.getSettings("encounter");
+res = os.getSettings(indexName);
 %>
-<h3>Encounter settings</h3>
+<h3><%=indexName%> settings</h3>
 <textarea style="height: 30em; width: 100em;">
 <%
 out.println(res.toString(4));
@@ -70,16 +78,18 @@ out.println(res.toString(4));
 <%
 
 
-req = new Request("GET", "encounter/_search?pretty=true&q=*:*&size=1");
+req = new Request("GET", indexName + "/_search?pretty=true&q=*:*&size=1");
 res = new JSONObject(os.getRestResponse(req));
 %>
-<h3>Encounter example</h3>
+<h3><%=indexName%> doc example</h3>
 <textarea style="height: 30em; width: 100em;">
 <%
 out.println(res.toString(4));
 %>
 </textarea>
 <%
+
+}
 
 
 

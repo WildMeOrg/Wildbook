@@ -72,3 +72,15 @@
 .nav-item>a {
   padding: 0.5rem 1rem;
 }
+
+@media (max-width: 1100px) {
+  .site-name {
+      display: none !important;
+  }
+}
+
+.header-quick-search-input::placeholder {
+  color: gray; 
+  opacity: 0.6; 
+  font-size: 0.9rem;
+}
