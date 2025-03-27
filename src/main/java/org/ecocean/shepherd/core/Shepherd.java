@@ -2008,8 +2008,8 @@ public class Shepherd {
 
     // forceSpaces will turn `Foo bar_bar` into `Foo bar bar` - use with caution!
     public List<List<String>> getAllTaxonomyCommonNames(boolean forceSpaces) {
-        Set<String> allSciNames = new HashSet<String>();
-        Set<String> allComNames = new HashSet<String>();
+        Set<String> allSciNames = new LinkedHashSet<String>();
+        Set<String> allComNames = new LinkedHashSet<String>();
 
         List<String> configNamesSci = CommonConfiguration.getIndexedPropertyValues("genusSpecies",
                 getContext());
