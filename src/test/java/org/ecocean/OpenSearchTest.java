@@ -57,14 +57,12 @@ import java.sql.SQLException;
 
 public class OpenSearchTest {
 
-    //ResultSet mockResultSet;
     RestClient restClient;
     OpenSearchClient osClient;
     OpenSearch os;
 
     @BeforeEach
     void setUp() {
-        //mockResultSet = mock(ResultSet.class);
         osClient = mock(OpenSearchClient.class);
         OpenSearch.client = osClient;
         restClient = mock(RestClient.class);
