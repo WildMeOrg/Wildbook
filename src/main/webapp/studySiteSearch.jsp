@@ -54,6 +54,8 @@ context=ServletUtilities.getContext(request);
   Properties dsProps = ShepherdProperties.getProperties("studySite.properties", langCode,context);
 
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
+  
+  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 %>
 
@@ -85,7 +87,7 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
+<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="javascript/geoxml3.js"></script>
 <script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
@@ -138,7 +140,7 @@ String formAction="studySiteSearchResults.jsp";
 
 
 <h1 class="intro"><strong><span class="para">
-		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+		</span></strong>
   <%=titleString%>
 </h1>
 </p>
