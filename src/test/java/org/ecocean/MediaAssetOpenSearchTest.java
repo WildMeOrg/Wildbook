@@ -71,7 +71,6 @@ public class MediaAssetOpenSearchTest {
                 jgen.flush();
                 // JSONObject just more familiar territory
                 JSONObject doc = new JSONObject(writer.toString());
-System.out.println(doc.toString(4));
                 assertEquals(11, doc.keySet().size());
                 assertTrue(doc.has("encounters"));
                 assertTrue(doc.getLong("version") > 0L);
