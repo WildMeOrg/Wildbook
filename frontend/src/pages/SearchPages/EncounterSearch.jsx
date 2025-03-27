@@ -1,57 +1,51 @@
 import React, { useEffect, useState } from "react";
-import DataTable from "../components/DataTable";
-import useFilterEncounters from "../models/encounters/useFilterEncounters";
-import FilterPanel from "../components/FilterPanel";
-import useEncounterSearchSchemas from "../models/encounters/useEncounterSearchSchemas";
-import SideBar from "../components/filterFields/SideBar";
+import DataTable from "../../components/DataTable";
+import useFilterEncounters from "../../models/encounters/useFilterEncounters";
+import FilterPanel from "../../components/FilterPanel";
+import useEncounterSearchSchemas from "../../models/encounters/useEncounterSearchSchemas";
+import SideBar from "../../components/filterFields/SideBar";
 import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
 import axios from "axios";
-import { get } from "lodash";
-import ThemeColorContext from "../ThemeColorProvider";
-
-const columns = [
-  { name: "INDIVIDUAL_ID", selector: "individualDisplayName" },
-  { name: "SIGHTING_ID", selector: "occurrenceId" },
-  { name: "ALTERNATIVE_ID", selector: "otherCatalogNumbers" },
-  { name: "CREATED_DATE", selector: "date" },
-  { name: "LOCATION_ID", selector: "locationId" },
-  { name: "SPECIES", selector: "taxonomy" },
-  { name: "SUBMITTER", selector: "assignedUsername" },
-  { name: "DATE_SUBMITTED", selector: "dateSubmitted" },
-  { name: "NUMBER_ANNOTATIONS", selector: "numberAnnotations" },
-];
+import { get } from "lodash-es";
+import ThemeColorContext from "../../ThemeColorProvider";
+import { encounterSearchColumns } from "../../constants/searchPageColumns";
+import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
+import { globalEncounterFormStore as store } from "./encounterFormStore";
+import { helperFunction } from "./getAllSearchParamsAndParse";
 
 export default function EncounterSearch() {
+  const columns = encounterSearchColumns;
+  const tabs = encounterSearchPagetabs;
   const intl = useIntl();
   const schemas = useEncounterSearchSchemas();
-  const [page, setPage] = useState(0);
-  const [perPage, setPerPage] = useState(20);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [paramsFormFilters, setParamsFormFilters] = useState([]);
-  const paramsObject = Object.fromEntries(searchParams.entries()) || {};
-  const [formFilters, setFormFilters] = useState([]);
   const theme = React.useContext(ThemeColorContext);
-
-  const regularQuery = searchParams.get("regularQuery");
-
-  const [queryID, setQueryID] = useState(
-    regularQuery ? null : searchParams.get("searchQueryId"),
-  );
-  const [searchData, setSearchData] = useState([]);
-  const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
   const [totalItems, setTotalItems] = useState(0);
   const [searchIdResultPage, setSearchIdResultPage] = useState(0);
   const [searchIdResultPerPage, setSearchIdResultPerPage1] = useState(20);
   const [sort, setSort] = useState({ sortname: "date", sortorder: "desc" });
-
   const { sortname, sortorder } = sort;
 
+  const [page, setPage] = useState(0);
+  const [perPage, setPerPage] = useState(20);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const regularQuery = searchParams.get("regularQuery");
+  const [queryID, setQueryID] = useState(
+    regularQuery ? null : searchParams.get("searchQueryId"),
+  );
+
+  const [searchData, setSearchData] = useState([]);
+  const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
   const [encounterSortName, setEncounterSortName] = useState("date");
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
+  const [tempFormFilters, setTempFormFilters] = useState([]);
+
+  useEffect(() => {
+    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!queryID) {
@@ -63,38 +57,12 @@ export default function EncounterSearch() {
     }
   }, [queryID, sortname, sortorder]);
 
-  const tabs = [
-    `ENCOUNTER_PROJECT_MANAGEMENT:/encounters/projectManagement.jsp`,
-    `ENCOUNTER_MATCHING_IMAGES_VIDEOS:/encounters/thumbnailSearchResults.jsp`,
-    `ENCOUNTER_MAPPED_RESULTS:/encounters/mappedSearchResults.jsp`,
-    `ENCOUNTER_RESULTS_CALENDAR:/xcalendar/calendar.jsp`,
-    `ENCOUNTER_ANALYSIS:/encounters/searchResultsAnalysis.jsp`,
-    `ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp`,
-  ];
-
-  useEffect(() => {
-    setFormFilters(
-      Array.from(
-        new Map(
-          [...paramsFormFilters, ...formFilters].map((filter) => [
-            filter.filterId,
-            filter,
-          ]),
-        ).values(),
-      ),
-    );
-  }, [paramsFormFilters]);
-
-  useEffect(() => {
-    if (regularQuery) {
-      setQueryID("");
-    } else {
-      setQueryID(searchParams.get("searchQueryId"));
-    }
-  }, [searchParams]);
-
-  const { data: encounterData, loading } = useFilterEncounters({
-    queries: formFilters,
+  const {
+    data: encounterData,
+    loading,
+    refetch,
+  } = useFilterEncounters({
+    queries: store.formFilters,
     params: {
       sort: encounterSortName,
       sortOrder: encounterSortOrder,
@@ -148,7 +116,6 @@ export default function EncounterSearch() {
             ),
           );
           setFilterPanel(false);
-          // setResultPage(true);
         })
         .catch((error) => {
           console.error("Error fetching search data:", error);
@@ -180,50 +147,6 @@ export default function EncounterSearch() {
     });
   };
 
-  if (
-    paramsObject.username &&
-    paramsFormFilters.find((opt) => opt.filterId === "assignedUsername") ===
-      undefined
-  ) {
-    setFilterPanel(false);
-    setParamsFormFilters((prevFilters) => {
-      return [
-        ...prevFilters,
-        {
-          clause: "filter",
-          filterId: "assignedUsername",
-          filterKey: "Assigned User",
-          query: {
-            term: {
-              assignedUsername: paramsObject.username,
-            },
-          },
-        },
-      ];
-    });
-  }
-
-  if (
-    paramsObject.state &&
-    paramsFormFilters.find((opt) => opt.filterId === "state") === undefined
-  ) {
-    setParamsFormFilters((prevFilters) => {
-      return [
-        ...prevFilters,
-        {
-          clause: "filter",
-          filterId: "state",
-          filterKey: "Encounter State",
-          query: {
-            term: {
-              state: paramsObject.state,
-            },
-          },
-        },
-      ];
-    });
-  }
-
   return (
     <div
       className="encounter-search container-fluid"
@@ -240,17 +163,13 @@ export default function EncounterSearch() {
         style={{
           display: filterPanel ? "block" : "none",
         }}
-        formFilters={formFilters}
-        setFormFilters={(input) => {
-          setFormFilters(input);
-        }}
         setFilterPanel={setFilterPanel}
-        updateFilters={Function.prototype}
         schemas={schemas}
-        // setRefresh={setRefresh}
         handleSearch={handleSearch}
         setQueryID={setQueryID}
-        setSearchParams={setSearchParams}
+        refetch={refetch}
+        setTempFormFilters={setTempFormFilters}
+        store={store}
       />
       <DataTable
         isLoading={loading}
@@ -294,12 +213,11 @@ export default function EncounterSearch() {
         }}
       />
       <SideBar
-        formFilters={formFilters}
         setFilterPanel={setFilterPanel}
-        setFormFilters={setFormFilters}
-        // setRefresh={setRefresh}
         searchQueryId={searchQueryId}
-        queryID={queryID}
+        queryID={false}
+        store={store}
+        tempFormFilters={tempFormFilters}
       />
     </div>
   );

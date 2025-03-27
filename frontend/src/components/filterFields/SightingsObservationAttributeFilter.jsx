@@ -3,7 +3,7 @@ import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
 
-export default function SightingsObservationAttributeFilter({ onChange }) {
+export default function SightingsObservationAttributeFilter({ store }) {
   return (
     <div
       style={{
@@ -20,40 +20,40 @@ export default function SightingsObservationAttributeFilter({ onChange }) {
       <FormGroupText
         label="FILTER_SIGHTING_ID"
         noDesc={true}
-        onChange={onChange}
         term="match"
         field="occurrenceId"
         filterId={"occurrenceId"}
         filterKey={"Sighting ID"}
+        store={store}
       />
 
       <FormGroupText
         label="FILTER_SIGHTING_COMMENTS"
         noDesc={true}
-        onChange={onChange}
         term="match"
         field="occurrenceComments"
         filterId={"occurrenceComments"}
         filterKey={"Sighting Comments"}
+        store={store}
       />
 
       <FormGroupText
         label="FILTER_VISIBILIY_INDEX"
         noDesc={true}
-        onChange={onChange}
         term="match"
         field="occurrenceVisibilityIndex"
         filterId={"occurrenceVisibilityIndex"}
         filterKey={"Visibility Index"}
+        store={store}
       />
 
       <FormGroupText
         label="FILTER_OBSERVATION_COMMENTS"
-        onChange={onChange}
         term="match"
         field="occurrenceRemarks"
         filterId={"occurrenceRemarks"}
         filterKey={"Observation Comments"}
+        store={store}
       />
     </div>
   );

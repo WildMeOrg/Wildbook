@@ -3,7 +3,7 @@ import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
 import FormGroupText from "../Form/FormGroupText";
 
-export default function IndividualEstimateFilter({ onChange }) {
+export default function IndividualEstimateFilter({ store }) {
   return (
     <div>
       <h4>
@@ -19,8 +19,8 @@ export default function IndividualEstimateFilter({ onChange }) {
         field={"occurrenceBestGroupSizeEstimate"}
         term={"match"}
         filterId={"occurrenceBestGroupSizeEstimate"}
-        onChange={onChange}
         filterKey={"Best Estimate Individuals"}
+        store={store}
       />
       <FormGroupText
         label="FILTER_MINIMUM_ESTIMATE_INDIVIDUALS"
@@ -28,8 +28,8 @@ export default function IndividualEstimateFilter({ onChange }) {
         field={"occurrenceMinGroupSizeEstimate"}
         term={"match"}
         filterId={"occurrenceMinGroupSizeEstimate"}
-        onChange={onChange}
         filterKey={"Minimum Estimate Individuals"}
+        store={store}
       />
       <FormGroupText
         label="FILTER_MAXIMUM_ESTIMATE_INDIVIDUALS"
@@ -37,8 +37,8 @@ export default function IndividualEstimateFilter({ onChange }) {
         field={"occurrenceMaxGroupSizeEstimate"}
         term={"match"}
         filterId={"occurrenceMaxGroupSizeEstimate"}
-        onChange={onChange}
         filterKey={"Maximum Estimate Individuals"}
+        store={store}
       />
     </div>
   );

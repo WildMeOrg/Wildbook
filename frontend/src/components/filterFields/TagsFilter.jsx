@@ -4,8 +4,9 @@ import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import { useIntl } from "react-intl";
+import { observer } from "mobx-react-lite";
 
-export default function TagsFilter({ data, onChange }) {
+const TagsFilter = observer(({ data, store }) => {
   const metalTagLocations =
     data?.metalTagLocation?.map((item) => {
       return {
@@ -34,18 +35,18 @@ export default function TagsFilter({ data, onChange }) {
 
             <FormControl
               type="text"
+              value={store.formFilters.find(
+                (filter) => filter.filterId === `metalTag.${location.label}`
+              )?.query?.bool?.filter?.[1]?.match?.["metalTags.number"] || ""
+              }
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
                 if (e.target.value === "") {
-                  onChange(null, `metalTag.${location.label}`);
+                  store.removeFilter(`metalTag.${location.label}`);
                   return;
                 }
-                onChange({
-                  filterId: `metalTag.${location.label}`,
-                  filterKey: "Metal Tags",
-                  clause: "nested",
-                  path: "metalTags",
-                  query: {
+                store.addFilter(`metalTag.${location.label}`, "nested",
+                  {
                     bool: {
                       filter: [
                         {
@@ -61,7 +62,9 @@ export default function TagsFilter({ data, onChange }) {
                       ],
                     },
                   },
-                });
+                  "Metal Tags",
+                  "metalTags"
+                );
               }}
             />
           </FormGroup>
@@ -83,21 +86,20 @@ export default function TagsFilter({ data, onChange }) {
           <FormControl
             type="text"
             placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "acousticTag.serialNumber"
+            )?.query?.match?.["acousticTag.serialNumber"] || ""}
             onChange={(e) => {
               if (e.target.value === "") {
-                onChange(null, `acousticTag.serialNumber`);
+                store.removeFilter(`acousticTag.serialNumber`);
                 return;
               }
-              onChange({
-                filterId: "acousticTag.serialNumber",
-                filterKey: "Acoustic Tag Serial Number",
-                clause: "filter",
-                query: {
-                  match: {
-                    "acousticTag.serialNumber": e.target.value,
-                  },
+
+              store.addFilter(`acousticTag.serialNumber`, "filter", {
+                match: {
+                  "acousticTag.serialNumber": e.target.value,
                 },
-              });
+              }, "Acoustic Tag Serial Number");
             }}
           />
         </FormGroup>
@@ -109,21 +111,20 @@ export default function TagsFilter({ data, onChange }) {
           <FormControl
             type="text"
             placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            value={store.formFilters.find(
+              (filter) => filter.filterId === "acousticTag.idNumber"
+            )?.query?.match?.["acousticTag.idNumber"] || ""}
             onChange={(e) => {
               if (e.target.value === "") {
-                onChange(null, `acousticTag.idNumber`);
+                store.removeFilter(`acousticTag.idNumber`);
                 return;
               }
-              onChange({
-                filterId: "acousticTag.idNumber",
-                filterKey: "Acoustic Tag ID",
-                clause: "filter",
-                query: {
-                  match: {
-                    "acousticTag.idNumber": e.target.value,
-                  },
+
+              store.addFilter(`acousticTag.idNumber`, "filter", {
+                match: {
+                  "acousticTag.idNumber": e.target.value,
                 },
-              });
+              }, "Acoustic Tag ID");
             }}
           />
         </FormGroup>
@@ -134,30 +135,32 @@ export default function TagsFilter({ data, onChange }) {
       <FormGroupText
         noDesc={true}
         label="FILTER_NAME"
-        onChange={onChange}
         field={"satelliteTag.name"}
         term={"match"}
         filterId={"satelliteTag.name"}
         filterKey={"Satellite Tag Name"}
+        store={store}
       />
       <FormGroupText
         noDesc={true}
         label="FILTER_SERIAL_NUMBER"
-        onChange={onChange}
         field={"satelliteTag.serialNumber"}
         term={"match"}
         filterId={"satelliteTag.serialNumber"}
         filterKey={"Satellite Tag Serial Number"}
+        store={store}
       />
       <FormGroupText
         noDesc={true}
         label="FILTER_ARGOS_PPT_NUMBER"
-        onChange={onChange}
         field={"satelliteTag.argosPttNumber"}
         term={"match"}
         filterId={"satelliteTag.argosPttNumber"}
         filterKey={"Satellite Tag Argos PTT Number"}
+        store={store}
       />
     </div>
   );
-}
+});
+
+export default TagsFilter;

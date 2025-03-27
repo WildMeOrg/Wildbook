@@ -1,23 +1,23 @@
 import React, { useState } from "react";
 import BrutalismButton from "../BrutalismButton";
 import { FormattedMessage } from "react-intl";
+import changeIndividualMergeState from "../../models/notifications/changeIndividualMergeState";
 
 export default function MergeMessages({
   mergeData,
   getAllNotifications,
   setModalOpen,
 }) {
-  const handleClick = () => {
-    // const result = changeIndividualMergeState(action, taskId);
-    // setError('Error: ' + result);
-    getAllNotifications();
-    setModalOpen(false);
+  const [error, setError] = useState(false);
+  const handleClick = async (action, taskId) => {
+    const result = await changeIndividualMergeState(action, taskId);
+    if (result.status === 200) {
+      getAllNotifications();
+      setModalOpen(false);
+    } else {
+      setError(true);
+    }
   };
-
-  // eslint-disable-next-line no-unused-vars
-  const [showError, setShowError] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [error, setError] = useState("");
 
   const content = mergeData?.map((data) => {
     const mergePending = data.notificationType === "mergePending";
@@ -103,7 +103,6 @@ export default function MergeMessages({
               display: "flex",
               marginTop: "10px",
               marginBottom: "10px",
-              // width: 105
             }}
           >
             <BrutalismButton onClick={() => handleClick("ignore", data.taskId)}>
@@ -167,7 +166,11 @@ export default function MergeMessages({
         </h4>
       )}
       {content}
-      {showError && <h6>{error}</h6>}
+      {error && (
+        <h4>
+          <FormattedMessage id="BEERROR_UNKNOWN" />
+        </h4>
+      )}
     </div>
   );
 }

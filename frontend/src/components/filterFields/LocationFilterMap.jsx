@@ -1,40 +1,42 @@
-import React from "react";
-import { FormattedMessage } from "react-intl";
+import React, { useEffect, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import Map from "../Map";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
-import { useEffect, useState } from "react";
 import Description from "../Form/Description";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
-import _ from "lodash";
-import { useIntl } from "react-intl";
+import _ from "lodash-es";
+import { observer } from "mobx-react-lite";
 
-export default function LocationFilterMap({ onChange, data }) {
+const LocationFilterMap = observer(({ data, store }) => {
   const [bounds, setBounds] = useState(null);
+  const [tempBounds, setTempBounds] = useState(null);
   const intl = useIntl();
 
   useEffect(() => {
-    if (bounds) {
-      onChange({
-        filterId: "locationMap",
-        clause: "filter",
-        query: {
-          geo_bounding_box: {
-            locationGeoPoint: {
-              top_left: {
-                lat: bounds.north,
-                lon: bounds.west,
-              },
-              bottom_right: {
-                lat: bounds.south,
-                lon: bounds.east,
-              },
+    if (!bounds) {
+      store.removeFilter("locationMap");
+      return;
+    }
+
+    store.addFilter(
+      "locationMap",
+      "filter",
+      {
+        geo_bounding_box: {
+          locationGeoPoint: {
+            top_left: {
+              lat: bounds.north,
+              lon: bounds.west,
+            },
+            bottom_right: {
+              lat: bounds.south,
+              lon: bounds.east,
             },
           },
         },
-      });
-    } else {
-      onChange(null, "locationMap");
-    }
+      },
+      "locationGeoPoint",
+    );
   }, [bounds]);
 
   function flattenLocationData(data) {
@@ -45,12 +47,11 @@ export default function LocationFilterMap({ onChange, data }) {
 
     function traverse(locations, depth) {
       locations.forEach((location) => {
-        const newEntry = {
+        result.push({
           name: location.name,
           id: location.id,
-          depth: depth,
-        };
-        result.push(newEntry);
+          depth,
+        });
 
         if (location.locationID && location.locationID.length > 0) {
           traverse(location.locationID, depth + 1);
@@ -62,15 +63,33 @@ export default function LocationFilterMap({ onChange, data }) {
   }
 
   const flattenedData = flattenLocationData(data?.locationData);
-
   const locationIDOptions =
-    flattenedData.map((location) => {
-      return {
-        value: location.id,
-        label: _.repeat("-", location.depth) + " " + location.name,
-      };
-    }) || [];
-  const [tempBounds, setTempBounds] = useState(bounds);
+    flattenedData.map((location) => ({
+      value: location.id,
+      label: _.repeat("-", location.depth) + " " + location.name,
+    })) || [];
+
+  const keyMapping = {
+    north: "top_left.lat",
+    east: "top_left.lon",
+    south: "bottom_right.lat",
+    west: "bottom_right.lon",
+  };
+
+  const getValue = (index) => {
+    const values = store.formFilters.find(
+      (filter) => filter.filterId === "locationMap",
+    )?.query?.geo_bounding_box?.locationGeoPoint;
+
+    return (
+      [
+        values?.top_left?.lat,
+        values?.top_left?.lon,
+        values?.bottom_right?.lat,
+        values?.bottom_right?.lon,
+      ][index] || ""
+    );
+  };
 
   return (
     <div>
@@ -83,13 +102,7 @@ export default function LocationFilterMap({ onChange, data }) {
       <FormLabel>
         <FormattedMessage id="FILTER_GPS_COORDINATES" />
       </FormLabel>
-      <div
-        style={{
-          margin: "12px",
-          display: "flex",
-          flexDirection: "row",
-        }}
-      >
+      <div style={{ margin: "12px", display: "flex", flexDirection: "row" }}>
         {[
           { Northeast_Latitude: "north" },
           { Northeast_Longitude: "east" },
@@ -97,12 +110,7 @@ export default function LocationFilterMap({ onChange, data }) {
           { Southwest_Longitude: "west" },
         ].map((item, index) => {
           return (
-            <FormGroup
-              key={index}
-              style={{
-                marginRight: "10px",
-              }}
-            >
+            <FormGroup key={index} style={{ marginRight: "10px" }}>
               <FormLabel>
                 <FormattedMessage id={Object.keys(item)[0]} />
               </FormLabel>
@@ -110,32 +118,26 @@ export default function LocationFilterMap({ onChange, data }) {
                 type="number"
                 placeholder={
                   bounds
-                    ? bounds[Object.values(item)[0]]
+                    ? bounds?.[
+                        keyMapping[Object.values(item)[0]].split(".")[0]
+                      ]?.[keyMapping[Object.values(item)[0]].split(".")[1]]
                     : intl.formatMessage({ id: "TYPE_NUMBER" })
                 }
-                value={
-                  bounds
-                    ? bounds[Object.values(item)[0]]
-                    : tempBounds
-                      ? tempBounds[Object.values(item)[0]]
-                      : ""
-                }
+                value={getValue(index)}
                 onChange={(e) => {
+                  const key = Object.values(item)[0];
+                  const [mainKey, subKey] = keyMapping[key].split(".");
+
                   const newTempBounds = {
                     ...tempBounds,
-                    [Object.values(item)[0]]: e.target.value,
+                    [mainKey]: {
+                      ...tempBounds?.[mainKey],
+                      [subKey]: e.target.value,
+                    },
                   };
-                  setTempBounds(newTempBounds);
 
-                  // Check if all fields have values
-                  const allFieldsFilled =
-                    Object.values(newTempBounds).length === 4 &&
-                    Object.values(newTempBounds).every(
-                      (value) => value !== undefined && value !== "",
-                    );
-                  if (allFieldsFilled) {
-                    setBounds(newTempBounds);
-                  }
+                  setTempBounds(newTempBounds);
+                  setBounds(newTempBounds);
                 }}
               />
             </FormGroup>
@@ -146,18 +148,19 @@ export default function LocationFilterMap({ onChange, data }) {
         bounds={bounds}
         setBounds={setBounds}
         setTempBounds={setTempBounds}
-        onChange={onChange}
       />
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_LOCATION_ID"
         options={locationIDOptions}
-        onChange={onChange}
         term="terms"
         field="locationId"
         filterKey="Location ID"
+        store={store}
       />
     </div>
   );
-}
+});
+
+export default LocationFilterMap;

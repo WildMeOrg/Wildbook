@@ -13,10 +13,6 @@ export default function ApplyQueryFilter() {
       <h4>
         <FormattedMessage id="APPLY_SEARCH_ID" />
       </h4>
-      {/* <Description>
-                <FormattedMessage id="FILTER_METADATA_DESC" />
-            </Description> */}
-
       <p>
         <FormattedMessage id="APPLY_SEARCH_ID_DESC" />
       </p>
@@ -51,7 +47,6 @@ export default function ApplyQueryFilter() {
           }}
           onClick={() => {
             if (queryId) {
-              // navigate(`/encounter-search?searchQueryId=${queryId}`);
               window.location.href = `${process.env.PUBLIC_URL}/encounter-search?searchQueryId=${queryId}`;
             }
           }}

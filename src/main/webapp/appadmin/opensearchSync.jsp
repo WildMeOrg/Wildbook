@@ -92,7 +92,7 @@ if (endNum > 0) {
     if (indexName.equals("encounter")) {
         itr = myShepherd.getAllEncounters("catalogNumber");
     } else if (indexName.equals("annotation")) {
-        itr = myShepherd.getAllAnnotations("id");
+        itr = myShepherd.getAnnotationsFilter("matchAgainst == true && acmId != null ORDER BY id");
     } else if (indexName.equals("media_asset")) {
         String range = ((startNum > 0) ? startNum : 1) + "," + (endNum + 1);
         itr = myShepherd.getMediaAssetsFilter("parentId == null ORDER BY id " + range);

@@ -7,11 +7,11 @@ import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import BioMeasurements from "../Form/BioMeasurements";
 import { useIntl } from "react-intl";
+import { observer } from "mobx-react-lite";
 
-export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
+const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
   const intl = useIntl();
   const label = <FormattedMessage id="FILTER_HAS_BIOLOGICAL_SAMPLE" />;
-  const [isChecked, setIsChecked] = React.useState(false);
   const bioMeasurementOptions =
     Object.entries(data?.bioMeasurement || {}).map((item) => item[0]) || [];
 
@@ -40,10 +40,10 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
   const [currentValues, setCurrentValues] = useState({});
 
   const buildQuery_range = (data, i, value) => {
-    onChange({
-      filterId: `microsatelliteMarkers.loci.${data}.allele${i}`,
-      clause: "filter",
-      query: {
+    store.addFilter(
+      `microsatelliteMarkers.loci.${data}.allele${i}`,
+      "filter",
+      {
         range: {
           [`microsatelliteMarkers.loci.${data}.allele${i}`]: {
             gte: parseInt(value, 10) - parseInt(length),
@@ -51,18 +51,21 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
           },
         },
       },
-    });
+      `microsatelliteMarkers.loci.${data}.allele${i}`,
+    );
   };
+
   const buildQuery_match = (data, i, value) => {
-    onChange({
-      filterId: `microsatelliteMarkers.loci.${data}.allele${i}`,
-      clause: "filter",
-      query: {
+    store.addFilter(
+      `microsatelliteMarkers.loci.${data}.allele${i}`,
+      "filter",
+      {
         match: {
           [`microsatelliteMarkers.loci.${data}.allele${i}`]: value,
         },
       },
-    });
+      `microsatelliteMarkers.loci.${data}.allele${i}`,
+    );
   };
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
 
     if (checkedState[data]) {
       if (value === "") {
-        onChange(null, `microsatelliteMarkers.loci.${data}.allele${index}`);
+        store.removeFilter(`microsatelliteMarkers.loci.${data}.allele${index}`);
       } else if (alleleLength && length) {
         buildQuery_range(data, index, value);
       } else {
@@ -108,6 +111,114 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
       }
     }
   };
+
+  useEffect(() => {
+    const formFilters = store.formFilters.filter((item) =>
+      item.filterId.includes("microsatelliteMarkers.loci"),
+    );
+
+    if (data?.loci) {
+      if (formFilters.length > 0) {
+        const formFiltersLociFields = Array.from(
+          new Set(formFilters.map((item) => item.filterId.split(".")[2])),
+        );
+        const newCurrentValues = {};
+
+        formFiltersLociFields.forEach((item) => {
+          setCheckedState((prevState) => ({
+            ...prevState,
+            [item]: true,
+          }));
+          const formallele0 = formFilters.find(
+            (filter) =>
+              filter.filterId === `microsatelliteMarkers.loci.${item}.allele0`,
+          );
+          const formallele1 = formFilters.find(
+            (filter) =>
+              filter.filterId === `microsatelliteMarkers.loci.${item}.allele1`,
+          );
+
+          const isMatchFilter = formFilters.some(
+            (filter) =>
+              filter.filterId.includes(`microsatelliteMarkers.loci.${item}`) &&
+              filter.query.match,
+          );
+
+          const isRangeFilter = formFilters.some(
+            (filter) =>
+              filter.filterId.includes(`microsatelliteMarkers.loci.${item}`) &&
+              filter.query.range,
+          );
+
+          if (isMatchFilter) {
+            let allele0 = "";
+            let allele1 = "";
+            setLength(0);
+            setAlleleLength(false);
+            if (formallele0) {
+              allele0 =
+                formallele0.query.match[
+                  `microsatelliteMarkers.loci.${item}.allele0`
+                ];
+            }
+            if (formallele1) {
+              allele1 =
+                formallele1.query.match[
+                  `microsatelliteMarkers.loci.${item}.allele1`
+                ];
+            }
+
+            newCurrentValues[item] = {
+              allele0,
+              allele1,
+            };
+          } else if (isRangeFilter) {
+            setAlleleLength(true);
+            let allele0 = "";
+            let allele1 = "";
+            let checkboxValue = "";
+
+            if (formallele0) {
+              const gte = parseInt(
+                formallele0.query.range[
+                  `microsatelliteMarkers.loci.${item}.allele0`
+                ].gte,
+              );
+              const lte = parseInt(
+                formallele0.query.range[
+                  `microsatelliteMarkers.loci.${item}.allele0`
+                ].lte,
+              );
+              allele0 = (gte + lte) / 2;
+              checkboxValue = (lte - gte) / 2;
+            }
+            if (formallele1) {
+              const gte = parseInt(
+                formallele1.query.range[
+                  `microsatelliteMarkers.loci.${item}.allele1`
+                ].gte,
+              );
+              const lte = parseInt(
+                formallele1.query.range[
+                  `microsatelliteMarkers.loci.${item}.allele1`
+                ].lte,
+              );
+              allele1 = (gte + lte) / 2;
+            }
+
+            setLength(checkboxValue);
+            setAlleleLength(true);
+
+            newCurrentValues[item] = {
+              allele0,
+              allele1,
+            };
+          }
+        });
+        setCurrentValues(newCurrentValues);
+      }
+    }
+  }, [JSON.stringify(store.formFilters), data?.loci]);
 
   return (
     <div>
@@ -122,23 +233,26 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
           type="checkbox"
           id="custom-checkbox"
           label={label}
-          checked={isChecked}
+          checked={
+            !!store.formFilters.find(
+              (filter) => filter.filterId === "biologicalSampleId",
+            )
+          }
           onChange={(e) => {
-            setIsChecked(!isChecked);
             if (!e.target.checked) {
-              onChange(null, `biologicalSampleId`);
+              store.removeFilter(`biologicalSampleId`);
               return;
             } else {
-              onChange({
-                filterId: `biologicalSampleId`,
-                clause: "filter",
-                filterKey: "Has Biological Sample",
-                query: {
+              store.addFilter(
+                `biologicalSampleId`,
+                "filter",
+                {
                   exists: {
                     field: "tissueSampleIds",
                   },
                 },
-              });
+                "Has Biological Sample",
+              );
             }
           }}
         />
@@ -146,41 +260,41 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
       <FormGroupText
         label="FILTER_BIOLOGICAL_SAMPLE_ID"
         noDesc
-        onChange={onChange}
         field="tissueSampleIds"
         term="match"
         filterId={"tissueSampleIds"}
         filterKey={"Biological Sample ID"}
+        store={store}
       />
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_HAPLO_TYPE"
-        onChange={onChange}
         options={haploTypeOptions || []}
         field={"haplotype"}
         filterId={"haplotype"}
         term={"terms"}
         filterKey={"Haplotype"}
+        store={store}
       />
 
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
         label="FILTER_GENETIC_SEX"
-        onChange={onChange}
         options={geneticSexOptions || []}
         field={"geneticSex"}
         term={"terms"}
         filterId={"geneticSex"}
         filterKey={"Genetic Sex"}
+        store={store}
       />
 
       <BioMeasurements
         data={bioMeasurementOptions}
-        onChange={onChange}
         filterId={"biologicalMeasurements"}
         field={"biologicalMeasurements"}
+        store={store}
       />
 
       <div className="d-flex flex-row justify-content-between">
@@ -205,6 +319,7 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
               width: "70px",
               marginLeft: "10px",
             }}
+            value={length}
             onChange={(e) => {
               setLength(e.target.value);
             }}
@@ -225,12 +340,16 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
               type="checkbox"
               id="custom-checkbox"
               label={data}
-              checked={checkedState[data] || false}
+              checked={checkedState[data]}
               onChange={() => {
                 handleCheckboxChange(data);
                 if (checkedState[data]) {
-                  onChange(null, `microsatelliteMarkers.loci.${data}.allele0`);
-                  onChange(null, `microsatelliteMarkers.loci.${data}.allele1`);
+                  store.removeFilter(
+                    `microsatelliteMarkers.loci.${data}.allele0`,
+                  );
+                  store.removeFilter(
+                    `microsatelliteMarkers.loci.${data}.allele1`,
+                  );
                 } else {
                   if (currentValues[data]?.allele0) {
                     if (alleleLength && length) {
@@ -260,6 +379,7 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
                 <FormControl
                   className="mr-2"
                   type="text"
+                  value={currentValues[data]?.allele0 || ""}
                   placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
                   onChange={(e) => handleInputChange(data, 0, e.target.value)}
                 />
@@ -274,6 +394,7 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
                 <FormControl
                   type="text"
                   placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+                  value={currentValues[data]?.allele1 || ""}
                   onChange={(e) => handleInputChange(data, 1, e.target.value)}
                 />
               </div>
@@ -283,4 +404,6 @@ export default function BiologicalSamplesAndAnalysesFilter({ onChange, data }) {
       })}
     </div>
   );
-}
+};
+
+export default observer(BiologicalSamplesAndAnalysesFilter);

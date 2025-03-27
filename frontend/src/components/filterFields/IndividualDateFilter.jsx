@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
 import { FormGroup, FormControl } from "react-bootstrap";
+import { observer } from "mobx-react-lite";
 
-export default function IndividualDateFilter({ onChange }) {
-  const [birthDate, setBirthDate] = useState("");
-  const [deathDate, setDeathDate] = useState("");
-
+const IndividualDateFilter = observer(({ store }) => {
   return (
     <div>
       <h4>
@@ -22,22 +20,29 @@ export default function IndividualDateFilter({ onChange }) {
           </p>
           <FormControl
             type="date"
-            value={birthDate}
+            value={
+              store.formFilters
+                .find((filter) => filter.filterId === "individualTimeOfBirth")
+                ?.query?.range?.individualTimeOfBirth?.gte.split("T")[0] || ""
+            }
             onChange={(e) => {
-              setBirthDate(e.target.value);
-              onChange({
-                filterId: "individualTimeOfBirth",
-                filterKey: "Birth Date",
-                clause: "filter",
-                query: {
-                  range: {
-                    individualTimeOfBirth: {
-                      gte: `${e.target.value}T00:00:00.000Z`,
-                      lte: `${e.target.value}T23:59:59.000Z`,
+              if (e.target.value) {
+                store.addFilter(
+                  "individualTimeOfBirth",
+                  "filter",
+                  {
+                    range: {
+                      individualTimeOfBirth: {
+                        gte: `${e.target.value}T00:00:00.000Z`,
+                        lte: `${e.target.value}T23:59:59.000Z`,
+                      },
                     },
                   },
-                },
-              });
+                  "Birth Date",
+                );
+              } else {
+                store.removeFilter("individualTimeOfBirth");
+              }
             }}
           />
         </FormGroup>
@@ -47,26 +52,35 @@ export default function IndividualDateFilter({ onChange }) {
           </p>
           <FormControl
             type="date"
-            value={deathDate}
+            value={
+              store.formFilters
+                .find((filter) => filter.filterId === "individualTimeOfDeath")
+                ?.query?.range?.individualTimeOfDeath?.gte.split("T")[0] || ""
+            }
             onChange={(e) => {
-              setDeathDate(e.target.value);
-              onChange({
-                filterId: "individualTimeOfDeath",
-                filterKey: "Death Date",
-                clause: "filter",
-                query: {
-                  range: {
-                    individualTimeOfDeath: {
-                      gte: `${e.target.value}T00:00:00.000Z`,
-                      lte: `${e.target.value}T23:59:59.000Z`,
+              if (e.target.value) {
+                store.addFilter(
+                  "individualTimeOfDeath",
+                  "filter",
+                  {
+                    range: {
+                      individualTimeOfDeath: {
+                        gte: `${e.target.value}T00:00:00.000Z`,
+                        lte: `${e.target.value}T23:59:59.000Z`,
+                      },
                     },
                   },
-                },
-              });
+                  "Death Date",
+                );
+              } else {
+                store.removeFilter("individualTimeOfDeath");
+              }
             }}
           />
         </FormGroup>
       </>
     </div>
   );
-}
+});
+
+export default IndividualDateFilter;
