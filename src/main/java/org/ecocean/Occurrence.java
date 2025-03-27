@@ -619,11 +619,11 @@ public class Occurrence extends Base implements java.io.Serializable {
     public List<String> getAllSpeciesDeep() {
         List<String> result = new ArrayList<String>();
 
-        for (Taxonomy tax : taxonomies) {
+        if (taxonomies != null) for (Taxonomy tax : taxonomies) {
             String sciName = tax.getScientificName();
             if (sciName != null && !result.contains(sciName)) result.add(sciName);
         }
-        for (Encounter enc : encounters) {
+        if (encounters != null) for (Encounter enc : encounters) {
             String sciName = enc.getTaxonomyString();
             if (sciName != null && !result.contains(sciName)) result.add(sciName);
         }
