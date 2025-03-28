@@ -226,7 +226,7 @@ public class IAGateway extends HttpServlet {
                 task.addParameter("ibeis.detection", true);
             }
             for (MediaAsset ma : mas) {
-                validIds.add(Integer.toString(ma.getId()));
+                validIds.add(ma.getId());
                 if (ma.getOccurrence() == null) needOccurrences.add(ma);
             }
             boolean success = true;

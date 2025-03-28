@@ -1119,7 +1119,7 @@ public class IBEISIA {
     }
 
     private static void markSent(MediaAsset ma) {
-        alreadySentMA.put(ma.getId(), true);
+        alreadySentMA.put(ma.getIdInt(), true);
     }
 
     private static boolean needToSend(Annotation ann) {
@@ -1600,8 +1600,8 @@ public class IBEISIA {
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue; // was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getId())) {
-                            alreadyDetected.add(ma.getId());
+                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getIdInt())) {
+                            alreadyDetected.add(ma.getIdInt());
                             asset = ma;
                             break;
                         }
@@ -1674,7 +1674,7 @@ public class IBEISIA {
                     if (newAnns.length() > 0) {
                         List<Encounter> assignedEncs = asset.assignEncounters(myShepherd); // here is where we make some encounter(s) if we need to
                         rtn.put("_assignedEncsSize", assignedEncs.size());
-                        amap.put(Integer.toString(asset.getId()), newAnns);
+                        amap.put(Integer.toString(asset.getIdInt()), newAnns);
                         // now we have to collect them under an Occurrence and/or ImportTask as applicable
                         // we basically pick the first of these we find (in case there is more than one?)
                         // and only assign it where there is none.
