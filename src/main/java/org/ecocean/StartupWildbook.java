@@ -162,6 +162,7 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("- SKIPPED initialization due to skipInit()");
             return;
         }
+        Setting.initialize(context);
         // initialize the plugin (instances)
         IAPluginManager.initPlugins(context);
         // this should be handling all plugin startups
