@@ -3,7 +3,7 @@ package org.ecocean;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Properties;
 import java.net.URL;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletContext;
@@ -218,16 +218,45 @@ public class StartupWildbook implements ServletContextListener {
         class AcmIdMessageHandler extends QueueMessageHandler {
             public boolean handler(String mediaAssetID) {
             	Shepherd myShepherd = new Shepherd(context);
-            	myShepherd.setAction("AcmIdMessageHandler.handler"+mediaAssetID);
+            	myShepherd.setAction("AcmIdMessageHandler.handler."+mediaAssetID);
             	myShepherd.beginDBTransaction();
             	try {
             		MediaAsset asset=myShepherd.getMediaAsset(mediaAssetID);
-	                ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
-            		fixMe.add(asset);
-	                IBEISIA.sendMediaAssetsNew(fixMe, context);
-	                myShepherd.updateDBTransaction();
-                	
-            	} 
+            		if(asset!=null) {
+		                ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+	            		fixMe.add(asset);
+		                IBEISIA.sendMediaAssetsNew(fixMe, context);
+		                myShepherd.updateDBTransaction();
+            		}
+            	}
+            	//RuntimeExceptions include an array of timeout and connectivitivity issues
+            	//indicating WBIA may be overloaded or restarting
+            	//therefore this exception includes a simple sleep function to pause ACM ID registration
+            	//to give WBIA time to restart or be less busy.
+            	//This implementation is temporary until ACM ID registration is removed entirely
+                catch (java.lang.RuntimeException ex) {
+                    System.out.println("\r\n\r\nWARNING: AcmIdMessageHandler processQueueMessage() threw " +
+                        ex.toString()+"\r\n\r\n");
+                    ex.printStackTrace();
+                    
+                    long timeoutMilliseconds=60000;
+                    Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
+                    if(props!=null && props.getProperty("timeoutMilliseconds")!=null) {
+                    	String millis = props.getProperty("timeoutMilliseconds");
+                    	Long millisAsLong = Long.getLong(millis);
+                    	if(millisAsLong!=null)timeoutMilliseconds=millisAsLong.longValue();
+                    }
+                    
+                    try {
+                    	Thread.sleep(timeoutMilliseconds);
+                    	Queue acmIdQueue=IAGateway.getAcmIdQueue(context);
+                    	acmIdQueue.publish(mediaAssetID);
+                    }
+                    catch(Exception ioe) {
+                    	ioe.printStackTrace();
+                    }
+                    return false;
+                }
                 catch (Exception ex) {
                     System.out.println("\r\n\r\nWARNING: AcmIdMessageHandler processQueueMessage() threw " +
                         ex.toString()+"\r\n\r\n");
@@ -240,7 +269,6 @@ public class StartupWildbook implements ServletContextListener {
                     catch(Exception ioe) {
                     	ioe.printStackTrace();
                     }
-
                     return false;
                 }
             	finally {
@@ -409,4 +437,7 @@ public class StartupWildbook implements ServletContextListener {
             return "<unknown>";
         }
     }
+    
+    
+    
 }
