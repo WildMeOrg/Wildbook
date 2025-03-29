@@ -10,12 +10,10 @@ export default function FormGroupMultiSelect({
   noDesc,
   label = "",
   options = [],
-  onChange,
   term = "terms",
   field = "field",
-  setFormFilters,
-  formFilters,
   filterKey,
+  store,
 }) {
   return (
     <FormGroup className="mt-2">
@@ -32,13 +30,12 @@ export default function FormGroupMultiSelect({
 
       <MultiSelect
         options={options}
-        onChange={onChange}
         isMulti={isMulti}
         term={term}
         field={field}
-        setFormFilters={setFormFilters}
-        formFilters={formFilters}
+      
         filterKey={filterKey}
+        store={store}
       ></MultiSelect>
     </FormGroup>
   );

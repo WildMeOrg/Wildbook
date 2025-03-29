@@ -154,7 +154,7 @@
   height: 40px;
   display: flex;
   align-items: center;
-  margin-left: 35px;
+  margin-left: 10px;
 }
 
 .profile-wrapper:hover .dropdown-menu {
@@ -186,15 +186,17 @@
   /* width: 250px; */
   /* height: 100%; */
   max-height: 60px;
-  margin-right: 60px;
+  margin-right: 20px;
   font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
+
 }
 
 .nav-brand {
+  flex-shrink: 0;
   width: 100px;
   height: 50px;
   display: block !important;
@@ -207,7 +209,7 @@
 }
 
 .search-and-secondary-wrapper {
-  margin-left: 50px;
+  margin-left: 30px;
   margin-bottom: 0 !important;
   display: flex;
   flex-direction: row !important;
@@ -261,15 +263,12 @@
 .site-name {
   color: white;
   font-size: 1.5em;
-  /* margin-left: 10px; */
 }
 
 .navbar-header {
   display: flex;
-  margin-left: auto;
   align-items: center;
   justify-content: space-between;
-  /* width: 80%; */
 }
 
 /* .nav-brand img {
@@ -299,11 +298,6 @@
 
 /* Responsive adjustments */
 @media (max-width: 991px) {
-
-  .site-name {
-    margin-right: 40px;
-  }
-
   .navbar-toggle {
     display: block;
     margin-left: 20% !important;
@@ -389,7 +383,7 @@
   }
 
   .site-name {
-    margin-right: 10px;
+    margin-right: 30px;
   }
 
 }
@@ -398,6 +392,87 @@
   .container {
     padding-left: 5px;
   }
+}
 
 
+#quick-search-input{
+  background-color: transparent; 
+  border: none; 
+  color: white; 
+  width: 100%; 
+  height: 100%; 
+  outline: none; 
+  border-radius: 20px; 
+  padding: 0 10px;
+}
+
+#quick-search-clear{
+  color: white; 
+  cursor: pointer; 
+  font-size: 1.2rem; 
+  padding: 0 5px; 
+  position: absolute; 
+  right: 5px; 
+  top: 0; 
+  height: 100%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+}
+
+#quick-search-results{
+  position: absolute; 
+  top: 50px; left: 0; 
+  width: 300px; 
+  background-color: white;
+  min-height: 100px; 
+  max-height: 300px; 
+  overflow: auto; 
+  display: none; 
+  border-radius: 5px; 
+  color: black; 
+  padding: 10px
+}
+
+.search-box{
+  background-color: transparent; 
+  border: 1px solid white; 
+  border-radius: 20px; 
+  color: white; 
+  height: 33px; 
+  width: 160px; 
+  position: relative; 
+  display: flex; 
+}
+
+.quick-search-wrapper{
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  position: relative;
+}
+
+.quick-search-result{
+  display: flex; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding-left: 10px; 
+  border-bottom: 1px solid #ddd
+}
+
+.quick-search-result-content{
+  display: flex; 
+  flex-direction: column;
+}
+
+.quick-search-result-value{
+  color: black; 
+  width: 180px; 
+  overflow: hidden;
+}
+
+.quick-search-result-species {
+  color: black;
+  height: 25px;
 }
