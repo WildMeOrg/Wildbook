@@ -24,8 +24,15 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener preDelete() event on " + base);
             try {
-                base.opensearchUnindexDeep();
-            } catch (IOException ex) {
+                
+            	//old way = direct indexing
+            	//base.opensearchUnindexDeep();
+            	//new way - put indexing in managed queue
+            	IndexingManager im=IndexingManagerFactory.getIndexingManager();
+            	im.addIndexingQueueEntry(base,true);
+            	
+                
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
@@ -61,8 +68,13 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener postStore() event on " + base);
             try {
-                base.opensearchIndexDeep();
-            } catch (IOException ex) {
+            	
+                //base.opensearchIndexDeep();
+            	//new way - put indexing in managed queue
+            	IndexingManager im=IndexingManagerFactory.getIndexingManager();
+            	im.addIndexingQueueEntry(base,false);
+                
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         } else if (Collaboration.class.isInstance(obj)) {
