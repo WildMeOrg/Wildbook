@@ -8,12 +8,13 @@ import Footer from "./components/Footer";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
-import EncounterSearch from "./pages/EncounterSearch";
+import EncounterSearch from "./pages/SearchPages/EncounterSearch";
 import Citation from "./pages/Citation";
 import AdminLogs from "./pages/AdminLogs";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 import ProjectList from "./pages/ProjectList";
+import ManualAnnotation from "./pages/ManualAnnotation";
 
 export default function AuthenticatedSwitch({
   showAlert,
@@ -67,6 +68,8 @@ export default function AuthenticatedSwitch({
           <Route path="/reportConfirm" element={<ReportConfirm />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
+          <Route path="/manual-annotation" element={<ManualAnnotation />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound setHeader={setHeader} />} />

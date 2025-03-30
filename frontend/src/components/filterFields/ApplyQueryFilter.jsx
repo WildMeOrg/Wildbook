@@ -10,13 +10,9 @@ export default function ApplyQueryFilter() {
   const [queryId, setQueryId] = React.useState("");
   return (
     <div>
-      <h3>
+      <h4>
         <FormattedMessage id="APPLY_SEARCH_ID" />
-      </h3>
-      {/* <Description>
-                <FormattedMessage id="FILTER_METADATA_DESC" />
-            </Description> */}
-
+      </h4>
       <p>
         <FormattedMessage id="APPLY_SEARCH_ID_DESC" />
       </p>
@@ -51,7 +47,6 @@ export default function ApplyQueryFilter() {
           }}
           onClick={() => {
             if (queryId) {
-              // navigate(`/encounter-search?searchQueryId=${queryId}`);
               window.location.href = `${process.env.PUBLIC_URL}/encounter-search?searchQueryId=${queryId}`;
             }
           }}
