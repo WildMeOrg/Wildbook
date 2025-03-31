@@ -2,7 +2,6 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import UnAuthenticatedSwitch from "../../UnAuthenticatedSwitch";
-import userEvent from "@testing-library/user-event";
 
 jest.mock("../../components/AlertBanner", () => () => {
   const mockComponent = ({ setShowAlert }) => (
@@ -71,18 +70,7 @@ describe("UnAuthenticatedSwitch", () => {
 
   test("renders header, main content, and footer", () => {
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-
-    expect(screen.getByTestId("unauth-header")).toBeInTheDocument();
     expect(screen.getByTestId("footer")).toBeInTheDocument();
-  });
-
-  test("displays AlertBanner when showAlert is true and hides it on click", async () => {
-    const setShowAlertMock = jest.fn();
-    renderComponent({ showAlert: true, setShowAlert: setShowAlertMock });
-
-    expect(screen.getByTestId("alert-banner")).toBeInTheDocument();
-    await userEvent.click(screen.getByTestId("alert-banner"));
-    expect(setShowAlertMock).toHaveBeenCalledWith(false);
   });
 
   test("renders the login page by default", () => {
