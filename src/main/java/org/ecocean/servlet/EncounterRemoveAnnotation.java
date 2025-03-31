@@ -87,6 +87,7 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                     enc.getAnnotations().contains(myShepherd.getAnnotation(annotID))
                     ) {
                     Annotation ann = myShepherd.getAnnotation(annotID);
+                    User user = myShepherd.getUser(request);
                     // overall: don't delete trivial annotations. in that case, delete image command from menu
                     // if not trivial but has no sibs, revert to trivial
                     if (!ann.isTrivial() &&
@@ -100,6 +101,9 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                         }
                         Annotation newAnnot = ann.revertToTrivial(myShepherd);
 
+                        enc.addComments("<p data-annot-id=\"" + ann.getId() +
+                            "\">Annotation deleted by " + user.getDisplayName() + " on " +
+                            Util.prettyTimeStamp() + "</p>");
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.updateDBTransaction();
                         res.put("revertToTrivial", true);
@@ -113,6 +117,9 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                                 myShepherd.updateDBTransaction();
                             }
                         }
+                        enc.addComments("<p data-annot-id=\"" + ann.getId() +
+                            "\">Annotation deleted by " + user.getDisplayName() + " on " +
+                            Util.prettyTimeStamp() + "</p>");
                         enc.removeAnnotation(ann);
                         myShepherd.getPM().deletePersistent(ann);
                         myShepherd.commitDBTransaction();
