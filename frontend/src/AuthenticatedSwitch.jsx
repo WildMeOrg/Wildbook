@@ -7,7 +7,6 @@ import Home from "./pages/Home";
 import Footer from "./components/Footer";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import useGetMe from "./models/auth/users/useGetMe";
-import AlertBanner from "./components/AlertBanner";
 import EncounterSearch from "./pages/SearchPages/EncounterSearch";
 import Citation from "./pages/Citation";
 import AdminLogs from "./pages/AdminLogs";
@@ -17,8 +16,6 @@ import ProjectList from "./pages/ProjectList";
 import ManualAnnotation from "./pages/ManualAnnotation";
 
 export default function AuthenticatedSwitch({
-  showAlert,
-  setShowAlert,
   showclassicsubmit,
   showClassicEncounterSearch,
 }) {
@@ -39,12 +36,9 @@ export default function AuthenticatedSwitch({
           backgroundColor: "#303336",
         }}
       >
-        {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
         <AuthenticatedAppHeader
           username={username}
           avatar={avatar}
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
         />
