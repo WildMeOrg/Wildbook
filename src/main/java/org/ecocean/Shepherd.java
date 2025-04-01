@@ -535,6 +535,38 @@ public class Shepherd {
         return tempEnc;
     }
 
+    public Setting getSetting(String group, String id) {
+        if ((group == null) || (id == null)) return null;
+        Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group + "' && id=='" + id + "'");
+        Setting st = null;
+        Collection results = (Collection)(qry.execute());
+        if (!results.isEmpty()) st = (Setting)results.iterator().next();
+        qry.closeAll();
+        return st;
+    }
+
+    public Setting getOrCreateSetting(String group, String id) {
+        Setting st = getSetting(group, id);
+        if (st != null) return st;
+        st = new Setting(group, id);
+        pm.makePersistent(st);
+        return st;
+    }
+
+    public Object getSettingValue(String group, String id) {
+        Setting st = getSetting(group, id);
+        if (st == null) return null;
+        return st.getValue();
+    }
+
+    public void storeSetting(Setting st) {
+        pm.makePersistent(st);
+    }
+
+    public void deleteSetting(Setting st) {
+        pm.deletePersistent(st);
+    }
+
     public Annotation getAnnotation(String uuid) {
         Annotation annot = null;
 
@@ -2142,6 +2174,26 @@ public class Shepherd {
             System.out.println(
                 "Error encountered when trying to execute getAllMediaAssets. Returning a null iterator.");
             npe.printStackTrace();
+            return null;
+        }
+    }
+
+    // note: where clause can also contain " ORDER BY xxx"
+    public Iterator getMediaAssetsFilter(String jdoWhereClause) {
+        Query query = null;
+
+        try {
+            query = pm.newQuery("SELECT FROM org.ecocean.media.MediaAsset WHERE " + jdoWhereClause);
+            Collection c = (Collection)(query.execute());
+            List list = new ArrayList(c);
+            Iterator it = list.iterator();
+            query.closeAll();
+            return it;
+        } catch (Exception npe) {
+            System.out.println(
+                "Error encountered when trying to execute getAllAnnotationsFilter. Returning a null iterator.");
+            npe.printStackTrace();
+            if (query != null) query.closeAll();
             return null;
         }
     }

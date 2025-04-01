@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.SystemValue;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -62,7 +63,7 @@ public class OpenSearch {
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = {
-        "encounter", "individual", "occurrence", "annotation"
+        "encounter", "individual", "occurrence", "annotation", "media_asset"
     };
     public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
         "backgroundDelayMinutes", 20);
@@ -160,6 +161,8 @@ public class OpenSearch {
                         Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
                         BACKGROUND_SLICE_SIZE);
                         Base.opensearchSyncIndex(myShepherd, Occurrence.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, MediaAsset.class,
                         BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
