@@ -4445,6 +4445,7 @@ public class Encounter extends Base implements java.io.Serializable {
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("verbatimEventDate", new org.json.JSONObject("{\"type\": \"text\"}"));
         map.put("individualTimeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("individualTimeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
