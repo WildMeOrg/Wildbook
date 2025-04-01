@@ -222,15 +222,20 @@ public class Setting implements java.io.Serializable {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("Setting.initialize");
         myShepherd.beginDBTransaction();
-        Setting st = myShepherd.getSetting("language", "available");
-        if (st == null) {
-            st = new Setting("language", "available");
-            List<String> langs = Arrays.asList(new String[]{"de", "en", "es", "fr", "it"});
-            st.setValue(langs);
-            myShepherd.storeSetting(st);
+        try {
+            Setting st = myShepherd.getSetting("language", "available");
+            if (st == null) {
+                st = new Setting("language", "available");
+                List<String> langs = Arrays.asList(new String[]{"de", "en", "es", "fr", "it"});
+                st.setValue(langs);
+                myShepherd.storeSetting(st);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
         }
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
     }
 
     public JSONObject toJSONObject() {
@@ -290,11 +295,17 @@ class SettingValidator {
                 List<String> langs = new ArrayList<String>((List)value);
                 if (langs.size() < 1) throw new IllegalArgumentException("value must have at least 1 value");
 
+                Object alangs = null;
                 Shepherd myShepherd = new Shepherd("context0"); // hacky but only need to read other Setting(s)
                 myShepherd.setAction("SettingValidator");
-                myShepherd.beginDBTransaction();
-                Object alangs = myShepherd.getSettingValue("language", "available");
-                myShepherd.rollbackAndClose();
+                try {
+                    myShepherd.beginDBTransaction();
+                    alangs = myShepherd.getSettingValue("language", "available");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                } finally {
+                    myShepherd.rollbackAndClose();
+                }
                 if ((alangs != null) && (alangs instanceof List)) {
                     List<String> availableLangs = new ArrayList<String>((List)alangs);
                     for (String lang : langs) {
