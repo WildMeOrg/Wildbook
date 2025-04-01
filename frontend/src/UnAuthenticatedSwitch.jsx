@@ -2,18 +2,13 @@ import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Footer from "./components/Footer";
-import AlertBanner from "./components/AlertBanner";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import Unauthorized from "./pages/errorPages/Unauthorized";
 import Citation from "./pages/Citation";
 import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 import ReportConfirm from "./pages/ReportsAndManagamentPages/ReportConfirm";
 
-export default function UnAuthenticatedSwitch({
-  showAlert,
-  setShowAlert,
-  showclassicsubmit,
-}) {
+export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
   const [header, setHeader] = React.useState(true);
   const location = useLocation();
 
@@ -32,7 +27,6 @@ export default function UnAuthenticatedSwitch({
           backgroundColor: "#303336",
         }}
       >
-        {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
         <UnAuthenticatedAppHeader showclassicsubmit={showclassicsubmit} />
       </div>
 
