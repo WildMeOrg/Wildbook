@@ -493,7 +493,7 @@ try{
 	            for (MediaAsset ma : mas) {
 	                if (!allAssets.contains(ma)) {
 	                    allAssets.add(ma);
-	                    jarr.put(ma.getId());
+	                    jarr.put(ma.getIdInt());
 	                    if (ma.getDetectionStatus() != null) numIA++;
 	                    
 	                    //check acmID and build self-heal list if its missing due to an unexpected WBIA outtage
