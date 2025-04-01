@@ -1353,7 +1353,7 @@ public class Encounter extends Base implements java.io.Serializable {
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma != null) {
             ma.addLabel(label);
-            if (parentMA != null) ma.setParentId(parentMA.getId());
+            if (parentMA != null) ma.setParentId(parentMA.getIdInt());
             return ma;
         }
         System.out.println("creating new MediaAsset for key=" + key);
@@ -1365,7 +1365,7 @@ public class Encounter extends Base implements java.io.Serializable {
             return null;
         }
         if (parentMA != null) {
-            ma.setParentId(parentMA.getId());
+            ma.setParentId(parentMA.getIdInt());
             ma.updateMinimalMetadata(); // for children (ostensibly derived?) MediaAssets, really only need minimal metadata or so i claim
         } else {
             try {
@@ -1417,7 +1417,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
             }
         }
-        ma.setParentId(parent.getId());
+        ma.setParentId(parent.getIdInt());
         return ma;
     }
 
@@ -2897,7 +2897,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (int i = 0; i < annotations.size(); i++) {
             MediaAsset ma = annotations.get(i).getMediaAsset();
             if (ma == null) continue;
-            if (ma.getId() == id) return i;
+            if (ma.getIdInt() == id) return i;
         }
         return -1;
     }
@@ -2928,7 +2928,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void removeMediaAsset(MediaAsset ma) {
-        removeAnnotation(indexOfMediaAsset(ma.getId()));
+        removeAnnotation(indexOfMediaAsset(ma.getIdInt()));
     }
 
     // this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
@@ -3370,7 +3370,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return true;
     }
 
-///////// these are bunk now - dont use Features  TODO: fix these - perhaps by crawlng thru ma.getAnnotations() ?
+///////// this is bunk now: see fix for findAllByMediaAsset() if you need this
     public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
         String queryString =
             "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
@@ -3391,8 +3391,8 @@ public class Encounter extends Base implements java.io.Serializable {
 
         try {
             String queryString =
-                "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
-                + ma.getId();
+                "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(feat) && mediaAsset.features.contains(feat) && mediaAsset.id =="
+                + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset mediaAsset; org.ecocean.Annotation ann; org.ecocean.media.Feature feat";
             Query query = myShepherd.getPM().newQuery(queryString);
             Collection results = (Collection)query.execute();
             returnEncs = new ArrayList<Encounter>(results);
@@ -4069,7 +4069,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeArrayFieldStart("mediaAssets");
         for (MediaAsset ma : mas) {
             jgen.writeStartObject();
-            jgen.writeNumberField("id", ma.getId());
+            jgen.writeNumberField("id", ma.getIdInt());
             jgen.writeStringField("uuid", ma.getUUID());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
@@ -4445,6 +4445,7 @@ public class Encounter extends Base implements java.io.Serializable {
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("verbatimEventDate", new org.json.JSONObject("{\"type\": \"text\"}"));
         map.put("individualTimeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("individualTimeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
