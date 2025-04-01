@@ -145,7 +145,7 @@ public class BaseObject extends ApiBase {
                     maj.put("uuid", ma.getUUID());
                     maj.put("url", ma.webURL());
                     assetsArr.put(maj);
-                    maIds.add(ma.getId());
+                    maIds.add(ma.getIdInt());
                 }
                 rtn.put("assets", assetsArr);
                 enc.setAnnotations(anns);
