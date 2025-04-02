@@ -375,6 +375,7 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.cleanup();
         MetricsBot.cleanup();
         AcmIdBot.cleanup();
+        IndexingManagerFactory.getIndexingManager().shutdown();
     }
 
     public static void createMatchGraph() {
