@@ -3,18 +3,20 @@ import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import Description from "./Description";
 import { FormattedMessage } from "react-intl";
 import { useIntl } from "react-intl";
+import { observer } from "mobx-react-lite";
 
-export default function FormGroupText({
+const FormGroupText = observer(({
   noLabel = false,
   noDesc = false,
   label = "",
-  onChange,
   filterId,
   field,
   term,
   filterKey,
-}) {
+  store,
+}) => {
   const intl = useIntl();
+
   return (
     <FormGroup className="mt-2">
       {!noLabel && (
@@ -30,23 +32,23 @@ export default function FormGroupText({
       <FormControl
         type="text"
         placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+        value={store.formFilters.find((f) => f.filterId === filterId)?.query[term][field]}
         onChange={(e) => {
+          // setValue(e.target.value);
           if (e.target.value === "") {
-            onChange(null, field);
+            store.removeFilter(filterId);
             return;
           }
-          onChange({
-            filterId: filterId,
-            clause: "filter",
-            filterKey: filterKey,
-            query: {
-              [term]: {
-                [field]: e.target.value,
-              },
+          store.addFilter(field, "filter", {
+            [term]: {
+              [field]: e.target.value,
             },
-          });
+          }, filterKey);          
         }}
       />
     </FormGroup>
   );
 }
+);
+
+export default FormGroupText;

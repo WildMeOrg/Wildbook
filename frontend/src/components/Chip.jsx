@@ -74,8 +74,7 @@ function Chip({ children }) {
         entries.push(`${filterKey || key} contains "${value}"`);
       });
     } else if (query?.exists) {
-      // eslint-disable-next-line no-unused-vars
-      Object.entries(query.exists).forEach(([key, value]) => {
+      Object.entries(query.exists).forEach(([, value]) => {
         entries.push(`${filterKey || value} filter is set`);
       });
     } else if (query?.term) {
@@ -99,8 +98,7 @@ function Chip({ children }) {
         `${filterKey || filterId} is any of [${uniqueLabels.join(", ")}]`,
       );
     } else if (query?.biologicalMeasurements) {
-      // eslint-disable-next-line no-unused-vars
-      Object.entries(query).forEach(([key, value]) => {
+      Object.entries(query).forEach(([key, _]) => {
         entries.push(`${filterKey || key} filter is set`);
       });
     }
@@ -113,6 +111,20 @@ function Chip({ children }) {
           });
         });
       }
+      if (query.bool.should) {
+        Object.entries(query.bool.should[0].wildcard).forEach(
+          ([key, value]) => {
+            entries.push(`${filterKey || key} matches "${value}"`);
+          },
+        );
+      }
+    }
+
+    if (query?.geo_distance) {
+      const { occurrenceLocationGeoPoint, distance } = query.geo_distance;
+      entries.push(
+        `Location within ${distance} km of latitude: ${occurrenceLocationGeoPoint.lat}, longitude: ${occurrenceLocationGeoPoint.lon}`,
+      );
     }
 
     return entries.length > 0 ? `${entries.join(", ")}` : `No filters set`;
