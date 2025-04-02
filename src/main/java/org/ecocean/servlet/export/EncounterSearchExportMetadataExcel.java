@@ -198,37 +198,8 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             newEasyColumn("Encounter.specificEpithet", columns);
             newEasyColumn("Encounter.otherCatalogNumbers", columns);
             newEasyColumn("Encounter.occurrenceRemarks", columns);
-
-            Method maGetFilename = MediaAsset.class.getMethod("getUserFilename", null);
-            Method maLocalPath = MediaAsset.class.getMethod("localPath", null);
-            // This will include labels in a labeledKeyword value
-            Method keywordGetName = Keyword.class.getMethod("getDisplayName");
-            Method labeledKeywordGetValue = LabeledKeyword.class.getMethod("getValue");
-            for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
-                String mediaAssetColName = "Encounter.mediaAsset" + maNum;
-                String fullPathName = "Encounter.mediaAsset" + maNum + ".filePath";
-                ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName,
-                    maGetFilename, columns);
-                maFilenameK.setMaNum(maNum); // important for later!
-                ExportColumn maPathK = new ExportColumn(MediaAsset.class, fullPathName, maLocalPath,
-                    columns);
-                maPathK.setMaNum(maNum);
-                for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
-                    String keywordColName = "Encounter.mediaAsset" + maNum + ".keyword" + kwNum;
-                    ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName,
-                        keywordGetName, columns);
-                    keywordCol.setMaNum(maNum);
-                    keywordCol.setKwNum(kwNum);
-                }
-                List<String> labels = myShepherd.getAllKeywordLabels();
-                for (String label : labels) {
-                    String keywordColName = "Encounter.mediaAsset" + maNum + "." + label;
-                    ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName,
-                        labeledKeywordGetValue, columns);
-                    keywordCol.setMaNum(maNum);
-                    keywordCol.setLabeledKwName(label);
-                }
-            }
+            
+            
             // add measurements to export
 
             // sort measurementColTitles (a subset of all possible measureVals that's currently not in the same order as they appear in measureVals)
@@ -271,6 +242,41 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                 }
             }
             // End measurements export
+            
+
+            Method maGetFilename = MediaAsset.class.getMethod("getUserFilename", null);
+            Method maLocalPath = MediaAsset.class.getMethod("localPath", null);
+            // This will include labels in a labeledKeyword value
+            Method keywordGetName = Keyword.class.getMethod("getDisplayName");
+            Method labeledKeywordGetValue = LabeledKeyword.class.getMethod("getValue");
+            for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
+                String mediaAssetColName = "Encounter.mediaAsset" + maNum;
+                String fullPathName = "Encounter.mediaAsset" + maNum + ".filePath";
+                ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName,
+                    maGetFilename, columns);
+                maFilenameK.setMaNum(maNum); // important for later!
+                ExportColumn maPathK = new ExportColumn(MediaAsset.class, fullPathName, maLocalPath,
+                    columns);
+                maPathK.setMaNum(maNum);
+                for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
+                    String keywordColName = "Encounter.mediaAsset" + maNum + ".keyword" + kwNum;
+                    ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName,
+                        keywordGetName, columns);
+                    keywordCol.setMaNum(maNum);
+                    keywordCol.setKwNum(kwNum);
+                }
+                List<String> labels = myShepherd.getAllKeywordLabels();
+                for (String label : labels) {
+                    String keywordColName = "Encounter.mediaAsset" + maNum + "." + label;
+                    ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName,
+                        labeledKeywordGetValue, columns);
+                    keywordCol.setMaNum(maNum);
+                    keywordCol.setLabeledKwName(label);
+                }
+            }
+
+            
+            
             for (ExportColumn exportCol : columns) {
                 exportCol.writeHeaderLabel(sheet);
             }
