@@ -91,6 +91,20 @@ public class Relationship implements java.io.Serializable {
     public MarkedIndividual getMarkedIndividual1() { return individual1; }
     public MarkedIndividual getMarkedIndividual2() { return individual2; }
 
+    public MarkedIndividual getOtherMarkedIndividual(MarkedIndividual indiv) {
+        if ((indiv == null) || (individual1 == null) || (individual2 == null)) return null;
+        if (indiv.getId().equals(individual1.getId())) return individual2;
+        if (indiv.getId().equals(individual2.getId())) return individual1;
+        return null;
+    }
+
+    public String getRoleFor(MarkedIndividual indiv) {
+        if ((indiv == null) || (individual1 == null) || (individual2 == null)) return null;
+        if (indiv.getId().equals(individual1.getId())) return markedIndividualRole1;
+        if (indiv.getId().equals(individual2.getId())) return markedIndividualRole2;
+        return null;
+    }
+
     public void setIndividual1(MarkedIndividual indy) {
         this.individual1 = indy;
     }

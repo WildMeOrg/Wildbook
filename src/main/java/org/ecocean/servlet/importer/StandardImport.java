@@ -990,6 +990,13 @@ public class StandardImport extends HttpServlet {
             String colName = "Encounter.measurement" + bg;
             Double val = getDouble(row, colName, colIndexMap, verbose, missingColumns,
                 unusedColumns, feedback);
+            
+            //if Encounter.measurementX is not found, then look for Encounter.measurementName from commonConfiguration.properties
+            if(val==null) {
+            	colName = "Encounter."+measureVals.get(bg);
+            	val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+            }
+            
             if (val != null) {
                 Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
                     measureUnits.get(bg), "");

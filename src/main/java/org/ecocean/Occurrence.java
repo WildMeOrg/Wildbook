@@ -389,6 +389,24 @@ public class Occurrence extends Base implements java.io.Serializable {
         return names;
     }
 
+    public Set<MarkedIndividual> getMarkedIndividuals() {
+        return getMarkedIndividuals(null);
+    }
+
+    public Set<MarkedIndividual> getMarkedIndividuals(MarkedIndividual skip) {
+        Set<MarkedIndividual> indivs = new HashSet<MarkedIndividual>();
+
+        if (this.encounters == null) return indivs;
+        String skipId = null;
+        if (skip != null) skipId = skip.getId();
+        for (Encounter enc : this.encounters) {
+            MarkedIndividual indiv = enc.getIndividual();
+            if ((indiv == null) || indiv.getId().equals(skipId)) continue;
+            indivs.add(indiv);
+        }
+        return indivs;
+    }
+
     // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setID(String id) {
         occurrenceID = id;
@@ -1412,11 +1430,12 @@ public class Occurrence extends Base implements java.io.Serializable {
         return Util.getVersionFromModified(modified);
     }
 
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        // note: some Occurrences do not have ids.  :(
-        String sql =
-            "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getOccurrence(id);
+    }
 
-        return getAllVersions(myShepherd, sql);
+    @Override public String getAllVersionsSql() {
+        return
+                "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"OCCURRENCE\" ORDER BY version";
     }
 }

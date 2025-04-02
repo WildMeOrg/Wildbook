@@ -61,7 +61,9 @@ public class OpenSearch {
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
-    public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
+    public static String[] VALID_INDICES = {
+        "encounter", "individual", "occurrence", "annotation"
+    };
     public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
@@ -151,7 +153,12 @@ public class OpenSearch {
                     try {
                         myShepherd.beginDBTransaction();
                         System.out.println("OpenSearch background indexing running...");
-                        Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Encounter.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
+                        BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
                     } catch (Exception ex) {
@@ -388,6 +395,25 @@ public class OpenSearch {
             return queryPit(indexName, query, numFrom, pageSize, sort, sortOrder);
         }
         return new JSONObject(rtn);
+    }
+
+    // just return the actual hit results
+    // note: each object in the array has _id but actual doc is in _source!!
+    public static JSONArray getHits(JSONObject queryResults) {
+        JSONArray failed = new JSONArray();
+
+        if (queryResults == null) return failed;
+        JSONObject outerHits = queryResults.optJSONObject("hits");
+        if (outerHits == null) {
+            System.out.println("could not find (outer) hits");
+            return failed;
+        }
+        JSONArray hits = outerHits.optJSONArray("hits");
+        if (hits == null) {
+            System.out.println("could not find hits");
+            return failed;
+        }
+        return hits;
     }
 
     // https://opensearch.org/docs/2.3/opensearch/search/paginate/
@@ -663,7 +689,9 @@ public class OpenSearch {
     throws IOException {
         if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
         JSONObject clean = new JSONObject();
-        // this is just punting future classes to later development (should never happen)
+        // these classes we let anyone see as-is
+        if ("annotation".equals(indexName) || "individual".equals(indexName)) return sourceDoc;
+        // this is just punting future classes to later development
         if (!"encounter".equals(indexName)) return clean;
         boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
         if (hasAccess) {
