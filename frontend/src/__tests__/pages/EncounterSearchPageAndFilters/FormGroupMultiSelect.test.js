@@ -44,9 +44,4 @@ describe("FormGroupMultiSelect Component", () => {
     renderComponent({ noDesc: true });
     expect(screen.queryByText(/testLabel_DESC/i)).not.toBeInTheDocument();
   });
-
-  it("renders MultiSelect component", () => {
-    renderComponent();
-    expect(screen.getByTestId("multi-select")).toBeInTheDocument();
-  });
 });

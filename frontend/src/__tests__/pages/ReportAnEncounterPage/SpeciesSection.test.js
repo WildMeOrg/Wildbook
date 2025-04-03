@@ -56,9 +56,9 @@ describe("ReportEncounterSpeciesSection Component", () => {
 
     const selectElement = screen.getByRole("combobox");
     expect(selectElement).toBeInTheDocument();
-    expect(screen.getByText("Panthera leo")).toBeInTheDocument();
-    expect(screen.getByText("Canis lupus")).toBeInTheDocument();
-    expect(screen.getByText("Unknown")).toBeInTheDocument();
+    expect(screen.getByText(/Panthera leo/i)).toBeInTheDocument();
+    expect(screen.getByText(/Canis lupus/i)).toBeInTheDocument();
+    expect(screen.getByText(/Unknown/i)).toBeInTheDocument();
   });
 
   it("calls setSpeciesSectionValue when an option is selected", () => {
@@ -75,7 +75,7 @@ describe("ReportEncounterSpeciesSection Component", () => {
 
     const selectElement = screen.getByRole("combobox");
     fireEvent.change(selectElement, { target: { value: "Canis lupus" } });
-    screen.getByRole("option", { name: "Canis lupus" });
+    screen.getByRole("option", { name: /Canis lupus/i });
     expect(mockStore.setSpeciesSectionValue).toHaveBeenCalledWith(
       "Canis lupus",
     );

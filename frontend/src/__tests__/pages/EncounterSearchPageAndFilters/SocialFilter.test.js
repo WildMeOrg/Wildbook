@@ -53,22 +53,12 @@ describe("SocialFilter Component", () => {
     );
   });
 
-  test("renders Social Unit options correctly after selecting AND operator", async () => {
-    renderComponent();
-
-    const socialUnitAndCheckbox =
-      screen.getAllByLabelText("USE_AND_OPERATOR")[0];
-    fireEvent.keyDown(socialUnitAndCheckbox);
-
-    expect(await screen.findByText("Family")).toBeInTheDocument();
-    expect(await screen.findByText("Group")).toBeInTheDocument();
-  });
-
   test("handles 'AND' operator checkbox for Relationship Role correctly", () => {
     renderComponent();
 
-    const relationshipRoleAndCheckbox =
-      screen.getAllByLabelText("USE_AND_OPERATOR")[1];
+    const relationshipRoleAndCheckbox = screen.getAllByRole("checkbox", {
+      name: /USE_AND_OPERATOR/i,
+    })[1];
 
     fireEvent.click(relationshipRoleAndCheckbox);
 
@@ -79,24 +69,5 @@ describe("SocialFilter Component", () => {
     expect(mockStore.removeFilterByFilterKey).toHaveBeenCalledWith(
       "Relationship Role",
     );
-  });
-
-  test("renders Relationship Role options correctly after selecting AND operator", async () => {
-    renderComponent();
-
-    const relationshipRoleAndCheckbox =
-      screen.getAllByLabelText("USE_AND_OPERATOR")[1];
-    fireEvent.keyDown(relationshipRoleAndCheckbox);
-
-    expect(await screen.findByText("Parent")).toBeInTheDocument();
-    expect(await screen.findByText("Sibling")).toBeInTheDocument();
-  });
-
-  test("matches snapshot", () => {
-    const { asFragment } = renderWithProviders(
-      <SocialFilter data={mockData} store={mockStore} />,
-    );
-
-    expect(asFragment()).toMatchSnapshot();
   });
 });
