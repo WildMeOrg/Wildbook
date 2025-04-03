@@ -7,17 +7,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
 import java.text.SimpleDateFormat;
+
+import org.ecocean.datacollection.Instant;
+import org.ecocean.media.AssetStoreType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,11 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.ecocean.datacollection.Instant;
 
 import org.joda.time.DateTime;
-
-import org.ecocean.media.AssetStoreType;
 
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence is meant to represent several

@@ -11,6 +11,8 @@
          java.io.File, java.text.DecimalFormat,
          org.apache.commons.lang3.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 

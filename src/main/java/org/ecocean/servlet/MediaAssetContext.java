@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class MediaAssetContext extends HttpServlet {
     public void init(ServletConfig config)

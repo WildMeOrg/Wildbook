@@ -7,6 +7,7 @@
 java.util.ArrayList,
 org.json.JSONArray,
 java.util.Iterator, java.util.List, java.util.Vector" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 

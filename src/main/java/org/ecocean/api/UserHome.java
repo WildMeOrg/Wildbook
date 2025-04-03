@@ -17,7 +17,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.Project;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 

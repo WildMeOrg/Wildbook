@@ -10,6 +10,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.ecocean.media.*;
 import org.ecocean.resumableupload.UploadServlet;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
