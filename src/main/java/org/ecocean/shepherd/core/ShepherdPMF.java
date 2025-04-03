@@ -1,4 +1,6 @@
-package org.ecocean;
+package org.ecocean.shepherd.core;
+
+import org.ecocean.ContextConfiguration;
 
 import javax.jdo.JDOException;
 import javax.jdo.JDOHelper;

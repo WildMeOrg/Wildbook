@@ -21,6 +21,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.importutils.*;
 import org.ecocean.media.*;
 import org.ecocean.servlet.*;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.SatelliteTag;

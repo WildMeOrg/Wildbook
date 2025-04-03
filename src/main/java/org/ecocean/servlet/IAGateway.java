@@ -11,7 +11,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.queue.*;
 import org.ecocean.Resolver;
 import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 

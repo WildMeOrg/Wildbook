@@ -7,6 +7,7 @@ org.ecocean.grid.ScanTask,
 java.util.ArrayList,
 org.json.JSONArray,
 java.util.Vector" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 

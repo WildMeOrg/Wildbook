@@ -1,7 +1,7 @@
 package org.ecocean.media;
 
 import org.ecocean.Annotation;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.io.File;
 import java.io.IOException;

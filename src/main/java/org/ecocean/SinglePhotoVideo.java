@@ -13,6 +13,7 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.media.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class SinglePhotoVideo extends DataCollectionEvent {
     private static final long serialVersionUID = 7999349137348568641L;
