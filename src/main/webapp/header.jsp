@@ -409,7 +409,7 @@ if(request.getUserPrincipal()!=null){
 
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
-          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
+          <nav class="navbar navbar-default navbar-fixed-top" style="min-height: 100px; background-color: #303336; display: flex; justify-content: center; align-items: center; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
               <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
