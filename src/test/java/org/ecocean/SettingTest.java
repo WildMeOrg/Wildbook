@@ -2,7 +2,8 @@ package org.ecocean;
 
 import org.ecocean.Setting;
 import org.ecocean.SettingValidator;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
