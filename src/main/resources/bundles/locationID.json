@@ -578,7 +578,8 @@
           ]},
           {"name": "Tasman Sea", "id": "Tasman Sea" },
           {"name":"New Zealand", "id":"New Zealand", "locationID":[
-          ]}
+		  {"name": "Kaikoura", "id": "Kaikoura", "locationID":[]}
+	  ]}
         ]}
           ],
           "id": "PacificOcean", "defaultLatitutde": 0.0, "defaultLongitude": -160.0},
