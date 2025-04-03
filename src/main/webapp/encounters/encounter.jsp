@@ -1536,7 +1536,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 
           <br/>
-          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span>
         </div>
 
      	<%

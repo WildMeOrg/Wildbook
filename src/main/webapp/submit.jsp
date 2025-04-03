@@ -1421,30 +1421,6 @@ if (hasTags) {
       }
       %>
 
-
-          <%
-          if(request.getRemoteUser()==null){
-          %>
-         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
-           <script>
-		         //we need to first check here if we need to do the background social image send... in which case,
-		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
-
-		       var captchaWidgetId;
-		        function onloadCallback() {
-		        	captchaWidgetId = grecaptcha.render(
-
-			        	'myCaptcha', {
-				  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
-				  			'theme' : 'light'
-						});
-		        }
-
-           </script>
-
-          <%
-          }
-          %>
 <script>
 
 function sendButtonClicked() {
