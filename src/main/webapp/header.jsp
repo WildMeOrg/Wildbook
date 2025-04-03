@@ -623,7 +623,7 @@ if(request.getUserPrincipal()!=null){
                                   <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
                                   
                                   <ul class="dropdown-menu">
-                                      <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
+                                      <li><a href="<%=urlLoc %>/">Landing Page</a></li>
                                       <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
                                       <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
                                   </ul>   
