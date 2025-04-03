@@ -2656,7 +2656,7 @@ public class StandardImport extends HttpServlet {
 
         try {
             for (final File f : dir.listFiles()) {
-                if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
+                if (f.isFile() && f.getName().matches("ArgusWildStandardFormat.*\\.xlsx")) return f;
             }
         } catch (Exception ex) {
             System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " +
@@ -2664,7 +2664,7 @@ public class StandardImport extends HttpServlet {
             return null;
         }
         System.out.println(
-            "WARNING: importXlsFile() could not find 'WildbookStandardFormat*.xlsx' in " + dir);
+            "WARNING: importXlsFile() could not find 'ArgusWildStandardFormat*.xlsx' in " + dir);
         return null;
     }
 
@@ -2686,7 +2686,7 @@ public class StandardImport extends HttpServlet {
         if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
             f = new File(dir, "WildbookStandardFormat_IndoCet.xlsx");
         } else {
-            f = new File(dir, "WildbookStandardFormat.xlsx");
+            f = new File(dir, "ArgusWildStandardFormat.xlsx");
         }
         if (f != null && f.isFile()) { return f; } else {
             System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + ";f is: " + f);

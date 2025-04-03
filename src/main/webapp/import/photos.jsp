@@ -110,7 +110,7 @@ div.file-item div {
 <h1 class="import-header">Bulk Import: Photo Upload</h1>
 <p class="import-explanation">On your computer, organize the photos you'd like to upload into a single folder. Remember, the image names must correspond exactly to the "Encounter.MediaAsset" entries in your Wildbook Standard Format spreadsheet.</p>
 
-<p class="import-explanation">Using the tool below, upload your image folder to our server. Your images will be stored in your private directory until the import is complete.</p>
+<p class="import-explanation">Using the tool below, upload your image folder to our server.</p>
 
 <p class="import-explanation"> Your photos are saved in a private directory on our server. You can upload photos in multiple sessions, and your excel file has access to any of the photos you have uploaded in the past (visible on the <a href="reviewDirectory.jsp">photo review page</a>).
 </p>
@@ -120,7 +120,10 @@ div.file-item div {
 <div id="updone"></div>
 
 <div id="upcontrols" style="padding: 20px;">
-	<input type="file" id="file-chooser" webkitdirectory directory multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+	<label for="file-chooser" style="padding: 7px 13px; background-color: #5d8cc1; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: sans-serif; display: inline-block;">Choose Folder</label>
+	<span id="folder-name" style="margin-left: 10px; font-family: sans-serif;">No folder chosen</span>
+	<input type="file" id="file-chooser" webkitdirectory directory multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)"  style="display: none;"/> 
+	<br>
 	<button id="upload-button">begin upload</button>
 	<br>
 	<p><b>If you have selected a large number of photos they may take a while to load in the interface.<b> Once you have clicked the 'Begin Upload' button the images will be sent, and you will automatically
