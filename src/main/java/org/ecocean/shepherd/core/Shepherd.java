@@ -3616,13 +3616,6 @@ public class Shepherd {
     }
 
     /**
-     * Commits (makes permanent) any changes made to an open database
-     */
-    public void commitDBTransaction(String action) {
-        commitDBTransaction();
-    }
-
-    /**
      * Since we call these together all over Wildbook
      */
     public void updateDBTransaction() {
