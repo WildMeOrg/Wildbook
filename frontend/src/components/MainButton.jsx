@@ -24,6 +24,7 @@ export default function MainButton({
   return (
     <Button
       variant="primary"
+      data-testid="main-button"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}

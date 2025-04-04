@@ -131,6 +131,8 @@ export const LocationFilterByMap = observer(
       }
     }, [JSON.stringify(treeData), bounds, isMouseUp]);
 
+    console.log("mapTreeData", mapTreeData);
+
     return (
       <Modal
         dialogClassName="modal-90w"
