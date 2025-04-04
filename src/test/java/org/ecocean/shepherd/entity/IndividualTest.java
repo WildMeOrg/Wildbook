@@ -1,6 +1,8 @@
 package org.ecocean.shepherd.entity;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.junit.jupiter.api.AfterEach;
