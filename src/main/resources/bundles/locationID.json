@@ -2,6 +2,11 @@
 	"description": "Hierarchical Encounter.locationID list in Wildbook",
 	"source": "http://en.wikipedia.org/wiki/List_of_seas",
 	"locationID": [
+	          {
+			"name": "Aachen",
+			"id": "Aachen",
+			"locationID":[]
+		  },
 		  {
 			"name": "Alte Rinne",
 			"id": "Alte Rinne",
