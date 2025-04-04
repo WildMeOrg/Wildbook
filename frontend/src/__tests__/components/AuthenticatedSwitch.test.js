@@ -12,15 +12,6 @@ jest.mock("react-konva", () => ({
   Transformer: () => <div data-testid="transformer">Mocked Transformer</div>,
 }));
 
-jest.mock("../../components/AlertBanner", () => () => {
-  const mockComponent = ({ setShowAlert }) => (
-    <div data-testid="alert-banner" onClick={() => setShowAlert(false)}>
-      AlertBanner
-    </div>
-  );
-  mockComponent.displayName = "AlertBanner";
-  return mockComponent;
-});
 jest.mock("../../components/AuthenticatedAppHeader", () => {
   const AuthenticatedAppHeaderMock = () => (
     <div data-testid="auth-header">AuthenticatedAppHeader</div>
@@ -77,31 +68,31 @@ describe("AuthenticatedSwitch", () => {
     );
   };
 
-  test("renders header, main content, and footer", () => {
+  test("renders header, main content, and footer", async () => {
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
 
-    expect(screen.getByTestId("auth-header")).toBeInTheDocument();
+    expect(await screen.findByTestId("auth-header")).toBeInTheDocument();
     expect(screen.getByTestId("footer")).toBeInTheDocument();
   });
 
-  test("renders the home page by default", () => {
+  test("renders the home page by default", async () => {
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(screen.getByText("Home Page")).toBeInTheDocument();
+    expect(await screen.findByText("Home Page")).toBeInTheDocument();
   });
 
-  test("renders the profile page when navigating to /profile", () => {
+  test("renders the profile page when navigating to /profile", async () => {
     window.history.pushState({}, "", "/profile");
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(screen.getByText("Profile Page")).toBeInTheDocument();
+    expect(await screen.findByText("Profile Page")).toBeInTheDocument();
   });
 
-  test("renders the login page when navigating to /login", () => {
+  test("renders the login page when navigating to /login", async () => {
     window.history.pushState({}, "", "/login");
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(screen.getByText("Login Page")).toBeInTheDocument();
+    expect(await screen.findByText("Login Page")).toBeInTheDocument();
   });
 
-  test("renders the NotFound page when navigating to an unknown route and sets header to false", () => {
+  test("renders the NotFound page when navigating to an unknown route and sets header to false", async () => {
     const setHeaderMock = jest.fn();
     window.history.pushState({}, "", "/random-page");
     renderComponent({
@@ -109,6 +100,6 @@ describe("AuthenticatedSwitch", () => {
       setShowAlert: jest.fn(),
       setHeader: setHeaderMock,
     });
-    expect(screen.getByText("Not Found Page")).toBeInTheDocument();
+    expect(await screen.findByText("Not Found Page")).toBeInTheDocument();
   });
 });

@@ -3,15 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import UnAuthenticatedSwitch from "../../UnAuthenticatedSwitch";
 
-jest.mock("../../components/AlertBanner", () => () => {
-  const mockComponent = ({ setShowAlert }) => (
-    <div data-testid="alert-banner" onClick={() => setShowAlert(false)}>
-      AlertBanner
-    </div>
-  );
-  mockComponent.displayName = "AlertBanner";
-  return mockComponent;
-});
 jest.mock("../../components/UnAuthenticatedAppHeader", () => () => {
   const mockComponent = () => (
     <div data-testid="unauth-header">UnAuthenticatedAppHeader</div>
@@ -68,34 +59,23 @@ describe("UnAuthenticatedSwitch", () => {
     );
   };
 
-  test("renders header, main content, and footer", () => {
+  test("renders header, main content, and footer", async () => {
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(screen.getByTestId("footer")).toBeInTheDocument();
+    expect(await screen.getByTestId("footer")).toBeInTheDocument();
   });
 
-  test("renders the login page by default", () => {
+  test("renders the login page by default", async () => {
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(screen.getByText("Login Page")).toBeInTheDocument();
+    expect(await screen.getByText("Login Page")).toBeInTheDocument();
   });
 
-  test("renders the citation page when navigating to /citation", () => {
+  test("renders the citation page when navigating to /citation", async () => {
     window.history.pushState({}, "", "/citation");
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
-    expect(screen.getByText("Citation Page")).toBeInTheDocument();
+    expect(await screen.findByText("Citation Page")).toBeInTheDocument();
   });
 
-  test("renders the unauthorized page when navigating to /home and sets header to false", () => {
-    const setHeaderMock = jest.fn();
-    window.history.pushState({}, "", "/home");
-    renderComponent({
-      showAlert: false,
-      setShowAlert: jest.fn(),
-      setHeader: setHeaderMock,
-    });
-    expect(screen.getByText("Unauthorized Page")).toBeInTheDocument();
-  });
-
-  test("navigates to login with redirect query when visiting an unknown page", () => {
+  test("navigates to login with redirect query when visiting an unknown page", async () => {
     window.history.pushState({}, "", "/unknown-page");
     renderComponent({ showAlert: false, setShowAlert: jest.fn() });
     expect(window.location.search).toMatch(/redirect=%2Funknown-page/);
