@@ -29,96 +29,99 @@ public class UserHome extends ApiBase {
 
         myShepherd.setAction("api.UserHome");
         myShepherd.beginDBTransaction();
+        try {
+	        JSONObject home = new JSONObject();
+	        User currentUser = myShepherd.getUser(request);
+	        if (currentUser == null) {
+	            response.setStatus(401);
+	            response.setHeader("Content-Type", "application/json");
+	            response.getWriter().write("{\"success\": false}");
+	            return;
+	        }
+	        home.put("user", currentUser.infoJSONObject(context, true));
+	
+	        // TODO: Replace with OpenSearch
+	
+	        JSONArray encountersArr = new JSONArray();
+	        int count = 0;
+	        for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser)) {
+	            JSONObject ej = new JSONObject();
+	            ej.put("id", enc.getId());
+	            ej.put("date", enc.getDate());
+	            ej.put("numberAnnotations", Util.collectionSize(enc.getAnnotations()));
+	            ej.put("taxonomy", enc.getTaxonomyString());
+	            encountersArr.put(ej);
+	            count++;
+	            if (count > 2) break;
+	        }
+	        home.put("latestEncounters", encountersArr);
+	
+	        JSONObject itaskJson = null;
+	        List<ImportTask> itasks = myShepherd.getImportTasksForUser(currentUser);
+	        if (itasks.size() > 0) {
+	            itaskJson = new JSONObject();
+	            itaskJson.put("id", itasks.get(0).getId());
+	            itaskJson.put("dateTimeCreated", itasks.get(0).getCreated());
+	            itaskJson.put("numberEncounters", Util.collectionSize(itasks.get(0).getEncounters()));
+	            itaskJson.put("numberMediaAssets", Util.collectionSize(itasks.get(0).getMediaAssets()));
+	        }
+	        home.put("latestBulkImportTask", Util.jsonNull(itaskJson));
+	
+	        JSONObject latestIndivJson = null;
+	        for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser, "modified DESC")) {
+	            if (enc.getIndividual() != null) {
+	                latestIndivJson = new JSONObject();
+	                latestIndivJson.put("id", enc.getIndividual().getId());
+	                latestIndivJson.put("dateTime", enc.getModified());
+	                break;
+	            }
+	        }
+	        home.put("latestIndividual", Util.jsonNull(latestIndivJson));
+	
+	        // match result: if within 2 weeks, match result page; if older, the encounter page
+	        JSONObject matchJson = null;
+	        List<Task> tasks = myShepherd.getIdentificationTasksForUser(currentUser);
+	        if (!Util.collectionIsEmptyOrNull(tasks)) {
+	            matchJson = new JSONObject();
+	            matchJson.put("id", tasks.get(0).getId());
+	            matchJson.put("dateTimeCreated", new DateTime(tasks.get(0).getCreatedLong()));
+	            matchJson.put("encounterId", JSONObject.NULL);
+	            List<Annotation> anns = tasks.get(0).getObjectAnnotations();
+	            if (!Util.collectionIsEmptyOrNull(anns))
+	                for (Annotation ann : anns) {
+	                    Encounter enc = ann.findEncounter(myShepherd);
+	                    if (enc != null) {
+	                        matchJson.put("encounterId", enc.getId());
+	                        break;
+	                    }
+	                }
+	        }
+	        home.put("latestMatchTask", Util.jsonNull(matchJson));
+	
+	        JSONArray projArr = new JSONArray();
+	        count = 0;
+	        for (Project proj : currentUser.getProjects(myShepherd)) {
+	            JSONObject pj = new JSONObject();
+	            pj.put("id", proj.getId());
+	            pj.put("name", proj.getResearchProjectName());
+	            pj.put("percentComplete", proj.getPercentWithIncrementalIds());
+	            pj.put("numberEncounters", proj.getEncounters().size());
+	            projArr.put(pj);
+	            count++;
+	            if (count > 2) break;
+	        }
+	        home.put("projects", projArr);
+	
+	        response.setStatus(200);
+	        response.setCharacterEncoding("UTF-8");
+	        response.setHeader("Content-Type", "application/json");
+	        response.getWriter().write(home.toString());
 
-        JSONObject home = new JSONObject();
-        User currentUser = myShepherd.getUser(request);
-        if (currentUser == null) {
-            response.setStatus(401);
-            response.setHeader("Content-Type", "application/json");
-            response.getWriter().write("{\"success\": false}");
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            return;
-        }
-        home.put("user", currentUser.infoJSONObject(context, true));
-
-        // TODO: Replace with OpenSearch
-
-        JSONArray encountersArr = new JSONArray();
-        int count = 0;
-        for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser)) {
-            JSONObject ej = new JSONObject();
-            ej.put("id", enc.getId());
-            ej.put("date", enc.getDate());
-            ej.put("numberAnnotations", Util.collectionSize(enc.getAnnotations()));
-            ej.put("taxonomy", enc.getTaxonomyString());
-            encountersArr.put(ej);
-            count++;
-            if (count > 2) break;
-        }
-        home.put("latestEncounters", encountersArr);
-
-        JSONObject itaskJson = null;
-        List<ImportTask> itasks = myShepherd.getImportTasksForUser(currentUser);
-        if (itasks.size() > 0) {
-            itaskJson = new JSONObject();
-            itaskJson.put("id", itasks.get(0).getId());
-            itaskJson.put("dateTimeCreated", itasks.get(0).getCreated());
-            itaskJson.put("numberEncounters", Util.collectionSize(itasks.get(0).getEncounters()));
-            itaskJson.put("numberMediaAssets", Util.collectionSize(itasks.get(0).getMediaAssets()));
-        }
-        home.put("latestBulkImportTask", Util.jsonNull(itaskJson));
-
-        JSONObject latestIndivJson = null;
-        for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser, "modified DESC")) {
-            if (enc.getIndividual() != null) {
-                latestIndivJson = new JSONObject();
-                latestIndivJson.put("id", enc.getIndividual().getId());
-                latestIndivJson.put("dateTime", enc.getModified());
-                break;
-            }
-        }
-        home.put("latestIndividual", Util.jsonNull(latestIndivJson));
-
-        // match result: if within 2 weeks, match result page; if older, the encounter page
-        JSONObject matchJson = null;
-        List<Task> tasks = myShepherd.getIdentificationTasksForUser(currentUser);
-        if (!Util.collectionIsEmptyOrNull(tasks)) {
-            matchJson = new JSONObject();
-            matchJson.put("id", tasks.get(0).getId());
-            matchJson.put("dateTimeCreated", new DateTime(tasks.get(0).getCreatedLong()));
-            matchJson.put("encounterId", JSONObject.NULL);
-            List<Annotation> anns = tasks.get(0).getObjectAnnotations();
-            if (!Util.collectionIsEmptyOrNull(anns))
-                for (Annotation ann : anns) {
-                    Encounter enc = ann.findEncounter(myShepherd);
-                    if (enc != null) {
-                        matchJson.put("encounterId", enc.getId());
-                        break;
-                    }
-                }
-        }
-        home.put("latestMatchTask", Util.jsonNull(matchJson));
-
-        JSONArray projArr = new JSONArray();
-        count = 0;
-        for (Project proj : currentUser.getProjects(myShepherd)) {
-            JSONObject pj = new JSONObject();
-            pj.put("id", proj.getId());
-            pj.put("name", proj.getResearchProjectName());
-            pj.put("percentComplete", proj.getPercentWithIncrementalIds());
-            pj.put("numberEncounters", proj.getEncounters().size());
-            projArr.put(pj);
-            count++;
-            if (count > 2) break;
-        }
-        home.put("projects", projArr);
-
-        response.setStatus(200);
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Type", "application/json");
-        response.getWriter().write(home.toString());
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+		}
+    	catch(Exception e){e.printStackTrace();}
+    	finally {
+    		myShepherd.rollbackDBTransaction();
+    		myShepherd.closeDBTransaction();
+    	}
     }
 }
