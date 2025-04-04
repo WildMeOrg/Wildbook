@@ -4,7 +4,8 @@
 org.opensearch.client.Request,
 java.util.List, java.util.ArrayList,
 org.json.JSONObject,
-org.ecocean.*
+org.ecocean.*,
+org.ecocean.shepherd.core.*
 "%>
 
 <%!

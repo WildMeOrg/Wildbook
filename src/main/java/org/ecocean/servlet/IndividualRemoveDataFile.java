@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

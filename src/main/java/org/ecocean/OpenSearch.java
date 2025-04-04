@@ -3,44 +3,36 @@ package org.ecocean;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.SystemValue;
+
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.HttpHost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.Request;
 import org.opensearch.client.Response;
 import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
-import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
 
-import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.core.IndexRequest;
-import org.opensearch.client.opensearch.core.IndexResponse;
-import org.opensearch.client.opensearch.core.SearchRequest;
-import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
-import org.opensearch.client.opensearch.indices.DeleteIndexResponse;
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBuilder;
 import org.opensearch.client.transport.OpenSearchTransport;
 
 import java.lang.Runnable;
@@ -62,7 +54,7 @@ public class OpenSearch {
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = {
-        "encounter", "individual", "occurrence", "annotation"
+        "encounter", "individual", "occurrence", "annotation", "media_asset"
     };
     public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
         "backgroundDelayMinutes", 20);
@@ -158,6 +150,10 @@ public class OpenSearch {
                         Base.opensearchSyncIndex(myShepherd, Annotation.class,
                         BACKGROUND_SLICE_SIZE);
                         Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Occurrence.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, MediaAsset.class,
                         BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
                         myShepherd.rollbackAndClose();
@@ -527,7 +523,9 @@ public class OpenSearch {
     // updateData is { field0: value0, field1: value1, ... }
     public void indexUpdate(final String indexName, String id, JSONObject updateData)
     throws IOException {
+        if (!existsIndex(indexName)) throw new IOException("index does not exist: " + indexName);
         if ((id == null) || (updateData == null)) throw new IOException("missing id or updateData");
+        updateData.put("indexTimestamp", System.currentTimeMillis());
         JSONObject doc = new JSONObject();
         doc.put("doc", updateData);
         Request updateRequest = new Request("POST", indexName + "/_update/" + id);
