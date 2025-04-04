@@ -43,8 +43,8 @@ export default function Menu({
             style={{
               color: "white",
               boxSizing: "border-box",
-              paddingLeft: 5,
-              paddingRight: 5,
+              paddingLeft: 2,
+              paddingRight: 2,
               borderBottom:
                 dropdownBorder[`dropdown${idx + 1}`] || "2px solid transparent",
             }}
