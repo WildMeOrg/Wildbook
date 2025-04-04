@@ -91,7 +91,7 @@ public class EncounterSetSex extends HttpServlet {
                         myShepherd.rollbackDBTransaction();
                     }
                     if (!locked) {
-                        myShepherd.commitDBTransaction(action);
+                        myShepherd.commitDBTransaction();
                         // out.println(ServletUtilities.getHeader(request));
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.println(

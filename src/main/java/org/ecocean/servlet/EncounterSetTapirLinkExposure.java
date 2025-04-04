@@ -60,7 +60,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
                         // myShepherd.closeDBTransaction();
                     }
                     if (!locked) {
-                        myShepherd.commitDBTransaction(action);
+                        myShepherd.commitDBTransaction();
                         out.println(ServletUtilities.getHeader(request));
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.println("<strong>Success:</strong> I have changed encounter " +
