@@ -2,29 +2,29 @@
 	"description": "Hierarchical Encounter.locationID list in Wildbook",
 	"source": "http://en.wikipedia.org/wiki/List_of_seas",
 	"locationID": [
-	          {
+		{
 			"name": "Aachen",
 			"id": "Aachen",
 			"locationID":[]
-		  },
-		  {
+		},
+		{
 			"name": "Alte Rinne",
 			"id": "Alte Rinne",
 			"locationID": []
-		  },
-		  {
-			  "name": "Botanischer Garten Bielefeld",
-			  "id": "BGBi",
-			  "geospatialInfo": {
+		},
+		{
+			"name": "Botanischer Garten Bielefeld",
+			"id": "BGBi",
+			"geospatialInfo": {
 				  "lat": 52.014671,
 				  "long": 8.510555
 			  },
-			  "locationID": []
-		  },
-		  {
-			  "name": "Chemnitz",
-			  "id": "Chemnitz",
-			  "locationID": [
+			"locationID": []
+		},
+		{
+			"name": "Chemnitz",
+			 "id": "Chemnitz",
+			 "locationID": [
 				  {
 					  "name": "Ebersdorfer Wald",
 					  "id": "Ebersdorfer Wald",
@@ -46,67 +46,67 @@
 					  "locationID": []
 				  }
 			  ]
-		  },
-		  {
+		},
+		{
 			"name": "Eulenberger See",
 			"id": "Eulenberger See",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Fambach",
 			"id": "FAM",
 			"locationID": []
-		  },
-		  {
-			  "name": "Flöha",
-			  "id": "08",
-			  "locationID": []
-		  },
-		  {
+		},
+		{
+			"name": "Flöha",
+			"id": "08",
+			"locationID": []
+		},
+		{
 			"name": "Heßles",
 			"id": "HES",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Hümpfershausen",
 			"id": "HUEM",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Jachen",
 			"id": "Jachen",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Kaolingrube Oedingen",
 			"id": "Kaolingrube Oedingen",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "KOBI",
 			"id": "KOBI",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Koenigsdorf",
 			"id": "Koenigsdorf",
 			"locationID": []
-		  },
-		  {
-			  "name": "Kriebethal/Ehrenberg",
-			  "id": "03",
-			  "locationID": []
-		  },
-		  {
-			  "name": "Kruppwald Essen",
-			  "id": "KE",
-			  "geospatialInfo": {
+		},
+		{
+			"name": "Kriebethal/Ehrenberg",
+			"id": "03",
+			"locationID": []
+		},
+		{
+			"name": "Kruppwald Essen",
+			"id": "KE",
+			"geospatialInfo": {
 				  "lat": 51.4076079,
 				  "long": 7.0024334
-			  },
-			  "locationID": []
-		  },
-		  {
+			},
+			"locationID": []
+		},
+		{
 			"name": "Nerenbos",
 			"id": "Nerenbos",
 			"locationID": [
@@ -116,55 +116,55 @@
 					"locationID": []
 				}
 			]
-		  },
-		  {
+		},
+		{
 			"name": "Nüßleshof",
 			"id": "NUES",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Reifenstein",
 			"id": "Reifenstein",
 			"locationID":[]
-		  },
-		  {
-			  "name": "Rochlitzer Berg",
-			  "id": "06",
-			  "locationID": []
-		  },
-		  {
+		},
+		{
+			"name": "Rochlitzer Berg",
+			"id": "06",
+			"locationID": []
+		},
+		{
 			"name": "Römhild",
 			"id": "RH",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Steinbachholz",
 			"id": "Steinbachholz",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Steinbruch Dettlebach",
 			"id": "Steinbruch Dettlebach",
 			"locationID": []
-		  },
-		  {
-			  "name": "Talsperre Kriebstein",
-			  "id": "04",
-			  "locationID": []
-		  },
-		  {
-			  "name": "Waldheim",
-			  "id": "09",
-			  "locationID": []
-		  },
-		  {
-			  "name": "Kottenforst",
-			  "id": "KF",
-			  "geospatialInfo": {
+		},
+		{
+			"name": "Talsperre Kriebstein",
+			"id": "04",
+			"locationID": []
+		},
+		{
+			"name": "Waldheim",
+			"id": "09",
+			"locationID": []
+		},
+		{
+			"name": "Kottenforst",
+			"id": "KF",
+			"geospatialInfo": {
 				  "lat": 50.6593069,
 				  "long": 7.0555518
-			  },
-			  "locationID": [
+			},
+			"locationID": [
 				  {
 					  "name": "Klufterbach",
 					  "id": "KB",
@@ -309,15 +309,15 @@
 					  "locationID": []
 				  }
 			  ]
-		  },
-		  {
-			  "name": "Freilichtmuseum Detmold",
-			  "id": "FrD",
-			  "geospatialInfo": {
+		},
+		{
+			"name": "Freilichtmuseum Detmold",
+			"id": "FrD",
+			"geospatialInfo": {
 				  "lat": 51.9234574,
 				  "long": 8.865981
 			  },
-			  "locationID": [
+			"locationID": [
 				  {
 					  "name": "Kernlebensraum",
 					  "id": "KLR",
@@ -341,7 +341,7 @@
 					  "locationID": []
 				  }
 			  ]
-		  },
+		},
 		  {
 			  "name": "Northern Weser Hills",
 			  "id": "Northern Weser Hills",
@@ -468,8 +468,8 @@
 					  "locationID": []
 				  }
 			  ]
-		  },
-		  {
+		},
+		{
 			"name": "Central Weser Hills",
 			"id": "Central Weser Hills",
 			"locationID": [
@@ -515,10 +515,15 @@
 				}
 			]
 		},
-				{
-				"name": "Southern Weser Hills and Harz",
-				"id": "Southern Weser Hills and Harz",
-				"locationID": [
+		{
+			"name": "Nindorf",
+			"id": "Nindorf",
+			"locationID":[]
+		},
+		{
+			"name": "Southern Weser Hills and Harz",
+			"id": "Southern Weser Hills and Harz",
+			"locationID": [
 					{
 						"name": "Ballertasche",
 						"id": "BAL",
@@ -540,11 +545,11 @@
 						"locationID": []
 					}
 				]
-			},
-			{
-				"name": "Remscheid",
-				"id": "Remscheid",
-				"locationID": [
+		},
+		{
+			"name": "Remscheid",
+			"id": "Remscheid",
+			"locationID": [
 					{
 						"name": "Eschbach",
 						"id": "Eschbach",
@@ -555,36 +560,36 @@
 						"locationID": []
 					}
 				]
-			},
-			{
-				"name": "Rheinland-Pfalz",
-				"id": "Rheinland-Pfalz",
-				"geospatialInfo": {
+		},
+		{
+			"name": "Rheinland-Pfalz",
+			"id": "Rheinland-Pfalz",
+			"geospatialInfo": {
 					"lat": 50.137861,
 					"long": 7.167395
 				},
-				"locationID": []
-			},
-		  {
-			  "name": "Wasserburgertal",
-			  "id": "WBT",
-			  "geospatialInfo": {
+			"locationID": []
+		},
+		{
+			"name": "Wasserburgertal",
+			"id": "WBT",
+			"geospatialInfo": {
 				  "lat": 47.896,
 				  "long": 8.853
 			  },
-			  "locationID": []
-		  },
-		  {
+			"locationID": []
+		},
+		{
 			"name": "Wettenberg and Fohnbachtal",
 			"id": "Wettenberg and Fohnbachtal",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Wolbecker Tiergarten",
 			"id": "Wolbecker Tiergarten",
 			"locationID": []
-		  },
-		  {
+		},
+		{
 			"name": "Wuppertal",
 			"id": "Wuppertal",
 			"locationID": [
@@ -643,8 +648,8 @@
 					"locationID": []
 				}
 			]
-		  },
-		  {
+		},
+		{
 			"name": "Zwickau",
 			"id": "Zwickau",
 			"locationID": [
