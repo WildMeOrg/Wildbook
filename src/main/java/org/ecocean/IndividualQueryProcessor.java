@@ -97,7 +97,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
             Util.isUUID(request.getParameter("organizationId"))) {
             String orgId = request.getParameter("organizationId");
             filter =
-                "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && user.username == enc.submitterID && org.members.contains(user) && org.id == '"
+                "SELECT FROM org.ecocean.MarkedIndividual WHERE user.username == enc.submitterID && encounters.contains(enc) && org.members.contains(user) && org.id == '"
                 + orgId + "'";
             String variables_statement =
                 " VARIABLES org.ecocean.Encounter enc; org.ecocean.User user; org.ecocean.Organization org";
