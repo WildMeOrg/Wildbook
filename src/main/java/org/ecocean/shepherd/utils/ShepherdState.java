@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * See, e.g., Shepherd transaction handlers, Shepherd.setAction(...), RestServlet.doGet(...), etc.
  * A state dump can be accessed via dbconnections.jsp
  *
+ * todo:  consider rewriting this as an event-driven service where shepherds publish events
+ *   that are handled centrally instead of manual set/remove ... more scalable, less likely to leak, better scope control ...
  * <p><strong>Note:</strong> This class is not intended to be instantiated.</p>
  */
 public final class ShepherdState {

@@ -2,22 +2,22 @@ package org.ecocean.shepherd.utils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.ecocean.extensions.StaticFieldClearExtension;
+
 class ShepherdStateTest {
 
-    @AfterEach
-    void tearDown() {
-        // Clear state after each test to avoid pollution
-        ShepherdState.getAllShepherdStates().clear();
-    }
+    @RegisterExtension
+    static StaticFieldClearExtension clearExtension =
+            new StaticFieldClearExtension(ShepherdState.class, "shepherds");
 
     @Test
     void testSetAndGetShepherdState() {
         ShepherdState.setShepherdState("shepherd1", "active");
-        String state = ShepherdState.getShepherdState("shepherd1");
-        assertEquals("active", state);
+        assertEquals("active", ShepherdState.getShepherdState("shepherd1"));
     }
 
     @Test
@@ -39,8 +39,7 @@ class ShepherdStateTest {
     void testOverwriteShepherdState() {
         ShepherdState.setShepherdState("shepherd4", "idle");
         ShepherdState.setShepherdState("shepherd4", "working");
-        String state = ShepherdState.getShepherdState("shepherd4");
-        assertEquals("working", state);
+        assertEquals("working", ShepherdState.getShepherdState("shepherd4"));
     }
 
     @Test
