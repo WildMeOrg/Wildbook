@@ -108,7 +108,7 @@ div.file-item div {
 </head>
 
 <h1 class="import-header">Bulk Import: Spreadsheet Upload</h1>
-<p class="import-explanation">Upload your Excel sheet (.xlsx) in Wildbook Standard Format.</p>
+<p class="import-explanation">Upload your Excel sheet (.xlsx) in ArgusWild Standard Format.</p>
 
 <div id="file-activity"></div>
 

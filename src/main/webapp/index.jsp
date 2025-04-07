@@ -185,18 +185,7 @@ h2.vidcap {
 
 
 <section class="hero container-fluid main-section relative main-background">
-    <div class="container relative">
-        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <div id="index-splash-text">
-
-                <h1 class="hidden">Wildbook for African Carnivores</h1>
-                <!--<h2>Wildbook for Carnivores</h2>-->
-                <a href="submit.jsp">
-                    <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
-                </a>
-            </div>
-        </div>
-	</div>
+    
 </section>
 
 

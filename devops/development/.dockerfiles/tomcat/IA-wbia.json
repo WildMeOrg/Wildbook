@@ -11,34 +11,316 @@
     "get_job_status": "http://wbia:5000/api/engine/job/status/",
     "get_job_result": "http://wbia:5000/api/engine/job/result/"
   },
-  "Acinonyx": {
-    "jubatus": {
+  "Panthera": {
+    "onca": {
       "_detect_conf": [
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "jaguar_v3",
+          "model_tag": "jaguar_v2",
           "labeler_algo": "densenet",
-          "labeler_model_tag": "cheetah_v1",
-          "model_tag": "cheetah_v1",
-          "nms_aware": "byclass",
-          "nms_thresh": 0.6,
-          "sensitivity": 0.62
+          "sensitivity": 0.5,
+          "nms_thresh": 0.5
         }
       ],
-      "cheetah": {
+      "jaguar": {
         "_id_conf": [
-          {
-            "query_config_dict": {
-              "sv_on": true
-            }
-          },
           {
             "query_config_dict": {
               "pipeline_root": "MiewId"
             },
             "description": "MiewID Matcher",
             "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
+      }
+    },
+    "pardus": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+      "leopard": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      }
+    },
+    "uncia": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "snow_leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.44,
+          "nms_thresh": 0.4
+        }
+      ],
+      "snow_leopard": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      }
+    },
+    "leo": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "lions_v0",
+          "model_tag": "lions_v0",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.4,
+          "nms_aware": "ispart"
+        }
+      ],
+      "lion": {
+        "_id_conf": []
+      },
+      "lioness": {
+        "_save_as": "lion",
+        "_id_conf": []
+      },
+      "lion_general": {
+        "_save_as": "lion",
+        "_id_conf": []
+      },
+      "lion+head": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "lioness+head": {
+        "_save_as": "lion+head",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "lion_general+head": {
+        "_save_as": "lion+head",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      }
+    }
+  },
+  "Leopardus": {
+    "pardalis": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+      "leopard": {
+        "_save_as": "ocelot",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "ocelot": {
+        "_id_conf": "@Leopardus.pardalis.leopard._id_conf"
+      }
+    },
+    "guttulus": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "snow_leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.44,
+          "nms_thresh": 0.4
+        }
+      ],
+      "snow_leopard": {
+        "_save_as": "tiger_cat",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "tiger_cat": {
+        "_id_conf": "@Leopardus.guttulus.snow_leopard._id_conf"
+      }
+    },
+    "wiedii": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+      "leopard": {
+        "_save_as": "margay",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "margay": {
+        "_id_conf": "@Leopardus.wiedii.leopard._id_conf"
+      }
+    }
+  },
+  "Neofelis": {
+    "nebulosa": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "leopard_v0",
+          "model_tag": "leopard_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.73,
+          "nms_thresh": 0.5
+        }
+      ],
+
+      "leopard": {
+        "_save_as": "clouded_leopard",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "clouded_leopard": {
+        "_id_conf": "@Neofelis.nebulosa.leopard._id_conf"
       }
     }
   },
@@ -47,25 +329,341 @@
       "_detect_conf": [
         {
           "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "hyaena_v0",
           "labeler_algo": "densenet",
+          "model_tag": "hyaena_v0",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.4
+        }
+      ],
+      "hyaena": {
+        "_save_as": "spotted_hyena",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "spotted_hyena": {
+        "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
+      }
+    }
+  },
+  "Hyaena": {
+    "hyaena": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "hyaena_v0",
           "model_tag": "hyaena_v0",
-          "nms_aware": null,
-          "nms_thresh": 0.7,
-          "sensitivity": 0.74
+          "labeler_algo": "densenet",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.7
         }
       ],
       "hyaena": {
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }
     }
   },
+  "Parahyaena": {
+    "brunnea": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "model_tag": "hyaena_v0",
+          "labeler_model_tag": "hyaena_v0",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.4
+        }
+      ],
+      "hyaena": {
+        "_save_as": "hyaena_brown",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "hyaena_brown": {
+        "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
+      }
+    }
+  },
+
+  "Puma": {
+    "concolor": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "lions_v0",
+          "model_tag": "lions_v0",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.7,
+          "nms_thresh": 0.4,
+          "nms_aware": "ispart"
+        }
+      ],
+      "lion": {
+        "_save_as": "cougar",
+        "_id_conf": []
+      },
+      "lion+head": {
+        "_save_as": "cougar+head",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "lioness+head": {
+        "_save_as": "cougar+head",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+
+      "lioness": {
+        "_save_as": "cougar",
+        "_id_conf": []
+      },
+      "lion_general": {
+        "_save_as": "cougar",
+        "_id_conf": []
+      },
+      "lion_general+head": {
+        "_save_as": "cougar+head",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+
+      "cougar": {
+        "_id_conf": "@Puma.concolor.lion._id_conf"
+      },
+      "cougar+head": {
+        "_id_conf": "@Puma.concolor.lion+head._id_conf"
+      }
+    }
+  },
+
+  "Leptailurus": {
+    "serval": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "cheetah_v2",
+          "model_tag": "cheetah_v2",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4
+        }
+      ],
+      "cheetah": {
+        "_save_as": "serval",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "serval": {
+        "_id_conf": "@Leptailurus.serval.cheetah._id_conf"
+      }
+    }
+  },
+
+  "Genetta": {
+    "genetta": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "cheetah_v2",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4
+        }
+      ],
+      "genet": {
+        "_id_conf": "@Genetta.genetta.cheetah._id_conf"
+      },
+      "cheetah": {
+        "_save_as": "genet",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      }
+    },
+    "tigrina": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_model_tag": "snow_leopard_v0",
+          "model_tag": "cheetah_v2",
+          "labeler_algo": "densenet",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4
+        }
+      ],
+      "cheetah": {
+        "_save_as": "genet",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "genet": {
+        "_id_conf": "@Genetta.genetta.cheetah._id_conf"
+      }
+    }
+  },
+
+  "Acinonyx": {
+    "jubatus": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "cheetah_v2",
+          "model_tag": "cheetah_v2",
+          "sensitivity": 0.64,
+          "nms_thresh": 0.4,
+          "nms_aware": "byclass"
+        }
+      ],
+      "cheetah": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      }
+    }
+  },
+
   "Lycaon": {
     "pictus": {
       "_detect_conf": [
@@ -87,9 +685,43 @@
             "query_config_dict": {
               "n": 20,
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
           }
         ]
+      },
+
+      "wild_dog_ambiguous": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyAmbiguous"
+      },
+      "wild_dog_dark": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyDark"
+      },
+      "wild_dog_general": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyGeneral"
+      },
+      "wild_dog_puppy": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "Puppy"
+      },
+      "wild_dog_standard": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyStandard"
+      },
+      "wild_dog_tan": {
+        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
+        "_save_keyword": "BodyTan"
       },
       "wild_dog+tail_ambiguous": {
         "_id_conf": [],
@@ -105,7 +737,6 @@
       },
       "wild_dog+tail_general": {
         "_id_conf": [],
-        "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailGeneral"
       },
       "wild_dog+tail_long_black": {
@@ -127,79 +758,7 @@
       "wild_dog+tail_triple_black": {
         "_id_conf": [],
         "_save_keyword": "TailTripleBlack"
-      },
-      "wild_dog_ambiguous": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyAmbiguous"
-      },
-      "wild_dog_dark": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyDark"
-      },
-      "wild_dog_general": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_as": "wild_dog_general",
-        "_save_keyword": "BodyGeneral"
-      },
-      "wild_dog_puppy": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "Puppy"
-      },
-      "wild_dog_standard": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyStandard"
-      },
-      "wild_dog_tan": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyTan"
       }
-    }
-  },
-  "Panthera": {
-    "pardus": {
-      "_detect_conf": [
-        {
-          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
-
-          "labeler_algo": "densenet",
-          "model_tag": "leopard_v0",
-          "nms_aware": null,
-          "nms_thresh": 0.5,
-          "sensitivity": 0.73,
-          "viewpoint_model_tag": "leopard_v0"
-        }
-      ],
-      "leopard": {
-        "_id_conf": [
-          {
-            "query_config_dict": {
-              "sv_on": true
-            }
-          }
-        ]
-      }
-    }
-  },
-  "Leo": {
-    "_detect_conf": [
-      {
-        "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
-        "labeler_algo": "densenet",
-        "model_tag": "lions_v0",
-        "nms_aware": null,
-        "nms_thresh": 0.4,
-        "sensitivity": 0.74,
-        "viewpoint_model_tag": "lions_v0"
-      }
-    ],
-    "leopard": {
-      "_id_conf": [
-        {
-          "query_config_dict": {
-            "sv_on": true
-          }
-        }
-      ]
     }
   },
   "Lynx": {
@@ -212,17 +771,30 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
+        "_save_as": "lynx_canadensis",
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
+      },
+      "lynx_canadensis": {
+        "_id_conf": "@Lynx.canadensis.lynx_pardinus._id_conf"
       }
     },
     "rufus": {
@@ -234,17 +806,30 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
+        "_save_as": "lynx_rufus",
         "_id_conf": [
           {
             "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
+      },
+      "lynx_rufus": {
+        "_id_conf": "@Lynx.rufus.lynx_pardinus._id_conf"
       }
     },
     "lynx": {
@@ -256,37 +841,59 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3"
+        }
+      ],
+      "lynx_pardinus": {
+        "_save_as": "lynx_lynx",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "lynx_lynx": {
+        "_id_conf": "@Lynx.lynx.lynx_pardinus._id_conf"
+      }
+    },
+    "pardinus": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "model_tag": "lynx",
+          "nms_aware": null,
+          "nms_thresh": 0.4,
+          "sensitivity": 0.21,
+          "labeler_model_tag": "lynx_v3"
         }
       ],
       "lynx_pardinus": {
         "_id_conf": [
           {
             "query_config_dict": {
-              "sv_on": true
-            }
-          }
-        ]
-      }
-    },
-    "Pardinus": {
-      "_detect_conf": [
-        {
-          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
-          "labeler_algo": "densenet",
-          "model_tag": "lynx_v0",
-          "nms_aware": null,
-          "nms_thresh": 0.4,
-          "sensitivity": 0.21,
-          "viewpoint_model_tag": "lynx_v0"
-        }
-      ],
-      "lynx": {
-        "_id_conf": [
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
           {
             "query_config_dict": {
               "sv_on": true
-            }
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
           }
         ]
       }

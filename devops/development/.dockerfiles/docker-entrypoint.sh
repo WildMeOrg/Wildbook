@@ -11,4 +11,4 @@ apt-get install -y -qq imagemagick
 echo Done pre-initializing Wildbook.
 
 # now run tomcat normally
-$CATALINA_HOME/bin/catalina.sh run
+exec $CATALINA_HOME/bin/catalina.sh run

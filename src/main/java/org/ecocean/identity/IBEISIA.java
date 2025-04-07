@@ -14,7 +14,6 @@ import org.ecocean.IAJsonProperties;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
 import org.ecocean.LinkedProperties;
-import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.importer.ImportTask;
@@ -1862,7 +1861,10 @@ public class IBEISIA {
         ann.setViewpoint(vp);
         if (validForIdentification(ann, context) && iaConf.isValidIAClass(taxonomyBeforeDetection,
             iaClass)) {
-            ann.setMatchAgainst(true);
+                //matchAgainst = true; only do this if we have a valid IA class with identification
+            if (iaConf.identOpts(taxonomyBeforeDetection, iaClass).size() > 0){
+                ann.setMatchAgainst(true);
+            }
         }
         // record whether we do an iaClass swap, letting WBIA know - part 3
         if (madeIAClassSwap) {
@@ -2162,8 +2164,7 @@ public class IBEISIA {
                             Annotation annot = asset.getAnnotations().get(0);
                             Encounter enc = annot.findEncounter(myShepherd);
                             if (enc.getGenus() != null && enc.getSpecificEpithet() != null &&
-                                IA.getProperty(context, "matchTrivial",
-                                enc.getTaxonomy(myShepherd)) != null) {
+                                IA.getProperty(context, "matchTrivial", enc.getTaxonomy(myShepherd)) != null) {
                                 if (IA.getProperty(context, "matchTrivial",
                                     enc.getTaxonomy(myShepherd)).equals("true")) {
                                     annot.setMatchAgainst(true);
@@ -4779,8 +4780,42 @@ public class IBEISIA {
             if (!Util.collectionIsEmptyOrNull(masToSend))
                 rtn.put("sendMediaAssets", plugin.sendMediaAssets(masToSend, false));
             Util.mark("sendAnnotationsAsNeeded 4 ", tt);
-            if (!Util.collectionIsEmptyOrNull(annsToSend))
-                rtn.put("sendAnnotations", plugin.sendAnnotations(annsToSend, false, myShepherd));
+            if (!Util.collectionIsEmptyOrNull(annsToSend)) {
+                JSONArray mergedResults = new JSONArray();
+            
+                int batchSize = 50;
+                int totalAnnotations = annsToSend.size();
+                for (int i = 0; i < totalAnnotations; i += batchSize) {
+                    int end = Math.min(i + batchSize, totalAnnotations);
+                    ArrayList<Annotation> batch = new ArrayList<>(annsToSend.subList(i, end));
+            
+                    try {
+                        JSONObject batchResult = plugin.sendAnnotations(batch, false, myShepherd);
+                        if (batchResult != null) {
+                            mergedResults.put(batchResult);
+                        }
+                    } catch (Exception batchException) {
+                        System.out.println("Batch failed, attempting individual sends: " + batchException.toString());
+            
+                        // Try sending each annotation individually
+                        for (Annotation ann : batch) {
+                            try {
+                                ArrayList<Annotation> singleAnnList = new ArrayList<>();
+                                singleAnnList.add(ann);
+                                JSONObject singleResult = plugin.sendAnnotations(singleAnnList, false, myShepherd);
+                                if (singleResult != null) {
+                                    mergedResults.put(singleResult);
+                                }
+                            } catch (Exception singleException) {
+                                System.out.println("Single annotation send failed: " + singleException.toString());
+                            }
+                        }
+                    }
+                }
+            
+                rtn.put("sendAnnotations", mergedResults);
+            }
+            
         } catch (Exception ex) {
             rtn.put("sendAnnotMAException", ex.toString());
         }

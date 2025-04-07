@@ -51,7 +51,7 @@
         }
         session.invalidate();
 
-        response.sendRedirect(request.getContextPath() + "/react/login/");
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
 %>
@@ -130,7 +130,7 @@ if(request.getUserPrincipal()!=null){
 
       <script>
         function logoutAndRedirect() {
-            window.location.href = 'header.jsp?action=logout';
+            window.location.href = '/header.jsp?action=logout';
         }
       </script>
 
@@ -409,11 +409,11 @@ if(request.getUserPrincipal()!=null){
 
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
-          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
+          <nav class="navbar navbar-default navbar-fixed-top" style="min-height: 100px; background-color: #303336; display: flex; justify-content: center; align-items: center; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
               <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
-                  <img src="<%=urlLoc %>/cust/mantamatcher/img/acw_puppy_logo_stacked_left.svg" alt="Logo" style="height:45px;">                
+                  <img src="<%=urlLoc %>/cust/mantamatcher/img/acw_arguswild.png" alt="Logo" style="height:45px;">                
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
                     <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
@@ -428,7 +428,7 @@ if(request.getUserPrincipal()!=null){
                   </button>
 
                   <div id="navbar" class="navbar-collapse collapse">                
-                    <ul class="nav navbar-nav">
+                    <ul class="nav navbar-nav" style="align-items: center; margin-left: 25px;">
 
                       <%-- <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
                       </li> --%>
@@ -450,15 +450,11 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu solid-menu-background" role="menu">
 
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
-
                             <!-- <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li> -->
 
                             <li><a href="<%=urlLoc %>/aboutUs.jsp"><%=props.getProperty("aboutUs")%></a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li class="divider"></li>
-                            <li><a target="_blank" href="<%=urlLoc %>/learnMore.jsp"><%=props.getProperty("learnAboutShepherd")%></a></li>
                             <li><a target="_blank" href="<%=urlLoc %>/privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a></li>
                             <li><a target="_blank" href="<%=urlLoc %>/termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a></li>
                         	
@@ -535,6 +531,16 @@ if(request.getUserPrincipal()!=null){
 
                       </li>
                       <div class="search-and-secondary-wrapper d-flex" >
+                        <div class="search-wrapper">
+                          <label class="search-field-header">
+                                <form name="form2" id="header-search" style="margin: 0px;" method="get" action="<%=urlLoc %>/individuals.jsp">
+                                  <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                                  <input type="hidden" name="langCode" value="<%=langCode%>"/>
+                                  <span class="el el-lg el-search"></span>
+                              </form>
+                          </label>
+                        </div>
+                      </div>
                         <!-- notifications -->
                         <div id="notifications">
                           <% if(user != null && !loggingOut)
@@ -572,15 +578,12 @@ if(request.getUserPrincipal()!=null){
                                   }
                               }
 
-                              
-                              String selectedImgURL = "";
-                              if (selectedLangCode != null) {
-                                  selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + selectedLangCode + ".gif";
-                              }
+                              String selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/globe.png";
+
                             %>
                             
                             <div class="custom-select-selected" >
-                              <div class="selected-item" style="background-image: url('<%= selectedImgURL %>');"></div>
+                              <img class="globle-image" src="<%= selectedImgURL %>" alt="Flag">
                               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
                               </svg>
@@ -592,8 +595,7 @@ if(request.getUserPrincipal()!=null){
                                     String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif";
                                 %>
                                   <div onclick="selectItem(this, '<%= myLang %>', '<%= imgURL %>')">
-                                    <img src="<%= imgURL %>" alt="Flag" style="margin-right: 10px">
-                                    <%= langName %>
+                                    <%= WordUtils.capitalize(langName) %>
                                   </div>
                                 <%
                                 } 
@@ -621,7 +623,7 @@ if(request.getUserPrincipal()!=null){
                                   <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
                                   
                                   <ul class="dropdown-menu">
-                                      <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
+                                      <li><a href="<%=urlLoc %>/">Landing Page</a></li>
                                       <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
                                       <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
                                   </ul>   
@@ -633,7 +635,7 @@ if(request.getUserPrincipal()!=null){
                           }
                           else{
                             %>
-                              <a href="<%= request.getContextPath() %>/react/login/" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
+                              <a href="<%= request.getContextPath() %>/login.jsp" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
                         <%
                           }
 
@@ -685,6 +687,97 @@ if(request.getUserPrincipal()!=null){
               
           </script>
         </header>
+
+        <script>
+          $('#search-site').autocomplete({
+              // sortResults: true, // they're already sorted
+              appendTo: $('#navbar-top'),
+              response: function(ev, ui) {
+                  if (ui.content.length < 1) {
+                      $('#search-help').show();
+                  } else {
+                      $('#search-help').hide();
+                  }
+              },
+              select: function(ev, ui) {
+                  if (ui.item.type == "individual") {
+                      window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
+                  }
+                  else if (ui.item.type == "encounter") {
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
+                  }
+                  else if (ui.item.type == "locationID") {
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                  }
+                  /*
+                  //restore user later
+                  else if (ui.item.type == "user") {
+                      window.location.replace("/user/" + ui.item.value);
+                  }
+                  else {
+                      alertplus.alert("Unknown result [" + ui.item.value + "] of type [" + ui.item.type + "]");
+                  }
+                  */
+                  return false;
+              },
+              //source: app.config.wildbook.proxyUrl + "/search"
+              source: function( request, response ) {
+                  $.ajax({
+                      url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
+                      dataType: "json",
+                      data: {
+                          term: request.term
+                      },
+                      success: function( data ) {
+                          var res = $.map(data, function(item) {
+                              var label="";
+                              var nickname="";
+                              if ((item.type == "individual")&&(item.species!=null)) {
+  //                                label = item.species + ": ";
+                              }
+                              else if (item.type == "user") {
+                                  label = "User: ";
+                              } else {
+                                  label = "";
+                              }
+  
+                              if(item.nickname != null){
+                                nickname = " ("+item.nickname+")";
+                              }
+  
+                              return {label: label + item.label+nickname,
+                                      value: item.value,
+                                      type: item.type,
+                                      nickname: nickname};
+                              });
+  
+                          response(res);
+                      }
+                  });
+              }
+          });
+          //prevent enter key on tyeahead
+          $('#search-site').keydown(function (e) {
+                        if (e.keyCode == 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+          });
+  
+  
+          // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
+          let urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.has("organization")) {
+            let orgParam = urlParams.get("organization");
+            $.cookie("wildbookOrganization", orgParam, {
+                path    : '/',
+                secure  : false,
+                expires : 1
+            });
+          }
+  
+  
+          </script>
 
         <!-- ****/header**** -->
 

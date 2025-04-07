@@ -1066,13 +1066,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
               <%
             }
           } else {
-            String[] locales = Locale.getISOCountries();
-            for (String countryCode : locales) {
-              Locale obj = new Locale("", countryCode);
-              %>
-              <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-              <%
-            }
+            List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
+              for (String country: countries) {
+                %>
+                <option value="<%=country%>"><%=country%></option>
+                <%
+              }
           }
           %>
         </select>
@@ -1178,6 +1177,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   });
 </script>
 
+<%
+  if (CommonConfiguration.showProperty("maximumDepthInMeters",context)) {
+%>
+
 <div>
   <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
 
@@ -1198,6 +1201,11 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     </div>
   </form>
 </div>
+
+<%
+    }
+
+  %>
 
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
@@ -1528,7 +1536,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 
           <br/>
-          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span>
         </div>
 
      	<%

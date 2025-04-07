@@ -641,22 +641,6 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
       <p>
       <table align="left">
-        <tr>
-          <td><strong><%=encprops.getProperty("sex")%>: </strong>
-            <label> <input name="male"
-                           type="checkbox" id="male" value="male"
-                           checked> <%=encprops.getProperty("male")%>
-            </label>
-
-            <label> <input name="female"
-                           type="checkbox" id="female" value="female" checked>
-              <%=encprops.getProperty("female")%>
-            </label>
-            <label> <input name="unknown"
-                           type="checkbox" id="unknown" value="unknown" checked>
-              <%=encprops.getProperty("unknown")%>
-            </label></td>
-        </tr>
         <%
         if(CommonConfiguration.showProperty("showTaxonomy",context)){
         %>
@@ -691,6 +675,22 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	<%
 	}
 	%>
+        <tr>
+          <td><strong><%=encprops.getProperty("sex")%>: </strong>
+            <label> <input name="male"
+                           type="checkbox" id="male" value="male"
+                           checked> <%=encprops.getProperty("male")%>
+            </label>
+
+            <label> <input name="female"
+                           type="checkbox" id="female" value="female" checked>
+              <%=encprops.getProperty("female")%>
+            </label>
+            <label> <input name="unknown"
+                           type="checkbox" id="unknown" value="unknown" checked>
+              <%=encprops.getProperty("unknown")%>
+            </label></td>
+        </tr>
 
         <tr>
           <td><strong><%=encprops.getProperty("status")%>: </strong><label>

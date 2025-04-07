@@ -278,7 +278,7 @@ public class WildbookIAM extends IAPlugin {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset.acmId for " +
                     ann.getMediaAsset() + " on " + ann + "; skipping!");
                 continue;
-            }
+            }                
             acmList.add(ann);
             map.get("image_uuid_list").add(iid);
             int[] bbox = ann.getBbox();

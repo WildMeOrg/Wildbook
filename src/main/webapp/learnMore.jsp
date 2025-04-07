@@ -33,7 +33,6 @@ props = ShepherdProperties.getProperties("learnMore.properties", "en",context);
 <p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
 
 <br>
-<h4><%=props.getProperty("gotoWildbook") %> <a href="https://www.wildme.org">https://www.wildme.org</a></h4>
 
 <br/>
 
