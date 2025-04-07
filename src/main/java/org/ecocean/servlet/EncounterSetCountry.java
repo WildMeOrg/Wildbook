@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class EncounterSetCountry extends HttpServlet {
     public void init(ServletConfig config)

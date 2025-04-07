@@ -10,32 +10,25 @@ import org.ecocean.ia.plugin.*;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
-import org.ecocean.LinkedProperties;
-import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.RestKeyword;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Taxonomy;
 import org.ecocean.TwitterBot;
 import org.ecocean.TwitterUtil;
 import org.ecocean.Util;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 import javax.jdo.Query;
 
 import org.json.JSONArray;
@@ -63,10 +56,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // date time
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-import org.joda.time.LocalDateTime;
+
 
 public class IBEISIA {
     //  move this ish to its own class asap!

@@ -25,8 +25,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 
 import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdPMF;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 
 import org.json.JSONObject;
 
