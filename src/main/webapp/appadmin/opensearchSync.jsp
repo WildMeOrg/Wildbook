@@ -3,9 +3,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 java.util.Iterator,
 org.ecocean.media.*,
-org.ecocean.*
+org.ecocean.*,
+org.ecocean.shepherd.core.*
 "%>
-
 
 <%
 String indexName = request.getParameter("indexName");

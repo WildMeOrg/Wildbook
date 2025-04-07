@@ -7,8 +7,8 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdPMF;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.api.SiteSettings;
 import org.ecocean.Setting;
 import org.ecocean.User;

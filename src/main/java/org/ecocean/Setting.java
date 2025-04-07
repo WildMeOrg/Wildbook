@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class Setting implements java.io.Serializable {
     private String group;

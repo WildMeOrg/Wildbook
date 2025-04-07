@@ -25,6 +25,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -803,11 +804,10 @@ public class Annotation extends Base implements java.io.Serializable {
                 "usePartsForIdentification"))) {
                 String part = this.getPartIfPresent();
                 if (!Util.stringIsEmptyOrNull(part)) {
-                    // TODO really should check that iaClass ENDS WITH part
                     arg = new JSONObject();
-                    arg.put("iaClass", part);
+                    arg.put("iaClass", "*" + part);
                     wrapper = new JSONObject();
-                    wrapper.put("match", arg);
+                    wrapper.put("wildcard", arg);
                     query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
                         wrapper);
                     usedPart = true;
