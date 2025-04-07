@@ -467,13 +467,6 @@ public class Shepherd {
         pm.deletePersistent(ad);
     }
 
-    // remove
-//    public void throwAwayKeyword(Keyword word) {
-//        String indexname = word.getIndexname();
-//
-//        pm.deletePersistent(word);
-//    }
-
     public void throwAwayOccurrence(Occurrence occ) {
         occ.opensearchUnindexQuiet();
         pm.deletePersistent(occ);
@@ -482,15 +475,6 @@ public class Shepherd {
     public void throwAwayProject(Project project) {
         pm.deletePersistent(project);
     }
-
-    // remove
-//    public void throwAwaySuperSpotArray(SuperSpot[] spots) {
-//        if (spots != null) {
-//            for (int i = 0; i < spots.length; i++) {
-//                pm.deletePersistent(spots[i]);
-//            }
-//        }
-//    }
 
     /**
      * Removes a marked individual from the database. ALL DATA FOR THE INDIVIDUAL WILL BE LOST!!
@@ -501,17 +485,6 @@ public class Shepherd {
     public void throwAwayMarkedIndividual(MarkedIndividual bye_bye_sharky) {
         bye_bye_sharky.opensearchUnindexQuiet();
         pm.deletePersistent(bye_bye_sharky);
-    }
-
-    public void throwAwayTask(ScanTask sTask) {
-        String name = sTask.getUniqueNumber();
-
-        // throw away the task
-        pm.deletePersistent(sTask);
-        // PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
-        ShepherdPMF.getPMF(localContext).getDataStoreCache().unpin(sTask);
-        ShepherdPMF.getPMF(localContext).getDataStoreCache().evict(sTask);
-        // pmf=null;
     }
 
     public Encounter getEncounter(String num) {
@@ -593,18 +566,6 @@ public class Shepherd {
         }
         return tempMA;
     }
-// remove
-//    public MediaAssetSet getMediaAssetSet(String num) {
-//        MediaAssetSet tempMA = null;
-//
-//        try {
-//            tempMA = ((MediaAssetSet)(pm.getObjectById(pm.newObjectIdInstance(MediaAssetSet.class,
-//                num.trim()), true)));
-//        } catch (Exception nsoe) {
-//            return null;
-//        }
-//        return tempMA;
-//    }
 
     public Collaboration getCollaboration(String id) {
         Collaboration collab = null;
@@ -860,34 +821,6 @@ public class Shepherd {
         query.closeAll();
         return listy;
     }
-// remove
-//    public ArrayList<SocialUnit> getAllSocialUnits() {
-//        ArrayList<SocialUnit> units = null;
-//        Query q = pm.newQuery(SocialUnit.class);
-//
-//        try {
-//            Collection results = (Collection)q.execute();
-//            units = new ArrayList<SocialUnit>(results);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        q.closeAll();
-//        return units;
-//    }
-//
-//    public ArrayList<Membership> getAllMemberships() {
-//        ArrayList<Membership> mships = null;
-//        Query q = pm.newQuery(Membership.class);
-//
-//        try {
-//            Collection results = (Collection)q.execute();
-//            mships = new ArrayList<Membership>(results);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        q.closeAll();
-//        return mships;
-//    }
 
     public List<String> getAllMembershipRoles() {
         List<String> all = new ArrayList<String>();
@@ -1367,20 +1300,6 @@ public class Shepherd {
         }
     }
 
-    // remove
-//    public Keyword getKeywordDeepCopy(String name) {
-//        if (isKeyword(name)) {
-//            Keyword tempWord = ((Keyword)(getKeyword(name.trim())));
-//            Keyword transmitWord = null;
-//            try {
-//                transmitWord = (Keyword)(pm.detachCopy(tempWord));
-//            } catch (Exception e) {}
-//            return transmitWord;
-//        } else {
-//            return null;
-//        }
-//    }
-
     public ScanTask getScanTask(String uniqueID) {
         ScanTask tempTask = null;
 
@@ -1690,17 +1609,6 @@ public class Shepherd {
         }
         return true;
     }
-// remove
-//    public boolean isWorkspace(String num) {
-//        try {
-//            Workspace tempSpace = ((org.ecocean.Workspace)(pm.getObjectById(pm.newObjectIdInstance(
-//                Workspace.class, num.trim()), true)));
-//        } catch (Exception nsoe) {
-//            // nsoe.printStackTrace();
-//            return false;
-//        }
-//        return true;
-//    }
 
     public boolean isCommunity(String comName) {
         try {
@@ -1902,16 +1810,6 @@ public class Shepherd {
         }
         return true;
     }
-// remove
-//    public boolean isProject(String id) {
-//        try {
-//            Project tempProject = ((org.ecocean.Project)(pm.getObjectById(pm.newObjectIdInstance(
-//                Project.class, id.trim()), true)));
-//        } catch (Exception nsoe) {
-//            return false;
-//        }
-//        return true;
-//    }
 
     public boolean isRelationship(String type, String markedIndividualName1,
         String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2,
@@ -1951,38 +1849,6 @@ public class Shepherd {
         }
         return false;
     }
-
-    // remove
-//    /**
-//     * Adds a new individual to the database TODO: newShark -> newIndividual
-//     *
-//     * @param newShark the new individual to be added to the database
-//     * @see MarkedIndividual
-//     */
-//    public boolean addMarkedIndividual(MarkedIndividual newShark) {
-//        return storeNewMarkedIndividual(newShark);
-//    }
-//
-//    /**
-//     * Retrieves any unassigned encounters that are stored in the database - but not yet analyzed - to see whether they represent new or already
-//     * persistent sharks
-//     *
-//     * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
-//     * @see encounter, java.util.Iterator
-//     */
-//    public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
-//        String filter =
-//            "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == " +
-//            assetStoreId;
-//        String vars = " VARIABLES org.ecocean.media.AssetStore as";
-//
-//        filter = filter + vars;
-//        Query q = pm.newQuery(filter);
-//        Collection results = (Collection)q.execute();
-//        ArrayList<MediaAsset> al = new ArrayList(results);
-//        q.closeAll();
-//        return al;
-//    }
 
     public Iterator<Encounter> getAllEncountersNoFilter() {
         return getAllEncountersNoQuery();
@@ -2032,12 +1898,6 @@ public class Shepherd {
             return null;
         }
     }
-// remove
-//    public int getNumTaxonomies() {
-//        Iterator taxis = getAllTaxonomies();
-//
-//        return (Util.count(taxis));
-//    }
 
     public List<List<String>> getAllTaxonomyCommonNames() {return getAllTaxonomyCommonNames(false);
     }
@@ -2111,32 +1971,6 @@ public class Shepherd {
     public boolean isValidTaxonomyName(String sciName) {
         return getAllTaxonomyNames(true).contains(sciName.replaceAll("_", " "));
     }
-// remove
-//    public Iterator<Survey> getAllSurveysNoQuery() {
-//        try {
-//            Extent svyClass = pm.getExtent(Survey.class, true);
-//            Iterator it = svyClass.iterator();
-//            return it;
-//        } catch (Exception npe) {
-//            System.out.println(
-//                "Error encountered when trying to execute getAllSurveysNoQuery. Returning a null iterator.");
-//            npe.printStackTrace();
-//            return null;
-//        }
-//    }
-//
-//    public Iterator getAllAnnotationsNoQuery() {
-//        try {
-//            Extent annClass = pm.getExtent(Annotation.class, true);
-//            Iterator it = annClass.iterator();
-//            return it;
-//        } catch (Exception npe) {
-//            System.out.println(
-//                "Error encountered when trying to execute getAllAnnotationsNoQuery. Returning a null iterator.");
-//            npe.printStackTrace();
-//            return null;
-//        }
-//    }
 
     // note: where clause can also contain " ORDER BY xxx"
     public Iterator getAnnotationsFilter(String jdoWhereClause) {
@@ -2157,18 +1991,6 @@ public class Shepherd {
             return null;
         }
     }
-// remove
-//    public Iterator<Encounter> getAllAnnotations(String order) {
-//        Extent extClass = pm.getExtent(Annotation.class, true);
-//        Query q = pm.newQuery(extClass);
-//
-//        q.setOrdering(order);
-//        Collection c = (Collection)(q.execute());
-//        ArrayList list = new ArrayList(c);
-//        Iterator it = list.iterator();
-//        q.closeAll();
-//        return it;
-//    }
 
     public Iterator getAllMediaAssets() {
         try {
@@ -2202,38 +2024,6 @@ public class Shepherd {
             return null;
         }
     }
-// remove
-//    public ArrayList<MediaAsset> getAllMediaAssetsAsArray() {
-//        try {
-//            Extent maClass = pm.getExtent(MediaAsset.class, true);
-//            ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-//            MediaAsset ma = null;
-//            Iterator it = maClass.iterator();
-//            while (it.hasNext()) {
-//                ma = (MediaAsset)it.next();
-//                mas.add(ma);
-//            }
-//            return mas;
-//        } catch (Exception npe) {
-//            System.out.println(
-//                "Error encountered when trying to execute getAllMediaAssets. Returning a null iterator.");
-//            npe.printStackTrace();
-//            return null;
-//        }
-//    }
-//
-//    public Iterator getAllSinglePhotoVideosNoQuery() {
-//        try {
-//            Extent spvClass = pm.getExtent(SinglePhotoVideo.class, true);
-//            Iterator it = spvClass.iterator();
-//            return it;
-//        } catch (Exception npe) {
-//            System.out.println(
-//                "Error encountered when trying to execute getAllSinglePhotoVideosNoQuery. Returning a null iterator.");
-//            npe.printStackTrace();
-//            return null;
-//        }
-//    }
 
     public Iterator<ScanTask> getAllScanTasksNoQuery() {
         try {
@@ -2247,19 +2037,6 @@ public class Shepherd {
             return null;
         }
     }
-// remove
-//    public Iterator<ScanWorkItem> getAllScanWorkItemsNoQuery() {
-//        try {
-//            Extent taskClass = pm.getExtent(ScanWorkItem.class, true);
-//            Iterator it = taskClass.iterator();
-//            return it;
-//        } catch (Exception npe) {
-//            System.out.println(
-//                "Error encountered when trying to execute getAllScanWorkItemsNoQuery. Returning a null iterator.");
-//            npe.printStackTrace();
-//            return null;
-//        }
-//    }
 
     /**
      * Retrieves any all approved encounters that are stored in the database
@@ -2275,14 +2052,14 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection)(acceptedEncounters.execute());
+            c = (Collection) (acceptedEncounters.execute());
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2293,7 +2070,7 @@ public class Shepherd {
 
         try {
             // System.out.println("getAllOccurrences is called on query "+myQuery);
-            c = (Collection)(myQuery.execute());
+            c = (Collection) (myQuery.execute());
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2301,7 +2078,7 @@ public class Shepherd {
             return list;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2314,7 +2091,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+                    "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
             npe.printStackTrace();
             return null;
         }
@@ -2324,42 +2101,42 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection)(acceptedEncounters.execute());
+            c = (Collection) (acceptedEncounters.execute());
             ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
             return list;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Encounter> getAllEncounters(Query acceptedEncounters,
-        Map<String, Object> paramMap) {
+                                                Map<String, Object> paramMap) {
         Collection c;
 
         try {
-            c = (Collection)(acceptedEncounters.executeWithMap(paramMap));
+            c = (Collection) (acceptedEncounters.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences,
-        Map<String, Object> paramMap) {
+                                                  Map<String, Object> paramMap) {
         Collection c;
 
         try {
             // System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
-            c = (Collection)(acceptedOccurrences.executeWithMap(paramMap));
+            c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2367,7 +2144,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2378,57 +2155,19 @@ public class Shepherd {
 
         try {
             System.out.println("getAllSurveys is called on query " + acceptedSurveys +
-                " and paramMap " + paramMap);
-            c = (Collection)(acceptedSurveys.executeWithMap(paramMap));
+                    " and paramMap " + paramMap);
+            c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             System.out.println("getAllSurveys got " + list.size() + " surveys");
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
-// remove
-//    public List<PatterningPassport> getPatterningPassports() {
-//        int num = 0;
-//        ArrayList al = new ArrayList<PatterningPassport>();
-//
-//        try {
-//            // pm.getFetchPlan().setGroup("count");
-//            Query q = pm.newQuery(PatterningPassport.class); // no filter, so all instances match
-//            Collection results = (Collection)q.execute();
-//            num = results.size();
-//            al = new ArrayList<PatterningPassport>(results);
-//            q.closeAll();
-//        } catch (javax.jdo.JDOException x) {
-//            x.printStackTrace();
-//            // return num;
-//            System.out.println("getPatterningPassports EXCEPTION! " + num);
-//            return al;
-//        }
-//        // return num;
-//        System.out.println("getPatterningPassports. Returning a collection of length " + al.size() +
-//            ". " + num);
-//        return al;
-//    }
-//
-//    public List<Organization> getAllParentOrganizations() {
-//        ArrayList<Organization> al = new ArrayList<Organization>();
-//
-//        try {
-//            Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE parent == null");
-//            Collection results = (Collection)q.execute();
-//            al = new ArrayList<Organization>(results);
-//            q.closeAll();
-//        } catch (javax.jdo.JDOException x) {
-//            x.printStackTrace();
-//            return al;
-//        }
-//        return al;
-//    }
 
     public List<Organization> getAllOrganizationsForUser(User user) {
         ArrayList<Organization> al = new ArrayList<Organization>();
@@ -2753,16 +2492,6 @@ public class Shepherd {
         samples.closeAll();
         return (al);
     }
-// remove
-//    public ArrayList<TissueSample> getAllTissueSamplesNoQuery() {
-//        Extent tsClass = pm.getExtent(TissueSample.class, true);
-//        Query tsQuery = pm.newQuery(tsClass, "");
-//        Collection col = (Collection)(tsQuery.execute());
-//        ArrayList<TissueSample> samples = new ArrayList<>(col);
-//
-//        tsQuery.closeAll();
-//        return samples;
-//    }
 
     public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
         ArrayList<TissueSample> al = new ArrayList<TissueSample>();
@@ -2932,11 +2661,6 @@ public class Shepherd {
         return mergeTasks;
     }
 
-    // remove
-//    public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasks() {
-//        return getAllWildbookScheduledTasksWithFilter("");
-//    }
-
     public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasksWithFilter(String filter) {
         ArrayList<WildbookScheduledTask> taskList = new ArrayList();
         Query query = null;
@@ -3051,35 +2775,6 @@ public class Shepherd {
         }
         return indiv;
     }
-// remove
-//    public Keyword getKeywordById(String indexname) {
-//        Keyword indiv = null;
-//
-//        try {
-//            indiv = ((org.ecocean.Keyword)(pm.getObjectById(pm.newObjectIdInstance(Keyword.class,
-//                indexname.trim()), true)));
-//        } catch (Exception nsoe) {
-//            return null;
-//        }
-//        return indiv;
-//    }
-//
-//    public Keyword getKeywordByNameFast(String readableName) {
-//        ArrayList al = new ArrayList();
-//
-//        try {
-//            String filter = "this.readableName.toLowerCase() == \"" + readableName.toLowerCase() +
-//                "\"";
-//            Extent keyClass = pm.getExtent(Keyword.class, true);
-//            Query acceptedKeywords = pm.newQuery(keyClass, filter);
-//            Collection c = (Collection)(acceptedKeywords.execute());
-//            al = new ArrayList(c);
-//            try {
-//                acceptedKeywords.closeAll();
-//            } catch (NullPointerException npe) {}
-//        } catch (Exception e) { e.printStackTrace(); }
-//        return ((al.size() > 0) ? ((Keyword)al.get(0)) : null);
-//    }
 
     public MarkedIndividual getMarkedIndividual(Encounter enc) {
         if (enc == null) return null;
@@ -3241,29 +2936,6 @@ public class Shepherd {
         projectQuery.closeAll();
         return list;
     }
-// remove
-//    public Iterator getAllWorkspaces() {
-//        Extent allWorkspaces = null;
-//
-//        try {
-//            allWorkspaces = pm.getExtent(Workspace.class, true);
-//        } catch (javax.jdo.JDOException x) {
-//            x.printStackTrace();
-//        }
-//        Query spaces = pm.newQuery(allWorkspaces);
-//        Collection c = (Collection)(spaces.execute());
-//        ArrayList list = new ArrayList(c);
-//        spaces.closeAll();
-//        Iterator it = list.iterator();
-//        return it;
-//    }
-//
-//    public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharks) {
-//        Collection c = (Collection)(sharks.execute());
-//        Iterator it = c.iterator();
-//
-//        return it;
-//    }
 
     /**
      * Retrieves an Iterator of all the sharks in the database, ordered according to the input String
@@ -3504,30 +3176,6 @@ public class Shepherd {
         Annotation ann = ma.getAnnotations().get(0);
         return ann.findEncounter(this);
     }
-// remove
-//    // Added in for media assets by specie - Sarah Schibel
-//    public Long countMediaAssetsBySpecies(String genus, String specificEpithet,
-//        Shepherd myShepherd) {
-//        Long myValue = new Long(0);
-//        Query q2 = myShepherd.getPM().newQuery(
-//            "SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.genus=='" + genus +
-//            "' && enc.specificEpithet=='" + specificEpithet +
-//            "' && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
-//
-//        myValue = (Long)q2.execute();
-//        q2.closeAll();
-//        return myValue;
-//    }
-//
-//    public Long countMediaAssets(Shepherd myShepherd) {
-//        Long myValue = new Long(0);
-//        Query q2 = myShepherd.getPM().newQuery(
-//            "SELECT count(this) FROM org.ecocean.media.MediaAsset");
-//
-//        myValue = (Long)q2.execute();
-//        q2.closeAll();
-//        return myValue;
-//    }
 
     /**
      * Opens the database up for information retrieval, storage, and removal
@@ -3892,16 +3540,6 @@ public class Shepherd {
         System.out.println("got a set of size " + (al != null ? al.size() : "ERROR"));
         return al;
     }
-// remove
-//    public Set<String> getAllKeywordNames() {
-//        Set<Keyword> keywords = getAllKeywordsSet();
-//        Set<String> kwNames = new HashSet<String>();
-//
-//        for (Keyword kword : keywords) {
-//            kwNames.add(kword.getReadableName());
-//        }
-//        return kwNames;
-//    }
 
     public int getNumKeywords() {
         Extent allWords = null;
@@ -3919,83 +3557,6 @@ public class Shepherd {
         q.closeAll();
         return num;
     }
-// remove
-//    public List<SinglePhotoVideo> getThumbnails(Shepherd myShepherd, HttpServletRequest request,
-//        ArrayList<String> encList, int startNum, int endNum, String[] keywords) {
-//        ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
-//        boolean stopMe = false;
-//        int encIter = 0;
-//        int count = 0;
-//        int numEncs = encList.size();
-//
-//        // while (it.hasNext()) {
-//        while ((count <= endNum) && (encIter < numEncs)) {
-//            String nextCatalogNumber = encList.get(encIter);
-//            int numImages = getNumAnnotationsForEncounter(nextCatalogNumber);
-//            if ((count + numImages) >= startNum) {
-//                Encounter enc = myShepherd.getEncounter(nextCatalogNumber);
-//                List<SinglePhotoVideo> images = getAllSinglePhotoVideosForEncounter(
-//                    enc.getCatalogNumber());
-//                for (int i = 0; i < images.size(); i++) {
-//                    count++;
-//                    if ((count <= endNum) && (count >= startNum)) {
-//                        String m_thumb = "";
-//
-//                        // check for video or image
-//                        String imageName = (String)images.get(i).getFilename();
-//
-//                        // check if this image has one of the assigned keywords
-//                        boolean hasKeyword = false;
-//                        if ((keywords == null) || (keywords.length == 0)) {
-//                            hasKeyword = true;
-//                        } else {
-//                            int numKeywords = keywords.length;
-//                            for (int n = 0; n < numKeywords; n++) {
-//                                if (!keywords[n].equals("None")) {
-//                                    Keyword word = getKeyword(keywords[n]);
-//                                    if ((images.get(i).getKeywords() != null) &&
-//                                        images.get(i).getKeywords().contains(word)) {
-//                                        hasKeyword = true;
-//                                    }
-//                                } else {
-//                                    hasKeyword = true;
-//                                }
-//                            }
-//                        }
-//                        // check for specific filename conditions here
-//                        if ((request.getParameter("filenameField") != null) &&
-//                            (!request.getParameter("filenameField").equals(""))) {
-//                            String nameString = ServletUtilities.cleanFileName(
-//                                ServletUtilities.preventCrossSiteScriptingAttacks(
-//                                request.getParameter("filenameField").trim()));
-//                            if (!nameString.equals(imageName)) { hasKeyword = false; }
-//                        }
-//                        if (hasKeyword && isAcceptableVideoFile(imageName)) {
-//                            m_thumb = request.getScheme() + "://" +
-//                                CommonConfiguration.getURLLocation(request) + "/images/video.jpg" +
-//                                "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
-//                            // thumbs.add(m_thumb);
-//                            thumbs.add(images.get(i));
-//                        } else if (hasKeyword && isAcceptableImageFile(imageName)) {
-//                            m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" +
-//                                enc.getEncounterNumber() + "BREAK" + imageName;
-//                            // thumbs.add(m_thumb);
-//                            thumbs.add(images.get(i));
-//                        } else {
-//                            count--;
-//                        }
-//                    } else if (count > endNum) {
-//                        stopMe = true;
-//                    }
-//                }
-//            } // end if
-//            else {
-//                count += numImages;
-//            }
-//            encIter++;
-//        } // end while
-//        return thumbs;
-//    }
 
     public List<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request,
         Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
@@ -4372,17 +3933,6 @@ public class Shepherd {
         }
         return al;
     }
-// remove
-//    public List<String> getAllRoleNames() {
-//        Query q = pm.newQuery(Role.class);
-//
-//        q.setResult("distinct rolename");
-//        q.setOrdering("rolename ascending");
-//        Collection results = (Collection)q.execute();
-//        ArrayList al = new ArrayList(results);
-//        q.closeAll();
-//        return al;
-//    }
 
     public ArrayList<String> getAllUsernames() {
         Query q = pm.newQuery(User.class);
@@ -4444,17 +3994,6 @@ public class Shepherd {
         q.closeAll();
         return comNames;
     }
-// remove
-//    public List<String> getAllGenuses() {
-//        Query q = pm.newQuery(Encounter.class);
-//
-//        q.setResult("distinct genus");
-//        q.setOrdering("genus ascending");
-//        Collection results = (Collection)q.execute();
-//        ArrayList al = new ArrayList(results);
-//        q.closeAll();
-//        return al;
-//    }
 
     public List<String> getAllStrVals(Class fromClass, String fieldName) {
         Query q = pm.newQuery(fromClass);
@@ -4477,17 +4016,6 @@ public class Shepherd {
         }
         return indexVals;
     }
-// remove
-//    public List<String> getAllSpecificEpithets() {
-//        Query q = pm.newQuery(Encounter.class);
-//
-//        q.setResult("distinct specificEpithet");
-//        q.setOrdering("specificEpithet ascending");
-//        Collection results = (Collection)q.execute();
-//        ArrayList al = new ArrayList(results);
-//        q.closeAll();
-//        return al;
-//    }
 
     public List<String> getAllBehaviors() {
         System.out.println("getAllBehaviors!");
@@ -4523,17 +4051,6 @@ public class Shepherd {
         q.closeAll();
         return al;
     }
-// remove
-//    public List<String> getAllRecordedBy() {
-//        Query q = pm.newQuery(Encounter.class);
-//
-//        q.setResult("distinct recordedBy");
-//        q.setOrdering("recordedBy ascending");
-//        Collection results = (Collection)q.execute();
-//        ArrayList al = new ArrayList(results);
-//        q.closeAll();
-//        return al;
-//    }
 
     public Iterator<Survey> getAllSurveys() {
         Extent svyClass = pm.getExtent(Survey.class, true);
@@ -4541,21 +4058,6 @@ public class Shepherd {
 
         return svsIt;
     }
-
-    /* remove
-    public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
-        String filter = "((this.hashedSubmitterEmail.indexOf('" + hashedEmail +
-            "') != -1)||(this.hashedPhotographerEmail.indexOf('" + hashedEmail +
-            "') != -1)||(this.hashedInformOthers.indexOf('" + hashedEmail + "') != -1))";
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
-
-        acceptedEncounters.closeAll();
-        return al;
-    }
-    */
 
     public List<String> getAllPatterningCodes() {
         Query q = pm.newQuery(Encounter.class);
@@ -4567,17 +4069,6 @@ public class Shepherd {
         q.closeAll();
         return al;
     }
-// remove
-//    public List<String> getAllLifeStages() {
-//        Query q = pm.newQuery(Encounter.class);
-//
-//        q.setResult("distinct lifeStage");
-//        q.setOrdering("lifeStage ascending");
-//        Collection results = (Collection)q.execute();
-//        ArrayList al = new ArrayList(results);
-//        q.closeAll();
-//        return al;
-//    }
 
     public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName) {
         Extent encClass = pm.getExtent(Relationship.class, true);
@@ -4627,17 +4118,6 @@ public class Shepherd {
         }
         return roles;
     }
-// remove
-//    public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName) {
-//        Extent encClass = pm.getExtent(Relationship.class, true);
-//        String filter2use = "this.communityName == \"" + commName + "\"";
-//        Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-//        Collection c = (Collection)(acceptedEncounters.execute());
-//        ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
-//
-//        acceptedEncounters.closeAll();
-//        return listy;
-//    }
 
     public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1,
         String individualID2) {
@@ -4710,21 +4190,6 @@ public class Shepherd {
             return (al).get(0);
         } else { return null; }
     }
-
-    /* remove
-    public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
-        String filter = "correspondingEncounterNumber == \"" + encNum + "\"";
-        Extent encClass = pm.getExtent(Measurement.class, true);
-        Query samples = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(samples.execute());
-
-        if ((c != null) && (c.size() > 0)) {
-            ArrayList<Measurement> al = new ArrayList<Measurement>(c);
-            samples.closeAll();
-            return (al);
-        } else { return null; }
-    }
-    */
 
     public ArrayList<ScanTask> getAllScanTasksForUser(String user) {
         String filter = "submitter == \"" + user + "\"";
