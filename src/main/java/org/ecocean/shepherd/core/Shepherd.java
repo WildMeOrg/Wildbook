@@ -26,6 +26,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.*;
+import org.ecocean.shepherd.utils.ShepherdState;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -73,7 +74,7 @@ public class Shepherd {
                 pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
                 this.shepherdID = Util.generateUUID();
 
-                ShepherdPMF.setShepherdState(action + "_" + shepherdID, "new");
+                ShepherdState.setShepherdState(action + "_" + shepherdID, "new");
             } catch (JDOUserException e) {
                 System.out.println(
                     "Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
@@ -3189,7 +3190,7 @@ public class Shepherd {
             } else if (!pm.currentTransaction().isActive()) {
                 pm.currentTransaction().begin();
             }
-            ShepherdPMF.setShepherdState(action + "_" + shepherdID, "begin");
+            ShepherdState.setShepherdState(action + "_" + shepherdID, "begin");
 
             pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
         } catch (JDOUserException jdoe) {
@@ -3222,7 +3223,7 @@ public class Shepherd {
                 System.out.println("You are trying to commit an inactive transaction.");
                 // return false;
             }
-            ShepherdPMF.setShepherdState(action + "_" + shepherdID, "commit");
+            ShepherdState.setShepherdState(action + "_" + shepherdID, "commit");
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
             System.out.println("I failed to commit a transaction." + "\n" + jdoe.getStackTrace());
@@ -3267,8 +3268,8 @@ public class Shepherd {
             if ((pm != null) && (!pm.isClosed())) {
                 pm.close();
             }
-            // ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
-            ShepherdPMF.removeShepherdState(action + "_" + shepherdID);
+            // ShepherdState.setShepherdState(action+"_"+shepherdID, "close");
+            ShepherdState.removeShepherdState(action + "_" + shepherdID);
 
             // logger.info("A PersistenceManager has been successfully closed.");
         } catch (JDOUserException jdoe) {
@@ -3294,7 +3295,7 @@ public class Shepherd {
             } else {
                 // System.out.println("You are trying to rollback an inactive transaction.");
             }
-            ShepherdPMF.setShepherdState(action + "_" + shepherdID, "rollback");
+            ShepherdState.setShepherdState(action + "_" + shepherdID, "rollback");
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (JDOFatalUserException fdoe) {
@@ -4435,12 +4436,12 @@ public class Shepherd {
     public void setAction(String newAction) {
         String state = "";
 
-        if (ShepherdPMF.getShepherdState(action + "_" + shepherdID) != null) {
-            state = ShepherdPMF.getShepherdState(action + "_" + shepherdID);
-            ShepherdPMF.removeShepherdState(action + "_" + shepherdID);
+        if (ShepherdState.getShepherdState(action + "_" + shepherdID) != null) {
+            state = ShepherdState.getShepherdState(action + "_" + shepherdID);
+            ShepherdState.removeShepherdState(action + "_" + shepherdID);
         }
         this.action = newAction;
-        ShepherdPMF.setShepherdState(action + "_" + shepherdID, state);
+        ShepherdState.setShepherdState(action + "_" + shepherdID, state);
     }
 
     public String getAction() { return action; }

@@ -26,6 +26,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.utils.ShepherdState;
 import org.ecocean.Util;
 
 import javax.jdo.Query;
@@ -173,13 +174,13 @@ public class LightRestServlet extends HttpServlet {
                 String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
                 // PersistenceManager pm = pmf.getPersistenceManager();
                 String servletID = Util.generateUUID();
-                // ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "new");
+                // ShepherdState.setShepherdState("LightRestServlet.class"+"_"+servletID, "new");
 
                 System.out.println("        LIGHTREST: has queryString " + queryString);
 
                 try {
                     myShepherd.beginDBTransaction();
-                    // ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "begin");
+                    // ShepherdState.setShepherdState("LightRestServlet.class"+"_"+servletID, "begin");
 
                     Query query = myShepherd.getPM().newQuery("JDOQL", queryString);
                     if (fetchParam != null) {
