@@ -3,8 +3,8 @@ import { screen } from "@testing-library/react";
 import { renderWithProviders } from "../../utils/utils";
 import AdminLogs from "../../pages/AdminLogs";
 
-jest.mock("../../components/Card", () => ({ title, link }) => {
-  const mockComponent = () => (
+jest.mock("../../components/Card", () => {
+  const mockComponent = ({ title, link }) => (
     <div data-testid="log-card">
       <div>{title}</div>
       <div>{link}</div>
