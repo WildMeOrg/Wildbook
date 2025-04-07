@@ -21,7 +21,7 @@ jest.mock("../../../constants/navMenu", () => ({
   ],
 }));
 
-test('renders "Submit" in the menu and matches snapshot', () => {
+test('renders "Submit" in the menu', () => {
   render(
     <IntlProvider locale="en">
       <Menu username="tomcat" />
