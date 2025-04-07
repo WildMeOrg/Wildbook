@@ -73,6 +73,6 @@ describe("ImageLabelFilter Component", () => {
 
     fireEvent.click(andOperatorCheckbox);
 
-    expect(mockStore.removeFilterByFilterKey).not.toHaveBeenCalled(); // initial click just toggles local state
+    expect(mockStore.removeFilterByFilterKey).not.toHaveBeenCalled();
   });
 });

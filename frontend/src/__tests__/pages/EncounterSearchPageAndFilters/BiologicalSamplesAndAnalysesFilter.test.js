@@ -66,9 +66,6 @@ describe("BiologicalSamplesAndAnalysesFilter Component", () => {
     );
     fireEvent.click(checkbox); // Uncheck
     expect(checkbox).not.toBeChecked();
-    // await waitFor(() => {
-    //     expect(mockStore.removeFilter).toHaveBeenCalled();
-    // });
   });
 
   it("updates allele length input correctly", () => {
@@ -184,7 +181,6 @@ describe("BiologicalSamplesAndAnalysesFilter Component", () => {
 
   it("checks if all expected elements are rendered", () => {
     renderComponent();
-    // expect(screen.getByRole("form")).toBeInTheDocument();
     expect(screen.getAllByRole("textbox")).toHaveLength(5);
     expect(screen.getAllByRole("combobox")).toHaveLength(4);
   });
@@ -194,7 +190,7 @@ describe("BiologicalSamplesAndAnalysesFilter Component", () => {
     fireEvent.click(
       screen.getByRole("checkbox", { name: /FILTER_HAS_BIOLOGICAL_SAMPLE/i }),
     );
-    renderComponent(); // Re-render component
+    renderComponent();
     expect(mockStore.addFilter).toHaveBeenCalledTimes(1);
   });
 

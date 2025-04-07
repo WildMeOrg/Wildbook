@@ -33,7 +33,6 @@ export default function Menu({
         <Nav className="me-auto nav" key={idx}>
           <NavDropdown
             className="header-dropdown"
-            // key={`${Object.keys(item)[0]}-${idx}`}
             title={
               <span style={{ color: "white" }}>
                 <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />{" "}

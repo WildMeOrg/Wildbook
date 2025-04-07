@@ -30,7 +30,6 @@ describe("IdentityFilter Component", () => {
   test("handles numeric input correctly", () => {
     renderComponent();
 
-    // const numericInput = screen.getByPlaceholderText("Type number");
     const numericInput = document.querySelectorAll(
       'input[type="text"].form-control',
     )[0];

@@ -1,7 +1,6 @@
 import React from "react";
 import { screen } from "@testing-library/react";
 import AnnotationSuccessful from "../../components/AnnotationSuccessful";
-// import '@testing-library/jest-dom/extend-expect';
 import { renderWithProviders } from "../../utils/utils";
 
 describe("AnnotationSuccessful", () => {

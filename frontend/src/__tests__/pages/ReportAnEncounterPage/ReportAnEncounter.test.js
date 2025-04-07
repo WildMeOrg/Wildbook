@@ -1,4 +1,3 @@
-
 import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../../utils/utils";
@@ -26,7 +25,7 @@ jest.mock(
   () => ({
     render: global.mockProCaptchaRender,
   }),
-  { virtual: true }
+  { virtual: true },
 );
 
 jest.mock("../../../pages/ReportsAndManagamentPages/ImageSection", () => ({
@@ -52,20 +51,23 @@ jest.mock("../../../components/FollowUpSection", () => ({
 
 import { ReportEncounterStore } from "../../../pages/ReportsAndManagamentPages/ReportEncounterStore";
 
-jest.mock("../../../pages/ReportsAndManagamentPages/ReportEncounterStore", () => ({
-  ReportEncounterStore: jest.fn().mockImplementation(() => ({
-    setIsHumanLocal: jest.fn(),
-    setShowSubmissionFailedAlert: jest.fn(),
-    validateFields: jest.fn(() => true),
-    submitReport: jest.fn().mockResolvedValue({ someKey: "someValue" }),
-    finished: false,
-    success: false,
-    showSubmissionFailedAlert: false,
-    isHumanLocal: false,
-    error: null,
-    setImageRequired: jest.fn(),
-  })),
-}));
+jest.mock(
+  "../../../pages/ReportsAndManagamentPages/ReportEncounterStore",
+  () => ({
+    ReportEncounterStore: jest.fn().mockImplementation(() => ({
+      setIsHumanLocal: jest.fn(),
+      setShowSubmissionFailedAlert: jest.fn(),
+      validateFields: jest.fn(() => true),
+      submitReport: jest.fn().mockResolvedValue({ someKey: "someValue" }),
+      finished: false,
+      success: false,
+      showSubmissionFailedAlert: false,
+      isHumanLocal: false,
+      error: null,
+      setImageRequired: jest.fn(),
+    })),
+  }),
+);
 
 const renderComponent = () => renderWithProviders(<ReportEncounter />, false);
 
@@ -105,7 +107,9 @@ describe("ReportEncounter Component", () => {
 
     renderComponent();
 
-    const submitButton = screen.getByRole("button", { name: /SUBMIT_ENCOUNTER/i });
+    const submitButton = screen.getByRole("button", {
+      name: /SUBMIT_ENCOUNTER/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -130,7 +134,9 @@ describe("ReportEncounter Component", () => {
 
     renderComponent();
 
-    const submitButton = screen.getByRole("button", { name: /SUBMIT_ENCOUNTER/i });
+    const submitButton = screen.getByRole("button", {
+      name: /SUBMIT_ENCOUNTER/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -154,32 +160,15 @@ describe("ReportEncounter Component", () => {
 
     renderComponent();
 
-    const submitButton = screen.getByRole("button", { name: /SUBMIT_ENCOUNTER/i });
+    const submitButton = screen.getByRole("button", {
+      name: /SUBMIT_ENCOUNTER/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText("SUBMISSION_FAILED")).toBeInTheDocument();
     });
   });
-
-  // test("renders captcha when user is not signed in", () => {
-  //   ReportEncounterStore.mockImplementation(() => ({
-  //     isHumanLocal: true,
-  //     setIsHumanLocal: jest.fn(),
-  //     validateFields: jest.fn(() => true),
-  //     submitReport: jest.fn(),
-  //     finished: false,
-  //     success: false,
-  //     setShowSubmissionFailedAlert: jest.fn(),
-  //     showSubmissionFailedAlert: false,
-  //     error: null,
-  //     setImageRequired: jest.fn(),
-  //   }));
-
-  //   renderComponent();
-
-  //   expect(screen.getByText("LOGIN_SIGN_IN")).toBeInTheDocument();
-  // });
 
   test("does not render captcha when user is logged in", () => {
     ReportEncounterStore.mockImplementation(() => ({
@@ -195,7 +184,9 @@ describe("ReportEncounter Component", () => {
       setImageRequired: jest.fn(),
     }));
     renderWithProviders(<ReportEncounter />, true);
-    expect(document.getElementById("procaptcha-container")).not.toBeInTheDocument();
+    expect(
+      document.getElementById("procaptcha-container"),
+    ).not.toBeInTheDocument();
   });
 
   test("handles scrolling behavior", () => {
@@ -219,8 +210,12 @@ describe("ReportEncounter Component", () => {
     renderComponent();
 
     expect(localStorage.removeItem).toHaveBeenCalledWith("species");
-    expect(localStorage.removeItem).toHaveBeenCalledWith("followUpSection.submitter.name");
-    expect(localStorage.removeItem).toHaveBeenCalledWith("followUpSection.submitter.email");
+    expect(localStorage.removeItem).toHaveBeenCalledWith(
+      "followUpSection.submitter.name",
+    );
+    expect(localStorage.removeItem).toHaveBeenCalledWith(
+      "followUpSection.submitter.email",
+    );
   });
 
   test("renders CAPTCHA when user is not signed in", async () => {
@@ -236,37 +231,6 @@ describe("ReportEncounter Component", () => {
 
     await waitFor(() => {
       expect(screen.getByText("LOGIN_SIGN_IN")).toBeInTheDocument();
-      // expect(screen.getByTestId("procaptcha-container")).toBeInTheDocument();
-      // expect(global.mockProCaptchaRender).toHaveBeenCalled();
-    });
-    await waitFor(() => {
-      // expect(global.mockProCaptchaRender).toHaveBeenCalled();
     });
   });
-
-  // test("handles CAPTCHA verification", async () => {
-  //   global.fetch = jest.fn(() =>
-  //     Promise.resolve({
-  //       json: () => Promise.resolve({ valid: true }),
-  //     })
-  //   );
-
-  //   renderComponent();
-
-  //   await waitFor(() => {
-  //     expect(global.fetch).toHaveBeenCalledWith("/ReCAPTCHA", expect.any(Object));
-  //   });
-  // });
-
-  // test("handles CAPTCHA error", async () => {
-  //   global.fetch = jest.fn(() => Promise.reject("Network error"));
-
-  //   renderComponent();
-
-  //   await waitFor(() => {
-  //     expect(console.error).toHaveBeenCalled();
-  //   });
-  // });
-
 });
-

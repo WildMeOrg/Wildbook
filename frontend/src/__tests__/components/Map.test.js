@@ -5,7 +5,6 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 
 jest.mock("../../models/useGetSiteSettings", () => jest.fn());
 
-// Mock react-intl
 jest.mock("react-intl", () => {
   const OriginalModule = jest.requireActual("react-intl");
   return {
@@ -52,15 +51,12 @@ describe("MapComponent", () => {
     render(<MapComponent setBounds={jest.fn()} />);
     const button = screen.getByRole("button");
 
-    // Initially: DRAW
     expect(button.textContent.toUpperCase()).toBe("DRAW");
 
     fireEvent.click(button);
-    // After click: CANCEL
     expect(button.textContent.toUpperCase()).toBe("CANCEL");
 
     fireEvent.click(button);
-    // After second click: DRAW
     expect(button.textContent.toUpperCase()).toBe("DRAW");
   });
 

@@ -47,12 +47,4 @@ describe("usePostHeaderQuickSearch", () => {
     expect(result.current.searchResults).toEqual([]);
     expect(result.current.loading).toBe(false);
   });
-
-  //   test("clears timeout on unmount", () => {
-  //     jest.useFakeTimers();
-  //     const { unmount } = renderHook(() => usePostHeaderQuickSearch("John"));
-  //     unmount();
-  //     expect(clearTimeout).toHaveBeenCalled();
-  //     jest.useRealTimers();
-  //   });
 });
