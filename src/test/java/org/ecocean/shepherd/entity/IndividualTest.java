@@ -194,20 +194,5 @@ public class IndividualTest {
 
     @Test
     public void testGetMarkedIndividualHard() {}  // deprecated
-
-    @Test
-    public void testGetMarkedIndividualById() {}  // used in getAllUsersForMarkedIndividual ... which is not used
-
-    @Test
-    public void testGetOrCreateMarkedIndividual() {} // no usage?
-
-    @Test
-    public void testGetMarkedIndividualsByAlternateID() {} // no usage?
-
-    @Test
-    public void testGetMarkedIndividualCaseInsensitive() {} // no usage?
-
-    @Test
-    public void testGetMarkedIndividualsByNickname() {} // no usage?
     */
 }
