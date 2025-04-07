@@ -10,32 +10,25 @@ import org.ecocean.ia.plugin.*;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
-import org.ecocean.LinkedProperties;
-import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.RestKeyword;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Taxonomy;
 import org.ecocean.TwitterBot;
 import org.ecocean.TwitterUtil;
 import org.ecocean.Util;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 import javax.jdo.Query;
 
 import org.json.JSONArray;
@@ -63,10 +56,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // date time
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-import org.joda.time.LocalDateTime;
+
 
 public class IBEISIA {
     //  move this ish to its own class asap!
@@ -1119,7 +1109,7 @@ public class IBEISIA {
     }
 
     private static void markSent(MediaAsset ma) {
-        alreadySentMA.put(ma.getId(), true);
+        alreadySentMA.put(ma.getIdInt(), true);
     }
 
     private static boolean needToSend(Annotation ann) {
@@ -1600,8 +1590,8 @@ public class IBEISIA {
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue; // was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getId())) {
-                            alreadyDetected.add(ma.getId());
+                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getIdInt())) {
+                            alreadyDetected.add(ma.getIdInt());
                             asset = ma;
                             break;
                         }
@@ -1674,7 +1664,7 @@ public class IBEISIA {
                     if (newAnns.length() > 0) {
                         List<Encounter> assignedEncs = asset.assignEncounters(myShepherd); // here is where we make some encounter(s) if we need to
                         rtn.put("_assignedEncsSize", assignedEncs.size());
-                        amap.put(Integer.toString(asset.getId()), newAnns);
+                        amap.put(Integer.toString(asset.getIdInt()), newAnns);
                         // now we have to collect them under an Occurrence and/or ImportTask as applicable
                         // we basically pick the first of these we find (in case there is more than one?)
                         // and only assign it where there is none.

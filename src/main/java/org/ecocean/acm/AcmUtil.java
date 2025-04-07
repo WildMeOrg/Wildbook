@@ -4,7 +4,7 @@ import java.util.List;
 import org.ecocean.Annotation;
 import org.ecocean.ia.IA;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class AcmUtil {
     // these take a list of objects and a parallel list of acmIds to assign
