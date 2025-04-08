@@ -37,6 +37,7 @@ public class OnWaterApp {
     public static String apiUsername = null;
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
+    public static String wildbookUsername = null;
     public static Properties props = null; // will be set by init()
     public static LocalAssetStore assetStore;
 
@@ -52,6 +53,8 @@ public class OnWaterApp {
         apiUsername = props.getProperty("apiUsername");
         apiPassword = props.getProperty("apiPassword");
         apiUrlPrefix = props.getProperty("apiUrlPrefix");
+        wildbookUsername = props.getProperty("wildbookUsername");
+        if (!Util.stringExists(wildbookUsername)) wildbookUsername = "admin";
     }
 
     public static boolean hasBeenInitialized() {
@@ -280,7 +283,7 @@ public class OnWaterApp {
 
         enc.setAppUserId(jin.optString("user", null));
 
-        enc.setSubmitterID("admin");
+        enc.setSubmitterID(wildbookUsername);
         enc.setState("unapproved");
 
         Survey survey = toSurvey(jin.optJSONObject("trip"), enc, myShepherd);
