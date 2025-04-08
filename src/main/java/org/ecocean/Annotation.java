@@ -764,8 +764,13 @@ public class Annotation extends Base implements java.io.Serializable {
         String txStr = enc.getTaxonomyString();
         if (txStr != null) {
             useClauses = true;
-            arg.put("encounterTaxonomy", txStr);
-            wrapper.put("match", arg);
+            if (txStr.endsWith(" sp")) {
+                arg.put("encounterTaxonomy", txStr.substring(0, txStr.length() - 2) + "*");
+                wrapper.put("wildcard", arg);
+            } else {
+                arg.put("encounterTaxonomy", txStr);
+                wrapper.put("match", arg);
+            }
             query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
         } else if (!Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
             "allowIdentificationWithoutTaxonomy"))) {
