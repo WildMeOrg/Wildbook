@@ -50,6 +50,9 @@ You can run specific test files or even specific tests within a file using Jest'
 `npm run jest -- LoginPage.test.js `                  # run a specific test file
 `npm run jest -- LoginPage.test.js -t 'renders login'` # run a specific test case\
 
+Writing Tests with React Testing Library
+ Tests for React components should focus on how the component behaves from the user's perspective, rather than testing implementation details. Testing Library helps you do this by providing tools to interact with your components the way users would.
+
 Testing Utilities
 Inside `/frontend/src/utils/utils.js`, you'll find pre-built helper functions to make testing easier.
 
