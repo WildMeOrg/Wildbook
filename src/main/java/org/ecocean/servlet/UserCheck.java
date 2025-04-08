@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 public class UserCheck extends HttpServlet {

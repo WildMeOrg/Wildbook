@@ -3,6 +3,7 @@ package org.ecocean.servlet.importer;
 import org.ecocean.*;
 import org.ecocean.media.*;
 import org.ecocean.servlet.*;
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;

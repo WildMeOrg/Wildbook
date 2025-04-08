@@ -12,7 +12,7 @@ import org.ecocean.Encounter;
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class EncounterRemoveSpots extends HttpServlet {
     public void init(ServletConfig config)

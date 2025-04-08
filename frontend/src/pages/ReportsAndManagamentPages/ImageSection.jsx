@@ -157,8 +157,8 @@ export const FileUploader = observer(({ store }) => {
         if (dateTime) {
           const f = dateTime.split(/\D+/);
           let datetime1;
-          if (f.length == 3) datetime1 = f.join("-");
-          if (f.length == 5 || f.length == 6)
+          if (f.length === 3) datetime1 = f.join("-");
+          if (f.length === 5 || f.length === 6)
             datetime1 = f.slice(0, 3).join("-") + " " + f.slice(3, 6).join(":");
           store.setExifDateTime(datetime1);
           // geo: latitude && longitude ? { latitude, longitude } : null,

@@ -12,7 +12,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Occurrence;
 import org.ecocean.security.Collaboration;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Taxonomy;
 import org.ecocean.User;
 import org.ecocean.Util;

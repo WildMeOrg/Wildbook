@@ -3,10 +3,11 @@
          org.datanucleus.api.jdo.JDOPersistenceManager,
          org.ecocean.social.*,
          org.datanucleus.FetchGroup,javax.jdo.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
-
-  <%
+<%
 
   String context="context0";
   context=ServletUtilities.getContext(request);
