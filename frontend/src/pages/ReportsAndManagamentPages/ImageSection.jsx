@@ -15,7 +15,7 @@ import { observer } from "mobx-react-lite";
 import { Alert } from "react-bootstrap";
 import EXIF from "exif-js";
 
-export const FileUploader = observer(({ store }) => {
+export const ImageSection = observer(({ store }) => {
   const [files, setFiles] = useState([]);
   const [flow, setFlow] = useState(null);
   // TODO Unused state, is it still required?
@@ -542,5 +542,3 @@ export const FileUploader = observer(({ store }) => {
     </div>
   );
 });
-
-export default FileUploader;

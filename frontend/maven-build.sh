@@ -13,6 +13,8 @@ cd frontend
 # from `package-lock.json` without modifying it, ensuring stability across environments.
 npm ci
 
+npm run jest
+
 npm run build
 
 rsync -a build/ ../src/main/webapp/react
