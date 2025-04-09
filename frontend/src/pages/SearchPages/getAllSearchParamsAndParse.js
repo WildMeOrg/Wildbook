@@ -27,7 +27,7 @@ const helperFunction = (
         "filter",
         {
           term: {
-            status: params.state,
+            state: params.state,
           },
         },
         "Encounter State",
@@ -35,8 +35,8 @@ const helperFunction = (
     }
     if (key === "searchQueryId") {
       store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
-      setTempFormFilters([...store.formFilters]);
     }
+    setTempFormFilters([...store.formFilters]);
   });
   setFilterPanel(false);
 };
