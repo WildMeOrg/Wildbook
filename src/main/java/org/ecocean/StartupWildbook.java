@@ -19,7 +19,6 @@ import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.media.LocalAssetStore;
 
 import org.ecocean.media.MediaAsset;
-import org.ecocean.OpenSearch;
 
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
