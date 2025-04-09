@@ -27,12 +27,30 @@ public class ShepherdProperties {
     // This is often set as the working directory.
     // Property files are resolved relative to this directory.
     // Can throw IllegalStateException if Tomcat is not running ... i.e., unit testing
-    private static Path getPropertiesBase() {
+    private static Path propertiesBase;
+
+    static {
+        initializePropertiesBase();
+    }
+
+    private static void initializePropertiesBase() {
         String catalinaHome = System.getProperty("catalina.home");
-        if (catalinaHome == null) {
-            throw new IllegalStateException("catalina.home system property is not set.");
+        if (catalinaHome != null && !catalinaHome.isEmpty()) {
+            propertiesBase = Paths.get(catalinaHome);
+        } else {
+            // Fall back to temp directory during unit tests or non-Tomcat runs
+            propertiesBase = Paths.get(System.getProperty("java.io.tmpdir"), "shepherd-properties");
+            System.err.println("[ShepherdProperties] Warning: 'catalina.home' not set. Using temp directory: " + propertiesBase);
         }
-        return Paths.get(catalinaHome);
+    }
+
+    public static Path getPropertiesBase() {
+        return propertiesBase;
+    }
+
+    // Allow unit tests to override the base path
+    public static void setPropertiesBaseForTesting(Path basePath) {
+        propertiesBase = basePath;
     }
 
     public static Properties getProperties(String fileName) {
@@ -165,7 +183,7 @@ public class ShepherdProperties {
          * */
         public static Properties loadProperties(@Nonnull String pathStr, Properties defaults) {
 
-        File propertiesFile = getPropertiesBase().resolve(pathStr).toFile();
+        File propertiesFile = propertiesBase.resolve(pathStr).toFile();
         if (!propertiesFile.exists()) return defaults;
         try {
             InputStream inputStream = Files.newInputStream(propertiesFile.toPath());
