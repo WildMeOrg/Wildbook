@@ -2662,7 +2662,7 @@ public class StandardImport extends HttpServlet {
                     ArrayList<MediaAsset> theseAssets = enc.getMedia();
                     for (MediaAsset assy : theseAssets) {
                         if (!assy.hasAcmId()) {
-                        	IAGateway.addToAcmIdQueue(context, Integer.toString(assy.getId()));
+                        	IAGateway.addToAcmIdQueue(context, assy.getId());
                         }
                     }
                 }

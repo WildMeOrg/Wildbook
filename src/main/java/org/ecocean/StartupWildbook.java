@@ -29,6 +29,7 @@ import org.ecocean.servlet.ServletUtilities;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 import java.io.IOException;
