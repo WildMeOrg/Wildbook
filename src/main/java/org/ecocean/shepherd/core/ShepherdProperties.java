@@ -25,8 +25,15 @@ public class ShepherdProperties {
 
     // The "catalina.home" property is the path to the Tomcat install ("Catalina Server").
     // This is often set as the working directory.
-    /** Property files are resolved relative to this directory. */
-    private static final Path propertiesBase = Paths.get(System.getProperty("catalina.home"));
+    // Property files are resolved relative to this directory.
+    // Can throw IllegalStateException if Tomcat is not running ... i.e., unit testing
+    private static Path getPropertiesBase() {
+        String catalinaHome = System.getProperty("catalina.home");
+        if (catalinaHome == null) {
+            throw new IllegalStateException("catalina.home system property is not set.");
+        }
+        return Paths.get(catalinaHome);
+    }
 
     public static Properties getProperties(String fileName) {
         return getProperties(fileName, "en");
@@ -150,14 +157,15 @@ public class ShepherdProperties {
         return (Properties)loadProperties(customUserPathString, props);
     }
 
-    /**
-     * Loads the properties file at the specified path, returning a default value upon failure.
-     * @param pathStr The path to the properties file, relative to the Tomcat install.
-     * @param defaults The value to return if the properties cannot be read or parsed.
-     * @return The parsed properties from the path provided, or the default value.
-     */
-    public static Properties loadProperties(@Nonnull String pathStr, Properties defaults) {
-        File propertiesFile = propertiesBase.resolve(pathStr).toFile();
+        /**
+          * Loads the properties file at the specified path, returning a default value upon failure.
+          * @param pathStr The path to the properties file, relative to the Tomcat install.
+          * @param defaults The value to return if the properties cannot be read or parsed.
+          * @return The parsed properties from the path provided, or the default value.
+         * */
+        public static Properties loadProperties(@Nonnull String pathStr, Properties defaults) {
+
+        File propertiesFile = getPropertiesBase().resolve(pathStr).toFile();
         if (!propertiesFile.exists()) return defaults;
         try {
             InputStream inputStream = Files.newInputStream(propertiesFile.toPath());
