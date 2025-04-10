@@ -34,6 +34,7 @@ public class IndividualAddComment extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         boolean locked = false;
+        String newComment = "";
 
         myShepherd.beginDBTransaction();
         if ((request.getParameter("individual") != null) &&
@@ -43,9 +44,10 @@ public class IndividualAddComment extends HttpServlet {
                 "individual"));
             if (ServletUtilities.isUserAuthorizedForIndividual(commentMe, request)) {
                 try {
-                    commentMe.addComments("<p><em>" + request.getParameter("user") + " on " +
+                    newComment = ("<p><em>" + request.getParameter("user") + " on " +
                         (new java.util.Date()).toString() + "</em><br>" +
                         request.getParameter("comments") + "</p>");
+                    commentMe.addComments(newComment);
                 } catch (Exception le) {
                     locked = true;
                     le.printStackTrace();
@@ -57,6 +59,7 @@ public class IndividualAddComment extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_OK);
                     out.println(
                         "<strong>Success:</strong> I have successfully added your comments.");
+                    out.println(newComment);
                     // out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) +
                     // "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") +
                     // "</a></p>\n");

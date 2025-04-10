@@ -89,7 +89,8 @@ public class EncounterSearchExportShapefile extends HttpServlet {
                 ("the_geom:Point:srid=4326," + // <- the geometry attribute: Point type
                 "Date:java.util.Date," + // <- a String attribute
                 "Encounter:String," + // a number attribute
-                "Individual:String," + // a number attribute
+                "Individual:String," + // a string attribute
+                "Name:String," + // a number attribute
                 "Sex:String," + // a number attribute
                 "Haplotype:String," + // a number attribute
                 "URL:String," + // a number attribute
@@ -140,6 +141,8 @@ public class EncounterSearchExportShapefile extends HttpServlet {
                     featureBuilder.set("Encounter", enc.getCatalogNumber());
                     featureBuilder.set("Individual",
                         ServletUtilities.handleNullString(enc.getIndividualID()));
+                    featureBuilder.set("Name",
+                        ServletUtilities.handleNullString(enc.getDisplayName()));
                     if (enc.getSex() != null) {
                         featureBuilder.set("Sex", enc.getSex());
                     }

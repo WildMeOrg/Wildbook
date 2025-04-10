@@ -28,28 +28,26 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         %>
 
         <!-- footer -->
-        <footer class="page-footer">
-
-            <div class="container-fluid">
-              <div class="container main-section">
-
-                <div class="row">
-                  <div class="col-sm-6" style="margin-top:40px;">
-                    <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
-                  <br> <a href="https://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
-                  </div>
-                  <div class="col-sm-6">
-
-
-                    <a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
-                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
-                    </a>
+        <div class="container d-flex flex-column align-items-center footer-font footer-container">
+            <div class="row w-100 text-center text-lg-left">
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me" class="footer-link text-reset px-2 footer-text">Donate</a>
+                    <a href="https://wildbook.docs.wildme.org/getting-started-with-wildbook.html" class="footer-link footer-text">Documentation</a>
                 </div>
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://community.wildme.org/" class="footer-link text-reset px-2 footer-text">Community Forum</a>
+                    <a href="https://github.com/WildMeOrg" class="footer-link text-reset px-2 footer-text">GitHub</a>
                 </div>
-              </div>
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://www.instagram.com/conservationxlabs" class="footer-link text-reset px-2 footer-text">Instagram</a>
+                    <a href="https://www.facebook.com/ConservationXLabs" class="footer-link text-reset px-2 footer-text">Facebook</a>
+                    <a href="https://twitter.com/conservationx" class="footer-link text-reset px-2 footer-text">X (Twitter)</a>
+                    <a href="https://www.linkedin.com/company/conservationxlabs/" class="footer-link text-reset px-2 footer-text">LinkedIn</a>
+                </div>
             </div>
+            <div class="footer-text w-100 py-3 text-center"><a href="https://github.com/WildMeOrg/Wildbook/releases/tag/<%=ContextConfiguration.getVersion() %>" target="_blank" style="color: inherit; text-decoration: none">V<%=ContextConfiguration.getVersion() %></a> | 2024 © Conservation X Labs | All Rights Reserved</div>
+        </div>
 
-        </footer>
         <!-- /footer -->
     </body>
 </html>

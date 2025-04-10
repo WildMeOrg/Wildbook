@@ -113,6 +113,7 @@ public class UserCreate extends HttpServlet {
                             newUser.setSalt(salt);
                         }
                     }
+                    OpenSearch.setPermissionsNeeded(myShepherd, true);
                     // here handle all of the other User fields (e.g., email address, etc.)
                     if ((request.getParameter("username") != null) &&
                         (!request.getParameter("username").trim().equals(""))) {

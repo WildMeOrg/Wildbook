@@ -13,7 +13,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
 
     private MarkedIndividual primaryIndividual = null;
     private MarkedIndividual secondaryIndividual = null;
-    // participant names, with Boolean list of denied state in position 0, ignored state in position 2.
+    // participant names, with Boolean list of denied state in position 0, ignored state in position 1.
     private HashMap<String, ArrayList<Boolean> > participantsDeniedIgnored = new HashMap<>();
 
     private List<String> participants = new ArrayList<>();
@@ -36,21 +36,22 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
             + this.scheduledTaskType + ". Failed.");
     }
 
+    
     @Override public void execute(Shepherd myShepherd) {
         try {
-            myShepherd.beginDBTransaction();
 
-            // if not denied by a user !
             mergeIndividuals(primaryIndividual, secondaryIndividual, myShepherd);
-
             this.setTaskComplete();
-        } catch (Exception e) {
-            myShepherd.rollbackDBTransaction();
-            this.setTaskIncomplete();
-            e.printStackTrace();
-        } finally {
             myShepherd.updateDBTransaction();
+            
+        } catch (Exception e) {
+            this.setTaskIncomplete();
+            //rollback this Shepherd to unwind this task and re-open the Shepherd in case it is being reused by a subsequent Task
+            myShepherd.rollbackDBTransaction();
+            myShepherd.beginDBTransaction();
+            e.printStackTrace();
         }
+
     }
 
     private void mergeIndividuals(MarkedIndividual primaryIndividual,
@@ -113,46 +114,70 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
     }
 
     public void setTaskDeniedStateForUser(String username, boolean denied) {
-        List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
+        ArrayList<Boolean> stateForUser = participantsDeniedIgnored.get(username);
 
         if (stateForUser != null) {
             stateForUser.add(0, denied);
         }
+        participantsDeniedIgnored.put(username, stateForUser);
+        System.out.println("setTaskDeniedStateForUser:participantsDeniedIgnored:"+participantsDeniedIgnored.toString());
     }
 
     public void setTaskIgnoredStateForUser(String username, boolean ignored) {
-        List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
+        ArrayList<Boolean> stateForUser = participantsDeniedIgnored.get(username);
 
         if (stateForUser != null) {
             stateForUser.add(1, ignored);
         }
+        
+        participantsDeniedIgnored.put(username, stateForUser);
+        System.out.println("setTaskIgnoredStateForUser:participantsDeniedIgnored:"+participantsDeniedIgnored.toString());
     }
 
     public boolean deniedByUser(String username) {
         List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
 
-        if (stateForUser == null) return Boolean.FALSE;
-        return stateForUser.get(0);
+        if (stateForUser != null && stateForUser.get(0)) { 
+        	return true;
+        }
+        
+        return false;
     }
 
     public boolean ignoredByUser(String username) {
+    	
+    	System.out.println("ignoredByUser: Participants: "+participants.toString());
+    	System.out.println("ignoredByUser: Participants that denied: "+participantsDeniedIgnored.toString());
+    	
         List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
 
-        if (stateForUser == null) return Boolean.FALSE;
-        return stateForUser.get(1);
+        if (stateForUser != null && stateForUser.get(1)) { 
+        	return true;
+        }
+        
+        return false;
     }
 
     public String getUsernameThatDeniedMerge() {
+    	
+    	System.out.println("getUsernameThatDeniedMerge(): Participants: "+participants.toString());
+    	System.out.println("getUsernameThatDeniedMerge():Participants that denied: "+participantsDeniedIgnored.toString());
+    	
         for (String participant : participants) {
             if (participantsDeniedIgnored.get(participant) != null &&
                 participantsDeniedIgnored.get(participant).get(0)) {
+            	System.out.println("...was denied by: "+participant);
                 return participant;
             }
         }
+        System.out.println("...returning null.");
         return null;
     }
 
     public boolean isDenied() {
+    	System.out.println("isDenied: Participants: "+participants.toString());
+    	System.out.println("isDenied: Participants that denied: "+participantsDeniedIgnored.toString());
+    	
         return getUsernameThatDeniedMerge() != null;
     }
 
