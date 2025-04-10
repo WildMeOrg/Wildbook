@@ -197,7 +197,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
-        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY version";
+        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY matchAgainst DESC, version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
