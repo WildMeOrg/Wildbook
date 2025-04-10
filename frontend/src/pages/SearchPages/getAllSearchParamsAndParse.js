@@ -14,8 +14,8 @@ const helperFunction = (
         "assignedUsername",
         "filter",
         {
-          term: {
-            assignedUsername: params.username,
+          terms: {
+            assignedUsername: [params.username],
           },
         },
         "Assigned User",
@@ -26,8 +26,8 @@ const helperFunction = (
         "state",
         "filter",
         {
-          term: {
-            state: params.state,
+          terms: {
+            state: [params.state],
           },
         },
         "Encounter State",
