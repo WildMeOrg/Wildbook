@@ -71,11 +71,13 @@ public class ShepherdProperties {
     // + overwrite files are in wildbook_data_dir/classes/bundles/<organization>.properties
     public static Properties getOrgProperties(String fileName, String langCode, String context,
         HttpServletRequest request) {
+        // todo:  getOverwriteStringForUser(request) is always null
         return getProperties(fileName, langCode, context, getOverwriteStringForUser(request));
     }
 
     public static Properties getOrgProperties(String fileName, String langCode, String context,
         HttpServletRequest request, Shepherd myShepherd) {
+        // todo:  getOverwriteStringForUser(request, myShepherd) is always null
         return getProperties(fileName, langCode, context,
                 getOverwriteStringForUser(request, myShepherd));
     }
@@ -94,15 +96,18 @@ public class ShepherdProperties {
         return (Properties)loadProperties(fullPath);
     }
 
+    // todo:  bug - since getOverwriteStringForUser(user) always returns null, this method always returns null
     public static String getOverwriteStringForUser(HttpServletRequest request,
         Shepherd myShepherd) {
         if (request == null) return null;
         // now try based on the user's organizations
         User user = myShepherd.getUser(request);
         if (user == null) return null;
+        // getOverwriteStringForUser(user) always returns null?!
         return getOverwriteStringForUser(user);
     }
 
+    // todo:  bug - since getOverwriteStringForUser(request, myShepherd) always returns null, this method always returns null
     public static String getOverwriteStringForUser(HttpServletRequest request) {
         Shepherd myShepherd = new Shepherd(request);
 
@@ -114,6 +119,7 @@ public class ShepherdProperties {
         return myString;
     }
 
+    // todo:  bug - this method always returns null
     public static String getOverwriteStringForUser(User user) {
         if (user == null || user.getOrganizations() == null) return null;
         for (Organization org : user.getOrganizations()) {
@@ -125,18 +131,16 @@ public class ShepherdProperties {
     }
 
     public static boolean userHasOverrideString(User user) {
+        // getOverwriteStringForUser(user) always returns null so this always returns false
         return (getOverwriteStringForUser(user) != null);
     }
 
-    public static boolean userHasOverrideString(HttpServletRequest request) {
-        return (getOverwriteStringForUser(request) != null);
-    }
-
+    // todo:  overridePrefix is always null due to upstream code issues
     public static Properties getProperties(String fileName, String langCode, String context,
         String overridePrefix) {
         // initialize props as empty (no override provided) or the default values (if override provided)
         // initializing
-        boolean verbose = (Util.stringExists(overridePrefix));
+        boolean verbose = (Util.stringExists(overridePrefix));  // todo:  unused
         String shepherdDataDir = "wildbook_data_dir";
         Properties contextsProps = getContextsProperties();
 
@@ -170,6 +174,7 @@ public class ShepherdProperties {
         }
         Properties props = loadProperties(overridePathStr, defaultProps);
         if (!Util.stringExists(overridePrefix)) return (Properties)props;
+        // todo:  the following code is unreachable since overridePrefix will always be null
         String customUserPathString = "webapps/" + shepherdDataDir + "/WEB-INF/classes/bundles/" +
             overridePrefix;
         return (Properties)loadProperties(customUserPathString, props);

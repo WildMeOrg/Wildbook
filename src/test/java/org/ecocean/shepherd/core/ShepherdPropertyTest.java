@@ -84,6 +84,7 @@ class ShepherdPropertiesTest {
         User mockUser = mock(User.class);
         when(mockUser.getOrganizations()).thenReturn(null);
 
+        // getOverwriteStringForUser(mockUser) always returns null so ... <shrug>
         String overwrite = ShepherdProperties.getOverwriteStringForUser(mockUser);
 
         assertNull(overwrite);
@@ -94,6 +95,7 @@ class ShepherdPropertiesTest {
         User mockUser = mock(User.class);
         when(mockUser.getOrganizations()).thenReturn(null);
 
+        // due to upstream issues, this always returns false
         boolean hasOverride = ShepherdProperties.userHasOverrideString(mockUser);
 
         assertFalse(hasOverride);
