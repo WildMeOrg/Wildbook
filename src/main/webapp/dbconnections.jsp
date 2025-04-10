@@ -5,6 +5,7 @@ org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,java.util.concurrent.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+<%@ page import="org.ecocean.shepherd.utils.ShepherdState" %>
 
 <%
 
@@ -27,11 +28,11 @@ context=ServletUtilities.getContext(request);
 <h1>Database Connections</h1>
 <ol>
 <%
-ConcurrentHashMap<String,String> map=ShepherdPMF.getAllShepherdStates();
+ConcurrentHashMap<String,String> map=ShepherdState.getAllShepherdStates();
 Enumeration<String> keys=map.keys();
 while(keys.hasMoreElements()){
 	String key=keys.nextElement();
-	String status=ShepherdPMF.getShepherdState(key);
+	String status=ShepherdState.getShepherdState(key);
 	//display any non-closes
 	//if(status.indexOf("close")==-1){
 	%>

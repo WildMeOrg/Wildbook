@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.ecocean.media.*;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -96,8 +97,8 @@ public class MediaAssetAttach extends HttpServlet {
                 if (ma == null)
                     throw new ServletException("No MediaAsset with id " + maId +
                             " found in database.");
-                if (enc.hasTopLevelMediaAsset(ma.getId())) {
-                    alreadyAttachedIds.put(ma.getId());
+                if (enc.hasTopLevelMediaAsset(ma.getIdInt())) {
+                    alreadyAttachedIds.put(ma.getIdInt());
                     alreadyAttached.add(ma);
                 } else {
                     mas.add(ma);

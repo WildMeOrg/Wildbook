@@ -10,8 +10,9 @@
  * You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.ecocean;
+package org.ecocean.shepherd.core;
 
+import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
@@ -25,6 +26,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.*;
+import org.ecocean.shepherd.utils.ShepherdState;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -72,7 +74,7 @@ public class Shepherd {
                 pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
                 this.shepherdID = Util.generateUUID();
 
-                ShepherdPMF.setShepherdState(action + "_" + shepherdID, "new");
+                ShepherdState.setShepherdState(action + "_" + shepherdID, "new");
             } catch (JDOUserException e) {
                 System.out.println(
                     "Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
@@ -466,12 +468,6 @@ public class Shepherd {
         pm.deletePersistent(ad);
     }
 
-    public void throwAwayKeyword(Keyword word) {
-        String indexname = word.getIndexname();
-
-        pm.deletePersistent(word);
-    }
-
     public void throwAwayOccurrence(Occurrence occ) {
         occ.opensearchUnindexQuiet();
         pm.deletePersistent(occ);
@@ -479,14 +475,6 @@ public class Shepherd {
 
     public void throwAwayProject(Project project) {
         pm.deletePersistent(project);
-    }
-
-    public void throwAwaySuperSpotArray(SuperSpot[] spots) {
-        if (spots != null) {
-            for (int i = 0; i < spots.length; i++) {
-                pm.deletePersistent(spots[i]);
-            }
-        }
     }
 
     /**
@@ -498,17 +486,6 @@ public class Shepherd {
     public void throwAwayMarkedIndividual(MarkedIndividual bye_bye_sharky) {
         bye_bye_sharky.opensearchUnindexQuiet();
         pm.deletePersistent(bye_bye_sharky);
-    }
-
-    public void throwAwayTask(ScanTask sTask) {
-        String name = sTask.getUniqueNumber();
-
-        // throw away the task
-        pm.deletePersistent(sTask);
-        // PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
-        ShepherdPMF.getPMF(localContext).getDataStoreCache().unpin(sTask);
-        ShepherdPMF.getPMF(localContext).getDataStoreCache().evict(sTask);
-        // pmf=null;
     }
 
     public Encounter getEncounter(String num) {
@@ -535,6 +512,38 @@ public class Shepherd {
         return tempEnc;
     }
 
+    public Setting getSetting(String group, String id) {
+        if ((group == null) || (id == null)) return null;
+        Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group + "' && id=='" + id + "'");
+        Setting st = null;
+        Collection results = (Collection)(qry.execute());
+        if (!results.isEmpty()) st = (Setting)results.iterator().next();
+        qry.closeAll();
+        return st;
+    }
+
+    public Setting getOrCreateSetting(String group, String id) {
+        Setting st = getSetting(group, id);
+        if (st != null) return st;
+        st = new Setting(group, id);
+        pm.makePersistent(st);
+        return st;
+    }
+
+    public Object getSettingValue(String group, String id) {
+        Setting st = getSetting(group, id);
+        if (st == null) return null;
+        return st.getValue();
+    }
+
+    public void storeSetting(Setting st) {
+        pm.makePersistent(st);
+    }
+
+    public void deleteSetting(Setting st) {
+        pm.deletePersistent(st);
+    }
+
     public Annotation getAnnotation(String uuid) {
         Annotation annot = null;
 
@@ -552,18 +561,6 @@ public class Shepherd {
 
         try {
             tempMA = ((MediaAsset)(pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class,
-                num.trim()), true)));
-        } catch (Exception nsoe) {
-            return null;
-        }
-        return tempMA;
-    }
-
-    public MediaAssetSet getMediaAssetSet(String num) {
-        MediaAssetSet tempMA = null;
-
-        try {
-            tempMA = ((MediaAssetSet)(pm.getObjectById(pm.newObjectIdInstance(MediaAssetSet.class,
                 num.trim()), true)));
         } catch (Exception nsoe) {
             return null;
@@ -824,34 +821,6 @@ public class Shepherd {
         if (c != null) listy = new ArrayList<SocialUnit>(c);
         query.closeAll();
         return listy;
-    }
-
-    public ArrayList<SocialUnit> getAllSocialUnits() {
-        ArrayList<SocialUnit> units = null;
-        Query q = pm.newQuery(SocialUnit.class);
-
-        try {
-            Collection results = (Collection)q.execute();
-            units = new ArrayList<SocialUnit>(results);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        q.closeAll();
-        return units;
-    }
-
-    public ArrayList<Membership> getAllMemberships() {
-        ArrayList<Membership> mships = null;
-        Query q = pm.newQuery(Membership.class);
-
-        try {
-            Collection results = (Collection)q.execute();
-            mships = new ArrayList<Membership>(results);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        q.closeAll();
-        return mships;
     }
 
     public List<String> getAllMembershipRoles() {
@@ -1332,19 +1301,6 @@ public class Shepherd {
         }
     }
 
-    public Keyword getKeywordDeepCopy(String name) {
-        if (isKeyword(name)) {
-            Keyword tempWord = ((Keyword)(getKeyword(name.trim())));
-            Keyword transmitWord = null;
-            try {
-                transmitWord = (Keyword)(pm.detachCopy(tempWord));
-            } catch (Exception e) {}
-            return transmitWord;
-        } else {
-            return null;
-        }
-    }
-
     public ScanTask getScanTask(String uniqueID) {
         ScanTask tempTask = null;
 
@@ -1655,17 +1611,6 @@ public class Shepherd {
         return true;
     }
 
-    public boolean isWorkspace(String num) {
-        try {
-            Workspace tempSpace = ((org.ecocean.Workspace)(pm.getObjectById(pm.newObjectIdInstance(
-                Workspace.class, num.trim()), true)));
-        } catch (Exception nsoe) {
-            // nsoe.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
     public boolean isCommunity(String comName) {
         try {
             SocialUnit tempCom = ((org.ecocean.social.SocialUnit)(pm.getObjectById(
@@ -1867,16 +1812,6 @@ public class Shepherd {
         return true;
     }
 
-    public boolean isProject(String id) {
-        try {
-            Project tempProject = ((org.ecocean.Project)(pm.getObjectById(pm.newObjectIdInstance(
-                Project.class, id.trim()), true)));
-        } catch (Exception nsoe) {
-            return false;
-        }
-        return true;
-    }
-
     public boolean isRelationship(String type, String markedIndividualName1,
         String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2,
         boolean checkBidirectional) {
@@ -1914,37 +1849,6 @@ public class Shepherd {
             return false;
         }
         return false;
-    }
-
-    /**
-     * Adds a new individual to the database TODO: newShark -> newIndividual
-     *
-     * @param newShark the new individual to be added to the database
-     * @see MarkedIndividual
-     */
-    public boolean addMarkedIndividual(MarkedIndividual newShark) {
-        return storeNewMarkedIndividual(newShark);
-    }
-
-    /**
-     * Retrieves any unassigned encounters that are stored in the database - but not yet analyzed - to see whether they represent new or already
-     * persistent sharks
-     *
-     * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
-     * @see encounter, java.util.Iterator
-     */
-    public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
-        String filter =
-            "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == " +
-            assetStoreId;
-        String vars = " VARIABLES org.ecocean.media.AssetStore as";
-
-        filter = filter + vars;
-        Query q = pm.newQuery(filter);
-        Collection results = (Collection)q.execute();
-        ArrayList<MediaAsset> al = new ArrayList(results);
-        q.closeAll();
-        return al;
     }
 
     public Iterator<Encounter> getAllEncountersNoFilter() {
@@ -1996,10 +1900,42 @@ public class Shepherd {
         }
     }
 
-    public int getNumTaxonomies() {
-        Iterator taxis = getAllTaxonomies();
+    public List<List<String>> getAllTaxonomyCommonNames() {return getAllTaxonomyCommonNames(false);
+    }
 
-        return (Util.count(taxis));
+    // forceSpaces will turn `Foo bar_bar` into `Foo bar bar` - use with caution!
+    public List<List<String>> getAllTaxonomyCommonNames(boolean forceSpaces) {
+        Set<String> allSciNames = new LinkedHashSet<String>();
+        Set<String> allComNames = new LinkedHashSet<String>();
+
+        List<String> configNamesSci = CommonConfiguration.getIndexedPropertyValues("genusSpecies",
+                getContext());
+        List<String> configNamesCom = CommonConfiguration.getIndexedPropertyValues("commonName",
+                getContext());
+        allSciNames.addAll(configNamesSci);
+        allComNames.addAll(configNamesCom);
+
+        List<String> allSciNamesList = new ArrayList<String>(allSciNames);
+        List<String> allComNamesList = new ArrayList<String>(allComNames);
+
+        List<List<String>> result = new ArrayList<>();
+
+        if (forceSpaces) {
+            List<String> spaceySci = new ArrayList<String>();
+            for (String tx : allSciNamesList) {
+                spaceySci.add(tx.replaceAll("_", " "));
+            }
+            List<String> spaceyCom = new ArrayList<String>();
+            for (String tx : allComNamesList) {
+                spaceyCom.add(tx.replaceAll("_", " "));
+            }
+            result.add(spaceySci);
+            result.add(spaceyCom);
+        } else {
+            result.add(allSciNamesList);
+            result.add(allComNamesList);
+        }
+        return result;
     }
 
     // tragically this mixes Taxonomy (class, via db) with commonConfiguration-based values. SIGH
@@ -2037,32 +1973,6 @@ public class Shepherd {
         return getAllTaxonomyNames(true).contains(sciName.replaceAll("_", " "));
     }
 
-    public Iterator<Survey> getAllSurveysNoQuery() {
-        try {
-            Extent svyClass = pm.getExtent(Survey.class, true);
-            Iterator it = svyClass.iterator();
-            return it;
-        } catch (Exception npe) {
-            System.out.println(
-                "Error encountered when trying to execute getAllSurveysNoQuery. Returning a null iterator.");
-            npe.printStackTrace();
-            return null;
-        }
-    }
-
-    public Iterator getAllAnnotationsNoQuery() {
-        try {
-            Extent annClass = pm.getExtent(Annotation.class, true);
-            Iterator it = annClass.iterator();
-            return it;
-        } catch (Exception npe) {
-            System.out.println(
-                "Error encountered when trying to execute getAllAnnotationsNoQuery. Returning a null iterator.");
-            npe.printStackTrace();
-            return null;
-        }
-    }
-
     // note: where clause can also contain " ORDER BY xxx"
     public Iterator getAnnotationsFilter(String jdoWhereClause) {
         Query query = null;
@@ -2083,18 +1993,6 @@ public class Shepherd {
         }
     }
 
-    public Iterator<Encounter> getAllAnnotations(String order) {
-        Extent extClass = pm.getExtent(Annotation.class, true);
-        Query q = pm.newQuery(extClass);
-
-        q.setOrdering(order);
-        Collection c = (Collection)(q.execute());
-        ArrayList list = new ArrayList(c);
-        Iterator it = list.iterator();
-        q.closeAll();
-        return it;
-    }
-
     public Iterator getAllMediaAssets() {
         try {
             Extent maClass = pm.getExtent(MediaAsset.class, true);
@@ -2108,34 +2006,22 @@ public class Shepherd {
         }
     }
 
-    public ArrayList<MediaAsset> getAllMediaAssetsAsArray() {
-        try {
-            Extent maClass = pm.getExtent(MediaAsset.class, true);
-            ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-            MediaAsset ma = null;
-            Iterator it = maClass.iterator();
-            while (it.hasNext()) {
-                ma = (MediaAsset)it.next();
-                mas.add(ma);
-            }
-            return mas;
-        } catch (Exception npe) {
-            System.out.println(
-                "Error encountered when trying to execute getAllMediaAssets. Returning a null iterator.");
-            npe.printStackTrace();
-            return null;
-        }
-    }
+    // note: where clause can also contain " ORDER BY xxx"
+    public Iterator getMediaAssetsFilter(String jdoWhereClause) {
+        Query query = null;
 
-    public Iterator getAllSinglePhotoVideosNoQuery() {
         try {
-            Extent spvClass = pm.getExtent(SinglePhotoVideo.class, true);
-            Iterator it = spvClass.iterator();
+            query = pm.newQuery("SELECT FROM org.ecocean.media.MediaAsset WHERE " + jdoWhereClause);
+            Collection c = (Collection)(query.execute());
+            List list = new ArrayList(c);
+            Iterator it = list.iterator();
+            query.closeAll();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllSinglePhotoVideosNoQuery. Returning a null iterator.");
+                "Error encountered when trying to execute getAllAnnotationsFilter. Returning a null iterator.");
             npe.printStackTrace();
+            if (query != null) query.closeAll();
             return null;
         }
     }
@@ -2148,19 +2034,6 @@ public class Shepherd {
         } catch (Exception npe) {
             System.out.println(
                 "Error encountered when trying to execute getAllScanTasksNoQuery. Returning a null iterator.");
-            npe.printStackTrace();
-            return null;
-        }
-    }
-
-    public Iterator<ScanWorkItem> getAllScanWorkItemsNoQuery() {
-        try {
-            Extent taskClass = pm.getExtent(ScanWorkItem.class, true);
-            Iterator it = taskClass.iterator();
-            return it;
-        } catch (Exception npe) {
-            System.out.println(
-                "Error encountered when trying to execute getAllScanWorkItemsNoQuery. Returning a null iterator.");
             npe.printStackTrace();
             return null;
         }
@@ -2180,14 +2053,14 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection)(acceptedEncounters.execute());
+            c = (Collection) (acceptedEncounters.execute());
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2198,7 +2071,7 @@ public class Shepherd {
 
         try {
             // System.out.println("getAllOccurrences is called on query "+myQuery);
-            c = (Collection)(myQuery.execute());
+            c = (Collection) (myQuery.execute());
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2206,7 +2079,7 @@ public class Shepherd {
             return list;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2219,7 +2092,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+                    "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
             npe.printStackTrace();
             return null;
         }
@@ -2229,42 +2102,42 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection)(acceptedEncounters.execute());
+            c = (Collection) (acceptedEncounters.execute());
             ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
             return list;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Encounter> getAllEncounters(Query acceptedEncounters,
-        Map<String, Object> paramMap) {
+                                                Map<String, Object> paramMap) {
         Collection c;
 
         try {
-            c = (Collection)(acceptedEncounters.executeWithMap(paramMap));
+            c = (Collection) (acceptedEncounters.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences,
-        Map<String, Object> paramMap) {
+                                                  Map<String, Object> paramMap) {
         Collection c;
 
         try {
             // System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
-            c = (Collection)(acceptedOccurrences.executeWithMap(paramMap));
+            c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2272,7 +2145,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2283,56 +2156,18 @@ public class Shepherd {
 
         try {
             System.out.println("getAllSurveys is called on query " + acceptedSurveys +
-                " and paramMap " + paramMap);
-            c = (Collection)(acceptedSurveys.executeWithMap(paramMap));
+                    " and paramMap " + paramMap);
+            c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             System.out.println("getAllSurveys got " + list.size() + " surveys");
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
+                    "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
-    }
-
-    public List<PatterningPassport> getPatterningPassports() {
-        int num = 0;
-        ArrayList al = new ArrayList<PatterningPassport>();
-
-        try {
-            // pm.getFetchPlan().setGroup("count");
-            Query q = pm.newQuery(PatterningPassport.class); // no filter, so all instances match
-            Collection results = (Collection)q.execute();
-            num = results.size();
-            al = new ArrayList<PatterningPassport>(results);
-            q.closeAll();
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            // return num;
-            System.out.println("getPatterningPassports EXCEPTION! " + num);
-            return al;
-        }
-        // return num;
-        System.out.println("getPatterningPassports. Returning a collection of length " + al.size() +
-            ". " + num);
-        return al;
-    }
-
-    public List<Organization> getAllParentOrganizations() {
-        ArrayList<Organization> al = new ArrayList<Organization>();
-
-        try {
-            Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE parent == null");
-            Collection results = (Collection)q.execute();
-            al = new ArrayList<Organization>(results);
-            q.closeAll();
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            return al;
-        }
-        return al;
     }
 
     public List<Organization> getAllOrganizationsForUser(User user) {
@@ -2445,26 +2280,6 @@ public class Shepherd {
     }
 
     /*
-     * Retrieve the distinct User objects for all Encounters related to this Occurrence
-     *
-     */
-    public List<User> getAllUsersForOccurrence(Occurrence indie) {
-        ArrayList<User> relatedUsers = new ArrayList<User>();
-        ArrayList<String> usernames = indie.getAllAssignedUsers();
-        int size = usernames.size();
-
-        if (size > 0) {
-            for (int i = 0; i < size; i++) {
-                String thisUsername = usernames.get(i);
-                if (getUser(thisUsername) != null) {
-                    relatedUsers.add(getUser(thisUsername));
-                }
-            }
-        }
-        return relatedUsers;
-    }
-
-    /*
      * Retrieve the distinct User objects for all Encounters related to this MarkedIndividual
      *
      */
@@ -2474,19 +2289,6 @@ public class Shepherd {
         if (getMarkedIndividual(indie) != null) {
             MarkedIndividual foundIndie = getMarkedIndividual(indie);
             return getAllUsersForMarkedIndividual(foundIndie);
-        }
-        return relatedUsers;
-    }
-
-    /* Retrieve the distinct User objects for all Encounters related to this Occurrence
-     *
-     */
-    public List<User> getAllUsersForOccurrence(String occur) {
-        ArrayList<User> relatedUsers = new ArrayList<User>();
-
-        if (getOccurrence(occur) != null) {
-            Occurrence foundOccur = getOccurrence(occur);
-            return getAllUsersForOccurrence(foundOccur);
         }
         return relatedUsers;
     }
@@ -2534,21 +2336,6 @@ public class Shepherd {
             return occur;
         }
         query.closeAll();
-        return null;
-    }
-
-    public Occurrence getOccurrenceForSurvey(Survey svy) {
-        String svyID = svy.getID();
-        String filter = "SELECT FROM org.ecocean.Occurrence WHERE correspondingSurveyID == \"" +
-            svyID + "\"";
-        Query q = getPM().newQuery(filter);
-        Collection c = (Collection)(q.execute());
-        Iterator obArr = c.iterator();
-
-        q.closeAll();
-        if (obArr.hasNext()) {
-            return (Occurrence)obArr.next();
-        }
         return null;
     }
 
@@ -2603,30 +2390,6 @@ public class Shepherd {
         if (c != null) users = new ArrayList<User>(c);
         query.closeAll();
         return users;
-    }
-
-    public User getUserByAffiliation(String affil) {
-        String filter = "SELECT FROM org.ecocean.User WHERE affiliation == \"" + affil + "\"";
-        Query query = getPM().newQuery(filter);
-        Collection c = (Collection)(query.execute());
-        Iterator it = c.iterator();
-
-        while (it.hasNext()) {
-            User myUser = (User)it.next();
-            query.closeAll();
-            return myUser;
-        }
-        query.closeAll();
-        return null;
-    }
-
-    public User getUserBySocialId(String service, String id) {
-        if ((id == null) || (service == null)) return null;
-        List<User> users = getAllUsers();
-        for (int i = 0; i < users.size(); i++) {
-            if (id.equals(users.get(i).getSocial(service))) return users.get(i);
-        }
-        return null;
     }
 
     public ArrayList<Project> getAllProjectsForMarkedIndividual(MarkedIndividual individual) {
@@ -2729,16 +2492,6 @@ public class Shepherd {
 
         samples.closeAll();
         return (al);
-    }
-
-    public ArrayList<TissueSample> getAllTissueSamplesNoQuery() {
-        Extent tsClass = pm.getExtent(TissueSample.class, true);
-        Query tsQuery = pm.newQuery(tsClass, "");
-        Collection col = (Collection)(tsQuery.execute());
-        ArrayList<TissueSample> samples = new ArrayList<>(col);
-
-        tsQuery.closeAll();
-        return samples;
     }
 
     public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
@@ -2855,161 +2608,6 @@ public class Shepherd {
         return null;
     }
 
-    public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(
-        String locationID) {
-        ArrayList<MarkedIndividual> myArray = new ArrayList<MarkedIndividual>();
-        String keywordQueryString =
-            "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ( enc.locationID == \""
-            + locationID + "\" ) VARIABLES org.ecocean.Encounter enc";
-        Query samples = pm.newQuery(keywordQueryString);
-        Collection c = (Collection)(samples.execute());
-
-        if (c != null) {
-            myArray = new ArrayList<MarkedIndividual>(c);
-        }
-        samples.closeAll();
-        return myArray;
-    }
-
-    public int getNumMarkedIndividualsSightedAtLocationID(String locationID) {
-        return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
-    }
-
-    public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) {
-        String keywordQueryString = "SELECT FROM org.ecocean.Encounter WHERE genus == '" + genus +
-            "' && specificEpithet == '" + specificEpithet + "'";
-        Query samples = pm.newQuery(keywordQueryString);
-        Collection c = (Collection)(samples.execute());
-        ArrayList<Encounter> myArray = new ArrayList<Encounter>(c);
-
-        samples.closeAll();
-        return myArray;
-    }
-
-    public ArrayList<Encounter> getAllEncountersForSpeciesWithSpots(String genus,
-        String specificEpithet) {
-        String keywordQueryString = "SELECT FROM org.ecocean.Encounter WHERE genus == '" + genus +
-            "' && specificEpithet == '" + specificEpithet + "' && spots != null";
-        Query samples = pm.newQuery(keywordQueryString);
-        Collection c = (Collection)(samples.execute());
-        ArrayList<Encounter> myArray = new ArrayList<Encounter>(c);
-
-        samples.closeAll();
-        return myArray;
-    }
-
-    public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
-        String milliString = String.valueOf(millis);
-
-        // uhhhhhhhh
-        String up = milliString.substring(0, milliString.length() - 6) + 999999;
-        String down = milliString.substring(0, milliString.length() - 6) + 000000;
-        String keywordQueryString =
-            "SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= " + down +
-            " && dateInMilliseconds <= " + up + " ";
-        Query encQuery = pm.newQuery(keywordQueryString);
-        Collection col = null;
-
-        try {
-            encQuery = pm.newQuery(keywordQueryString);
-            if (encQuery.execute() != null) {
-                col = (Collection)encQuery.execute();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Exception on query : " + keywordQueryString);
-            return null;
-        }
-        ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
-        encQuery.closeAll();
-        if (encs != null) {
-            return encs;
-        } else {
-            return null;
-        }
-    }
-
-    public List<Encounter> getEncountersSubmittedDuring(long start, long end) {
-        String startStr = String.valueOf(start);
-        String endStr = String.valueOf(end);
-        String keywordQueryString =
-            "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "
-            + startStr + " && dwcDateAddedLong <= " + endStr + " ";
-        Query encQuery = pm.newQuery(keywordQueryString);
-        Collection col = null;
-        int colSize = -1;
-
-        try {
-            encQuery = pm.newQuery(keywordQueryString);
-            if (encQuery.execute() != null) {
-                col = (Collection)encQuery.execute();
-                colSize = col.size();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Exception on query : " + keywordQueryString);
-            return null;
-        }
-        List<Encounter> encs = new ArrayList<Encounter>(col);
-        encQuery.closeAll();
-        System.out.println("getEncountersSubmittedDuring used query string " + keywordQueryString +
-            "; returning " + encs.size() + " (collection size " + colSize + ")");
-        return encs;
-    }
-
-    public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
-        sd = sd.replace("/", "-");
-        sd = sd.replace(".", "-");
-        sd = sd.trim();
-        DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
-        Date d = null;
-        try {
-            d = (Date)fm.parse(sd);
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-        }
-        DateTime dt = new DateTime(d);
-        DateTime nextDay = dt.plusDays(1).toDateTime();
-        // Since the query involves a date but no time, we need to get the millis of the next day at 12:00AM as well and find all encounters that
-        // occurred in between.
-        String milliString = String.valueOf(dt.getMillis());
-        String millisNext = String.valueOf(nextDay.getMillis());
-        System.out.println("Trying to get encounter with date in Millis : " + milliString);
-        String keywordQueryString =
-            "SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= " + milliString +
-            " && dateInMilliseconds <= " + millisNext + "";
-        Collection col = null;
-        Query encQuery = null;
-        try {
-            encQuery = pm.newQuery(keywordQueryString);
-            if (encQuery.execute() != null) {
-                col = (Collection)encQuery.execute();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Exception on query : " + keywordQueryString);
-            return null;
-        }
-        ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
-        encQuery.closeAll();
-        if (encs != null) {
-            return encs;
-        } else {
-            return null;
-        }
-    }
-
-    public int getNumSinglePhotoVideosForEncounter(String encNum) {
-        String filter = "correspondingEncounterNumber == \"" + encNum + "\"";
-        Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
-        Query samples = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(samples.execute());
-        int numResults = c.size();
-
-        samples.closeAll();
-        return numResults;
-    }
-
     public Iterator<Encounter> getAllEncountersNoFilter(String order, String filter2use) {
         String filter = filter2use;
         Extent encClass = pm.getExtent(Encounter.class, true);
@@ -3023,14 +2621,6 @@ public class Shepherd {
         Iterator it = listy.iterator();
         acceptedEncounters.closeAll();
         return it;
-    }
-
-    public Query getAllEncountersNoFilterReturnQuery(String order, String filter2use) {
-        String filter = filter2use;
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-
-        return acceptedEncounters;
     }
 
     public ArrayList<ScheduledIndividualMerge> getAllIncompleteScheduledIndividualMerges() {
@@ -3072,10 +2662,6 @@ public class Shepherd {
         return mergeTasks;
     }
 
-    public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasks() {
-        return getAllWildbookScheduledTasksWithFilter("");
-    }
-
     public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasksWithFilter(String filter) {
         ArrayList<WildbookScheduledTask> taskList = new ArrayList();
         Query query = null;
@@ -3092,77 +2678,6 @@ public class Shepherd {
             query.closeAll();
         }
         return taskList;
-    }
-
-    /**
-     * Retrieves all encounters that are stored in the database but which have been rejected for the visual database
-     *
-     * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
-     * @see encounter, java.util.Iterator
-     */
-    public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
-        rejectedEncounters.setFilter("this.state == \"unidentifiable\"");
-        Collection c = (Collection)(rejectedEncounters.execute());
-        ArrayList list = new ArrayList(c);
-
-        // Collections.reverse(list);
-        Iterator it = list.iterator();
-        return it;
-    }
-
-    /**
-     * Retrieves all new encounters that are stored in the database but which have been approved for public viewing in the visual database
-     *
-     * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
-     * @see encounter, java.util.Iterator
-     */
-    public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList list = new ArrayList(c);
-        Iterator it = list.iterator();
-
-        return it;
-    }
-
-    public Iterator<Encounter> getUnapprovedEncounters(Query unapprovedEncounters, String order) {
-        unapprovedEncounters.setOrdering(order);
-        Collection c = (Collection)(unapprovedEncounters.execute());
-        Iterator it = c.iterator();
-        return it;
-    }
-
-    // Returns encounters submitted by the specified user
-    public Iterator<Encounter> getUserEncounters(Query userEncounters, String user) {
-        Collection c = (Collection)(userEncounters.execute());
-        ArrayList list = new ArrayList(c);
-        Iterator it = list.iterator();
-
-        return it;
-    }
-
-    public Iterator<Encounter> getSortedUserEncounters(Query userEncounters, String order2) {
-        userEncounters.setOrdering(order2);
-        Collection c = (Collection)(userEncounters.execute());
-        Iterator it = c.iterator();
-        return it;
-    }
-
-    /**
-     * Retrieves all encounters that are stored in the database but which have been rejected for the visual database in the order identified by the
-     * input String
-     *
-     * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library in the String order
-     * @see encounter, java.util.Iterator
-     */
-    public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters,
-        String order) {
-        unacceptedEncounters.setOrdering(order);
-        Collection c = (Collection)(unacceptedEncounters.execute());
-        ArrayList list = new ArrayList(c);
-
-        // Collections.reverse(list);
-        Iterator it = list.iterator();
-        return it;
     }
 
     public MarkedIndividual getMarkedIndividual(String id) {
@@ -3262,49 +2777,10 @@ public class Shepherd {
         return indiv;
     }
 
-    public Keyword getKeywordById(String indexname) {
-        Keyword indiv = null;
-
-        try {
-            indiv = ((org.ecocean.Keyword)(pm.getObjectById(pm.newObjectIdInstance(Keyword.class,
-                indexname.trim()), true)));
-        } catch (Exception nsoe) {
-            return null;
-        }
-        return indiv;
-    }
-
-    public Keyword getKeywordByNameFast(String readableName) {
-        ArrayList al = new ArrayList();
-
-        try {
-            String filter = "this.readableName.toLowerCase() == \"" + readableName.toLowerCase() +
-                "\"";
-            Extent keyClass = pm.getExtent(Keyword.class, true);
-            Query acceptedKeywords = pm.newQuery(keyClass, filter);
-            Collection c = (Collection)(acceptedKeywords.execute());
-            al = new ArrayList(c);
-            try {
-                acceptedKeywords.closeAll();
-            } catch (NullPointerException npe) {}
-        } catch (Exception e) { e.printStackTrace(); }
-        return ((al.size() > 0) ? ((Keyword)al.get(0)) : null);
-    }
-
     public MarkedIndividual getMarkedIndividual(Encounter enc) {
         if (enc == null) return null;
         if (!Util.stringExists(enc.getIndividualID())) return null;
         return (getMarkedIndividualQuiet(enc.getIndividualID()));
-    }
-
-    // note, new indiv is *not* made persistent here!  so do that yourself if you want to. (shouldnt matter if not-new)
-    public MarkedIndividual getOrCreateMarkedIndividual(String name, Encounter enc) {
-        MarkedIndividual indiv = getMarkedIndividualQuiet(name);
-
-        if (indiv != null) return indiv;
-        indiv = new MarkedIndividual(name, enc);
-        enc.assignToMarkedIndividual(indiv);
-        return indiv;
     }
 
     public Occurrence getOccurrence(String id) {
@@ -3462,51 +2938,6 @@ public class Shepherd {
         return list;
     }
 
-    public Iterator getAllWorkspaces() {
-        Extent allWorkspaces = null;
-
-        try {
-            allWorkspaces = pm.getExtent(Workspace.class, true);
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-        }
-        Query spaces = pm.newQuery(allWorkspaces);
-        Collection c = (Collection)(spaces.execute());
-        ArrayList list = new ArrayList(c);
-        spaces.closeAll();
-        Iterator it = list.iterator();
-        return it;
-    }
-
-    public List<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
-        Extent allSharks = null;
-
-        try {
-            allSharks = pm.getExtent(MarkedIndividual.class, true);
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-        }
-        Extent encClass = pm.getExtent(MarkedIndividual.class, true);
-        Query sharks = pm.newQuery(encClass);
-        Collection c = (Collection)(sharks.execute());
-        ArrayList list = new ArrayList(c);
-        ArrayList<MarkedIndividual> newList = new ArrayList<MarkedIndividual>();
-        int listSize = list.size();
-        for (int i = 0; i < listSize; i++) {
-            MarkedIndividual indie = (MarkedIndividual)list.get(i);
-            if (indie.wasSightedInLocationCode(locCode)) { newList.add(indie); }
-        }
-        sharks.closeAll();
-        return newList;
-    }
-
-    public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharks) {
-        Collection c = (Collection)(sharks.execute());
-        Iterator it = c.iterator();
-
-        return it;
-    }
-
     /**
      * Retrieves an Iterator of all the sharks in the database, ordered according to the input String
      *
@@ -3534,22 +2965,6 @@ public class Shepherd {
 
         try {
             pm.getFetchPlan().setGroup("count");
-            Collection results = (Collection)q.execute();
-            num = results.size();
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            q.closeAll();
-            return num;
-        }
-        q.closeAll();
-        return num;
-    }
-
-    public int getNumUsers() {
-        int num = 0;
-        Query q = pm.newQuery(User.class); // no filter, so all instances match
-
-        try {
             Collection results = (Collection)q.execute();
             num = results.size();
         } catch (javax.jdo.JDOException x) {
@@ -3647,23 +3062,6 @@ public class Shepherd {
         }
     }
 
-    public int getNumApprovedEncounters() {
-        pm.getFetchPlan().setGroup("count");
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        String filter = "this.state == \"approved\"";
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        try {
-            Collection c = (Collection)(acceptedEncounters.execute());
-            int num = c.size();
-            acceptedEncounters.closeAll();
-            return num;
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            acceptedEncounters.closeAll();
-            return 0;
-        }
-    }
-
     public int getNumEncounters(String locationCode) {
         Extent encClass = pm.getExtent(Encounter.class, true);
         String filter = "this.locationID == \"" + locationCode + "\"";
@@ -3694,25 +3092,6 @@ public class Shepherd {
         } catch (javax.jdo.JDOException x) {
             x.printStackTrace();
             acceptedSurveys.closeAll();
-            return 0;
-        }
-    }
-
-    public int getNumUnidentifiableEncountersForMarkedIndividual(String individual) {
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        String filter = "this.state == \"unidentifiable\" && this.individualID == \"" + individual +
-            "\"";
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-
-        try {
-            Collection c = (Collection)(acceptedEncounters.execute());
-            int num = c.size();
-            acceptedEncounters.closeAll();
-            acceptedEncounters = null;
-            return num;
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            acceptedEncounters.closeAll();
             return 0;
         }
     }
@@ -3779,62 +3158,6 @@ public class Shepherd {
         }
     }
 
-    public int getNumRejectedEncounters() {
-        Extent allEncounters = null;
-        String filter = "this.state == \"unidentifiable\"";
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-
-        try {
-            // acceptedEncounters.declareParameters("String rejected");
-            Collection c = (Collection)(acceptedEncounters.execute());
-            int num = c.size();
-            acceptedEncounters.closeAll();
-            return num;
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            // logger.error("I could not find the number of rejected encounters in the database."+"\n"+x.getStackTrace());
-            acceptedEncounters.closeAll();
-            return 0;
-        }
-    }
-
-    public int getNumUnapprovedEncounters() {
-        String filter = "this.state == \"unapproved\"";
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query unacceptedEncounters = pm.newQuery(encClass, filter);
-
-        try {
-            // acceptedEncounters.declareParameters("String rejected");
-            Collection c = (Collection)(unacceptedEncounters.execute());
-            int num = c.size();
-            unacceptedEncounters.closeAll();
-            return num;
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            // logger.error("I could not find the number of rejected encounters in the database."+"\n"+x.getStackTrace());
-            unacceptedEncounters.closeAll();
-            return 0;
-        }
-    }
-
-    public int getNumUserEncounters(String user) {
-        String filter = "this.submitterID == \"" + user + "\"";
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-
-        try {
-            Collection c = (Collection)(acceptedEncounters.execute());
-            int num = c.size();
-            acceptedEncounters.closeAll();
-            return num;
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            acceptedEncounters.closeAll();
-            return 0;
-        }
-    }
-
     /**
      * Returns the <i>i</i>th numbered encounter for a shark
      *
@@ -3855,30 +3178,6 @@ public class Shepherd {
         return ann.findEncounter(this);
     }
 
-    // Added in for media assets by specie - Sarah Schibel
-    public Long countMediaAssetsBySpecies(String genus, String specificEpithet,
-        Shepherd myShepherd) {
-        Long myValue = new Long(0);
-        Query q2 = myShepherd.getPM().newQuery(
-            "SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.genus=='" + genus +
-            "' && enc.specificEpithet=='" + specificEpithet +
-            "' && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
-
-        myValue = (Long)q2.execute();
-        q2.closeAll();
-        return myValue;
-    }
-
-    public Long countMediaAssets(Shepherd myShepherd) {
-        Long myValue = new Long(0);
-        Query q2 = myShepherd.getPM().newQuery(
-            "SELECT count(this) FROM org.ecocean.media.MediaAsset");
-
-        myValue = (Long)q2.execute();
-        q2.closeAll();
-        return myValue;
-    }
-
     /**
      * Opens the database up for information retrieval, storage, and removal
      */
@@ -3891,7 +3190,7 @@ public class Shepherd {
             } else if (!pm.currentTransaction().isActive()) {
                 pm.currentTransaction().begin();
             }
-            ShepherdPMF.setShepherdState(action + "_" + shepherdID, "begin");
+            ShepherdState.setShepherdState(action + "_" + shepherdID, "begin");
 
             pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
         } catch (JDOUserException jdoe) {
@@ -3924,7 +3223,7 @@ public class Shepherd {
                 System.out.println("You are trying to commit an inactive transaction.");
                 // return false;
             }
-            ShepherdPMF.setShepherdState(action + "_" + shepherdID, "commit");
+            ShepherdState.setShepherdState(action + "_" + shepherdID, "commit");
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
             System.out.println("I failed to commit a transaction." + "\n" + jdoe.getStackTrace());
@@ -3954,13 +3253,6 @@ public class Shepherd {
     }
 
     /**
-     * Commits (makes permanent) any changes made to an open database
-     */
-    public void commitDBTransaction(String action) {
-        commitDBTransaction();
-    }
-
-    /**
      * Since we call these together all over Wildbook
      */
     public void updateDBTransaction() {
@@ -3976,8 +3268,8 @@ public class Shepherd {
             if ((pm != null) && (!pm.isClosed())) {
                 pm.close();
             }
-            // ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
-            ShepherdPMF.removeShepherdState(action + "_" + shepherdID);
+            // ShepherdState.setShepherdState(action+"_"+shepherdID, "close");
+            ShepherdState.removeShepherdState(action + "_" + shepherdID);
 
             // logger.info("A PersistenceManager has been successfully closed.");
         } catch (JDOUserException jdoe) {
@@ -4003,7 +3295,7 @@ public class Shepherd {
             } else {
                 // System.out.println("You are trying to rollback an inactive transaction.");
             }
-            ShepherdPMF.setShepherdState(action + "_" + shepherdID, "rollback");
+            ShepherdState.setShepherdState(action + "_" + shepherdID, "rollback");
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (JDOFatalUserException fdoe) {
@@ -4250,16 +3542,6 @@ public class Shepherd {
         return al;
     }
 
-    public Set<String> getAllKeywordNames() {
-        Set<Keyword> keywords = getAllKeywordsSet();
-        Set<String> kwNames = new HashSet<String>();
-
-        for (Keyword kword : keywords) {
-            kwNames.add(kword.getReadableName());
-        }
-        return kwNames;
-    }
-
     public int getNumKeywords() {
         Extent allWords = null;
         int num = 0;
@@ -4275,83 +3557,6 @@ public class Shepherd {
         }
         q.closeAll();
         return num;
-    }
-
-    public List<SinglePhotoVideo> getThumbnails(Shepherd myShepherd, HttpServletRequest request,
-        ArrayList<String> encList, int startNum, int endNum, String[] keywords) {
-        ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
-        boolean stopMe = false;
-        int encIter = 0;
-        int count = 0;
-        int numEncs = encList.size();
-
-        // while (it.hasNext()) {
-        while ((count <= endNum) && (encIter < numEncs)) {
-            String nextCatalogNumber = encList.get(encIter);
-            int numImages = getNumAnnotationsForEncounter(nextCatalogNumber);
-            if ((count + numImages) >= startNum) {
-                Encounter enc = myShepherd.getEncounter(nextCatalogNumber);
-                List<SinglePhotoVideo> images = getAllSinglePhotoVideosForEncounter(
-                    enc.getCatalogNumber());
-                for (int i = 0; i < images.size(); i++) {
-                    count++;
-                    if ((count <= endNum) && (count >= startNum)) {
-                        String m_thumb = "";
-
-                        // check for video or image
-                        String imageName = (String)images.get(i).getFilename();
-
-                        // check if this image has one of the assigned keywords
-                        boolean hasKeyword = false;
-                        if ((keywords == null) || (keywords.length == 0)) {
-                            hasKeyword = true;
-                        } else {
-                            int numKeywords = keywords.length;
-                            for (int n = 0; n < numKeywords; n++) {
-                                if (!keywords[n].equals("None")) {
-                                    Keyword word = getKeyword(keywords[n]);
-                                    if ((images.get(i).getKeywords() != null) &&
-                                        images.get(i).getKeywords().contains(word)) {
-                                        hasKeyword = true;
-                                    }
-                                } else {
-                                    hasKeyword = true;
-                                }
-                            }
-                        }
-                        // check for specific filename conditions here
-                        if ((request.getParameter("filenameField") != null) &&
-                            (!request.getParameter("filenameField").equals(""))) {
-                            String nameString = ServletUtilities.cleanFileName(
-                                ServletUtilities.preventCrossSiteScriptingAttacks(
-                                request.getParameter("filenameField").trim()));
-                            if (!nameString.equals(imageName)) { hasKeyword = false; }
-                        }
-                        if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                            m_thumb = request.getScheme() + "://" +
-                                CommonConfiguration.getURLLocation(request) + "/images/video.jpg" +
-                                "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
-                            // thumbs.add(m_thumb);
-                            thumbs.add(images.get(i));
-                        } else if (hasKeyword && isAcceptableImageFile(imageName)) {
-                            m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" +
-                                enc.getEncounterNumber() + "BREAK" + imageName;
-                            // thumbs.add(m_thumb);
-                            thumbs.add(images.get(i));
-                        } else {
-                            count--;
-                        }
-                    } else if (count > endNum) {
-                        stopMe = true;
-                    }
-                }
-            } // end if
-            else {
-                count += numImages;
-            }
-            encIter++;
-        } // end while
-        return thumbs;
     }
 
     public List<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request,
@@ -4560,99 +3765,8 @@ public class Shepherd {
         return fileName.matches("^(.+)\\.(?i:mp4|mov|avi|mpg|wmv|flv)$");
     }
 
-    public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
-        ArrayList al = new ArrayList();
-
-        try {
-            String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
-            Extent encClass = pm.getExtent(MarkedIndividual.class, true);
-            Query acceptedEncounters = pm.newQuery(encClass, filter);
-            Collection c = (Collection)(acceptedEncounters.execute());
-            al = new ArrayList(c);
-            acceptedEncounters.closeAll();
-        } catch (Exception e) { e.printStackTrace(); }
-        return al;
-    }
-
-    public List<Occurrence> getOccurrencesByIDSubstring(String altID) {
-        ArrayList al = new ArrayList();
-
-        try {
-            String filter = "this.occurrenceID.toLowerCase().indexOf('" + altID.toLowerCase() +
-                "') != -1";
-            Extent encClass = pm.getExtent(Occurrence.class, true);
-            Query acceptedEncounters = pm.newQuery(encClass, filter);
-            Collection c = (Collection)(acceptedEncounters.execute());
-            al = new ArrayList(c);
-            acceptedEncounters.closeAll();
-        } catch (Exception e) { e.printStackTrace(); }
-        return al;
-    }
-
-    public List<Occurrence> getOccurrencesByUser(User user) {
-        ArrayList al = new ArrayList();
-
-        if ((user == null) || (user.getUsername() == null)) return al;
-        try {
-            // apparently occurrence.submitters is garbage, so we cant use this
-            // String filter = "SELECT FROM org.ecocean.Occurrence WHERE submitters.contains(user) && user.uuid == '" + user.getUUID() + "' VARIABLES
-            // org.ecocean.User user";
-            // String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+         "\"
-            // VARIABLES org.ecocean.Encounter enc";
-            String filter =
-                "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.submitterID == \""
-                + user.getUsername() + "\" VARIABLES org.ecocean.Encounter enc";
-            // Extent queryClass = pm.getExtent(Occurrence.class, true);
-            Query query = getPM().newQuery(filter);
-            query.setOrdering("dateTimeCreated DESC");
-            Collection c = (Collection)(query.execute());
-            al = new ArrayList(c);
-            query.closeAll();
-        } catch (Exception e) { e.printStackTrace(); }
-        return al;
-    }
-
-    /**
-     * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
-     * @param myID The individual ID to return in any case.
-     * @return
-     */
-    public MarkedIndividual getMarkedIndividualCaseInsensitive(String myID) {
-        String filter = "this.individualID.toLowerCase() == \"" + myID.toLowerCase() + "\"";
-        Extent encClass = pm.getExtent(MarkedIndividual.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
-
-        acceptedEncounters.closeAll();
-        if ((al != null) && (al.size() > 0)) { return (MarkedIndividual)al.get(1); }
-        return null;
-    }
-
-    public List<Encounter> getEncountersByAlternateID(String altID) {
-        String filter = "this.otherCatalogNumbers.toLowerCase() == \"" + altID.toLowerCase() + "\"";
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
-
-        acceptedEncounters.closeAll();
-        return al;
-    }
-
     public List<Encounter> getEncountersByField(String fieldName, String fieldVal) {
         String filter = "this." + fieldName + " == \"" + fieldVal + "\"";
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
-
-        acceptedEncounters.closeAll();
-        return al;
-    }
-
-    public List<Encounter> getEncountersByFieldSubstring(String fieldName, String fieldVal) {
-        String filter = "this." + fieldName + ".indexOf('" + fieldVal + "') != -1";
         Extent encClass = pm.getExtent(Encounter.class, true);
         Query acceptedEncounters = pm.newQuery(encClass, filter);
         Collection c = (Collection)(acceptedEncounters.execute());
@@ -4673,30 +3787,6 @@ public class Shepherd {
         String filter = "this.individual.individualID == \"" + indID +
             "\" && this.occurrenceID == \"" + occID + "\"";
         Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
-
-        acceptedEncounters.closeAll();
-        return al;
-    }
-
-    public Encounter resolveEncounterDuplicates(String indID, String occID) {
-        List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
-
-        if (encs.size() == 0) return null;
-        if (encs.size() == 1) return encs.get(0);
-        Encounter keeperEnc = Encounter.chooseFromDupes(encs);
-        for (Encounter otherEnc : encs) {
-            if (!otherEnc.getCatalogNumber().equals(keeperEnc.getCatalogNumber()))
-                keeperEnc.mergeAndDelete(otherEnc, this);
-        }
-        return keeperEnc;
-    }
-
-    public List<MarkedIndividual> getMarkedIndividualsByNickname(String altID) {
-        String filter = "this.nickName.toLowerCase() == \"" + altID.toLowerCase() + "\"";
-        Extent encClass = pm.getExtent(MarkedIndividual.class, true);
         Query acceptedEncounters = pm.newQuery(encClass, filter);
         Collection c = (Collection)(acceptedEncounters.execute());
         ArrayList al = new ArrayList(c);
@@ -4736,16 +3826,6 @@ public class Shepherd {
     public int getLastSightingYear() {
         try {
             Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
-            int value = ((Integer)q.execute()).intValue();
-            q.closeAll();
-            return value;
-        } catch (Exception e) { return -1; }
-    }
-
-    public int getLastMonthOfSightingYear(int yearHere) {
-        try {
-            Query q = pm.newQuery(
-                "SELECT max(month) FROM org.ecocean.Encounter WHERE this.year == " + yearHere);
             int value = ((Integer)q.execute()).intValue();
             q.closeAll();
             return value;
@@ -4855,17 +3935,6 @@ public class Shepherd {
         return al;
     }
 
-    public List<String> getAllRoleNames() {
-        Query q = pm.newQuery(Role.class);
-
-        q.setResult("distinct rolename");
-        q.setOrdering("rolename ascending");
-        Collection results = (Collection)q.execute();
-        ArrayList al = new ArrayList(results);
-        q.closeAll();
-        return al;
-    }
-
     public ArrayList<String> getAllUsernames() {
         Query q = pm.newQuery(User.class);
 
@@ -4927,21 +3996,6 @@ public class Shepherd {
         return comNames;
     }
 
-    public List<String> getAllGenuses() {
-        Query q = pm.newQuery(Encounter.class);
-
-        q.setResult("distinct genus");
-        q.setOrdering("genus ascending");
-        Collection results = (Collection)q.execute();
-        ArrayList al = new ArrayList(results);
-        q.closeAll();
-        return al;
-    }
-
-    public List<String> getAllEncounterStrVals(String fieldName) {
-        return getAllStrVals(Encounter.class, fieldName);
-    }
-
     public List<String> getAllStrVals(Class fromClass, String fieldName) {
         Query q = pm.newQuery(fromClass);
 
@@ -4962,17 +4016,6 @@ public class Shepherd {
             if (!indexVals.contains(usedVal)) indexVals.add(usedVal);
         }
         return indexVals;
-    }
-
-    public List<String> getAllSpecificEpithets() {
-        Query q = pm.newQuery(Encounter.class);
-
-        q.setResult("distinct specificEpithet");
-        q.setOrdering("specificEpithet ascending");
-        Collection results = (Collection)q.execute();
-        ArrayList al = new ArrayList(results);
-        q.closeAll();
-        return al;
     }
 
     public List<String> getAllBehaviors() {
@@ -5010,17 +4053,6 @@ public class Shepherd {
         return al;
     }
 
-    public List<String> getAllRecordedBy() {
-        Query q = pm.newQuery(Encounter.class);
-
-        q.setResult("distinct recordedBy");
-        q.setOrdering("recordedBy ascending");
-        Collection results = (Collection)q.execute();
-        ArrayList al = new ArrayList(results);
-        q.closeAll();
-        return al;
-    }
-
     public Iterator<Survey> getAllSurveys() {
         Extent svyClass = pm.getExtent(Survey.class, true);
         Iterator svsIt = svyClass.iterator();
@@ -5028,35 +4060,11 @@ public class Shepherd {
         return svsIt;
     }
 
-    public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
-        String filter = "((this.hashedSubmitterEmail.indexOf('" + hashedEmail +
-            "') != -1)||(this.hashedPhotographerEmail.indexOf('" + hashedEmail +
-            "') != -1)||(this.hashedInformOthers.indexOf('" + hashedEmail + "') != -1))";
-        Extent encClass = pm.getExtent(Encounter.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
-
-        acceptedEncounters.closeAll();
-        return al;
-    }
-
     public List<String> getAllPatterningCodes() {
         Query q = pm.newQuery(Encounter.class);
 
         q.setResult("distinct patterningCode");
         q.setOrdering("patterningCode ascending");
-        Collection results = (Collection)q.execute();
-        ArrayList al = new ArrayList(results);
-        q.closeAll();
-        return al;
-    }
-
-    public List<String> getAllLifeStages() {
-        Query q = pm.newQuery(Encounter.class);
-
-        q.setResult("distinct lifeStage");
-        q.setOrdering("lifeStage ascending");
         Collection results = (Collection)q.execute();
         ArrayList al = new ArrayList(results);
         q.closeAll();
@@ -5110,17 +4118,6 @@ public class Shepherd {
             }
         }
         return roles;
-    }
-
-    public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName) {
-        Extent encClass = pm.getExtent(Relationship.class, true);
-        String filter2use = "this.communityName == \"" + commName + "\"";
-        Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
-
-        acceptedEncounters.closeAll();
-        return listy;
     }
 
     public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1,
@@ -5192,19 +4189,6 @@ public class Shepherd {
             ArrayList<Measurement> al = new ArrayList<Measurement>(c);
             samples.closeAll();
             return (al).get(0);
-        } else { return null; }
-    }
-
-    public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
-        String filter = "correspondingEncounterNumber == \"" + encNum + "\"";
-        Extent encClass = pm.getExtent(Measurement.class, true);
-        Query samples = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(samples.execute());
-
-        if ((c != null) && (c.size() > 0)) {
-            ArrayList<Measurement> al = new ArrayList<Measurement>(c);
-            samples.closeAll();
-            return (al);
         } else { return null; }
     }
 
@@ -5452,12 +4436,12 @@ public class Shepherd {
     public void setAction(String newAction) {
         String state = "";
 
-        if (ShepherdPMF.getShepherdState(action + "_" + shepherdID) != null) {
-            state = ShepherdPMF.getShepherdState(action + "_" + shepherdID);
-            ShepherdPMF.removeShepherdState(action + "_" + shepherdID);
+        if (ShepherdState.getShepherdState(action + "_" + shepherdID) != null) {
+            state = ShepherdState.getShepherdState(action + "_" + shepherdID);
+            ShepherdState.removeShepherdState(action + "_" + shepherdID);
         }
         this.action = newAction;
-        ShepherdPMF.setShepherdState(action + "_" + shepherdID, state);
+        ShepherdState.setShepherdState(action + "_" + shepherdID, state);
     }
 
     public String getAction() { return action; }
@@ -5585,18 +4569,6 @@ public class Shepherd {
         }
         query.closeAll();
         return user;
-    }
-
-    // this tries (in this order) username, uuid, email and returns first user it finds
-    // note: we do *not* check validity of either uuid or email address, given that (undoubtedly) we have
-    // malformed values for both in the db.  is this a bug or a feature?  #philosophy
-    public User getUserByWhatever(String value) {
-        if (value == null) return null;
-        User u = getUser(value);
-        if (u != null) return u;
-        u = getUserByUUID(value);
-        if (u != null) return u;
-        return getUserByEmailAddress(value);
     }
 
     public JSONArray getAllProjectACMIdsJSON(String projectId) {

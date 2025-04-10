@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.ecocean.*;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 /*
