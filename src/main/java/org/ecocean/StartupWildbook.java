@@ -3,7 +3,7 @@ package org.ecocean;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Properties;
 import java.net.URL;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletContext;
@@ -17,13 +17,18 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.media.LocalAssetStore;
+
+import org.ecocean.media.MediaAsset;
+
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
+import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.ServletUtilities;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -212,6 +217,71 @@ public class StartupWildbook implements ServletContextListener {
                 return true;
             }
         }
+        
+        //instructions on what to do if a message is published to the acmid queue
+        //which handles ACM ID registration for MediaAssets
+        class AcmIdMessageHandler extends QueueMessageHandler {
+            public boolean handler(String mediaAssetID) {
+            	Shepherd myShepherd = new Shepherd(context);
+            	myShepherd.setAction("AcmIdMessageHandler.handler."+mediaAssetID);
+            	myShepherd.beginDBTransaction();
+            	try {
+            		MediaAsset asset=myShepherd.getMediaAsset(mediaAssetID);
+            		if(asset!=null) {
+		                ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+	            		fixMe.add(asset);
+		                IBEISIA.sendMediaAssetsNew(fixMe, context);
+		                myShepherd.updateDBTransaction();
+            		}
+            	}
+            	//RuntimeExceptions include an array of timeout and connectivitivity issues
+            	//indicating WBIA may be overloaded or restarting
+            	//therefore this exception includes a simple sleep function to pause ACM ID registration
+            	//to give WBIA time to restart or be less busy.
+            	//This implementation is temporary until ACM ID registration is removed entirely
+                catch (java.lang.RuntimeException ex) {
+                    System.out.println("\r\n\r\nWARNING: AcmIdMessageHandler processQueueMessage() threw " +
+                        ex.toString()+"\r\n\r\n");
+                    ex.printStackTrace();
+                    
+                    long timeoutMilliseconds=60000;
+                    Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
+                    if(props!=null && props.getProperty("timeoutMilliseconds")!=null) {
+                    	String millis = props.getProperty("timeoutMilliseconds");
+                    	Long millisAsLong = Long.getLong(millis);
+                    	if(millisAsLong!=null)timeoutMilliseconds=millisAsLong.longValue();
+                    }
+                    
+                    try {
+                    	Thread.sleep(timeoutMilliseconds);
+                    	Queue acmIdQueue=IAGateway.getAcmIdQueue(context);
+                    	acmIdQueue.publish(mediaAssetID);
+                    }
+                    catch(Exception ioe) {
+                    	ioe.printStackTrace();
+                    }
+                    return false;
+                }
+                catch (Exception ex) {
+                    System.out.println("\r\n\r\nWARNING: AcmIdMessageHandler processQueueMessage() threw " +
+                        ex.toString()+"\r\n\r\n");
+                    ex.printStackTrace();
+                    
+                    try {
+                    	Queue acmIdQueue=IAGateway.getAcmIdQueue(context);
+                    	acmIdQueue.publish(mediaAssetID);
+                    }
+                    catch(Exception ioe) {
+                    	ioe.printStackTrace();
+                    }
+                    return false;
+                }
+            	finally {
+            		myShepherd.rollbackAndClose();
+            	}
+                return true;
+            }
+        }
 
         class IACallbackMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
@@ -248,7 +318,14 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("+ ERROR: detection queue startup exception: " + ex.toString());
         }
-        if ((queue == null) || (queueCallback == null) || (detectionQ == null)) {
+        //MediaAsset ACM ID registration queue
+        Queue acmidQ = null;
+        try {
+            acmidQ = QueueUtil.getBest(context, "acmid");
+        } catch (IOException ex) {
+            System.out.println("+ ERROR: acmid queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null) || (detectionQ == null) || (acmidQ == null)) {
             System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
         }
@@ -282,6 +359,17 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() FAILED on " +
                 detectionQ.toString() + ": " + iox.toString());
         }
+        //ACM ID queue handler
+        AcmIdMessageHandler qh4 = new AcmIdMessageHandler();
+        try {
+            acmidQ.consume(qh4);
+            System.out.println(
+                "+ StartupWildbook.startIAQueues() acmidQ.consume() started on " +
+                acmidQ.toString());
+        } catch (IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() acmidQ.consume() FAILED on " +
+                acmidQ.toString() + ": " + iox.toString());
+        }
     }
 
     private static void startWildbookScheduledTaskThread(String context) {
@@ -292,18 +380,19 @@ public class StartupWildbook implements ServletContextListener {
                 System.out.println("[INFO]: checking for scheduled tasks to execute...");
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("WildbookScheduledTaskThread");
-                myShepherd.beginDBTransaction();
                 try {
-                    ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
+                    ArrayList<WildbookScheduledTask> scheduledTasks =
+                    myShepherd.getAllIncompleteWildbookScheduledTasks();
                     for (WildbookScheduledTask scheduledTask : scheduledTasks) {
                         if (scheduledTask.isTaskEligibleForExecution()) {
                             scheduledTask.execute(myShepherd);
                         }
                     }
                 } catch (Exception e) {
+                    myShepherd.rollbackAndClose();
                     e.printStackTrace();
                 }
-                myShepherd.rollbackAndClose();
+                myShepherd.closeDBTransaction();
             }
         }, 0, 1, TimeUnit.HOURS);
     }
@@ -354,4 +443,7 @@ public class StartupWildbook implements ServletContextListener {
             return "<unknown>";
         }
     }
+    
+    
+    
 }
