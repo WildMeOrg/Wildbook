@@ -13,11 +13,13 @@ services:
       - db-pgdata-var:/var/lib/postgresql/data
       # DB initialization scripts
       - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
+      - .dockerfiles/db/postgresql.conf:/etc/postgresql/postgresql.conf
     networks:
       - intranet
     ports:
       # development exposure, not exposed in production
       - 5433:5432
+    command: -c config_file=/etc/postgresql/postgresql.conf
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       WBIA_DB_NAME: "${WBIA_DB_NAME}"
