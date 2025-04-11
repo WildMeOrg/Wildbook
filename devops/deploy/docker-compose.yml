@@ -1,11 +1,8 @@
-version: "3.8"
-
 services:
-
   db:
     image: postgres:13.4
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 60
@@ -34,9 +31,6 @@ services:
       WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
 
   wildbook:
-    # See: https://github.com/WildMeOrg/Wildbook/tree/next-gen
-    #  - git clone -b next-gen git@github.com:WildMeOrg/Wildbook.git && cd Wildbook
-    # - ./scripts/build.docker.sh
     image: tomcat:9.0.85-jre8-temurin-jammy
     depends_on:
       db:
@@ -54,7 +48,7 @@ services:
       - /data/wb-docker-deploy/server.xml:/usr/local/tomcat/conf/server.xml
       - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
-        #- .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
+      #- .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
       #- .dockerfiles/tomcat/IA.json:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
 
     networks:
@@ -63,7 +57,7 @@ services:
       # FIXME: exposed for developer verification
       - "81:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail-with-body https://lynx.wildbook.org || exit 1"]
+      test: [ "CMD-SHELL", "curl --fail-with-body https://lynx.wildbook.org || exit 1" ]
       interval: 180s
       timeout: 60s
       retries: 3
@@ -83,7 +77,7 @@ services:
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     healthcheck:
-      test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
+      test: [ "CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 60

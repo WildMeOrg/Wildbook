@@ -14,7 +14,10 @@ MAIL_RELAYHOST=smtp.examplehost.com:587
 MAIL_RELAYHOST_USERNAME=dev
 MAIL_RELAYHOST_PASSWORD=development
 
-# for opensearch:
+# for opensearch
+# passowrd should be strong:
+#     it should be at least 8 characters and must contain at least one uppercase letter,
+#     one lowercase letter, one digit, and one special character.
 OPENSEARCH_INITIAL_ADMIN_PASSWORD=development
 
 # for db:
