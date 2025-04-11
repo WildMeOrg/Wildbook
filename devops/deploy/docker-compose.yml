@@ -17,7 +17,7 @@ services:
     networks:
       - intranet
     ports:
-      # development exposure, not exposed in production
+      # TODO on deployment: exposed for developer verification, close after
       - 5433:5432
     command: -c config_file=/etc/postgresql/postgresql.conf
     shm_size: 4gb
@@ -45,7 +45,7 @@ services:
       - /data/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/
       - /data/wildbook_data_dir/:/usr/local/tomcat/webapps/wildbook_data_dir/
       - /data/wb-docker-deploy/logs/:/usr/local/tomcat/logs/
-      - /data/wb-docker-deploy/server.xml:/usr/local/tomcat/conf/server.xml
+      - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
       - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
       #- .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
@@ -54,10 +54,11 @@ services:
     networks:
       - intranet
     ports:
-      # FIXME: exposed for developer verification
+      # TODO on deployment: exposed for developer verification, close after
       - "81:8080"
     healthcheck:
-      test: [ "CMD-SHELL", "curl --fail-with-body https://lynx.wildbook.org || exit 1" ]
+      # TODO on deployment:  change test.example.org to desired url ... use same as opensearch?
+      test: [ "CMD-SHELL", "curl --fail-with-body https://test.example.org || exit 1" ]
       interval: 180s
       timeout: 60s
       retries: 3
