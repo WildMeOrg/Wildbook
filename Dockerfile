@@ -25,8 +25,6 @@ WORKDIR /app
 ENV MAVEN_OPTS="-Xmx256m"
 ENV JAVA_TOOL_OPTIONS="-Xmx256m"
 
-COPY pom.xml .
-
 # Download dependencies first (this will be cached)
 RUN mvn -B dependency:resolve-plugins dependency:resolve
 
@@ -35,14 +33,36 @@ COPY . /app
 # Build the project using Maven
 
 # Build with reduced memory settings
-RUN mvn package \
+# Install local dependencies
+RUN mvn install:install-file \
+    -Dfile=local-repo/dilib/dilib/1.0/dilib-1.0.jar \
+    -DgroupId=dilib \
+    -DartifactId=dilib \
+    -Dversion=1.0 \
+    -Dpackaging=jar \
+    && \
+    mvn install:install-file \
+    -Dfile=local-repo/sqljdbc4/sqljdbc4/1.0/sqljdbc4-1.0.jar \
+    -DgroupId=sqljdbc4 \
+    -DartifactId=sqljdbc4 \
+    -Dversion=1.0 \
+    -Dpackaging=jar \
+    && \
+    mvn install:install-file \
+    -Dfile=local-repo/sutime-stanford-corenlp-models/sutime-stanford-corenlp-models/3.6.0/sutime-stanford-corenlp-models-3.6.0.jar \
+    -DgroupId=sutime-stanford-corenlp-models \
+    -DartifactId=sutime-stanford-corenlp-models \
+    -Dversion=3.6.0 \
+    -Dpackaging=jar
+
+# Now build the project
+RUN mvn clean install \
     -DskipTests \
     -Dmaven.javadoc.skip=true \
     -Dhttp.keepAlive=false \
     -Dmaven.wagon.http.pool=false \
     --batch-mode \
-    -B \
-    -e
+    -B
 
 RUN mkdir -p /app/war_output && \
     cp target/*.war /app/war_output/wildbook.war && \
