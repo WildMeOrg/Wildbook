@@ -21,10 +21,22 @@ WORKDIR /app
 
 # COPY --from=react-builder /app/war_output/react /app/war_output/react  
 
+RUN ulimit -n 65535
+
+ENV MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m -XX:+UseG1GC"
+ENV JAVA_OPTS="-Xmx1024m -XX:MaxPermSize=256m -XX:+UseG1GC"
+
 COPY . /app
 
 # Build the project using Maven
-RUN mvn clean install
+
+RUN mvn clean install \
+    -Dmaven.test.skip=true \
+    -Dmaven.javadoc.skip=true \
+    -Dmaven.wagon.http.retryHandler.count=3 \
+    -B \
+    --batch-mode \
+    -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
 RUN mkdir -p /app/war_output && \
     cp target/*.war /app/war_output/wildbook.war && \
