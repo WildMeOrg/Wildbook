@@ -16,22 +16,18 @@
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
         <h1 class="intro">Contact us</h1>
-        <p>The team welcomes your comments and questions.</p>
-	<p>Email us at <em>info at wildme dot org</em>, and one of us will respond as quickly as possible.</p>
+        <p>The Wild Me team welcomes your comments and questions.</p>
+	
+	<h2>Technical Support</h2>
+	<p>For technical support with Flukebook, please join us at the <a href="https://community.wildme.org">Wildbook Community Forum</a>.</p>
 
-	<h2>Photos for Media Publications about Wildbook</h2>
-	<p>For any resources that can be used without express permission from the Wild Me team, see <a href="https://www.wildme.org/media-resources.html">Media Resources</a>.</p>
+	<h2>Account Request</h2>
+	<p>To request a Flukebook account, <a href="https://us7.list-manage.com/contact-form?u=c5af097df0ca8712f52ea1768&form_id=335cfeba915bbb2a6058d6ba705598ce">click here.</a></p>
 
-	<h2>Logos</h2>
-	<p>The following logos may be used in conjunction with our project.</p>
-
-	<h3>Wild Me</h3>
-	<p><img src="images/WildMe-Logo-100x100.png" width="500px" height="*" /></p>
-
-	<h3>Wildbook&reg;</h3>
-	<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
-
-	<p>Any additional photo resources should be obtained with express permission from the Wild Me or CXL team.</p>
+<h2>General Information</h2>
+<p>For more information about the Wild Me Lab of Conservation X Labs, please check out <a href="https://www.wildme.org">https://www.wildme.org</a> or email us at info at wildme dot org.</p>
 
       <!-- end maintext -->
       </div>
+	  
+<jsp:include page="footer.jsp" flush="true"/>
