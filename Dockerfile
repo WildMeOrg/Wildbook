@@ -25,9 +25,6 @@ WORKDIR /app
 ENV MAVEN_OPTS="-Xmx256m"
 ENV JAVA_TOOL_OPTIONS="-Xmx256m"
 
-# Download dependencies first (this will be cached)
-RUN mvn -B dependency:resolve-plugins dependency:resolve
-
 COPY . /app
 
 # Build the project using Maven
