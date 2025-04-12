@@ -21,22 +21,26 @@ WORKDIR /app
 
 # COPY --from=react-builder /app/war_output/react /app/war_output/react  
 
-RUN ulimit -n 65535
-
-ENV MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m -XX:+UseG1GC"
-ENV JAVA_OPTS="-Xmx1024m -XX:MaxPermSize=256m -XX:+UseG1GC"
+# Set Java and Maven options for Java 8
+ENV MAVEN_OPTS="-Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication"
+ENV _JAVA_OPTIONS="-Xmx512m -XX:+UseG1GC"
+ENV JAVA_TOOL_OPTIONS="-Xmx512m"
 
 COPY . /app
 
 # Build the project using Maven
 
+# Build with reduced memory settings
 RUN mvn clean install \
     -Dmaven.test.skip=true \
     -Dmaven.javadoc.skip=true \
     -Dmaven.wagon.http.retryHandler.count=3 \
-    -B \
+    -Dhttp.keepAlive=false \
+    -Dmaven.wagon.http.pool=false \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
     --batch-mode \
-    -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    -B \
+    -e
 
 RUN mkdir -p /app/war_output && \
     cp target/*.war /app/war_output/wildbook.war && \
