@@ -19,16 +19,13 @@ FROM portolano/maven-3.3.9-jdk-8:v1 as builder
 
 WORKDIR /app
 
-ENV MAVEN_OPTS="-Xmx4096m -XX:MaxPermSize=1024m"
-
 COPY --from=react-builder /app/war_output/react /app/war_output/react  
 
 COPY . /app
 
 # Build the project using Maven
 #RUN mvn clean install
-RUN mvn clean install -Dmaven.test.skip=true \
-    -Xmx4096m -XX:MaxPermSize=1024m
+RUN mvn clean install
 
 RUN mkdir -p /app/war_output && \
     cp target/*.war /app/war_output/wildbook.war && \
@@ -49,9 +46,8 @@ COPY devops/development/.dockerfiles/tomcat/IA-wbia.json /usr/local/tomcat/webap
 COPY devops/development/.dockerfiles/tomcat/IA-wbia.properties /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.properties
 COPY devops/development/.dockerfiles/tomcat/commonConfiguration.properties /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
 
-
 # Set environment variables
-ENV JAVA_OPTS="-Djava.awt.headless=true -Xms4096m -Xmx4096m -XX:MaxPermSize=1024m"
+ENV JAVA_OPTS="-Djava.awt.headless=true -Xms4096m -Xmx4096m"
 ENV JPDA_ADDRESS="8000"
 ENV JPDA_TRANSPORT="dt_socket"
 
