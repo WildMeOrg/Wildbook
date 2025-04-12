@@ -32,30 +32,7 @@ COPY . /app
 
 # Build the project using Maven
 
-# Build with reduced memory settings
-# Install local dependencies
-RUN mvn install:install-file \
-    -Dfile=local-repo/dilib/dilib/1.0/dilib-1.0.jar \
-    -DgroupId=dilib \
-    -DartifactId=dilib \
-    -Dversion=1.0 \
-    -Dpackaging=jar \
-    && \
-    mvn install:install-file \
-    -Dfile=local-repo/sqljdbc4/sqljdbc4/1.0/sqljdbc4-1.0.jar \
-    -DgroupId=sqljdbc4 \
-    -DartifactId=sqljdbc4 \
-    -Dversion=1.0 \
-    -Dpackaging=jar \
-    && \
-    mvn install:install-file \
-    -Dfile=local-repo/sutime-stanford-corenlp-models/sutime-stanford-corenlp-models/3.6.0/sutime-stanford-corenlp-models-3.6.0.jar \
-    -DgroupId=sutime-stanford-corenlp-models \
-    -DartifactId=sutime-stanford-corenlp-models \
-    -Dversion=3.6.0 \
-    -Dpackaging=jar
-
-# Now build the project
+# Now run Maven build
 RUN mvn clean install \
     -DskipTests \
     -Dmaven.javadoc.skip=true \
