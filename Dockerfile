@@ -15,29 +15,31 @@
 
 # RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/
 
-FROM portolano/maven-3.3.9-jdk-8:v1 as builder
+FROM maven:3.6-jdk-8 as builder
 
 WORKDIR /app
 
 # COPY --from=react-builder /app/war_output/react /app/war_output/react  
 
 # Set Java and Maven options for Java 8
-ENV MAVEN_OPTS="-Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication"
-ENV _JAVA_OPTIONS="-Xmx512m -XX:+UseG1GC"
-ENV JAVA_TOOL_OPTIONS="-Xmx512m"
+ENV MAVEN_OPTS="-Xmx256m"
+ENV JAVA_TOOL_OPTIONS="-Xmx256m"
+
+COPY pom.xml .
+
+# Download dependencies first (this will be cached)
+RUN mvn -B dependency:resolve-plugins dependency:resolve
 
 COPY . /app
 
 # Build the project using Maven
 
 # Build with reduced memory settings
-RUN mvn clean install \
-    -Dmaven.test.skip=true \
+RUN mvn package \
+    -DskipTests \
     -Dmaven.javadoc.skip=true \
-    -Dmaven.wagon.http.retryHandler.count=3 \
     -Dhttp.keepAlive=false \
     -Dmaven.wagon.http.pool=false \
-    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
     --batch-mode \
     -B \
     -e
