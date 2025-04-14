@@ -53,9 +53,9 @@ COPY --from=builder /app/war_output /usr/local/tomcat/webapps/wildbook
 COPY devops/development/.dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh
 COPY devops/development/.dockerfiles/tomcat/server.xml /usr/local/tomcat/conf/server.xml
 COPY devops/development/.dockerfiles/tomcat/watermark.png /usr/local/tomcat/watermark.png
-COPY devops/development/.dockerfiles/tomcat/IA-wbia.json /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
-COPY devops/development/.dockerfiles/tomcat/IA-wbia.properties /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.properties
-COPY devops/development/.dockerfiles/tomcat/commonConfiguration.properties /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
+COPY devops/development/.dockerfiles/tomcat/IA-wbia.json /efs-init/bundles/bundles/IA.json
+COPY devops/development/.dockerfiles/tomcat/IA-wbia.properties /efs-init/bundles/IA.properties
+COPY devops/development/.dockerfiles/tomcat/commonConfiguration.properties /efs-init/bundles/commonConfiguration.properties
 
 # Set environment variables
 ENV JAVA_OPTS="-Djava.awt.headless=true -Xms4096m -Xmx4096m"
