@@ -1,30 +1,42 @@
 
-FROM node:22 as react-builder
+# FROM node:22 as react-builder
 
 # Set working directory
 
-WORKDIR /app/frontend
+# WORKDIR /app/frontend
 
-COPY frontend/ .
+# COPY frontend/ .
 
-ENV PUBLIC_URL=/react/
+# ENV PUBLIC_URL=/react/
 
-ENV SITE_NAME="Test Site Name"
+# ENV SITE_NAME="Test Site Name"
 
-RUN npm install && npm run build
+# RUN npm install && npm run build
 
-RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/
+# RUN mkdir -p /app/war_output/react && mv build/* /app/war_output/react/
 
-FROM portolano/maven-3.3.9-jdk-8:v1 as builder
+FROM maven:3.6-jdk-8 as builder
 
 WORKDIR /app
 
-COPY --from=react-builder /app/war_output/react /app/war_output/react  
+# COPY --from=react-builder /app/war_output/react /app/war_output/react  
+
+# Set Java and Maven options for Java 8
+ENV MAVEN_OPTS="-Xmx256m"
+ENV JAVA_TOOL_OPTIONS="-Xmx256m"
 
 COPY . /app
 
 # Build the project using Maven
-RUN mvn clean install
+
+# Now run Maven build
+RUN mvn clean install \
+    -DskipTests \
+    -Dmaven.javadoc.skip=true \
+    -Dhttp.keepAlive=false \
+    -Dmaven.wagon.http.pool=false \
+    --batch-mode \
+    -B
 
 RUN mkdir -p /app/war_output && \
     cp target/*.war /app/war_output/wildbook.war && \
