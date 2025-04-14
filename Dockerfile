@@ -53,7 +53,7 @@ COPY --from=builder /app/war_output /usr/local/tomcat/webapps/wildbook
 COPY devops/development/.dockerfiles/docker-entrypoint.sh /docker-entrypoint.sh
 COPY devops/development/.dockerfiles/tomcat/server.xml /usr/local/tomcat/conf/server.xml
 COPY devops/development/.dockerfiles/tomcat/watermark.png /usr/local/tomcat/watermark.png
-COPY devops/development/.dockerfiles/tomcat/IA-wbia.json /efs-init/bundles/bundles/IA.json
+COPY devops/development/.dockerfiles/tomcat/IA-wbia.json /efs-init/bundles/IA.json
 COPY devops/development/.dockerfiles/tomcat/IA-wbia.properties /efs-init/bundles/IA.properties
 COPY devops/development/.dockerfiles/tomcat/commonConfiguration.properties /efs-init/bundles/commonConfiguration.properties
 
