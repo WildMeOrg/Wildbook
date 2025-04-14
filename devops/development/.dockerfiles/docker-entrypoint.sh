@@ -12,7 +12,7 @@ apt-get install -y -qq imagemagick
 # Copy files from image to EFS-mounted directory (only if not already copied)
 if [ -d /efs-init/bundles ]; then
   echo "Copying files to EFS..."
-  cp -u /efs-init/bundles/* /tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/
+  cp -u /efs-init/bundles/* /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/
   echo "✅ Files copied to EFS."
 else
   echo "⚠️ No init files found in /efs-init/bundles"
