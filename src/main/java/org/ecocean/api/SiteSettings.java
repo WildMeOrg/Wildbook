@@ -22,9 +22,9 @@ import org.ecocean.Organization;
 import org.ecocean.Project;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Setting;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
+import org.ecocean.Setting;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
@@ -61,7 +61,7 @@ public class SiteSettings extends ApiBase {
             settings.put("googleMapsKey", CommonConfiguration.getGoogleMapsKey(context));
 
             JSONArray txArr = new JSONArray();
-            List<List<String>> nameArray = myShepherd.getAllTaxonomyCommonNames();
+            List<List<String> > nameArray = myShepherd.getAllTaxonomyCommonNames();
             if (Util.collectionSize(nameArray) > 1) {
                 int nameArrayLen = nameArray.get(0).size();
                 for (int i = 0; i < nameArrayLen; i++) {
@@ -69,8 +69,7 @@ public class SiteSettings extends ApiBase {
                     txj.put("scientificName", nameArray.get(0).get(i));
                     if (i < nameArray.get(1).size()) {
                         txj.put("commonName", nameArray.get(1).get(i));
-                    }
-                    else {
+                    } else {
                         txj.put("commonName", "");
                     }
                     txArr.put(txj);
@@ -85,7 +84,8 @@ public class SiteSettings extends ApiBase {
                 CommonConfiguration.getIndexedPropertyValues("lifeStage", context));
             settings.put("livingStatus",
                 CommonConfiguration.getIndexedPropertyValues("livingStatus", context));
-            settings.put("country", CommonConfiguration.getIndexedPropertyValues("country", context));
+            settings.put("country",
+                CommonConfiguration.getIndexedPropertyValues("country", context));
             settings.put("annotationViewpoint", Annotation.getAllValidViewpointsSorted());
             settings.put("patterningCode",
                 CommonConfiguration.getIndexedPropertyValues("patterningCode", context));
@@ -99,7 +99,7 @@ public class SiteSettings extends ApiBase {
             settings.put("encounterState", VALUES_ENCOUNTER_STATES);
 
             IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
-            Object[] iac = iaConfig.getAllIAClasses().toArray();
+            Object[] iac = iaConfig.getAllIAClassesWithParts().toArray();
             Arrays.sort(iac);
             settings.put("iaClass", iac);
 
@@ -180,7 +180,8 @@ public class SiteSettings extends ApiBase {
                 );
 
             settings.put("showClassicEncounters",
-                Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))
+                Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters",
+                    context))
                 );
 
             Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
@@ -214,12 +215,12 @@ public class SiteSettings extends ApiBase {
                         jp.put(proj.getId(), proj.getResearchProjectName());
                     }
                 }
-            settings.put("projectsForUser", jp);
+                settings.put("projectsForUser", jp);
             }
             settings.put("isHuman", ReCAPTCHA.sessionIsHuman(request));
 
             // new Setting values, built from valid options
-            Map<String,String[]> grp = Setting.getValidGroupsAndIds();
+            Map<String, String[]> grp = Setting.getValidGroupsAndIds();
             // note: if group was already set above, it will be overwritten TODO should we check? is this bad? is it on us?
             for (String group : grp.keySet()) {
                 JSONObject jg = new JSONObject();
@@ -233,7 +234,6 @@ public class SiteSettings extends ApiBase {
                 }
                 settings.put(group, jg);
             }
-
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
@@ -250,6 +250,7 @@ public class SiteSettings extends ApiBase {
         String context = ServletUtilities.getContext(request);
         int statusCode = 500;
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.SiteSettings.doPost");
         myShepherd.beginDBTransaction();
         try {
@@ -260,12 +261,10 @@ public class SiteSettings extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
-
             JSONObject rtn = new JSONObject();
             String uri = request.getRequestURI();
             String[] args = uri.substring(22).split("/");
             if (args.length < 2) throw new ServletException("Bad path");
-
             if (!Setting.isValidGroupAndId(args[0], args[1])) {
                 statusCode = 400;
                 JSONObject error = new JSONObject();
@@ -274,7 +273,6 @@ public class SiteSettings extends ApiBase {
                 errArr.put(error);
                 rtn.put("errors", errArr);
                 rtn.put("debug", "invalid group [" + args[0] + "] or id [" + args[1] + "]");
-
             } else {
                 try {
                     Setting setting = myShepherd.getOrCreateSetting(args[0], args[1]);
@@ -293,13 +291,11 @@ public class SiteSettings extends ApiBase {
                     rtn.put("debug", ex.toString());
                 }
             }
-
             response.setStatus(statusCode);
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write(rtn.toString());
-
-        } catch (ServletException ex) {  // should just be thrown, not caught (below)
+        } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -318,6 +314,7 @@ public class SiteSettings extends ApiBase {
         int statusCode = 500;
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.SiteSettings.doDelete");
         myShepherd.beginDBTransaction();
         try {
@@ -328,12 +325,10 @@ public class SiteSettings extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
-
             JSONObject rtn = new JSONObject();
             String uri = request.getRequestURI();
             String[] args = uri.substring(22).split("/");
             if (args.length < 2) throw new ServletException("Bad path");
-
             if (!Setting.isValidGroupAndId(args[0], args[1])) {
                 statusCode = 400;
                 JSONObject error = new JSONObject();
@@ -342,7 +337,6 @@ public class SiteSettings extends ApiBase {
                 errArr.put(error);
                 rtn.put("errors", errArr);
                 rtn.put("debug", "invalid group [" + args[0] + "] or id [" + args[1] + "]");
-
             } else {
                 Setting setting = myShepherd.getSetting(args[0], args[1]);
                 if (setting == null) {
@@ -356,8 +350,7 @@ public class SiteSettings extends ApiBase {
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write(rtn.toString());
-
-        } catch (ServletException ex) {  // should just be thrown, not caught (below)
+        } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -370,5 +363,4 @@ public class SiteSettings extends ApiBase {
             myShepherd.closeDBTransaction();
         }
     }
-
 }
