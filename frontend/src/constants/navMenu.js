@@ -226,6 +226,12 @@ const authenticatedMenu = (username) => [
       },
       {
         name: (
+          <FormattedMessage id="menu.administer.tasks" defaultMessage="Failed Tasks" />
+        ),
+        href: '/task',
+      },
+      {
+        name: (
           <FormattedMessage
             id="menu.administer.photoKeywords"
             defaultMessage="Photo Keywords"

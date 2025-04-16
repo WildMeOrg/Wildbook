@@ -35,6 +35,7 @@
   "menu.administer.userManagement": "User Management",
   "menu.administer.libraryAdmin": "Library Administration",
   "menu.administer.logs": "Logs",
+  "menu.administer.tasks": "Failed Tasks",
   "menu.administer.photoKeywords": "Photo Keywords",
   "menu.administer.softwareDocs": "Software Documentation",
   "menu.administer.dataIntegrity": "Data Integrity",

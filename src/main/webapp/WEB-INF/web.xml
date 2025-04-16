@@ -99,6 +99,8 @@
 				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
 				/import/** = authc, roles[researcher]
+				/task = authc, roles[admin]
+				/retry = authc, roles[admin]
 				/submit.jsp = authc
 				/gallery.jsp = authc
 				/encounters/encounter.jsp = authc
@@ -2907,4 +2909,21 @@
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
 
+	<servlet>
+		<servlet-name>TaskManager</servlet-name>
+		<servlet-class>org.ecocean.servlet.TaskManager</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>TaskManager</servlet-name>
+		<url-pattern>/task</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>TaskRetry</servlet-name>
+		<servlet-class>org.ecocean.servlet.TaskRetry</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>TaskRetry</servlet-name>
+		<url-pattern>/retry</url-pattern>
+	</servlet-mapping>
 </web-app>

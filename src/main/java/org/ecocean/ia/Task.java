@@ -540,4 +540,10 @@ public class Task implements java.io.Serializable {
             queueResumeMessage = message;
         }
     }
+
+    public long getCreated() { return created; }
+
+    public long getModified() { return modified; }
+
+    public String getStatus2() { return status; }
 }
