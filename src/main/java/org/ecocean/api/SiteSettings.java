@@ -86,7 +86,9 @@ public class SiteSettings extends ApiBase {
         settings.put("encounterState", VALUES_ENCOUNTER_STATES);
 
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
-        Object[] iac = iaConfig.getAllIAClasses().toArray();
+		//temp change before 10.7 fix
+        //Object[] iac = iaConfig.getAllIAClasses().toArray();
+		Object[] iac = iaConfig.getAllIAClassesWithParts().toArray();
         Arrays.sort(iac);
         settings.put("iaClass", iac);
 
