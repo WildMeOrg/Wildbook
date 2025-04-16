@@ -28,8 +28,7 @@ public class IAUtils {
                 tp.put("matchingSetFilter", mf);
                 parentTask.setParameters(tp);
             }
-            Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask); // TODO are they *really* persisted for another
-                                                                                                     // thread (queue)
+            Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask); // are they *really* persisted for another thread (queue)
             myShepherd.storeNewTask(task);
             taskIDs.add(task.getId());
         }

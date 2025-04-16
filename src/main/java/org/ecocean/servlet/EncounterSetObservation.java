@@ -126,7 +126,7 @@ public class EncounterSetObservation extends HttpServlet {
                 if (allStatesSize > 0) {
                     for (int i = 0; i < allStatesSize; i++) {
                         String stateName = allStates.get(i);
-                        out.println("<p><a href=\"encounters/searchResults.jsp?state=" + stateName +
+                        out.println("<p><a href=\"/react/encounter-search?state=" + stateName +
                             "\">View all " + stateName + " Encounters</a></font></p>");
                     }
                 }
@@ -149,7 +149,7 @@ public class EncounterSetObservation extends HttpServlet {
                 if (allStatesSize > 0) {
                     for (int i = 0; i < allStatesSize; i++) {
                         String stateName = allStates.get(i);
-                        out.println("<p><a href=\"encounters/searchResults.jsp?state=" + stateName +
+                        out.println("<p><a href=\"/react/encounter-search?state=" + stateName +
                             "\">View all " + stateName + " encounters</a></font></p>");
                     }
                 }

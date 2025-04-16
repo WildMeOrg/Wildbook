@@ -37,21 +37,26 @@ if (!org.ecocean.servlet.ReCAPTCHA.sessionIsHuman(request)) {
 %>
 
 <style type="text/css">
-	.hiddenFilename {
+	#hiddenFilename {
 		display: none;
+	}
+	#originalFilename {
+		display: none
 	}
 </style>
 
 <div id="hiddenFilename"></div>
-
+<div id="originalFilename"></div>
 
 <script>
 function uploadFinished() {
 	console.log("uploadFinished! Callback executing");
 	document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
 	var filename = document.getElementById('hiddenFilename').innerHTML;
+	var originalFilename = document.getElementById('originalFilename').innerHTML;
+
 	// forward user to the review page
-	window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
+	window.location.replace('standard-upload?filename=' + filename + '&originalFilename=' + originalFilename + '&isUserUpload=true');
 	//window.location.replace('upload?filename='+filename+"&isUserUpload=true");
 }
 </script>

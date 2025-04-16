@@ -23,7 +23,7 @@ function ImageTools(opts) {
         this.containerElement.style.left = el.offsetLeft + 'px';
         this.containerElement.style.width = el.offsetWidth + 'px';
         this.containerElement.style.height = el.offsetHeight + 'px';
-        var p = el.parentNode;  //TODO no parent?  is this possible?
+        var p = el.parentNode; 
         p.appendChild(this.containerElement);
         return this.containerElement;
     };

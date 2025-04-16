@@ -186,7 +186,6 @@
 
 <div class="container maincontent">
 <%
-//TODO styles above can go in _encounter-pages.less if they don't conflict with ones already in there
   String rq = "";
   if (request.getQueryString() != null) {
     rq = request.getQueryString();
@@ -210,7 +209,7 @@
 <ul id="tabmenu">
 
   <li><a
-    href="searchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+    href="/react/encounter-search?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
   </a></li>
 	<li><a
     href="projectManagement.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
@@ -275,10 +274,6 @@
     </td>
   </tr>
 </table>
-
-<%
-System.out.println("queryString: "+queryString);
-%>
 
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
 					<jsp:param name="grid" value="true" />

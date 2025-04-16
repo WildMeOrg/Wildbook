@@ -62,7 +62,12 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
                 if (merge != null && merge.isUserParticipent(username)) {
                     System.out.println("user is participant? " + merge.isUserParticipent(username));
                     if ("deny".equals(action)) {
+                    	//I denied it
                         merge.setTaskDeniedStateForUser(username, true);
+                        //I am therefore ignoring it too
+                        merge.setTaskIgnoredStateForUser(username, true);
+                        //and let's call it done
+                        merge.setTaskComplete();
                         myShepherd.updateDBTransaction();
                         System.out.println("Set ScheduledIndividual merge " + mergeId +
                             " to DENIED for user " + username + ".");
