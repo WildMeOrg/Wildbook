@@ -58,7 +58,7 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 %>
 <ul id="tabmenu">
   <li><a
-    href="searchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("table")%>
+    href="/react/encounter-search?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("table")%>
   </a></li>
   <li><a class="active"
     href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("projectManagement")%>

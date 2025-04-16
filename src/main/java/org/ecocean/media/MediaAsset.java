@@ -85,21 +85,6 @@ public class MediaAsset implements java.io.Serializable {
 
     private String correspondingSurveyTrackID;
     private String correspondingSurveyID;
-
-    // protected MediaAssetType type;
-    // protected Integer submitterid;
-
-    // protected Set<String> tags;
-    // protected Integer rootId;
-
-    // protected AssetStore thumbStore;
-    // protected Path thumbPath;
-    // protected Path midPath;
-
-    // private LocalDateTime metaTimestamp;
-    // private Double metaLatitude;
-    // private Double metaLongitude;
-
     private String acmId;
 
     private Boolean validImageForIA;
@@ -107,12 +92,6 @@ public class MediaAsset implements java.io.Serializable {
     /**
      * To be called by AssetStore factory method.
      */
-/*
-    public MediaAsset(final AssetStore store, final JSONObject params, final String category)
-    {
-        this(MediaAssetFactory.NOT_SAVED, store, params, MediaAssetType.fromFilename(path.toString()), category);
-    }
- */
 
     public MediaAsset(final AssetStore store, final JSONObject params) {
         // this(store, params, null);
@@ -375,7 +354,7 @@ public class MediaAsset implements java.io.Serializable {
     public String setHashCode() {
         if (store == null) return null;
         this.hashCode = store.hashCode(getParameters());
-// System.out.println("hashCode on " + this + " = " + this.hashCode);
+        // System.out.println("hashCode on " + this + " = " + this.hashCode);
         return this.hashCode;
     }
 
@@ -522,11 +501,8 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     /**
-       this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or
-          human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
+       this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or human-input 
        FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string), then (b) crawl metadata.exif for something date-y
-
-        TODO maybe someday this actually should be *only* punting to store.getDateTime() ????
      */
     public DateTime getDateTime() {
         if (this.userDateTime != null) return this.userDateTime;
@@ -585,7 +561,6 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     // note: default behavior will add this to the features on this MediaAsset -- can pass false to disable
-    // TODO expand to handle things other than images (some day)
     public Feature generateUnityFeature() {
         return generateUnityFeature(true);
     }
@@ -657,55 +632,6 @@ public class MediaAsset implements java.io.Serializable {
         }
     }
 
-/*
-        return annotations;
-    }
-
-    //this will create the "trivial" Annotation (dimensions of the MediaAsset) iff no Annotations exist public ArrayList<Annotation>
-       getAnnotationsGenerate(String species) {
-        if (annotations == null) annotations = new ArrayList<Annotation>();
-        if (annotations.size() < 1) addTrivialAnnotation(species);
-        return annotations;
-    }
-
-    //TODO check if it is already here?  maybe?
-    public Annotation addTrivialAnnotation(String species) {
-        Annotation ann = new Annotation(this, species);  //this will add it to our .annotations collection as well String newId =
-           generateUUIDv3((byte)65, (byte)110);  //set Annotation UUID relative to our ID  An___ if (newId != null) ann.setId(newId);
-        return ann;
-    }
-
-    public int getAnnotationCount() {
-        if (annotations == null) return 0;
-        return annotations.size();
-    }
-
-    public static MediaAsset findByAnnotation(Annotation annot, Shepherd myShepherd) {
-        String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE annotations.contains(ann) && ann.id == \"" + annot.getId() + "\"";
-        Query query = myShepherd.getPM().newQuery(queryString);
-        List results = (List)query.execute();
-        if (results.size() < 1) return null;
-        return (MediaAsset)results.get(0);
-    }
- */
-
-/*
-    public Path getThumbPath()
-    {
-        return thumbPath;
-    }
-
-    public Path getMidPath()
-    {
-        return midPath;
-    }
- */
-
-/*
-    public MediaAssetType getType() {
-        return type;
-    }
- */
 
     /**
      * Return a full web-accessible url to the asset, or null if the asset is not web-accessible. NOTE: now you should *almost always* use .safeURL()
@@ -726,12 +652,6 @@ public class MediaAsset implements java.io.Serializable {
         } catch (java.net.MalformedURLException ex) {}
         return store.webURL(this);
     }
-
-/*    has been deprecated, cuz you should make a better choice about what you want the url of. see: safeURL() and friends public String webURLString()
-   {
-        return getUrlString(this.webURL());
-    }
- */
 
     // the primary purpose here is to mask (i.e. never send) the original (uploaded) image file.
     // right now "master" labelled image is used, if available, otherwise children are chosen by allChildTypes() order....
@@ -791,10 +711,8 @@ public class MediaAsset implements java.io.Serializable {
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request,
         String bestType) {
         if (store == null) return null;
-        // this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
-        // TODO should be block "original" ???  is that overkill??
         if (bestType == null) bestType = "master";
-        // note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
+        // note, this next line means bestType may get bumped *up* for anon user
         if (AccessControl.isAnonymous(request)) bestType = "mid";
         if (store instanceof URLAssetStore) bestType = "original"; // this is cuz it is assumed to be a "public" url
 
@@ -821,7 +739,7 @@ public class MediaAsset implements java.io.Serializable {
             if (t.equals(bestType)) gotBest = true;
             else gotBest = false;
             if (!gotBest) continue; // skip over any "better" types until we get to best we can use
-// System.out.println("   ....  ??? do we have a " + t);
+            // System.out.println("   ....  ??? do we have a " + t);
             // now try to see if we have one!
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) {
@@ -839,97 +757,6 @@ public class MediaAsset implements java.io.Serializable {
     public MediaAsset bestSafeAsset(Shepherd myShepherd) {
         return bestSafeAsset(myShepherd, null);
     }
-
-/*
-    public String thumbWebPathString() {
-        return getUrlString(thumbWebPath());
-    }
-
-    public String midWebPathString() {
-        return getUrlString(midWebPath());
-    }
-
-    public URL thumbWebPath() {
-        return getUrl(thumbStore, thumbPath);
-    }
-
-    public void setThumb(final AssetStore store, final Path path)
-    {
-        thumbStore = store;
-        thumbPath = path;
-    }
-
-    public AssetStore getThumbstore() {
-        return thumbStore;
-    }
-
-    public URL midWebPath() {
-        if (midPath == null) {
-            return webPath();
-        }
-
-        //
-        // Just use thumb store for now.
-        //
-        return getUrl(thumbStore, midPath);
-    }
-
-    public void setMid(final Path path) {
-        //
-        // Just use thumb store for now.
-        //
-        this.midPath = path;
-    }
-
- */
-
-/*
-    public Integer getSubmitterId() {
-        return submitterid;
-    }
-
-    public void setSubmitterId(final Integer submitterid) {
-        this.submitterid = submitterid;
-    }
- */
-
-/*
-    public LocalDateTime getMetaTimestamp() {
-        return metaTimestamp;
-    }
-
-
-    public void setMetaTimestamp(LocalDateTime metaTimestamp) {
-        this.metaTimestamp = metaTimestamp;
-    }
-
-
-    public Double getMetaLatitude() {
-        return metaLatitude;
-    }
-
-
-    public void setMetaLatitude(Double metaLatitude) {
-        this.metaLatitude = metaLatitude;
-    }
-
-
-    public Double getMetaLongitude() {
-        return metaLongitude;
-    }
-
-
-    public void setMetaLongitude(Double metaLongitude) {
-        this.metaLongitude = metaLongitude;
-    }
- */
-
-/*
-    public void delete() {
-        MediaAssetFactory.delete(this.id);
-        MediaAssetFactory.deleteFromStore(this);
-    }
- */
 
     // this takes contents of this MediaAsset and copies it to the target (note MediaAssets must exist with sufficient params already)
     // please note this uses *source* AssetStore for copying, which can/will affect how, for example, credentials in aws s3 are chosen.
@@ -972,7 +799,7 @@ public class MediaAsset implements java.io.Serializable {
         return sanitizeJson(request, jobj, true, myShepherd);
     }
 
-    // fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
+    // fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request)
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
         org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess, Shepherd myShepherd)
     throws org.datanucleus.api.rest.orgjson.JSONException {
@@ -982,7 +809,6 @@ public class MediaAsset implements java.io.Serializable {
         jobj.remove("parametersAsString");
         // jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
-        // TODO something better with store?  fix .put("store", store) ???
         HashMap<String, String> s = new HashMap<String, String>();
         s.put("type", store.getType().toString());
         jobj.put("store", s);
@@ -1200,7 +1026,7 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     // NOTE: these currrently do not recurse.  this makes a big assumption that one only wants children of _original
-    // (e.g. on an encounter) and will *probably* need to change in the future.    TODO?
+    // (e.g. on an encounter) and will *probably* need to change in the future.
     public static MediaAsset findOneByLabel(ArrayList<MediaAsset> mas, Shepherd myShepherd,
         String label) {
         ArrayList<MediaAsset> all = findAllByLabel(mas, myShepherd, label, true);
@@ -1507,7 +1333,7 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public MediaAssetMetadata updateMetadata()
-    throws IOException { // TODO should this overwrite existing, or append?
+    throws IOException { 
         if (store == null) return null;
         metadata = store.extractMetadata(this);
         return metadata;
@@ -1634,8 +1460,7 @@ public class MediaAsset implements java.io.Serializable {
        encounter(s) made to hold them.  this will be based on their sibling annots on this asset, among other things.
 
     note: current logic here ignores edge-case where annots may span multiple species.  this is due in part to the fact that deriving species from
-       iaClass is a gray area in some wildbooks.  this will need to be a future enhancement.  TODO IAJsonProperties.taxonomyFromIAClass() may help
-       toward this end, but it is new and can give null results.
+       iaClass is a gray area in some wildbooks.  this will need to be a future enhancement.
  */
     public List<Encounter> assignEncounters(Shepherd myShepherd) {
         List<Encounter> newEncs = new ArrayList<Encounter>();
@@ -1687,7 +1512,7 @@ public class MediaAsset implements java.io.Serializable {
                 try {
                     IAJsonProperties iaJson = new IAJsonProperties();
                     whichever.setTaxonomy(iaJson.taxonomyFromIAClass(needsEncounter.get(
-                        0).getIAClass(), myShepherd));                                                                  // might work!
+                        0).getIAClass(), myShepherd));
                 } catch (Exception ex) {
                     System.out.println(
                         "INFO: assignEncounters() could not load iaJson, so could not deduce taxonomy for "

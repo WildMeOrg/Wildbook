@@ -16,6 +16,7 @@
 		java.io.UnsupportedEncodingException,
 		org.ecocean.identity.IBEISIA,
 		java.util.ArrayList,
+		java.util.Collections,
 		org.apache.commons.collections4.CollectionUtils
 		"
 %>
@@ -152,6 +153,7 @@ $(document).ready(function() {
         $('.axis').hide();
     }).on('click', function(ev) {
       let mainImgWidth = $('#main-img').width();
+       if (rotated) mainImgWidth = $('#main-img').height();
       let widthScale = maWidth/mainImgWidth;
         if (boxStart) {
             var w = Math.abs(ev.offsetX - boxStart[0]);
@@ -197,9 +199,11 @@ try{
 	final String noViewpoint = "----------";
 	vlist += "<option value=\"\"" + (viewpoint == null || viewpoint.equals("") ? " selected" : "") + ">" + noViewpoint + "</option>";
 	final Set<String> results = new LinkedHashSet<>(Annotation.getAllValidViewpoints());
-	Iterator it = results.iterator();
+	List<String> sortedResults = new ArrayList<>(results);
+	Collections.sort(sortedResults);
+	Iterator<String> it = sortedResults.iterator();
 	while (it.hasNext()) {
-	    String v = (String)it.next();
+	    String v = it.next();
 	    if (!Util.stringExists(v)) continue;
 	    vlist += "<option" + (v.equals(viewpoint) ? " selected" : "") + ">" + v + "</option>";
 	}
@@ -349,8 +353,9 @@ try{
 	<p>
 	MediaAsset <b><a title="<%=ma.toString()%><%=(ma.isRotated90Or270() ? " -- adjusted for ROTATION &#128257;" : "")%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
 
-	<script>scale = <%=scale%>;
-        maWidth = <%=maWidth%>;
+	<script>var scale = <%=scale%>;
+        var maWidth = <%=maWidth%>;
+        var rotated = <%=ma.isRotated90Or270()%>;
         var asset = <%=ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true, myShepherd)%>;
 
 	function pulldownUpdate(el) {

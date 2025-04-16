@@ -1,3 +1,5 @@
+// TODO: evaluate and delete if deprecated work
+
 package org.ecocean;
 
 import java.net.URL;
@@ -82,7 +84,6 @@ public class SpotterConserveIO {
         DateTime endDate = toDateTime(jin.optString("end_date", null));
         DateTime createDate = toDateTime(jin.optString("create_date", null));
         Survey survey = new Survey(startDate);
-        // if (startDate != null) survey.setStartTimeMilli(startDate.getMillis());
         if (endDate != null) survey.setEndTimeMilli(endDate.getMillis());
         if (createDate != null)
             survey.addComments("<p>Created on source: <b>" + createDate.toString() + "</b></p>");
@@ -98,7 +99,6 @@ public class SpotterConserveIO {
         String integ = checkIntegrity(st, myShepherd);
         survey.addSurveyTrack(st);
         if (integ != null) survey.addComments("<p>Note: SurveyTrack failed integrity check</p>");
-///TODO do we .setEffort based on survey track lengths or what???
         if (jin.optJSONArray("CINMS Weather") != null) {
             ArrayList<Observation> wths = new ArrayList<Observation>();
             JSONArray jw = jin.getJSONArray("CINMS Weather");
@@ -166,10 +166,7 @@ public class SpotterConserveIO {
         occ.setBestGroupSizeEstimate(new Double(numTotal));
         occ.setSightingPlatform(allJson.optString("CINMS Vessel", null));
         occ.setSource("SpotterConserveIO:ci:" + tripId);
-/*
-        String taxString = jin.optString("CINMS Species", null);
-        if (taxString != null) occ.addSpecies(taxString, myShepherd);
- */
+
         Taxonomy tax = ciToTaxonomy(jin.optString("CINMS Species", null), myShepherd);
         System.out.println("ciToTaxonomy => " + tax);
         if (tax != null) occ.addTaxonomy(tax);
@@ -216,18 +213,8 @@ public class SpotterConserveIO {
         return tax;
     }
 
-/*
-    {
-        create_date: "2017-06-03 18:41:00+00:00", Card Number: 1, PID Code: "SBE", Image Number Start: 1583,      \__  use these to fill out some
-           (new!) kinda placeholder Features (via Annotations) Image Number End: 1588,        /
-        Animals Identified: 1
-   }
- */
     public static Encounter ciToEncounter(JSONObject jin, JSONObject occJson, String occId,
-        JSONObject allJson, Shepherd myShepherd) {                                                                                      // occJson we
-                                                                                                                                        // need for
-                                                                                                                                        // species (if
-                                                                                                                                        // not more)
+        JSONObject allJson, Shepherd myShepherd) { //occJson we need for species (if not more)
         Encounter enc = new Encounter();
 
         enc.setCatalogNumber(Util.generateUUID());
@@ -307,9 +294,8 @@ public class SpotterConserveIO {
         return new Instant(name, dt, null);
     }
 
-    // someday, Taxonomy!  sigh  TODO
     private static String ciSpecies(String species) { // e.g. "Blue Whale" --> "Balaenoptera musculus" ... also: may be null
-        return species; // meh. for now.
+        return species; 
     }
 
     private static String[] ciSpeciesSplit(String species) { // e.g. "Foo Bar" --> ["Foo", "Bar"]
@@ -317,18 +303,6 @@ public class SpotterConserveIO {
         return species.split(" +");
     }
 
-/*
-    unfortunately, we get a lot of noise for the "Observer Names" field, which need to be broken up into names to search on User.fullName ... examples
-       we need to split on:
-   ci_data/ci_21339.json:  "Observer Names": "Jess Morten, Sean Hastings, Brad pilot",
-   ci_data/ci_21340.json:  "Observer Names": "Emilee Hurlbert",
-   ci_data/ci_21346.json:  "Observer Names": "Maria Ornelas\n",   #trailing noise! ugh ci_data/ci_21367.json:  "Observer Names": "Carolyn
-      McCleskey,Sue Miller",  #comma-no-space, oof ci_data/ci_21371.json:  "Observer Names": "Rosie Romo\nDave Morse (PID)\n",   #wtf, gimme a break!
-   ci_data/ci_21384.json:  "Observer Names": "Sophie Busch",
-   ci_data/ci_21390.json:  "Observer Names": "Sophie Busch and Marian Jean",    #you serious here???
-   ci_data/ci_21408.json:  "Observer Names": "Larry Driscoll\nAnn Camou",      #etc.
-
- */
     public static List<User> ciGetVolunteerUsers(JSONObject jin, Shepherd myShepherd) {
         if (jin == null) return null;
         String namesIn = jin.optString("Observer Names", "").replaceAll("\\n$",
@@ -343,15 +317,6 @@ public class SpotterConserveIO {
         return ciGetSubmitterUser(myShepherd);
     }
 
-/******************************************
-    CaribWhale flavor
-   "Jake's trips are under project #4 which is Carib Whale and should be very similar to the CINMS format"  -virgil thus, some of this piggybacks on
-      ci* calls.
-
-   also, seems like project id=26 (shane's) is close enough to this that i am going to go ahead and piggyback on this there are of course (sigh) some
-      minor differences, so mind the hacking.
-
- ******************************************/
     // this is the "starting point" for JSON from the API
     public static Survey cwToSurvey(JSONObject jin, Shepherd myShepherd) {
         if (jin == null) return null;
@@ -359,7 +324,6 @@ public class SpotterConserveIO {
         DateTime endDate = toDateTime(jin.optString("end_date", null));
         DateTime createDate = toDateTime(jin.optString("create_date", null));
         Survey survey = new Survey(startDate);
-        // if (startDate != null) survey.setStartTimeMilli(startDate.getMillis());
         if (endDate != null) survey.setEndTimeMilli(endDate.getMillis());
         if (createDate != null)
             survey.addComments("<p>Created on source: <b>" + createDate.toString() + "</b></p>");
@@ -381,7 +345,6 @@ public class SpotterConserveIO {
         String integ = checkIntegrity(st, myShepherd);
         survey.addSurveyTrack(st);
         if (integ != null) survey.addComments("<p>Note: SurveyTrack failed integrity check</p>");
-///TODO do we .setEffort based on survey track lengths or what???
 
         // HACK ... can be either one of these
         JSONArray weatherArr = jin.optJSONArray("Demo Weather");
@@ -397,16 +360,6 @@ public class SpotterConserveIO {
         return survey;
     }
 
-/*
-    public static Observation ciToWeather(JSONObject wj, Survey surv) {
-        if (wj == null) return null;
-        Observation obs = new Observation(OBS_WEATHER_NAME, wj.toString(), surv, surv.getID());
-        DateTime dt = toDateTime(wj.optString("create_date", null));
-        obs.setDateAddedMilli((dt == null) ? null : dt.getMillis());
-        obs.setDateLastModifiedMilli();
-        return obs;
-    }
- */
     public static SurveyTrack cwToSurveyTrack(JSONObject jin, Shepherd myShepherd) {
         SurveyTrack st = new SurveyTrack();
 
@@ -463,10 +416,7 @@ public class SpotterConserveIO {
             false) ? "yes" : "no") + "</b>; ";
         bool += "</p>";
         occ.addComments(bool);
-/*
-        String taxString = jin.optString("CINMS Species", null);
-        if (taxString != null) occ.addSpecies(taxString, myShepherd);
- */
+
         Taxonomy tax = ciToTaxonomy(jin.optString("CINMS Species", null), myShepherd);
         System.out.println("(cw)ciToTaxonomy => " + tax);
         if (tax != null) occ.addTaxonomy(tax);
@@ -485,24 +435,11 @@ public class SpotterConserveIO {
             }
             occ.setBehaviors(bhvs);
         }
-/*   this does not seem to exist in CaribWhale ... :/
-        if (jin.optJSONArray("CINMS Photo Log") != null) {
-            ArrayList<Encounter> encs = new ArrayList<Encounter>();
-            JSONArray je = jin.getJSONArray("CINMS Photo Log");
-            for (int i = 0 ; i < je.length() ; i++) {
-                Encounter enc = ciToEncounter(je.optJSONObject(i), jin, occ.getOccurrenceID(), allJson, myShepherd);
-                if (enc != null) encs.add(enc);
-            }
-            occ.setEncounters(encs);
-        }
- */
 
 /* NOTE!   jin2 does seem to have a "photos" array.  not sure if it is the same as use in Whale Alert, e.g.:
                 Encounter enc = waToEncounter(je.optString(i, null), jin, occ, myShepherd);
  */
         occ.setSubmitter(cwToUser(allJson, myShepherd));
-        // List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
-        // occ.setInformOthers(vols);
         return occ;
     }
 
@@ -516,7 +453,7 @@ public class SpotterConserveIO {
         return new Instant(name, dt, null);
     }
 
-    // FIXME  these are hardcoded for now cuz i have no idea how to map these -- no email addresses.  :/
+    // remove or genericize; these are currently hardcoded
     public static User cwToUser(JSONObject jin, Shepherd myShepherd) {
         if (jin.optString("creator").equals("Jlevenson1"))
             return myShepherd.getUserByUUID("dc23b977-dfaa-4cda-b074-78df4f388dd8");
@@ -620,7 +557,7 @@ public class SpotterConserveIO {
 
         // we have a start_date and end_date in *very top level* (not occJson!) but it seems (!??) to always be the
         // same timestamp throughout as create_date as well!!  so we are going to use this value for:
-        // enc.DWCDateAdded as well as enc *date of encounter*.  :/   TODO figure out whats up here!
+        // enc.DWCDateAdded as well as enc *date of encounter*. 
 
         String dc = occJson.optString("create_date", null);
         if (dc != null) {
@@ -636,13 +573,7 @@ public class SpotterConserveIO {
         enc.setDecimalLongitude(occ.getDecimalLongitude());
 
         String waSpecies = occJson.optString("Whale Alert Species", null);
-/*
-        /// TODO FIX FOR Taxonomy class!!! String tax[] = ciSpeciesSplit(occJson.optString("Whale Alert Species", null));
-        if ((tax != null) && (tax.length > 1)) {
-            enc.setGenus(tax[0]);
-            enc.setSpecificEpithet(tax[1]);
-        }
- */
+
         String annotSpecies = "annot_species";
         enc.setGenus("test");
         enc.setSpecificEpithet("test");
@@ -795,7 +726,7 @@ public class SpotterConserveIO {
 
         // we have a start_date and end_date in *very top level* (not occJson!) but it seems (!??) to always be the
         // same timestamp throughout as create_date as well!!  so we are going to use this value for:
-        // enc.DWCDateAdded as well as enc *date of encounter*.  :/   TODO figure out whats up here!
+        // enc.DWCDateAdded as well as enc *date of encounter*.
 
         String dc = occJson.optString("create_date", null);
         if (dc != null) {
@@ -844,32 +775,6 @@ public class SpotterConserveIO {
                 jin.optString("Whale Alert Submitter Phone", null), myShepherd);
     }
 
-/* saved for prosperity?
-    public static User PREVIOUS____oaToUser(JSONObject jin, Shepherd myShepherd, Occurrence occ) {
-        String subEmail = jin.optString("Whale Alert Submitter Email", null);
-        String subName = jin.optString("Whale Alert Submitter Name", null);
-        /////String subPhone = jin.optString("Whale Alert Submitter Phone", null);  //ignore!
-
-        User user = null;
-        if (Util.stringExists(subEmail)) {
-            String emhash = User.generateEmailHash(subEmail);
-            //we get by *email hash* here (and not email) in case the email has been reset (e.g. GDPR) user =
-               myShepherd.getUserByHashedEmailAddress(emhash);
-            if (user == null) {
-                user = new User(subEmail, Util.generateUUID());
-                if (Util.stringExists(subName)) user.setFullName(subName);
-                user.setNotes("<p>Created via Ocean Alert, Occurrence " + occ.getID() + ".</p>");
-            }
-
-        } else {  //no subEmail (so anonymous submission) user = new User(Util.generateUUID());
-            if (Util.stringExists(subName)) user.setFullName(subName);
-            user.setNotes("<p>Created via Ocean Alert, Occurrence " + occ.getID() + ".</p>");
-        }
-   System.out.println("INFO: oaToUser(" + subEmail + ", " + subName + " --> " + user);
-        return user;
-    }
- */
-
 /*
    ITIS Species Scientific Name: "Mysticeti", ITIS Species Common Name: "baleen whales", ITIS Species TSN: "552298",
  */
@@ -906,36 +811,6 @@ public class SpotterConserveIO {
         return null;
     }
 
-    /*
-       note: seems gpx has a trk made up of trkseg, which are made of trkpts...
-       i suppose we really should have trkseg -> path, then have surveytrack made of multiple paths...
-       however, *for now* we just combine all leaf points into one Path TODO discuss with colin et al
-
-       also: really should we be able to pass in entire "track" structure (find .gpx, save schema, etc)?  probably!
-       something like: trackToSurveyTrackPaths(surveyTrack)
-
-       NOTE!  trkpt can be JSONArray or JSONObject single pt!!  not sure if same is true of trkseg!!! TODO
-
-        track: {
-            gpx: {
-                @xsi:schemaLocation: "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd",
-                @creator: "TrailBehind",
-                @xmlns:xsi: "http://www.w3.org/2001/XMLSchema-instance",
-                @xmlns: "http://www.topografix.com/GPX/1/1",
-                @version: "1.1", trk: {
-                    trkseg: [
-                        {
-                            trkpt: [{....}, ...., {....}]  // ARRAY
-                        },
-                        {
-                            trkpt: {                       // SINGLE POINT
-                                @lat: "34.321975",
-                                @lon: "-119.691129", time: "2017-06-01T20:57:49Z", ele: "-3.248924"
-                .......
-
-        NOTE2!  also trkseg can be a JSONArray or a (singleton) JSONObject!!  grrffff... NOTE3:  JP asks "what if it is empty?" ... ARGH. haha
-
-     */
     public static Path trkToPath(JSONObject trk) {
         if (trk == null) return null;
         JSONArray segs = trk.optJSONArray("trkseg");
@@ -1071,7 +946,6 @@ public class SpotterConserveIO {
         return apiGet("/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/0");
     }
 
-    // TODO needs some better way to tell some of these... sigh
     public static String tripFlavor(JSONObject tripData) {
         if (tripData == null) return null;
         if ((tripData.optString("Ship Name", null) != null) || (tripData.optString("Data Collector",

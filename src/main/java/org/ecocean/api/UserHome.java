@@ -42,7 +42,7 @@ public class UserHome extends ApiBase {
         }
         home.put("user", currentUser.infoJSONObject(context, true));
 
-        // TODO ES replace
+        // TODO: Replace with OpenSearch
 
         JSONArray encountersArr = new JSONArray();
         int count = 0;
@@ -115,6 +115,7 @@ public class UserHome extends ApiBase {
         home.put("projects", projArr);
 
         response.setStatus(200);
+        response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(home.toString());
         myShepherd.rollbackDBTransaction();

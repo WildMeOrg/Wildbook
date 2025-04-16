@@ -8,16 +8,14 @@ import org.ecocean.Shepherd;
 
 /**
  * A FeatureType (still under development) will be the unique identifier of the content type of a feature, such as "fluke trailing edge". Likely it
- * should also include (as part of a compound id) a version as well, so changes to meanings can be reflected here.
- *     etc.   TODO
+ * should also include (as part of a compound id) a version as well.
  */
 public class FeatureType implements java.io.Serializable {
     static final long serialVersionUID = 8844233450443974780L;
 
     private static ArrayList<FeatureType> allTypes;
 
-    protected String id = null; // TODO maybe should take on form of "org.ecocean.flukeTrailingEdge" or something?
-
+    protected String id = null; 
     protected String description = null;
 
     public FeatureType(final String id) {
@@ -83,11 +81,6 @@ public class FeatureType implements java.io.Serializable {
 
     public String toString() {
         return id;
-/*
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .toString();
- */
     }
 
     private static void initializeFeatureTypes(Shepherd myShepherd) {

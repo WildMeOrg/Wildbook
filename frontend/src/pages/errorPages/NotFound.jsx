@@ -1,7 +1,11 @@
 import React from "react";
 import ErrorPage from "./ErrorPage";
 
-export default function NotFound() {
+export default function NotFound({
+  setHeader
+})  {
+
+  setHeader(false);
   return (
     <ErrorPage
       errorCode="404"

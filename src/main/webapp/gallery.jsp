@@ -51,14 +51,6 @@ if(request.getParameter("locationCodeField")!=null){
 	locationCodeFieldString="&locationCodeField="+request.getParameter("locationCodeField");
 }
 
-//params from donorbox
-String donorboxId = Util.getRequestParamIfExists(request, "id");
-String donorboxFirstName = Util.getRequestParamIfExists(request, "first_name");
-String donorboxLastName = Util.getRequestParamIfExists(request, "last_name");
-String donorboxAmnt = Util.getRequestParamIfExists(request, "amount");
-String donorboxCurrency = Util.getRequestParamIfExists(request, "currency");
-String donorboxDuration = Util.getRequestParamIfExists(request, "duration");
-
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
@@ -111,24 +103,8 @@ Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 myShepherd.beginDBTransaction();
 try{
 
-	int count = myShepherd.getNumAdoptions();
 	int allSharks = myShepherd.getNumMarkedIndividuals();
-	int countAdoptable = allSharks - count;
 
-	if(request.getParameter("adoptableSharks")!=null){
-		//get current time minus two years
-		Long twoYears=new Long("63072000000");
-		long currentDate=System.currentTimeMillis()-twoYears.longValue();
-	    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE names.valuesAsString.toLowerCase().indexOf(\"nickname\") == -1";
-	    Query query=myShepherd.getPM().newQuery(filter);
-	    query.setOrdering("numberEncounters descending");
-	    query.setRange(startNum, endNum);
-	    Collection c = (Collection) (query.execute());
-		rIndividuals=new Vector<MarkedIndividual>(c);
-	    query.closeAll();
-	    if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
-	}
-	else{
 		String order ="nickName ASC NULLS LAST";
 
 		request.setAttribute("rangeStart", startNum);
@@ -139,8 +115,6 @@ try{
 
 		//handle any null errors better
 		if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
-
-	}
 
 	// security
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
@@ -302,7 +276,7 @@ try{
 
 	<div class="container maincontent">
 	<h1><%=props.getProperty("gallery") %></h1>
-	<nav class="navbar navbar-default gallery-nav">
+	<nav class="navbar-default gallery-nav">
 	  <div class="container-fluid">
 	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
 
@@ -310,24 +284,11 @@ try{
 
 	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
-		<%
-		if(CommonConfiguration.allowAdoptions(context)){
-		%>
-		    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true"><%=props.getProperty("adoptableSharks") %></a></button>
-		<%
-		}
-		%>
-
 	  </div>
 	</nav>
 
 	<div class="container-fluid">
 	  <section class="container-fluid main-section front-gallery galleria">
-
-	  <% if (request.getParameter("adoptableSharks")!=null) { %>
-	    <h3><%=props.getProperty("numAdoptable").replaceAll("%NUM%", (new Integer(countAdoptable)).toString()) %></h3>
-	    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptashark.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
-	  <% } %>
 
 	    <% if(request.getParameter("locationCodeField")!=null) {%>
 
@@ -522,14 +483,7 @@ try{
 	                    <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
 	                  </p>
 	                  <div class="gallery-btn-group">
-	                  <%
-	                  if(CommonConfiguration.allowAdoptions(context)){
-	                  %>
-	                    <a href="<%=urlLoc%>/adoptionform.jsp?number=<%=pairIndividualID[j]%>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
-	                  <%
-	                  }
-	                  %>
-	                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
+	                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairIndividualID[j]%>"><button class="large"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
 	                  </div>
 	                </td>
 	              </tr></table>
@@ -550,38 +504,17 @@ try{
 	          <%
 	          if (startNum>0) {
 	            int newStart = Math.max(startNum-numIndividualsOnPage,0);
-				if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
-				  %>
-					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
-						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
-					&nbsp;&nbsp;&nbsp;&nbsp;
-				  <%
-				}else{
 					%>
 						<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
 						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
 						&nbsp;&nbsp;&nbsp;&nbsp;
 					<%
-				}
 	          }
-			  if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
-				%>
-					<%=props.getProperty("seeMore") %>
-					&nbsp;&nbsp;&nbsp;&nbsp;
-					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
-					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
-				<%
-			  } else{
 				%>
 					<%=props.getProperty("seeMore") %>
 					&nbsp;&nbsp;&nbsp;&nbsp;
 					<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
 					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
-				<%
-			  }
-	          %>
-
-	          
 	        </p>
 
 	      </row>

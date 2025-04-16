@@ -1,4 +1,4 @@
-package ec.com.mapache.ngflow.upload;
+package org.ecocean.resumableupload;
 
 import java.io.File;
 import java.util.HashSet;

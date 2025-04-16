@@ -1,3 +1,5 @@
+// TODO: Deprecate and remove as part of twitter bot deprecate
+
 package org.ecocean.media;
 
 import java.io.File;
@@ -12,10 +14,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import twitter4j.Status;
 
-/**
+/*
  * NOTE TwitterAssetStore references MediaAssets that reside on Twitter; tweets and their media currently this is read-only but later could be writable
  * with an API key if needed?
- *
  */
 public class TwitterAssetStore extends AssetStore {
     private static final String METADATA_KEY_RAWJSON = "twitterRawJson";
@@ -80,7 +81,7 @@ public class TwitterAssetStore extends AssetStore {
     }
 
     @Override public void deleteFrom(final MediaAsset ma) {
-        return; // TODO exception?
+        return; 
     }
 
     @Override public URL webURL(final MediaAsset ma) {
@@ -110,7 +111,6 @@ public class TwitterAssetStore extends AssetStore {
     @Override public JSONObject createParameters(File file, String grouping) {
         JSONObject p = new JSONObject();
 
-        // will we even ever need this for a read-only system???  TODO so returning empty [or should be null?]
         return p;
     }
 
@@ -135,20 +135,6 @@ public class TwitterAssetStore extends AssetStore {
             return null;
         }
     }
-
-/*   TODO not really sure what to do with updateChild() and friends here..... hmmmm...
-     presently opting to create these manually via entitiesAsMediaAssets() (which will utilize .parent property)
-
-    public List<String> allChildTypes() {
-        return Arrays.asList(new String[]{"entity"});
-    }
-    //awkwardly named subset of the above which will be used to determine which should be derived with updateStandardChildren() public List<String>
-       standardChildTypes() {
-        return Arrays.asList(new String[]{"entity"});
-    }
-    public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
-    }
- */
 
 /*  regarding media (etc) in tweets:  seems .extended_entities.media is the same as .entities.media ???  but extended (duh?) might have more details?
         https://dev.twitter.com/overview/api/entities-in-twitter-objects https://dev.twitter.com/overview/api/entities
@@ -182,35 +168,6 @@ public class TwitterAssetStore extends AssetStore {
         return mas;
     }
 
-/*   remove?  TODO public static List<MediaAsset> entitiesAsMediaAssetsGsonObj(MediaAsset ma, Long parentTweetId) {
-        JSONObject raw = getRawJSONObject(ma);
-        // System.out.println(raw.toString());
-        AssetStore store = ma.getStore();
-        if (raw == null) return null;
-        if ((raw.optJSONArray("extendedMediaEntities") == null)){
-          System.out.println("aw.optJSONArray('extendedMediaEntities') is null");
-          return null;
-        }
-        List<MediaAsset> mas = new ArrayList<MediaAsset>();
-        JSONArray jarr = raw.getJSONArray("extendedMediaEntities");
-        for (int i = 0 ; i < jarr.length() ; i++) {
-            JSONObject p = jarr.optJSONObject(i);
-            if (p == null) continue;
-            p.put("id", p.optString("id", null));  //squash the long id at "id" with string MediaAsset kid = store.create(p);
-            kid.addLabel("_entity");
-            kid.addLabel("_parentTweet:" + Long.toString(parentTweetId));
-            setEntityMetadata(kid);
-            kid.getMetadata().getDataAsString(); //TODO no idea what this does -MF kid.setParentId(ma.getId());
-            //derivationMethods?  metadata? (of image) etc.... ??
-            mas.add(kid);
-            System.out.println("i is: " + Integer.toString(i));
-            JSONObject test = TwitterUtil.toJSONObject(kid);
-            System.out.println(TwitterUtil.toJSONString(test));
-        }
-        return mas;
-    }
- */
-
     // this assumes we already set metadata
     public static JSONObject getRawJSONObject(MediaAsset ma) {
         if (ma == null) return null;
@@ -233,37 +190,6 @@ public class TwitterAssetStore extends AssetStore {
         return new MediaAssetMetadata(data);
     }
 
-/*
-    public Long getParentTweetIdFromLabels(ArrayList<String> labels) throws Exception{
-      Long returnVal = null;
-      for(int i = 0; i<labels.size(); i++){
-        try{
-          returnVal = parseParentTweetId(labels.get(i));
-        } catch(Exception e){
-          continue;
-        }
-      }
-      if(returnVal == null){
-        throw new Exception("returnVal in getParentTweetIdFromLabels is null");
-      } else{
-        return returnVal;
-      }
-    }
-
-    public Long parseParentTweetId(String label) throws Exception{
-      Long returnVal = null;
-      String PATTERN = "_parentTweet:(\\d+)"; //doesn't seem as robust as Pattern pattern = Pattern.compile(PATTERN);
-      Matcher matcher = pattern.matcher(label);
-      if(matcher.matches()){
-        returnVal = Long.parseLong(matcher.group(1));
-      }
-      if(returnVal == null){
-        throw new Exception("returnVal in parseParentTweetId is null");
-      } else{
-        return returnVal;
-      }
-    }
- */
     private static void setEntityMetadata(MediaAsset ma) {
         if (ma.getParameters() == null) return;
         JSONObject d = new JSONObject("{\"attributes\": {} }");

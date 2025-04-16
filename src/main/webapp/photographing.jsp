@@ -13,8 +13,8 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-		  <h2>Photographing Whales and Dolphins for Individual Identification with Computer Vision</h2>
-	<p>Coming soon...</p>
+		  <h2>Photography Guidelines for Individual Identification with Computer Vision</h2>
+	<p>Best practices can vary by species and location. For general information, see the <a href="https://wildbook.docs.wildme.org/data/photography-guidelines.html">Photography Guidelines</a>.</p>
 			
 	
 	</div>
