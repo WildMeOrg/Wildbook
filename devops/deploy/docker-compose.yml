@@ -57,7 +57,7 @@ services:
       # TODO on deployment: exposed for developer verification, close after
       - "81:8080"
     healthcheck:
-      # TODO on deployment:  change test.example.org to desired url ... use same as opensearch?
+      # TODO on deployment:  change test.example.org to desired url ... this wildbook?
       test: [ "CMD-SHELL", "curl --fail-with-body https://test.example.org || exit 1" ]
       interval: 180s
       timeout: 60s
