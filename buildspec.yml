@@ -3,6 +3,11 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      - echo "Logging in to Docker Hub..."
+      - export DOCKERHUB_USERNAME=$(aws ssm get-parameter --name /dockerhub/username --with-decryption --query Parameter.Value --output text)
+      - export DOCKERHUB_TOKEN=$(aws ssm get-parameter --name /dockerhub/token --with-decryption --query Parameter.Value --output text)
+      - echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
 
@@ -10,13 +15,13 @@ phases:
     commands:
       - echo "Building the Docker image..."
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
-  
+
   post_build:
     commands:
       - echo "Pushing the Docker image to Amazon ECR..."
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo "Build completed successfully!"   
-  
+      - echo "Build completed successfully!"
+
       - echo "Writing image definitions file..."
       - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
