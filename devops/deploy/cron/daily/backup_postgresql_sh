@@ -1,0 +1,9 @@
+#!/bin/sh
+
+target=/data/backups/postgresql/lynx-live-db-`date +%Y-%m-%d`.sql
+
+cd /data/wb-docker-deploy
+
+docker compose exec -T db pg_dump -O --exclude-table-data='"IDENTITYSERVICELOG"' wildbook > $target
+
+gzip $target
