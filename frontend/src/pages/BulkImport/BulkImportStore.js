@@ -3,6 +3,7 @@
 import { makeAutoObservable } from "mobx";
 import EXIF from "exif-js";
 import Flow from "@flowjs/flow.js";
+import { v4 as uuidv4 } from "uuid";
 
 export class BulkImportStore {
   _imagePreview = [];
@@ -12,6 +13,11 @@ export class BulkImportStore {
   _flow = null;
   _submissionId = null;
   _spreadsheetData = [];
+  _imageUploadStatus= "notStarted"; 
+  _steps = ["Upload Image", "Upload Spreadsheet", "Review"]
+  _activeStep = 0;
+  _imageUploadProgress = 20;
+  _spreadsheetUploadProgress = 80;
 
   constructor() {
     makeAutoObservable(this);
@@ -41,19 +47,56 @@ export class BulkImportStore {
     return this._spreadsheetData;
   }
 
+  get imageUploadStatus() {
+    return this._imageUploadStatus;
+  }  
+
+  get steps() {
+    return this._steps;
+  }
+  get activeStep() {
+    return this._activeStep;
+  }
+  get imageUploadProgress() {
+    return this._imageUploadProgress;
+  }
+
+  get spreadsheetUploadProgress() {
+    return this._spreadsheetUploadProgress;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = data;
     console.log("Spreadsheet data saved to store:", data);
   }
 
+  setImageUploadStatus(status) {
+    this._imageUploadStatus = status;
+    console.log("Image upload status updated:", status);
+  }
+
+  setActiveStep(step) {
+    this._activeStep = step;
+    console.log("Active step updated:", step);
+  }
+  setImageUploadProgress(progress) {
+    this._imageUploadProgress = progress;
+    console.log("Image upload progress updated:", progress);
+  }
+  setSpreadsheetUploadProgress(progress) {
+    this._spreadsheetUploadProgress = progress;
+    console.log("Spreadsheet upload progress updated:", progress);
+  }
+
   initializeFlow(fileInputRef, maxSize) {
-    const submissionId = this._submissionId || crypto.randomUUID();
+    const submissionId = this._submissionId || uuidv4();
     this._submissionId = submissionId;
 
     const flowInstance = new Flow({
       target: "/ResumableUpload",
       forceChunkSize: true,
       testChunks: false,
+      allowFolderDragAndDrop: true,
       query: { submissionId },
     });
 
@@ -110,6 +153,7 @@ export class BulkImportStore {
       });
 
       this._imageSectionFileNames.push(file.name);
+      this._flow.upload();
     });
 
     flowInstance.on("fileProgress", (file) => {
@@ -159,7 +203,6 @@ export class BulkImportStore {
       if (item) this.traverseFileTree(item, maxSize);
     }
 
-    e.dataTransfer.clearData();
   }
 
   traverseFileTree(item, maxSize, path = "") {
