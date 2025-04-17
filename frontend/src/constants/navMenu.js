@@ -327,7 +327,7 @@ const unAuthenticatedMenu = [
       //     name: (
       //       <FormattedMessage
       //         id="menu.learn.termsOfUse"
-      //         defaultMessage="Terms of Use"
+      //         defaultMessage="Terms of Use "
       //       />
       //     ),
       //     href: "/terms-of-use.jsp",

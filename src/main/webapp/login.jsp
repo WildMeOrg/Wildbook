@@ -138,7 +138,7 @@ if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0
         <br/>
         <p><%=props.getProperty("accountInquiry") %></p>
         <p>
-          <a href="contactus.jsp"><%=props.getProperty("contactUs") %></a>
+          <a href="mailto: info@tech4conservation.org"><%=props.getProperty("contactUs") %></a>
         </p>
       </td></tr>
 

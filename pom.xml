@@ -621,7 +621,7 @@
             </configuration>
           </execution>
 
-          <execution>
+          <!-- <execution>
             <id>Build React Directory</id>
             <phase>clean</phase>
             <goals>
@@ -631,7 +631,7 @@
               <executable>${basedir}/frontend/maven-build.sh</executable>
               <workingDirectory>${basedir}</workingDirectory>
             </configuration>
-          </execution>
+          </execution> -->
         </executions>
       </plugin>
 
