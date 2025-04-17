@@ -35,6 +35,7 @@
   "menu.administer.userManagement": "Gestione utenti",
   "menu.administer.libraryAdmin": "Amministrazione della biblioteca",
   "menu.administer.logs": "Log",
+  "menu.administer.tasks": "Failed Tasks",
   "menu.administer.photoKeywords": "Parole chiave della foto",
   "menu.administer.softwareDocs": "Documentazione software",
   "menu.administer.dataIntegrity": "Integrità dei dati",
