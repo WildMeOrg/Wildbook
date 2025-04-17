@@ -3,8 +3,12 @@ import { FormattedMessage } from "react-intl";
 import MainButton from "../../components/MainButton";
 import * as XLSX from "xlsx";
 import { observer } from "mobx-react-lite";
+import { useContext } from "react";
+import ThemeContext from "../../ThemeColorProvider";
 
-export const BulkImportSpreadsheet = observer (({ store }) => {
+export const BulkImportSpreadsheet = observer(({ store }) => {
+    const theme = useContext(ThemeContext);
+
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -23,10 +27,10 @@ export const BulkImportSpreadsheet = observer (({ store }) => {
             const normalized = jsonData.map((row) => ({
                 mediaAsset: row.mediaAsset,
                 name: row.name,
-                date: row.date?.toString() || "", 
+                date: row.date?.toString() || "",
                 location: row.location,
-                submitterID: row.submitterID, 
-              }));
+                submitterID: row.submitterID,
+            }));
             console.log("Parsed JSON:", jsonData);
             if (store && store.setSpreadsheetData) {
                 store.setSpreadsheetData(normalized);
@@ -69,6 +73,30 @@ export const BulkImportSpreadsheet = observer (({ store }) => {
                     onClick={handleUploadClick}
                 >
                     <FormattedMessage id="UPLOAD_SPREADSHEET" />
+                </MainButton>
+            </div>
+            <div>
+                <MainButton
+                    onClick={() => {
+                        store.setActiveStep(0);
+                    }}
+                    backgroundColor={theme.wildMeColors.cyan700}
+                    color={theme.defaultColors.white}
+                    noArrow={true}
+                    style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
+                >
+                    <FormattedMessage id="PREVIOUS" />
+                </MainButton>
+                <MainButton
+                    onClick={() => {
+                        store.setActiveStep(2);
+                    }}
+                    backgroundColor={theme.wildMeColors.cyan700}
+                    color={theme.defaultColors.white}
+                    noArrow={true}
+                    style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
+                >
+                    <FormattedMessage id="NEXT" />
                 </MainButton>
             </div>
         </div>

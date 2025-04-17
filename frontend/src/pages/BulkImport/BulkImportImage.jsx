@@ -143,6 +143,11 @@ export const BulkImportImage = observer(({ store }) => {
             onDragOver={store.handleDragOver}
             onDragLeave={store.handleDragLeave}
             onDrop={(e) => store.handleDrop(e, maxSize)}
+          // onDrop={(e) => {
+          //   e.preventDefault();
+          //   store.handleDropItems(e.dataTransfer.items, maxSize);
+          // }}
+
           >
             {store.imagePreview.length ? (
               <div onClick={() => fileInputRef.current.click()}>
@@ -178,12 +183,27 @@ export const BulkImportImage = observer(({ store }) => {
               type="file"
               id="file-chooser"
               multiple
+              // webkitdirectory="true"
               accept=".jpg,.jpeg,.png,.bmp"
               ref={fileInputRef}
               style={{ display: "none" }}
             />
           </div>
         </Col>
+      </Row>
+      <Row className="mt-4">
+        <MainButton
+          onClick={() => {
+            store.setActiveStep(1);
+          }}
+          backgroundColor={theme.wildMeColors.cyan700}
+          color={theme.defaultColors.white}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
+        >
+          <FormattedMessage id="NEXT" />
+          <i className="bi bi-arrow-right ms-2"></i>
+        </MainButton>
       </Row>
     </div>
   );

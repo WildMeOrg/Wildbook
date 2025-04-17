@@ -8,7 +8,7 @@ import { Container } from 'react-bootstrap';
 import { FormattedMessage } from 'react-intl';
 import { BulkImportProgress } from './BulkImportProgress';
 import { BulkImportSpreadsheet } from './BulkImportSpreadsheet';
-import EditableDataTable from '../../components/EditableDataTable';
+import { BulkImportTableReview } from './BulkImportTableReview';
 
 const BulkImport = observer(() => {
 
@@ -19,9 +19,9 @@ const BulkImport = observer(() => {
                 <FormattedMessage id="BULK_IMPORT" />
             </h1>
             <BulkImportProgress  store={store}/>
-            <BulkImportImage  store={store}/>
-            <BulkImportSpreadsheet store={store}/>
-            <EditableDataTable store={store}/>
+            {store._activeStep === 0 && <BulkImportImage  store={store}/>}
+            {store._activeStep === 1 && <BulkImportSpreadsheet store={store}/>}
+            {store._activeStep === 2 && <BulkImportTableReview store={store}/>}
         </Container>
     );
 });
