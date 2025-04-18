@@ -1,12 +1,12 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
-Just a quick email to let you know that the cetacean encounter that you
-submitted has been matched to an identified cetacean in the Flukebook 
+Just a quick email to let you know that the wildlife encounter that you
+submitted has been matched to an identified cetacean in the Wildbook 
 photo-identification library.
 Follow these links to find out more:
 
-Previously identified record: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
+Previously identified record: @INDIVIDUAL_ID@ (@INDIVIDUAL_DISPLAYNAME@)
 @INDIVIDUAL_LINK@
 
 New encounter: @ENCOUNTER_ID@
