@@ -39,7 +39,7 @@ public class TaskManager extends HttpServlet {
         try {
             Query query = pm.newQuery(
                     "javax.jdo.query.SQL",
-                    "select * from \"TASK\" where \"STATUS\" is null order by \"CREATED\" desc"
+                    "select * from \"TASK\" where \"STATUS\" is null order by \"CREATED\" desc limit 10"
             );
             query.setClass(Task.class);
             List<Task> taskList = (List<Task>) query.execute();
