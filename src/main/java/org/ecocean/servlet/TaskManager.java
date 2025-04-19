@@ -36,24 +36,64 @@ public class TaskManager extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         PersistenceManager pm = pmf.getPersistenceManager();
 
+        // Get pagination parameters with defaults
+        int page = 1;
+        int pageSize = 10;
+
         try {
+            page = Integer.parseInt(request.getParameter("page"));
+        } catch (NumberFormatException e) {
+            // Use default if page is not a number or not provided
+        }
+
+        try {
+            pageSize = Integer.parseInt(request.getParameter("size"));
+        } catch (NumberFormatException e) {
+            // Use default if size is not a number or not provided
+        }
+
+        try {
+            String sql2 = "select count(*) as count from \"TASK\" where \"STATUS\" is null";
+            Query q2 = pm.newQuery("javax.jdo.query.SQL", sql2);
+            q2.setResultClass(Integer.class);
+            int count = ((List<Integer>) q2.execute()).get(0).intValue();
+            Integer pageCount = new Integer((int) ((double) count / (double) pageSize));
+
+            if (page > pageCount) {
+                page = pageCount;
+            } else if (page < 1) {
+                page = 1;
+            }
+
             Query query = pm.newQuery(
                     "javax.jdo.query.SQL",
-                    "select * from \"TASK\" where \"STATUS\" is null order by \"CREATED\" desc"
+                    "select \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", type from (select t.*, 1 as type from \"TASK\" t where t.\"ID\" not in (select tc.\"ID_OID\" from \"TASK_CHILDREN\" tc) and t.\"ID\" not in (select tc.\"ID_EID\" from \"TASK_CHILDREN\" tc) union select t.*, 2 as type from \"TASK\" t where t.\"ID\" in (select tc.\"ID_EID\" from \"TASK_CHILDREN\" tc) and t.\"STATUS\" is null) order by \"CREATED\" limit " + pageSize + " offset " + (page - 1) * pageSize
             );
-            query.setClass(Task.class);
-            List<Task> taskList = (List<Task>) query.execute();
+            query.setResultClass(Object[].class);
+            List<Object[]> results = (List<Object[]>) query.execute();
+
+            List<HashMap<String, Object>> taskList = new ArrayList<>();
+            for (Object[] row : results) {
+                HashMap<String, Object> task = new HashMap<>();
+
+                task.put("ID", row[0]);
+                task.put("QUEUERESUMEMESSAGE", row[1]);
+                task.put("CREATED", row[2]);
+                task.put("MODIFIED", row[3]);
+                task.put("TYPE", row[4]);
+
+                taskList.add(task);
+            }
 
             List<HashMap<String, Object>> tasks = new ArrayList<>(taskList.size());
-
-            for (Task task : taskList) {
+            for (HashMap<String, Object> task : taskList) {
                 HashMap<String, Object> taskMap = new HashMap<>();
 
                 try {
-                    String message = task.getQueueResumeMessage();
-                    String taskType = "Detection";
+                    String message = (String) task.get("QUEUERESUMEMESSAGE");
+                    String taskType = ((Integer) task.get("TYPE")) == 1 ? "Detection" : "Matcher";
                     JSONArray annotationIdJSONArray = new JSONArray();
-                    if (message != null && !message.isEmpty()) {
+                    if (taskType.equals("Matcher")) {
                         JSONObject queueResumeMessageObj = new JSONObject(message);
 
                         if (queueResumeMessageObj.has("annotationIds")) {
@@ -65,7 +105,7 @@ public class TaskManager extends HttpServlet {
                             annotationIdJSONArray = identifyObj.getJSONArray("annotationIds");
                         }
                     } else {
-                        String sql = "SELECT DISTINCT \"ea\".\"ID_EID\" FROM \"TASK\" \"t\" JOIN \"TASK_OBJECTMEDIAASSETS\" \"tom\" ON \"t\".\"ID\" = \"tom\".\"ID_OID\" JOIN \"MEDIAASSET_FEATURES\" \"mf\" ON \"tom\".\"ID_EID\" = \"mf\".\"ID_OID\" JOIN \"ANNOTATION_FEATURES\" \"af\" ON \"mf\".\"ID_EID\" = \"af\".\"ID_EID\" JOIN \"ENCOUNTER_ANNOTATIONS\" \"ea\" ON \"af\".\"ID_OID\" = \"ea\".\"ID_EID\" WHERE \"t\".\"ID\" = '" + task.getId() + "'";
+                        String sql = "SELECT DISTINCT \"ea\".\"ID_EID\" FROM \"TASK\" \"t\" JOIN \"TASK_OBJECTMEDIAASSETS\" \"tom\" ON \"t\".\"ID\" = \"tom\".\"ID_OID\" JOIN \"MEDIAASSET_FEATURES\" \"mf\" ON \"tom\".\"ID_EID\" = \"mf\".\"ID_OID\" JOIN \"ANNOTATION_FEATURES\" \"af\" ON \"mf\".\"ID_EID\" = \"af\".\"ID_EID\" JOIN \"ENCOUNTER_ANNOTATIONS\" \"ea\" ON \"af\".\"ID_OID\" = \"ea\".\"ID_EID\" WHERE \"t\".\"ID\" = '" + task.get("ID") + "'";
                         Query q = pm.newQuery("javax.jdo.query.SQL", sql);
                         q.setResultClass(String.class);
                         List<String> queryResult = (List<String>) q.execute();
@@ -99,10 +139,9 @@ public class TaskManager extends HttpServlet {
                     }
 
                     taskMap.put("taskType", taskType);
-                    taskMap.put("id", task.getId());
-//                    taskMap.put("status", task.getStatus(myShepherd));
-                    taskMap.put("created", new java.util.Date(task.getCreated()));
-                    taskMap.put("modified", new java.util.Date(task.getModified()));
+                    taskMap.put("id", task.get("ID"));
+                    taskMap.put("created", new java.util.Date((long) task.get("CREATED")));
+                    taskMap.put("modified", new java.util.Date((long) task.get("MODIFIED")));
 
                     tasks.add(taskMap);
                 } catch (Exception e) {
@@ -137,6 +176,10 @@ public class TaskManager extends HttpServlet {
             }
 
             request.setAttribute("tasks", tasks);
+            request.setAttribute("page", new Integer(page));
+            request.setAttribute("pageCount", pageCount);
+            request.setAttribute("previousPage", new Boolean(page > 1));
+            request.setAttribute("nextPage", new Boolean(page < pageCount));
             request.getRequestDispatcher("/taskManager.jsp").forward(request, response);
         } finally {
             pm.close();
