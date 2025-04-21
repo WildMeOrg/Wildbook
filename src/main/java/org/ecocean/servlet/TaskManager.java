@@ -63,7 +63,7 @@ public class TaskManager extends HttpServlet {
 
             int offset = (page - 1) * pageSize;
 
-            String sql =
+            String initialSql =
                 "SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", type " +
                 "FROM ( " +
                 "  ( " +
@@ -93,7 +93,7 @@ public class TaskManager extends HttpServlet {
                 "LIMIT " + pageSize + " OFFSET " + offset;
 
 
-            Query query = pm.newQuery( "javax.jdo.query.SQL", sql);
+            Query query = pm.newQuery( "javax.jdo.query.SQL", initialSql);
             query.setResultClass(Object[].class);
             List<Object[]> results = (List<Object[]>) query.execute();
 
