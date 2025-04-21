@@ -191,7 +191,7 @@ public class TaskManager extends HttpServlet {
             request.setAttribute("tasks", tasks);
             request.setAttribute("page", new Integer(page));
             request.setAttribute("previousPage", new Boolean(page > 1));
-            request.setAttribute("nextPage", new Boolean(results.size() < 1));
+            request.setAttribute("nextPage", new Boolean(results.size() > 1));
             request.getRequestDispatcher("/taskManager.jsp").forward(request, response);
         } finally {
             pm.close();
