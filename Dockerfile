@@ -26,18 +26,7 @@ ENV MAVEN_OPTS="-Xmx256m"
 ENV JAVA_TOOL_OPTIONS="-Xmx256m"
 
 
-# Build the project using Maven
-COPY pom.xml /app/pom.xml
-COPY local-repo /app/local-repo
-COPY config /app/config
-
-RUN mvn dependency:go-offline -B || true 
-RUN mvn org.apache.maven.plugins:maven-compiler-plugin:3.6.1:help \
- && mvn org.codehaus.mojo:exec-maven-plugin:1.2:help \
- && mvn org.apache.tomcat.maven:tomcat7-maven-plugin:2.2:help \
- && mvn org.apache.maven.plugins:maven-war-plugin:2.2:help
- 
- COPY . /app
+COPY . /app
 
 # Now run Maven build
 RUN mvn clean install \
