@@ -184,7 +184,6 @@ else{
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <%
-int encCount = 0;
 if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
     //System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
@@ -200,7 +199,6 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
       		myEncs = hiddenData.securityScrubbedResults(myEncs);
 
 			int numEncs=myEncs.size();
-      encCount = numEncs;
 
       // Calculate the number of unique sighting IDs (occurrence IDs)
       Set<String> uniqueOccurrenceIDs = new HashSet<>();  // Set to store unique occurrence IDs
