@@ -15,10 +15,6 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.ia.Task;
 
-import java.util.HashMap;
-
-import javax.jdo.PersistenceManager;
-
 public class TaskManager extends HttpServlet {
     PersistenceManagerFactory pmf;
     PersistenceNucleusContext nucCtx;
@@ -65,10 +61,39 @@ public class TaskManager extends HttpServlet {
                 page = 1;
             }
 
-            Query query = pm.newQuery(
-                    "javax.jdo.query.SQL",
-                    "select \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", type from (select t.*, 1 as type from \"TASK\" t where t.\"ID\" not in (select tc.\"ID_OID\" from \"TASK_CHILDREN\" tc) and t.\"ID\" not in (select tc.\"ID_EID\" from \"TASK_CHILDREN\" tc) union select t.*, 2 as type from \"TASK\" t where t.\"ID\" in (select tc.\"ID_EID\" from \"TASK_CHILDREN\" tc) and t.\"STATUS\" is null) order by \"CREATED\" limit " + pageSize + " offset " + (page - 1) * pageSize
-            );
+            int offset = (page - 1) * pageSize;
+
+            String sql =
+                "SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", type " +
+                "FROM ( " +
+                "  ( " +
+                "    SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", 1 AS type " +
+                "    FROM \"TASK\" t " +
+                "    WHERE NOT EXISTS ( " +
+                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_OID\" = t.\"ID\" " +
+                "    ) " +
+                "    AND NOT EXISTS ( " +
+                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
+                "    ) " +
+                "    ORDER BY \"CREATED\" DESC " +
+                "    LIMIT " + pageSize + " " +
+                "  ) " +
+                "  UNION ALL " +
+                "  ( " +
+                "    SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", 2 AS type " +
+                "    FROM \"TASK\" t " +
+                "    WHERE EXISTS ( " +
+                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
+                "    ) " +
+                "    AND t.\"STATUS\" IS NULL " +
+                "    ORDER BY \"CREATED\" DESC " +
+                "    LIMIT " + pageSize + " " +
+                "  ) " +
+                ") sub " +
+                "LIMIT " + pageSize + " OFFSET " + offset;
+
+
+            Query query = pm.newQuery( "javax.jdo.query.SQL", sql);
             query.setResultClass(Object[].class);
             List<Object[]> results = (List<Object[]>) query.execute();
 
