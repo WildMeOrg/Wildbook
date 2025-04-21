@@ -17,6 +17,17 @@
     tr:nth-child(even) {
         background-color: #dddddd;
     }
+
+    .pagination {
+        width: 100%;
+        text-align: center;
+    }
+
+    .pagination a {
+        padding-left: 7px;
+        padding-right: 7px;
+        padding-bottom: 4px;
+    }
 </style>
 
 <div class="container maincontent">
@@ -68,6 +79,13 @@
         <% } %>
     </table>
 
+    <div class="pagination">
+        <%
+            for (int i = 1; i <= (Integer) request.getAttribute("pageCount"); i++) {
+        %>
+        <a href="?page=<%= i %>" class=<%= (Integer) request.getAttribute("page") == i ? "active" : "" %>><%= i %></a>
+        <% } %>
+    </div>
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
