@@ -24,6 +24,35 @@ public class TaskManager extends HttpServlet {
         super.init(config);
     }
 
+    private String getSql(int limit, int offset) {
+        return "SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", type " +
+                "FROM ( " +
+                "  ( " +
+                "    SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", 1 AS type " +
+                "    FROM \"TASK\" t " +
+                "    WHERE NOT EXISTS ( " +
+                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_OID\" = t.\"ID\" " +
+                "    ) " +
+                "    AND NOT EXISTS ( " +
+                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
+                "    ) " +
+                "    ORDER BY \"CREATED\" DESC " +
+                "    LIMIT " + limit + " OFFSET " + offset + " " +
+                "  ) " +
+                "  UNION ALL " +
+                "  ( " +
+                "    SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", 2 AS type " +
+                "    FROM \"TASK\" t " +
+                "    WHERE EXISTS ( " +
+                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
+                "    ) " +
+                "    AND t.\"STATUS\" IS NULL " +
+                "    ORDER BY \"CREATED\" DESC " +
+                "    LIMIT " + limit + " " + " OFFSET " + offset +
+                "  ) " +
+                ")";
+    }
+
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, java.io.IOException {
         String servletID = Util.generateUUID();
@@ -49,41 +78,13 @@ public class TaskManager extends HttpServlet {
         }
 
         try {
-
-            int offset = (page - 1) * pageSize;
-
-            String initialSql =
-                "SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", type " +
-                "FROM ( " +
-                "  ( " +
-                "    SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", 1 AS type " +
-                "    FROM \"TASK\" t " +
-                "    WHERE NOT EXISTS ( " +
-                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_OID\" = t.\"ID\" " +
-                "    ) " +
-                "    AND NOT EXISTS ( " +
-                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
-                "    ) " +
-                "    ORDER BY \"CREATED\" DESC " +
-                "    LIMIT " + pageSize +  " OFFSET " + offset + " " +
-                "  ) " +
-                "  UNION ALL " +
-                "  ( " +
-                "    SELECT \"ID\", \"QUEUERESUMEMESSAGE\", \"CREATED\", \"MODIFIED\", 2 AS type " +
-                "    FROM \"TASK\" t " +
-                "    WHERE EXISTS ( " +
-                "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
-                "    ) " +
-                "    AND t.\"STATUS\" IS NULL " +
-                "    ORDER BY \"CREATED\" DESC " +
-                "    LIMIT " + pageSize + " " +  " OFFSET " + offset  +
-                "  ) " +
-                ") sub ";
-
-
-            Query query = pm.newQuery( "javax.jdo.query.SQL", initialSql);
+            Query query = pm.newQuery("javax.jdo.query.SQL", getSql(pageSize, (page - 1) * pageSize));
             query.setResultClass(Object[].class);
             List<Object[]> results = (List<Object[]>) query.execute();
+
+            Query query3 = pm.newQuery("javax.jdo.query.SQL", getSql(1, (page) * pageSize));
+            query3.setResultClass(Object[].class);
+            List<Object[]> nextPageResults = (List<Object[]>) query3.execute();
 
             List<HashMap<String, Object>> taskList = new ArrayList<>();
             for (Object[] row : results) {
@@ -191,7 +192,7 @@ public class TaskManager extends HttpServlet {
             request.setAttribute("tasks", tasks);
             request.setAttribute("page", new Integer(page));
             request.setAttribute("previousPage", new Boolean(page > 1));
-            request.setAttribute("nextPage", new Boolean(results.size() > 1));
+            request.setAttribute("nextPage", new Boolean(nextPageResults.size() > 0));
             request.getRequestDispatcher("/taskManager.jsp").forward(request, response);
         } finally {
             pm.close();
