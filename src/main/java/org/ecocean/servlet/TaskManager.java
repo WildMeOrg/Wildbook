@@ -65,7 +65,7 @@ public class TaskManager extends HttpServlet {
                 "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
                 "    ) " +
                 "    ORDER BY \"CREATED\" DESC " +
-                "    LIMIT " + pageSize + " " +
+                "    LIMIT " + pageSize +  " OFFSET " + offset + " " +
                 "  ) " +
                 "  UNION ALL " +
                 "  ( " +
@@ -76,10 +76,9 @@ public class TaskManager extends HttpServlet {
                 "    ) " +
                 "    AND t.\"STATUS\" IS NULL " +
                 "    ORDER BY \"CREATED\" DESC " +
-                "    LIMIT " + pageSize + " " +
+                "    LIMIT " + pageSize + " " +  " OFFSET " + offset  +
                 "  ) " +
-                ") sub " +
-                "LIMIT " + pageSize + " OFFSET " + offset;
+                ") sub ";
 
 
             Query query = pm.newQuery( "javax.jdo.query.SQL", initialSql);
