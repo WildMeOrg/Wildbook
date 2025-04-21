@@ -29,7 +29,3 @@ phases:
 artifacts:
   files:
     - imagedefinitions.json
-
-cache:
-  paths:
-    - /root/.m2/**/*
