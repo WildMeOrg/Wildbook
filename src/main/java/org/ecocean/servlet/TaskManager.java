@@ -49,17 +49,6 @@ public class TaskManager extends HttpServlet {
         }
 
         try {
-            String sql2 = "select count(*) as count from \"TASK\" where \"STATUS\" is null";
-            Query q2 = pm.newQuery("javax.jdo.query.SQL", sql2);
-            q2.setResultClass(Integer.class);
-            int count = ((List<Integer>) q2.execute()).get(0).intValue();
-            Integer pageCount = new Integer((int) ((double) count / (double) pageSize));
-
-            if (page > pageCount) {
-                page = pageCount;
-            } else if (page < 1) {
-                page = 1;
-            }
 
             int offset = (page - 1) * pageSize;
 
@@ -202,9 +191,8 @@ public class TaskManager extends HttpServlet {
 
             request.setAttribute("tasks", tasks);
             request.setAttribute("page", new Integer(page));
-            request.setAttribute("pageCount", pageCount);
             request.setAttribute("previousPage", new Boolean(page > 1));
-            request.setAttribute("nextPage", new Boolean(page < pageCount));
+            request.setAttribute("nextPage", new Boolean(results.size() < 1));
             request.getRequestDispatcher("/taskManager.jsp").forward(request, response);
         } finally {
             pm.close();

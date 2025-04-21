@@ -80,10 +80,16 @@
     </table>
 
     <div class="pagination">
-        <%
-            for (int i = 1; i <= (Integer) request.getAttribute("pageCount"); i++) {
-        %>
-        <a href="?page=<%= i %>" class=<%= (Integer) request.getAttribute("page") == i ? "active" : "" %>><%= i %></a>
+        <% Boolean previousPage = (Boolean) request.getAttribute("previousPage"); %>
+        <% Boolean nextPage = (Boolean) request.getAttribute("nextPage"); %>
+        <% int currentPage = (Integer) request.getAttribute("page"); %>
+    
+        <% if (previousPage) { %>
+            <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+        <% } %>
+    
+        <% if (nextPage) { %>
+            <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
         <% } %>
     </div>
 </div>
