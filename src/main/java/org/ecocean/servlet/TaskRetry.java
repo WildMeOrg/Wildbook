@@ -38,7 +38,7 @@ public class TaskRetry extends HttpServlet {
             String taskId = request.getParameter("taskId");
             Task task = pm.getObjectById(Task.class, taskId);
 
-            if (task.getStatus2() == null) {
+            if (task != null && task.getStatus2() == null) {
                 String message = task.getQueueResumeMessage();
 
                 if (message == null || message.isEmpty()) {
@@ -69,14 +69,14 @@ public class TaskRetry extends HttpServlet {
                     message = parametersObj.toString();
                 }
 
-                org.ecocean.servlet.IAGateway.processQueueMessage(message);
+                org.ecocean.servlet.IAGateway.addToQueue(context, message);
 
                 tx.begin();
                 if (isMatcherTypeTask) {
                     task.setStatus("retried");
                 }
                 tx.commit();
-//                pm.deletePersistent(task);
+//            pm.deletePersistent(task);
                 request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
             }
         } catch (Exception e) {

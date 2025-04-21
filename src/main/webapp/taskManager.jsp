@@ -83,13 +83,15 @@
         <% Boolean previousPage = (Boolean) request.getAttribute("previousPage"); %>
         <% Boolean nextPage = (Boolean) request.getAttribute("nextPage"); %>
         <% int currentPage = (Integer) request.getAttribute("page"); %>
-    
+
         <% if (previousPage) { %>
-            <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+        <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
         <% } %>
-    
+
+        <a href="?page=<%= currentPage %>">Page <%= currentPage %></a>
+
         <% if (nextPage) { %>
-            <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+        <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
         <% } %>
     </div>
 </div>
