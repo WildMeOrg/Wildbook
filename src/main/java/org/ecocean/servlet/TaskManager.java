@@ -36,6 +36,9 @@ public class TaskManager extends HttpServlet {
                 "    AND NOT EXISTS ( " +
                 "      SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
                 "    ) " +
+                "    AND EXISTS ( " +
+                "      SELECT 1 FROM \"TASK_OBJECTMEDIAASSETS\" tob WHERE tob.\"ID_OID\" = t.\"ID\" " +
+                "    ) " +
                 "    ORDER BY \"CREATED\" DESC " +
                 "    LIMIT " + limit + " OFFSET " + offset + " " +
                 "  ) " +
