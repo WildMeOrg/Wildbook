@@ -204,9 +204,9 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
       Set<String> uniqueOccurrenceIDs = new HashSet<>();  // Set to store unique occurrence IDs
       for (Object obj : myEncs) {
           Encounter enc = (Encounter) obj;
-          String occurrenceID = enc.getOccurrenceID();  // Get the occurrence ID
-          if (occurrenceID != null && !occurrenceID.trim().isEmpty()) {
-              uniqueOccurrenceIDs.add(occurrenceID);  // Add to the set if not already present
+          Occurrence occurrence = enc.getOccurrence(myShepherd);
+          if (occurrence != null) { 
+              uniqueOccurrenceIDs.add(occurrence.getId());  // Add to the set if not already present
           }
       }
       // Set the sighting count (unique occurrence IDs count)
