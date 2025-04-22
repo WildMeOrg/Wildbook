@@ -189,14 +189,33 @@ a.button:hover {
 
 try{
 	Set<String> locationIds = new HashSet<String>();
+
+	// Pagination Setup
+    int pageSize = 50;
+    int pageIndex = 0;
+    String pageParam = request.getParameter("page");
+    if (pageParam != null) {
+        try {
+            pageIndex = Integer.parseInt(pageParam);
+            if (pageIndex < 0) pageIndex = 0;
+        } catch (NumberFormatException e) {
+            pageIndex = 0;
+        }
+    }
+
+	int start = pageIndex * pageSize;
+    int end = start + pageSize;
 	
     String uclause = "";
     //if (request.getParameter("showAll")==null) {
     //	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
     //}
+
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
+	query.setRange(start, end);
+
     Collection c = (Collection) (query.execute());
     List<ImportTask> tasks = new ArrayList<ImportTask>(c);
     query.closeAll();
@@ -252,6 +271,16 @@ try{
     
     
     %>
+
+	<div class="pagination">
+		<% int previousPage = pageIndex - 1;
+		   int nextPage = pageIndex + 1;
+		   if (previousPage >= 0) { %>
+			<a href="?page=<%= previousPage %>">&laquo; Previous</a>
+		<% } %>
+		<a href="?page=<%= nextPage %>">Next &raquo;</a>
+	</div>
+	
     
     	<script type="text/javascript">
 
