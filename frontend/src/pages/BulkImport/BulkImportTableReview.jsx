@@ -13,18 +13,7 @@ export const BulkImportTableReview = observer(({ store }) => {
     return (
         <div>
             <EditableDataTable store={store}/>
-            <div>
-                <MainButton
-                    onClick={() => {
-                        store.setActiveStep(1);
-                    }}
-                    backgroundColor={theme.wildMeColors.cyan700}
-                    color={theme.defaultColors.white}
-                    noArrow={true}
-                    style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
-                >
-                    <FormattedMessage id="PREVIOUS" />
-                </MainButton>
+            <div className="d-flex flex-row justify-content-between mt-4">
                 <MainButton
                     onClick={() => {
                         store.setActiveStep(3);
@@ -32,10 +21,11 @@ export const BulkImportTableReview = observer(({ store }) => {
                     backgroundColor={theme.wildMeColors.cyan700}
                     color={theme.defaultColors.white}
                     noArrow={true}
-                    style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
+                    style={{ width: "auto", fontSize: "1rem", marginLeft: "auto" }}
                 >
-                    <FormattedMessage id="NEXT" />
+                    <FormattedMessage id="START_BULK_IMPORT" />
                 </MainButton>
+
             </div>
         </div>
     )
