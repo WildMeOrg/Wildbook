@@ -3,6 +3,7 @@ package org.ecocean.api.bulk;
 
 import org.json.JSONObject;
 import java.util.Set;
+import org.ecocean.api.ApiException;
 
 
 public class BulkValidator {
@@ -140,7 +141,7 @@ public class BulkValidator {
 
         // will return null if valid fieldName, but not indexable
         public static String indexPrefixValue(String fieldName) throws BulkValidatorException {
-            if (!isValidFieldName(fieldName)) throw new BulkValidatorException();
+            if (!isValidFieldName(fieldName)) throw new BulkValidatorException("invalid fieldName: " + fieldName, ApiException.ERROR_RETURN_CODE_INVALID);
             for (String prefix : FIELD_NAMES_INDEXABLE) {
                 String dotFix = prefix.replace(".", "\\.");
                 if (fieldName.matches("^" + dotFix + "\\d+$")) return prefix;
