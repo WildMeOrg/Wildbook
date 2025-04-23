@@ -4783,7 +4783,7 @@ public class IBEISIA {
             if (!Util.collectionIsEmptyOrNull(annsToSend)) {
                 JSONArray mergedResults = new JSONArray();
             
-                int batchSize = 250;
+                int batchSize = 500;
                 int totalAnnotations = annsToSend.size();
                 for (int i = 0; i < totalAnnotations; i += batchSize) {
                     int end = Math.min(i + batchSize, totalAnnotations);
@@ -4798,18 +4798,18 @@ public class IBEISIA {
                         System.out.println("Batch failed, attempting individual sends: " + batchException.toString());
             
                         // Try sending each annotation individually
-                        for (Annotation ann : batch) {
-                            try {
-                                ArrayList<Annotation> singleAnnList = new ArrayList<>();
-                                singleAnnList.add(ann);
-                                JSONObject singleResult = plugin.sendAnnotations(singleAnnList, false, myShepherd);
-                                if (singleResult != null) {
-                                    mergedResults.put(singleResult);
-                                }
-                            } catch (Exception singleException) {
-                                System.out.println("Single annotation send failed: " + singleException.toString());
-                            }
-                        }
+                        // for (Annotation ann : batch) {
+                        //     try {
+                        //         ArrayList<Annotation> singleAnnList = new ArrayList<>();
+                        //         singleAnnList.add(ann);
+                        //         JSONObject singleResult = plugin.sendAnnotations(singleAnnList, false, myShepherd);
+                        //         if (singleResult != null) {
+                        //             mergedResults.put(singleResult);
+                        //         }
+                        //     } catch (Exception singleException) {
+                        //         System.out.println("Single annotation send failed: " + singleException.toString());
+                        //     }
+                        // }
                     }
                 }
             
