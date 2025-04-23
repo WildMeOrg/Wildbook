@@ -1,14 +1,14 @@
 
 import { observer, useLocalObservable } from 'mobx-react-lite';
-import { toJS } from 'mobx';
 import React from 'react';
 import BulkImportStore from './BulkImportStore';
 import { BulkImportImage } from './BulkImportImage';
 import { Container } from 'react-bootstrap';
 import { FormattedMessage } from 'react-intl';
-import { BulkImportProgress } from './BulkImportProgress';
+import { BulkImportUploadProgress } from './BulkImportUploadProgress';
 import { BulkImportSpreadsheet } from './BulkImportSpreadsheet';
 import { BulkImportTableReview } from './BulkImportTableReview';
+import { BulkImportIdentification } from './BulkImportIdentification';
 
 const BulkImport = observer(() => {
 
@@ -18,10 +18,13 @@ const BulkImport = observer(() => {
             <h1 className="mt-3">
                 <FormattedMessage id="BULK_IMPORT" />
             </h1>
-            <BulkImportProgress  store={store}/>
+            {!store._uploadFinished && <BulkImportUploadProgress  store={store}/>}
+            {/* {store._uploadFinished && } */}
             {store._activeStep === 0 && <BulkImportImage  store={store}/>}
             {store._activeStep === 1 && <BulkImportSpreadsheet store={store}/>}
             {store._activeStep === 2 && <BulkImportTableReview store={store}/>}
+            {store._activeStep === 3 && store._uploadFinished && <BulkImportIdentification  store={store}/>}
+
         </Container>
     );
 });
