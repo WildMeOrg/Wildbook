@@ -2,10 +2,12 @@
 package org.ecocean.api.bulk;
 
 import org.json.JSONObject;
+import java.time.Year;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.ecocean.api.ApiException;
+import org.ecocean.Util;
 
 
 public class BulkValidator {
@@ -15,7 +17,6 @@ public class BulkValidator {
 		"Encounter.country",
 		"Encounter.dateInMilliseconds",
 		"Encounter.day",
-		"Encounter.decimalLatitiude",
 		"Encounter.decimalLatitude",
 		"Encounter.decimalLongitude",
 		"Encounter.depth",
@@ -127,7 +128,7 @@ public class BulkValidator {
             indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if valid fieldName
             if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldNamePassed);
             fieldName = fieldNamePassed;
-            value = valuePassed;
+            value = validateValue(fieldNamePassed, valuePassed);
 	}
 
         public boolean isIndexed() {
@@ -177,6 +178,66 @@ public class BulkValidator {
                 if (fieldName.matches("^" + dotFix + "\\d+$")) return prefix;
             }
             return null;
+        }
+
+        public static Object validateValue(String fieldName, Object value) throws BulkValidatorException {
+            if (!isValidFieldName(fieldName)) throw new BulkValidatorException("invalid fieldName: " + fieldName, ApiException.ERROR_RETURN_CODE_INVALID);
+            switch (fieldName) {
+            case "Encounter.year":
+            case "Occurrence.year":
+                Integer intVal = tryInteger(value);
+                if (intVal < 1000) throw new BulkValidatorException("year value too small", ApiException.ERROR_RETURN_CODE_INVALID);
+                if (intVal > Year.now().getValue()) throw new BulkValidatorException("year cannot be in future", ApiException.ERROR_RETURN_CODE_INVALID);
+                return intVal;
+
+            case "Encounter.month":
+            case "Occurrence.month":
+                intVal = tryInteger(value);
+                if (intVal < 1) throw new BulkValidatorException("month value too small", ApiException.ERROR_RETURN_CODE_INVALID);
+                if (intVal > 12) throw new BulkValidatorException("month value too large", ApiException.ERROR_RETURN_CODE_INVALID);
+                return intVal;
+
+            case "Encounter.day":
+            case "Occurrence.day":
+                intVal = tryInteger(value);
+                if (intVal < 1) throw new BulkValidatorException("day value too small", ApiException.ERROR_RETURN_CODE_INVALID);
+                if (intVal > 31) throw new BulkValidatorException("month value too large", ApiException.ERROR_RETURN_CODE_INVALID);
+                // note: to validate upper bound based on month, this must be done through BulkImportUtil.validateRow()
+                return intVal;
+
+            case "Encounter.decimalLatitude":
+            case "Occurrence.decimalLatitude":
+                Double doubleVal = tryDouble(value);
+                if (!Util.isValidDecimalLatitude(doubleVal)) throw new BulkValidatorException("invalid decimalLatitude value: " + doubleVal, ApiException.ERROR_RETURN_CODE_INVALID);
+                return doubleVal;
+
+            case "Encounter.decimalLongitude":
+            case "Occurrence.decimalLongitude":
+                doubleVal = tryDouble(value);
+                if (!Util.isValidDecimalLongitude(doubleVal)) throw new BulkValidatorException("invalid decimalLongitude value: " + doubleVal, ApiException.ERROR_RETURN_CODE_INVALID);
+                return doubleVal;
+            }
+            throw new BulkValidatorException("unknown error on fieldName validation: " + fieldName, ApiException.ERROR_RETURN_CODE_UNKNOWN);
+        }
+
+        private static Integer tryInteger(Object value) throws BulkValidatorException {
+            if (value == null) return null;
+            if (value instanceof Integer) return (Integer)value;
+            try {
+                return Integer.valueOf(value.toString());
+            } catch (Exception ex) {
+                throw new BulkValidatorException("error parsing integer: " + ex, ApiException.ERROR_RETURN_CODE_INVALID);
+            }
+        }
+
+        private static Double tryDouble(Object value) throws BulkValidatorException {
+            if (value == null) return null;
+            if (value instanceof Double) return (Double)value;
+            try {
+                return Double.valueOf(value.toString());
+            } catch (Exception ex) {
+                throw new BulkValidatorException("error parsing double: " + ex, ApiException.ERROR_RETURN_CODE_INVALID);
+            }
         }
 }
 
