@@ -2,15 +2,20 @@ package org.ecocean.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
+import org.ecocean.api.bulk.*;
+
+import org.ecocean.User;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.servlet.ServletUtilities;
+
+/*
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ContextConfiguration;
@@ -21,18 +26,18 @@ import org.ecocean.LocationID;
 import org.ecocean.Organization;
 import org.ecocean.Project;
 import org.ecocean.servlet.ReCAPTCHA;
-import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Setting;
-import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
-import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
+*/
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BulkImport extends ApiBase {
 
+/*
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
@@ -56,6 +61,7 @@ public class BulkImport extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(rtn.toString());
     }
+*/
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
@@ -74,23 +80,65 @@ public class BulkImport extends ApiBase {
             }
 
             JSONObject rtn = new JSONObject();
-/*
-            String uri = request.getRequestURI();
-            String[] args = uri.substring(22).split("/");
-            if (args.length < 2) throw new ServletException("Bad path");
+            rtn.put("success", false);
 
-*/
+            JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            if (payload == null) throw new ServletException("empty payload");
+
+            JSONArray rows = payload.optJSONArray("rows");
+            if (rows == null) throw new ServletException("no rows in payload");
+
+            List<Map<String, Object>> validatedRows = new ArrayList<Map<String, Object>>();
+            for (int i = 0 ; i < rows.length() ; i++) {
+                JSONObject rowData = rows.optJSONObject(i);
+                if (rowData == null) {
+                    System.out.println("null rowData on row " + i + " of bulk import");
+                    continue;
+                }
+                validatedRows.add(BulkImportUtil.validateRow(rowData));
+            }
+
+            List<BulkValidator> validRows = new ArrayList<BulkValidator>();
+            JSONArray dataErrors = new JSONArray();
+            for (int rowNum = 0 ; rowNum < validatedRows.size() ; rowNum++) {
+                Map<String, Object> rowResult = validatedRows.get(rowNum);
+                for (String rowFieldName : rowResult.keySet()) {
+                    Object rowObj = rowResult.get(rowFieldName);
+                    if (rowObj instanceof BulkValidator) {
+                        validRows.add((BulkValidator)rowObj);
+                    } else if (rowObj instanceof BulkValidatorException) {
+                        JSONObject err = new JSONObject();
+                        err.put("rowNumber", rowNum);
+                        err.put("fieldName", rowFieldName);
+                        BulkValidatorException bve = (BulkValidatorException)rowObj;
+                        err.put("errors", bve.getErrors());
+                        err.put("details", bve.toString());
+                        dataErrors.put(err);
+                        System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName + "]: " + bve);
+                    } else {
+                        System.out.println("[ERROR] Non-bulk exception (or something weird) for rowNum=" + rowNum + ", rowFieldName=" + rowFieldName + ": " + rowObj);
+                        throw new ServletException("cannot process rowResult[" + rowNum + ", " + rowFieldName + "]: " + rowObj);
+                    }
+                }
+            }
+            if (dataErrors.length() > 0) {
+                statusCode = 400;
+                rtn.put("errors", dataErrors);
+
+            } else {
+                /// TODO FIXME try to do actual import and make data!  :o
+                statusCode = 200;
+            }
 
             response.setStatus(statusCode);
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write(rtn.toString());
 
-/*
         } catch (ServletException ex) {  // should just be thrown, not caught (below)
             throw ex;
-*/
         } catch (Exception ex) {
+            statusCode = 500;
             ex.printStackTrace();
         } finally {
             if (statusCode == 200) {
