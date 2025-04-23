@@ -4783,7 +4783,7 @@ public class IBEISIA {
             if (!Util.collectionIsEmptyOrNull(annsToSend)) {
                 JSONArray mergedResults = new JSONArray();
             
-                int batchSize = 50;
+                int batchSize = 250;
                 int totalAnnotations = annsToSend.size();
                 for (int i = 0; i < totalAnnotations; i += batchSize) {
                     int end = Math.min(i + batchSize, totalAnnotations);
