@@ -28,11 +28,38 @@
         padding-right: 7px;
         padding-bottom: 4px;
     }
+
+    .task-type {
+        display: flex;
+        align-items: center;
+    }
+
+    .task-type > * {
+        margin: 10px;
+        margin-left: 0;
+    }
 </style>
 
 <div class="container maincontent">
 
     <h2>Failed Tasks</h2>
+
+    <div class="task-type">
+        <%
+            String taskTypeQueryParam = (String) request.getAttribute("taskTypeQueryParam");
+            String detectionDisabled = taskTypeQueryParam.equals("detection") ? "disabled" : "";
+            String matcherDisabled = taskTypeQueryParam.equals("matcher") ? "disabled" : "";
+        %>
+
+        <h4>Task type:</h4>
+        <button type="button" class="btn" onclick="window.location.href='?type=detection'" <%= detectionDisabled %>>
+            Detection
+        </button>
+        <button type="button" class="btn" onclick="window.location.href='?type=matcher'" <%= matcherDisabled %>>
+            Matcher
+        </button>
+    </div>
+
     <table>
         <tr>
             <th>ID</th>
@@ -45,7 +72,8 @@
         </tr>
         <%
             List<HashMap<String, Object>> tasks = (List<HashMap<String, Object>>) request.getAttribute("tasks");
-            for (HashMap<String, Object> task : tasks) {
+            if (tasks.size() > 0) {
+                for (HashMap<String, Object> task : tasks) {
         %>
         <tr>
             <td><%= task.get("id") %>
@@ -76,6 +104,11 @@
                 </form>
             </td>
         </tr>
+        <% }
+        } else { %>
+        <tr>
+            <td colspan="7" style="text-align: center;">No Results.</td>
+        </tr>
         <% } %>
     </table>
 
@@ -85,13 +118,14 @@
         <% int currentPage = (Integer) request.getAttribute("page"); %>
 
         <% if (previousPage) { %>
-        <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage - 1 %>">&laquo; Previous</a>
         <% } %>
 
-        <a href="?page=<%= currentPage %>">Page <%= currentPage %></a>
+        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage %>">Page <%= currentPage %>
+        </a>
 
         <% if (nextPage) { %>
-        <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage + 1 %>">Next &raquo;</a>
         <% } %>
     </div>
 </div>

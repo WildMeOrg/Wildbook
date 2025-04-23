@@ -38,7 +38,7 @@ public class TaskRetry extends HttpServlet {
             String taskId = request.getParameter("taskId");
             Task task = pm.getObjectById(Task.class, taskId);
 
-            if (task != null && task.getStatus2() == null) {
+            if (task != null) {
                 String message = task.getQueueResumeMessage();
 
                 if (message == null || message.isEmpty()) {
@@ -76,7 +76,7 @@ public class TaskRetry extends HttpServlet {
                     task.setStatus("retried");
                 }
                 tx.commit();
-//            pm.deletePersistent(task);
+//                pm.deletePersistent(task);
                 request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
             }
         } catch (Exception e) {
