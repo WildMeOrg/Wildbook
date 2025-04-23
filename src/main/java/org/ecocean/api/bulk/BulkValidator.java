@@ -114,15 +114,17 @@ public class BulkValidator {
 		"Occurrence.taxonomy"
 	);
 
+        private String fieldName = null;
+        private Object value = null;
         private int indexInt = -3;
         private String indexPrefix = null;
-        private Object value = null;
 
 	//public BulkValidator(String fieldName, JSONObject jvalue) throws BulkValidatorException {
 
-	public BulkValidator(String fieldName, Object valuePassed) throws BulkValidatorException {
-            indexInt = indexIntValue(fieldName); // bonus: this throws exception if valid fieldName
-            if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldName);
+	public BulkValidator(String fieldNamePassed, Object valuePassed) throws BulkValidatorException {
+            indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if valid fieldName
+            if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldNamePassed);
+            fieldName = fieldNamePassed;
             value = valuePassed;
 	}
 
@@ -139,6 +141,10 @@ public class BulkValidator {
 
         public Object getValue() {
             return value;
+        }
+
+        public String getFieldName() {
+            return fieldName;
         }
 
         public static boolean isValidFieldName(String fieldName) {

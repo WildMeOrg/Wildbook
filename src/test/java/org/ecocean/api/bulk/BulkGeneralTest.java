@@ -7,6 +7,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.Assert.*;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.Map;
+
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -38,6 +43,7 @@ class BulkGeneralTest {
         assertEquals(bv.getIndexInt(), 123);
         assertEquals(bv.getIndexPrefix(), "Encounter.mediaAsset");
         assertEquals(bv.getValue(), "fake");
+        assertEquals(bv.getFieldName(), "Encounter.mediaAsset123");
 
         // some indexable fieldName tests
         assertTrue(BulkValidator.isValidFieldName("Encounter.mediaAsset123"));
@@ -53,6 +59,23 @@ class BulkGeneralTest {
             BulkValidator.indexPrefixValue(fieldNameInvalid);
         });
         assertTrue(ex.getMessage().contains("invalid fieldName"));
+    }
+
+    @Test void basicUtilTestValidateRow() {
+	Map<String, Object> rowResult = BulkImportUtil.validateRow(null);
+        assertNotNull(rowResult);
+        assertEquals(rowResult.size(), 0);
+
+        JSONObject rowData = new JSONObject();
+        rowData.put(fieldNameValidEncounterYear, 2000);
+        rowData.put(fieldNameInvalid, "fail");
+	rowResult = BulkImportUtil.validateRow(rowData);
+        assertNotNull(rowResult);
+        assertEquals(rowResult.size(), 2);
+        assertTrue(rowResult.get(fieldNameValidEncounterYear) instanceof BulkValidator);
+        assertTrue(rowResult.get(fieldNameInvalid) instanceof BulkValidatorException);
+        BulkValidator bv = (BulkValidator)rowResult.get(fieldNameValidEncounterYear);
+        assertEquals(bv.getFieldName(), fieldNameValidEncounterYear);
     }
 
 }

@@ -7,17 +7,20 @@ import org.json.JSONObject;
 
 public class BulkImportUtil {
 
-	public static Map<String, BulkValidatorException> validateRow(JSONObject row) {
-		Map<String, BulkValidatorException> rtn = new HashMap<String, BulkValidatorException>();
-		if (row == null) return rtn;
-		for (String fieldName : row.keySet()) {
-			try {
-				new BulkValidator(fieldName, row.optString(fieldName, null));
-			} catch (BulkValidatorException bve) {
-				rtn.put(fieldName, bve);
-			}
-		}
-		return rtn;
-	}
+    public static Map<String, Object> validateRow(JSONObject row) {
+        Map<String, Object> rtn = new HashMap<String, Object>();
+        if (row == null) return rtn;
+        for (String fieldName : row.keySet()) {
+            try {
+                // FIXME -- how do we handle get() and type returned? TBD
+                rtn.put(fieldName, new BulkValidator(fieldName, row.get(fieldName)));
+            // lets just put *any* exception for now?
+            //} catch (BulkValidatorException ex) {
+            } catch (Exception ex) {
+                rtn.put(fieldName, ex);
+            }
+        }
+        return rtn;
+    }
 }
 
