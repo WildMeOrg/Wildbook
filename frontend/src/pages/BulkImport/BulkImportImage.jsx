@@ -191,18 +191,17 @@ export const BulkImportImage = observer(({ store }) => {
           </div>
         </Col>
       </Row>
-      <Row className="mt-4">
+      <Row className="mt-4 ">
         <MainButton
           onClick={() => {
             store.setActiveStep(1);
           }}
           backgroundColor={theme.wildMeColors.cyan700}
-          color={theme.defaultColors.white}
-          noArrow={true}
-          style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
+                  color={theme.defaultColors.white}
+                  noArrow={true}
+                  style={{ width: "auto", fontSize: "1rem"}}
         >
-          <FormattedMessage id="NEXT" />
-          <i className="bi bi-arrow-right ms-2"></i>
+          <FormattedMessage id="BULK_IMPORT_NEXT" />
         </MainButton>
       </Row>
     </div>

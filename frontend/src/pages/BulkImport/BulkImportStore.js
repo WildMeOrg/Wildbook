@@ -17,7 +17,8 @@ export class BulkImportStore {
   _steps = ["Upload Image", "Upload Spreadsheet", "Review"]
   _activeStep = 0;
   _imageUploadProgress = 20;
-  _spreadsheetUploadProgress = 80;
+  _spreadsheetUploadProgress = 0;
+  _uploadFinished = false;
 
   constructor() {
     makeAutoObservable(this);
