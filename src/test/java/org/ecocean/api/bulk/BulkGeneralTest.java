@@ -24,8 +24,17 @@ class BulkGeneralTest {
     @Test void basicValidation() throws BulkValidatorException {
         BulkValidator bv = new BulkValidator(fieldNameValidEncounterYear, 2000);
         assertNotNull(bv);
+        assertFalse(bv.isIndexed());
         assertTrue(BulkValidator.isValidFieldName(fieldNameValidEncounterYear));
         assertFalse(BulkValidator.isValidFieldName(fieldNameInvalid));
+
+        Exception ex = assertThrows(BulkValidatorException.class, () -> {
+            BulkValidator bvFail = new BulkValidator(fieldNameInvalid, 0);
+        });
+        assertTrue(ex.getMessage().contains("invalid fieldName"));
+
+        bv = new BulkValidator("Encounter.mediaAsset123", "fake");
+        assertTrue(bv.isIndexed());
 
         // some indexable fieldName tests
         assertTrue(BulkValidator.isValidFieldName("Encounter.mediaAsset123"));
@@ -33,7 +42,7 @@ class BulkGeneralTest {
         assertEquals(BulkValidator.indexIntValue("Encounter.mediaAsset123"), 123);
         assertNull(BulkValidator.indexPrefixValue(fieldNameValidEncounterYear));
         assertEquals(BulkValidator.indexIntValue(fieldNameValidEncounterYear), -1);
-        Exception ex = assertThrows(BulkValidatorException.class, () -> {
+        ex = assertThrows(BulkValidatorException.class, () -> {
             BulkValidator.indexIntValue(fieldNameInvalid);
         });
         assertTrue(ex.getMessage().contains("invalid fieldName"));
