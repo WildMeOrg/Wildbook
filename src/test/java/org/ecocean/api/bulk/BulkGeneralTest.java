@@ -35,6 +35,9 @@ class BulkGeneralTest {
 
         bv = new BulkValidator("Encounter.mediaAsset123", "fake");
         assertTrue(bv.isIndexed());
+        assertEquals(bv.getIndexInt(), 123);
+        assertEquals(bv.getIndexPrefix(), "Encounter.mediaAsset");
+        assertEquals(bv.getValue(), "fake");
 
         // some indexable fieldName tests
         assertTrue(BulkValidator.isValidFieldName("Encounter.mediaAsset123"));

@@ -116,16 +116,29 @@ public class BulkValidator {
 
         private int indexInt = -3;
         private String indexPrefix = null;
+        private Object value = null;
 
 	//public BulkValidator(String fieldName, JSONObject jvalue) throws BulkValidatorException {
 
-	public BulkValidator(String fieldName, Object jvalue) throws BulkValidatorException {
+	public BulkValidator(String fieldName, Object valuePassed) throws BulkValidatorException {
             indexInt = indexIntValue(fieldName); // bonus: this throws exception if valid fieldName
             if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldName);
+            value = valuePassed;
 	}
 
         public boolean isIndexed() {
             return (indexInt >= 0);
+        }
+
+        public int getIndexInt() {
+            return indexInt;
+        }
+        public String getIndexPrefix() {
+            return indexPrefix;
+        }
+
+        public Object getValue() {
+            return value;
         }
 
         public static boolean isValidFieldName(String fieldName) {
