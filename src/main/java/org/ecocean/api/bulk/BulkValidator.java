@@ -2,12 +2,14 @@
 package org.ecocean.api.bulk;
 
 import org.json.JSONObject;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import org.ecocean.api.ApiException;
 
 
 public class BulkValidator {
-	public static final Set<String> FIELD_NAMES = Set.of(
+	public static final Set<String> FIELD_NAMES = new HashSet<>(Arrays.asList(
 		"Encounter.alternateID",
 		"Encounter.behavior",
 		"Encounter.country",
@@ -105,14 +107,14 @@ public class BulkValidator {
 		"Taxonomy.scientificName",
 		"TissueSample.sampleID",
 		"TissueSample.tissueType"
-        );
+        ));
 
-	public static final Set<String> FIELD_NAMES_INDEXABLE = Set.of(
+	public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
 		"Encounter.keyword",
 		"Encounter.mediaAsset",
 		"MicrosatelliteMarkersAnalysis.alleles",
 		"Occurrence.taxonomy"
-	);
+	));
 
         private String fieldName = null;
         private Object value = null;
