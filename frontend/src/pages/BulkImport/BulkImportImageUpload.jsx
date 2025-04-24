@@ -13,7 +13,7 @@ import MainButton from "../../components/MainButton";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 
-const MAX_SIZE = 5; // Maximum size in MB
+const MAX_SIZE = 10; // Maximum size in MB
 
 const handleDragEnter = (e) => {
   e.preventDefault();
