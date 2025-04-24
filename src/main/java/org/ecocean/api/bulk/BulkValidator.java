@@ -7,6 +7,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.ecocean.api.ApiException;
+import org.ecocean.api.SiteSettings;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.LocationID;
 import org.ecocean.Util;
 
@@ -131,11 +134,11 @@ public class BulkValidator {
 
 	//public BulkValidator(String fieldName, JSONObject jvalue) throws BulkValidatorException {
 
-	public BulkValidator(String fieldNamePassed, Object valuePassed) throws BulkValidatorException {
+	public BulkValidator(String fieldNamePassed, Object valuePassed, Shepherd myShepherd) throws BulkValidatorException {
             indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if valid fieldName
             if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldNamePassed);
             fieldName = fieldNamePassed;
-            value = validateValue(fieldNamePassed, valuePassed);
+            value = validateValue(fieldNamePassed, valuePassed, myShepherd);
 	}
 
         public boolean isIndexed() {
@@ -187,7 +190,7 @@ public class BulkValidator {
             return null;
         }
 
-        public static Object validateValue(String fieldName, Object value) throws BulkValidatorException {
+        public static Object validateValue(String fieldName, Object value, Shepherd myShepherd) throws BulkValidatorException {
             if (!isValidFieldName(fieldName)) throw new BulkValidatorException("invalid fieldName: " + fieldName, ApiException.ERROR_RETURN_CODE_INVALID);
             switch (fieldName) {
             case "Encounter.year":
@@ -246,7 +249,33 @@ public class BulkValidator {
                 return doubleVal;
 
             case "Encounter.locationID":
-                if ((value != null) && !LocationID.isValidLocationID(value.toString())) throw new BulkValidatorException("invalid location value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                if ((value != null) && !LocationID.isValidLocationID(value.toString()))
+                    throw new BulkValidatorException("invalid location value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            case "Encounter.sex":
+                if ((value != null) && !Arrays.asList(SiteSettings.VALUES_SEX).contains(value))
+                    throw new BulkValidatorException("invalid sex value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            case "Encounter.state":
+                if ((value != null) && !Arrays.asList(SiteSettings.VALUES_ENCOUNTER_STATES).contains(value))
+                    throw new BulkValidatorException("invalid state value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            case "Encounter.lifeStage":
+                if ((value != null) && !CommonConfiguration.getIndexedPropertyValues("lifeStage", myShepherd.getContext()).contains(value))
+                    throw new BulkValidatorException("invalid lifeStage value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            case "Encounter.livingStatus":
+                if ((value != null) && !CommonConfiguration.getIndexedPropertyValues("livingStatus", myShepherd.getContext()).contains(value))
+                    throw new BulkValidatorException("invalid livingStatus value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            case "Encounter.country":
+                if ((value != null) && !CommonConfiguration.getIndexedPropertyValues("country", myShepherd.getContext()).contains(value))
+                    throw new BulkValidatorException("invalid country value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
                 return value;
 
             }
