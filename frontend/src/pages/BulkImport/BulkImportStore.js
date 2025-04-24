@@ -1,4 +1,3 @@
-
 // Optimized MobX Store for Bulk Import logic
 import { makeAutoObservable } from "mobx";
 import EXIF from "exif-js";
@@ -10,11 +9,12 @@ export class BulkImportStore {
   _imageSectionFileNames = [];
   _imageRequired = true;
   _imageSectionError = false;
+  _imageCount = 0;
   _flow = null;
   _submissionId = null;
   _spreadsheetData = [];
-  _imageUploadStatus= "notStarted"; 
-  _steps = ["Upload Image", "Upload Spreadsheet", "Review"]
+  _imageUploadStatus = "notStarted";
+  _steps = ["Upload Image", "Upload Spreadsheet", "Review"];
   _activeStep = 0;
   _imageUploadProgress = 20;
   _spreadsheetUploadProgress = 0;
@@ -50,7 +50,7 @@ export class BulkImportStore {
 
   get imageUploadStatus() {
     return this._imageUploadStatus;
-  }  
+  }
 
   get steps() {
     return this._steps;
@@ -64,6 +64,14 @@ export class BulkImportStore {
 
   get spreadsheetUploadProgress() {
     return this._spreadsheetUploadProgress;
+  }
+
+  get uploadFinished() {
+    return this._uploadFinished;
+  }
+
+  get imageCount() {
+    return this._imageCount;
   }
 
   setSpreadsheetData(data) {
@@ -88,8 +96,50 @@ export class BulkImportStore {
     this._spreadsheetUploadProgress = progress;
     console.log("Spreadsheet upload progress updated:", progress);
   }
+  setUploadFinished(finished) {
+    this._uploadFinished = finished;
+    console.log("Upload finished status updated:", finished);
+  }
+  setImageCount(count) {
+    this._imageCount = count;
+    console.log("Image count updated:", count);
+  }
+
+  setImagePreview(preview, action = "add") {
+    if (action === "remove") {
+      this._imagePreview = this._imagePreview.filter(
+        (p) => p.fileName !== preview,
+      );
+    } else if (action === "update") {
+      this._imagePreview = this._imagePreview.map((p) =>
+        p.fileName === preview.fileName ? { ...p, ...preview } : p,
+      );
+    } else if (action === "replace") {
+      this._imagePreview = preview;
+    } else {
+      this._imagePreview = [...this._imagePreview, preview];
+    }
+    console.log("Image preview updated:", this._imagePreview);
+  }
+
+  setImageSectionFileNames(fileNames, action = "add") {
+    if (action === "remove") {
+      this._imageSectionFileNames = this._imageSectionFileNames.filter(
+        (name) => name !== fileNames,
+      );
+    } else {
+      this._imageSectionFileNames = Array.isArray(fileNames)
+        ? fileNames
+        : [...this._imageSectionFileNames, fileNames];
+    }
+    console.log(
+      "Image section file names updated:",
+      this._imageSectionFileNames,
+    );
+  }
 
   initializeFlow(fileInputRef, maxSize) {
+    console.log("Initializing Flow.js for file input:", fileInputRef);
     const submissionId = this._submissionId || uuidv4();
     this._submissionId = submissionId;
 
@@ -104,8 +154,19 @@ export class BulkImportStore {
     flowInstance.assignBrowse(fileInputRef);
 
     flowInstance.on("fileAdded", (file) => {
-      const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
-      if (!supportedTypes.includes(file.file.type) || file.size > maxSize * 1024 * 1024) return false;
+      const supportedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/bmp",
+      ];
+      if (
+        !supportedTypes.includes(file.file.type) ||
+        file.size > maxSize * 1024 * 1024
+      ) {
+        console.log("File rejected due to type or size.");
+        return false;
+      }
 
       const reader = new FileReader();
       reader.onload = () => {
@@ -148,62 +209,184 @@ export class BulkImportStore {
         const dateTime = EXIF.getTag(this, "DateTime");
         if (dateTime) {
           const f = dateTime.split(/\D+/);
-          const formatted = f.length >= 6 ? `${f.slice(0, 3).join("-")} ${f.slice(3, 6).join(":")}` : f.join("-");
+          const formatted =
+            f.length >= 6
+              ? `${f.slice(0, 3).join("-")} ${f.slice(3, 6).join(":")}`
+              : f.join("-");
           console.log("EXIF DateTime:", formatted);
         }
       });
 
       this._imageSectionFileNames.push(file.name);
-      this._flow.upload();
+      // this._flow.upload();
     });
 
     flowInstance.on("fileProgress", (file) => {
       const percent = (file._prevUploadedSize / file.size) * 100;
       this._imagePreview = this._imagePreview.map((f) =>
-        f.fileName === file.name ? { ...f, progress: percent } : f
+        f.fileName === file.name ? { ...f, progress: percent } : f,
       );
     });
 
     flowInstance.on("fileSuccess", (file) => {
       this._imagePreview = this._imagePreview.map((f) =>
-        f.fileName === file.name ? { ...f, progress: 100 } : f
+        f.fileName === file.name ? { ...f, progress: 100 } : f,
       );
     });
 
     flowInstance.on("fileError", (file) => {
       this._imagePreview = this._imagePreview.map((f) =>
-        f.fileName === file.name ? { ...f, error: true, progress: 0 } : f
+        f.fileName === file.name ? { ...f, error: true, progress: 0 } : f,
       );
     });
 
     this._flow = flowInstance;
   }
 
-  handleDragEnter = (e) => {
-    e.preventDefault();
-    e.currentTarget.style.border = "2px dashed #007BFF";
-  };
-
-  handleDragOver = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-  };
-
-  handleDragLeave = (e) => {
-    e.preventDefault();
-    e.currentTarget.style.border = "1px dashed #007BFF";
-  };
-
-  async handleDrop(e, maxSize) {
-    e.preventDefault();
-    e.currentTarget.style.border = "1px dashed #007BFF";
-
-    const items = e.dataTransfer.items;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i].webkitGetAsEntry?.();
-      if (item) this.traverseFileTree(item, maxSize);
+  uploadFilteredFiles(maxSize) {
+    console.log("Uploading filtered files with max size:", maxSize);
+    if (!this._flow) {
+      console.warn("Flow instance not initialized.");
+      return;
     }
 
+    console.log("Files to upload:", this._flow.files);
+
+    const validFiles = this._flow.files.filter(
+      (file) => file.size <= maxSize * 1024 * 1024,
+    );
+    // .filter((file) => !this._imageSectionFileNames.includes(file.name));
+
+    if (validFiles.length === 0) {
+      console.log("No valid files to upload.");
+      return;
+    }
+
+    this.setImageUploadStatus("uploading");
+
+    const currentSubmissionId = this._submissionId || uuidv4();
+    if (!this._submissionId) {
+      this._submissionId = currentSubmissionId;
+    }
+    this._flow.opts.query.submissionId = currentSubmissionId;
+
+    validFiles.forEach((file) => {
+      const timeout = setTimeout(() => {
+        console.warn(`Upload timeout for file: ${file.name}`);
+        this._flow.removeFile(file);
+        this.setImageSectionFileNames(file.name, "remove");
+        this.setImagePreview(
+          { fileName: file.name, progress: 0, error: true },
+          "update",
+        );
+      }, 300000); // 5 minutes timeout
+
+      const clearHandlers = () => {
+        clearTimeout(timeout);
+        this._flow.off("fileSuccess", successHandler);
+        this._flow.off("fileError", errorHandler);
+      };
+
+      const successHandler = (uploadedFile) => {
+        if (uploadedFile.name === file.name) {
+          clearHandlers();
+          this.checkIfUploadFinished();
+        }
+      };
+
+      const errorHandler = (erroredFile) => {
+        if (erroredFile.name === file.name) {
+          clearHandlers();
+          this.setImagePreview(
+            { fileName: erroredFile.name, progress: 0, error: true },
+            "update",
+          );
+          this.setImageUploadStatus("error");
+        }
+      };
+
+      this._flow.on("fileSuccess", successHandler);
+      this._flow.on("fileError", errorHandler);
+
+      this._flow.upload(file);
+    });
+  }
+
+  addFiles(fileList, maxSize) {
+    const supportedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/bmp",
+    ];
+
+    Array.from(fileList).forEach((file) => {
+      if (
+        !supportedTypes.includes(file.type) ||
+        file.size > maxSize * 1024 * 1024
+      ) {
+        console.log(`Skipping unsupported or oversized file: ${file.name}`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const MAX = 150;
+          let [width, height] = [img.width, img.height];
+
+          if (width > height) {
+            if (width > MAX) {
+              height = height * (MAX / width);
+              width = MAX;
+            }
+          } else {
+            if (height > MAX) {
+              width = width * (MAX / height);
+              height = MAX;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          const thumb = canvas.toDataURL("image/jpeg", 0.7);
+
+          this._imagePreview.push({
+            src: thumb,
+            fileName: file.name,
+            fileSize: file.size,
+            progress: 0,
+          });
+
+          // Add file to flow
+          this._flow.addFile(file);
+
+          // Ensure file name is tracked
+          if (!this._imageSectionFileNames.includes(file.name)) {
+            this._imageSectionFileNames.push(file.name);
+          }
+
+          // Check if we should start upload
+          this.uploadFilteredFiles(maxSize);
+        };
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  checkIfUploadFinished() {
+    const unfinished = this._imagePreview.some(
+      (preview) => preview.progress < 100 && !preview.error,
+    );
+    if (!unfinished) {
+      this.setImageUploadStatus("finished");
+      this.setUploadFinished(true);
+    }
   }
 
   traverseFileTree(item, maxSize, path = "") {
@@ -218,15 +401,19 @@ export class BulkImportStore {
       const reader = item.createReader();
       reader.readEntries((entries) => {
         entries.forEach((entry) =>
-          this.traverseFileTree(entry, maxSize, path + item.name + "/")
+          this.traverseFileTree(entry, maxSize, path + item.name + "/"),
         );
       });
     }
   }
 
   removePreview(fileName) {
-    this._imagePreview = this._imagePreview.filter((f) => f.fileName !== fileName);
-    this._imageSectionFileNames = this._imageSectionFileNames.filter((n) => n !== fileName);
+    this._imagePreview = this._imagePreview.filter(
+      (f) => f.fileName !== fileName,
+    );
+    this._imageSectionFileNames = this._imageSectionFileNames.filter(
+      (n) => n !== fileName,
+    );
     const file = this._flow.files.find((f) => f.name === fileName);
     if (file) this._flow.removeFile(file);
   }
@@ -242,4 +429,3 @@ export class BulkImportStore {
 }
 
 export default BulkImportStore;
-
