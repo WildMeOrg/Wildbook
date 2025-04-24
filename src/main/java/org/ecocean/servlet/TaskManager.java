@@ -93,9 +93,6 @@ public class TaskManager extends HttpServlet {
                 "  SELECT 1 FROM \"TASK_CHILDREN\" tc WHERE tc.\"ID_EID\" = t.\"ID\" " +
                 ") " +
                 "AND EXISTS ( " +
-                "  SELECT 1 FROM \"TASK_OBJECTMEDIAASSETS\" tob WHERE tob.\"ID_OID\" = t.\"ID\" " +
-                ") " +
-                "AND EXISTS ( " +
                 "  SELECT 1 " +
                 "  FROM \"TASK_OBJECTMEDIAASSETS\" \"tom\" " +
                 "    JOIN \"MEDIAASSET_FEATURES\" \"mf\" ON \"tom\".\"ID_EID\" = \"mf\".\"ID_OID\" " +
