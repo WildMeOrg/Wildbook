@@ -117,6 +117,8 @@ public class BulkImport extends ApiBase {
                         System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName + "]: " + bve);
                     } else {
                         System.out.println("[ERROR] Non-bulk exception (or something weird) for rowNum=" + rowNum + ", rowFieldName=" + rowFieldName + ": " + rowObj);
+                        Exception ex = (Exception)rowObj;
+                        ex.printStackTrace();
                         throw new ServletException("cannot process rowResult[" + rowNum + ", " + rowFieldName + "]: " + rowObj);
                     }
                 }

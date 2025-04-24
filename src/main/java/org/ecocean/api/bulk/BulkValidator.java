@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.ecocean.api.ApiException;
+import org.ecocean.LocationID;
 import org.ecocean.Util;
 
 
@@ -192,6 +193,7 @@ public class BulkValidator {
             case "Encounter.year":
             case "Occurrence.year":
                 Integer intVal = tryInteger(value);
+                if (intVal == null) return null;
                 if (intVal < 1000) throw new BulkValidatorException("year value too small", ApiException.ERROR_RETURN_CODE_INVALID);
                 if (intVal > Year.now().getValue()) throw new BulkValidatorException("year cannot be in future", ApiException.ERROR_RETURN_CODE_INVALID);
                 return intVal;
@@ -199,6 +201,7 @@ public class BulkValidator {
             case "Encounter.month":
             case "Occurrence.month":
                 intVal = tryInteger(value);
+                if (intVal == null) return null;
                 if (intVal < 1) throw new BulkValidatorException("month value too small", ApiException.ERROR_RETURN_CODE_INVALID);
                 if (intVal > 12) throw new BulkValidatorException("month value too large", ApiException.ERROR_RETURN_CODE_INVALID);
                 return intVal;
@@ -206,22 +209,46 @@ public class BulkValidator {
             case "Encounter.day":
             case "Occurrence.day":
                 intVal = tryInteger(value);
+                if (intVal == null) return null;
                 if (intVal < 1) throw new BulkValidatorException("day value too small", ApiException.ERROR_RETURN_CODE_INVALID);
-                if (intVal > 31) throw new BulkValidatorException("month value too large", ApiException.ERROR_RETURN_CODE_INVALID);
+                if (intVal > 31) throw new BulkValidatorException("day value too large", ApiException.ERROR_RETURN_CODE_INVALID);
                 // note: to validate upper bound based on month, this must be done through BulkImportUtil.validateRow()
+                return intVal;
+
+            case "Encounter.hour":
+            case "Occurrence.hour":
+                intVal = tryInteger(value);
+                if (intVal == null) return null;
+                if (intVal < 0) throw new BulkValidatorException("hour value too small", ApiException.ERROR_RETURN_CODE_INVALID);
+                if (intVal > 23) throw new BulkValidatorException("hour value too large", ApiException.ERROR_RETURN_CODE_INVALID);
+                return intVal;
+
+            case "Encounter.minutes":
+            case "Occurrence.minutes":
+                intVal = tryInteger(value);
+                if (intVal == null) return null;
+                if (intVal < 0) throw new BulkValidatorException("minutes value too small", ApiException.ERROR_RETURN_CODE_INVALID);
+                if (intVal > 59) throw new BulkValidatorException("minutes value too large", ApiException.ERROR_RETURN_CODE_INVALID);
                 return intVal;
 
             case "Encounter.decimalLatitude":
             case "Occurrence.decimalLatitude":
                 Double doubleVal = tryDouble(value);
+                if (doubleVal == null) return null;
                 if (!Util.isValidDecimalLatitude(doubleVal)) throw new BulkValidatorException("invalid decimalLatitude value: " + doubleVal, ApiException.ERROR_RETURN_CODE_INVALID);
                 return doubleVal;
 
             case "Encounter.decimalLongitude":
             case "Occurrence.decimalLongitude":
                 doubleVal = tryDouble(value);
+                if (doubleVal == null) return null;
                 if (!Util.isValidDecimalLongitude(doubleVal)) throw new BulkValidatorException("invalid decimalLongitude value: " + doubleVal, ApiException.ERROR_RETURN_CODE_INVALID);
                 return doubleVal;
+
+            case "Encounter.locationID":
+                if ((value != null) && !LocationID.isValidLocationID(value.toString())) throw new BulkValidatorException("invalid location value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
             }
 
             System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName + " and value=" + value);
