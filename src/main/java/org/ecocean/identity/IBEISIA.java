@@ -443,6 +443,8 @@ public class IBEISIA {
         System.out.println("sendDetect got detectArgs " + detectArgsWithMas.toString());
 
         URL url = new URL(detectUrl);
+        String iaBase = IA.getProperty(context, "IABASE");
+        url = new URL(iaBase + url.getPath().substring(1));
         System.out.println("sendDetectNew sending to url " + url);
 
         return RestClient.post(url, detectArgsWithMas);
