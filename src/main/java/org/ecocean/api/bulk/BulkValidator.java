@@ -117,6 +117,12 @@ public class BulkValidator {
 		"Occurrence.taxonomy"
 	));
 
+	public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
+		"Encounter.genus",
+		"Encounter.specificEpithet",
+		"Encounter.year"
+	));
+
         private String fieldName = null;
         private Object value = null;
         private int indexInt = -3;
@@ -217,7 +223,10 @@ public class BulkValidator {
                 if (!Util.isValidDecimalLongitude(doubleVal)) throw new BulkValidatorException("invalid decimalLongitude value: " + doubleVal, ApiException.ERROR_RETURN_CODE_INVALID);
                 return doubleVal;
             }
-            throw new BulkValidatorException("unknown error on fieldName validation: " + fieldName, ApiException.ERROR_RETURN_CODE_UNKNOWN);
+
+            System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName + " and value=" + value);
+            return value;
+            //throw new BulkValidatorException("unknown error on fieldName validation: " + fieldName, ApiException.ERROR_RETURN_CODE_UNKNOWN);
         }
 
         private static Integer tryInteger(Object value) throws BulkValidatorException {

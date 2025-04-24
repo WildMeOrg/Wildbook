@@ -62,16 +62,16 @@ class BulkGeneralTest {
     }
 
     @Test void basicUtilTestValidateRow() {
-	Map<String, Object> rowResult = BulkImportUtil.validateRow(null);
+	Map<String, Object> rowResult = BulkImportUtil.validateRow(null, null);
         assertNotNull(rowResult);
         assertEquals(rowResult.size(), 0);
 
         JSONObject rowData = new JSONObject();
         rowData.put(fieldNameValidEncounterYear, 2000);
         rowData.put(fieldNameInvalid, "fail");
-	rowResult = BulkImportUtil.validateRow(rowData);
+	rowResult = BulkImportUtil.validateRow(rowData, null);
         assertNotNull(rowResult);
-        assertEquals(rowResult.size(), 2);
+        assertEquals(rowResult.size(), 4);
         assertTrue(rowResult.get(fieldNameValidEncounterYear) instanceof BulkValidator);
         assertTrue(rowResult.get(fieldNameInvalid) instanceof BulkValidatorException);
         BulkValidator bv = (BulkValidator)rowResult.get(fieldNameValidEncounterYear);
