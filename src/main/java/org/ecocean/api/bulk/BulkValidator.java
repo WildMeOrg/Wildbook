@@ -117,6 +117,12 @@ public class BulkValidator {
 		"Occurrence.taxonomy"
 	));
 
+	public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
+		"Encounter.genus",
+		"Encounter.specificEpithet",
+		"Encounter.year"
+	));
+
         private String fieldName = null;
         private Object value = null;
         private int indexInt = -3;
