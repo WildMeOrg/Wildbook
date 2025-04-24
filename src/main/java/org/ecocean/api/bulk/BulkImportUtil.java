@@ -18,7 +18,11 @@ public class BulkImportUtil {
         for (String fieldName : row.keySet()) {
             try {
                 // FIXME -- how do we handle get() and type returned? TBD
-                rtn.put(fieldName, new BulkValidator(fieldName, row.get(fieldName)));
+                if (row.isNull(fieldName)) {  // want to pass java null here instead of org.json.NULL
+                    rtn.put(fieldName, new BulkValidator(fieldName, null));
+                } else {
+                    rtn.put(fieldName, new BulkValidator(fieldName, row.get(fieldName)));
+                }
             // lets just put *any* exception for now?
             //} catch (BulkValidatorException ex) {
             } catch (Exception ex) {
