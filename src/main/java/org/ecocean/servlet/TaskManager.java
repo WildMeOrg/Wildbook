@@ -128,6 +128,29 @@ public class TaskManager extends HttpServlet {
                 "LIMIT " + limit + " OFFSET " + offset;
     }
 
+    private String toCountQuery(String sql) {
+        // Normalize spacing and remove trailing semicolon
+        String s = sql.trim().replaceAll("\\s+", " ");
+        if (s.endsWith(";")) s = s.substring(0, s.length() - 1);
+
+        // Find the FROM
+        int fromIdx = s.toLowerCase().indexOf(" from ");
+        if (fromIdx < 0) throw new IllegalArgumentException("No FROM clause found");
+
+        // Cut off any ORDER BY / LIMIT / OFFSET after the FROM block
+        String afterFrom = s.substring(fromIdx + 1);  // includes the "from"
+        String[] cutPoints = {" order by ", " limit ", " offset "};
+        int cutIdx = afterFrom.length();
+        for (String cp : cutPoints) {
+            int i = afterFrom.toLowerCase().indexOf(cp);
+            if (i >= 0 && i < cutIdx) cutIdx = i;
+        }
+        String fromPart = afterFrom.substring(0, cutIdx);
+
+        // Build the count query
+        return "SELECT COUNT(*) " + fromPart;
+    }
+
     private String getSql(int limit, int offset, String taskType) {
         if (taskType.toLowerCase().equals("matcher")) {
             return getMatcherTasksSql(limit, offset);
@@ -281,7 +304,7 @@ public class TaskManager extends HttpServlet {
                     task.put("status", status);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
 
             request.setAttribute("tasks", tasks);
