@@ -1,7 +1,10 @@
 import React from "react";
 import ErrorPage from "./ErrorPage";
 
-export default function Unauthorized() {
+export default function Unauthorized({
+  setHeader
+}) {
+  setHeader(false);
   return (
     <ErrorPage
       errorCode="401"

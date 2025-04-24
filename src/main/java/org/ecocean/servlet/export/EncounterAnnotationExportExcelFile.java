@@ -9,6 +9,7 @@ import org.ecocean.*;
 import org.ecocean.media.*;
 import org.ecocean.security.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -204,12 +205,14 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
                     annViewpoint, columns);
                 aanViewpointK.setMaNum(maNum);
             }
-            ExportColumn markedIndividualSex = new ExportColumn(MarkedIndividual.class,
-                "Encounter.sex", markedIndividualSexName, columns);
-            ExportColumn markedIndividuallifeStage = new ExportColumn(MarkedIndividual.class,
-                "Encounter.lifeStage", markedIndividualLifeStageName, columns);
-
+            // individual names and summaries
             MultiValueExportColumn.addNameColumns(numNameCols, columns);
+            ExportColumn markedIndividualSex = new ExportColumn(MarkedIndividual.class,
+                "IndividualSummary.sex", markedIndividualSexName, columns);
+            ExportColumn markedIndividuallifeStage = new ExportColumn(MarkedIndividual.class,
+                "IndividualSummary.lifeStage", markedIndividualLifeStageName, columns);
+
+            // encounter information
             newEasyColumn("Encounter.genus", columns);
             newEasyColumn("Encounter.specificEpithet", columns);
             newEasyColumn("Encounter.verbatimLocality", columns);
@@ -222,6 +225,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
             newEasyColumn("Encounter.day", columns);
             newEasyColumn("Encounter.hour", columns);
             newEasyColumn("Encounter.minutes", columns);
+            newEasyColumn("Encounter.sex", columns);
+            newEasyColumn("Encounter.lifeStage", columns);
             newEasyColumn("Encounter.occurrenceRemarks", columns);
             ExportColumn OccurrenceComments = new ExportColumn(Occurrence.class,
                 "Occurrence.comments", occurrenceComments, columns);

@@ -12,6 +12,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.util.*;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

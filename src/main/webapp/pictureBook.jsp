@@ -11,6 +11,8 @@ org.ecocean.security.HiddenIndividualReporter,
 org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 org.datanucleus.api.rest.orgjson.JSONObject" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 
@@ -22,7 +24,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 10;
+  int maxPages = 250;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -63,7 +65,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		<li>Scroll to the bottom of the page before printing, or some images will not render in pdf</li>
 	</ul></em></p>
 
-	<p class="instructions"> Your Amphibian and Reptile Wildbook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
+	<p class="instructions"> Your Wildbook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
 
 	<p class="resultSummary">
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -203,9 +205,16 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	<%
 
 		List<String> desiredKeywords = new ArrayList<String>();
-		desiredKeywords.add("Tail Fluke");
-		desiredKeywords.add("Right Dorsal Fin");
-		desiredKeywords.add("Left Dorsal Fin");
+
+		desiredKeywords = CommonConfiguration.getIndexedPropertyValues("pictureBookKeywords", context);
+
+		// if misconfigured you can get null so lets be safe
+		if (desiredKeywords==null||desiredKeywords.size()==0) {
+			desiredKeywords.add("Left");
+			desiredKeywords.add("Right");
+			desiredKeywords.add("Top");
+			desiredKeywords.add("Front");
+		}
 
 	for (MarkedIndividual mark: rIndividuals) {
 
@@ -277,15 +286,14 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 			Encounter[] encs = mark.getDateSortedEncounters(encsPerTableLimit);
 			int numEncs = encs.length;
 			%>
-			<h4 class="pictureBook-tableHeader">Sighting History</h4> <em><%=numEncs %> on table</em>
+			<h4 class="pictureBook-tableHeader">Sighting History</h4> <em>Most recent <%=numEncs %> encounters on table</em>
 			<table class="pictureBook-table">
 				<tr class="pictureBook-hr">
 					<th>Date</th>
 					<th>Biopsy</th>
 					<th>S. skin</th>
 					<th>Location</th>
-					<!--<th>Fluke photo</th>-->
-					<th>Nickname</th>
+					<th>Alternate ID</th>
 					<th>Sex</th>
 					<th>Satellite Tag</th>
 				</tr>
@@ -294,7 +302,12 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					if (enc==null) continue;
 					String dateStr = enc.getShortDate();
 					if ("Unknown".equals(dateStr)) dateStr = "";
-					boolean biopsy = enc.hasDynamicProperty("Biopsy collected"); // value set during ImportAcces.java
+					
+					
+					boolean biopsy = false;
+					if (enc.hasDynamicProperty("Biopsy collected")||(enc.getTissueSamples() != null) && (enc.getTissueSamples().size() > 0))biopsy=true;
+					
+					
 					boolean sloughedSkin = enc.hasDynamicProperty("Sloughed skin"); // value set during ImportAcces.java
 					String location = enc.getLocationID();
 					int flukePhoto = -1;
@@ -303,7 +316,9 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					if ("Unassigned".equals(nickname)) nickname = "";
 					String sex = enc.getSex();
 					if (Util.shouldReplace(mark.getSex(), sex)) sex = mark.getSex();
-					boolean satelliteTag = enc.hasDynamicProperty("satelliteTag");
+					
+					boolean satelliteTag = false;
+					if(enc.hasDynamicProperty("satelliteTag") || enc.getSatelliteTag()!=null)satelliteTag = true;
 
 					%>
 					<tr class="pictureBook-tr clickable-row" data-href='<%=enc.getWebUrl(request) %>'>
@@ -311,7 +326,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= biopsy ? "checked" : ""%> /></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= sloughedSkin ? "checked" : ""%> /></td>
 						<td><%=location%></td>
-						<!--<td><%=flukePhoto%></td>-->
 						<td><%=nickname%></td>
 						<td><%=sex%></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= satelliteTag ? "checked" : ""%> /></td>

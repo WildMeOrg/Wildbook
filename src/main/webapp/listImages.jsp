@@ -15,6 +15,7 @@
 	com.google.gson.*,
 	java.util.ArrayList
 	"%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 

@@ -5,6 +5,8 @@
 org.ecocean.media.MediaAsset,
 org.ecocean.media.MediaAssetFactory,
 org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -23,10 +25,6 @@ MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
 if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
 Encounter enc = Encounter.findByMediaAsset(ma, myShepherd);
 if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
-
-
-//TODO we might(?) want to get the _mid sized image at some point??
-
 
 //allow passing of dorsal-ness by way of param:
 boolean passedDorsal = (request.getParameter("isDorsalFin") != null);
@@ -205,7 +203,6 @@ function spotsSave() {
 	var sp = itool.spotsVisible();
 	console.log('sp = %o', sp);
 	if (sp.length < 1) return;
-//TODO verify we really have all we need (like when we updateSaveButton())
 
 	$('#imageTools-buttons').hide();
 	$('#imageTools-message').html('saving spot data...');

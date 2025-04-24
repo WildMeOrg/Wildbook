@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -184,7 +186,7 @@
 <div class="container maincontent">
 
 
-      <h1><img src="images/wild-me-logo-only-100-100.png" width="35"
+      <h1><img src="images/WildMe-Logo-100x100.png" width="35"
                                                 align="absmiddle"/>
         <%=props.getProperty("title")%> <a href="individuals.jsp?number=<%=individualDistanceSearchID %>"><%=individualDistanceSearchID %></a>
       </h1>

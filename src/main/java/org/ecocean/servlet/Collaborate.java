@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import com.google.gson.Gson;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 
 public class Collaborate extends HttpServlet {
     public void init(ServletConfig config)
@@ -253,6 +255,7 @@ public class Collaborate extends HttpServlet {
                     System.out.println("/Collaborate: new .getState() = " + collab.getState() +
                         " for collab " + collab);
                     rtn.put("success", true);
+                    OpenSearch.setPermissionsNeeded(myShepherd, true);
                     myShepherd.updateDBTransaction();
                     // myShepherd.commitDBTransaction();
                 }
@@ -300,8 +303,8 @@ public class Collaborate extends HttpServlet {
      *
      */
     private HashMap sendCollaborationInvite(Shepherd myShepherd, String username,
-        String currentUsername, Properties props, HashMap rtn, HttpServletRequest request,
-        String context, boolean isEdit) {
+                                            String currentUsername, Properties props, HashMap rtn, HttpServletRequest request,
+                                            String context, boolean isEdit) {
         String optionalMessage = request.getParameter("message");
 
         System.out.println("Entering sendCollaborationInvite");

@@ -10,6 +10,11 @@ import java.util.UUID;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
+import org.ecocean.tag.MetalTag;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,8 +51,6 @@ import java.util.Set;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-
-import org.ecocean.tag.MetalTag;
 
 import com.reijns.I3S.Point2D;
 
@@ -161,13 +164,6 @@ public class Util {
         List<String> values = CommonConfiguration.getIndexedPropertyValues("samplingProtocol",
             context);
         List<OptionDesc> list = new ArrayList<OptionDesc>();
-
-        /*
-           for (String key : values) {
-           String label = findLabel(key, langCode,context);
-           list.add(new OptionDesc(key, label));
-           }
-         */
         int valuesSize = values.size();
 
         for (int i = 0; i < valuesSize; i++) {
@@ -229,20 +225,6 @@ public class Util {
 
     private static String findLabel(String key, String langCode, String context) {
         // System.out.println("Trying to find key: "+key+" with langCode "+langCode);
-
-        /*
-           Locale locale = Locale.US;
-           if (langCode != null) {
-           locale = new Locale(langCode);
-           }
-           try {
-           ResourceBundle bundle = ResourceBundle.getBundle("bundles.commonConfigurationLabels", locale);
-           return bundle.getString(key + ".label");
-           }
-           catch (MissingResourceException ex) {
-           System.out.println("Error finding bundle or key for key: " + key);
-           }
-           return key;*/
 
         Properties myProps = ShepherdProperties.getProperties(
             "commonConfigurationLabels.properties", langCode, context);
@@ -408,7 +390,7 @@ public class Util {
     }
 
     // got sick of having to concat these strings with a space in the middle.
-    // TODO: someday make a Taxonomy class for storing/processing this stuff right! (or find the wheel someone already invented!!)
+    // TODO: Make a Taxonomy class for storing/processing this stuff right
     public static String taxonomyString(String genus, String species) {
         if (stringExists(genus) && stringExists(species)) return genus + " " + species;
         if (stringExists(genus)) return genus;
@@ -433,7 +415,7 @@ public class Util {
     }
 
     // a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
-    // TODO check for incoming slashes and similar weirdness
+    // TODO: check for incoming slashes and similar weirdness
     public static String hashDirectories(String in, String separator) {
         if ((in == null) || (in.length() < 4)) return in;
         return in.charAt(0) + separator + in.charAt(1) + separator + in;
@@ -517,8 +499,6 @@ public class Util {
         }
         return j;
     }
-
-    // NEW
 
     // this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONArray stringToJSONArray(String s) {
@@ -616,12 +596,12 @@ public class Util {
         return null;
     }
 
-/////GPS Longitude: "-69.0° 22.0' 45.62999999998169"",
+    // GPS Longitude: "-69.0° 22.0' 45.62999999998169"",
     public static Double latlonDMStoDD(String dms) {
         String[] d = dms.split(" +");
 
         if (d.length < 1) return null;
-// System.out.println("latlonDMStoDD(" + dms + ") --> " + d[0] + "/" + d[1] + "/" + d[2]);
+        // System.out.println("latlonDMStoDD(" + dms + ") --> " + d[0] + "/" + d[1] + "/" + d[2]);
         Double dd = null;
         try {
             dd = Double.valueOf(d[0].substring(0, d[0].length() - 1));
@@ -630,7 +610,7 @@ public class Util {
             if (d.length > 1) m = Double.valueOf(d[1].substring(0, d[1].length() - 1));
             if (d.length > 2) s = Double.valueOf(d[2].substring(0, d[2].length() - 1));
             dd = Math.signum(dd) * (Math.abs(dd) + ((m * 60) + s) / (60 * 60));
-// System.out.println("  --> " + dd + " deg, " + m + " min, " + s + " sec => " + dd);
+            // System.out.println("  --> " + dd + " deg, " + m + " min, " + s + " sec => " + dd);
             return dd;
         } catch (NumberFormatException nfe) {
             return null;
@@ -766,10 +746,6 @@ public class Util {
 
     // h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
     public static String validEmailRegexPattern() {
-        // return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com
-        // !!
-        // return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"; // this failed on
-        // myha@studserv.uni-leipzig.de
         return
                 "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
         // from https://stackoverflow.com/questions/201323/how-can-i-validate-an-email-address-using-a-regular-expression (JP found on 30 Aug 2021)
@@ -822,6 +798,10 @@ public class Util {
     public static boolean stringExists(String str) {
         return (str != null && !str.trim().equals("") && !str.toLowerCase().equals("none") &&
                    !str.toLowerCase().equals("unknown"));
+    }
+
+    public static boolean stringIsEmptyOrNull(String str) {
+        return ((str == null) || str.equals(""));
     }
 
     public static boolean stringsEqualish(String s1, String s2) {
@@ -989,19 +969,6 @@ public class Util {
     }
 
     public static String basicSanitize(String input) {
-        // String sanitized = null;
-        // if (input!=null) {
-        // sanitized = input;
-        // sanitized = input.replace(":", "");
-        // sanitized = input.replace(";", "");
-        // sanitized = sanitized.replace("\"", "");
-        // sanitized = sanitized.replace("'", "");
-        // sanitized = sanitized.replace("(", "");
-        // sanitized = sanitized.replace(")", "");
-        // sanitized = sanitized.replace("*", "");
-        // sanitized = sanitized.replace("%", "");
-        // }
-        // return sanitized;
         return sanitizeUserInput(input);
     }
 
@@ -1080,14 +1047,6 @@ public class Util {
         return xxhash(s.getBytes("UTF-8"));
     }
 
-/*
-    //note: maybe if files become too huge, this would suck?  there is a streaming version (see docs link above)
-    // turns out it did kinda suck!! see below instead.
-    public static int xxhash(File f) throws IOException {
-        if (f == null) throw new IOException("xxhash() passed null file");
-        return xxhash(Files.readAllBytes(f.toPath()));
-    }
- */
     public static int xxhash(File f)
     throws IOException {
         if (f == null) throw new IOException("xxhash() passed null file");
@@ -1148,5 +1107,56 @@ public class Util {
     public static JSONObject copy(JSONObject original) {
         if (original == null) return null;
         return new JSONObject(original, JSONObject.getNames(original));
+    }
+
+    /**
+     * Generates and returns version long value using 'modified', returns 0 for now if the 'modified' property
+     * does not have any value or can't be converted to Long.
+     *
+     * @param modified String value
+     * @return Version long value generated using modified string
+     */
+    public static long getVersionFromModified(final String modified) {
+        if (!stringExists(modified)) return 0;
+        try {
+            String iso8601 = roundISO8601toMillis(getISO8601Date(modified));
+            if (iso8601 == null) return 0;
+            // switching from DateTimeFormatter to DateTime here because the math seems to line up with how psql does it -jon
+            return new DateTime(iso8601).getMillis();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    public static String roundISO8601toMillis(final String input) {
+        if ((input == null) || (input.length() < 24)) return input;
+        try {
+            float seconds = Float.parseFloat(input.substring(17)) + 0.0005f;
+            return input.substring(0, 17) + String.valueOf(seconds).substring(0, 6);
+        } catch (Exception ex) {}
+        return input;
+    }
+
+    // note: this respect user.receiveEmails - you have been warned
+    public static Set<String> getUserEmailAddresses(List<User> users) {
+        Set<String> addrs = new HashSet<String>();
+
+        if (users == null) return addrs;
+        for (User user : users) {
+            if (user.getReceiveEmails() && !stringIsEmptyOrNull(user.getEmailAddress()))
+                addrs.add(user.getEmailAddress());
+        }
+        return addrs;
+    }
+
+    public static String getISO8601Date(final String date) {
+        if (date == null) return null;
+        String iso8601 = date.replace(" ", "T");
+        if (iso8601.length() == 10) iso8601 += "T00:00:00";
+        // TODO: better testing of date's string format (or transition to date format support?)
+        if (iso8601.length() < 16) return null;
+        if (iso8601.length() == 16) iso8601 += 'Z';
+        return iso8601;
     }
 }

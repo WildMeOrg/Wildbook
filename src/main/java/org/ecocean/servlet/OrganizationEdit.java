@@ -18,7 +18,7 @@ import org.ecocean.AccessControl;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.Organization;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.json.JSONArray;
@@ -108,7 +108,6 @@ public class OrganizationEdit extends HttpServlet {
             response.sendError(401, "access denied");
 
             // only "admin" can create a new **top-level** org, otherwise user must create under an existing one
-            // we need to have some sort of OrgSuperUser Role i suppose?   TODO
         } else if ((org == null) && (orgId == null) && isAdmin && (jsonIn.optString("create",
             null) != null)) {
             Organization newOrg = new Organization(jsonIn.getString("create"));

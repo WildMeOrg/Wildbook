@@ -13,24 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-/**
- * Does actual comparison processing of batch-uploaded images.
- *
- * @author Jon Van Oast
- */
+// Does actual comparison processing of batch-uploaded images.
 public final class ImageProcessor implements Runnable {
     private static Logger log = LoggerFactory.getLogger(ImageProcessor.class);
-
-///** Enumeration representing possible status values for the batch processor. */
-// public enum Status { WAITING, INIT, RUNNING, FINISHED, ERROR };
-///** Enumeration representing possible processing phases. */
-// public enum Phase { NONE, MEDIA_DOWNLOAD, PERSISTENCE, THUMBNAILS, PLUGIN, DONE };
-///** Current status of the batch processor. */
-// private Status status = Status.WAITING;
-///** Current phase of the batch processor. */
-// private Phase phase = Phase.NONE;
-///** Throwable instance produced by the batch processor (if any). */
-// private Throwable thrown;
 
     private String context = "context0";
     private String command = null;
@@ -109,7 +94,7 @@ public final class ImageProcessor implements Runnable {
             return;
         }
         String comment = CommonConfiguration.getProperty("imageComment", this.context);
-        if (comment == null) comment = "%year All rights reserved. | wildbook.org";
+        if (comment == null) comment = "%year All rights reserved. | wildme.org";
         String cname = ContextConfiguration.getNameForContext(this.context);
         if (cname != null) comment += " | " + cname;
         String maId = "unknown";
@@ -137,14 +122,11 @@ public final class ImageProcessor implements Runnable {
         } catch (UnknownHostException e) {}
         int year = Calendar.getInstance().get(Calendar.YEAR);
         comment = comment.replaceAll("%year", Integer.toString(year));
-        // TODO should we handle ' better? -- this also assumes command uses '%comment' quoting  :/
         comment = comment.replaceAll("'", "");
 
         String fullCommand;
         fullCommand = this.command.replaceAll("%width", Integer.toString(this.width))
                 .replaceAll("%height", Integer.toString(this.height))
-            // .replaceAll("%imagesource", this.imageSourcePath)
-            // .replaceAll("%imagetarget", this.imageTargetPath)
                 .replaceAll("%maId", maId)
                 .replaceAll("%additional", rotation);
         // walk thru transform array and replace "tN" with transform[N]
@@ -169,10 +151,6 @@ public final class ImageProcessor implements Runnable {
 
         ProcessBuilder pb = new ProcessBuilder();
         pb.command(command);
-/*
-        Map<String, String> env = pb.environment();
-        env.put("LD_LIBRARY_PATH", "/home/jon/opencv2.4.7");
- */
 // System.out.println("before!");
 
         try {
@@ -190,7 +168,6 @@ public final class ImageProcessor implements Runnable {
             }
             proc.waitFor();
             System.out.println("DONE?????");
-            ////int returnCode = p.exitValue();
         } catch (Exception ioe) {
             log.error("Trouble running processor [" + command + "]", ioe);
         }

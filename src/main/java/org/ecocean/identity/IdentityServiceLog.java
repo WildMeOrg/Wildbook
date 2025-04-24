@@ -8,7 +8,7 @@ import java.util.HashMap;
 import javax.jdo.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.ia.WbiaQueueUtil;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

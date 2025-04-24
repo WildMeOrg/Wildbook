@@ -11,7 +11,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
@@ -81,7 +81,6 @@ public class ImportTask implements java.io.Serializable {
         return all;
     }
 
-    // TODO should we consider occ.assets ?
     public List<MediaAsset> getMediaAssets() {
         if (encounters == null) return null;
         List<MediaAsset> mas = new ArrayList<MediaAsset>();

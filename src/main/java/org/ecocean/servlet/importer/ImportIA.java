@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 
 import org.json.JSONArray;
@@ -105,7 +107,6 @@ public class ImportIA extends HttpServlet {
             fancyImageSetUUIDS = new JSONArray();
             fancyImageSetUUIDS.put(IBEISIA.toFancyUUID(onlyOcc));
         }
-// TODO add taxonomy=
         log(itask,
             "starting; urlSuffix=" + urlSuffix + "; testingLimit=" + testingLimit + "; doOnly=" +
             onlyOcc);
@@ -177,7 +178,7 @@ public class ImportIA extends HttpServlet {
             }
 /*
     so... for now we clump into Encounter based on name.  this is probably not ideal.  but how else to do it?
-    probably:  time + location, aka "Clumping" (sigh).... TODO FIXME ETC
+    probably:  time + location, aka "Clumping" (sigh)
  */
             for (String name : uniqueNames) {
                 if (IBEISIA.unknownName(name) || !clusterEncounters) { // we need one encounter per annot for unknown!

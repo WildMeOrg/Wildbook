@@ -6,6 +6,8 @@
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="org.ecocean.FormUtilities" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%!
@@ -225,7 +227,7 @@ $(".search-collapse-header a").click(function(){
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounterSearch.jsp");
+  myShepherd.setAction("/react/encounter-search");
   myShepherd.beginDBTransaction();
   boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
 
@@ -662,7 +664,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         %>
         <tr>
         <td>
-         <strong><%=encprops.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
+         <strong><%=encprops.getProperty("genusSpecies") %></strong>: <select name="genusField" id="genusField">
 		<option value=""></option>
 
 				       <%
@@ -673,7 +675,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 				       	  	%>
 
-				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
+				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
 				       	  	<%
 				       		taxNum++;
 				          }

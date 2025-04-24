@@ -14,7 +14,7 @@ org.ecocean.media.*,
 org.ecocean.cache.*,
 java.util.zip.GZIPOutputStream,
 org.ecocean.social.SocialUnit,
-java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%><%@ page import="org.ecocean.shepherd.core.Shepherd"%>
 
 <%!
 
@@ -113,9 +113,10 @@ if (request.getParameter("acmId") != null) {
 								//System.out.println("found cached annotation!");
 							}
 							else{
-							
-								anns.addAll(myShepherd.getAnnotationsWithACMId(token));
-								//System.out.println("adding new annotation!");
+								if(myShepherd.getAnnotationsWithACMId(token,true)!=null){
+									anns.addAll(myShepherd.getAnnotationsWithACMId(token,true));
+									//System.out.println("adding new annotation!");
+								}
 							}
 							
 						} 

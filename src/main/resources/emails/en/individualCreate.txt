@@ -2,18 +2,16 @@ SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
 Just a quick e-mail to let you know that the encounter that you submitted
-has been added as a new, previously unidentified amphibian or reptile!
+has been added as a new, previously unidentified individual animal!
 
 You discovered a new individual for science!
 
-Newly marked: @INDIVIDUAL_ID@
+Newly marked: @INDIVIDUAL_ID@ (@INDIVIDUAL_DISPLAYNAME@)
 @INDIVIDUAL_LINK@
 
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help! If you're interested in supporting our
-research to understand and protect animals like yours, please adopt and
-nickname your animal:
+Thanks again for your critical help! To keep this project alive, consider donating: https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me
 
         

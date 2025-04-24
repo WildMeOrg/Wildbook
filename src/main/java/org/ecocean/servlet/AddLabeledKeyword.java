@@ -3,7 +3,7 @@ package org.ecocean.servlet;
 import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.json.JSONObject;
 
@@ -91,7 +91,7 @@ public class AddLabeledKeyword extends HttpServlet {
                 allKws.put(k.getIndexname(), k.getDisplayName());
             }
             JSONObject jassigned = new JSONObject();
-            jassigned.put(Integer.toString(ma.getId()), allKws);
+            jassigned.put(ma.getId(), allKws);
             jout.put("results", jassigned);
             // done w/ RestKeyword conformity
         }

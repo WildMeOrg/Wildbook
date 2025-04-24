@@ -1,6 +1,8 @@
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -99,35 +101,6 @@ if (request.getParameter("number")!=null) {
       color: #000000
     }
 
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-    }
-
     div.scroll {
       height: 200px;
       overflow: auto;
@@ -161,7 +134,7 @@ td.measurement{
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
-z-index: 1 !imporant;
+z-index: 1 !important;
 width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
@@ -256,7 +229,7 @@ margin-bottom: 8px !important;
 			controlEl: document.getElementById('cr-info')
 		});
 
-		//sometimes .toWork() doesnt fire via .init() above.  wtf?  TODO fix!
+		//sometimes .toWork() doesnt fire via .init() above.  wtf?
 		window.setTimeout(function() { CRtool.toWork(); }, 1100);
 	});
 

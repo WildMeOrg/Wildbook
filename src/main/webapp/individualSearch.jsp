@@ -1,6 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ page import="org.ecocean.FormUtilities" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
@@ -74,7 +76,7 @@ context=ServletUtilities.getContext(request);
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
-z-index: 1 !imporant;
+z-index: 1 !important;
 width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
@@ -777,7 +779,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 					       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 					       	  	%>
 
-					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
+					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
 					       	  	<%
 					       		taxNum++;
 					          }

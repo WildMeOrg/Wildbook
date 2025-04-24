@@ -7,6 +7,7 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.*;
 import org.ecocean.mmutil.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -58,9 +59,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
         // setup data dir
         File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext(), context);
-        // if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
         File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
-        // if(!encountersDir.exists()){encountersDir.mkdir();}
 
         // set up for response
         response.setContentType("text/html");
@@ -87,7 +86,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
             action = "imageadd2";
         }
         try {
-            // ====================================================================
             if (action.equals("imageremove")) {
                 encounterNumber = request.getParameter("number");
                 try {
@@ -111,12 +109,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
                         "I hit a security error trying to delete the old feature image. Please check your file system permissions.");
                 }
             }
-            // ====================================================================
             else if (action.equals("rescan")) {
                 encounterNumber = request.getParameter("number");
                 try {
                     Encounter enc = myShepherd.getEncounter(encounterNumber);
-                    // File encDir = new File(encountersDir, enc.getEncounterNumber());
                     File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
 
                     spv = myShepherd.getSinglePhotoVideo(request.getParameter(
@@ -186,12 +182,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
                         "I hit a security error trying to rescan manta feature image. Please check your file system permissions.");
                 }
             }
-            // ====================================================================
             else if (action.equals("rescanRegional")) {
                 encounterNumber = request.getParameter("number");
                 try {
                     Encounter enc = myShepherd.getEncounter(encounterNumber);
-                    // File dirEnc = new File(encountersDir, enc.getEncounterNumber());
                     File dirEnc = new File(Encounter.dir(shepherdDataDir, encounterNumber));
 
                     spv = myShepherd.getSinglePhotoVideo(request.getParameter(
@@ -260,7 +254,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
                         "I hit a security error trying to rescan manta feature image. Please check your file system permissions.");
                 }
             }
-            // ====================================================================
             else if (action.equals("imageadd")) {
                 MultipartParser mp = new MultipartParser(request,
                     CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576);
@@ -348,8 +341,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     }
                 }
             }
-            // ====================================================================
-            // ====================================================================
             // imageadd2 is added for the new candidate region selection tool and should eventually replace the original imageadd action
             else if (action.equals("imageadd2")) {
                 encounterNumber = request.getParameter("encounterID");
@@ -400,10 +391,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     } else {
                         // note: matchFilename (and extension) should be the same as mmFiles, i think -jon
                         int dot = matchFilename.lastIndexOf('.');
-                        String extension = matchFilename.substring(dot + 1, matchFilename.length()); // TODO get actual
-                                                                                                     // format from
-                                                                                                     // file magic
-                                                                                                     // instead?
+                        String extension = matchFilename.substring(dot + 1, matchFilename.length()); 
                         String targetFormat = null;
                         if (extension.equalsIgnoreCase("jpg") ||
                             extension.equalsIgnoreCase("jpeg")) {
@@ -427,9 +415,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                                     BufferedImage bufferedImage = new BufferedImage(image.getWidth(
                                         null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
                                     Graphics2D g2 = bufferedImage.createGraphics();
-                                    g2.drawImage(image, null, null); // might need bgcolor if ever
-                                                                     // transparency a problem?
-                                                                     // http://stackoverflow.com/a/1545417
+                                    g2.drawImage(image, null, null); // might need bgcolor if ever transparency a problem? http://stackoverflow.com/a/1545417
                                     ImageIO.write(bufferedImage, targetFormat, write2me);
                                 } catch (Exception e) {
                                     errorMessage = "problem converting/saving image: " +
@@ -449,8 +435,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
                 if (errorMessage != null) { // had a problem
                     resultComment.append("error: " + errorMessage);
                 } else {
-                    // myShepherd.commitDBTransaction();
-
                     resultComment.append("Successfully saved the new feature image: " +
                         write2me.getAbsolutePath() + "<br />");
 
@@ -493,7 +477,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     }
                 }
             }
-            // ====================================================================
 
             myShepherd.beginDBTransaction();
             System.out.println("    I see encounterNumber as: " + encounterNumber);

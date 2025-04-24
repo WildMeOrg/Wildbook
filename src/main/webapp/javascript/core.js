@@ -27,38 +27,6 @@ var wildbook = {
         }
     },
 
-
-/*
-    fetch: function(cls, arg, callback) {
-        if (!cls || !cls.prototype || !cls.prototype.meta) {
-            console.error('invalid class %o', cls);
-            return;
-        }
-        var url = cls.prototype.url();
-        if (arg) url += '/' + arg;
-console.log('fetch() url = ' + url);
-
-        var ajax = {
-            url: url,
-            success: function(d) {
-                if (!(d instanceof Array)) d = [d];
-                var arr = [];
-                for (var i = 0 ; i < d.length ; i++) {
-                    var obj = new cls(d[i]);  //TODO do we need to trap failures?
-                    arr.push(obj);
-                }
-                callback(arr);
-            },
-            error: function(x,a,b) { callback({error: a+': '+b}); },
-            type: 'GET',
-            dataType: 'json'
-        };
-console.log('is %o', ajax);
-        $.ajax(ajax);
-    },
-*/
-
-
     // h/t http://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
     isValidDate: function(d) {
         if (Object.prototype.toString.call(d) !== "[object Date]") return false;
@@ -196,7 +164,7 @@ console.log('is %o', ajax);
 				var keyMap = {
 					facebook: 'appid',
 					flickr: 'key',
-					google: 'FOO',  //TODO we dont have support for this yet
+					google: 'FOO',  // we dont have support for this yet
 				};
 				return wildbookGlobals.social[svc].auth[keyMap[svc]] || wildbook.social.SERVICE_NOT_SUPPORTED;
 			}

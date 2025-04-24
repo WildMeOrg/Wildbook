@@ -16,11 +16,12 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.SecurityUtils;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 /**
  * Uses JSecurity to authenticate a user If user can be authenticated successfully forwards user to /welcome.jsp
  *
- * If user cannot be authenticated then forwards user to the /login.jsp which will display an error message
+ * If user cannot be authenticated then forwards user to the /react/login which will display an error message
  */
 public class LoginUser extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
     static final long serialVersionUID = 1L;
@@ -35,7 +36,7 @@ public class LoginUser extends javax.servlet.http.HttpServlet implements javax.s
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        String url = "/login.jsp";
+        String url = "/react/login";
 
         System.out.println("Starting LoginUser servlet...");
 
@@ -43,7 +44,7 @@ public class LoginUser extends javax.servlet.http.HttpServlet implements javax.s
         // if(!urlLoc.contains("localhost")) {urlLoc="https:"+urlLoc;System.out.println("HTTPS!");}
         // else {urlLoc="http:"+urlLoc;}
 
-        // see /login.jsp for these form fields
+        // see /react/login for these form fields
         String username = request.getParameter("username").trim();
         String password = request.getParameter("password").trim();
         String salt = "";

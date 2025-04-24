@@ -4,7 +4,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.social.SocialUnit;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -107,6 +107,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
                 }
                 if (!locked) {
                     myShepherd.commitDBTransaction();
+                    //if (enc2remove != null) enc2remove.opensearchIndexDeep();
                     out.println(ServletUtilities.getHeader(request));
                     response.setStatus(HttpServletResponse.SC_OK);
                     out.println("<strong>Success:</strong> Encounter #" +
