@@ -278,6 +278,38 @@ public class BulkValidator {
                     throw new BulkValidatorException("invalid country value: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
                 return value;
 
+            case "Encounter.submitterID":
+                if ((value != null) && (myShepherd.getUser(value.toString()) == null))
+                    throw new BulkValidatorException("invalid username: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            case "Encounter.individualID":
+            case "MarkedIndividual.individualID":
+                if ((value != null) && (myShepherd.getMarkedIndividual(value.toString()) == null))
+                    throw new BulkValidatorException("invalid individual ID: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            // just generic (positive) ints
+            case "Occurrence.individualCount":
+            case "Occurrence.maxGroupSizeEstimate":
+            case "Occurrence.minGroupSizeEstimate":
+                if (value == null) return null;
+                intVal = tryInteger(value);
+                if (intVal < 0)
+                    throw new BulkValidatorException("integer must be 0 or larger", ApiException.ERROR_RETURN_CODE_INVALID);
+                return intVal;
+
+            case "Occurrence.seaSurfaceTemp":
+            case "Occurrence.seaSurfaceTemperature":
+            case "Occurrence.swellHeight":
+            case "Occurrence.transectBearing":
+            case "Occurrence.bearing":
+            case "Occurrence.distance":
+            case "Encounter.depth":
+            case "Encounter.elevation":
+                if (value == null) return null;
+                return tryDouble(value);
+
             }
 
             System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName + " and value=" + value);
