@@ -16,7 +16,7 @@ export class BulkImportStore {
   _imageUploadStatus = "notStarted";
   _steps = ["Upload Image", "Upload Spreadsheet", "Review"];
   _activeStep = 0;
-  _imageUploadProgress = 20;
+  _imageUploadProgress = 0;
   _spreadsheetUploadProgress = 0;
   _uploadFinished = false;
 
@@ -221,11 +221,30 @@ export class BulkImportStore {
       // this._flow.upload();
     });
 
+    // flowInstance.on("fileProgress", (file) => {
+    //   const percent = (file._prevUploadedSize / file.size) * 100;
+    //   this._imagePreview = this._imagePreview.map((f) =>
+    //     f.fileName === file.name ? { ...f, progress: percent } : f,
+    //   );
+    // });
+
     flowInstance.on("fileProgress", (file) => {
       const percent = (file._prevUploadedSize / file.size) * 100;
+
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, progress: percent } : f,
       );
+
+      const totalProgress = this._imagePreview.reduce(
+        (sum, f) => sum + (f.progress || 0),
+        0,
+      );
+      const averageProgress =
+        this._imagePreview.length > 0
+          ? totalProgress / this._imagePreview.length
+          : 0;
+
+      this.setImageUploadProgress(averageProgress);
     });
 
     flowInstance.on("fileSuccess", (file) => {
@@ -290,7 +309,6 @@ export class BulkImportStore {
       const successHandler = (uploadedFile) => {
         if (uploadedFile.name === file.name) {
           clearHandlers();
-          this.checkIfUploadFinished();
         }
       };
 
@@ -310,83 +328,6 @@ export class BulkImportStore {
 
       this._flow.upload(file);
     });
-  }
-
-  addFiles(fileList, maxSize) {
-    const supportedTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/bmp",
-    ];
-
-    Array.from(fileList).forEach((file) => {
-      if (
-        !supportedTypes.includes(file.type) ||
-        file.size > maxSize * 1024 * 1024
-      ) {
-        console.log(`Skipping unsupported or oversized file: ${file.name}`);
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.src = reader.result;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          const MAX = 150;
-          let [width, height] = [img.width, img.height];
-
-          if (width > height) {
-            if (width > MAX) {
-              height = height * (MAX / width);
-              width = MAX;
-            }
-          } else {
-            if (height > MAX) {
-              width = width * (MAX / height);
-              height = MAX;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-          const thumb = canvas.toDataURL("image/jpeg", 0.7);
-
-          this._imagePreview.push({
-            src: thumb,
-            fileName: file.name,
-            fileSize: file.size,
-            progress: 0,
-          });
-
-          // Add file to flow
-          this._flow.addFile(file);
-
-          // Ensure file name is tracked
-          if (!this._imageSectionFileNames.includes(file.name)) {
-            this._imageSectionFileNames.push(file.name);
-          }
-
-          // Check if we should start upload
-          this.uploadFilteredFiles(maxSize);
-        };
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  checkIfUploadFinished() {
-    const unfinished = this._imagePreview.some(
-      (preview) => preview.progress < 100 && !preview.error,
-    );
-    if (!unfinished) {
-      this.setImageUploadStatus("finished");
-      this.setUploadFinished(true);
-    }
   }
 
   traverseFileTree(item, maxSize, path = "") {
