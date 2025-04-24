@@ -19,9 +19,9 @@ public class BulkImportUtil {
             try {
                 // FIXME -- how do we handle get() and type returned? TBD
                 if (row.isNull(fieldName)) {  // want to pass java null here instead of org.json.NULL
-                    rtn.put(fieldName, new BulkValidator(fieldName, null));
+                    rtn.put(fieldName, new BulkValidator(fieldName, null, myShepherd));
                 } else {
-                    rtn.put(fieldName, new BulkValidator(fieldName, row.get(fieldName)));
+                    rtn.put(fieldName, new BulkValidator(fieldName, row.get(fieldName), myShepherd));
                 }
             // lets just put *any* exception for now?
             //} catch (BulkValidatorException ex) {

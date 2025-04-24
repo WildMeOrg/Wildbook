@@ -27,18 +27,18 @@ class BulkGeneralTest {
     static String fieldNameInvalid = "Fail.fubar";
 
     @Test void basicValidation() throws BulkValidatorException {
-        BulkValidator bv = new BulkValidator(fieldNameValidEncounterYear, 2000);
+        BulkValidator bv = new BulkValidator(fieldNameValidEncounterYear, 2000, null);
         assertNotNull(bv);
         assertFalse(bv.isIndexed());
         assertTrue(BulkValidator.isValidFieldName(fieldNameValidEncounterYear));
         assertFalse(BulkValidator.isValidFieldName(fieldNameInvalid));
 
         Exception ex = assertThrows(BulkValidatorException.class, () -> {
-            BulkValidator bvFail = new BulkValidator(fieldNameInvalid, 0);
+            BulkValidator bvFail = new BulkValidator(fieldNameInvalid, 0, null);
         });
         assertTrue(ex.getMessage().contains("invalid fieldName"));
 
-        bv = new BulkValidator("Encounter.mediaAsset123", "fake");
+        bv = new BulkValidator("Encounter.mediaAsset123", "fake", null);
         assertTrue(bv.isIndexed());
         assertEquals(bv.getIndexInt(), 123);
         assertEquals(bv.getIndexPrefix(), "Encounter.mediaAsset");
