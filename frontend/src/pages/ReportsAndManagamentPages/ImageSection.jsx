@@ -39,12 +39,6 @@ export const ImageSection = observer(({ store }) => {
       (file) => file.fileSize <= maxSize * 1024 * 1024,
     );
     store.setImagePreview(data);
-    // store.setImageSectionError(
-    //   store.imageRequired &&
-    //   previewData.length === 0
-    //     ? true
-    //     : false,
-    // );
     handleUploadClick();
   }, [previewData]);
 
