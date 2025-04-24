@@ -919,6 +919,27 @@
 						"long": 14.638947
 					},
 					"locationID":[]
+				},
+				{
+					"name": "Zambezi",
+					"id": "Zambezi",
+					"locationID": [
+						{
+							"name": "Bwabwata National Park",
+							"id": "Bwabwata National Park",
+							"locationID": []
+						},
+						{
+							"name": "Mudumu National Park",
+							"id": "Mudumu National Park",
+							"locationID": []
+						},
+						{
+							"name": "Sikunga Conservancy",
+							"id": "Sikunga Conservancy",
+							"locationID": []
+						}
+					]
 				}
 			]
 		},
