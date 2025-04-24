@@ -32,6 +32,20 @@ public class BulkImportUtil {
             if (!yearMonth.isValidDay((Integer)dateD)) rtn.put("Encounter.day", new BulkValidatorException("day is out of range for month", ApiException.ERROR_RETURN_CODE_INVALID));
         }
 
+	for (String reqFieldName : BulkValidator.FIELD_NAMES_REQUIRED) {
+            if (!rtn.containsKey(reqFieldName)) {
+                rtn.put(reqFieldName, new BulkValidatorException("required value", ApiException.ERROR_RETURN_CODE_REQUIRED));
+            } else if (rtn.get(reqFieldName) instanceof BulkValidator) {
+                BulkValidator bv = (BulkValidator)rtn.get(reqFieldName);
+                // has a bv, but value cannot be null
+                if (bv.getValue() == null) {
+                    rtn.put(reqFieldName, new BulkValidatorException("required value", ApiException.ERROR_RETURN_CODE_REQUIRED));
+                }
+            }
+        }
+
+        if ((dateM == null) && (dateD != null)) rtn.put("Encounter.month", new BulkValidatorException("must supply month along with day", ApiException.ERROR_RETURN_CODE_REQUIRED));
+
         dateY = getValue(rtn, "Occurrence.year");
         dateM = getValue(rtn, "Occurrence.month");
         dateD = getValue(rtn, "Occurrence.day");
@@ -42,8 +56,8 @@ public class BulkImportUtil {
 
         Object dlat = getValue(rtn, "Encounter.decimalLatitude");
         Object dlon = getValue(rtn, "Encounter.decimalLongitude");
-        if ((dlat == null) && (dlon != null)) rtn.put("Encounter.decimalLatitude", new BulkValidatorException("must supply both latitude and longitude", ApiException.ERROR_RETURN_CODE_INVALID));
-        if ((dlat != null) && (dlon == null)) rtn.put("Encounter.decimalLongitude", new BulkValidatorException("must supply both latitude and longitude", ApiException.ERROR_RETURN_CODE_INVALID));
+        if ((dlat == null) && (dlon != null)) rtn.put("Encounter.decimalLatitude", new BulkValidatorException("must supply both latitude and longitude", ApiException.ERROR_RETURN_CODE_REQUIRED));
+        if ((dlat != null) && (dlon == null)) rtn.put("Encounter.decimalLongitude", new BulkValidatorException("must supply both latitude and longitude", ApiException.ERROR_RETURN_CODE_REQUIRED));
 
         return rtn;
     }
