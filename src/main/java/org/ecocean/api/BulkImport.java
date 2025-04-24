@@ -95,7 +95,7 @@ public class BulkImport extends ApiBase {
                     System.out.println("null rowData on row " + i + " of bulk import");
                     continue;
                 }
-                validatedRows.add(BulkImportUtil.validateRow(rowData));
+                validatedRows.add(BulkImportUtil.validateRow(rowData, myShepherd));
             }
 
             List<BulkValidator> validRows = new ArrayList<BulkValidator>();

@@ -6,12 +6,15 @@ import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
 import org.ecocean.api.ApiException;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.Util;
 
 public class BulkImportUtil {
 
-    public static Map<String, Object> validateRow(JSONObject row) {
+    public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd) {
         Map<String, Object> rtn = new HashMap<String, Object>();
         if (row == null) return rtn;
+
         for (String fieldName : row.keySet()) {
             try {
                 // FIXME -- how do we handle get() and type returned? TBD
@@ -58,6 +61,16 @@ public class BulkImportUtil {
         Object dlon = getValue(rtn, "Encounter.decimalLongitude");
         if ((dlat == null) && (dlon != null)) rtn.put("Encounter.decimalLatitude", new BulkValidatorException("must supply both latitude and longitude", ApiException.ERROR_RETURN_CODE_REQUIRED));
         if ((dlat != null) && (dlon == null)) rtn.put("Encounter.decimalLongitude", new BulkValidatorException("must supply both latitude and longitude", ApiException.ERROR_RETURN_CODE_REQUIRED));
+
+        Object taxG = getValue(rtn, "Encounter.genus");
+        Object taxS = getValue(rtn, "Encounter.specificEpithet");
+        if ((taxG != null) && (taxS != null)) {
+            String sciName = Util.taxonomyString(taxG.toString(), taxS.toString());
+            if (!myShepherd.isValidTaxonomyName(sciName)) {
+                rtn.put("Encounter.genus", new BulkValidatorException("invalid taxonomy value", ApiException.ERROR_RETURN_CODE_INVALID));
+                rtn.put("Encounter.specificEpithet", new BulkValidatorException("invalid taxonomy value", ApiException.ERROR_RETURN_CODE_INVALID));
+            }
+        }
 
         return rtn;
     }
