@@ -223,7 +223,10 @@ public class BulkValidator {
                 if (!Util.isValidDecimalLongitude(doubleVal)) throw new BulkValidatorException("invalid decimalLongitude value: " + doubleVal, ApiException.ERROR_RETURN_CODE_INVALID);
                 return doubleVal;
             }
-            throw new BulkValidatorException("unknown error on fieldName validation: " + fieldName, ApiException.ERROR_RETURN_CODE_UNKNOWN);
+
+            System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName + " and value=" + value);
+            return value;
+            //throw new BulkValidatorException("unknown error on fieldName validation: " + fieldName, ApiException.ERROR_RETURN_CODE_UNKNOWN);
         }
 
         private static Integer tryInteger(Object value) throws BulkValidatorException {
