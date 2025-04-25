@@ -6,34 +6,8 @@ import {
     flexRender,
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
-
-const columnsDef = ["mediaAsset", "name", "date", "location", "submitterID"];
-
-const validationRules = {
-    mediaAsset: {
-        required: true,
-    },
-    name: {
-        required: true,
-        message: "Name must contain only letters and spaces",
-    },
-    date: {
-        required: true,
-        pattern: /^\d{4}$/,
-        message: "Date must be a 4-digit year",
-    },
-    location: {
-        required: true,
-        message: "Location must contain only letters and spaces",
-    },
-    submitterID: {
-        required: true,
-        pattern: /^[a-zA-Z0-9]+$/,
-        message: "Submitter ID must contain only letters and numbers",
-    },
-};
-
-const EditableCell = ({ initialValue, rowIndex, columnId, onSave, externalError }) => {
+import useGetSiteSettings from "../models/useGetSiteSettings";
+const EditableCell = ({ validationRules, initialValue, rowIndex, columnId, onSave, externalError }) => {
     const [value, setValue] = useState(initialValue ?? "");
     const [error, setError] = useState(externalError ?? "");
 
@@ -94,35 +68,21 @@ const EditableCell = ({ initialValue, rowIndex, columnId, onSave, externalError 
 export const DataTable = observer(({ store }) => {
     const data = store.spreadsheetData;
     const [cellErrors, setCellErrors] = useState({});
+    const validationRules = store.validationRules || {};
+    const columnsDef = store.columnsDef || [];
+  const { data: siteData } = useGetSiteSettings();
+    const validLocationIDs = siteData?.locationData.locationID || [];
+    const validSubmitterIDs = siteData?.users?.map((user) => user.username) || [];
 
-    const validateAllCells = (data) => {
-        const errors = {};
-        data.forEach((row, rowIndex) => {
-            columnsDef.forEach((col) => {
-                const value = String(row[col] ?? "");
-                const rules = validationRules[col];
-                if (!rules) return;
-
-                let error = "";
-                if (rules.required && !value.trim()) {
-                    error = "This field is required";
-                } else if (rules.pattern && !rules.pattern.test(value)) {
-                    error = rules.message || "Invalid format";
-                }
-
-                if (error) {
-                    if (!errors[rowIndex]) errors[rowIndex] = {};
-                    errors[rowIndex][col] = error;
-                }
-            });
-        });
-        return errors;
-    };
+    store.setValidLocationIDs(store.convertToTreeData(validLocationIDs));
+    store.setValidSubmitterIDs(validSubmitterIDs);
 
     useEffect(() => {
-        if (store.spreadsheetData.length > 0) {
-            const errors = validateAllCells(store.spreadsheetData);
-            setCellErrors(errors);
+        if (store.spreadsheetData.length > 0) {               
+                const errors = store.validateSpreadsheetRow();
+                if (errors) {
+                    setCellErrors(errors);
+                }            
         }
     }, [store.spreadsheetData]);
 
@@ -159,6 +119,7 @@ export const DataTable = observer(({ store }) => {
         accessorKey: col,
         cell: ({ row }) => (
             <EditableCell
+                validationRules={validationRules}
                 initialValue={row.original[col]}
                 rowIndex={row.index}
                 columnId={col}
