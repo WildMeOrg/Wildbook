@@ -39,18 +39,14 @@ services:
       - autoheal=true
     entrypoint: /docker-entrypoint.sh
     volumes:
-      # this is handled under wildbook_docker_webapps on host system now
-      #- wildbook-var:/data/wildbook_data_dir
-      #- .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
       - /data/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/
       - /data/wildbook_data_dir/:/usr/local/tomcat/webapps/wildbook_data_dir/
       - /data/wb-docker-deploy/logs/:/usr/local/tomcat/logs/
+      - /var/run/docker.sock:/var/run/docker.sock
       - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
       - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
-      - /var/run/docker.sock:/var/run/docker.sock
       #- .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
       #- .dockerfiles/tomcat/IA.json:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
-
     networks:
       - intranet
     ports:

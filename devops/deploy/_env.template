@@ -1,12 +1,6 @@
 # placeholder dev pwd and user settings should be changed for production environments
 
-# this should be a directory on your host system where you want to put your files related to development
-WILDBOOK_BASE_DIR=/data/wb-docker-deploy
-#   you *must* create:
-#   - $WILDBOOK_BASE_DIR/webapps/   (this is where you will deploy your war file to, under a subdir wildbook/)
-#   - $WILDBOOK_BASE_DIR/logs/      (logs will go here)
-
-# for smtp (postfix) usage:
+## for smtp (postfix) usage:
 MAIL_HOSTNAME=example.org
 MAIL_ALLOWED_SENDER_DOMAINS=example.org
 MAIL_PORT=1587
@@ -14,13 +8,13 @@ MAIL_RELAYHOST=smtp.examplehost.com:587
 MAIL_RELAYHOST_USERNAME=dev
 MAIL_RELAYHOST_PASSWORD=development
 
-# for opensearch
+## for opensearch
 # password should be strong:
 #     it should be at least 8 characters and must contain at least one uppercase letter,
 #     one lowercase letter, one digit, and one special character.
 OPENSEARCH_INITIAL_ADMIN_PASSWORD=development
 
-# for db:
+## for db:
 POSTGRES_PASSWORD=development
 
 PGADMIN_DEFAULT_EMAIL=dev@example.org
@@ -29,6 +23,7 @@ PGADMIN_DEFAULT_PASSWORD=development
 WILDBOOK_DB_NAME=wildbook
 WILDBOOK_DB_USER=wildbook
 WILDBOOK_DB_PASSWORD=development
+
 #: i.e. jdbc:postgresql://db:5432/${WILDBOOK_DB_NAME}
 WILDBOOK_DB_CONNECTION_URL=jdbc:postgresql://db:5432/wildbook
 
