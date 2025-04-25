@@ -13,7 +13,6 @@ import MainButton from "../../components/MainButton";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 
-const MAX_SIZE = 10; // Maximum size in MB
 
 const handleDragEnter = (e) => {
   e.preventDefault();
@@ -35,7 +34,12 @@ export const BulkImportImageUpload = observer(({ store }) => {
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
-  const maxSize = data?.maximumMediaSizeMegabytes || 40;
+  const maxSize = data?.maximumMediaSizeMegabytes || 3;
+  const maxImageCount = data?.maximumMediaCount || 200;
+
+  // console.log("imageSectionFileNames", JSON.stringify(store.imageSectionFileNames));
+  // console.log("uploadedFiles", JSON.stringify(store.uploadedImages));
+  // console.log("imagePreview", JSON.stringify(store.imagePreview));
 
   useEffect(() => {
     if (!store.flow && fileInputRef.current) {
@@ -44,9 +48,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
   }, [store.flow, fileInputRef]);
 
   useEffect(() => {
-    console.log("----------+++++++++++++++++______________________");
     if (store.imagePreview.length > 0) {
-      console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
       store.setImageSectionFileNames(
         store.imagePreview.map((preview) => preview.fileName),
       );
@@ -65,7 +67,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
     for (let i = 0; i < items.length; i++) {
       const item = items[i].webkitGetAsEntry?.();
       if (item) {
-        store.traverseFileTree(item, MAX_SIZE);
+        store.traverseFileTree(item, maxSize);
       } else {
         const file = items[i].getAsFile();
         if (
@@ -133,11 +135,23 @@ export const BulkImportImageUpload = observer(({ store }) => {
                 }}
                 onClick={() => store.removePreview(preview.fileName)}
               ></i>
-              <BootstrapImage
+              {/* <BootstrapImage
                 src={preview.src}
                 style={{ width: "100%", height: "120px", objectFit: "fill" }}
                 alt={`Preview ${index + 1}`}
-              />
+              /> */}
+              {preview.showThumbnail && preview.src ? (
+                <BootstrapImage
+                  src={preview.src}
+                  style={{ width: "100%", height: "120px", objectFit: "fill" }}
+                  alt={`Preview ${index + 1}`}
+                />
+              ) : (
+                <div style={{ height: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <i className="bi bi-file-image" style={{ fontSize: "2rem", color: theme.primaryColors.primary700 }}></i>
+                </div>
+              )}
+
               <div
                 className="mt-2"
                 style={{
