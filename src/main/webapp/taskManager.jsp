@@ -29,12 +29,12 @@
         padding-bottom: 4px;
     }
 
-    .task-type {
+    .top-bar {
         display: flex;
         align-items: center;
     }
 
-    .task-type > * {
+    .top-bar > * {
         margin: 10px;
         margin-left: 0;
     }
@@ -44,7 +44,7 @@
 
     <h2>Failed Tasks</h2>
 
-    <div class="task-type">
+    <div class="top-bar">
         <%
             String taskTypeQueryParam = (String) request.getAttribute("taskTypeQueryParam");
             String detectionDisabled = taskTypeQueryParam.equals("detection") ? "disabled" : "";
@@ -58,10 +58,17 @@
         <button type="button" class="btn" onclick="window.location.href='?type=matcher'" <%= matcherDisabled %>>
             Matcher
         </button>
+
+        <button type="button" class="btn" id="retry-selected" style="margin-left: auto;">
+            Retry All Selected
+        </button>
     </div>
 
     <table>
         <tr>
+            <th>
+                <input type="checkbox" name="select-all"/>
+            </th>
             <th>ID</th>
             <th>Encounters</th>
             <th>Type</th>
@@ -76,6 +83,9 @@
                 for (HashMap<String, Object> task : tasks) {
         %>
         <tr>
+            <td>
+                <input type="checkbox" name="taskIds[]" value="<%= task.get("id") %>"/>
+            </td>
             <td><%= task.get("id") %>
             </td>
             <td>
@@ -129,5 +139,34 @@
         <% } %>
     </div>
 </div>
+
+<script>
+    function setWindowLocationHref (u) {
+        window.location.href = u;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkboxes = document.querySelectorAll('input[name="taskIds[]"]');
+        const selectAllCheckbox = document.querySelector('input[name="select-all"]');
+        selectAllCheckbox.addEventListener('change', function () {
+            const checked = this.checked;
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = checked;
+            });
+        });
+
+        const retrySelected = document.querySelector('#retry-selected');
+        retrySelected.addEventListener('click', function () {
+            const checkedCheckboxes = document.querySelectorAll('input[name="taskIds[]"]:checked');
+
+            if (checkedCheckboxes.length > 0) {
+                const ids = Array.from(checkedCheckboxes).map((cb) => {return cb.value}).join(',');
+                setWindowLocationHref('/retry?taskIds=' + ids);
+            } else {
+                alert('Nothing selected. Select some tasks to retry first.');
+            }
+        });
+    });
+</script>
 
 <jsp:include page="footer.jsp" flush="true"/>

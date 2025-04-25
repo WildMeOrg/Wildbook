@@ -25,67 +25,83 @@ public class TaskRetry extends HttpServlet {
         super.init(config);
     }
 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, java.io.IOException {
+        doPost(request, response);
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, java.io.IOException {
         String servletID = Util.generateUUID();
-        getPMF(request, servletID);
-        String context = ServletUtilities.getContext(request);
-        PersistenceManager pm = pmf.getPersistenceManager();
-        Transaction tx = pm.currentTransaction();
-        Boolean isMatcherTypeTask = true;
 
-        try {
-            String taskId = request.getParameter("taskId");
-            Task task = pm.getObjectById(Task.class, taskId);
+        String singleTaskId = request.getParameter("taskId");
+        String taskIdsQueryParam = request.getParameter("taskIds");
+        ArrayList<String> taskIds = new ArrayList<>();
+        if (singleTaskId != null && !singleTaskId.isEmpty()) {
+            taskIds.add(singleTaskId);
+        } else if (taskIdsQueryParam != null && !taskIdsQueryParam.isEmpty()) {
+            taskIds = new ArrayList<>(Arrays.asList(taskIdsQueryParam.split(",")));
+        }
 
-            if (task != null) {
-                String message = task.getQueueResumeMessage();
+        for (String taskId: taskIds) {
+            getPMF(request, servletID);
+            String context = ServletUtilities.getContext(request);
+            PersistenceManager pm = pmf.getPersistenceManager();
+            Transaction tx = pm.currentTransaction();
+            Boolean isMatcherTypeTask = true;
 
-                if (message == null || message.isEmpty()) {
-                    isMatcherTypeTask = false;
+            try {
+                Task task = pm.getObjectById(Task.class, taskId);
 
-                    String baseUrl = IA.getBaseURL(context);
-                    Query q = pm.newQuery(
-                            "javax.jdo.query.SQL",
-                            "SELECT toma.\"ID_EID\" FROM \"TASK\" t JOIN \"TASK_OBJECTMEDIAASSETS\" toma ON t.\"ID\" = toma.\"ID_OID\" WHERE t.\"ID\" = '" + taskId + "'"
-                    );
-                    q.setResultClass(Integer.class);
-                    List<Integer> mediaAssetIds = (List<Integer>) q.execute();
-                    JSONObject detectObj = new JSONObject();
-                    detectObj.put("mediaAssetIds", mediaAssetIds);
+                if (task != null) {
+                    String message = task.getQueueResumeMessage();
 
-                    JSONObject parametersObj = task.getParameters();
-                    parametersObj.put("taskId", taskId);
-                    parametersObj.put("detect", detectObj);
-                    parametersObj.put("__context", context);
-                    parametersObj.put("__baseUrl", baseUrl);
-                    parametersObj.remove("matchingSetFilter");
-                    parametersObj.remove("ibeis.detection");
+                    if (message == null || message.isEmpty()) {
+                        isMatcherTypeTask = false;
 
-                    JSONObject detectArgsObj = parametersObj.getJSONObject("detectArgs");
-                    parametersObj.put("__detect_args", detectArgsObj);
-                    parametersObj.remove("detectArgs");
+                        String baseUrl = IA.getBaseURL(context);
+                        Query q = pm.newQuery(
+                                "javax.jdo.query.SQL",
+                                "SELECT toma.\"ID_EID\" FROM \"TASK\" t JOIN \"TASK_OBJECTMEDIAASSETS\" toma ON t.\"ID\" = toma.\"ID_OID\" WHERE t.\"ID\" = '" + taskId + "'"
+                        );
+                        q.setResultClass(Integer.class);
+                        List<Integer> mediaAssetIds = (List<Integer>) q.execute();
+                        JSONObject detectObj = new JSONObject();
+                        detectObj.put("mediaAssetIds", mediaAssetIds);
 
-                    message = parametersObj.toString();
-                }
+                        JSONObject parametersObj = task.getParameters();
+                        parametersObj.put("taskId", taskId);
+                        parametersObj.put("detect", detectObj);
+                        parametersObj.put("__context", context);
+                        parametersObj.put("__baseUrl", baseUrl);
+                        parametersObj.remove("matchingSetFilter");
+                        parametersObj.remove("ibeis.detection");
 
-                org.ecocean.servlet.IAGateway.addToQueue(context, message);
+                        JSONObject detectArgsObj = parametersObj.getJSONObject("detectArgs");
+                        parametersObj.put("__detect_args", detectArgsObj);
+                        parametersObj.remove("detectArgs");
 
-                tx.begin();
-                if (isMatcherTypeTask) {
-                    task.setStatus("retried");
-                }
-                tx.commit();
+                        message = parametersObj.toString();
+                    }
+
+                    org.ecocean.servlet.IAGateway.addToQueue(context, message);
+
+                    tx.begin();
+                    if (isMatcherTypeTask) {
+                        task.setStatus("retried");
+                    }
+                    tx.commit();
 //                pm.deletePersistent(task);
-                request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
+                    request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
+                }
+            } catch (Exception e) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+                e.printStackTrace();
+            } finally {
+                pm.close();
             }
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            e.printStackTrace();
-        } finally {
-            pm.close();
         }
     }
 
