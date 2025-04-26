@@ -1,6 +1,5 @@
 // Optimized MobX Store for Bulk Import logic
 import { makeAutoObservable } from "mobx";
-import EXIF from "exif-js";
 import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -23,28 +22,28 @@ export class BulkImportStore {
   _initialUploadFileCount = 0;
   _columnsDef = ["mediaAsset", "name", "date", "location", "submitterID"];
   _validationRules = {
-        mediaAsset: {
-            required: true,
-        },
-        name: {
-            required: true,
-            message: "Name must contain only letters and spaces",
-        },
-        date: {
-            required: true,
-            pattern: /^\d{4}$/,
-            message: "Date must be a 4-digit year",
-        },
-        location: {
-            required: true,
-            message: "Location must contain only letters and spaces",
-        },
-        submitterID: {
-            required: true,
-            pattern: /^[a-zA-Z0-9]+$/,
-            message: "Submitter ID must contain only letters and numbers",
-        },
-    };
+    mediaAsset: {
+      required: true,
+    },
+    name: {
+      required: true,
+      message: "Name must contain only letters and spaces",
+    },
+    date: {
+      required: true,
+      pattern: /^\d{4}$/,
+      message: "Date must be a 4-digit year",
+    },
+    location: {
+      required: true,
+      message: "Location must contain only letters and spaces",
+    },
+    submitterID: {
+      required: true,
+      pattern: /^[a-zA-Z0-9]+$/,
+      message: "Submitter ID must contain only letters and numbers",
+    },
+  };
 
   _validLocationIDs = [];
   _validSubmitterIDs = [];
@@ -159,8 +158,7 @@ export class BulkImportStore {
           : [],
     }));
   }
-  
-  
+
   setImagePreview(preview, action = "add") {
     if (action === "remove") {
       this._imagePreview = this._imagePreview.filter(
@@ -200,19 +198,18 @@ export class BulkImportStore {
       allowFolderDragAndDrop: true,
       maxChunkRetries: 3,
       chunkRetryInterval: 2000,
-      simultaneousUploads: 6,         
-      chunkSize: 5 * 1024 * 1024,     
+      simultaneousUploads: 6,
+      chunkSize: 5 * 1024 * 1024,
       query: { submissionId },
     });
-    
-    flowInstance.opts.generateUniqueIdentifier = file =>
+
+    flowInstance.opts.generateUniqueIdentifier = (file) =>
       `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`;
-    
+
     // flowInstance.on('fileError', (file, message) => {
     //   console.error(file.name, message);
     //   flowInstance.removeFile(file);
     // });
-    
 
     flowInstance.assignBrowse(fileInputRef);
 
@@ -274,7 +271,6 @@ export class BulkImportStore {
       };
       reader.readAsDataURL(file.file);
 
-
       this._imageSectionFileNames.push(file.name);
     });
 
@@ -313,7 +309,7 @@ export class BulkImportStore {
 
     this._flow = flowInstance;
   }
-  
+
   uploadFilteredFiles(maxSize) {
     if (!this._flow) {
       console.warn("Flow instance not initialized.");
@@ -360,42 +356,40 @@ export class BulkImportStore {
     }
   }
 
-  validateSpreadsheetRow() {
+  validateSpreadsheet() {
     const errors = {};
-        this._spreadsheetData.forEach((row, rowIndex) => {
-            this._columnsDef.forEach((col) => {
-                const value = String(row[col] ?? "");
-                const rules = this._validationRules[col];
-                if (!rules) return;
+    this._spreadsheetData.forEach((row, rowIndex) => {
+      this._columnsDef.forEach((col) => {
+        const value = String(row[col] ?? "");
+        const rules = this._validationRules[col];
+        if (!rules) return;
 
-                let error = "";
-                if (rules.required && !value.trim()) {
-                    error = "This field is required";
-                } else if (rules.pattern && !rules.pattern.test(value)) {
-                    error = rules.message || "Invalid format";
-                }
+        let error = "";
+        if (rules.required && !value.trim()) {
+          error = "This field is required";
+        } else if (rules.pattern && !rules.pattern.test(value)) {
+          error = rules.message || "Invalid format";
+        }
 
-                if (col === "location") {
-                    if (!this._validLocationIDs.includes(value)) {
-                        error = "Invalid location ID";
-                    }
-                }
+        if (col === "location") {
+          if (!this._validLocationIDs.includes(value)) {
+            error = "Invalid location ID";
+          }
+        }
 
-                if (col === "submitterID") {
-                    if (!this._validSubmitterIDs.includes(value)) {
-                        error = "Invalid submitter ID";
-                    }
-                }
-
-                if (error) {
-                    if (!errors[rowIndex]) errors[rowIndex] = {};
-                    errors[rowIndex][col] = error;
-                }
-            });
-        });
-        return errors;
+        if (col === "submitterID") {
+          if (!this._validSubmitterIDs.includes(value)) {
+            error = "Invalid submitter ID";
+          }
+        }
+        if (error) {
+          if (!errors[rowIndex]) errors[rowIndex] = {};
+          errors[rowIndex][col] = error;
+        }
+      });
+    });
+    return errors;
   }
-  
 
   removePreview(fileName) {
     this._imagePreview = this._imagePreview.filter(
@@ -410,7 +404,6 @@ export class BulkImportStore {
       this.setImagePreview(fileName, "remove");
       this.setImageSectionFileNames(fileName, "remove");
     }
-
   }
 
   restoreFromLocalStorage() {
