@@ -391,6 +391,18 @@ public class IAGateway extends HttpServlet {
                 myShepherd.storeNewTask(newTask);
                 myShepherd.beginDBTransaction();
                 subTasks.add(newTask);
+
+                if (isRetriedFailedTask) {
+                    try {
+                        SqlHelper.executeRawSql(
+                                myShepherd.getPM(),
+                                "INSERT INTO \"TASK_OBJECTANNOTATIONS\" " +
+                                        "(\"ID_OID\", \"ID_EID\", \"IDX\") " +
+                                        "VALUES ('" + newTask.getId() + "', '" + anns.get(i).getId() + "', 0)"
+                        );
+                    } catch (Exception ex) {
+                    }
+                }
             }
             if (!isRetriedFailedTask) {
                 myShepherd.storeNewTask(parentTask);
