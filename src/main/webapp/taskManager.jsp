@@ -117,7 +117,7 @@
         <% }
         } else { %>
         <tr>
-            <td colspan="7" style="text-align: center;">No Results.</td>
+            <td colspan="8" style="text-align: center;">No Results.</td>
         </tr>
         <% } %>
     </table>
