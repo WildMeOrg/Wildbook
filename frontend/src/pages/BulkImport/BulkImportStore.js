@@ -116,6 +116,13 @@ export class BulkImportStore {
     return this._validationRules;
   }
 
+  get validLocationIDs() {
+    return this._validLocationIDs;
+  }
+  get validSubmitterIDs() {
+    return this._validSubmitterIDs;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = data;
   }
