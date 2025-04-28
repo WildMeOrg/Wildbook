@@ -11,8 +11,6 @@ export default function AddAnnotationModal({
 }) {
   const intl = useIntl();
 
-  console.log("error",error)
-
   return (
     <Modal show={showModal} onHide={() => setShowModal(false)}>
       <Modal.Header closeButton>
