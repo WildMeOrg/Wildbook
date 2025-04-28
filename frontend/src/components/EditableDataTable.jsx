@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import {
   useReactTable,
   getCoreRowModel,
@@ -7,6 +8,8 @@ import {
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
 import useGetSiteSettings from "../models/useGetSiteSettings";
+import Select from "react-select";
+
 const EditableCell = ({
   store,
   initialValue,
@@ -32,19 +35,51 @@ const EditableCell = ({
     }
   };
 
+  const isLocationField = columnId === "location";
+  const normalize = (str = "") =>
+    str.replace(/[^\p{L}\p{N}]/gu, "").toLowerCase();
+
+  const filterOption = ({ label }, rawInput) => {
+    return normalize(label).includes(normalize(rawInput));
+  };
+
+  const renderInput = () => {
+    if (isLocationField) {
+      return (
+        <Select
+          options={store.validLocationIDs.map((o) => ({ value: o, label: o }))}
+          value={value ? { value, label: value } : null}
+          onChange={(sel) => setValue(sel ? sel.value : "")}
+          onBlur={handleBlur}
+          isClearable
+          isSearchable
+          filterOption={filterOption}
+          placeholder="searching"
+          className={
+            error
+              ? "react-select-container is-invalid"
+              : "react-select-container"
+          }
+          classNamePrefix="react-select"
+        />
+      );
+    } else {
+      return (
+        <input
+          type="text"
+          className={`form-control form-control-sm rounded ${error ? "is-invalid" : ""}`}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+        />
+      );
+    }
+  };
+
   return (
     <div>
-      <input
-        type="text"
-        className={`form-control form-control-sm rounded ${error ? "is-invalid" : ""}`}
-        value={value}
-        onChange={(e) => {
-          const val = e.target.value;
-          setValue(val);
-        }}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-      />
+      {renderInput()}
       {error && <div className="invalid-feedback">{error}</div>}
     </div>
   );
