@@ -15,12 +15,14 @@ import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 
+import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -346,7 +348,30 @@ public class IAGateway extends HttpServlet {
         }
         System.out.println("anns -> " + anns);
 
-        Task parentTask = Task.load(taskId, myShepherd);
+        boolean isRetriedFailedTask;
+        try {
+            isRetriedFailedTask = jin.getBoolean("isRetriedFailedTask");
+        } catch (JSONException e) {
+            isRetriedFailedTask = false;
+        }
+
+        Task parentTask;
+        if (isRetriedFailedTask) {
+            String retriedFailedTaskId = jin.getString("taskId");
+
+            String sql = "SELECT \"ID\", \"COMPLETIONDATEINMILLISECONDS\", \"CREATED\", \"MODIFIED\", \"PARAMETERS\", \"QUEUERESUMEMESSAGE\", \"STATUS\" FROM \"TASK\" t JOIN \"TASK_CHILDREN\" tc ON t.\"ID\" = tc.\"ID_OID\" WHERE tc.\"ID_EID\" = '" + retriedFailedTaskId + "'";
+            Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            q.setClass(Task.class);
+            List<Task> tasks = (List<Task>) q.execute();
+            parentTask = tasks.get(0);
+
+            SqlHelper.executeRawSql(
+                    myShepherd.getPM(),
+                    "DELETE FROM \"TASK_CHILDREN\" WHERE \"ID_EID\" = '" + retriedFailedTaskId + "'"
+            );
+        } else {
+            parentTask = Task.load(taskId, myShepherd);
+        }
         if (parentTask == null) {
             System.out.println("WARNING: IAGateway._doIdentify() could not load Task id=" + taskId +
                 "; creating it... yrros");
@@ -367,7 +392,9 @@ public class IAGateway extends HttpServlet {
                 myShepherd.beginDBTransaction();
                 subTasks.add(newTask);
             }
-            myShepherd.storeNewTask(parentTask);
+            if (!isRetriedFailedTask) {
+                myShepherd.storeNewTask(parentTask);
+            }
             myShepherd.beginDBTransaction();
         } else { // we just use the existing "parent" task
             subTasks.add(parentTask);

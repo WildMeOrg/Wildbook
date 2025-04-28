@@ -82,6 +82,11 @@ public class TaskRetry extends HttpServlet {
                         parametersObj.remove("detectArgs");
 
                         message = parametersObj.toString();
+                    } else {
+                        JSONObject messageObj = new JSONObject(message);
+                        messageObj.put("isRetriedFailedTask", true);
+
+                        message = messageObj.toString();
                     }
 
                     org.ecocean.servlet.IAGateway.addToQueue(context, message);
