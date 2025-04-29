@@ -196,27 +196,6 @@ public class IAJsonProperties extends JsonProperties {
         }
         return rtn;
     }
-	
-	
-	public Set<String> getAllIAClassesWithParts() {
-        return getAllIAClassesWithParts(this.getJson());
-    }
-
-    public Set<String> getAllIAClassesWithParts(JSONObject jobj) {
-        Set<String> rtn = new HashSet<String>();
-
-        if (jobj == null) return rtn;
-        JSONArray detectConf = jobj.optJSONArray("_detect_conf");
-        boolean correctLevel = (detectConf != null);
-        for (String key : (Set<String>)jobj.keySet()) {
-            if (key.startsWith("_")) continue;
-            if (correctLevel) rtn.add(key);
-            JSONObject child = jobj.optJSONObject(key);
-            rtn.addAll(getAllIAClassesWithParts(child));
-        }
-        return rtn;
-    }
-
 
     public Set<String> getAllIAClassesWithParts() {
         return getAllIAClassesWithParts(this.getJson());
