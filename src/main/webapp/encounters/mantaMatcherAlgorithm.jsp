@@ -10,6 +10,8 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.ecocean.media.*" %>
 <%@ page import="org.ecocean.servlet.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 String context="context0";

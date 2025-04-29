@@ -4,7 +4,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.movement.SurveyTrack;
 import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Survey;
 
 import javax.servlet.http.HttpServlet;

@@ -1,5 +1,9 @@
-package org.ecocean;
+package org.ecocean.shepherd.core;
 
+import org.ecocean.LinkedProperties;
+import org.ecocean.Organization;
+import org.ecocean.User;
+import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 
 import java.io.File;
@@ -9,11 +13,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public class ShepherdProperties {

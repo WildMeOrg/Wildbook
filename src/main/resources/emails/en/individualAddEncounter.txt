@@ -1,19 +1,17 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
-Just a quick email to let you know that the whale shark encounter that you
-submitted has been matched to an identified whale shark in the Wildbook for Whale Sharks
+Just a quick email to let you know that the wildlife encounter that you
+submitted has been matched to an identified cetacean in the Wildbook 
 photo-identification library.
 Follow these links to find out more:
 
-Previously identified record: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
+Previously identified record: @INDIVIDUAL_ID@ (@INDIVIDUAL_DISPLAYNAME@)
 @INDIVIDUAL_LINK@
 
 New encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help! If you're interested in supporting our
-research to understand and protect animals like yours, please adopt and
-nickname your animal.
+Thanks again for your critical help! To keep this project alive, consider donating: https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me
 
         

@@ -14,7 +14,7 @@ import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Keyword;
 import org.ecocean.media.*;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.SuperSpot;
 
 import java.io.File;
@@ -121,23 +121,8 @@ public class SubmitSpotsAndImage extends HttpServlet {
 	        String speciesString = enc.getTaxonomyString();
 	        Annotation ann = new Annotation(speciesString, crMa);
 	        ann.setMatchAgainst(true);
-	        //WB-1841 only whale sharks are currently matchable via this method
-	        if(speciesString!=null && speciesString.equals("Rhincodon typus")) {
-	          ann.setMatchAgainst(true);
-	          String iaClass = "whaleshark"; // should we change this?
-	          ann.setIAClass(iaClass);
-	        }
-	        else if(speciesString!=null && speciesString.equals("Stegostoma tigrinum")) {
-	          ann.setMatchAgainst(true);
-	          String iaClass = "leopard_shark"; // should we change this?
-	          ann.setIAClass(iaClass);
-	        }
-	        else if(speciesString!=null && speciesString.equals("Scyliorhinus stellaris")) {
-	          ann.setMatchAgainst(true);
-	          String iaClass = "nursehoundsharkCR"; // should we change this?
-	          ann.setIAClass(iaClass);
-	        }
-
+	        String iaClass = "whalesharkCR"; // should we change this?
+	        ann.setIAClass(iaClass);
 	        if (rightSide) { ann.setViewpoint("right"); } else { ann.setViewpoint("left"); }
 	        enc.addAnnotation(ann);
 	        System.out.println("    + made annotation " + ann.toString());
