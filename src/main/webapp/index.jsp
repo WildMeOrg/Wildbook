@@ -181,86 +181,104 @@ h2.vidcap {
  
 
 </style>
-<section style="padding-bottom: 0px;padding-top:0px;" class="container-fluid main-section relative videoDiv">
 
-        
-   <div id="fullScreenDiv">
-        <div id="videoDiv">           
-            <video playsinline preload id="video" autoplay muted>
-            <source src="images/MS_humpback_compressed.webm#t=,3:05" type="video/webm"></source>
-            <source src="images/MS_humpback_compressed.mp4#t=,3:05" type="video/mp4"></source>
-            </video> 
+
+<section class="hero container-fluid main-section relative">
+    <div class="container relative">
+        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+            <h1 class="hidden">MantaMatcher</h1>
+            <h2><%=props.getProperty("mainStrapline")%></h2>
+            <!--
+            <button id="watch-movie" class="large light">
+				Watch the movie
+				<span class="button-icon" aria-hidden="true">
+			</button>
+			-->
+            <a href="submit.jsp">
+                <button class="large"><%=props.getProperty("buttonReport")%><span class="button-icon" aria-hidden="true"></button>
+            </a>
+
         </div>
-        <div id="messageBox"> 
-            <div>
-                <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
 
-            </div>
-        </div>   
-    </div>
-
-  
+	</div>
 
 
 </section>
 
 <section class="container text-center main-section">
 
-	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
+	<h2 class="section-header"><%=props.getProperty("howItWorks-title")%></h2>
 
-  	<p class="lead"><%=props.getProperty("howItWorksHDescription") %></p>
-  	
-  	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
-  	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionSpermWhale.jpg" />
-		  	
-  	
-  	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
-  	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/CurvRank_matches.jpg" />
-		
-		
-	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
-  	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/action.jpg" />
-		
-  	
-  	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
-  	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
-  	
-  	<div class="row">
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/hotspotter.jpg" />
-		  	<em><%=props.getProperty("megapteraMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/spermWhaleTrailingEdge.jpg" />
-		  	<em><%=props.getProperty("physeterMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img height="*" style="max-width: 100%;" width="400px" class="lazyload pull-left" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/tracedFin.jpg" />
-		  	<div><em><%=props.getProperty("tursiopsMatching") %></em></div>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/rightWHaleID.jpg" />
-		  	<em><%=props.getProperty("eubalaenaMatching") %></em>
-	  	</section>
-	  	
-  	</div>
-  	
-  	
-
-  	<p class="lead"><%=props.getProperty("moreSoon") %></p>
-
+	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
+		<ol class="list-inline carousel-indicators slide-nav">
+	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=props.getProperty("howItWorks-step1")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=props.getProperty("howItWorks-step2")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=props.getProperty("howItWorks-step3")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=props.getProperty("howItWorks-step4")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=props.getProperty("howItWorks-step5")%><span class="caret"></span></li>
+	    </ol>
+		<div class="carousel-inner text-left">
+			<div class="item active">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3><%=props.getProperty("howItWorks-step1")%></h3>
+					<p class="lead">
+						<%=props.getProperty("howItWorks-step1-text")%>
+					</p>
+					<p class="lead">
+						<a href="photographing.jsp" title=""><%=props.getProperty("howItWorks-step1-link")%></a>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3><%=props.getProperty("howItWorks-step2")%></h3>
+					<p class="lead">
+						<%=props.getProperty("howItWorks-step2-text")%>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3><%=props.getProperty("howItWorks-step3")%></h3>
+					<p class="lead">
+						<%=props.getProperty("howItWorks-step3-text")%>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3><%=props.getProperty("howItWorks-step4")%></h3>
+					<p class="lead">
+						<%=props.getProperty("howItWorks-step4-text")%>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3><%=props.getProperty("howItWorks-step5")%></h3>
+					<p class="lead">
+						<%=props.getProperty("howItWorks-step5-text")%>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
-
 <div class="container-fluid relative data-section">
 
     <aside class="container main-section">
@@ -323,7 +341,7 @@ h2.vidcap {
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+	                                <img src="cust/mantamatcher/img/manta-silhouette.svg" alt="" width="85px" height="75px" class="pull-left" />
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
@@ -436,16 +454,17 @@ h2.vidcap {
 
         <hr/>
 
+
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
-                   
-<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
+                    <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
+                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
+                        <h1><%=props.getProperty("whyWeDoThis-title")%></h1>
                         <p class="lead">
-                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
-                        
+													<%=props.getProperty("whyWeDoThis-text")%>
+                        </p>
+                        <a href="overview.jsp" title=""><%=props.getProperty("whyWeDoThis-more")%></a>
                     </div>
                 </div>
             </article>
