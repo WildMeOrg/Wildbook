@@ -1,11 +1,21 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode=ServletUtilities.getLanguageCode(request);
-	Properties props = ShepherdProperties.getProperties("whoweare.properties", langCode, context);
+
+//setup our Properties object to hold all properties
+	Properties props=new Properties();
+	String langCode=ServletUtilities.getLanguageCode(request);
+	
+	String context="context0";
+	context=ServletUtilities.getContext(request);
+	
+	//set up the file input stream
+	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
+	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
+	props= ShepherdProperties.getProperties("whoweare.properties", langCode, context);
+    
+	
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -13,15 +23,15 @@
 <div class="container maincontent">
 
    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
-        <h1><%=props.getProperty("title")%></h1>
+        <h1><%=props.getProperty("title") %></h1>
         <p class="lead">
-          <%=props.getProperty("subtitle")%>
+            Here are our fantastic researchers and volunteers.
         </p>
    </div>
    
     <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
-    	<h3><%=props.getProperty("section1.title")%></h3>
-        <p><%=props.getProperty("section1.text1")%> <a href="volunteer.jsp"><%=props.getProperty("section1.text1.linkText")%></a></p>
+    	<h3>We have many collaborating researchers and volunteers</h3>
+  
           
         <ul class="list-unstyled list-inline block-list volunteer-list">
 
@@ -30,6 +40,7 @@
 	if(CommonConfiguration.showUsersToPublic(context)){
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("whoAreWe.jsp");
     myShepherd.beginDBTransaction();
     List<User> allUsers=myShepherd.getAllUsers();
     for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {
@@ -56,7 +67,7 @@
 					if(thisUser.getFullName()!=null){
 		    			String displayName=thisUser.getFullName();
 					%>
-                    <div class="name"><%=displayName%></div>
+                    <div class="name"><%= StringEscapeUtils.escapeHtml4(displayName) %></div>
                     <%
 					}
                     

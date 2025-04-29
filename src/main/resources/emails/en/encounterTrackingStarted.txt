@@ -1,6 +1,0 @@
-SUBJECT: Encounter data tracking started for encounter: @ENCOUNTER_ID@
-This is a confirmation that email tracking of data changes to the following
-encounter has now started. You should receive email updates any time changes
-to this encounter are made.
-
-Encounter: @ENCOUNTER_ID@

@@ -1,20 +1,11 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.Locale" %>
-<%@ page import="java.util.Properties" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="javax.jdo.Extent" %>
 <%@ page import="javax.jdo.Query" %>
-<%@ page import="org.ecocean.Keyword" %>
-<%@ page import="org.ecocean.Shepherd" %>
-<%@ page import="org.ecocean.ShepherdProperties" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ page import="org.ecocean.StringUtils" %>
+<%@ page import="java.util.Iterator" %>
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Locale locale = new Locale(langCode);
-  Properties props = ShepherdProperties.getProperties("admin.properties", langCode, context);
 
+	String context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("kwAdmin.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
@@ -28,42 +19,48 @@
 %>
 
     <jsp:include page="../header.jsp" flush="true" />
-<style type="text/css">
-.kw-example { font-family: monospace; }
-</style>
      
      <div class="container maincontent">
       <%
         myShepherd.beginDBTransaction();
       %>
 
-      <h1><img src="../images/keyword_icon_large.gif" width="50" height="50" hspace="3" vspace="3" align="absmiddle"/> <%=props.getProperty("kw.title")%></h1>
+      <h1><img src="../images/keyword_icon_large.gif" width="50" height="50"
+                     hspace="3" vspace="3" align="absmiddle"/> Image Keyword
+              Administration
+          
+      </h1>
 
-      <p<%=StringUtils.format(locale, props.getProperty("kw.title"), myShepherd.getNumKeywords())%></p>
-      <table width="720" border="1" cellpadding="3" bordercolor="#000000" bgcolor="#CCCCCC">
+      <p>There are currently <%=myShepherd.getNumKeywords()%> keywords
+        defined in the database.</p>
+      <table width="720" border="1" cellpadding="3" bordercolor="#000000"
+             bgcolor="#CCCCCC">
         <tr>
           <td>
-            <p><strong><%=props.getProperty("kw.add.title")%></strong></p>
+            <p><strong>Add a new keyword</strong></p>
 
             <form action="../KeywordHandler" method="post" name="addNew" id="addNew">
 
-              <p><%=props.getProperty("kw.add.new")%>
+              <p>New keyword description (visible to users): 
               <input name="readableName" type="text" id="readableName" size="40" maxlength="40"> 
-              <br /><%=props.getProperty("kw.add.example")%></p>
+              <br />
+              Example: <font face="Courier New, Courier, mono">scar, fin, 1st dorsal</font></p>
 				<input name="action" type="hidden" id="action" value="addNewWord" />
-              <p><input type="submit" name="Submit" value="<%=props.getProperty("kw.add.submit")%>"></p>
+              <p><input type="submit" name="Submit" value="Add"></p>
             </form>
           </td>
         </tr>
       </table>
       <p>&nbsp;</p>
-      <table width="720" border="1" cellpadding="3" bordercolor="#000000" bgcolor="#CCCCCC">
+      <table width="720" border="1" cellpadding="3" bordercolor="#000000"
+             bgcolor="#CCCCCC">
         <tr>
           <td>
-            <p><strong><%=props.getProperty("kw.remove.title")%></strong></p>
+            <p><strong>Remove a keyword</strong></p>
 
-            <form action="../KeywordHandler" method="post" name="removeWord" id="removeWord">
-              <p><%=props.getProperty("kw.remove.keyword")%> <select name="keyword" id="keyword">
+            <form action="../KeywordHandler" method="post" name="removeWord"
+                  id="removeWord">
+              <p>Keyword to remove: <select name="keyword" id="keyword">
 
                 <%
                   	
@@ -84,19 +81,21 @@
 
               </select> 
               <input name="action" type="hidden" id="action" value="removeWord"></p>
-              <p><input name="Submit2" type="submit" id="Submit2" value="<%=props.getProperty("kw.remove.submit")%>"></p>
+              <p><input name="Submit2" type="submit" id="Submit2" value="Remove"></p>
             </form>
           </td>
         </tr>
       </table>
       <p>&nbsp;</p>
-      <table width="720" border="1" cellpadding="3" bordercolor="#000000" bgcolor="#CCCCCC">
+      <table width="720" border="1" cellpadding="3" bordercolor="#000000"
+             bgcolor="#CCCCCC">
         <tr>
           <td>
-            <p><strong><%=props.getProperty("kw.rename.title")%></strong></p>
+            <p><strong>Rename a keyword</strong></p>
 
-            <form action="../KeywordHandler" method="post" name="renameWord" id="remnameWord">
-              <p><%=props.getProperty("kw.rename.keyword")%> <select name="keyword" id="keyword">
+            <form action="../KeywordHandler" method="post" name="renameWord"
+                  id="remnameWord">
+              <p>Keyword to rename: <select name="keyword" id="keyword">
 
                 <%
 					
@@ -114,10 +113,10 @@
                 %>
 
               </select>
-              <p><%=props.getProperty("kw.rename.new")%> <input
+              <p>New keyword description (visible to users): <input
                 name="newName" type="text" id="newName" size="40" maxlength="40"></p>
               <input name="action" type="hidden" id="action" value="rename"></p>
-              <p><input name="Submit2" type="submit" id="Submit2" value="<%=props.getProperty("kw.rename.submit")%>"></p>
+              <p><input name="Submit2" type="submit" id="Submit2" value="Rename"></p>
             </form>
           </td>
         </tr>

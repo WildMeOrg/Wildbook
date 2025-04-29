@@ -1,5 +1,0 @@
-SUBJECT: Data tracking stopped for encounter: @ENCOUNTER_ID@
-This is a confirmation that email tracking of data changes to the following
-encounter has now been stopped.
-
-Encounter: @ENCOUNTER_ID@

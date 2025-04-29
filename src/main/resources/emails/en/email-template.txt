@@ -1,21 +1,16 @@
-SUBJECT: Email from MantaMatcher
+SUBJECT: Email from Wild Me 
 
 @EMAIL_CONTENT@
 
 Sincerely,
 
-The MantaMatcher Team
+The Wild Me Team
 
 
 LEGAL STATEMENT
 
-MantaMatcher is copyrighted 2009-2016 by Wild Me.
-Individual contributors to MantaMatcher retain copyrights for submitted images.
+Wildbook is copyrighted 2025 by Conservation X Labs.
+Individual contributors to Wildbook retain copyrights for submitted images.
 No reproduction or usage of material in this library is permitted without the
 express permission of the copyright holders.
 
-@REMOVEME_START@
-Do you want to REMOVE your email address from this database? Click the link
-below to remove it. You will no longer receive updates on your encounters.
-@REMOVEME_LINK@
-@REMOVEME_END@

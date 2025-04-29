@@ -1,49 +1,66 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.io.File" %>
-<%@ page import="java.text.DecimalFormat" %>
-<%@ page import="java.util.*" %>
-<%@ page import="javax.jdo.Extent" %>
-<%@ page import="javax.jdo.Query" %>
-<%@ page import="org.ecocean.*, org.ecocean.media.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
-<%
-	// Get encounter number
-	String num = request.getParameter("number").replaceAll("\\+", "").trim();
-	String context = ServletUtilities.getContext(request);
 
-	// Let's set up references to our file system components
-	String rootWebappPath = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+
+
+<%
+
+//get encounter number
+String num = request.getParameter("number").replaceAll("\\+", "").trim();
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+
+//let's set up references to our file system components
+String rootWebappPath = getServletContext().getRealPath("/");
+String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
 /*
-	File webappsDir = new File(rootWebappPath).getParentFile();
-	File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-	File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-	File encounterDir = new File(encountersDir, num);
-	File thisEncounterDir = new File(imageEnc.dir(baseDir));
-	String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
+File webappsDir = new File(rootWebappPath).getParentFile();
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+File encounterDir = new File(encountersDir, num);
+File thisEncounterDir = new File(imageEnc.dir(baseDir));
+String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
 */
 
-	String crExistsUrl = null;
+String crExistsUrl = null;
 
   //GregorianCalendar cal = new GregorianCalendar();
   //int nowYear = cal.get(1);
 
-	// Handle some cache-related security
+
+//handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
-	// GPS decimal formatter
+//gps decimal formatter
   DecimalFormat gpsFormat = new DecimalFormat("###.####");
 
-	// Handle translation
-	String langCode = ServletUtilities.getLanguageCode(request);
+//handle translation
+  String langCode = "en";
+
+  //check what language is requested
+  if (session.getAttribute("langCode") != null) {
+    langCode = (String) session.getAttribute("langCode");
+  }
+
+
+//let's load encounters.properties
+  //Properties encprops = new Properties();
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
+
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
 
+
   pageContext.setAttribute("num", num);
+
 
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
@@ -53,16 +70,18 @@
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
 
-	if (request.getParameter("number")!=null) {
+if (request.getParameter("number")!=null) {
+	
 		if(myShepherd.isEncounter(num)){
 			Encounter metaEnc = myShepherd.getEncounter(num);
 			int numImgs=metaEnc.getImages().size();
 			if((metaEnc.getImages()!=null)&&(numImgs>0)){
 				for(int b=0;b<numImgs;b++){
 				SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
+
 			}
 		}
-	}
+		}
 }
 %>
 
@@ -142,12 +161,12 @@ margin-bottom: 8px !important;
 			<%
   			myShepherd.beginDBTransaction();
 
-  			if (myShepherd.isEncounter(num) && (request.getParameter("mediaAssetId")!=null)) {
+  			if (myShepherd.isEncounter(num)) {
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
       			pageContext.setAttribute("enc", enc);
-				//int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
+				int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
       
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
@@ -161,33 +180,38 @@ margin-bottom: 8px !important;
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
 
-						//List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+						List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 						//String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + num;
-						//String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
+						String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
-							
-						String mediaAssetId = request.getParameter("mediaAssetId");
+						String filename = request.getParameter("filename");
 
-						MediaAsset ma=myShepherd.getMediaAsset(mediaAssetId);
+						SinglePhotoVideo match = null;
+
+						for (SinglePhotoVideo s : spvs) {
+							if (myShepherd.isAcceptableImageFile(s.getFilename())) {
+								if (s.getFilename().equals(filename)) match = s;
+							}
+						}
+						if (match == null) match = spvs.get(0);
 
 						if (enc.getMmaCompatible()) {
-							File tryCR = new File((enc.subdir()+File.separator+ma.getFilename()).replaceFirst(".([^.]+)$", "_CR.$1"));
-							if (tryCR.exists()) crExistsUrl = ma.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
+							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.$1"));
+							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
 						}
 
-						String imgUrl = ma.webURL().toString();
-						String matchFilename = ma.webURL().toString();
-						//String matchSPVID = "";
-						//if (match != null) {
-							//matchFilename = ma.getFilename();
-							//matchSPVID=match.getDataCollectionEventID();
-							//imgUrl = "/" + dataDir + "/" + matchFilename;
+						String imgUrl = "";
+						String matchFilename = "";
+						String matchSPVID = "";
+						if (match != null) {
+							matchFilename = match.getFilename();
+							matchSPVID=match.getDataCollectionEventID();
+							imgUrl = "/" + dataDir + "/" + matchFilename;
 							//List k = match.getKeywords();
-						//}
+						}
 
 						if (crExistsUrl != null) {
-							//crExistsUrl = "/" + dataDir + "/" + crExistsUrl;
-							crExistsUrl = ma.webURL().toString();
+							crExistsUrl = "/" + dataDir + "/" + crExistsUrl;
 						}
 
     			%>
@@ -245,14 +269,14 @@ console.log('have base64 to send to server for ' + encounterNumber);
 	<canvas id="cr-work-canvas"  ></canvas>
 	<!-- <div id="cr-info"></div> -->
 	<div id="cr-controls">
-		<input type="button" value="<%=encprops.getProperty("saveAsCR")%>" onClick="crSave()" />
+		<input type="button" value="Save as Candidate Region" onClick="crSave()" />
 	</div>
 </div>
 
 <form method="POST" id="cr-form" action="../EncounterAddMantaPattern" >
 	<input type="hidden" name="encounterID" value="<%=num%>" />
 	<input type="hidden" name="matchFilename" value="<%=matchFilename%>" />
-<input type="hidden" name="photoNumber" value="<%=ma.getId() %>" />
+	<input type="hidden" name="photoNumber" value="<%=matchSPVID%>" />
 	<input type="hidden" name="action" value="imageadd2" />
 	<input type="hidden" name="pngData" value="" />
 </form>
@@ -261,7 +285,7 @@ console.log('have base64 to send to server for ' + encounterNumber);
 <% if (crExistsUrl != null) { %>
 <div style="width: 100%; padding: 10px; background-color: #FCB; min-height: 110px; margin-top: 15px;">
 	<img src="<%=crExistsUrl%>" style="float: left; max-height: 90px; margin: 8px;" />
-	<div style="padding-top: 20px;"><b><%=encprops.getProperty("notice")%></b></div>
+	<div style="padding-top: 20px;"><b>Note: a Candidate Region image already exists.  Saving will overwrite this.</b></div>
 </div>
 <%
 }
@@ -287,7 +311,7 @@ catch(Exception e){
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is either no encounter <%=num%> or Media Asset <%=request.getParameter("mediaAssetId") %> in the database. Please double-check the encounter number and try again.</p>
+		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
 
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go

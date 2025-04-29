@@ -40,18 +40,28 @@ Tests should be created in the `/frontend/src/__tests__/` directory, correspondi
 ### Running Tests
 To run all tests, `cd` to `/frontend` and use the following command:
 
-`npm run test`      # runs all tests
+`npm run jest`      # runs all tests
 You can also run tests in watch mode to re-run tests after changes:
 
-`npm run test -- --watch`
+`npm run jest -- --watch`
 Running Specific Tests
 You can run specific test files or even specific tests within a file using Jest's options:
 
-`npm run test -- LoginPage.test.js `                  # run a specific test file
-`npm run test -- LoginPage.test.js -t 'renders login'` # run a specific test case\
+`npm run jest -- LoginPage.test.js `                  # run a specific test file
+`npm run jest -- LoginPage.test.js -t 'renders login'` # run a specific test case\
 
 Writing Tests with React Testing Library
 Tests for React components should focus on how the component behaves from the user's perspective, rather than testing implementation details. Testing Library helps you do this by providing tools to interact with your components the way users would.
+
+Testing Utilities
+Inside `/frontend/src/utils/utils.js`, you'll find pre-built helper functions to make testing easier.
+
+For example, `renderWithProviders`
+This utility wraps your component with required providers. Instead of manually mocking all the context providers in every test, you can simply use this function:
+
+`import { renderWithProviders } from '../../../utils/utils';`
+
+`renderWithProviders(<MyComponent />);`
 
 ## Integration Testing
 

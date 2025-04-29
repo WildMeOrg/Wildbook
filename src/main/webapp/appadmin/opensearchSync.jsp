@@ -2,9 +2,10 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 java.util.Iterator,
-org.ecocean.*
+org.ecocean.media.*,
+org.ecocean.*,
+org.ecocean.shepherd.core.*
 "%>
-
 
 <%
 String indexName = request.getParameter("indexName");
@@ -21,9 +22,15 @@ if (indexName.equals("encounter")) {
 } else if (indexName.equals("annotation")) {
     cls = Annotation.class;
     obj = new Annotation();
+} else if (indexName.equals("media_asset")) {
+    cls = MediaAsset.class;
+    obj = new MediaAsset();
 } else if (indexName.equals("individual")) {
     cls = MarkedIndividual.class;
     obj = new MarkedIndividual();
+} else if (indexName.equals("occurrence")) {
+    cls = Occurrence.class;
+    obj = new Occurrence();
 }
 
 System.out.println("opensearchSync.jsp begun...");
@@ -89,9 +96,15 @@ if (endNum > 0) {
         itr = myShepherd.getAllEncounters("catalogNumber");
     } else if (indexName.equals("annotation")) {
         itr = myShepherd.getAnnotationsFilter("matchAgainst == true && acmId != null ORDER BY id");
+    } else if (indexName.equals("media_asset")) {
+        String range = ((startNum > 0) ? startNum : 1) + "," + (endNum + 1);
+        itr = myShepherd.getMediaAssetsFilter("parentId == null ORDER BY id " + range);
     } else if (indexName.equals("individual")) {
         itr = myShepherd.getAllMarkedIndividuals();
+    } else if (indexName.equals("occurrence")) {
+        itr = myShepherd.getAllOccurrencesNoQuery();
     }
+    System.out.println("opensearchSync.jsp: query all complete");
     while (itr.hasNext()) {
             Base iObj = (Base)itr.next();
             if (!Util.stringExists(iObj.getId())) continue;
@@ -113,6 +126,7 @@ if (endNum > 0) {
     }
 
 } else {
+    OpenSearch.unsetActiveIndexingForeground(); // is set by opensearchSyncIndex
     int[] res = Base.opensearchSyncIndex(myShepherd, cls, 0);
     out.println("<p>re-indexed: <b>" + res[0] + "</b></p>");
     out.println("<p>removed: <b>" + res[1] + "</b></p>");

@@ -1,13 +1,24 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.Properties" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ page import="java.text.MessageFormat" %>
-<%
-	String context = ServletUtilities.getContext(request);
-	String langCode = ServletUtilities.getLanguageCode(request);
-	Properties props = ShepherdProperties.getProperties("users.properties", langCode, context);
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat, java.io.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
+
+<%
+
+
+String context="context0";
+
+//get language
+String langCode = ServletUtilities.getLanguageCode(request);
+
+//load user props
+Properties props= ShepherdProperties.getProperties("users.properties", langCode,context);
+
+
+
+  	
+  	
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("setNewPassword.jsp");
   	
@@ -59,11 +70,11 @@
     		    			
     		    				<table width="100%">
       								<tr>
-            							<td style="border-bottom: 0px white;"><%=props.getProperty("newPassword")%>: <input name="password" type="password" size="15" maxlength="90" /></td>
-                    					<td style="border-bottom: 0px white;" colspan="2"><%=MessageFormat.format(props.getProperty("confirm"), props.getProperty("newPassword"))%>: <input name="password2" type="password" size="15" maxlength="90" /></td>
+            							<td style="border-bottom: 0px white;"><%=props.getProperty("newPassword") %> <input name="password" type="password" size="15" maxlength="90" ></input></td>
+                        				<td style="border-bottom: 0px white;" colspan="2"><%=props.getProperty("confirm") %> <%=props.getProperty("newPassword") %> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
             						</tr>
                     				<tr>
-                    					<td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update")%>" /></td></tr>
+                    					<td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update") %>" /></td></tr>
             					</table>
             				
 
@@ -78,7 +89,7 @@
 }
 else{
 %>
-<%=props.getProperty("notEnough")%>
+<%=props.getProperty("notEnough") %>
 <%
 }
 %>
