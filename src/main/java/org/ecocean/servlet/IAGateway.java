@@ -355,23 +355,25 @@ public class IAGateway extends HttpServlet {
             isRetriedFailedTask = false;
         }
 
-        Task parentTask;
+        Task parentTaskRetried = null;
         if (isRetriedFailedTask) {
             String retriedFailedTaskId = jin.getString("taskId");
 
-            String sql = "SELECT \"ID\", \"COMPLETIONDATEINMILLISECONDS\", \"CREATED\", \"MODIFIED\", \"PARAMETERS\", \"QUEUERESUMEMESSAGE\", \"STATUS\" FROM \"TASK\" t JOIN \"TASK_CHILDREN\" tc ON t.\"ID\" = tc.\"ID_OID\" WHERE tc.\"ID_EID\" = '" + retriedFailedTaskId + "'";
+            String sql =
+                    "SELECT \"ID\", \"COMPLETIONDATEINMILLISECONDS\", \"CREATED\", \"MODIFIED\", \"PARAMETERS\", \"QUEUERESUMEMESSAGE\", \"STATUS\"" +
+                    " FROM \"TASK\" t JOIN \"TASK_CHILDREN\" tc ON t.\"ID\" = tc.\"ID_OID\" WHERE tc.\"ID_EID\" = '" + retriedFailedTaskId + "'";
             Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
             q.setClass(Task.class);
             List<Task> tasks = (List<Task>) q.execute();
-            parentTask = tasks.get(0);
+            parentTaskRetried = tasks.get(0);
 
             SqlHelper.executeRawSql(
                     myShepherd.getPM(),
                     "DELETE FROM \"TASK_CHILDREN\" WHERE \"ID_EID\" = '" + retriedFailedTaskId + "'"
             );
-        } else {
-            parentTask = Task.load(taskId, myShepherd);
         }
+
+        Task parentTask = Task.load(taskId, myShepherd);
         if (parentTask == null) {
             System.out.println("WARNING: IAGateway._doIdentify() could not load Task id=" + taskId +
                 "; creating it... yrros");
@@ -381,7 +383,7 @@ public class IAGateway extends HttpServlet {
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         List<Task> subTasks = new ArrayList<Task>();
-        if (anns.size() > 1) { // need to create child Tasks
+        if (anns.size() > 1 || isRetriedFailedTask) { // need to create child Tasks
             JSONObject params = parentTask.getParameters();
             parentTask.setParameters((String)null); // reset this, kids inherit params
             for (int i = 0; i < anns.size(); i++) {
@@ -392,19 +394,24 @@ public class IAGateway extends HttpServlet {
                 myShepherd.beginDBTransaction();
                 subTasks.add(newTask);
 
-                if (isRetriedFailedTask) {
+                if (isRetriedFailedTask && parentTaskRetried != null) {
                     try {
                         SqlHelper.executeRawSql(
                                 myShepherd.getPM(),
-                                "INSERT INTO \"TASK_OBJECTANNOTATIONS\" " +
+                                "INSERT INTO \"TASK_CHILDREN\" " +
                                         "(\"ID_OID\", \"ID_EID\", \"IDX\") " +
-                                        "VALUES ('" + newTask.getId() + "', '" + anns.get(i).getId() + "', 0)"
+                                        "VALUES ('" + parentTaskRetried.getId() + "', '" + newTask.getId() + "', 0)"
                         );
                     } catch (Exception ex) {
                     }
                 }
             }
-            if (!isRetriedFailedTask) {
+            if (isRetriedFailedTask) {
+//                SqlHelper.executeRawSql(
+//                        myShepherd.getPM(),
+//                        "DELETE FROM \"TASK\" WHERE \"ID\" = '" + parentTask.getId() + "'"
+//                );
+            } else {
                 myShepherd.storeNewTask(parentTask);
             }
             myShepherd.beginDBTransaction();
