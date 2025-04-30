@@ -33,8 +33,6 @@ export default function ManualAnnotation() {
   const { createAnnotation, loading, error, submissionDone, responseData } =
     useCreateAnnotation();
 
-  console.log("error", error);
-
   const [showModal, setShowModal] = useState(false);
   const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
   const [ia, setIa] = useState(null);
@@ -131,21 +129,6 @@ export default function ManualAnnotation() {
             scaledRect.height,
           );
 
-          // context.strokeStyle = "blue";
-          // context.lineWidth = 1;
-          // context.beginPath();
-          // context.moveTo(-scaledRect.width / 2, -scaledRect.height / 2); // Top-left corner
-          // context.lineTo(scaledRect.width / 2, -scaledRect.height / 2);  // Top-right corner
-          // context.stroke();
-
-          // // Draw the other borders in yellow
-          // context.strokeStyle = "yellow";
-          // context.lineWidth = 1;
-          // context.beginPath();
-          // context.moveTo(-scaledRect.width / 2, -scaledRect.height / 2);
-          // context.lineTo(-scaledRect.width / 2, scaledRect.height / 2);
-          // context.lineTo(scaledRect.width / 2, scaledRect.height / 2);
-          // context.lineTo(scaledRect.width / 2, -scaledRect.height / 2);
           context.restore();
         }
       }
@@ -228,6 +211,22 @@ export default function ManualAnnotation() {
 
   const handleMouseUp = () => {
     if (!imgRef.current || drawStatus === "DELETE") return;
+    function normalizeRectOnDraw(rect) {
+      let { x, y, width, height } = rect;
+
+      if (width < 0) {
+        x = x + width;
+        width = -width;
+      }
+      if (height < 0) {
+        y = y + height;
+        height = -height;
+      }
+
+      return { x, y, width, height };
+    }
+
+    setRect((prev) => normalizeRectOnDraw(prev));
     setIsDrawing(false);
   };
 

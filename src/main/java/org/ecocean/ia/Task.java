@@ -14,7 +14,7 @@ import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;

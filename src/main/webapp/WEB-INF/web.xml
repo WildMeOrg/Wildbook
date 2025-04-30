@@ -390,7 +390,6 @@
 				/WorkspacesForUser = authc, roles[researcher]
 				/WorkspaceDelete = authc, roles[researcher]
 				/MediaAssetModify = authc, roles[researcher]
-				/OccurrenceClusterMASet = authc, roles[researcher]
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
@@ -609,6 +608,10 @@
 	<servlet-mapping>
 		<servlet-name>SiteSettings</servlet-name>
 		<url-pattern>/api/v3/site-settings</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>SiteSettings</servlet-name>
+		<url-pattern>/api/v3/site-settings/*</url-pattern>
 	</servlet-mapping>
 
   <servlet>
@@ -1816,11 +1819,6 @@
   </servlet>
 
   <servlet>
-    <servlet-name>OccurrenceClusterMASet</servlet-name>
-    <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
-  </servlet>
-
-  <servlet>
     <servlet-name>OccurrenceSetObservation</servlet-name>
     <servlet-class>org.ecocean.servlet.OccurrenceSetObservation</servlet-class>
   </servlet>
@@ -1950,12 +1948,6 @@
   <servlet-name>WorkspaceDelete</servlet-name>
   <url-pattern>/WorkspaceDelete</url-pattern>
 </servlet-mapping>
-
-<servlet-mapping>
-  <servlet-name>OccurrenceClusterMASet</servlet-name>
-  <url-pattern>/OccurrenceClusterMASet</url-pattern>
-</servlet-mapping>
-
 
 <servlet-mapping>
   <servlet-name>MediaAssetContext</servlet-name>

@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders MultiLanguageDropdown and changes language on click 1`] = `
+<a
+  class="dropdown-item"
+  data-rr-ui-dropdown-item=""
+  href="#"
+  role="button"
+  tabindex="0"
+>
+  <img
+    alt="fr"
+    src="/react/flags/fr.png"
+    style="width: 20px; height: 12px; margin-right: 10px;"
+  />
+  Français
+</a>
+`;
