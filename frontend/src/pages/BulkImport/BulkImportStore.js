@@ -1,4 +1,3 @@
-// Optimized MobX Store for Bulk Import logic
 import { makeAutoObservable } from "mobx";
 import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
@@ -20,28 +19,95 @@ export class BulkImportStore {
   _uploadFinished = false;
   _uploadedImages = [];
   _initialUploadFileCount = 0;
-  _columnsDef = ["mediaAsset", "name", "date", "location", "submitterID"];
+  _columnsDef = [
+    "mediaAsset",
+    "date",
+    "genus",
+    "species",
+    "decimalLatitude",
+    "decimalLongitude",
+    "location",
+    "submitterID",
+    "Individual name",
+    "occurrenceID",
+    "occurrenceRemarks",
+    "country",
+    "sex",
+    "lifeStage",
+    "livingStatus",
+    "behavior",
+    "researcherComments",
+    "photographerEmail",
+    "informOtherEmail",
+    "sampleID",
+    "sexAnalysis"
+  ];
+
+  _tableHeaderMapping = {
+    mediaAsset: "Media Asset",
+    IndividualID: "Individual name",
+    occurrenceID: "occurrence ID",
+    occurrenceRemarks: "occurrence Remarks",
+    location: "location",
+    country: "country",
+    decimalLatitude: "decimal Latitude",
+    decimalLongitude: "decimal Longitude",
+    date: "date",
+    genus: "genus",
+    species: "specific Epithet",
+    sex: "sex",
+    lifeStage: "life Stage",
+    livingStatus: "living Status",
+    behavior: "behavior",
+    researcherComments: "researcher Comments",
+    submitterID: "submitterID",
+    photographerEmail: "photographer Email",
+    informOtherEmail: "informOther Email",
+    sampleID: "sample ID",
+    sexAnalysis: "sex Analysis",
+  };
+
+  isValidISO(val) {
+    const dt = new Date(val);
+    return !isNaN(dt.getTime());
+  }
   _validationRules = {
     mediaAsset: {
       required: true,
     },
-    name: {
-      required: true,
-      message: "Name must contain only letters and spaces",
-    },
     date: {
       required: true,
-      pattern: /^\d{4}$/,
-      message: "Date must be a 4-digit year",
+      validate: (val) => {
+        if (/^\d{4}$/.test(val)) {
+          return true;
+        }
+        if (/^\d{4}-\d{2}$/.test(val)) {
+          const [y, m] = val.split('-').map(Number);
+          return m >= 1 && m <= 12;
+        }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+          const [y, m, d] = val.split('-').map(Number);
+          const dt = new Date(y, m - 1, d);
+          return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+        }
+        return !isNaN(Date.parse(val));
+      },
+      message:
+        "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or full ISO datetime “YYYY-MM-DDThh:mm:ss.sssZ”",
     },
     location: {
       required: true,
-      message: "Location must contain only letters and spaces",
+      validate: (value) => {
+        return this._validLocationIDs.includes(value);
+      },
+      message: "Location must be a valid location ID",
     },
     submitterID: {
       required: true,
-      pattern: /^[a-zA-Z0-9]+$/,
-      message: "Submitter ID must contain only letters and numbers",
+      validate: (value) => {
+        return this._validSubmitterIDs.includes(value);
+      },
+      message: "Submitter ID must be a valid submitter ID",
     },
   };
 
@@ -121,6 +187,10 @@ export class BulkImportStore {
   }
   get validSubmitterIDs() {
     return this._validSubmitterIDs;
+  }
+
+  get tableHeaderMapping() {
+    return this._tableHeaderMapping;
   }
 
   setSpreadsheetData(data) {
@@ -374,21 +444,10 @@ export class BulkImportStore {
         let error = "";
         if (rules.required && !value.trim()) {
           error = "This field is required";
-        } else if (rules.pattern && !rules.pattern.test(value)) {
+        } else if (rules.validate && !rules.validate(value)) {
           error = rules.message || "Invalid format";
         }
 
-        if (col === "location") {
-          if (!this._validLocationIDs.includes(value)) {
-            error = "Invalid location ID";
-          }
-        }
-
-        if (col === "submitterID") {
-          if (!this._validSubmitterIDs.includes(value)) {
-            error = "Invalid submitter ID";
-          }
-        }
         if (error) {
           if (!errors[rowIndex]) errors[rowIndex] = {};
           errors[rowIndex][col] = error;

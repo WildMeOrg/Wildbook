@@ -1,6 +1,6 @@
 import React from "react";
 import { observer } from "mobx-react-lite";
-import EditableDataTable from "../../components/EditableDataTable";
+import EditableDataTable from "./EditableDataTable";
 import { useContext } from "react";
 import ThemeContext from "../../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";

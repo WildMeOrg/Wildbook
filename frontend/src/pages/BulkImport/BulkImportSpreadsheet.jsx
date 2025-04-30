@@ -25,15 +25,44 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const processedData = [];
       let currentIndex = 0;
 
+      const pad = (n) => n.toString().padStart(2, "0");
+
       const processChunk = () => {
         const chunk = jsonData.slice(currentIndex, currentIndex + CHUNK_SIZE);
-        const normalizedChunk = chunk.map((row) => ({
-          mediaAsset: row.mediaAsset,
-          name: row.name,
-          date: row.date?.toString() || "",
-          location: row.location,
-          submitterID: row.submitterID,
-        }));
+        const normalizedChunk = chunk.map((row) => {
+          const year = Number(row["Encounter.year"]);
+          const month = Number(row["Encounter.month"]);
+          const day = Number(row["Encounter.day"]);
+          const hour = Number(row["Encounter.hour"]);
+          const minutes = Number(row["Encounter.minutes"]);
+
+
+          const dt = new Date(year, month - 1, day, hour, minutes);
+
+          return {
+            mediaAsset: row["Encounter.mediaAsset0"],
+            IndividualID: row["MarkedIndividual.individualID"],
+            occurrenceID: row["Encounter.occurrenceID"],
+            occurrenceRemarks: row["Encounter.occurrenceRemarks"],
+            location: row["Encounter.verbatimLocality"],
+            country: row["Encounter.country"],
+            decimalLatitude: row["Encounter.decimalLatitude"],
+            decimalLongitude: row["Encounter.decimalLongitude"],
+            date: `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00.000Z`,
+            genus: row["Encounter.genus"],
+            species: row["Encounter.specificEpithet"],
+            sex: row["Encounter.sex"],
+            lifeStage: row["Encounter.lifeStage"],
+            livingStatus: row["Encounter.livingStatus"],
+            behavior: row["Encounter.behavior"],
+            researcherComments: row["Encounter.researcherComments"],
+            submitterID: row["Encounter.submitterID"],
+            photographerEmail: row["Encounter.photographer0.emailAddress"],
+            informOtherEmail: row["Encounter.informOther0.emailAddress"],
+            sampleID: row["TissueSample.sampleID"],
+            sexAnalysis: row["SexAnalysis.sex"],
+          }
+        });
 
         processedData.push(...normalizedChunk);
         currentIndex += CHUNK_SIZE;
