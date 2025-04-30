@@ -559,7 +559,21 @@ var encounterNumber = '<%=num%>';
       			Encounter enc = myShepherd.getEncounter(num);
             	//System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
             	String encNum = enc.getCatalogNumber();
-				boolean visible = enc.canUserAccess(request);
+            	
+            	
+				//let's see if this user has ownership and can make edits
+      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
+            	boolean encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(enc);
+            	boolean encounterCanBeEditedByAnyLoggedInUser = encounterIsPublic && request.getUserPrincipal() != null;
+            	pageContext.setAttribute("editable", (isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context));
+      			boolean loggedIn = false;
+      			try{
+      				if(request.getUserPrincipal()!=null){loggedIn=true;}
+      			}
+      			catch(NullPointerException nullLogged){}
+            	
+            	
+				boolean visible = isOwner || encounterIsPublic || encounterCanBeEditedByAnyLoggedInUser || enc.canUserAccess(request);
 				System.out.println("visible: "+visible);
 				//if (!visible) visible = checkAccessKey(request, enc);
 				if (!visible) {
@@ -616,16 +630,7 @@ var encounterNumber = '<%=num%>';
 					System.out.println("============ out ==============");
 				}
 
-				//let's see if this user has ownership and can make edits
-      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
-            boolean encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(enc);
-            boolean encounterCanBeEditedByAnyLoggedInUser = encounterIsPublic && request.getUserPrincipal() != null;
-            pageContext.setAttribute("editable", (isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context));
-      			boolean loggedIn = false;
-      			try{
-      				if(request.getUserPrincipal()!=null){loggedIn=true;}
-      			}
-      			catch(NullPointerException nullLogged){}
+
 
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
