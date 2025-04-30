@@ -22,8 +22,8 @@ package org.ecocean.servlet;
 import org.ecocean.StudySite;
 import org.ecocean.Encounter;
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
+import org.ecocean.shepherd.core.*;
+
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;

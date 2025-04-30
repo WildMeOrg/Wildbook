@@ -12,6 +12,7 @@
     java.util.Enumeration,
     java.util.Arrays,
     java.lang.reflect.Method,
+    org.ecocean.shepherd.core.*,
     org.ecocean.security.Collaboration" %>
 
 

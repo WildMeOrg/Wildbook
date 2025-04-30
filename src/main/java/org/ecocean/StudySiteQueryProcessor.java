@@ -15,6 +15,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
 
 import org.joda.time.DateTime;
+import org.ecocean.shepherd.core.*;
 
 public class StudySiteQueryProcessor extends QueryProcessor {
 
