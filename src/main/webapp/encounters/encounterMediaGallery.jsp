@@ -938,7 +938,7 @@ function doImageEnhancer(sel) {
 
         	 opt.menu.push(['create optional feature region', function(enh) {
                  var mid = enh.imgEl.data('enh-mediaassetid');
-                 window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
+                 window.location.href = '/react/manual-annotation?encounterId=' + encounterNumber + '&assetId=' + mid;
              }]);
 
 
