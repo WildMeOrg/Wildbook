@@ -36,8 +36,23 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           const hour = Number(row["Encounter.hour"]);
           const minutes = Number(row["Encounter.minutes"]);
 
-
           const dt = new Date(year, month - 1, day, hour, minutes);
+
+          const getLatLong = (lat, lon) => {
+            const hasLat = lat !== undefined && lat !== null && lat !== "";
+            const hasLon = lon !== undefined && lon !== null && lon !== "";
+
+            console.log("lat", lat, "lon", lon);
+            if (hasLat && hasLon) {
+              return `(${lat}, ${lon})`;
+            } else if (hasLat) {
+              return `(${lat}, )`;
+            } else if (hasLon) {
+              return `(, ${lon})`;
+            } else {
+              return "";
+            }
+          };
 
           return {
             mediaAsset: row["Encounter.mediaAsset0"],
@@ -46,11 +61,13 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             occurrenceRemarks: row["Encounter.occurrenceRemarks"],
             location: row["Encounter.verbatimLocality"],
             country: row["Encounter.country"],
-            decimalLatitude: row["Encounter.decimalLatitude"],
-            decimalLongitude: row["Encounter.decimalLongitude"],
+            decimalLatitudeAndLongitude: getLatLong(
+              row["Encounter.decimalLatitude"],
+              row["Encounter.decimalLongitude"],
+            ),
             date: `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00.000Z`,
-            genus: row["Encounter.genus"],
-            species: row["Encounter.specificEpithet"],
+            species:
+              row["Encounter.genus"] + " " + row["Encounter.specificEpithet"],
             sex: row["Encounter.sex"],
             lifeStage: row["Encounter.lifeStage"],
             livingStatus: row["Encounter.livingStatus"],
@@ -61,7 +78,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             informOtherEmail: row["Encounter.informOther0.emailAddress"],
             sampleID: row["TissueSample.sampleID"],
             sexAnalysis: row["SexAnalysis.sex"],
-          }
+          };
         });
 
         processedData.push(...normalizedChunk);
