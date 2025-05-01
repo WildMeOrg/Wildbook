@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
-import Select from "react-select";
+import SelectCell from "./SelectCell";
 
 const EditableCell = ({
   store,
@@ -35,48 +35,19 @@ const EditableCell = ({
     }
   };
 
-  const isLocationField = columnId === "location";
-  const normalize = (str = "") =>
-    str.replace(/[^\p{L}\p{N}]/gu, "").toLowerCase();
-
-  const filterOption = ({ label }, rawInput) => {
-    return normalize(label).includes(normalize(rawInput));
-  };
+  const useSelectCell = store.columnsUseSelectCell.includes(columnId);
 
   const renderInput = () => {
-    if (isLocationField) {
+    if (useSelectCell) {
       return (
-        <Select
-          options={store.validLocationIDs.map((o) => ({ value: o, label: o }))}
+        <SelectCell
+          options={
+            store.getOptionsForSelectCell(columnId)
+          }
           value={value ? { value, label: value } : null}
           onChange={(sel) => setValue(sel ? sel.value : "")}
           onBlur={handleBlur}
-          isClearable
-          isSearchable
-          filterOption={filterOption}
-          placeholder="searching"
-          className={
-            error
-              ? "react-select-container is-invalid"
-              : "react-select-container"
-          }
-          classNamePrefix="react-select"
-          styles={{
-            control: (base) => ({
-              ...base,
-              borderColor: error ? "red" : base.borderColor,
-              boxShadow: error ? "0 0 0 1px red" : base.boxShadow,
-            }),
-            container: (base) => ({
-              ...base,
-              minWidth: "180px",
-              maxWidth: "250px",
-            }),
-            menu: (base) => ({
-              ...base,
-              zIndex: 9999,
-            }),
-          }}
+          error={error}
         />
       );
     } else {
@@ -106,12 +77,13 @@ const EditableCell = ({
 };
 
 export const DataTable = observer(({ store }) => {
-  const data = store.spreadsheetData;
+  const data = store.spreadsheetData || [];
   const [cellErrors, setCellErrors] = useState({});
   const columnsDef = store.columnsDef || [];
   const { data: siteData } = useGetSiteSettings();
   const validLocationIDs = siteData?.locationData.locationID || [];
   const validSubmitterIDs = siteData?.users?.map((user) => user.username) || [];
+  const validSpecies = siteData?.siteTaxonomies || [];
 
   const extractAllValues = (treeData) => {
     const values = [];
@@ -131,6 +103,7 @@ export const DataTable = observer(({ store }) => {
     extractAllValues(store.convertToTreeData(validLocationIDs)),
   );
   store.setValidSubmitterIDs(validSubmitterIDs);
+  store.setValidSpecies(validSpecies.map((species) => species.scientificName));
 
   useEffect(() => {
     if (store.spreadsheetData.length > 0) {
@@ -179,7 +152,12 @@ export const DataTable = observer(({ store }) => {
   const currentPage = table.getState().pagination.pageIndex;
 
   return (
-    <div className="p-3 border rounded shadow-sm bg-white">
+    <div className="p-3 border rounded shadow-sm bg-white mt-4"
+      style={{
+        maxHeight: "500px",
+        overflowY: "auto",
+      }}
+    >
       <div className="table-responsive">
         <table className="table table-bordered table-hover table-sm">
           <thead className="table-light">
