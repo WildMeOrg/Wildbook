@@ -22,10 +22,8 @@ export class BulkImportStore {
   _columnsDef = [
     "mediaAsset",
     "date",
-    "genus",
     "species",
-    "decimalLatitude",
-    "decimalLongitude",
+    "decimalLatitudeAndLongitude",
     "location",
     "submitterID",
     "Individual name",
@@ -50,11 +48,9 @@ export class BulkImportStore {
     occurrenceRemarks: "occurrence Remarks",
     location: "location",
     country: "country",
-    decimalLatitude: "decimal Latitude",
-    decimalLongitude: "decimal Longitude",
+    decimalLatitudeAndLongitude: "Lat, long (DD)",
     date: "date",
-    genus: "genus",
-    species: "specific Epithet",
+    species: "species",
     sex: "sex",
     lifeStage: "life Stage",
     livingStatus: "living Status",
@@ -71,6 +67,12 @@ export class BulkImportStore {
     const dt = new Date(val);
     return !isNaN(dt.getTime());
   }
+
+  _validLocationIDs = [];
+  _validSubmitterIDs = [];
+  _validGenus = [];
+  _validspecies = [];
+  _columnsUseSelectCell = ["species", "location", "submitterID"];
   _validationRules = {
     mediaAsset: {
       required: true,
@@ -95,12 +97,49 @@ export class BulkImportStore {
       message:
         "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or full ISO datetime “YYYY-MM-DDThh:mm:ss.sssZ”",
     },
+    species: {
+      required: true,
+      validate: (val) => {
+        return this._validspecies.includes(val);
+      },
+      message: "Must enter a valid species",
+    },
+    decimalLatitudeAndLongitude: {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        const re = /^\(\s*([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)\s*\)$/;
+
+        const m = re.exec(val);
+        if (!m) {
+          return false;
+        }
+
+        const lat = parseFloat(m[1]);
+        const lon = parseFloat(m[3]);
+
+        if (Number.isNaN(lat) || Number.isNaN(lon)) {
+          return false;
+        }
+        if (lat < -90 || lat > 90) {
+          return false;
+        }
+        if (lon < -180 || lon > 180) {
+          return false;
+        }
+
+        return true;
+      },
+      message: "Must enter a valid latitude and longitude",
+    },
     location: {
       required: true,
       validate: (value) => {
         return this._validLocationIDs.includes(value);
       },
-      message: "Location must be a valid location ID",
+      message: "Must enter a valid location ID",
     },
     submitterID: {
       required: true,
@@ -110,9 +149,6 @@ export class BulkImportStore {
       message: "Submitter ID must be a valid submitter ID",
     },
   };
-
-  _validLocationIDs = [];
-  _validSubmitterIDs = [];
 
   constructor() {
     makeAutoObservable(this);
@@ -193,6 +229,10 @@ export class BulkImportStore {
     return this._tableHeaderMapping;
   }
 
+  get columnsUseSelectCell() {
+    return this._columnsUseSelectCell;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = data;
   }
@@ -222,6 +262,34 @@ export class BulkImportStore {
   }
   setValidSubmitterIDs(submitterIDs) {
     this._validSubmitterIDs = submitterIDs;
+  }
+
+  setValidGenus(genus) {
+    this._validGenus = genus;
+  }
+
+  setValidSpecies(species) {
+    this._validspecies = species;
+  }
+
+  getOptionsForSelectCell(col) {
+    if (col === "location") {
+      return this._validLocationIDs.map((id) => ({
+        value: id,
+        label: id,
+      }));
+    } else if (col === "submitterID") {
+      return this._validSubmitterIDs.map((id) => ({
+        value: id,
+        label: id,
+      }));
+    } else if (col === "species") {
+      return this._validspecies.map((species) => ({
+        value: species,
+        label: species,
+      }));
+    }
+    return [];
   }
 
   convertToTreeData(locationData) {
@@ -282,11 +350,6 @@ export class BulkImportStore {
 
     flowInstance.opts.generateUniqueIdentifier = (file) =>
       `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`;
-
-    // flowInstance.on('fileError', (file, message) => {
-    //   console.error(file.name, message);
-    //   flowInstance.removeFile(file);
-    // });
 
     flowInstance.assignBrowse(fileInputRef);
 
@@ -451,7 +514,7 @@ export class BulkImportStore {
         if (error) {
           if (!errors[rowIndex]) errors[rowIndex] = {};
           errors[rowIndex][col] = error;
-        }
+        }        
       });
     });
     return errors;
