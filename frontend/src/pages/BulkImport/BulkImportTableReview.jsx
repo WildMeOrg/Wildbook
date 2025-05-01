@@ -17,6 +17,7 @@ export const BulkImportTableReview = observer(({ store }) => {
           onClick={() => {
             store.setActiveStep(3);
           }}
+          disabled ={store._uploadFinished || Object.keys(store.validateSpreadsheet()).length > 0}
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}
