@@ -364,5 +364,6 @@
     "SYSTEM_ID": "ID del Sistema",
     "SEARCH_INDIVIDUALS": "Buscar Individuos",
     "SEARCH_RESULT_DISPLAY": "Tus resultados de búsqueda aparecerán aquí.",
-    "UNKNOWN" : "Desconocido"
+    "UNKNOWN" : "Desconocido",
+    "NO_IA_CLASS" : "Configure una taxonomía en la página de encuentros para ver la clase IA."
 }

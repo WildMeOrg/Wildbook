@@ -365,5 +365,6 @@
     "SYSTEM_ID": "System-ID",
     "SEARCH_INDIVIDUALS": "Individuen suchen",
     "SEARCH_RESULT_DISPLAY" : "Ihre Suchergebnisse werden hier angezeigt.",
-    "UNKNOWN" : "Unbekannt"
+    "UNKNOWN" : "Unbekannt",
+    "NO_IA_CLASS" : "Legen Sie auf der Encounter-Seite eine Taxonomie fest, um die IA-Klasse anzuzeigen."
 }

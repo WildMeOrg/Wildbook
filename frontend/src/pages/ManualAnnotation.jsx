@@ -39,6 +39,7 @@ export default function ManualAnnotation() {
   const [viewpoint, setViewpoint] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStatus, setDrawStatus] = useState("DRAW");
+  const [iaOptions, setIaOptions] = useState([]);
   const [rect, setRect] = useState({
     x: 0,
     y: 0,
@@ -46,12 +47,10 @@ export default function ManualAnnotation() {
     height: 0,
     rotation: 0,
   });
-
   const { data: siteData } = useGetSiteSettings();
-  const iaOptions = siteData?.iaClass?.map((iaClass) => ({
-    value: iaClass,
-    label: iaClass,
-  }));
+
+  const iaClassesForTaxonomy = siteData?.iaClassesForTaxonomy || {};
+
   const viewpointOptions = siteData?.annotationViewpoint?.map((viewpoint) => ({
     value: viewpoint,
     label: viewpoint,
@@ -62,6 +61,19 @@ export default function ManualAnnotation() {
       const response = await fetch(`/api/v3/media-assets/${assetId}`);
       const data = await response.json();
       setData(data);
+
+      const annotation =
+        data.annotations?.find(
+          (annotation) => annotation.encounterId === encounterId,
+        ) || {};
+      const iaForTaxonomy =
+        iaClassesForTaxonomy[annotation?.encounterTaxonomy] || [];
+      setIaOptions(
+        iaForTaxonomy.map((iaClass) => ({
+          value: iaClass,
+          label: iaClass,
+        })),
+      );
     } catch (error) {
       alert("Error fetching media assets", error);
     }
@@ -266,6 +278,17 @@ export default function ManualAnnotation() {
                   setIa(selected);
                 }}
               />
+              {iaOptions.length === 0 && (
+                <div
+                  className="text-danger"
+                  style={{
+                    maxWidth: "200px",
+                    nowrap: "break-word",
+                  }}
+                >
+                  <FormattedMessage id="NO_IA_CLASS" />
+                </div>
+              )}
             </Form.Group>
             <Form.Group controlId="formBasicEmail">
               <Form.Label>
