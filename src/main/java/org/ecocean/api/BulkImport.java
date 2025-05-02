@@ -2,8 +2,10 @@ package org.ecocean.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -88,14 +90,34 @@ public class BulkImport extends ApiBase {
             JSONArray rows = payload.optJSONArray("rows");
             if (rows == null) throw new ServletException("no rows in payload");
 
+            JSONArray fieldNamesArr = payload.optJSONArray("fieldNames");
+            Set<String> fieldNames = null;
+            if (fieldNamesArr != null) {
+                fieldNames = new LinkedHashSet<String>();
+                for (int i = 0 ; i < fieldNamesArr.length() ; i++) {
+                    String fn = fieldNamesArr.optString(i, null);
+                    if (fn == null) throw new ServletException("could not find field name at i=" + i);
+                    fieldNames.add(fn);
+                }
+            }
+
             List<Map<String, Object>> validatedRows = new ArrayList<Map<String, Object>>();
             for (int i = 0 ; i < rows.length() ; i++) {
-                JSONObject rowData = rows.optJSONObject(i);
-                if (rowData == null) {
-                    System.out.println("null rowData on row " + i + " of bulk import");
-                    continue;
+                if (fieldNames == null) {
+                    JSONObject rowData = rows.optJSONObject(i);
+                    if (rowData == null) {
+                        System.out.println("null rowData on row " + i + " of bulk import");
+                        continue;
+                    }
+                    validatedRows.add(BulkImportUtil.validateRow(rowData, myShepherd));
+                } else {
+                    JSONArray rowArr = rows.optJSONArray(i);
+                    if (rowArr == null) {
+                        System.out.println("null rowArr on row " + i + " of bulk import");
+                        continue;
+                    }
+                    validatedRows.add(BulkImportUtil.validateRow(fieldNames, rowArr, myShepherd));
                 }
-                validatedRows.add(BulkImportUtil.validateRow(rowData, myShepherd));
             }
 
             List<BulkValidator> validRows = new ArrayList<BulkValidator>();
