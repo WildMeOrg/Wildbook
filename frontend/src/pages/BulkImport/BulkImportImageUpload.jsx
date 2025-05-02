@@ -1,4 +1,3 @@
-// Optimized BulkImportImage component with all logic moved to MobX store
 import React, { useEffect, useRef, useContext } from "react";
 import {
   ProgressBar,
@@ -14,10 +13,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 
 
-const handleDragEnter = (e) => {
-  e.preventDefault();
-  e.currentTarget.style.border = "2px dashed #007BFF";
-};
+
 
 const handleDragOver = (e) => {
   e.preventDefault();
@@ -37,9 +33,11 @@ export const BulkImportImageUpload = observer(({ store }) => {
   const maxSize = data?.maximumMediaSizeMegabytes || 3;
   const maxImageCount = data?.maximumMediaCount || 200;
 
-  // console.log("imageSectionFileNames", JSON.stringify(store.imageSectionFileNames));
-  // console.log("uploadedFiles", JSON.stringify(store.uploadedImages));
-  // console.log("imagePreview", JSON.stringify(store.imagePreview));
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.currentTarget.style.border = "2px dashed #007BFF";
+    // e.dataTransfer.style.backgroundColor = theme.primaryColors.primary100;
+  };
 
   useEffect(() => {
     if (!store.flow && fileInputRef.current) {
@@ -86,11 +84,16 @@ export const BulkImportImageUpload = observer(({ store }) => {
     <div className="p-2">
       <Row>
         <h5 style={{ fontWeight: "600" }}>
-          <FormattedMessage id="PHOTOS_SECTION" /> {store.imageRequired && "*"}
+          <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE" /> {store.imageRequired && "*"}
         </h5>
         <p>
-          <FormattedMessage id="SUPPORTED_FILETYPES" />
-          {`${" "}${maxSize} MB`}
+          <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE_DESC"
+            values={{
+              maxSize: maxSize,
+              maxImageCount: maxImageCount,
+            }}
+          />
+
         </p>
       </Row>
 
@@ -234,7 +237,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
                   }}
                 ></i>
                 <p>
-                  <FormattedMessage id="PHOTO_INSTRUCTION" />
+                  <FormattedMessage id="BULK_IMPORT_PHOTO_INSTRUCTION" />
                 </p>
                 <MainButton
                   onClick={() => fileInputRef.current.click()}
@@ -259,7 +262,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
           </div>
         </Col>
       </Row>
-      <Row className="mt-4 ">
+      <Row className="mt-4 justify-content-end">
         <MainButton
           onClick={() => {
             store.setActiveStep(1);
@@ -267,7 +270,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}
-          style={{ width: "auto", fontSize: "1rem" }}
+          style={{ width: "auto", fontSize: "1rem", }}
         >
           <FormattedMessage id="BULK_IMPORT_NEXT" />
         </MainButton>
