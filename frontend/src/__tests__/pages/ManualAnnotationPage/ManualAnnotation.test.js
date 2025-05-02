@@ -176,6 +176,33 @@ describe("ManualAnnotation", () => {
     expect(vpSelect.value).toBe("Front");
   });
 
+  it("handles no taxonomy error", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            width: 800,
+            height: 600,
+            url: "test.jpg",
+            annotations: [
+              {
+                encounterId: "2",
+                encounterTaxonomy: null,
+                x: 10,
+                y: 10,
+                width: 20,
+                height: 20,
+                theta: 0.3,
+                trivial: false,
+              },
+            ],
+          }),
+      }),
+    );
+    renderComponent();
+    expect(screen.getByText("NO_TAXONOMY")).toBeInTheDocument();
+  });
+
   it("handles MainButton click with valid fields", async () => {
     renderComponent();
 
