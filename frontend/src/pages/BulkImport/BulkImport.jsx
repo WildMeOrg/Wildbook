@@ -8,6 +8,7 @@ import { BulkImportUploadProgress } from "./BulkImportUploadProgress";
 import { BulkImportSpreadsheet } from "./BulkImportSpreadsheet";
 import { BulkImportTableReview } from "./BulkImportTableReview";
 import { BulkImportIdentification } from "./BulkImportIdentification";
+import { BulkImportTask } from "./BulkImportTask";
 
 const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
@@ -20,8 +21,8 @@ const BulkImport = observer(() => {
       {store._activeStep === 0 && <BulkImportImageUpload store={store} />}
       {store._activeStep === 1 && <BulkImportSpreadsheet store={store} />}
       {store._activeStep === 2 && <BulkImportTableReview store={store} />}
-      {store._activeStep === 3 && store._uploadFinished && (
-        <BulkImportIdentification store={store} />
+      {store._activeStep === 3 && (
+        <BulkImportTask store={store} />
       )}
     </Container>
   );

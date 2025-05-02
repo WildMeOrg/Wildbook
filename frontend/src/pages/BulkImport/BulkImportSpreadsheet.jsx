@@ -129,10 +129,11 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   return (
     <div className="p-2">
       <h5 style={{ fontWeight: "600" }}>
-        <FormattedMessage id="SPREADSHEET_SECTION" />
+        <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET" />
       </h5>
       <p>
-        <FormattedMessage id="SUPPORTED_FILETYPES" /> (.csv, .xlsx)
+        <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART1" />
+        <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART2" />
       </p>
 
       <div
@@ -140,8 +141,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
                 flex-column 
                 align-items-center 
                 justify-content-center
-                border
-                ${isDragging ? "border-primary" : "border-secondary"}
                 `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -150,9 +149,10 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           width: "100%",
           height: "200px",
           borderRadius: "10px",
+          border: `1px dashed ${theme.primaryColors.primary500}`,
           backgroundColor: isDragging
-            ? theme.wildMeColors.cyan100
-            : theme.defaultColors.white,
+            ? theme.primaryColors.primary100
+            : theme.primaryColors.primary50,
           transition: "background-color 0.3s ease",
         }}
       >
@@ -164,14 +164,16 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           onChange={handleFileUpload}
         />
         <MainButton
-          variant="primary"
-          className="mb-2"
+          backgroundColor={theme.wildMeColors.cyan700}
+          color={theme.defaultColors.white}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem", margin: "0 auto" }}
           onClick={handleUploadClick}
         >
-          <FormattedMessage id="UPLOAD_SPREADSHEET" />
+          <FormattedMessage id="BROWSE" />
         </MainButton>
       </div>
-      {
+      {store.spreadsheetUploadProgress > 0 &&
         <ProgressBar
           now={store.spreadsheetUploadProgress}
           label={`${store.spreadsheetUploadProgress}%`}
