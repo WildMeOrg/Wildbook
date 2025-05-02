@@ -166,7 +166,7 @@ export default function ManualAnnotation() {
       };
       fetchData();
     }
-  }, [assetId, encounterId]);
+  }, [assetId, encounterId, iaClassesForTaxonomy]);
 
   useEffect(() => {
     const handleMouseUp = () => setIsDrawing(false);
