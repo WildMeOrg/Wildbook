@@ -9,8 +9,7 @@ import javax.jdo.PersistenceManagerFactory;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
-import org.ecocean.api.SiteSettings;
-import org.ecocean.Setting;
+import org.ecocean.api.BulkImport;
 import org.ecocean.User;
 import org.ecocean.servlet.ReCAPTCHA;
 
@@ -47,44 +46,25 @@ import static org.mockito.Mockito.verify;
 
 class BulkApiPostTest {
 
-/*
     PersistenceManagerFactory mockPMF;
     HttpServletRequest mockRequest;
     HttpServletResponse mockResponse;
-    SiteSettings apiServlet;
+    BulkImport apiServlet;
     StringWriter responseOut;
-*/
 
     @BeforeEach
     void setUp() throws IOException {
-/*
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
         mockPMF = mock(PersistenceManagerFactory.class);
-        apiServlet = new SiteSettings();
+        apiServlet = new BulkImport();
 
         responseOut = new StringWriter();
         PrintWriter writer = new PrintWriter(responseOut);
         when(mockResponse.getWriter()).thenReturn(writer);
-*/
-
-/*
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenThrow(new RuntimeException("ohmgee"));
-            })) {
-            mockRequest = mock(HttpServletRequest.class);
-            mockResponse = mock(HttpServletResponse.class);
-            apiServlet = new SiteSettings();
-        }
-*/
     }
 
 
-    @Test void generic() throws ServletException, IOException {
-    }
-
-/*
     @Test void apiPost401() throws ServletException, IOException {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
             (mock, context) -> {
@@ -101,6 +81,7 @@ class BulkApiPostTest {
         }
     }
 
+/*
     @Test void apiPostNonAdmin401() throws ServletException, IOException {
         User user = mock(User.class);
         when(user.isAdmin(any(Shepherd.class))).thenReturn(false);
