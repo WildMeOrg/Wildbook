@@ -74,7 +74,7 @@ public class BulkImport extends ApiBase {
         myShepherd.beginDBTransaction();
         try {
             User currentUser = myShepherd.getUser(request);
-            if ((currentUser == null) || !currentUser.isAdmin(myShepherd)) {
+            if (currentUser == null) {
                 response.setStatus(401);
                 response.setHeader("Content-Type", "application/json");
                 response.getWriter().write("{\"success\": false}");
