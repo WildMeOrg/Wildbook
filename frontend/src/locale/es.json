@@ -365,5 +365,6 @@
     "SEARCH_INDIVIDUALS": "Buscar Individuos",
     "SEARCH_RESULT_DISPLAY": "Tus resultados de búsqueda aparecerán aquí.",
     "UNKNOWN" : "Desconocido",
-    "NO_IA_CLASS" : "Configure una taxonomía en la página de encuentros para ver la clase IA."
+    "NO_IA_CLASS" : "Configure una taxonomía en la página de encuentros para ver la clase IA.",
+    "NO_TAXONOMY": "No se ha configurado la clase IA"
 }

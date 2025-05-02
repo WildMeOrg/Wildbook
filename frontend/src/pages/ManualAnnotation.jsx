@@ -40,6 +40,7 @@ export default function ManualAnnotation() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStatus, setDrawStatus] = useState("DRAW");
   const [iaOptions, setIaOptions] = useState([]);
+  const [taxonomy, setTaxonomy] = useState(null);
   const [rect, setRect] = useState({
     x: 0,
     y: 0,
@@ -68,6 +69,7 @@ export default function ManualAnnotation() {
         ) || {};
       const iaForTaxonomy =
         iaClassesForTaxonomy[annotation?.encounterTaxonomy] || [];
+      setTaxonomy(annotation?.encounterTaxonomy);
       setIaOptions(
         iaForTaxonomy.map((iaClass) => ({
           value: iaClass,
@@ -278,7 +280,18 @@ export default function ManualAnnotation() {
                   setIa(selected);
                 }}
               />
-              {iaOptions.length === 0 && (
+              {!taxonomy && (
+                <div
+                  className="text-danger"
+                  style={{
+                    maxWidth: "200px",
+                    nowrap: "break-word",
+                  }}
+                >
+                  <FormattedMessage id="NO_TAXONOMY" />
+                </div>
+              )}
+              {taxonomy && iaOptions.length === 0 && (
                 <div
                   className="text-danger"
                   style={{
