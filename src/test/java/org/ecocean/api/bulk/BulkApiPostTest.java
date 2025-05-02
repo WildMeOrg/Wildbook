@@ -111,6 +111,40 @@ class BulkApiPostTest {
         return rtn.toString();
     }
 
+    private String getValidPayloadNonArrays() {
+        JSONObject rtn = new JSONObject();
+        JSONArray rows = new JSONArray();
+        for (int i = 0 ; i < 20 ; i++) {
+            JSONObject row = new JSONObject();
+            row.put("Encounter.year", 2000 + i);
+            row.put("Encounter.genus", "Genus" + i);
+            row.put("Encounter.specificEpithet", "specificEpithet" + i);
+            rows.put(row);
+        }
+        rtn.put("rows", rows);
+        return rtn.toString();
+    }
+
+    private String getValidPayloadArrays() {
+        JSONObject rtn = new JSONObject();
+        JSONArray fieldNames = new JSONArray();
+        fieldNames.put("Encounter.year");
+        fieldNames.put("Encounter.genus");
+        fieldNames.put("Encounter.specificEpithet");
+        rtn.put("fieldNames", fieldNames);
+
+        JSONArray rows = new JSONArray();
+        for (int i = 0 ; i < 20 ; i++) {
+            JSONArray row = new JSONArray();
+            row.put(2000 + i);
+            row.put("Genus" + i);
+            row.put("specificEpithet" + i);
+            rows.put(row);
+        }
+        rtn.put("rows", rows);
+        return rtn.toString();
+    }
+
 /*
     "errors": [
         {
@@ -172,9 +206,41 @@ class BulkApiPostTest {
                 verify(mockResponse).setStatus(400);
                 assertFalse(jout.getBoolean("success"));
                 assertTrue(hasError(jout, 0, "fubarFail"));
+                // lets also check the required fields are getting reported
+                assertTrue(hasError(jout, 0, "Encounter.year"));
+                assertTrue(hasError(jout, 0, "Encounter.specificEpithet"));
+                assertTrue(hasError(jout, 0, "Encounter.genus"));
             }
         }
     }
+
+    @Test void apiPostValidNonArrays() throws ServletException, IOException {
+        User user = mock(User.class);
+
+        String requestBody = getValidPayloadNonArrays();
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+                when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doPost(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(200);
+System.out.println(">>>>>>>>>>>>>>>>>>>>> " + jout.toString(4));
+/*
+//// FIXME from here on we need code to work!
+                assertTrue(jout.getBoolean("success"));
+*/
+            }
+        }
+    }
+
 
 /*
     @Test void apiPostSuccess() throws ServletException, IOException {
