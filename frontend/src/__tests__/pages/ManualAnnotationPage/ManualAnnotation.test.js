@@ -10,6 +10,29 @@ import ManualAnnotation from "../../../pages/ManualAnnotation";
 import { MemoryRouter } from "react-router-dom";
 import { IntlProvider } from "react-intl";
 
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    json: () =>
+      Promise.resolve({
+        width: 800,
+        height: 600,
+        url: "test.jpg",
+        annotations: [
+          {
+            encounterId: "2",
+            encounterTaxonomy: "testTaxonomy",
+            x: 10,
+            y: 10,
+            width: 20,
+            height: 20,
+            theta: 0.3,
+            trivial: false,
+          },
+        ],
+      }),
+  }),
+);
+
 jest.mock("react-select", () => {
   const MockReactSelect = (props) => (
     <select
@@ -44,7 +67,7 @@ jest.mock("../../../models/encounters/useCreateAnnotation", () => () => ({
 
 jest.mock("../../../models/useGetSiteSettings", () => () => ({
   data: {
-    iaClass: ["Zebra", "Elephant"],
+    iaClassesForTaxonomy: { testTaxonomy: ["Zebra", "Elephant"] },
     annotationViewpoint: ["Front", "Side"],
   },
 }));
@@ -141,12 +164,16 @@ describe("ManualAnnotation", () => {
 
   it("updates selectors for IA and viewpoint", async () => {
     renderComponent();
-    fireEvent.change(screen.getAllByTestId("mock-select")[0], {
-      target: { value: "Zebra" },
-    });
-    fireEvent.change(screen.getAllByTestId("mock-select")[1], {
-      target: { value: "Front" },
-    });
+
+    expect(await screen.findByText("Zebra")).toBeInTheDocument();
+
+    const iaSelect = screen.getAllByTestId("mock-select")[0];
+    fireEvent.change(iaSelect, { target: { value: "Zebra" } });
+    expect(iaSelect.value).toBe("Zebra");
+
+    const vpSelect = screen.getAllByTestId("mock-select")[1];
+    fireEvent.change(vpSelect, { target: { value: "Front" } });
+    expect(vpSelect.value).toBe("Front");
   });
 
   it("handles MainButton click with valid fields", async () => {
