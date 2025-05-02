@@ -81,32 +81,13 @@ class BulkApiPostTest {
         }
     }
 
-/*
-    @Test void apiPostNonAdmin401() throws ServletException, IOException {
+    @Test void apiPostNoRowsError() throws ServletException, IOException {
         User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(false);
 
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doPost(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(401);
-                assertFalse(jout.getBoolean("success"));
-            }
-        }
-    }
+        String requestBody = "{}";
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
 
-    @Test void apiPostBadPath() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
-
-        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-uri");
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
             (mock, context) -> {
                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
@@ -116,17 +97,69 @@ class BulkApiPostTest {
                 Exception ex = assertThrows(ServletException.class, () -> {
                     apiServlet.doPost(mockRequest, mockResponse);
                 });
-                assertTrue(ex.getMessage().contains("Bad path"));
+                assertEquals(ex.getMessage(), "no rows in payload");
             }
         }
     }
 
-    @Test void apiPostInvalidIdGroup() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+    private String getBadFieldNamesPayload() {
+        JSONObject rtn = new JSONObject();
+        JSONArray rows = new JSONArray();
+        JSONObject badRow = new JSONObject("{\"fubarFail\": 123}");
+        rows.put(badRow);
+        rtn.put("rows", rows);
+        return rtn.toString();
+    }
 
-        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-group/bad-id");
+/*
+    "errors": [
+        {
+            "fieldName": "Encounter.genus",
+            "details": "org.ecocean.api.bulk.BulkValidatorException: required value",
+            "rowNumber": 0,
+            "errors": [{"code": "REQUIRED"}]
+        },
+        {
+            "fieldName": "Encounter.year",
+            "details": "org.ecocean.api.bulk.BulkValidatorException: required value",
+            "rowNumber": 0,
+            "errors": [{"code": "REQUIRED"}]
+        },
+        {
+            "fieldName": "fubarFail",
+            "details": "org.ecocean.api.bulk.BulkValidatorException: invalid fieldName: fubarFail",
+            "rowNumber": 0,
+            "errors": [{"code": "INVALID"}]
+        },
+        {
+            "fieldName": "Encounter.specificEpithet",
+            "details": "org.ecocean.api.bulk.BulkValidatorException: required value",
+            "rowNumber": 0,
+            "errors": [{"code": "REQUIRED"}]
+        }
+*/
+
+    private boolean hasError(JSONObject rtnJson, int rowNumber, String fieldName) {
+        if (rtnJson == null) return false;
+        JSONArray errors = rtnJson.optJSONArray("errors");
+        if (errors == null) return false;
+        for (int i = 0 ; i < errors.length() ; i++) {
+            JSONObject error = errors.optJSONObject(i);
+            if (error == null) continue;
+            int errRowNumber = error.optInt("rowNumber", -9999);
+            String errFieldName = error.optString("fieldName", "__FAIL__");
+            if ((errRowNumber == rowNumber) && errFieldName.equals(fieldName)) return true;
+        }
+        return false;
+    }
+
+    @Test void apiPostRowsBadFieldNames() throws ServletException, IOException {
+        User user = mock(User.class);
+
+        String requestBody = getBadFieldNamesPayload();
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
             (mock, context) -> {
                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
@@ -137,33 +170,13 @@ class BulkApiPostTest {
                 responseOut.flush();
                 JSONObject jout = new JSONObject(responseOut.toString());
                 verify(mockResponse).setStatus(400);
-                assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
+                assertFalse(jout.getBoolean("success"));
+                assertTrue(hasError(jout, 0, "fubarFail"));
             }
         }
     }
 
-    // exception thrown when trying to getOrCreateSetting
-    @Test void apiPostPayloadError() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/site");
-
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                doThrow(new RuntimeException("fail")).when(mock).getOrCreateSetting(any(String.class), any(String.class));
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doPost(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(400);
-                assertEquals(jout.getString("debug"), "java.lang.RuntimeException: fail");
-            }
-        }
-    }
-
+/*
     @Test void apiPostSuccess() throws ServletException, IOException {
         User user = mock(User.class);
         when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
