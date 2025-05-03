@@ -25,6 +25,7 @@ import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -168,7 +169,7 @@ public class Annotation extends Base implements java.io.Serializable {
         jgen.writeBooleanField("matchAgainst", this.getMatchAgainst());
         MediaAsset ma = this.getMediaAsset();
         if (ma != null) {
-            jgen.writeNumberField("mediaAssetId", ma.getId());
+            jgen.writeNumberField("mediaAssetId", ma.getIdInt());
         }
         Encounter enc = this.findEncounter(myShepherd);
         if (enc != null) {

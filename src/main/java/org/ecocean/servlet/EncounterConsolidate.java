@@ -10,6 +10,8 @@ import org.ecocean.*;
 import java.util.*;
 
 import javax.jdo.*;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 public class EncounterConsolidate {
@@ -40,7 +42,7 @@ public class EncounterConsolidate {
     }
 
     public static void renameEncounterSubmitterID(Shepherd myShepherd, Encounter enc,
-        String newSubmitterId) {
+                                                  String newSubmitterId) {
         if (newSubmitterId == null || newSubmitterId.equals("") || enc == null) {
             return;
         }

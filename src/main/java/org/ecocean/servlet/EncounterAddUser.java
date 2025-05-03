@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 

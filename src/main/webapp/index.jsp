@@ -14,7 +14,8 @@
               org.ecocean.metrics.Prometheus
               "
 %>
-
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <jsp:include page="header.jsp" flush="true"/>

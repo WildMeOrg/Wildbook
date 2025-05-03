@@ -522,6 +522,13 @@
       <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
     </class>
 
+	<class name="Setting" identity-type="application">
+		<field name="group" primary-key="true" />
+		<field name="id" primary-key="true" />
+		<field name="value" jdbc-type="LONGVARCHAR" />
+		<field name="created" jdbc-type="BIGINT" />
+		<field name="modified" jdbc-type="BIGINT" />
+	</class>
 
 
     <class name="SuperSpot">

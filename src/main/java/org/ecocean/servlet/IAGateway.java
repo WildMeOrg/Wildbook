@@ -11,7 +11,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.queue.*;
 import org.ecocean.Resolver;
 import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 
@@ -34,6 +34,7 @@ import java.util.UUID;
 public class IAGateway extends HttpServlet {
     private static Queue IAQueue = null;
     private static Queue detectionQueue = null;
+    private static Queue acmIdQueue = null;
     private static Queue IACallbackQueue = null;
 
     public void init(ServletConfig config)
@@ -226,7 +227,7 @@ public class IAGateway extends HttpServlet {
                 task.addParameter("ibeis.detection", true);
             }
             for (MediaAsset ma : mas) {
-                validIds.add(Integer.toString(ma.getId()));
+                validIds.add(ma.getId());
                 if (ma.getOccurrence() == null) needOccurrences.add(ma);
             }
             boolean success = true;
@@ -568,6 +569,13 @@ public class IAGateway extends HttpServlet {
         getDetectionQueue(context).publish(content);
         return true;
     }
+    
+    public static boolean addToAcmIdQueue(String context, String mediaAssetID)
+    throws IOException {
+        System.out.println("IAGateway.addToAcmIdQueue() trying to regist MediaAsset ID: " + mediaAssetID);
+        getAcmIdQueue(context).publish(mediaAssetID);
+        return true;
+    }
 
     public static Queue getIAQueue(String context)
     throws IOException {
@@ -579,6 +587,12 @@ public class IAGateway extends HttpServlet {
     throws IOException {
         detectionQueue = QueueUtil.getBest(context, "detection");
         return detectionQueue;
+    }
+    
+    public static Queue getAcmIdQueue(String context)
+    throws IOException {
+        acmIdQueue = QueueUtil.getBest(context, "acmid");
+        return acmIdQueue;
     }
 
     public static Queue getIACallbackQueue(String context)

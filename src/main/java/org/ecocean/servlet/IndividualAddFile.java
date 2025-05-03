@@ -7,7 +7,7 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.SuperSpot;
 
 import javax.servlet.http.HttpServlet;
