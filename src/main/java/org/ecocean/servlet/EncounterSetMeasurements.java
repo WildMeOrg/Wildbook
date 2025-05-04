@@ -15,8 +15,12 @@ import javax.servlet.ServletException;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+
 import org.ecocean.datacollection.MeasurementEvent;
-import org.ecocean.Shepherd;
+
+import org.ecocean.Measurement;
+import org.ecocean.shepherd.core.Shepherd;
+
 
 public class EncounterSetMeasurements extends HttpServlet {
     private static final Pattern MEASUREMENT_NAME = Pattern.compile(

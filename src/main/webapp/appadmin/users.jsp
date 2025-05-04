@@ -6,6 +6,8 @@
          org.datanucleus.api.jdo.JDOPersistenceManager,org.datanucleus.FetchGroup,javax.jdo.*,
          org.datanucleus.ExecutionContext, org.datanucleus.PersistenceNucleusContext,
          org.datanucleus.api.jdo.JDOPersistenceManagerFactory" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <style type="text/css">

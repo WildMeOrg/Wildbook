@@ -15,7 +15,11 @@ import jxl.*;
 import jxl.write.*;
 
 import org.ecocean.Util.MeasurementDesc;
+
 import org.ecocean.datacollection.MeasurementEvent;
+
+import org.ecocean.shepherd.core.Shepherd;
+
 
 // adds spots to a new encounter
 public class SOCPROGExport extends HttpServlet {

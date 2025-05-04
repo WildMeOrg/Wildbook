@@ -6,6 +6,8 @@
          org.ecocean.tag.*,
          org.datanucleus.api.rest.orgjson.JSONObject,org.ecocean.datacollection.*
          " %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 

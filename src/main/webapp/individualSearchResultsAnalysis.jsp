@@ -6,9 +6,11 @@
 		org.joda.time.format.DateTimeFormatter,
 		org.joda.time.format.ISODateTimeFormat,org.ecocean.datacollection.*
          " %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
-  <%
+<%
   //get our Shepherd
   String context="context0";
   context=ServletUtilities.getContext(request);

@@ -6,6 +6,8 @@
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ page import="java.util.Arrays,org.ecocean.datacollection.*" %>
 <%@ page import="org.ecocean.FormUtilities" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%!

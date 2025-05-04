@@ -28,6 +28,8 @@
          org.apache.commons.codec.net.URLCodec,
          org.ecocean.metrics.Prometheus,org.ecocean.datacollection.MeasurementEvent,
          java.util.*,org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -82,7 +84,7 @@
         Properties props = new Properties();
         //set up the file input stream
         //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
-        props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
+        props= ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
 		System.out.println("Trying to find locationID code");
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {

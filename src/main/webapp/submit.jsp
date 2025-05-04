@@ -4,8 +4,13 @@
                  org.ecocean.*,
                  java.util.Properties,
                  java.util.List,java.util.ArrayList,
+
                  java.util.Locale,
                  org.ecocean.datacollection.*" %>
+
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+
 
 
 <!-- Add reCAPTCHA -->

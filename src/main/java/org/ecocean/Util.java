@@ -10,12 +10,14 @@ import java.util.UUID;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
+import org.ecocean.tag.MetalTag;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 
 import java.util.regex.Pattern;
 import net.jpountz.xxhash.StreamingXXHash32;
@@ -49,8 +51,6 @@ import java.util.Set;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-
-import org.ecocean.tag.MetalTag;
 
 import com.reijns.I3S.Point2D;
 
@@ -164,7 +164,6 @@ public class Util {
         List<String> values = CommonConfiguration.getIndexedPropertyValues("samplingProtocol",
             context);
         List<OptionDesc> list = new ArrayList<OptionDesc>();
-
         int valuesSize = values.size();
 
         for (int i = 0; i < valuesSize; i++) {
@@ -597,7 +596,7 @@ public class Util {
         return null;
     }
 
-    //GPS Longitude: "-69.0° 22.0' 45.62999999998169"",
+    // GPS Longitude: "-69.0° 22.0' 45.62999999998169"",
     public static Double latlonDMStoDD(String dms) {
         String[] d = dms.split(" +");
 
@@ -1120,7 +1119,7 @@ public class Util {
     public static long getVersionFromModified(final String modified) {
         if (!stringExists(modified)) return 0;
         try {
-            String iso8601 = getISO8601Date(modified);
+            String iso8601 = roundISO8601toMillis(getISO8601Date(modified));
             if (iso8601 == null) return 0;
             // switching from DateTimeFormatter to DateTime here because the math seems to line up with how psql does it -jon
             return new DateTime(iso8601).getMillis();
@@ -1128,6 +1127,15 @@ public class Util {
             e.printStackTrace();
             return 0;
         }
+    }
+
+    public static String roundISO8601toMillis(final String input) {
+        if ((input == null) || (input.length() < 24)) return input;
+        try {
+            float seconds = Float.parseFloat(input.substring(17)) + 0.0005f;
+            return input.substring(0, 17) + String.valueOf(seconds).substring(0, 6);
+        } catch (Exception ex) {}
+        return input;
     }
 
     // note: this respect user.receiveEmails - you have been warned
@@ -1145,7 +1153,6 @@ public class Util {
     public static String getISO8601Date(final String date) {
         if (date == null) return null;
         String iso8601 = date.replace(" ", "T");
-
         if (iso8601.length() == 10) iso8601 += "T00:00:00";
         // TODO: better testing of date's string format (or transition to date format support?)
         if (iso8601.length() < 16) return null;

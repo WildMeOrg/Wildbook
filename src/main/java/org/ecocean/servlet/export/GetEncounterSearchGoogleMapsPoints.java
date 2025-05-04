@@ -21,6 +21,8 @@ import java.util.Vector;
 import org.ecocean.*;
 import org.ecocean.security.HiddenEncReporter;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.*;
 
 import java.io.OutputStream;

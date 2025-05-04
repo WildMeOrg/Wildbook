@@ -14,6 +14,7 @@ import java.util.TreeSet;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.apache.shiro.web.util.WebUtils;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServletRequest;
 

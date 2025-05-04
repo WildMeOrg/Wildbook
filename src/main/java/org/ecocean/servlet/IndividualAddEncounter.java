@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.ecocean.ai.nmt.azure.DetectTranslate;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -17,10 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-
-import javax.jdo.*;
 
 public class IndividualAddEncounter extends HttpServlet {
     public void init(ServletConfig config)

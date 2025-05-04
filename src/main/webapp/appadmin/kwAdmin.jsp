@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.Shepherd" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="javax.jdo.Extent" %>
 <%@ page import="javax.jdo.Query" %>
 <%@ page import="java.util.Iterator" %>
