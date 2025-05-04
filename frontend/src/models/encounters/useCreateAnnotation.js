@@ -23,8 +23,6 @@ export default function useCreateAnnotation() {
     setLoading(true);
     setError(null);
 
-    console.log("rotation", rotation);
-
     try {
       const response = await axios.request({
         method: "post",

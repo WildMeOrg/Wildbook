@@ -9,7 +9,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
 import org.joda.time.format.*;
 

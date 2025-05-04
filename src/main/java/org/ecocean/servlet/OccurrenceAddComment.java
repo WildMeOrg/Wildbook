@@ -1,6 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

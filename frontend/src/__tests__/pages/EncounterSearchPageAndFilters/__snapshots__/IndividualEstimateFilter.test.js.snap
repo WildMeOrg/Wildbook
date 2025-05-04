@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`IndividualEstimateFilter Component matches snapshot 1`] = `
+<DocumentFragment>
+  <div>
+    <h4>
+      FILTER_INDIVIDUAL_ESTIMATE
+    </h4>
+    <div
+      style="font-size: 14px; font-weight: 400; line-height: 21px; color: rgb(175, 179, 183); margin-bottom: 1rem;"
+    >
+      FILTER_INDIVIDUAL_ESTIMATE_DESC
+    </div>
+    <div
+      class="mt-2"
+    >
+      <label
+        class="form-label"
+      >
+        FILTER_BEST_ESTIMATE_INDIVIDUALS
+      </label>
+      <input
+        class="form-control"
+        placeholder="Type here"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      class="mt-2"
+    >
+      <label
+        class="form-label"
+      >
+        FILTER_MINIMUM_ESTIMATE_INDIVIDUALS
+      </label>
+      <input
+        class="form-control"
+        placeholder="Type here"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      class="mt-2"
+    >
+      <label
+        class="form-label"
+      >
+        FILTER_MAXIMUM_ESTIMATE_INDIVIDUALS
+      </label>
+      <input
+        class="form-control"
+        placeholder="Type here"
+        type="text"
+        value=""
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;

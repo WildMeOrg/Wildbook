@@ -1,0 +1,256 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SocialFilter Component matches snapshot 1`] = `
+<DocumentFragment>
+  <div>
+    <h4>
+      FILTER_SOCIAL
+    </h4>
+    <div
+      style="font-size: 14px; font-weight: 400; line-height: 21px; color: rgb(175, 179, 183); margin-bottom: 1rem;"
+    >
+      FILTER_SOCIAL_DESC
+    </div>
+    <div
+      class="mt-2"
+    >
+      <label
+        class="form-label"
+      >
+        FILTER_GROUP_BEHAVIOR
+      </label>
+      <input
+        class="form-control"
+        placeholder="Type here"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      class="mt-2"
+    >
+      <label
+        class="form-label"
+      >
+        FILTER_GROUP_COMPOSITION
+      </label>
+      <input
+        class="form-control"
+        placeholder="Type here"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      class="d-flex flex-row justify-content-between mt-2"
+    >
+      <label
+        class="form-label"
+      >
+        FILTER_SOCIAL_UNIT
+      </label>
+      <div
+        class="form-check"
+      >
+        <input
+          class="form-check-input"
+          id="custom-checkbox_unit"
+          type="checkbox"
+        />
+        <label
+          class="form-check-label"
+          for="custom-checkbox_unit"
+          title=""
+        >
+          USE_AND_OPERATOR
+        </label>
+      </div>
+    </div>
+    <div
+      class="mt-2"
+    >
+      <div
+        class="basic-multi-select css-b62m3t-container"
+      >
+        <span
+          class="css-1f43avz-a11yText-A11yText"
+          id="react-select-18-live-region"
+        />
+        <span
+          aria-atomic="false"
+          aria-live="polite"
+          aria-relevant="additions text"
+          class="css-1f43avz-a11yText-A11yText"
+          role="log"
+        />
+        <div
+          class="select__control css-48d7p1-control"
+        >
+          <div
+            class="select__value-container select__value-container--is-multi css-hlgwow"
+          >
+            <div
+              class="select__placeholder css-1jqq78o-placeholder"
+              id="react-select-18-placeholder"
+            >
+              Select one or more
+            </div>
+            <div
+              class="select__input-container css-19bb58m"
+              data-value=""
+            >
+              <input
+                aria-activedescendant=""
+                aria-autocomplete="list"
+                aria-describedby="react-select-18-placeholder"
+                aria-expanded="false"
+                aria-haspopup="true"
+                autocapitalize="none"
+                autocomplete="off"
+                autocorrect="off"
+                class="select__input"
+                id="react-select-18-input"
+                role="combobox"
+                spellcheck="false"
+                style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                tabindex="0"
+                type="text"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class="select__indicators css-1wy0on6"
+          >
+            <span
+              class="select__indicator-separator css-1u9des2-indicatorSeparator"
+            />
+            <div
+              aria-hidden="true"
+              class="select__indicator select__dropdown-indicator css-1xc3v61-indicatorContainer"
+            >
+              <svg
+                aria-hidden="true"
+                class="css-tj5bde-Svg"
+                focusable="false"
+                height="20"
+                viewBox="0 0 20 20"
+                width="20"
+              >
+                <path
+                  d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="d-flex flex-row justify-content-between mt-2"
+    >
+      <label
+        class="form-label"
+      >
+        FILTER_RELATIONSHIP_ROLE
+      </label>
+      <div
+        class="form-check"
+      >
+        <input
+          class="form-check-input"
+          id="custom-checkbox_role"
+          type="checkbox"
+        />
+        <label
+          class="form-check-label"
+          for="custom-checkbox_role"
+          title=""
+        >
+          USE_AND_OPERATOR
+        </label>
+      </div>
+    </div>
+    <div
+      class="mt-2"
+    >
+      <div
+        class="basic-multi-select css-b62m3t-container"
+      >
+        <span
+          class="css-1f43avz-a11yText-A11yText"
+          id="react-select-19-live-region"
+        />
+        <span
+          aria-atomic="false"
+          aria-live="polite"
+          aria-relevant="additions text"
+          class="css-1f43avz-a11yText-A11yText"
+          role="log"
+        />
+        <div
+          class="select__control css-48d7p1-control"
+        >
+          <div
+            class="select__value-container select__value-container--is-multi css-hlgwow"
+          >
+            <div
+              class="select__placeholder css-1jqq78o-placeholder"
+              id="react-select-19-placeholder"
+            >
+              Select one or more
+            </div>
+            <div
+              class="select__input-container css-19bb58m"
+              data-value=""
+            >
+              <input
+                aria-activedescendant=""
+                aria-autocomplete="list"
+                aria-describedby="react-select-19-placeholder"
+                aria-expanded="false"
+                aria-haspopup="true"
+                autocapitalize="none"
+                autocomplete="off"
+                autocorrect="off"
+                class="select__input"
+                id="react-select-19-input"
+                role="combobox"
+                spellcheck="false"
+                style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                tabindex="0"
+                type="text"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class="select__indicators css-1wy0on6"
+          >
+            <span
+              class="select__indicator-separator css-1u9des2-indicatorSeparator"
+            />
+            <div
+              aria-hidden="true"
+              class="select__indicator select__dropdown-indicator css-1xc3v61-indicatorContainer"
+            >
+              <svg
+                aria-hidden="true"
+                class="css-tj5bde-Svg"
+                focusable="false"
+                height="20"
+                viewBox="0 0 20 20"
+                width="20"
+              >
+                <path
+                  d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

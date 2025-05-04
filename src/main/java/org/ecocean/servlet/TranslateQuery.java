@@ -15,6 +15,7 @@ import java.util.List;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.ecocean.shepherd.core.Shepherd;
 
 /**
  * Takes a mongoDB-like JS query from the UI (on any MediaAsset-containing-class), and returns an array of all MediaAssets from those objects that

@@ -11,7 +11,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.queue.*;
 import org.ecocean.Resolver;
 import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 
@@ -227,7 +227,7 @@ public class IAGateway extends HttpServlet {
                 task.addParameter("ibeis.detection", true);
             }
             for (MediaAsset ma : mas) {
-                validIds.add(Integer.toString(ma.getId()));
+                validIds.add(ma.getId());
                 if (ma.getOccurrence() == null) needOccurrences.add(ma);
             }
             boolean success = true;
