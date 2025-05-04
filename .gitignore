@@ -6,6 +6,7 @@ target
 bin
 out
 .idea*
+.sdkmanrc
 *.ipr
 *.iml
 *.iws
@@ -45,6 +46,5 @@ catalina.base_IS_UNDEFINED
 /frontend/dist
 /frontend/.env
 /frontend/build
-/frontend/.env
 /frontend/src/serviceWorkerRegistration.js
 /frontend/src/serviceWorker.js

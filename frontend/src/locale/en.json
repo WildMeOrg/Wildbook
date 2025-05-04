@@ -365,6 +365,7 @@
     "SYSTEM_ID": "System ID",
     "SEARCH_INDIVIDUALS": "Search Individuals",
     "SEARCH_RESULT_DISPLAY" : "Your search results will appear here",
-    "UNKNOWN" : "Unknown"
-
+    "UNKNOWN" : "Unknown",
+    "NO_IA_CLASS" : "No IA Class configured",
+    "NO_TAXONOMY" : "Set a taxonomy on the encounter page to view IA Class."
 }
