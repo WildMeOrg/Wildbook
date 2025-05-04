@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.*;
 //import org.ecocean.servlet.ServletUtilities;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;

@@ -20,6 +20,7 @@ import java.lang.StringBuffer;
 import jxl.write.*;
 import jxl.Workbook;
 import jxl.CellType;
+import org.ecocean.shepherd.core.*;
 
 
 public class SwotExport extends HttpServlet{

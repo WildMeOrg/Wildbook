@@ -27,7 +27,7 @@ import static org.ecocean.Util.jdoStringContainsConstraint;
 import static org.ecocean.Util.undoUrlEncoding;
 
 import static org.ecocean.servlet.ServletUtilities.getParameterOrAttribute;
-
+import org.ecocean.shepherd.core.*;
 
 
 // Inspired by IndividualQueryProcessor

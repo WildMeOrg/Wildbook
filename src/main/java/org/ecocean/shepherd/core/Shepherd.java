@@ -48,7 +48,8 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 
 //IOT customization
-import org.ecocean.datacollection.*;
+import org.ecocean.datacollection.DataSheet;
+import org.ecocean.Observation;
 
 
 /**
