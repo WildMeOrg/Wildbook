@@ -80,7 +80,12 @@ const Footer = () => {
                   {" | "}
                 </a>
               ) : null}
-              <FormattedMessage id="FOOTER_COPYRIGHT" />
+              <FormattedMessage
+                id="FOOTER_COPYRIGHT"
+                values={{
+                  year: new Date().getFullYear(),
+                }}
+              />
             </p>
           </Col>
         </Row>
