@@ -39,8 +39,9 @@ export default function ManualAnnotation() {
   const [viewpoint, setViewpoint] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStatus, setDrawStatus] = useState("DRAW");
-  const [iaOptions, setIaOptions] = useState([]);
-  const [taxonomy, setTaxonomy] = useState(null);
+  const [iaOptions, setIaOptions] = useState(null);
+  const [loadingIa, setLoadingIa] = useState(true);
+  const [taxonomy, setTaxonomy] = useState("");
   const [rect, setRect] = useState({
     x: 0,
     y: 0,
@@ -58,6 +59,7 @@ export default function ManualAnnotation() {
   }));
 
   const getMediaAssets = async () => {
+    setLoadingIa(true);
     try {
       const response = await fetch(`/api/v3/media-assets/${assetId}`);
       const data = await response.json();
@@ -76,8 +78,10 @@ export default function ManualAnnotation() {
           label: iaClass,
         })),
       );
+      setLoadingIa(false);
     } catch (error) {
       alert("Error fetching media assets", error);
+      setLoadingIa(false);
     }
   };
 
@@ -162,13 +166,13 @@ export default function ManualAnnotation() {
   }, [data]);
 
   useEffect(() => {
-    if (assetId && encounterId) {
+    if (assetId && encounterId && siteData) {
       const fetchData = async () => {
         await getMediaAssets();
       };
       fetchData();
     }
-  }, [assetId, encounterId, iaClassesForTaxonomy]);
+  }, [assetId, encounterId, siteData?.iaClassesForTaxonomy]);
 
   useEffect(() => {
     const handleMouseUp = () => setIsDrawing(false);
@@ -280,7 +284,7 @@ export default function ManualAnnotation() {
                   setIa(selected);
                 }}
               />
-              {!taxonomy && (
+              {!loadingIa && !taxonomy && (
                 <div
                   className="text-danger"
                   style={{
@@ -291,7 +295,7 @@ export default function ManualAnnotation() {
                   <FormattedMessage id="NO_TAXONOMY" />
                 </div>
               )}
-              {taxonomy && iaOptions.length === 0 && (
+              {!loadingIa && taxonomy && iaOptions.length === 0 && (
                 <div
                   className="text-danger"
                   style={{
