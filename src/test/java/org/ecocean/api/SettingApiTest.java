@@ -229,7 +229,7 @@ System.out.println(">>> " + jout.toString(4));
                     JSONObject jout = new JSONObject(responseOut.toString());
                     // kinda meek test of results, but a decent start?
                     assertTrue(jout.has("users"));  // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 39);
+                    assertEquals(jout.keySet().size(), 40);
                 }
             }
         }
@@ -249,7 +249,7 @@ System.out.println(">>> " + jout.toString(4));
                     JSONObject jout = new JSONObject(responseOut.toString());
                     // kinda meek test of results, but a decent start?
                     assertFalse(jout.has("users"));  // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 37);
+                    assertEquals(jout.keySet().size(), 38);
                 }
             }
         }
