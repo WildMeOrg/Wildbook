@@ -84,6 +84,14 @@ export const DataTable = observer(({ store }) => {
   const validLocationIDs = siteData?.locationData.locationID || [];
   const validSubmitterIDs = siteData?.users?.map((user) => user.username) || [];
   const validSpecies = siteData?.siteTaxonomies || [];
+  const validCountryIDs = siteData?.country || [];
+  const validSex = siteData?.sex || ["male","female"];
+  const validLifeStages = siteData?.lifeStage || [];
+  const validLivingStatus = siteData?.livingStatus || [];
+  const validBehavior = siteData?.behavior || [];
+
+  console.log("validBehavior", validBehavior);
+  console.log("store behavior", store.validBehavior);
 
   const extractAllValues = (treeData) => {
     const values = [];
@@ -104,6 +112,11 @@ export const DataTable = observer(({ store }) => {
   );
   store.setValidSubmitterIDs(validSubmitterIDs);
   store.setValidSpecies(validSpecies.map((species) => species.scientificName));
+  store.setValidCountryIDs(validCountryIDs);
+  store.setValidSex(validSex);
+  store.setValidLifeStages(validLifeStages);
+  store.setValidLivingStatus(validLivingStatus);
+  store.setValidBehavior(validBehavior);
 
   useEffect(() => {
     if (store.spreadsheetData.length > 0) {
