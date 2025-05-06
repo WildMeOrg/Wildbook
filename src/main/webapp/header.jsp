@@ -366,6 +366,7 @@ if(request.getUserPrincipal()!=null){
 		          }
 	          });
         }
+       });
       </script>
 
       <%
