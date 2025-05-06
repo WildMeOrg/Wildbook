@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
@@ -74,6 +75,11 @@ public class GenericObject extends ApiBase {
                                         if (ft.getParameters() != null) jann = ft.getParameters();
                                     }
                                 }
+                            }
+                            Encounter enc = ann.findEncounter(myShepherd);
+                            if (enc != null) {
+                                jann.put("encounterId", enc.getId());
+                                jann.put("encounterTaxonomy", enc.getTaxonomyString());
                             }
                             jann.put("id", ann.getId());
                             janns.put(jann);
