@@ -356,8 +356,9 @@ public class IAGateway extends HttpServlet {
         }
 
         Task parentTaskRetried = null;
+        String retriedFailedTaskId = null;
         if (isRetriedFailedTask) {
-            String retriedFailedTaskId = jin.getString("taskId");
+            retriedFailedTaskId = jin.getString("taskId");
 
             String sql =
                     "SELECT \"ID\", \"COMPLETIONDATEINMILLISECONDS\", \"CREATED\", \"MODIFIED\", \"PARAMETERS\", \"QUEUERESUMEMESSAGE\", \"STATUS\"" +
@@ -365,7 +366,9 @@ public class IAGateway extends HttpServlet {
             Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
             q.setClass(Task.class);
             List<Task> tasks = (List<Task>) q.execute();
-            parentTaskRetried = tasks.get(0);
+            if (!tasks.isEmpty()) {
+                parentTaskRetried = tasks.get(0);
+            }
 
             SqlHelper.executeRawSql(
                     myShepherd.getPM(),
@@ -407,10 +410,30 @@ public class IAGateway extends HttpServlet {
                 }
             }
             if (isRetriedFailedTask) {
-//                SqlHelper.executeRawSql(
-//                        myShepherd.getPM(),
-//                        "DELETE FROM \"TASK\" WHERE \"ID\" = '" + parentTask.getId() + "'"
-//                );
+                myShepherd.beginDBTransaction();
+                String sql = "SELECT t.\"QUEUERESUMEMESSAGE\" as qresumemsg FROM \"TASK\" t WHERE t.\"ID\" = '" + retriedFailedTaskId + "'";
+                List<Object[]> results = SqlHelper.executeRawSql(myShepherd.getPM(), sql);
+
+
+                String queueResumeMessage = (String) results.get(0)[0];
+                JSONObject queueResumeObj;
+                if (queueResumeMessage != null && !queueResumeMessage.isEmpty()) {
+                    queueResumeObj = new JSONObject(queueResumeMessage);
+                } else {
+                    queueResumeObj = new JSONObject();
+                }
+
+                JSONArray retriedList = new JSONArray();
+                for (Task task : subTasks) {
+                    retriedList.put(task.getId());
+                }
+                queueResumeObj.put("retriedMatcher", retriedList);
+
+                myShepherd.beginDBTransaction();
+                SqlHelper.executeRawSql(
+                    myShepherd.getPM(),
+                    "UPDATE \"TASK\" SET \"QUEUERESUMEMESSAGE\" = '" + queueResumeObj.toString() + "', \"MODIFIED\" = " + new java.util.Date().getTime() + " WHERE \"ID\" = '" + retriedFailedTaskId + "'"
+                );
             } else {
                 myShepherd.storeNewTask(parentTask);
             }
