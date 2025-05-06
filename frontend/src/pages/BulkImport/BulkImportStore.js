@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import Flow from "@flowjs/flow.js";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4, validate } from "uuid";
 
 export class BulkImportStore {
   _imagePreview = [];
@@ -72,7 +72,12 @@ export class BulkImportStore {
   _validSubmitterIDs = [];
   _validGenus = [];
   _validspecies = [];
-  _columnsUseSelectCell = ["species", "location", "submitterID"];
+  _validCountryIDs = [];
+  _validLivingStatus = [];
+  _validLifeStages = [];
+  _validSex = [];
+  _validBehavior = [];
+  _columnsUseSelectCell = ["species", "location", "submitterID", "country", "lifeStage", "livingStatus", "sex", "behavior"];
   _validationRules = {
     mediaAsset: {
       required: true,
@@ -147,6 +152,41 @@ export class BulkImportStore {
         return this._validSubmitterIDs.includes(value);
       },
       message: "Submitter ID must be a valid submitter ID",
+    },
+    country: {
+      required: false,
+      validate: (val) => {
+        return this._validCountryIDs.includes(val);
+      },
+      message: "must be a valid country ID",
+    },
+    livingStatus: {
+      required: false,
+      validate: (val) => {
+        return this._validLivingStatus.includes(val);
+      },
+      message: "must be a valid living status",
+    },
+    lifeStage: {
+      required: false,
+      validate: (val) => {
+        return this._validLifeStages.includes(val);
+      },
+      message: "must be a valid life stage",
+    },  
+    sex: {
+      required: false,
+      validate: (val) => {
+        return this._validSex.includes(val);
+      },
+      message: "must be a valid sex",
+    },
+    behavior: {
+      required: false,
+      validate: (val) => {
+        return this._validBehavior.includes(val);
+      },
+      message: "must be a valid behavior",
     },
   };
 
@@ -264,15 +304,32 @@ export class BulkImportStore {
     this._validSubmitterIDs = submitterIDs;
   }
 
-  setValidGenus(genus) {
-    this._validGenus = genus;
-  }
-
   setValidSpecies(species) {
     this._validspecies = species;
   }
 
+  setValidCountryIDs(countryIDs) {
+    this._validCountryIDs = countryIDs;
+  }
+
+  setValidLivingStatus(livingStatus) {
+    this._validLivingStatus = livingStatus;
+  }
+
+  setValidLifeStages(lifeStages) {
+    this._validLifeStages = lifeStages;
+  }
+
+  setValidSex(sex) {
+    this._validSex = sex;
+  }
+
+  setValidBehavior(behavior) {
+    this._validBehavior = behavior;
+  }
+
   getOptionsForSelectCell(col) {
+    console.log("getOptionsForSelectCell", col);
     if (col === "location") {
       return this._validLocationIDs.map((id) => ({
         value: id,
@@ -288,7 +345,34 @@ export class BulkImportStore {
         value: species,
         label: species,
       }));
+    } else if (col === "country") {
+      return this._validCountryIDs.map((id) => ({
+        value: id,
+        label: id,
+      }));
+    } else if (col === "livingStatus") {
+      return this._validLivingStatus.map((status) => ({
+        value: status,
+        label: status,
+      }));
     }
+    else if (col === "lifeStage") {
+      return this._validLifeStages.map((stage) => ({
+        value: stage,
+        label: stage,
+      }));
+    } else if (col === "sex") {
+      return this._validSex.map((data) => (
+        { value: data, label: data }
+      ))
+    } else if (col === "behavior") {
+      return this._validBehavior.map((data) => (
+        { value: data, 
+          label: data }
+      ))
+    }
+
+
     return [];
   }
 
