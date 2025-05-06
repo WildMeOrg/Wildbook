@@ -233,7 +233,7 @@ if(request.getUserPrincipal()!=null){
             '<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>' +
           '</svg>';
 
-          searchButton.addEventListener("click", function() {
+          if(searchButton)searchButton.addEventListener("click", function() {
             searchInput.value = "";
             resultsDropdown.innerHTML = "";
             resultsDropdown.style.display = "none";
@@ -347,24 +347,25 @@ if(request.getUserPrincipal()!=null){
             });
         }
 
-          // Event listener for input changes
-          searchInput.addEventListener("focus", function() {
-            resultsDropdown.style.display = "block";
-            resultsDropdown.innerHTML = searchResultDisplay;
-          });
-          searchInput.addEventListener("input", debounce(performSearch, 300));
-         
-          // Event listener to close dropdown when clicking outside
-          document.addEventListener("click", function(event) {
-          const searchInput = document.getElementById("quick-search-input");
-          const resultsDropdown = document.getElementById("quick-search-results");
-
-          if (!searchInput.contains(event.target) && !resultsDropdown.contains(event.target)) {
-            resultsDropdown.style.display = "none";
-            searchInput.value = "";
-            }
-          });
-        });
+          if(searchInput){
+	          // Event listener for input changes
+	          searchInput.addEventListener("focus", function() {
+	            resultsDropdown.style.display = "block";
+	            resultsDropdown.innerHTML = searchResultDisplay;
+	          });
+	          searchInput.addEventListener("input", debounce(performSearch, 300));
+	         
+	          // Event listener to close dropdown when clicking outside
+	          document.addEventListener("click", function(event) {
+		          const searchInput = document.getElementById("quick-search-input");
+		          const resultsDropdown = document.getElementById("quick-search-results");
+		
+		          if (!searchInput.contains(event.target) && !resultsDropdown.contains(event.target)) {
+			            resultsDropdown.style.display = "none";
+			            searchInput.value = "";
+		          }
+	          });
+        }
       </script>
 
       <%
