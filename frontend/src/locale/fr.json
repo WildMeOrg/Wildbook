@@ -76,7 +76,7 @@
     "FOOTER_INSTAGRAM": "Instagram",
     "FOOTER_LINKEDIN": "LinkedIn",
     "FOOTER_DESC": "Outils IA pour la conservation de la faune sauvage internationale et collaborative",
-    "FOOTER_COPYRIGHT": "2024 © Conservation X Labs | Tous droits réservés",
+    "FOOTER_COPYRIGHT": "{year} © Conservation X Labs | Tous droits réservés",
     "REPORT_AN_ENCOUNTER": "Signaler une Rencontre",
     "SUBMIT_NEW_DATA": "Soumettre de nouvelles données",
     "BULK_REPORT": "Rapport en Gros",

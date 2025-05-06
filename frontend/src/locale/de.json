@@ -52,7 +52,7 @@
     "SEARCH": "Suche",
     "ADMINISTER": "Verwalten",
     "FOOTER_DESC": "KI-Tools für den kollaborativen, internationalen Schutz von Wildtieren",
-    "FOOTER_COPYRIGHT": "2024 © Conservation X Labs | Alle Rechte vorbehalten",
+    "FOOTER_COPYRIGHT": "{year} © Conservation X Labs | Alle Rechte vorbehalten",
     "HOME": "Zuhause",
     "FOOTER_DOCUMENTATION": "Dokumentation",
     "FOOTER_COMMUNITY_FORUM": "Gemeinschaftsforum",
