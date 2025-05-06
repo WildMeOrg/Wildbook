@@ -4,12 +4,29 @@ package org.ecocean.api.bulk;
 import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.ecocean.api.ApiException;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 public class BulkImportUtil {
+
+    public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues, Shepherd myShepherd) {
+        if ((fieldNames == null) || (rowValues == null)) return new HashMap<String, Object>();
+        JSONObject row = new JSONObject();
+        int i = 0;
+        for (String fieldName : fieldNames) {
+            if (i < rowValues.length()) {
+                row.put(fieldName, rowValues.get(i));
+            } else {
+                row.put(fieldName, JSONObject.NULL);
+            }
+            i++;
+        }
+        return validateRow(row, myShepherd);
+    }
 
     public static Map<String, Object> validateRow(JSONObject row, Shepherd myShepherd) {
         Map<String, Object> rtn = new HashMap<String, Object>();
