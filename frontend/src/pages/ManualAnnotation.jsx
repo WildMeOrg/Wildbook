@@ -39,6 +39,9 @@ export default function ManualAnnotation() {
   const [viewpoint, setViewpoint] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStatus, setDrawStatus] = useState("DRAW");
+  const [iaOptions, setIaOptions] = useState(null);
+  const [loadingIa, setLoadingIa] = useState(true);
+  const [taxonomy, setTaxonomy] = useState("");
   const [rect, setRect] = useState({
     x: 0,
     y: 0,
@@ -46,24 +49,39 @@ export default function ManualAnnotation() {
     height: 0,
     rotation: 0,
   });
-
   const { data: siteData } = useGetSiteSettings();
-  const iaOptions = siteData?.iaClass?.map((iaClass) => ({
-    value: iaClass,
-    label: iaClass,
-  }));
+
+  const iaClassesForTaxonomy = siteData?.iaClassesForTaxonomy || {};
+
   const viewpointOptions = siteData?.annotationViewpoint?.map((viewpoint) => ({
     value: viewpoint,
     label: viewpoint,
   }));
 
   const getMediaAssets = async () => {
+    setLoadingIa(true);
     try {
       const response = await fetch(`/api/v3/media-assets/${assetId}`);
       const data = await response.json();
       setData(data);
+
+      const annotation =
+        data.annotations?.find(
+          (annotation) => annotation.encounterId === encounterId,
+        ) || {};
+      const iaForTaxonomy =
+        iaClassesForTaxonomy[annotation?.encounterTaxonomy] || [];
+      setTaxonomy(annotation?.encounterTaxonomy);
+      setIaOptions(
+        iaForTaxonomy.map((iaClass) => ({
+          value: iaClass,
+          label: iaClass,
+        })),
+      );
+      setLoadingIa(false);
     } catch (error) {
       alert("Error fetching media assets", error);
+      setLoadingIa(false);
     }
   };
 
@@ -148,13 +166,13 @@ export default function ManualAnnotation() {
   }, [data]);
 
   useEffect(() => {
-    if (assetId && encounterId) {
+    if (assetId && encounterId && siteData) {
       const fetchData = async () => {
         await getMediaAssets();
       };
       fetchData();
     }
-  }, [assetId, encounterId]);
+  }, [assetId, encounterId, siteData?.iaClassesForTaxonomy]);
 
   useEffect(() => {
     const handleMouseUp = () => setIsDrawing(false);
@@ -266,6 +284,28 @@ export default function ManualAnnotation() {
                   setIa(selected);
                 }}
               />
+              {!loadingIa && !taxonomy && (
+                <div
+                  className="text-danger"
+                  style={{
+                    maxWidth: "200px",
+                    nowrap: "break-word",
+                  }}
+                >
+                  <FormattedMessage id="NO_TAXONOMY" />
+                </div>
+              )}
+              {!loadingIa && taxonomy && iaOptions.length === 0 && (
+                <div
+                  className="text-danger"
+                  style={{
+                    maxWidth: "200px",
+                    nowrap: "break-word",
+                  }}
+                >
+                  <FormattedMessage id="NO_IA_CLASS" />
+                </div>
+              )}
             </Form.Group>
             <Form.Group controlId="formBasicEmail">
               <Form.Label>
