@@ -49,6 +49,10 @@
             String taskTypeQueryParam = (String) request.getAttribute("taskTypeQueryParam");
             String detectionDisabled = taskTypeQueryParam.equals("detection") ? "disabled" : "";
             String matcherDisabled = taskTypeQueryParam.equals("matcher") ? "disabled" : "";
+
+            Boolean previousPage = (Boolean) request.getAttribute("previousPage");
+            Boolean nextPage = (Boolean) request.getAttribute("nextPage");
+            int currentPage = (Integer) request.getAttribute("page");
         %>
 
         <h4>Task type:</h4>
@@ -110,6 +114,8 @@
             <td>
                 <form method="post" action="retry">
                     <input type="hidden" name="taskId" value="<%= task.get("id") %>"/>
+                    <input type="hidden" name="type" value="<%= taskTypeQueryParam %>"/>
+                    <input type="hidden" name="page" value="<%= currentPage %>"/>
                     <button type="submit">Retry</button>
                 </form>
             </td>
@@ -123,10 +129,6 @@
     </table>
 
     <div class="pagination">
-        <% Boolean previousPage = (Boolean) request.getAttribute("previousPage"); %>
-        <% Boolean nextPage = (Boolean) request.getAttribute("nextPage"); %>
-        <% int currentPage = (Integer) request.getAttribute("page"); %>
-
         <% if (previousPage) { %>
         <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage - 1 %>">&laquo; Previous</a>
         <% } %>

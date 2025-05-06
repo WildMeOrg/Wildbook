@@ -96,7 +96,9 @@ public class TaskRetry extends HttpServlet {
                         task.setStatus("retried");
                     }
                     tx.commit();
-//                pm.deletePersistent(task);
+
+                    request.setAttribute("type", request.getParameter("type"));
+                    request.setAttribute("page", request.getParameter("page"));
                     request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
                 }
             } catch (Exception e) {
