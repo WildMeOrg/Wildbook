@@ -396,7 +396,7 @@ h2.vidcap {
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
-Zebra Codex applies AI to speed and scale multi-species research efforts across Africa in support of data-driven conservation strategies. Whenever possible, we make it available for open source use while protecting the associated metadata.
+Wildbook applies AI to speed and scale multi-species research efforts across Africa in support of data-driven conservation strategies. Whenever possible, we make it available for open source use while protecting the associated metadata.
 </p>
                     </div>
                 </div>
