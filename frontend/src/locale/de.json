@@ -52,7 +52,7 @@
     "SEARCH": "Suche",
     "ADMINISTER": "Verwalten",
     "FOOTER_DESC": "KI-Tools für den kollaborativen, internationalen Schutz von Wildtieren",
-    "FOOTER_COPYRIGHT": "2024 © Conservation X Labs | Alle Rechte vorbehalten",
+    "FOOTER_COPYRIGHT": "{year} © Conservation X Labs | Alle Rechte vorbehalten",
     "HOME": "Zuhause",
     "FOOTER_DOCUMENTATION": "Dokumentation",
     "FOOTER_COMMUNITY_FORUM": "Gemeinschaftsforum",
@@ -365,5 +365,8 @@
     "SYSTEM_ID": "System-ID",
     "SEARCH_INDIVIDUALS": "Individuen suchen",
     "SEARCH_RESULT_DISPLAY" : "Ihre Suchergebnisse werden hier angezeigt.",
-    "UNKNOWN" : "Unbekannt"
+    "UNKNOWN" : "Unbekannt",
+    "NO_TAXONOMY" : "Legen Sie auf der Encounter-Seite eine Taxonomie fest, um die IA-Klasse anzuzeigen.",
+    "NO_IA_CLASS": "Keine IA-Klasse konfiguriert"
+
 }

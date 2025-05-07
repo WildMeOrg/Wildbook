@@ -1,5 +1,6 @@
 package org.ecocean.servlet.importer;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.LocalDateTime;
 
 import java.io.*;

@@ -1,4 +1,4 @@
-SUBJECT: Email from Seal Wildbook 
+SUBJECT: Email from Wild Me 
 
 @EMAIL_CONTENT@
 
@@ -9,13 +9,8 @@ The Wild Me Team
 
 LEGAL STATEMENT
 
-Wildbook is copyrighted 2024 by Conservation X Labs.
+Wildbook is copyrighted 2025 by Conservation X Labs.
 Individual contributors to Wildbook retain copyrights for submitted images.
 No reproduction or usage of material in this library is permitted without the
 express permission of the copyright holders.
 
-@REMOVEME_START@
-Do you want to REMOVE your email address from this database? Click the link
-below to remove it. You will no longer receive updates on your encounters.
-@REMOVEME_LINK@
-@REMOVEME_END@

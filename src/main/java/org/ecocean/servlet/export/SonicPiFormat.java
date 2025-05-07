@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 // adds spots to a new encounter
 public class SonicPiFormat extends HttpServlet {

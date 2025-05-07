@@ -8,7 +8,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.TwitterUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -161,7 +161,7 @@ public class TwitterAssetStore extends AssetStore {
             kid.addLabel("_entity");
             setEntityMetadata(kid);
             kid.getMetadata().getDataAsString();
-            kid.setParentId(ma.getId());
+            kid.setParentId(ma.getIdInt());
             // derivationMethods?  metadata? (of image) etc.... ??
             mas.add(kid);
         }

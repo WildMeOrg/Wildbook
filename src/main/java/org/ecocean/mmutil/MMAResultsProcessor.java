@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

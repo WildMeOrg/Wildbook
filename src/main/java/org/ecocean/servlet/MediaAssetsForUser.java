@@ -12,8 +12,9 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 
 import java.util.ArrayList;
-import org.ecocean.*;
+
 import org.ecocean.media.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class MediaAssetsForUser extends HttpServlet {
     public void init(ServletConfig config)
