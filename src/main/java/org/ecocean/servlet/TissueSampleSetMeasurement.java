@@ -12,7 +12,7 @@ import javax.servlet.ServletException;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.genetics.*;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class TissueSampleSetMeasurement extends HttpServlet {
     private static final Pattern MEASUREMENT_NAME = Pattern.compile(

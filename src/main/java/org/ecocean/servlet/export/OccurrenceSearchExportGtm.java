@@ -13,6 +13,7 @@ import org.ecocean.servlet.ServletUtilities;
 
 import jxl.write.*;
 import jxl.Workbook;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class OccurrenceSearchExportGtm extends HttpServlet {
     private static final int BYTES_DOWNLOAD = 1024;
