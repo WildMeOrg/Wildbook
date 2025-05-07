@@ -3,7 +3,7 @@ package org.ecocean.servlet;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

@@ -12,6 +12,7 @@ import java.util.List;
 import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class MergeIndividual extends HttpServlet {
 

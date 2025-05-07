@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class ShareDst {
     public final static int ploidy = 2; // hard wired, for now
