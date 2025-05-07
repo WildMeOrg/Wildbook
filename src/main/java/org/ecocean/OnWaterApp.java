@@ -29,6 +29,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 
+import org.ecocean.shepherd.core.*;
+
 public class OnWaterApp {
     private static final String SYSTEMVALUE_KEY_LASTSYNC = "OnWaterApp_lastSync";
     private static final String OBS_WEATHER_NAME = "weather";
