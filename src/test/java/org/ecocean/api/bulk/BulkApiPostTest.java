@@ -10,6 +10,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.api.BulkImport;
+import org.ecocean.api.UploadedFiles;
 import org.ecocean.User;
 import org.ecocean.servlet.ReCAPTCHA;
 
@@ -81,7 +82,7 @@ class BulkApiPostTest {
         }
     }
 
-    @Test void apiPostNoRowsError() throws ServletException, IOException {
+    @Test void apiPostNoBulkImportId() throws ServletException, IOException {
         User user = mock(User.class);
 
         String requestBody = "{}";
@@ -102,8 +103,35 @@ class BulkApiPostTest {
         }
     }
 
+    @Test void apiPostNoRowsError() throws ServletException, IOException {
+        User user = mock(User.class);
+
+        String requestBody = basePayload().toString();
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+            (mock, context) -> {
+                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                Exception ex = assertThrows(ServletException.class, () -> {
+                    apiServlet.doPost(mockRequest, mockResponse);
+                });
+                assertEquals(ex.getMessage(), "no rows in payload");
+            }
+        }
+    }
+
+    private JSONObject basePayload() {
+        JSONObject payload = new JSONObject();
+        payload.put("bulkImportId", "00000000-0000-0000-0000-000000000000");
+        return payload;
+    }
+
     private String getBadFieldNamesPayload() {
-        JSONObject rtn = new JSONObject();
+        JSONObject rtn = basePayload();
         JSONArray rows = new JSONArray();
         JSONObject badRow = new JSONObject("{\"fubarFail\": 123}");
         rows.put(badRow);
@@ -112,7 +140,7 @@ class BulkApiPostTest {
     }
 
     private String getValidPayloadNonArrays() {
-        JSONObject rtn = new JSONObject();
+        JSONObject rtn = basePayload();
         JSONArray rows = new JSONArray();
         for (int i = 0 ; i < 20 ; i++) {
             JSONObject row = new JSONObject();
@@ -126,7 +154,7 @@ class BulkApiPostTest {
     }
 
     private String getValidPayloadArrays() {
-        JSONObject rtn = new JSONObject();
+        JSONObject rtn = basePayload();
         JSONArray fieldNames = new JSONArray();
         fieldNames.put("Encounter.year");
         fieldNames.put("Encounter.genus");
@@ -198,18 +226,21 @@ class BulkApiPostTest {
             (mock, context) -> {
                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doPost(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(400);
-                assertFalse(jout.getBoolean("success"));
-                assertTrue(hasError(jout, 0, "fubarFail"));
-                // lets also check the required fields are getting reported
-                assertTrue(hasError(jout, 0, "Encounter.year"));
-                assertTrue(hasError(jout, 0, "Encounter.specificEpithet"));
-                assertTrue(hasError(jout, 0, "Encounter.genus"));
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(null);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(hasError(jout, 0, "fubarFail"));
+                    // lets also check the required fields are getting reported
+                    assertTrue(hasError(jout, 0, "Encounter.year"));
+                    assertTrue(hasError(jout, 0, "Encounter.specificEpithet"));
+                    assertTrue(hasError(jout, 0, "Encounter.genus"));
+                }
             }
         }
     }
@@ -226,17 +257,19 @@ class BulkApiPostTest {
                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
                 when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
             })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doPost(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(200);
-System.out.println(">>>>>>>>>>>>>>>>>>>>> " + jout.toString(4));
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(null);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
 /*
 //// FIXME from here on we need code to work!
                 assertTrue(jout.getBoolean("success"));
 */
+                }
             }
         }
     }
