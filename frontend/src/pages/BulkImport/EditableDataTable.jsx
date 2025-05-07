@@ -23,10 +23,12 @@ const EditableCell = ({
     setError(externalError ?? "");
   }, [externalError]);
 
+
   const handleBlur = () => {
     store.spreadsheetData[rowIndex][columnId] = value;
     const errors = store.validateSpreadsheet();
     setError(errors[rowIndex]?.[columnId] || "");
+    console.log("store data", JSON.stringify(store.spreadsheetData),);
   };
 
   const handleKeyDown = (e) => {
@@ -45,7 +47,9 @@ const EditableCell = ({
             store.getOptionsForSelectCell(columnId)
           }
           value={value ? { value, label: value } : null}
-          onChange={(sel) => setValue(sel ? sel.value : "")}
+          onChange={(sel) => {
+            console.log("selected value", sel);
+            setValue(sel ? sel.value : "")}}
           onBlur={handleBlur}
           error={error}
         />
@@ -85,13 +89,10 @@ export const DataTable = observer(({ store }) => {
   const validSubmitterIDs = siteData?.users?.map((user) => user.username) || [];
   const validSpecies = siteData?.siteTaxonomies || [];
   const validCountryIDs = siteData?.country || [];
-  const validSex = siteData?.sex || ["male","female"];
+  const validSex = siteData?.sex || ["male", "female"];
   const validLifeStages = siteData?.lifeStage || [];
   const validLivingStatus = siteData?.livingStatus || [];
   const validBehavior = siteData?.behavior || [];
-
-  console.log("validBehavior", validBehavior);
-  console.log("store behavior", store.validBehavior);
 
   const extractAllValues = (treeData) => {
     const values = [];

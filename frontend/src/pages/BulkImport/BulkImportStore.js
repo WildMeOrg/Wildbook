@@ -19,48 +19,27 @@ export class BulkImportStore {
   _uploadFinished = false;
   _uploadedImages = [];
   _initialUploadFileCount = 0;
-  _columnsDef = [
-    "mediaAsset",
-    "date",
-    "species",
-    "decimalLatitudeAndLongitude",
-    "location",
-    "submitterID",
-    "Individual name",
-    "occurrenceID",
-    "occurrenceRemarks",
-    "country",
-    "sex",
-    "lifeStage",
-    "livingStatus",
-    "behavior",
-    "researcherComments",
-    "photographerEmail",
-    "informOtherEmail",
-    "sampleID",
-    "sexAnalysis"
-  ];
+  _columnsDef = [];
 
   _tableHeaderMapping = {
-    mediaAsset: "Media Asset",
-    IndividualID: "Individual name",
-    occurrenceID: "occurrence ID",
-    occurrenceRemarks: "occurrence Remarks",
-    location: "location",
-    country: "country",
-    decimalLatitudeAndLongitude: "Lat, long (DD)",
-    date: "date",
-    species: "species",
-    sex: "sex",
-    lifeStage: "life Stage",
-    livingStatus: "living Status",
-    behavior: "behavior",
-    researcherComments: "researcher Comments",
-    submitterID: "submitterID",
-    photographerEmail: "photographer Email",
-    informOtherEmail: "informOther Email",
-    sampleID: "sample ID",
-    sexAnalysis: "sex Analysis",
+    "Encounter.mediaAsset0": "Media Asset",
+    "Encounter.genus" : "Species",
+    "MarkedIndividual.individualID": "Individual name",
+    "Encounter.occurrenceID": "occurrence ID",
+    "Encounter.occurrenceRemarks": "occurrence Remarks",
+    "Encounter.LocationID": "location",
+    "Encounter.country": "country",
+    "Encounter.decimalLatitude": "Lat, long (DD)",
+    "Encounter.date": "date",
+    "Encounter.sex": "sex",
+    "Encounter.lifeStage": "life Stage",
+    "Encounter.livingStatus": "living Status",
+    "Encounter.behavior": "behavior",
+    "Encounter.researcherComments": "researcher Comments",
+    "Encounter.submitterID": "submitterID",
+    "Encounter.photographer0.emailAddress": "photographer Email",
+    "Encounter.informOther0.emailAddress": "informOther Email",
+    "TissueSample.sampleID": "sample ID",
   };
 
   isValidISO(val) {
@@ -77,12 +56,12 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
-  _columnsUseSelectCell = ["species", "location", "submitterID", "country", "lifeStage", "livingStatus", "sex", "behavior"];
+  _columnsUseSelectCell = ["Encounter.species", "Encounter.locationID", "Encounter.submitterID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
   _validationRules = {
-    mediaAsset: {
+    "Encounter.mediaAsset0": {
       required: true,
     },
-    date: {
+    "Encounter.date": {
       required: true,
       validate: (val) => {
         if (/^\d{4}$/.test(val)) {
@@ -102,14 +81,14 @@ export class BulkImportStore {
       message:
         "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or full ISO datetime “YYYY-MM-DDThh:mm:ss.sssZ”",
     },
-    species: {
+    "Encounter.species": {
       required: true,
       validate: (val) => {
         return this._validspecies.includes(val);
       },
       message: "Must enter a valid species",
     },
-    decimalLatitudeAndLongitude: {
+    "Encounter.decimalLatitudeAndLongitude": {
       required: false,
       validate: (val) => {
         if (!val) {
@@ -139,49 +118,49 @@ export class BulkImportStore {
       },
       message: "Must enter a valid latitude and longitude",
     },
-    location: {
+    "Encounter.location": {
       required: true,
       validate: (value) => {
         return this._validLocationIDs.includes(value);
       },
       message: "Must enter a valid location ID",
     },
-    submitterID: {
+    "Encounter.submitterID": {
       required: true,
       validate: (value) => {
         return this._validSubmitterIDs.includes(value);
       },
       message: "Submitter ID must be a valid submitter ID",
     },
-    country: {
+    "Encounter.country": {
       required: false,
       validate: (val) => {
         return this._validCountryIDs.includes(val);
       },
       message: "must be a valid country ID",
     },
-    livingStatus: {
+    "Encounter.livingStatus": {
       required: false,
       validate: (val) => {
         return this._validLivingStatus.includes(val);
       },
       message: "must be a valid living status",
     },
-    lifeStage: {
+    "Encounter.lifeStage": {
       required: false,
       validate: (val) => {
         return this._validLifeStages.includes(val);
       },
       message: "must be a valid life stage",
-    },  
-    sex: {
+    },
+    "Encounter.sex": {
       required: false,
       validate: (val) => {
         return this._validSex.includes(val);
       },
       message: "must be a valid sex",
     },
-    behavior: {
+    "Encounter.behavior": {
       required: false,
       validate: (val) => {
         return this._validBehavior.includes(val);
@@ -273,6 +252,10 @@ export class BulkImportStore {
     return this._columnsUseSelectCell;
   }
 
+  get columnsDef() {
+    return this._columnsDef;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = data;
   }
@@ -328,47 +311,53 @@ export class BulkImportStore {
     this._validBehavior = behavior;
   }
 
+  setColumnsDef(columns) {
+    this._columnsDef = columns;
+  }
+
   getOptionsForSelectCell(col) {
-    console.log("getOptionsForSelectCell", col);
-    if (col === "location") {
+    // console.log("getOptionsForSelectCell", col);
+    if (col === "Encounter.locationID") {
       return this._validLocationIDs.map((id) => ({
         value: id,
         label: id,
       }));
-    } else if (col === "submitterID") {
+    } else if (col === "Encounter.submitterID") {
       return this._validSubmitterIDs.map((id) => ({
         value: id,
         label: id,
       }));
-    } else if (col === "species") {
+    } else if (col === "Encounter.genus") {
       return this._validspecies.map((species) => ({
         value: species,
         label: species,
       }));
-    } else if (col === "country") {
+    } else if (col === "Encounter.country") {
       return this._validCountryIDs.map((id) => ({
         value: id,
         label: id,
       }));
-    } else if (col === "livingStatus") {
+    } else if (col === "Encounter.livingStatus") {
       return this._validLivingStatus.map((status) => ({
         value: status,
         label: status,
       }));
     }
-    else if (col === "lifeStage") {
+    else if (col === "Encounter.lifeStage") {
       return this._validLifeStages.map((stage) => ({
         value: stage,
         label: stage,
       }));
-    } else if (col === "sex") {
+    } else if (col === "Encounter.sex") {
       return this._validSex.map((data) => (
         { value: data, label: data }
       ))
-    } else if (col === "behavior") {
+    } else if (col === "Encounter.behavior") {
       return this._validBehavior.map((data) => (
-        { value: data, 
-          label: data }
+        {
+          value: data,
+          label: data
+        }
       ))
     }
 
@@ -584,6 +573,7 @@ export class BulkImportStore {
     const errors = {};
     this._spreadsheetData.forEach((row, rowIndex) => {
       this._columnsDef.forEach((col) => {
+        console.log("col", col);
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
         if (!rules) return;
@@ -598,7 +588,7 @@ export class BulkImportStore {
         if (error) {
           if (!errors[rowIndex]) errors[rowIndex] = {};
           errors[rowIndex][col] = error;
-        }        
+        }
       });
     });
     return errors;
