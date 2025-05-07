@@ -1077,6 +1077,18 @@ public class Util {
         return Long.toHexString(f.length()) + Integer.toHexString(xxhash(f));
     }
 
+    public static boolean containsFilename(Set<File> files, String filename) {
+        if (files == null) return false;
+        for (File f : files) {
+            if (f.getName().equals(filename)) return true;
+        }
+        return false;
+    }
+
+    public static boolean containsFilename(List<File> files, String filename) {
+        return containsFilename(new HashSet<File>(files), filename);
+    }
+
     // h/t StackOverflow user erickson https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java
     public static <T extends Comparable<? super T> > List<T> asSortedList(Collection<T> c) {
         List<T> list = new ArrayList<T>(c);
