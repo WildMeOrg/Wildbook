@@ -1,6 +1,7 @@
 package org.ecocean.api;
 
 import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import javax.servlet.ServletException;
 import org.ecocean.api.bulk.*;
 
 import org.ecocean.User;
+import org.ecocean.Util;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -90,6 +92,11 @@ public class BulkImport extends ApiBase {
             JSONArray rows = payload.optJSONArray("rows");
             if (rows == null) throw new ServletException("no rows in payload");
 
+            String bulkImportId = payload.optString("bulkImportId", null);
+            if (bulkImportId == null) throw new ServletException("bulkImportId is required");
+
+            List<File> files = UploadedFiles.findFiles(request, bulkImportId);
+
             JSONArray fieldNamesArr = payload.optJSONArray("fieldNames");
             Set<String> fieldNames = null;
             if (fieldNamesArr != null) {
@@ -103,20 +110,34 @@ public class BulkImport extends ApiBase {
 
             List<Map<String, Object>> validatedRows = new ArrayList<Map<String, Object>>();
             for (int i = 0 ; i < rows.length() ; i++) {
+                Map<String, Object> vrow = null;
                 if (fieldNames == null) {
                     JSONObject rowData = rows.optJSONObject(i);
                     if (rowData == null) {
                         System.out.println("null rowData on row " + i + " of bulk import");
                         continue;
                     }
-                    validatedRows.add(BulkImportUtil.validateRow(rowData, myShepherd));
+                    vrow = BulkImportUtil.validateRow(rowData, myShepherd);
                 } else {
                     JSONArray rowArr = rows.optJSONArray(i);
                     if (rowArr == null) {
                         System.out.println("null rowArr on row " + i + " of bulk import");
                         continue;
                     }
-                    validatedRows.add(BulkImportUtil.validateRow(fieldNames, rowArr, myShepherd));
+                    vrow = BulkImportUtil.validateRow(fieldNames, rowArr, myShepherd);
+                }
+                validatedRows.add(vrow);
+
+                //now we check if we actually have all the mediaAssets we need
+                for (String fieldName : vrow.keySet()) {
+                    if (!fieldName.startsWith("mediaAsset")) continue;
+                    if (vrow.get(fieldName) instanceof Exception) continue;
+                    BulkValidator bv = (BulkValidator)vrow.get(fieldName);
+                    if (bv.getValue() == null) continue;
+                    if (!Util.containsFilename(files, bv.getValue().toString())) {
+                        System.out.println(bv.getValue() + " not found in uploaded files");
+                        vrow.put(fieldName, new BulkValidatorException("file not found in uploaded files", ApiException.ERROR_RETURN_CODE_REQUIRED));
+                    }
                 }
             }
 
