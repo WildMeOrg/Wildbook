@@ -1,7 +1,7 @@
 package org.ecocean.grid;
 
 import com.reijns.I3S.Pair;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.util.List;
 import javax.jdo.Extent;

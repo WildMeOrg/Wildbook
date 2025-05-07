@@ -11,6 +11,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.ecocean.shepherd.core.Shepherd;
 
 // adds spots to a new encounter
 public class EncounterSearchExportKML extends HttpServlet {

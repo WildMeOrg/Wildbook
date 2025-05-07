@@ -15,6 +15,7 @@ org.ecocean.Project,
 org.ecocean.media.*,
 org.ecocean.ia.Task"
 %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
 <%

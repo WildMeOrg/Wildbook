@@ -1,11 +1,8 @@
-version: "3.8"
-
 services:
-
   db:
     image: postgres:13.4
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 60
@@ -16,11 +13,13 @@ services:
       - db-pgdata-var:/var/lib/postgresql/data
       # DB initialization scripts
       - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
+      - .dockerfiles/db/postgresql.conf:/etc/postgresql/postgresql.conf
     networks:
       - intranet
     ports:
       # development exposure, not exposed in production
       - 5433:5432
+    command: -c config_file=/etc/postgresql/postgresql.conf
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       WBIA_DB_NAME: "${WBIA_DB_NAME}"
@@ -65,7 +64,7 @@ services:
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     healthcheck:
-      test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
+      test: [ "CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 60

@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.ecocean.*;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
 import org.json.JSONObject;
 
