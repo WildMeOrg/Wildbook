@@ -30,19 +30,59 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const processChunk = () => {
         const chunk = jsonData.slice(currentIndex, currentIndex + CHUNK_SIZE);
         const normalizedChunk = chunk.map((row) => {
+          const specifiedColumns = [
+            "Encounter.mediaAsset0",
+            "Encounter.date",
+            "Encounter.genus",
+            "Encounter.decimalLatitude",
+            "Encounter.LocationID",
+            "Encounter.country",
+            "Encounter.occurrenceID",
+            "MarkedIndividual.individualID",
+            "Encounter.sex",
+            "Encounter.lifeStage",
+            "Encounter.livingStatus",
+            "Encounter.behavior",
+            "Encounter.submitterID",
+            "Encounter.occurrenceRemarks",
+            "Encounter.verbatimLocality",
+            "Encounter.dateInMilliseconds",
+            "Encounter.researcherComments",
+            "Encounter.photographer0.emailAddress",
+            "Encounter.informOther0.emailAddress",
+            "TissueSample.sampleID",
+            "SexAnalysis.sex",
+          ];
+
+          const removedColumns = [
+            "Encounter.month",
+            "Encounter.day",
+            "Encounter.hour",
+            "Encounter.minutes",
+            "Encounter.decimalLongitude",
+            "Encounter.specificEpithet",
+          ];
+
+
+          const rowKeys = Object.keys(row);
+
+          const remaining = rowKeys.filter(key => !specifiedColumns.includes(key)).filter(key => !removedColumns.includes(key));
+
+          store.setColumnsDef([
+            ...specifiedColumns,
+            ...remaining,
+          ]);
           const year = Number(row["Encounter.year"]);
           const month = Number(row["Encounter.month"]);
           const day = Number(row["Encounter.day"]);
           const hour = Number(row["Encounter.hour"]);
           const minutes = Number(row["Encounter.minutes"]);
-
           const dt = new Date(year, month - 1, day, hour, minutes);
 
           const getLatLong = (lat, lon) => {
             const hasLat = lat !== undefined && lat !== null && lat !== "";
             const hasLon = lon !== undefined && lon !== null && lon !== "";
 
-            console.log("lat", lat, "lon", lon);
             if (hasLat && hasLon) {
               return `(${lat}, ${lon})`;
             } else if (hasLat) {
@@ -55,29 +95,14 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           };
 
           return {
-            mediaAsset: row["Encounter.mediaAsset0"],
-            IndividualID: row["MarkedIndividual.individualID"],
-            occurrenceID: row["Encounter.occurrenceID"],
-            occurrenceRemarks: row["Encounter.occurrenceRemarks"],
-            location: row["Encounter.verbatimLocality"],
-            country: row["Encounter.country"],
-            decimalLatitudeAndLongitude: getLatLong(
+            "Encounter.decimalLatitude": getLatLong(
               row["Encounter.decimalLatitude"],
               row["Encounter.decimalLongitude"],
             ),
-            date: `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00.000Z`,
-            species:
+            "Encounter.date": `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00.000Z`,
+            "Encounter.genus":
               row["Encounter.genus"] + " " + row["Encounter.specificEpithet"],
-            sex: row["Encounter.sex"],
-            lifeStage: row["Encounter.lifeStage"],
-            livingStatus: row["Encounter.livingStatus"],
-            behavior: row["Encounter.behavior"],
-            researcherComments: row["Encounter.researcherComments"],
-            submitterID: row["Encounter.submitterID"],
-            photographerEmail: row["Encounter.photographer0.emailAddress"],
-            informOtherEmail: row["Encounter.informOther0.emailAddress"],
-            sampleID: row["TissueSample.sampleID"],
-            sexAnalysis: row["SexAnalysis.sex"],
+            ...row,
           };
         });
 
