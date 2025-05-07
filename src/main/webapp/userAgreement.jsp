@@ -1,13 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-  import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList"
+  import="org.ecocean.shepherd.core.*,org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList"
   %>
 
 
-  <% String context="context0" ; context=ServletUtilities.getContext(request); //Shepherd myShepherd=new
-    Shepherd(context); //myShepherd.setAction("userAgreement.jsp"); //setup our Properties object to hold all properties
-    //language setup //String langCode="en" ; String langCode=ServletUtilities.getLanguageCode(request); Properties
-    props=new Properties(); //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"
-    )); props=ShepherdProperties.getProperties("overview.properties", langCode,context); %>
+
 
     <jsp:include page="header.jsp" flush="true" />
 
