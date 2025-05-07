@@ -6,7 +6,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.Keyword;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Taxonomy;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -152,7 +152,7 @@ public class RestKeyword extends HttpServlet {
                                 ma.setKeywords(newList);
                             }
                             System.out.println("getKeywords() -> " + ma.getKeywords());
-                            jassigned.put(Integer.toString(ma.getId()), mj);
+                            jassigned.put(Integer.toString(ma.getIdInt()), mj);
                             MediaAssetFactory.save(ma, myShepherd);
                         }
                         jout.put("results", jassigned);

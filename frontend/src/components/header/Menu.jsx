@@ -30,7 +30,7 @@ export default function Menu({
         showclassicsubmit,
         showClassicEncounterSearch,
       ).map((item, idx) => (
-        <Nav className="me-auto" key={idx}>
+        <Nav className="me-auto nav" key={idx}>
           <NavDropdown
             className="header-dropdown"
             title={

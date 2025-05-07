@@ -12,6 +12,7 @@ import javax.jdo.Query;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.shepherd.core.Shepherd;
 
 /*
  * Wildbook requires shared UUIDs (a.k.a. acmID) between MediaAsset objects in the Wildbook database and images in WBIA. AcmIDs are a prerequisite for
@@ -25,7 +26,7 @@ public class AcmIdBot {
     static String context = "context0";
 
     private static void fixFeats(List<Feature> feats, Shepherd myShepherd, String summaryMessage,
-        int maxFixes) {
+                                 int maxFixes) {
         if (feats != null && feats.size() > 0) {
             int numRecommended = feats.size();
             int numValidIAFixes = 0;

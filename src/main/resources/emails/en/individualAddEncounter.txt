@@ -1,12 +1,12 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
-Hello
+Hello!
 
-Just a quick email to let you know that the giant sea bass encounter that you
-submitted has been matched to an identified giant sea bass in the Spotting Giant Sea Bass
+Just a quick email to let you know that the wildlife encounter that you
+submitted has been matched to an identified cetacean in the Wildbook 
 photo-identification library.
 Follow these links to find out more:
 
-Previously identified record: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
+Previously identified record: @INDIVIDUAL_ID@ (@INDIVIDUAL_DISPLAYNAME@)
 @INDIVIDUAL_LINK@
 
 New encounter: @ENCOUNTER_ID@
@@ -14,21 +14,4 @@ New encounter: @ENCOUNTER_ID@
 
 Thanks again for your critical help! To keep this project alive, consider donating: https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me
 
-Regards,
-Spotting Giant Sea Bass Research Team
-
-~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-
-Hola,
-
-Nadamás un breve mensaje para avisarte que el encuentro con mero gigante que enviaste
-coincide con un individuo identificado en la base de datos para la foto-identificación.
-Haz clic en estos enlaces para aprender más detalles:
-
-Individuo previamente identificado: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
-@INDIVIDUAL_LINK@
-
-Encuentro nuevo: @ENCOUNTER_ID@
-@ENCOUNTER_LINK@
-
-Gracias de nuevo por tu ayuda importante.
+        

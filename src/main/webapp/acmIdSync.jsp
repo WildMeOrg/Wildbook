@@ -12,7 +12,7 @@ org.json.JSONArray,
 org.json.JSONObject,
 org.ecocean.media.*
               "
-%><%
+%><%@ page import="org.ecocean.shepherd.core.Shepherd"%><%
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);

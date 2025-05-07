@@ -1,22 +1,16 @@
-SUBJECT: Email from Spotting Giant Sea Bass
+SUBJECT: Email from Wild Me 
 
 @EMAIL_CONTENT@
 
-Saludos,
+Sincerely,
 
-El equipo de Spotting Giant Sea Bass
-
-@REMOVEME_START@
-Do you want to REMOVE your email address from this database? Click the link
-below to remove it. You will no longer receive updates on your encounters.
-@REMOVEME_LINK@
-@REMOVEME_END@
+The Wild Me Team
 
 
-~ ~ ~
-@REMOVEME_START@
-¿Quiéres ELIMINAR tu correo electrónico de esta base de datos? Haz clic en
-este enlace para eliminarla. Ya no recibirás más actualizaciones acerca de
-tus encuentros.
-@REMOVEME_LINK@
-@REMOVEME_END@
+LEGAL STATEMENT
+
+Wildbook is copyrighted 2025 by Conservation X Labs.
+Individual contributors to Wildbook retain copyrights for submitted images.
+No reproduction or usage of material in this library is permitted without the
+express permission of the copyright holders.
+

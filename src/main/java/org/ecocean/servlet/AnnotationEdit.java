@@ -14,7 +14,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.json.JSONObject;
