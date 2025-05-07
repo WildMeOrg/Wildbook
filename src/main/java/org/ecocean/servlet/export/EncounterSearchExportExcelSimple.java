@@ -17,6 +17,7 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import org.ecocean.shepherd.core.*;
 
 public class EncounterSearchExportExcelSimple extends HttpServlet {
 

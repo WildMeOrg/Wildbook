@@ -438,7 +438,7 @@ try{
 			}
 		}
 	}
-    numDataContributors=myShepherd.getNumUsers();
+    numDataContributors=myShepherd.getAllUsers().size();
     //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals.
 	numCitScientists=myShepherd.getUsersWithEmailAddresses().size();
 
