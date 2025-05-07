@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.Util.MeasurementDesc;
@@ -44,6 +45,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
         String jdoqlVariableDeclaration = "";
         String parameterDeclaration = "";
         String context = "context0";
+        long endOfDayMilliseconds = 24 * 60 * 60 * 1000 - 1;
 
         context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
@@ -1442,7 +1444,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
                     long date1Millis = date1.getMillis();
                     long date2Millis = date2.getMillis();
                     // if same dateTime is set by both pickers, then add a full day of milliseconds to picker2 to cover the entire day
-                    date2Millis += (24 * 60 * 60 * 1000 - 1);
+                    date2Millis += endOfDayMilliseconds;
 
                     prettyPrint.append("Dates between: " +
                         date1.toString(ISODateTimeFormat.date()) + " and " +
@@ -1472,10 +1474,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
                         date2.toString(ISODateTimeFormat.date()) + "<br />");
                     if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                         filter += "((dwcDateAddedLong >= " + date1.getMillis() +
-                            ") && (dwcDateAddedLong <= " + date2.getMillis() + "))";
+                            ") && (dwcDateAddedLong <= " + (date2.getMillis()+endOfDayMilliseconds) + "))";
                     } else {
                         filter += " && ((dwcDateAddedLong >= " + date1.getMillis() +
-                            ") && (dwcDateAddedLong <= " + date2.getMillis() + "))";
+                            ") && (dwcDateAddedLong <= " + (date2.getMillis()+endOfDayMilliseconds) + "))";
                     }
                 } catch (NumberFormatException nfe) {
                     // do nothing, just skip on

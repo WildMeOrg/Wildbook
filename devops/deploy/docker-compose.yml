@@ -1,11 +1,8 @@
-version: "3.8"
-
 services:
-
   db:
     image: postgres:13.4
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 60
@@ -16,11 +13,14 @@ services:
       - db-pgdata-var:/var/lib/postgresql/data
       # DB initialization scripts
       - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
+      - .dockerfiles/db/postgresql.conf:/etc/postgresql/postgresql.conf
     networks:
       - intranet
     ports:
-      # development exposure, not exposed in production
+      # TODO on deployment: exposed for developer verification, close after
       - 5433:5432
+    command: -c config_file=/etc/postgresql/postgresql.conf
+    shm_size: 4gb
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       WBIA_DB_NAME: "${WBIA_DB_NAME}"
@@ -31,44 +31,101 @@ services:
       WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
 
   wildbook:
-    image: wildme/wildbook:${WILDBOOK_TAG:main}
+    image: tomcat:9.0.85-jre8-temurin-jammy
     depends_on:
       db:
         condition: service_healthy
     labels:
       - autoheal=true
-
-    networks:
-      - intranet
-    ports:
-      # FIXME: exposed for developer verification
-      - "81:8080"
-
-  wbia:
-    # https://github.com/WildMeOrg/wildbook-ia
-    image: wildme/wbia:latest
-    command: ["--db-uri", "${WBIA_DB_URI}"]
-    depends_on:
-      db:
-        condition: service_healthy
-    # healthcheck:  # WBIA defines it's own health check and is already labeled for autoheal
-    # labels:
-    #   - autoheal=true
+    entrypoint: /docker-entrypoint.sh
     volumes:
-      - wbia-database-var:/data/db
-      - wbia-cache-var:/cache
+      - /data/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/
+      - /data/wildbook_data_dir/:/usr/local/tomcat/webapps/wildbook_data_dir/
+      - /data/wb-docker-deploy/logs/:/usr/local/tomcat/logs/
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
+      - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
+      #- .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
+      #- .dockerfiles/tomcat/IA.json:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
     networks:
       - intranet
     ports:
-      - "82:5000"
+      # TODO on deployment: exposed for developer verification, close after
+      - "81:8080"
+    healthcheck:
+      # TODO on deployment:  change test.example.org to desired url ... this wildbook?
+      test: [ "CMD-SHELL", "curl --fail-with-body https://test.example.org || exit 1" ]
+      interval: 180s
+      timeout: 60s
+      retries: 3
+      start_period: 60s
+    restart: always
     environment:
-      WBIA_DB_URI: "${WBIA_DB_URI}"
-      HOUSTON_CLIENT_ID: "${HOUSTON_CLIENT_ID}"
-      HOUSTON_CLIENT_SECRET: "${HOUSTON_CLIENT_SECRET}"
+      DB_USER: "${WILDBOOK_DB_USER}"
+      DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
+      DB_CONNECTION_URL: "${WILDBOOK_DB_CONNECTION_URL}"
+      # Admin user created on startup,
+      # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
+      ADMIN_EMAIL: "${EDM_AUTHENTICATIONS_USERNAME__DEFAULT}"
+      ADMIN_PASSWORD: "${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}"
+      # JAVA_OPTS from old-world wildbook, which gives us 16G heap memory
+      JAVA_OPTS: "-Djava.awt.headless=true -Xms16g -Xmx16g"
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    labels:
+      - autoheal=true
+    volumes:
+      - opensearch-var1:/usr/share/opensearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - intranet
+    ports:
+      # development exposure, not exposed in production
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - plugins.security.disabled=true
+      - node.name=opensearch
+      #- discovery.seed_hosts=elasticsearch2,elasticsearch3
+      #- cluster.initial_master_nodes=elasticsearch,elasticsearch2,elasticsearch3
+      #- discovery.seed_hosts=opensearch2
+      - cluster.initial_master_nodes=opensearch
+      - bootstrap.memory_lock=true
+      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+
+  # https://hub.docker.com/r/boky/postfix/
+  #  TODO dkim and spf needs to be added/supported
+  smtp:
+    image: boky/postfix
+    networks:
+      - intranet
+    ports:
+      - $MAIL_PORT:587
+    volumes:
+      - .dockerfiles/smtp/dkim-keys:/etc/opendkim/keys
+    environment:
+      - "HOSTNAME=${MAIL_HOSTNAME}"
+      - "ALLOWED_SENDER_DOMAINS=${MAIL_ALLOWED_SENDER_DOMAINS}"
+      - "RELAYHOST=${MAIL_RELAYHOST}"
+      - "RELAYHOST_USERNAME=${MAIL_RELAYHOST_USERNAME}"
+      - "RELAYHOST_PASSWORD=${MAIL_RELAYHOST_PASSWORD}"
 
   nginx:
     image: nginx:1.23.4
-    #healthcheck:
+    depends_on:
+      - wildbook
+      #healthcheck:
       #test: [ "CMD", "curl", "-f", "http://localhost:84/"]
       #interval: 10s
       #timeout: 5s
@@ -77,13 +134,13 @@ services:
       - autoheal=true
     volumes:
       - .dockerfiles/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt
     networks:
       - intranet
     ports:
       # BBB deprecated in favor or port 80, remains for backward compat
       - "80:80"
-    depends_on:
-      - wildbook
+      - "443:443"
 
   autoheal:
     image: willfarrell/autoheal
@@ -101,6 +158,4 @@ networks:
 
 volumes:
   db-pgdata-var:
-  wbia-database-var:
-  wbia-cache-var:
-  wildbook-var:
+  opensearch-var1:

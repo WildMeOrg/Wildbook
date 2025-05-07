@@ -19,7 +19,7 @@ export default function HeaderQuickSearch() {
   };
 
   return (
-    <div className="header-quick-search">
+    <div className="header-quick-search" data-testid="header-quick-search">
       <Dropdown show={showDropdown} onBlur={() => setShowDropdown(false)}>
         <div className="d-flex">
           <FormControl

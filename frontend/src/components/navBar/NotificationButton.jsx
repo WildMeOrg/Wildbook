@@ -23,6 +23,7 @@ const NotificationButton = ({
         marginLeft: "5px",
         position: "relative",
       }}
+      data-testid="notification-button"
       tabIndex={0}
     >
       <Modal.Dialog

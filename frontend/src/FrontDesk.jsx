@@ -7,7 +7,6 @@ import getMergeNotifications from "./models/notifications/getMergeNotifications"
 import getCollaborationNotifications from "./models/notifications/getCollaborationNotifications";
 import LoadingScreen from "./components/LoadingScreen";
 import GoogleTagManager from "./GoogleTagManager";
-import Cookies from "js-cookie";
 import "./css/scrollBar.css";
 import SessionWarning from "./components/SessionWarning";
 import {
@@ -24,9 +23,6 @@ export default function FrontDesk() {
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
-  const [showAlert, setShowAlert] = useState(() =>
-    Cookies.get("showAlert") === "false" ? false : true,
-  );
   const [loading, setLoading] = useState(true);
   const { data } = useGetSiteSettings();
   const showclassicsubmit = data?.showClassicSubmit;
@@ -92,8 +88,6 @@ export default function FrontDesk() {
           sessionCountdownTime={sessionCountdownTime}
         />
         <AuthenticatedSwitch
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
         />
@@ -109,11 +103,7 @@ export default function FrontDesk() {
         }}
       >
         <GoogleTagManager />
-        <UnauthenticatedSwitch
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
-          showclassicsubmit={showclassicsubmit}
-        />
+        <UnauthenticatedSwitch showclassicsubmit={showclassicsubmit} />
       </AuthContext.Provider>
     );
   }
