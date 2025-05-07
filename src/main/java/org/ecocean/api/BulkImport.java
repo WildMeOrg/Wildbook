@@ -130,7 +130,7 @@ public class BulkImport extends ApiBase {
 
                 //now we check if we actually have all the mediaAssets we need
                 for (String fieldName : vrow.keySet()) {
-                    if (!fieldName.startsWith("mediaAsset")) continue;
+                    if (!fieldName.startsWith("Encounter.mediaAsset")) continue;
                     if (vrow.get(fieldName) instanceof Exception) continue;
                     BulkValidator bv = (BulkValidator)vrow.get(fieldName);
                     if (bv.getValue() == null) continue;
