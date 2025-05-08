@@ -138,7 +138,7 @@ public class BulkValidator {
             indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if valid fieldName
             if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldNamePassed);
             fieldName = fieldNamePassed;
-            value = validateValue(fieldNamePassed, valuePassed, myShepherd);
+            value = validateValue(fieldNamePassed, (valuePassed == JSONObject.NULL ? null : valuePassed), myShepherd);
 	}
 
         public boolean isIndexed() {
@@ -288,6 +288,7 @@ public class BulkValidator {
                 return value;
 
             case "Encounter.submitterID":
+                if ("public".equals(value)) return value;
                 if ((value != null) && (myShepherd.getUser(value.toString()) == null))
                     throw new BulkValidatorException("invalid username: " + value, ApiException.ERROR_RETURN_CODE_INVALID);
                 return value;
