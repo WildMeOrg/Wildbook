@@ -15,7 +15,12 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.Encounter;
 import org.ecocean.resumableupload.UploadServlet;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.AssetStore;
+import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 public class UploadedFiles {
@@ -89,4 +94,37 @@ public class UploadedFiles {
     }
 */
 
+    public static MediaAsset makeMediaAsset(File file, Shepherd myShepherd)
+    throws ApiException {
+        return makeMediaAsset(Util.generateUUID(), file, myShepherd);
+    }
+
+    public static MediaAsset makeMediaAsset(String dirId, File file, Shepherd myShepherd)
+    throws ApiException {
+        JSONObject error = new JSONObject();
+        error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+        error.put("filename", file.getName());
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        if (!AssetStore.isValidImage(file)) {
+            System.out.println("UploadedFiles.makeMediaAsset() failed isValidImage() on " + file);
+            throw new ApiException(file.getName() + " is not a valid image file", error);
+        }
+        String sanitizedItemName = ServletUtilities.cleanFileName(file.getName());
+        JSONObject sp = astore.createParameters(new File(Encounter.subdir(dirId) + File.separator + sanitizedItemName));
+        sp.put("userFilename", file.getName());
+        System.out.println("UploadedFiles.makeMediaAsset(): file=" + file + " => " + sp);
+        MediaAsset ma = new MediaAsset(astore, sp);
+        ma.addLabel("_original");
+        try {
+            ma.copyIn(file);
+            ma.validateSourceImage();
+            ma.updateMetadata();
+        } catch (IOException ioe) {
+            System.out.println("UploadedFiles.makeMediaAsset() failed on " + file + ": " + ioe);
+            ioe.printStackTrace();
+            error.put("code", ApiException.ERROR_RETURN_CODE_UNKNOWN);
+            throw new ApiException(file.getName() + " MediaAsset creation threw: " + ioe);
+        }
+        return ma;
+    }
 }
