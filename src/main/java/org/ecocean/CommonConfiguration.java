@@ -297,7 +297,9 @@ public class CommonConfiguration {
     }
 
     public static String getMailAuth(String context) {
-        String s = getProperty("mailAuth", context);
+        //String s = getProperty("mailAuth", context);
+
+        String s = System.getenv("mailAuth");
 
         return s != null ? s.trim() : s;
     }
