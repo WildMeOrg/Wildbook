@@ -1,8 +1,13 @@
 <jsp:include page="header.jsp" flush="true"/>
 
+<%
+    String taskTypeQueryParam = (String) request.getAttribute("type");
+    String currentPage = (String) request.getAttribute("page");
+%>
+
 <script type="text/javascript">
     setTimeout(function () {
-        window.location.href = "task";
+        window.location.href = "task?type=<%= taskTypeQueryParam %>&page=<%= currentPage %>";
     }, 3500);
 </script>
 

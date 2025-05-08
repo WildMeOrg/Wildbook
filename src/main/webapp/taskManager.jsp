@@ -41,41 +41,71 @@
 </style>
 
 <div class="container maincontent">
+    <%
+        String taskTypeQueryParam = (String) request.getAttribute("taskTypeQueryParam");
+        Boolean showRetried = (Boolean) request.getAttribute("showRetried");
+        String detectionDisabled = taskTypeQueryParam.equals("detection") ? "disabled" : "";
+        String matcherDisabled = taskTypeQueryParam.equals("matcher") ? "disabled" : "";
 
-    <h2>Failed Tasks</h2>
+        Boolean previousPage = (Boolean) request.getAttribute("previousPage");
+        Boolean nextPage = (Boolean) request.getAttribute("nextPage");
+        int currentPage = (Integer) request.getAttribute("page");
+    %>
+
+    <h2>
+        <% if (showRetried) { %>
+            Retried Tasks
+        <% } else {%>
+            Failed Tasks
+        <% } %>
+    </h2>
 
     <div class="top-bar">
-        <%
-            String taskTypeQueryParam = (String) request.getAttribute("taskTypeQueryParam");
-            String detectionDisabled = taskTypeQueryParam.equals("detection") ? "disabled" : "";
-            String matcherDisabled = taskTypeQueryParam.equals("matcher") ? "disabled" : "";
-        %>
+        <% if (taskTypeQueryParam.equalsIgnoreCase("matcher")) { %>
+            <h4>Task type: Matcher</h4>
+            <button type="button" class="btn" onclick="window.location.href='?type=detection&retried=<%= showRetried.toString() %>'" <%= detectionDisabled %>>
+                Switch
+            </button>
+        <% } else { %>
+            <h4>Task type: Detection</h4>
+            <button type="button" class="btn" onclick="window.location.href='?type=matcher&retried=<%= showRetried.toString() %>'" <%= matcherDisabled %>>
+                Switch
+            </button>
+        <% } %>
 
-        <h4>Task type:</h4>
-        <button type="button" class="btn" onclick="window.location.href='?type=detection'" <%= detectionDisabled %>>
-            Detection
+        <% if (showRetried) { %>
+        <button type="button" class="btn" style="margin-left: auto;" onclick="window.location.href='?type=<%= taskTypeQueryParam %>&retried=false'">
+            Show Failed Tasks
         </button>
-        <button type="button" class="btn" onclick="window.location.href='?type=matcher'" <%= matcherDisabled %>>
-            Matcher
-        </button>
-
+        <% } else { %>
         <button type="button" class="btn" id="retry-selected" style="margin-left: auto;">
             Retry All Selected
         </button>
+        <button type="button" class="btn" onclick="window.location.href='?type=<%= taskTypeQueryParam %>&retried=true'">
+            Show Retried Tasks
+        </button>
+        <% } %>
     </div>
 
     <table>
         <tr>
+            <% if (!showRetried) { %>
             <th>
                 <input type="checkbox" name="select-all"/>
             </th>
+            <% } %>
             <th>ID</th>
             <th>Encounters</th>
             <th>Type</th>
-            <th>Status</th>
             <th>Created</th>
             <th>Modified</th>
-            <th>Action</th>
+            <th>
+                <% if (showRetried) { %>
+                    Retried Tasks
+                <% } else { %>
+                    Action
+                <% } %>
+            </th>
         </tr>
         <%
             List<HashMap<String, Object>> tasks = (List<HashMap<String, Object>>) request.getAttribute("tasks");
@@ -83,9 +113,11 @@
                 for (HashMap<String, Object> task : tasks) {
         %>
         <tr>
+            <% if (!showRetried) { %>
             <td>
                 <input type="checkbox" name="taskIds[]" value="<%= task.get("id") %>"/>
             </td>
+            <% } %>
             <td><%= task.get("id") %>
             </td>
             <td>
@@ -101,17 +133,29 @@
             </td>
             <td><%= task.get("taskType") %>
             </td>
-            <td><%= task.get("status") %>
-            </td>
             <td><%= task.get("created") %>
             </td>
             <td><%= task.get("modified") %>
             </td>
             <td>
-                <form method="post" action="retry">
-                    <input type="hidden" name="taskId" value="<%= task.get("id") %>"/>
-                    <button type="submit">Retry</button>
-                </form>
+                <% if (showRetried) { %>
+                    <ul>
+                        <%
+                            for (String taskId : (ArrayList<String>) task.get("retriedTasks")) {
+                        %>
+                        <li><a href="/obrowse.jsp?type=Task&id=<%= taskId %>">
+                            <%= taskId %>
+                        </a></li>
+                        <% } %>
+                    </ul>
+                <% } else { %>
+                    <form method="post" action="retry">
+                        <input type="hidden" name="taskId" value="<%= task.get("id") %>"/>
+                        <input type="hidden" name="type" value="<%= taskTypeQueryParam %>"/>
+                        <input type="hidden" name="page" value="<%= currentPage %>"/>
+                        <button type="submit">Retry</button>
+                    </form>
+                <% } %>
             </td>
         </tr>
         <% }
@@ -123,19 +167,15 @@
     </table>
 
     <div class="pagination">
-        <% Boolean previousPage = (Boolean) request.getAttribute("previousPage"); %>
-        <% Boolean nextPage = (Boolean) request.getAttribute("nextPage"); %>
-        <% int currentPage = (Integer) request.getAttribute("page"); %>
-
         <% if (previousPage) { %>
-        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage - 1 %>">&laquo; Previous</a>
+        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage - 1 %>&retried=<%= showRetried.toString() %>">&laquo; Previous</a>
         <% } %>
 
-        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage %>">Page <%= currentPage %>
+        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage %>&retried=<%= showRetried.toString() %>">Page <%= currentPage %>
         </a>
 
         <% if (nextPage) { %>
-        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage + 1 %>">Next &raquo;</a>
+        <a href="?type=<%= taskTypeQueryParam %>&page=<%= currentPage + 1 %>&retried=<%= showRetried.toString() %>">Next &raquo;</a>
         <% } %>
     </div>
 </div>

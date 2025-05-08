@@ -15,12 +15,14 @@ import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 
+import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -346,6 +348,34 @@ public class IAGateway extends HttpServlet {
         }
         System.out.println("anns -> " + anns);
 
+        boolean isRetriedFailedTask;
+        try {
+            isRetriedFailedTask = jin.getBoolean("isRetriedFailedTask");
+        } catch (JSONException e) {
+            isRetriedFailedTask = false;
+        }
+
+        Task parentTaskRetried = null;
+        String retriedFailedTaskId = null;
+        if (isRetriedFailedTask) {
+            retriedFailedTaskId = jin.getString("taskId");
+
+            String sql =
+                    "SELECT \"ID\", \"COMPLETIONDATEINMILLISECONDS\", \"CREATED\", \"MODIFIED\", \"PARAMETERS\", \"QUEUERESUMEMESSAGE\", \"STATUS\"" +
+                    " FROM \"TASK\" t JOIN \"TASK_CHILDREN\" tc ON t.\"ID\" = tc.\"ID_OID\" WHERE tc.\"ID_EID\" = '" + retriedFailedTaskId + "'";
+            Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            q.setClass(Task.class);
+            List<Task> tasks = (List<Task>) q.execute();
+            if (!tasks.isEmpty()) {
+                parentTaskRetried = tasks.get(0);
+            }
+
+            SqlHelper.executeRawSql(
+                    myShepherd.getPM(),
+                    "DELETE FROM \"TASK_CHILDREN\" WHERE \"ID_EID\" = '" + retriedFailedTaskId + "'"
+            );
+        }
+
         Task parentTask = Task.load(taskId, myShepherd);
         if (parentTask == null) {
             System.out.println("WARNING: IAGateway._doIdentify() could not load Task id=" + taskId +
@@ -356,7 +386,7 @@ public class IAGateway extends HttpServlet {
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         List<Task> subTasks = new ArrayList<Task>();
-        if (anns.size() > 1) { // need to create child Tasks
+        if (anns.size() > 1 || isRetriedFailedTask) { // need to create child Tasks
             JSONObject params = parentTask.getParameters();
             parentTask.setParameters((String)null); // reset this, kids inherit params
             for (int i = 0; i < anns.size(); i++) {
@@ -366,8 +396,47 @@ public class IAGateway extends HttpServlet {
                 myShepherd.storeNewTask(newTask);
                 myShepherd.beginDBTransaction();
                 subTasks.add(newTask);
+
+                if (isRetriedFailedTask && parentTaskRetried != null) {
+                    try {
+                        SqlHelper.executeRawSql(
+                                myShepherd.getPM(),
+                                "INSERT INTO \"TASK_CHILDREN\" " +
+                                        "(\"ID_OID\", \"ID_EID\", \"IDX\") " +
+                                        "VALUES ('" + parentTaskRetried.getId() + "', '" + newTask.getId() + "', 0)"
+                        );
+                    } catch (Exception ex) {
+                    }
+                }
             }
-            myShepherd.storeNewTask(parentTask);
+            if (isRetriedFailedTask) {
+                myShepherd.beginDBTransaction();
+                String sql = "SELECT t.\"QUEUERESUMEMESSAGE\" as qresumemsg FROM \"TASK\" t WHERE t.\"ID\" = '" + retriedFailedTaskId + "'";
+                List<Object[]> results = SqlHelper.executeRawSql(myShepherd.getPM(), sql);
+
+
+                String queueResumeMessage = (String) results.get(0)[0];
+                JSONObject queueResumeObj;
+                if (queueResumeMessage != null && !queueResumeMessage.isEmpty()) {
+                    queueResumeObj = new JSONObject(queueResumeMessage);
+                } else {
+                    queueResumeObj = new JSONObject();
+                }
+
+                JSONArray retriedList = new JSONArray();
+                for (Task task : subTasks) {
+                    retriedList.put(task.getId());
+                }
+                queueResumeObj.put("retriedMatcher", retriedList);
+
+                myShepherd.beginDBTransaction();
+                SqlHelper.executeRawSql(
+                    myShepherd.getPM(),
+                    "UPDATE \"TASK\" SET \"QUEUERESUMEMESSAGE\" = '" + queueResumeObj.toString() + "', \"MODIFIED\" = " + new java.util.Date().getTime() + " WHERE \"ID\" = '" + retriedFailedTaskId + "'"
+                );
+            } else {
+                myShepherd.storeNewTask(parentTask);
+            }
             myShepherd.beginDBTransaction();
         } else { // we just use the existing "parent" task
             subTasks.add(parentTask);

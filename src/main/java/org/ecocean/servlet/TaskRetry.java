@@ -11,6 +11,7 @@ import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.jdo.JDOUserException;
@@ -43,12 +44,10 @@ public class TaskRetry extends HttpServlet {
             taskIds = new ArrayList<>(Arrays.asList(taskIdsQueryParam.split(",")));
         }
 
-        for (String taskId: taskIds) {
+        for (String taskId : taskIds) {
             getPMF(request, servletID);
             String context = ServletUtilities.getContext(request);
             PersistenceManager pm = pmf.getPersistenceManager();
-            Transaction tx = pm.currentTransaction();
-            Boolean isMatcherTypeTask = true;
 
             try {
                 Task task = pm.getObjectById(Task.class, taskId);
@@ -57,8 +56,6 @@ public class TaskRetry extends HttpServlet {
                     String message = task.getQueueResumeMessage();
 
                     if (message == null || message.isEmpty()) {
-                        isMatcherTypeTask = false;
-
                         String baseUrl = IA.getBaseURL(context);
                         Query q = pm.newQuery(
                                 "javax.jdo.query.SQL",
@@ -82,22 +79,44 @@ public class TaskRetry extends HttpServlet {
                         parametersObj.remove("detectArgs");
 
                         message = parametersObj.toString();
+
+                        JSONArray retriedList = new JSONArray();
+                        retriedList.put(taskId);
+                        JSONObject queueResumeObj = new JSONObject();
+                        queueResumeObj.put("retriedDetection", retriedList);
+
+                        Transaction tx = pm.currentTransaction();
+
+                        try {
+                            tx.begin();
+                            SqlHelper.executeRawSql(
+                                    pm,
+                                    "UPDATE \"TASK\" SET \"QUEUERESUMEMESSAGE\" = '" + queueResumeObj.toString()
+                                            + "', \"MODIFIED\" = " + new java.util.Date().getTime()
+                                            + " WHERE \"ID\" = '" + task.getId() + "'"
+                            );
+                            tx.commit();
+                        } catch (Exception e) {
+                            if (tx.isActive()) {
+                                tx.rollback();
+                            }
+                        }
+                    } else {
+                        JSONObject messageObj = new JSONObject(message);
+                        messageObj.put("isRetriedFailedTask", true);
+
+                        message = messageObj.toString();
+
+                        task.setStatus("retried");
                     }
 
                     org.ecocean.servlet.IAGateway.addToQueue(context, message);
 
-                    tx.begin();
-                    if (isMatcherTypeTask) {
-                        task.setStatus("retried");
-                    }
-                    tx.commit();
-//                pm.deletePersistent(task);
+                    request.setAttribute("type", request.getParameter("type"));
+                    request.setAttribute("page", request.getParameter("page"));
                     request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
                 }
             } catch (Exception e) {
-                if (tx.isActive()) {
-                    tx.rollback();
-                }
                 e.printStackTrace();
             } finally {
                 pm.close();
