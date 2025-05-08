@@ -336,5 +336,15 @@ public class BulkValidator {
                 throw new BulkValidatorException("error parsing double: " + ex, ApiException.ERROR_RETURN_CODE_INVALID);
             }
         }
+
+        public String toString() {
+            String str = fieldName;
+            if (indexPrefix != null) {
+                str += "[" + indexPrefix + ":" + indexInt + "]";
+            }
+            str += " value=(" + value + ")";
+            return str;
+        }
+
 }
 
