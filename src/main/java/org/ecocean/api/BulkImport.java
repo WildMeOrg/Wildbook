@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -129,6 +130,7 @@ public class BulkImport extends ApiBase {
                 }
             }
 
+            Set<String> filenamesNeeded = new HashSet<String>();
             List<Map<String, Object>> validatedRows = new ArrayList<Map<String, Object>>();
             for (int i = 0 ; i < rows.length() ; i++) {
                 Map<String, Object> vrow = null;
@@ -155,7 +157,10 @@ public class BulkImport extends ApiBase {
                     if (vrow.get(fieldName) instanceof Exception) continue;
                     BulkValidator bv = (BulkValidator)vrow.get(fieldName);
                     if (bv.getValue() == null) continue;
-                    if (!Util.containsFilename(files, bv.getValue().toString())) {
+                    String filename = bv.getValue().toString();
+                    if (Util.containsFilename(files, filename)) {
+                        filenamesNeeded.add(filename);
+                    } else {
                         System.out.println(bv.getValue() + " not found in uploaded files");
                         vrow.put(fieldName, new BulkValidatorException("file '" + bv.getValue().toString() + "' not found in uploaded files", ApiException.ERROR_RETURN_CODE_REQUIRED));
                     }
@@ -201,31 +206,41 @@ public class BulkImport extends ApiBase {
             Map<String, MediaAsset> maMap = new HashMap<String, MediaAsset>();
             if (!validateOnly && (dataErrors.length() == 0)) {
                 for (File file : files) {
+                    String filename = file.getName();
+                    if (!filenamesNeeded.contains(filename)) continue; // uploaded, but not referenced :(
                     try {
                         MediaAsset ma = UploadedFiles.makeMediaAsset(bulkImportId, file, myShepherd);
-                        maMap.put(file.getName(), ma);
+                        maMap.put(filename, ma);
                     } catch (ApiException apiEx) {
                         JSONObject err = new JSONObject();
-                        err.put("filename", file.getName());
+                        err.put("filename", filename);
                         err.put("mediaAssetError", true);
                         err.put("errors", apiEx.getErrors());
                         err.put("details", apiEx.toString());
                         dataErrors.put(err);
-                        System.out.println("[ERROR] " + file.getName() + " MediaAsset creation: " + apiEx);
+                        System.out.println("[ERROR] " + filename + " MediaAsset creation: " + apiEx);
                     }
                 }
                 System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " + files.size() + " files");
             }
+            rtn.put("numberMediaAssetsCreated", maMap.size());
+            rtn.put("numberFilenamesReferenced", filenamesNeeded.size());
+            rtn.put("numberFilesUploaded", files.size());
 
             if (validateOnly) {
                 rtn.put("validateOnly", true);
                 rtn.put("success", (dataErrors.length() == 0));
+                statusCode = 200;
 
-            } else if (dataErrors.length() > 0) {
+            } else if ((dataErrors.length() > 0) && toleranceFailImportOnError) {
                 statusCode = 400;
                 rtn.put("errors", dataErrors);
 
             } else {
+                // if we get here, it means we should attempt to create and persist objects for real
+                // (we may have some errors in rows depending on tolerance)
+                JSONObject results = BulkImporter.createImport(validatedRows, myShepherd);
+                rtn.put("results", results);
                 rtn.put("success", true);
                 /// TODO FIXME try to do actual import and make data!  :o
                 rtn.put("note", "FAKE SUCCESS; nothing actually created");
