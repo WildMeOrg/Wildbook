@@ -94,6 +94,24 @@ public class BulkImport extends ApiBase {
 
             String bulkImportId = payload.optString("bulkImportId", null);
             if (bulkImportId == null) throw new ServletException("bulkImportId is required");
+            rtn.put("bulkImportId", bulkImportId);
+
+            JSONObject tolerance = payload.optJSONObject("tolerance");
+            if (tolerance == null) tolerance = new JSONObject();
+            // default failImportOnError behavior is true, means any single error bails on whole import
+            boolean toleranceFailImportOnError = tolerance.optBoolean("failImportOnError", true);
+            // if above false, any error in a row causes it to be skipped, unless this false
+            // in that case, rather than skip the row, the bad field will be ignored
+            // note: REQUIRED fields cannot be skipped and if missing will cause row to be skipped
+            boolean toleranceSkipRowOnError = tolerance.optBoolean("skipRowOnError", true);
+
+            // dont create anything, just check data (always returns a 200,
+            // but returned "success" (boolean) indicates total validity
+            boolean validateOnly = payload.optBoolean("validateOnly", false);
+            if (validateOnly) {
+                toleranceFailImportOnError = false;
+                toleranceSkipRowOnError = false;
+            }
 
             List<File> files = UploadedFiles.findFiles(request, bulkImportId);
 
@@ -136,42 +154,59 @@ public class BulkImport extends ApiBase {
                     if (bv.getValue() == null) continue;
                     if (!Util.containsFilename(files, bv.getValue().toString())) {
                         System.out.println(bv.getValue() + " not found in uploaded files");
-                        vrow.put(fieldName, new BulkValidatorException("file not found in uploaded files", ApiException.ERROR_RETURN_CODE_REQUIRED));
+                        vrow.put(fieldName, new BulkValidatorException("file '" + bv.getValue().toString() + "' not found in uploaded files", ApiException.ERROR_RETURN_CODE_REQUIRED));
                     }
                 }
             }
 
-            List<BulkValidator> validRows = new ArrayList<BulkValidator>();
+            int numRowsValid = 0;
+            List<BulkValidator> validFields = new ArrayList<BulkValidator>();
             JSONArray dataErrors = new JSONArray();
             for (int rowNum = 0 ; rowNum < validatedRows.size() ; rowNum++) {
+                boolean rowValid = true;
                 Map<String, Object> rowResult = validatedRows.get(rowNum);
                 for (String rowFieldName : rowResult.keySet()) {
-                    Object rowObj = rowResult.get(rowFieldName);
-                    if (rowObj instanceof BulkValidator) {
-                        validRows.add((BulkValidator)rowObj);
-                    } else if (rowObj instanceof BulkValidatorException) {
+                    Object fieldObj = rowResult.get(rowFieldName);
+                    if (fieldObj instanceof BulkValidator) {
+                        validFields.add((BulkValidator)fieldObj);
+                    } else if (fieldObj instanceof BulkValidatorException) {
                         JSONObject err = new JSONObject();
                         err.put("rowNumber", rowNum);
                         err.put("fieldName", rowFieldName);
-                        BulkValidatorException bve = (BulkValidatorException)rowObj;
+                        BulkValidatorException bve = (BulkValidatorException)fieldObj;
                         err.put("errors", bve.getErrors());
                         err.put("details", bve.toString());
                         dataErrors.put(err);
                         System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName + "]: " + bve);
+                        rowValid = false;
                     } else {
-                        System.out.println("[ERROR] Non-bulk exception (or something weird) for rowNum=" + rowNum + ", rowFieldName=" + rowFieldName + ": " + rowObj);
-                        Exception ex = (Exception)rowObj;
+                        System.out.println("[ERROR] Non-bulk exception (or something weird) for rowNum=" + rowNum + ", rowFieldName=" + rowFieldName + ": " + fieldObj);
+                        Exception ex = (Exception)fieldObj;
                         ex.printStackTrace();
-                        throw new ServletException("cannot process rowResult[" + rowNum + ", " + rowFieldName + "]: " + rowObj);
+                        throw new ServletException("cannot process rowResult[" + rowNum + ", " + rowFieldName + "]: " + fieldObj);
                     }
                 }
+                if (rowValid) numRowsValid++;
             }
-            if (dataErrors.length() > 0) {
+
+            rtn.put("numberRows", validatedRows.size());
+            rtn.put("numberRowsValid", numRowsValid);
+            rtn.put("numberFieldsError", dataErrors.length());
+            rtn.put("numberFieldsValid", validFields.size());
+            if (dataErrors.length() > 0) rtn.put("errors", dataErrors);
+
+            if (validateOnly) {
+                rtn.put("validateOnly", true);
+                rtn.put("success", (dataErrors.length() == 0));
+
+            } else if (dataErrors.length() > 0) {
                 statusCode = 400;
                 rtn.put("errors", dataErrors);
 
             } else {
+                rtn.put("success", true);
                 /// TODO FIXME try to do actual import and make data!  :o
+                rtn.put("note", "FAKE SUCCESS; nothing actually created");
                 statusCode = 200;
             }
 
