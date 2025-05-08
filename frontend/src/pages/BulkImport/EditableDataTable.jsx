@@ -4,6 +4,8 @@ import {
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
+  ColumnResizeMode,
+  ColumnResizeDirection,
   flexRender,
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
@@ -26,9 +28,10 @@ const EditableCell = ({
 
   const handleBlur = () => {
     store.spreadsheetData[rowIndex][columnId] = value;
+    store.rawData[rowIndex][columnId] = value;
+    store.updateRawFromNormalizedRow(rowIndex);
     const errors = store.validateSpreadsheet();
     setError(errors[rowIndex]?.[columnId] || "");
-    console.log("store data", JSON.stringify(store.spreadsheetData),);
   };
 
   const handleKeyDown = (e) => {
@@ -49,7 +52,8 @@ const EditableCell = ({
           value={value ? { value, label: value } : null}
           onChange={(sel) => {
             console.log("selected value", sel);
-            setValue(sel ? sel.value : "")}}
+            setValue(sel ? sel.value : "")
+          }}
           onBlur={handleBlur}
           error={error}
         />
@@ -152,6 +156,16 @@ export const DataTable = observer(({ store }) => {
   const table = useReactTable({
     data,
     columns,
+    columnResizeMode: 'onChange',
+    columnResizeDirection: 'ltr',
+    defaultColumn: {
+      enableResizing: true,
+      size: 150,
+      minSize: 50,
+      maxSize: 500,
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
@@ -174,20 +188,78 @@ export const DataTable = observer(({ store }) => {
     >
       <div className="table-responsive">
         <table className="table table-bordered table-hover table-sm">
-          <thead className="table-light">
+          {/* <thead className="table-light">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+                {headerGroup.headers.map((header) => {
                   <th key={header.id} className="text-capitalize">
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext(),
+                    )}
+                    {header.getCanResize() && (
+                      <div
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className="resizer"
+                      />
+                    )}
+                  </th>
+                })}
+              </tr>
+            ))}
+          </thead> */}
+
+          {/* <thead className="table-light">
+  {table.getHeaderGroups().map(headerGroup => (
+    <tr key={headerGroup.id}>
+      {headerGroup.headers.map(header => (
+        <th
+          key={header.id}
+          className="text-capitalize position-relative"
+          style={{ width: header.column.getSize() }}
+        >
+          {flexRender(
+            header.column.columnDef.header,
+            header.getContext()
+          )}
+          {header.column.getCanResize() && (
+            <div
+              onMouseDown={header.column.getResizeHandler()}
+              onTouchStart={header.column.getResizeHandler()}
+              className="resizer"
+            />
+          )}
+        </th>
+      ))}
+    </tr>
+  ))}
+</thead> */}
+
+          <thead className="table-light">
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th
+                    key={header.id}
+                    className="text-capitalize position-relative"
+                    style={{ width: header.getSize() }}
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+
+                    {header.column.getCanResize() && (
+                      <div
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className="resizer"
+                      />
                     )}
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
+
           <tbody>
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id}>
