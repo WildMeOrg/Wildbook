@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -52,6 +53,7 @@ class BulkApiPostTest {
     HttpServletResponse mockResponse;
     BulkImport apiServlet;
     StringWriter responseOut;
+    List<File> emptyFiles = new ArrayList<File>();
 
     @BeforeEach
     void setUp() throws IOException {
@@ -227,7 +229,7 @@ class BulkApiPostTest {
                 when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
-                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(null);
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(emptyFiles);
                 try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                     mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
                     apiServlet.doPost(mockRequest, mockResponse);
@@ -258,7 +260,7 @@ class BulkApiPostTest {
                 when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
             })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
-                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(null);
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(emptyFiles);
                 try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                     mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
                     apiServlet.doPost(mockRequest, mockResponse);
