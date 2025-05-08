@@ -151,13 +151,22 @@ public class BulkValidator {
         public String getIndexPrefix() {
             return indexPrefix;
         }
+        public boolean indexPrefixEquals(String val) {
+            if (indexPrefix == null) return false;
+            return indexPrefix.equals(val);
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
 
         public Object getValue() {
             return value;
         }
 
-        public String getFieldName() {
-            return fieldName;
+        public String getValueString() {
+            if (value == null) return null;
+            return value.toString();
         }
 
         public static boolean isValidFieldName(String fieldName) {
