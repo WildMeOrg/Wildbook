@@ -649,7 +649,7 @@
               <workingDirectory>${basedir}/src/main/webapp/javascript</workingDirectory>
             </configuration>
           </execution>
-
+<!--
           <execution>
             <id>Build React Directory</id>
             <phase>clean</phase>
@@ -661,6 +661,7 @@
               <workingDirectory>${basedir}</workingDirectory>
             </configuration>
           </execution>
+-->
         </executions>
       </plugin>
 
