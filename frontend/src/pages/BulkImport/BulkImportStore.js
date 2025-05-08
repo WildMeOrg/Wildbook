@@ -1,6 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4, validate } from "uuid";
+import { client } from "../../api/client";
+import { runInAction } from "mobx";
 
 export class BulkImportStore {
   _imagePreview = [];
@@ -11,6 +13,7 @@ export class BulkImportStore {
   _flow = null;
   _submissionId = null;
   _spreadsheetData = [];
+  _rawData = [];
   _imageUploadStatus = "notStarted";
   _steps = ["Upload Image", "Upload Spreadsheet", "Review"];
   _activeStep = 0;
@@ -20,17 +23,50 @@ export class BulkImportStore {
   _uploadedImages = [];
   _initialUploadFileCount = 0;
   _columnsDef = [];
+  _rawColumns = [];
+  _specifiedColumns = [
+    "Encounter.mediaAsset0",
+    "Encounter.year",
+    "Encounter.genus",
+    "Encounter.decimalLatitude",
+    "Encounter.locationID",
+    "Encounter.country",
+    "Encounter.occurrenceID",
+    "MarkedIndividual.individualID",
+    "Encounter.sex",
+    "Encounter.lifeStage",
+    "Encounter.livingStatus",
+    "Encounter.behavior",
+    "Encounter.submitterID",
+    "Encounter.occurrenceRemarks",
+    "Encounter.verbatimLocality",
+    "Encounter.dateInMilliseconds",
+    "Encounter.researcherComments",
+    "Encounter.photographer0.emailAddress",
+    "Encounter.informOther0.emailAddress",
+    "TissueSample.sampleID",
+    "SexAnalysis.sex",
+  ];
+
+  _removedColumns = [
+    "Encounter.month",
+    "Encounter.day",
+    "Encounter.hour",
+    "Encounter.minutes",
+    "Encounter.decimalLongitude",
+    "Encounter.specificEpithet",
+  ];
 
   _tableHeaderMapping = {
-    "Encounter.mediaAsset0": "Media Asset",
-    "Encounter.genus" : "Species",
+    "Encounter.mediaAsset0": "Media Assets",
+    "Encounter.genus": "Species",
     "MarkedIndividual.individualID": "Individual name",
     "Encounter.occurrenceID": "occurrence ID",
     "Encounter.occurrenceRemarks": "occurrence Remarks",
-    "Encounter.LocationID": "location",
+    "Encounter.locationID": "location",
     "Encounter.country": "country",
     "Encounter.decimalLatitude": "Lat, long (DD)",
-    "Encounter.date": "date",
+    "Encounter.year": "date",
     "Encounter.sex": "sex",
     "Encounter.lifeStage": "life Stage",
     "Encounter.livingStatus": "living Status",
@@ -56,12 +92,12 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
-  _columnsUseSelectCell = ["Encounter.species", "Encounter.locationID", "Encounter.submitterID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
+  _columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.submitterID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
   _validationRules = {
     "Encounter.mediaAsset0": {
       required: true,
     },
-    "Encounter.date": {
+    "Encounter.year": {
       required: true,
       validate: (val) => {
         if (/^\d{4}$/.test(val)) {
@@ -81,20 +117,20 @@ export class BulkImportStore {
       message:
         "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or full ISO datetime “YYYY-MM-DDThh:mm:ss.sssZ”",
     },
-    "Encounter.species": {
+    "Encounter.genus": {
       required: true,
       validate: (val) => {
         return this._validspecies.includes(val);
       },
       message: "Must enter a valid species",
     },
-    "Encounter.decimalLatitudeAndLongitude": {
+    "Encounter.decimalLatitude": {
       required: false,
       validate: (val) => {
         if (!val) {
           return true;
         }
-        const re = /^\(\s*([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)\s*\)$/;
+        const re = /^\s*([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)\s*$/;
 
         const m = re.exec(val);
         if (!m) {
@@ -118,7 +154,7 @@ export class BulkImportStore {
       },
       message: "Must enter a valid latitude and longitude",
     },
-    "Encounter.location": {
+    "Encounter.locationID": {
       required: true,
       validate: (value) => {
         return this._validLocationIDs.includes(value);
@@ -197,6 +233,10 @@ export class BulkImportStore {
     return this._spreadsheetData;
   }
 
+  get rawData() {
+    return this._rawData;
+  }
+
   get imageUploadStatus() {
     return this._imageUploadStatus;
   }
@@ -256,8 +296,28 @@ export class BulkImportStore {
     return this._columnsDef;
   }
 
+  get specifiedColumns() {
+    return this._specifiedColumns;
+  }
+
+  get removedColumns() {
+    return this._removedColumns;
+  }
+
+  get rawColumns() {
+    return this._rawColumns;
+  }
+
+  get submissionId() {
+    return this._submissionId;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = data;
+  }
+
+  setRawData(data) {
+    this._rawData = data;
   }
 
   setImageUploadStatus(status) {
@@ -313,6 +373,10 @@ export class BulkImportStore {
 
   setColumnsDef(columns) {
     this._columnsDef = columns;
+  }
+
+  setRawColumns(columns) {
+    this._rawColumns = columns;
   }
 
   getOptionsForSelectCell(col) {
@@ -405,10 +469,12 @@ export class BulkImportStore {
     }
   }
 
-  initializeFlow(fileInputRef, maxSize) {
-    const submissionId = this._submissionId || uuidv4();
+  setSubmissionId(submissionId) {
     this._submissionId = submissionId;
+    console.log("setSubmissionId", submissionId);
+  }
 
+  initializeFlow(fileInputRef, maxSize) {
     const flowInstance = new Flow({
       target: "/ResumableUpload",
       forceChunkSize: true,
@@ -418,7 +484,7 @@ export class BulkImportStore {
       chunkRetryInterval: 2000,
       simultaneousUploads: 6,
       chunkSize: 5 * 1024 * 1024,
-      query: { submissionId },
+      query: { submissionId: this._submissionId },
     });
 
     flowInstance.opts.generateUniqueIdentifier = (file) =>
@@ -551,6 +617,81 @@ export class BulkImportStore {
     });
   }
 
+  updateRawFromNormalizedRow(rowIndex) {
+    const norm = this._spreadsheetData[rowIndex];
+    const raw = this._rawData[rowIndex];
+
+    runInAction(() => {
+      if (norm["Encounter.year"]) {
+        const val = norm["Encounter.year"];
+        if (val) {
+          if (/^\d{4}$/.test(val)) {
+            const y = Number(val);
+            raw["Encounter.year"] = y;
+            raw["Encounter.month"] = "";
+            raw["Encounter.day"] = "";
+            raw["Encounter.hour"] = "";
+            raw["Encounter.minutes"] = "";
+          }
+          else if (/^\d{4}-\d{2}$/.test(val)) {
+            const [y, m] = val.split("-").map(Number);
+            raw["Encounter.year"] = y;
+            raw["Encounter.month"] = m;
+            raw["Encounter.day"] = "";
+            raw["Encounter.hour"] = "";
+            raw["Encounter.minutes"] = "";
+          }
+          else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+            const [y, m, d] = val.split("-").map(Number);
+            raw["Encounter.year"] = y;
+            raw["Encounter.month"] = m;
+            raw["Encounter.day"] = d;
+            raw["Encounter.hour"] = "";
+            raw["Encounter.minutes"] = "";
+          }
+          else {
+            const dt = new Date(val);
+            raw["Encounter.year"] = dt.getFullYear();
+            raw["Encounter.month"] = dt.getMonth() + 1;
+            raw["Encounter.day"] = dt.getDate();
+            raw["Encounter.hour"] = dt.getHours();
+            raw["Encounter.minutes"] = dt.getMinutes();
+          }
+        }
+
+      }
+
+      if (norm["Encounter.genus"] != null) {
+        const [g, s = ""] = norm["Encounter.genus"].split(" ");
+        raw["Encounter.genus"] = g;
+        raw["Encounter.specificEpithet"] = s;
+      }
+
+      if (norm["Encounter.mediaAsset0"] != null) {
+        Object.keys(raw).forEach((key) => {
+          if (key.startsWith("Encounter.mediaAsset")) {
+            delete raw[key];
+          }
+        });
+        const assets = norm["Encounter.mediaAsset0"]
+          .split(/\s*,\s*/)
+          .filter((v) => v !== "");
+        assets.forEach((val, idx) => {
+          raw[`Encounter.mediaAsset${idx}`] = val;
+        });
+      }
+
+      if (norm["Encounter.decimalLatitude"] != null) {
+        const m = /^\s*([^,]+)\s*,\s*([^,]+)\s*$/.exec(
+          norm["Encounter.decimalLatitude"]
+        );
+        raw["Encounter.decimalLatitude"] = m ? m[1] : "";
+        raw["Encounter.decimalLongitude"] = m ? m[2] : "";
+      }
+
+    });
+  }
+
   traverseFileTree(item, maxSize, path = "") {
     if (item.isFile) {
       item.file((file) => {
@@ -573,7 +714,6 @@ export class BulkImportStore {
     const errors = {};
     this._spreadsheetData.forEach((row, rowIndex) => {
       this._columnsDef.forEach((col) => {
-        console.log("col", col);
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
         if (!rules) return;
