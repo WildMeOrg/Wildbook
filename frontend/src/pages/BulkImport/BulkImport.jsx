@@ -9,9 +9,12 @@ import { BulkImportSpreadsheet } from "./BulkImportSpreadsheet";
 import { BulkImportTableReview } from "./BulkImportTableReview";
 import { BulkImportIdentification } from "./BulkImportIdentification";
 import { BulkImportTask } from "./BulkImportTask";
+import { BulkImportSetLocation } from "./BulkImportSetLocation";
+import { v4 as uuidv4 } from "uuid";
 
 const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
+  store.setSubmissionId(uuidv4());
   return (
     <Container>
       <h1 className="mt-3">
@@ -22,7 +25,7 @@ const BulkImport = observer(() => {
       {store._activeStep === 1 && <BulkImportSpreadsheet store={store} />}
       {store._activeStep === 2 && <BulkImportTableReview store={store} />}
       {store._activeStep === 3 && (
-        <BulkImportTask store={store} />
+        <BulkImportSetLocation store={store} />
       )}
     </Container>
   );
