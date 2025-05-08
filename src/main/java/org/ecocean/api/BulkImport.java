@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.api.bulk.*;
 
+import org.ecocean.media.MediaAsset;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.shepherd.core.Shepherd;
@@ -71,6 +73,7 @@ public class BulkImport extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         int statusCode = 500;
+        boolean validateOnly = false;
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("api.Bulk.doPost");
         myShepherd.beginDBTransaction();
@@ -107,7 +110,7 @@ public class BulkImport extends ApiBase {
 
             // dont create anything, just check data (always returns a 200,
             // but returned "success" (boolean) indicates total validity
-            boolean validateOnly = payload.optBoolean("validateOnly", false);
+            validateOnly = payload.optBoolean("validateOnly", false);
             if (validateOnly) {
                 toleranceFailImportOnError = false;
                 toleranceSkipRowOnError = false;
@@ -195,6 +198,25 @@ public class BulkImport extends ApiBase {
             rtn.put("numberFieldsValid", validFields.size());
             if (dataErrors.length() > 0) rtn.put("errors", dataErrors);
 
+            Map<String, MediaAsset> maMap = new HashMap<String, MediaAsset>();
+            if (!validateOnly && (dataErrors.length() == 0)) {
+                for (File file : files) {
+                    try {
+                        MediaAsset ma = UploadedFiles.makeMediaAsset(bulkImportId, file, myShepherd);
+                        maMap.put(file.getName(), ma);
+                    } catch (ApiException apiEx) {
+                        JSONObject err = new JSONObject();
+                        err.put("filename", file.getName());
+                        err.put("mediaAssetError", true);
+                        err.put("errors", apiEx.getErrors());
+                        err.put("details", apiEx.toString());
+                        dataErrors.put(err);
+                        System.out.println("[ERROR] " + file.getName() + " MediaAsset creation: " + apiEx);
+                    }
+                }
+                System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " + files.size() + " files");
+            }
+
             if (validateOnly) {
                 rtn.put("validateOnly", true);
                 rtn.put("success", (dataErrors.length() == 0));
@@ -221,7 +243,7 @@ public class BulkImport extends ApiBase {
             statusCode = 500;
             ex.printStackTrace();
         } finally {
-            if (statusCode == 200) {
+            if ((statusCode == 200) && !validateOnly) {
                 myShepherd.commitDBTransaction();
             } else {
                 myShepherd.rollbackDBTransaction();
