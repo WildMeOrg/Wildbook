@@ -167,16 +167,37 @@ public class BulkImport extends ApiBase {
                 }
             }
 
+            // related to how to set owner when none given in row
+            boolean nullSubmitterIsPublic = payload.optBoolean("nullSubmitterIsPublic", false);
+            String submitterIDFieldName = "Encounter.submitterID";
+            BulkValidator defaultSubmitterIDBV = null;
+            if (nullSubmitterIsPublic) {
+                defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName, "public", myShepherd);
+            } else {
+                defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName, currentUser.getUsername(), myShepherd);
+            }
+
             int numRowsValid = 0;
             List<BulkValidator> validFields = new ArrayList<BulkValidator>();
             JSONArray dataErrors = new JSONArray();
             for (int rowNum = 0 ; rowNum < validatedRows.size() ; rowNum++) {
                 boolean rowValid = true;
+                boolean hasSubmitter = false;
                 Map<String, Object> rowResult = validatedRows.get(rowNum);
                 for (String rowFieldName : rowResult.keySet()) {
                     Object fieldObj = rowResult.get(rowFieldName);
                     if (fieldObj instanceof BulkValidator) {
-                        validFields.add((BulkValidator)fieldObj);
+                        BulkValidator bv = (BulkValidator)fieldObj;
+                        // either we have passed a (valid) owner, or we have the field, but no value
+                        // in latter case we set to the default
+                        if (rowFieldName.equals(submitterIDFieldName)) {
+                            if (bv.getValue() == null) {
+                                rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
+                                bv = defaultSubmitterIDBV;
+                            }
+                            hasSubmitter = true;
+                        }
+                        validFields.add(bv);
                     } else if (fieldObj instanceof BulkValidatorException) {
                         JSONObject err = new JSONObject();
                         err.put("rowNumber", rowNum);
@@ -194,7 +215,11 @@ public class BulkImport extends ApiBase {
                         throw new ServletException("cannot process rowResult[" + rowNum + ", " + rowFieldName + "]: " + fieldObj);
                     }
                 }
-                if (rowValid) numRowsValid++;
+                if (rowValid) {
+                    numRowsValid++;
+                    // case where we simply didnt have the column for submitter, we add it now
+                    if (!hasSubmitter) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
+                }
             }
 
             rtn.put("numberRows", validatedRows.size());
@@ -239,6 +264,7 @@ public class BulkImport extends ApiBase {
             } else {
                 // if we get here, it means we should attempt to create and persist objects for real
                 // (we may have some errors in rows depending on tolerance)
+                System.out.println("================= about to createImport for " + bulkImportId + "=================");
                 JSONObject results = BulkImporter.createImport(validatedRows, maMap, myShepherd);
                 for (String rkey : results.keySet()) {
                     rtn.put(rkey, results.get(rkey));
