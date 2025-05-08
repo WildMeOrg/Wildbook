@@ -8,11 +8,12 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import org.ecocean.api.bulk.*;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.shepherd.core.Shepherd;
 
 public class BulkImporter {
 
-    public static JSONObject createImport(List<Map<String, Object>> rows, Shepherd myShepherd) {
+    public static JSONObject createImport(List<Map<String, Object>> rows, Map<String, MediaAsset> maMap, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
         for (int rowNum = 0 ; rowNum < rows.size() ; rowNum++) {
             List<BulkValidator> fields = new ArrayList<BulkValidator>();
@@ -25,14 +26,18 @@ public class BulkImporter {
                 //} else if (fieldObj instanceof BulkValidatorException) {
             }
 System.out.println(">>>>>> " + rowNum);
-            processRow(fields, myShepherd);
+            processRow(fields, maMap, myShepherd);
         }
         return rtn;
     }
 
-    private static void processRow(List<BulkValidator> fields, Shepherd myShepherd) {
+    private static void processRow(List<BulkValidator> fields, Map<String, MediaAsset> maMap, Shepherd myShepherd) {
         for (BulkValidator field : fields) {
             System.out.println("   >> " + field);
+            if (field.indexPrefixEquals("Encounter.mediaAsset")) {
+                MediaAsset ma = maMap.get(field.getValueString());
+                System.out.println("   ++ using: " + ma);
+            }
         }
     }
 }

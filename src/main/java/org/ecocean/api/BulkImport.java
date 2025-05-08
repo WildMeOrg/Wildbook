@@ -239,11 +239,12 @@ public class BulkImport extends ApiBase {
             } else {
                 // if we get here, it means we should attempt to create and persist objects for real
                 // (we may have some errors in rows depending on tolerance)
-                JSONObject results = BulkImporter.createImport(validatedRows, myShepherd);
-                rtn.put("results", results);
+                JSONObject results = BulkImporter.createImport(validatedRows, maMap, myShepherd);
+                for (String rkey : results.keySet()) {
+                    rtn.put(rkey, results.get(rkey));
+                }
                 rtn.put("success", true);
-                /// TODO FIXME try to do actual import and make data!  :o
-                rtn.put("note", "FAKE SUCCESS; nothing actually created");
+                rtn.put("note", "INCOMPLETE IMPORT CREATION; in development");
                 statusCode = 200;
             }
 
