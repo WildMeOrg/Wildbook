@@ -191,7 +191,7 @@ try{
 	Set<String> locationIds = new HashSet<String>();
 
 	// Pagination Setup
-    int pageSize = 50;
+    int pageSize = 500;
     int pageIndex = 0;
     String pageParam = request.getParameter("page");
     if (pageParam != null) {

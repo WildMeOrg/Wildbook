@@ -86,7 +86,7 @@ public class ServletUtilities {
         } else {
             pageTitle = CommonConfiguration.getHTMLTitle(context) + " | " + pageTitle;
         }
-        String username = null;
+        String username = "";
         User user = null;
         String profilePhotoURL = urlLoc + "/images/empty_profile.jpg";
         // we use this arg bc we can only log out *after* including the header on
@@ -102,7 +102,7 @@ public class ServletUtilities {
                 notifications = Collaboration.getNotificationsWidgetHtml(request, myShepherd);
                 if (request.getUserPrincipal() != null && !loggingOut) {
                     user = myShepherd.getUser(request);
-                    username = (user != null) ? user.getUsername() : null;
+                    username = (user != null) ? user.getUsername() : "";
                     if (user.getUserImage() != null) {
                         profilePhotoURL = "/" + CommonConfiguration.getDataDirectoryName(context) +
                             "/users/" + user.getUsername() + "/" +

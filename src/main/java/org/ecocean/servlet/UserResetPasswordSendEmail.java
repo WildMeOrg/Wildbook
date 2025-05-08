@@ -97,6 +97,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
                     es.execute(mailer);
                     es.shutdown();
 
+
                     out.println(
                         "If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
                 } else {
