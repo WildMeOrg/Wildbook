@@ -1,31 +1,31 @@
 package org.ecocean.api;
 
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
-import javax.jdo.PersistenceManager;
-import javax.jdo.PersistenceManagerFactory;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.shepherd.core.Shepherd;
-import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
-import org.ecocean.User;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ReCAPTCHA;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
+import org.ecocean.User;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,21 +33,20 @@ import org.junit.jupiter.api.Test;
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.mockConstruction;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class BulkApiPostTest {
-
     PersistenceManagerFactory mockPMF;
     HttpServletRequest mockRequest;
     HttpServletResponse mockResponse;
@@ -55,8 +54,8 @@ class BulkApiPostTest {
     StringWriter responseOut;
     List<File> emptyFiles = new ArrayList<File>();
 
-    @BeforeEach
-    void setUp() throws IOException {
+    @BeforeEach void setUp()
+    throws IOException {
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
         mockPMF = mock(PersistenceManagerFactory.class);
@@ -67,12 +66,12 @@ class BulkApiPostTest {
         when(mockResponse.getWriter()).thenReturn(writer);
     }
 
-
-    @Test void apiPost401() throws ServletException, IOException {
+    @Test void apiPost401()
+    throws ServletException, IOException {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                doNothing().when(mock).beginDBTransaction();
-            })) {
+                (mock, context) -> {
+            doNothing().when(mock).beginDBTransaction();
+        })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                 mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
                 apiServlet.doPost(mockRequest, mockResponse);
@@ -84,17 +83,18 @@ class BulkApiPostTest {
         }
     }
 
-    @Test void apiPostNoBulkImportId() throws ServletException, IOException {
+    @Test void apiPostNoBulkImportId()
+    throws ServletException, IOException {
         User user = mock(User.class);
-
         String requestBody = "{}";
+
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+        })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                 mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
                 Exception ex = assertThrows(ServletException.class, () -> {
@@ -105,17 +105,18 @@ class BulkApiPostTest {
         }
     }
 
-    @Test void apiPostNoRowsError() throws ServletException, IOException {
+    @Test void apiPostNoRowsError()
+    throws ServletException, IOException {
         User user = mock(User.class);
-
         String requestBody = basePayload().toString();
+
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+        })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                 mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
                 Exception ex = assertThrows(ServletException.class, () -> {
@@ -128,7 +129,9 @@ class BulkApiPostTest {
 
     private JSONObject basePayload() {
         JSONObject payload = new JSONObject();
+
         payload.put("bulkImportId", "00000000-0000-0000-0000-000000000000");
+        payload.put("tolerance", new JSONObject());
         return payload;
     }
 
@@ -136,15 +139,19 @@ class BulkApiPostTest {
         JSONObject rtn = basePayload();
         JSONArray rows = new JSONArray();
         JSONObject badRow = new JSONObject("{\"fubarFail\": 123}");
+
         rows.put(badRow);
         rtn.put("rows", rows);
+        // default behavior is to go easy on bad fieldnames, so we disable warning-only
+        rtn.getJSONObject("tolerance").put("badFieldnamesAreWarnings", false);
         return rtn.toString();
     }
 
     private String getValidPayloadNonArrays() {
         JSONObject rtn = basePayload();
         JSONArray rows = new JSONArray();
-        for (int i = 0 ; i < 20 ; i++) {
+
+        for (int i = 0; i < 20; i++) {
             JSONObject row = new JSONObject();
             row.put("Encounter.year", 2000 + i);
             row.put("Encounter.genus", "Genus" + i);
@@ -158,13 +165,14 @@ class BulkApiPostTest {
     private String getValidPayloadArrays() {
         JSONObject rtn = basePayload();
         JSONArray fieldNames = new JSONArray();
+
         fieldNames.put("Encounter.year");
         fieldNames.put("Encounter.genus");
         fieldNames.put("Encounter.specificEpithet");
         rtn.put("fieldNames", fieldNames);
 
         JSONArray rows = new JSONArray();
-        for (int i = 0 ; i < 20 ; i++) {
+        for (int i = 0; i < 20; i++) {
             JSONArray row = new JSONArray();
             row.put(2000 + i);
             row.put("Genus" + i);
@@ -201,13 +209,12 @@ class BulkApiPostTest {
             "rowNumber": 0,
             "errors": [{"code": "REQUIRED"}]
         }
-*/
-
+ */
     private boolean hasError(JSONObject rtnJson, int rowNumber, String fieldName) {
         if (rtnJson == null) return false;
         JSONArray errors = rtnJson.optJSONArray("errors");
         if (errors == null) return false;
-        for (int i = 0 ; i < errors.length() ; i++) {
+        for (int i = 0; i < errors.length(); i++) {
             JSONObject error = errors.optJSONObject(i);
             if (error == null) continue;
             int errRowNumber = error.optInt("rowNumber", -9999);
@@ -217,21 +224,24 @@ class BulkApiPostTest {
         return false;
     }
 
-    @Test void apiPostRowsBadFieldNames() throws ServletException, IOException {
+    @Test void apiPostRowsBadFieldNames()
+    throws ServletException, IOException {
         User user = mock(User.class);
-
         String requestBody = getBadFieldNamesPayload();
+
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+        })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
-                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(emptyFiles);
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
                 try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
                     apiServlet.doPost(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
@@ -247,35 +257,37 @@ class BulkApiPostTest {
         }
     }
 
-    @Test void apiPostValidNonArrays() throws ServletException, IOException {
+    @Test void apiPostValidNonArrays()
+    throws ServletException, IOException {
         User user = mock(User.class);
-
         String requestBody = getValidPayloadNonArrays();
+
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
-            })) {
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
-                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class), any(String.class))).thenReturn(emptyFiles);
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
                 try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
                     apiServlet.doPost(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
                     verify(mockResponse).setStatus(200);
 /*
-//// FIXME from here on we need code to work!
+   //// FIXME from here on we need code to work!
                 assertTrue(jout.getBoolean("success"));
-*/
+ */
                 }
             }
         }
     }
-
 
 /*
     @Test void apiPostSuccess() throws ServletException, IOException {
@@ -309,7 +321,7 @@ class BulkApiPostTest {
                 apiServlet.doPost(mockRequest, mockResponse);
                 responseOut.flush();
                 JSONObject jout = new JSONObject(responseOut.toString());
-System.out.println(">>> " + jout.toString(4));
+   System.out.println(">>> " + jout.toString(4));
                 verify(mockResponse).setStatus(400);
                 assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
             }
@@ -473,6 +485,5 @@ System.out.println(">>> " + jout.toString(4));
         }
     }
 
-*/
-
+ */
 }
