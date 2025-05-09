@@ -52,9 +52,9 @@ public class BulkValidator {
         "TissueSample.tissueType"));
 
     public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
-        "Encounter.keyword#", "Encounter.mediaAsset#", "Encounter.informOther#.emailAddress",
-        "Encounter.photographer#.emailAddress", "MicrosatelliteMarkersAnalysis.alleles#",
-        "Occurrence.taxonomy#"));
+        "Encounter.keyword#", "Encounter.mediaAsset#", "Encounter.mediaAsset#.keywords",
+        "Encounter.informOther#.emailAddress", "Encounter.photographer#.emailAddress",
+        "MicrosatelliteMarkersAnalysis.alleles#", "Occurrence.taxonomy#"));
 
     public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
         "Encounter.genus", "Encounter.specificEpithet", "Encounter.year"));
