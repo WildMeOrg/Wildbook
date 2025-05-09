@@ -14,7 +14,6 @@ import { v4 as uuidv4 } from "uuid";
 
 const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
-  store.setSubmissionId(uuidv4());
   return (
     <Container>
       <h1 className="mt-3">
