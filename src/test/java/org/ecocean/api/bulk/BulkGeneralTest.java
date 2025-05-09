@@ -80,8 +80,11 @@ class BulkGeneralTest {
         fields.add("Encounter.mediaAsset0");
         fields.add("Encounter.mediaAsset1");
         fields.add("Encounter.mediaAsset4");
+        fields.add("Encounter.mediaAsset0.keywords");
+        fields.add("Encounter.keyword0");
+        fields.add("Encounter.keyword3");
         fields.add("Encounter.year");
-        List<String> found = BulkImportUtil.findIndexedFieldNames(fields, "Encounter.mediaAsset0");
+        List<String> found = BulkImportUtil.findIndexedFieldNames(fields, "Encounter.mediaAsset");
         assertEquals(found.size(), 5);
         assertEquals(found.get(4), "Encounter.mediaAsset4");
         assertNull(found.get(3));
