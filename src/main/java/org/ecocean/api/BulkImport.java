@@ -1,13 +1,13 @@
 package org.ecocean.api;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,33 +17,32 @@ import javax.servlet.ServletException;
 import org.ecocean.api.bulk.*;
 
 import org.ecocean.media.MediaAsset;
+import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
-import org.ecocean.shepherd.core.Shepherd;
-import org.ecocean.servlet.ServletUtilities;
 
 /*
-import org.ecocean.Annotation;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ContextConfiguration;
-import org.ecocean.IAJsonProperties;
-import org.ecocean.Keyword;
-import org.ecocean.LabeledKeyword;
-import org.ecocean.LocationID;
-import org.ecocean.Organization;
-import org.ecocean.Project;
-import org.ecocean.servlet.ReCAPTCHA;
-import org.ecocean.Setting;
-import org.ecocean.shepherd.core.ShepherdProperties;
-import org.ecocean.Util;
-import org.ecocean.Util.MeasurementDesc;
-*/
+   import org.ecocean.Annotation;
+   import org.ecocean.CommonConfiguration;
+   import org.ecocean.ContextConfiguration;
+   import org.ecocean.IAJsonProperties;
+   import org.ecocean.Keyword;
+   import org.ecocean.LabeledKeyword;
+   import org.ecocean.LocationID;
+   import org.ecocean.Organization;
+   import org.ecocean.Project;
+   import org.ecocean.servlet.ReCAPTCHA;
+   import org.ecocean.Setting;
+   import org.ecocean.shepherd.core.ShepherdProperties;
+   import org.ecocean.Util;
+   import org.ecocean.Util.MeasurementDesc;
+ */
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BulkImport extends ApiBase {
-
 /*
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
@@ -53,7 +52,7 @@ public class BulkImport extends ApiBase {
 
         myShepherd.setAction("api.Bulk.doGet");
         myShepherd.beginDBTransaction();
-	JSONObject rtn = new JSONObject("{\"success\": false}");
+        JSONObject rtn = new JSONObject("{\"success\": false}");
 
         try {
             User currentUser = myShepherd.getUser(request);
@@ -68,14 +67,14 @@ public class BulkImport extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(rtn.toString());
     }
-*/
-
+ */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         int statusCode = 500;
         boolean validateOnly = false;
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.Bulk.doPost");
         myShepherd.beginDBTransaction();
         try {
@@ -86,16 +85,13 @@ public class BulkImport extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
-
             JSONObject rtn = new JSONObject();
             rtn.put("success", false);
 
             JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
             if (payload == null) throw new ServletException("empty payload");
-
             JSONArray rows = payload.optJSONArray("rows");
             if (rows == null) throw new ServletException("no rows in payload");
-
             String bulkImportId = payload.optString("bulkImportId", null);
             if (bulkImportId == null) throw new ServletException("bulkImportId is required");
             rtn.put("bulkImportId", bulkImportId);
@@ -108,6 +104,9 @@ public class BulkImport extends ApiBase {
             // in that case, rather than skip the row, the bad field will be ignored
             // note: REQUIRED fields cannot be skipped and if missing will cause row to be skipped
             boolean toleranceSkipRowOnError = tolerance.optBoolean("skipRowOnError", true);
+            // defaulting to true for this, so basically bad fieldnames (and their values) are skipped
+            boolean toleranceBadFieldnamesAreWarnings = tolerance.optBoolean(
+                "badFieldnamesAreWarnings", true);
 
             // dont create anything, just check data (always returns a 200,
             // but returned "success" (boolean) indicates total validity
@@ -116,23 +115,21 @@ public class BulkImport extends ApiBase {
                 toleranceFailImportOnError = false;
                 toleranceSkipRowOnError = false;
             }
-
             List<File> files = UploadedFiles.findFiles(request, bulkImportId);
-
             JSONArray fieldNamesArr = payload.optJSONArray("fieldNames");
             Set<String> fieldNames = null;
             if (fieldNamesArr != null) {
                 fieldNames = new LinkedHashSet<String>();
-                for (int i = 0 ; i < fieldNamesArr.length() ; i++) {
+                for (int i = 0; i < fieldNamesArr.length(); i++) {
                     String fn = fieldNamesArr.optString(i, null);
-                    if (fn == null) throw new ServletException("could not find field name at i=" + i);
+                    if (fn == null)
+                        throw new ServletException("could not find field name at i=" + i);
                     fieldNames.add(fn);
                 }
             }
-
             Set<String> filenamesNeeded = new HashSet<String>();
-            List<Map<String, Object>> validatedRows = new ArrayList<Map<String, Object>>();
-            for (int i = 0 ; i < rows.length() ; i++) {
+            List<Map<String, Object> > validatedRows = new ArrayList<Map<String, Object> >();
+            for (int i = 0; i < rows.length(); i++) {
                 Map<String, Object> vrow = null;
                 if (fieldNames == null) {
                     JSONObject rowData = rows.optJSONObject(i);
@@ -150,8 +147,7 @@ public class BulkImport extends ApiBase {
                     vrow = BulkImportUtil.validateRow(fieldNames, rowArr, myShepherd);
                 }
                 validatedRows.add(vrow);
-
-                //now we check if we actually have all the mediaAssets we need
+                // now we check if we actually have all the mediaAssets we need
                 for (String fieldName : vrow.keySet()) {
                     if (!fieldName.startsWith("Encounter.mediaAsset")) continue;
                     if (vrow.get(fieldName) instanceof Exception) continue;
@@ -162,25 +158,29 @@ public class BulkImport extends ApiBase {
                         filenamesNeeded.add(filename);
                     } else {
                         System.out.println(bv.getValue() + " not found in uploaded files");
-                        vrow.put(fieldName, new BulkValidatorException("file '" + bv.getValue().toString() + "' not found in uploaded files", ApiException.ERROR_RETURN_CODE_REQUIRED));
+                        vrow.put(fieldName,
+                            new BulkValidatorException("file '" + bv.getValue().toString() +
+                            "' not found in uploaded files",
+                            ApiException.ERROR_RETURN_CODE_REQUIRED));
                     }
                 }
             }
-
             // related to how to set owner when none given in row
             boolean nullSubmitterIsPublic = payload.optBoolean("nullSubmitterIsPublic", false);
             String submitterIDFieldName = "Encounter.submitterID";
             BulkValidator defaultSubmitterIDBV = null;
             if (nullSubmitterIsPublic) {
-                defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName, "public", myShepherd);
+                defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName, "public",
+                    myShepherd);
             } else {
-                defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName, currentUser.getUsername(), myShepherd);
+                defaultSubmitterIDBV = new BulkValidator(submitterIDFieldName,
+                    currentUser.getUsername(), myShepherd);
             }
-
             int numRowsValid = 0;
             List<BulkValidator> validFields = new ArrayList<BulkValidator>();
             JSONArray dataErrors = new JSONArray();
-            for (int rowNum = 0 ; rowNum < validatedRows.size() ; rowNum++) {
+            JSONArray dataWarnings = new JSONArray();
+            for (int rowNum = 0; rowNum < validatedRows.size(); rowNum++) {
                 boolean rowValid = true;
                 boolean hasSubmitter = false;
                 Map<String, Object> rowResult = validatedRows.get(rowNum);
@@ -203,16 +203,25 @@ public class BulkImport extends ApiBase {
                         err.put("rowNumber", rowNum);
                         err.put("fieldName", rowFieldName);
                         BulkValidatorException bve = (BulkValidatorException)fieldObj;
+                        err.put("type", bve.getType());
                         err.put("errors", bve.getErrors());
                         err.put("details", bve.toString());
-                        dataErrors.put(err);
-                        System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName + "]: " + bve);
-                        rowValid = false;
+                        if (bve.treatAsWarning(toleranceBadFieldnamesAreWarnings)) {
+                            dataWarnings.put(err);
+                        } else {
+                            dataErrors.put(err);
+                            rowValid = false;
+                        }
+                        System.out.println("[INFO] rowResult[" + rowNum + ", " + rowFieldName +
+                            "]: " + bve);
                     } else {
-                        System.out.println("[ERROR] Non-bulk exception (or something weird) for rowNum=" + rowNum + ", rowFieldName=" + rowFieldName + ": " + fieldObj);
+                        System.out.println(
+                            "[ERROR] Non-bulk exception (or something weird) for rowNum=" + rowNum +
+                            ", rowFieldName=" + rowFieldName + ": " + fieldObj);
                         Exception ex = (Exception)fieldObj;
                         ex.printStackTrace();
-                        throw new ServletException("cannot process rowResult[" + rowNum + ", " + rowFieldName + "]: " + fieldObj);
+                        throw new ServletException("cannot process rowResult[" + rowNum + ", " +
+                                rowFieldName + "]: " + fieldObj);
                     }
                 }
                 if (rowValid) {
@@ -221,20 +230,20 @@ public class BulkImport extends ApiBase {
                     if (!hasSubmitter) rowResult.put(submitterIDFieldName, defaultSubmitterIDBV);
                 }
             }
-
             rtn.put("numberRows", validatedRows.size());
             rtn.put("numberRowsValid", numRowsValid);
+            rtn.put("numberFieldsWarning", dataWarnings.length());
             rtn.put("numberFieldsError", dataErrors.length());
             rtn.put("numberFieldsValid", validFields.size());
             if (dataErrors.length() > 0) rtn.put("errors", dataErrors);
-
             Map<String, MediaAsset> maMap = new HashMap<String, MediaAsset>();
             if (!validateOnly && (dataErrors.length() == 0)) {
                 for (File file : files) {
                     String filename = file.getName();
                     if (!filenamesNeeded.contains(filename)) continue; // uploaded, but not referenced :(
                     try {
-                        MediaAsset ma = UploadedFiles.makeMediaAsset(bulkImportId, file, myShepherd);
+                        MediaAsset ma = UploadedFiles.makeMediaAsset(bulkImportId, file,
+                            myShepherd);
                         maMap.put(filename, ma);
                     } catch (ApiException apiEx) {
                         JSONObject err = new JSONObject();
@@ -243,28 +252,29 @@ public class BulkImport extends ApiBase {
                         err.put("errors", apiEx.getErrors());
                         err.put("details", apiEx.toString());
                         dataErrors.put(err);
-                        System.out.println("[ERROR] " + filename + " MediaAsset creation: " + apiEx);
+                        System.out.println("[ERROR] " + filename + " MediaAsset creation: " +
+                            apiEx);
                     }
                 }
-                System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " + files.size() + " files");
+                System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " +
+                    files.size() + " files");
             }
             rtn.put("numberMediaAssetsCreated", maMap.size());
             rtn.put("numberFilenamesReferenced", filenamesNeeded.size());
             rtn.put("numberFilesUploaded", files.size());
-
+            if (dataWarnings.length() > 0) rtn.put("warnings", dataWarnings);
             if (validateOnly) {
                 rtn.put("validateOnly", true);
                 rtn.put("success", (dataErrors.length() == 0));
                 statusCode = 200;
-
             } else if ((dataErrors.length() > 0) && toleranceFailImportOnError) {
                 statusCode = 400;
                 rtn.put("errors", dataErrors);
-
             } else {
                 // if we get here, it means we should attempt to create and persist objects for real
                 // (we may have some errors in rows depending on tolerance)
-                System.out.println("================= about to createImport for " + bulkImportId + " =================");
+                System.out.println("================= about to createImport for " + bulkImportId +
+                    " =================");
                 JSONObject results = BulkImporter.createImport(validatedRows, maMap, myShepherd);
                 for (String rkey : results.keySet()) {
                     rtn.put(rkey, results.get(rkey));
@@ -273,13 +283,11 @@ public class BulkImport extends ApiBase {
                 rtn.put("note", "INCOMPLETE IMPORT CREATION; in development");
                 statusCode = 200;
             }
-
             response.setStatus(statusCode);
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write(rtn.toString());
-
-        } catch (ServletException ex) {  // should just be thrown, not caught (below)
+        } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
         } catch (Exception ex) {
             statusCode = 500;
@@ -299,6 +307,7 @@ public class BulkImport extends ApiBase {
         int statusCode = 500;
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.Bulk.doDelete");
         myShepherd.beginDBTransaction();
         try {
@@ -309,18 +318,15 @@ public class BulkImport extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
-
             JSONObject rtn = new JSONObject();
             String uri = request.getRequestURI();
             String[] args = uri.substring(22).split("/");
             if (args.length < 2) throw new ServletException("Bad path");
-
             response.setStatus(statusCode);
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write(rtn.toString());
-
-        } catch (ServletException ex) {  // should just be thrown, not caught (below)
+        } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -333,5 +339,4 @@ public class BulkImport extends ApiBase {
             myShepherd.closeDBTransaction();
         }
     }
-
 }
