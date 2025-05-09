@@ -102,14 +102,16 @@ public class MembershipCreate extends HttpServlet {
                     DateTime startDT = DateTime.parse(startDate, formatter);
                     System.out.println("StartDate parsed: " + startDT.toString());
                     Long startLong = startDT.getMillis();
-                    membership.setStartDate(startLong.longValue());
+                    membership.setStartDate(startLong);
                 }
+                else if(startDate == null) {membership.setStartDate(null);}
                 if (endDate != null && !"".equals(endDate)) {
                     DateTime endDT = DateTime.parse(endDate, formatter);
                     System.out.println("EndDate parsed: " + endDT.toString());
                     Long endLong = endDT.getMillis();
-                    membership.setEndDate(endLong.longValue());
+                    membership.setEndDate(endLong);
                 }
+                else if(endDate == null) {membership.setEndDate(null);}
                 if (roleName != null) {
                     if (roleName.trim().equals("")) {
                         membership.setRole(null);
