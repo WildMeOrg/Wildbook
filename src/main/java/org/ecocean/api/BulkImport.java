@@ -180,6 +180,7 @@ public class BulkImport extends ApiBase {
             List<BulkValidator> validFields = new ArrayList<BulkValidator>();
             JSONArray dataErrors = new JSONArray();
             JSONArray dataWarnings = new JSONArray();
+            Set<String> warningDuplicate = new HashSet<String>();
             for (int rowNum = 0; rowNum < validatedRows.size(); rowNum++) {
                 boolean rowValid = true;
                 boolean hasSubmitter = false;
@@ -207,7 +208,11 @@ public class BulkImport extends ApiBase {
                         err.put("errors", bve.getErrors());
                         err.put("details", bve.toString());
                         if (bve.treatAsWarning(toleranceBadFieldnamesAreWarnings)) {
-                            dataWarnings.put(err);
+                            // hackily prevents multiple identical warnings (like bad fieldname x N rows)
+                            if (!warningDuplicate.contains(bve.toString())) {
+                                dataWarnings.put(err);
+                                warningDuplicate.add(bve.toString());
+                            }
                         } else {
                             dataErrors.put(err);
                             rowValid = false;
