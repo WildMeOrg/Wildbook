@@ -18,17 +18,23 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-      store.setRawData(jsonData);
-      const totalRows = jsonData.length;
+      const sheetNames = workbook.SheetNames;
+      console.log("sheetNames", sheetNames);
+      // const firstSheetName = workbook.SheetNames[0];
+      const allJsonData  = sheetNames.reduce((acc, name) => {
+        const worksheet = workbook.Sheets[name];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+        return acc.concat(jsonData);
+      }, []);
+      // const firstSheetName = workbook.SheetNames[0];      
+      // const worksheet = workbook.Sheets[firstSheetName];
+      // const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      store.setRawData(allJsonData || []);
+      const totalRows = allJsonData.length;
       const processedData = [];
       let currentIndex = 0;
 
-      console.log("submissionId++++++++++++++++", store.submissionId);
-
-      const rowKeys = Object.keys(jsonData[0] || {});
+      const rowKeys = Object.keys(allJsonData[0] || {});
       store.setRawColumns(rowKeys);
       const mediaAssetsCols = rowKeys.filter(k => k.startsWith("Encounter.mediaAsset"));
       const remaining = rowKeys
@@ -37,17 +43,26 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         .filter(k => !mediaAssetsCols.includes(k));
       store.setColumnsDef([...store.specifiedColumns, ...remaining]);
 
-      const pad = (n) => n.toString().padStart(2, "0");
-
       const processChunk = () => {
-        const chunk = jsonData.slice(currentIndex, currentIndex + CHUNK_SIZE);
+        const chunk = allJsonData.slice(currentIndex, currentIndex + CHUNK_SIZE);
         const normalizedChunk = chunk.map((row) => {
-          const year = Number(row["Encounter.year"]);
-          const month = Number(row["Encounter.month"]);
-          const day = Number(row["Encounter.day"]);
-          const hour = Number(row["Encounter.hour"]);
-          const minutes = Number(row["Encounter.minutes"]);
-          const dt = new Date(year, month - 1, day, hour, minutes);
+
+          const formatDate = (year, month, day, hour, minute) => {
+            const pad = v => v?.toString().padStart(2, '0');
+            // if (year && month && day && hour != null && minute != null) {
+            //   return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000`
+            // }
+            // if (year && month && day) {
+            //   return `${year}-${pad(month)}-${pad(day)}`
+            // }
+            // if (year && month) {
+            //   return `${year}-${pad(month)}`
+            // }
+            // if (year) {
+            //   return year.toString()
+            // }
+            return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000`;
+          }
 
           const getLatLong = (lat, lon) => {
             const hasLat = lat !== undefined && lat !== null && lat !== "";
@@ -74,7 +89,14 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               row["Encounter.decimalLatitude"],
               row["Encounter.decimalLongitude"],
             ),
-            "Encounter.year": `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00.000Z`,
+            // "Encounter.year": `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00.000Z`,
+            "Encounter.year": formatDate(
+              row["Encounter.year"],
+              row["Encounter.month"],
+              row["Encounter.day"],
+              row["Encounter.hour"],
+              row["Encounter.minutes"],
+            ),
             "Encounter.genus":
               row["Encounter.genus"] + " " + row["Encounter.specificEpithet"],
             ...row,
@@ -195,6 +217,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         <MainButton
           onClick={() => store.setActiveStep(2)}
           backgroundColor={theme.wildMeColors.cyan700}
+          disabled={store.spreadsheetUploadProgress!==100}
           color={theme.defaultColors.white}
           noArrow={true}
           style={{ width: "auto", fontSize: "1rem" }}
