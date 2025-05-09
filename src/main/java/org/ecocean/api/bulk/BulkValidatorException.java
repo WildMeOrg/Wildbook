@@ -29,4 +29,9 @@ public class BulkValidatorException extends ApiException {
         if (type == null) return false;
         return type.equals(testType);
     }
+
+    public boolean treatAsWarning(boolean badFieldnamesAreWarnings) {
+        if (badFieldnamesAreWarnings && isType(TYPE_UNKNOWN_FIELDNAME)) return true;
+        return false;
+    }
 }
