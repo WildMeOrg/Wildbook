@@ -123,15 +123,19 @@ public class BulkImportUtil {
         return bv.getValue();
     }
 
-    // pass a list of fieldnames and something like fubar0 and get back fubar0, fubar1, fubar2...
+    // pass a list of fieldnames and something a prefix for an indexed filename (e.g. "Encounter.mediaAsset"
+    // and get back a list of the fieldnames that share that prefix
     // note list will be in numerical order but have nulls where fieldnames were missing
     public static List<String> findIndexedFieldNames(Set<String> fieldNames,
-        String fieldNamePattern) {
+        String fieldNamePrefix) {
         List<String> rtn = new ArrayList<String>();
 
         for (String fn : fieldNames) {
             int index = -999;
+            String ipv = null;
             try {
+                ipv = BulkValidator.indexPrefixValue(fn);
+                if ((ipv == null) || !ipv.equals(fieldNamePrefix)) continue;
                 index = BulkValidator.indexIntValue(fn);
             } catch (BulkValidatorException bve) {}
             if (index < 0) continue;
