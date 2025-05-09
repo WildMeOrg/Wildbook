@@ -117,7 +117,8 @@ public class BulkValidator {
     throws BulkValidatorException {
         if (!isValidFieldName(fieldName))
             throw new BulkValidatorException("invalid fieldName: " + fieldName,
-                    ApiException.ERROR_RETURN_CODE_INVALID);
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME);
         String raw = getRawIndexableFieldName(fieldName);
         if (raw == null) return -1;
         Pattern p = Pattern.compile(rawToRegex(raw));
@@ -134,7 +135,8 @@ public class BulkValidator {
     throws BulkValidatorException {
         if (!isValidFieldName(fieldName))
             throw new BulkValidatorException("invalid fieldName: " + fieldName,
-                    ApiException.ERROR_RETURN_CODE_INVALID);
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME);
         String raw = getRawIndexableFieldName(fieldName);
         if (raw == null) return null;
         return raw.replace("#", "");
@@ -157,7 +159,8 @@ public class BulkValidator {
     throws BulkValidatorException {
         if (!isValidFieldName(fieldName))
             throw new BulkValidatorException("invalid fieldName: " + fieldName,
-                    ApiException.ERROR_RETURN_CODE_INVALID);
+                    ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME);
         switch (fieldName) {
         case "Encounter.year":
         case "Occurrence.year":
