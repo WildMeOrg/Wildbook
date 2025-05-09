@@ -28,9 +28,9 @@ export const BulkImportImageUpload = observer(({ store }) => {
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
-  const maxSize = data?.maximumMediaSizeMegabytes || 3;
+  const maxSize = data?.maximumMediaSizeMegabytes || 3000;
 
-  store.setMaxImageCount(data?.maximumMediaCount || 2);
+  store.setMaxImageCount(data?.maximumMediaCount || 200);
   // const maxImageCount = data?.maximumMediaCount || 200;
   const currentCount = store.imagePreview.length;
 
@@ -49,11 +49,11 @@ export const BulkImportImageUpload = observer(({ store }) => {
       store.flow.assignBrowse(fileInputRef.current);
     }
 
-    return () => {
-      if (store.flow) {
-        store.flow.cancel();
-      }
-    };
+    // return () => {
+    //   if (store.flow) {
+    //     store.flow.cancel();
+    //   }
+    // };
   }, [store.flow, fileInputRef.current, maxSize]);
 
   useEffect(() => {

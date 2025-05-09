@@ -3,6 +3,10 @@ import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4, validate } from "uuid";
 import { client } from "../../api/client";
 import { runInAction } from "mobx";
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+dayjs.extend(customParseFormat);
 
 export class BulkImportStore {
   _imagePreview = [];
@@ -24,6 +28,14 @@ export class BulkImportStore {
   _initialUploadFileCount = 0;
   _columnsDef = [];
   _rawColumns = [];
+  _maxImageCount = 200;
+  _worksheetInfo = {
+    sheetCount: 1,
+    sheetNames: ["Sheet1"],
+    columnCount: 0,
+    rowCount: 0,
+    uploadProgress: this._spreadsheetUploadProgress,
+  }
   _specifiedColumns = [
     "Encounter.mediaAsset0",
     "Encounter.year",
@@ -100,22 +112,16 @@ export class BulkImportStore {
     "Encounter.year": {
       required: true,
       validate: (val) => {
-        if (/^\d{4}$/.test(val)) {
-          return true;
-        }
-        if (/^\d{4}-\d{2}$/.test(val)) {
-          const [y, m] = val.split('-').map(Number);
-          return m >= 1 && m <= 12;
-        }
-        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-          const [y, m, d] = val.split('-').map(Number);
-          const dt = new Date(y, m - 1, d);
-          return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
-        }
-        return !isNaN(Date.parse(val));
+        const FORMATS = [
+          'YYYY',
+          'YYYY-MM',
+          'YYYY-MM-DD',
+          'YYYY-MM-DDTHH:mm:ss.SSS',
+        ]
+        return dayjs(val, FORMATS, true).isValid()
       },
       message:
-        "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or full ISO datetime “YYYY-MM-DDThh:mm:ss.sssZ”",
+        "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or full ISO datetime “YYYY-MM-DDThh:mm:ss.sss”",
     },
     "Encounter.genus": {
       required: true,
@@ -312,6 +318,14 @@ export class BulkImportStore {
     return this._submissionId;
   }
 
+  get maxImageCount() {
+    return this._maxImageCount;
+  }
+
+  get worksheetInfo() {
+    return this._worksheetInfo;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = data;
   }
@@ -377,6 +391,18 @@ export class BulkImportStore {
 
   setRawColumns(columns) {
     this._rawColumns = columns;
+  }
+
+  setMaxImageCount(maxImageCount) {
+    this._maxImageCount = maxImageCount;
+  }
+
+  setWorksheetInfo(sheetCount, sheetNames, columnCount, rowCount) {
+    this._worksheetInfo.sheetCount = sheetCount;
+    this._worksheetInfo.sheetNames = sheetNames;
+    this._worksheetInfo.columnCount = columnCount;
+    this._worksheetInfo.rowCount = rowCount;
+    this._worksheetInfo.uploadProgress = this._spreadsheetUploadProgress;
   }
 
   getOptionsForSelectCell(col) {
@@ -475,6 +501,9 @@ export class BulkImportStore {
   }
 
   initializeFlow(fileInputRef, maxSize) {
+    console.log("initializeFlow", fileInputRef, maxSize);
+    const submissionId = this._submissionId || uuidv4();
+    this._submissionId = submissionId;
     const flowInstance = new Flow({
       target: "/ResumableUpload",
       forceChunkSize: true,
@@ -493,6 +522,10 @@ export class BulkImportStore {
     flowInstance.assignBrowse(fileInputRef);
 
     flowInstance.on("fileAdded", (file) => {
+      if (this._imageSectionFileNames.length >= this._maxImageCount) {
+        console.warn(`maximum ${this._maxImageCount} discard`, file.name);
+        return false;
+      }
       const supportedTypes = [
         "image/jpeg",
         "image/jpg",
@@ -573,11 +606,19 @@ export class BulkImportStore {
     });
 
     flowInstance.on("fileSuccess", (file) => {
-      this._imagePreview = this._imagePreview.map((f) =>
-        f.fileName === file.name ? { ...f, progress: 100 } : f,
-      );
+      // this._imagePreview = this._imagePreview.map((f) =>
+      //   f.fileName === file.name ? { ...f, progress: 100 } : f,
+      // );
 
-      this._uploadedImages.push(file.name);
+      // this._uploadedImages.push(file.name);
+
+      runInAction(() => {
+        // update both preview and uploadedImages inside an action
+        this._imagePreview = this._imagePreview.map(f =>
+          f.fileName === file.name ? { ...f, progress: 100 } : f
+        );
+        this._uploadedImages.push(file.name);
+      });
     });
 
     flowInstance.on("fileError", (file) => {

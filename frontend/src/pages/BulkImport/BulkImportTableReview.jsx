@@ -6,14 +6,19 @@ import ThemeContext from "../../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../../components/MainButton";
 import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
+import { v4 as uuidv4 } from "uuid";
+import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
+import { BulkImportSpreadsheetUploadInof } from "./BulkImportSpreadsheetUploadInof";
 
 export const BulkImportTableReview = observer(({ store }) => {
   const theme = useContext(ThemeContext);
   const { submit, isLoading, error } = usePostBulkImport();
 
+  const submissionId = store.submissionId || uuidv4();
+
   const handleStartImport = () => {
     console.log("Starting import with data:", JSON.stringify(store.spreadsheetData));
-    submit(store.submissionId, store.rawColumns, store.spreadsheetData)
+    submit(submissionId, store.rawColumns, store.spreadsheetData)
       .then(result => {
         store.bulkImportId = result.id;
         store.setActiveStep(3);
@@ -24,9 +29,13 @@ export const BulkImportTableReview = observer(({ store }) => {
   };
 
   return (
-    <div>
+    <div >
+      <div className="d-flex flex-row ">
+      <BulkImportImageUploadInfo store={store}/>
+      <BulkImportSpreadsheetUploadInof store={store}/>
+      </div>
       <EditableDataTable store={store} />
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && <div className="alert alert-danger">{JSON.stringify(error)}</div>}
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton
           onClick={() => {

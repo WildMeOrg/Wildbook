@@ -20,17 +20,31 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const workbook = XLSX.read(data, { type: "array" });
       const sheetNames = workbook.SheetNames;
       console.log("sheetNames", sheetNames);
+
+      const sheetStats = sheetNames.map((name) => {
+        const ws = workbook.Sheets[name];
+        const arr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+        const colCount = arr[0]?.length || 0;    
+        const rowCount = arr.length - 1;         
+        return { name, rowCount, colCount };
+      });
+
+      const totalRows = sheetStats.reduce((sum, s) => sum + s.rowCount, 0);
+      const maxCols = Math.max(...sheetStats.map((s) => s.colCount), 0);
+
+      store.setWorksheetInfo(sheetNames.length, sheetNames, totalRows, maxCols);
+
       // const firstSheetName = workbook.SheetNames[0];
-      const allJsonData  = sheetNames.reduce((acc, name) => {
-        const worksheet = workbook.Sheets[name];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-        return acc.concat(jsonData);
-      }, []);
-      // const firstSheetName = workbook.SheetNames[0];      
-      // const worksheet = workbook.Sheets[firstSheetName];
-      // const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      // const allJsonData  = sheetNames.reduce((acc, name) => {
+      //   const worksheet = workbook.Sheets[name];
+      //   const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      //   return acc.concat(jsonData);
+      // }, []);
+      const firstSheetName = workbook.SheetNames[0];      
+      const worksheet = workbook.Sheets[firstSheetName];
+      const allJsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       store.setRawData(allJsonData || []);
-      const totalRows = allJsonData.length;
+      // const totalRows = allJsonData.length;
       const processedData = [];
       let currentIndex = 0;
 
