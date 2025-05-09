@@ -4,39 +4,40 @@ import org.ecocean.api.bulk.*;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Map;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.when;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 class BulkGeneralTest {
-
     static String fieldNameValidEncounterYear = "Encounter.year";
     static String fieldNameInvalid = "Fail.fubar";
 
-    @Test void basicValidation() throws BulkValidatorException {
+    @Test void basicValidation()
+    throws BulkValidatorException {
         BulkValidator bv = new BulkValidator(fieldNameValidEncounterYear, 2000, null);
+
         assertNotNull(bv);
         assertFalse(bv.isIndexed());
         assertTrue(BulkValidator.isValidFieldName(fieldNameValidEncounterYear));
         assertFalse(BulkValidator.isValidFieldName(fieldNameInvalid));
 
-        Exception ex = assertThrows(BulkValidatorException.class, () -> {
+        BulkValidatorException ex = assertThrows(BulkValidatorException.class, () -> {
             BulkValidator bvFail = new BulkValidator(fieldNameInvalid, 0, null);
         });
         assertTrue(ex.getMessage().contains("invalid fieldName"));
+        assertEquals(ex.getType(), "UNKNOWN_FIELDNAME");
 
         bv = new BulkValidator("Encounter.mediaAsset123", "fake", null);
         assertTrue(bv.isIndexed());
@@ -55,7 +56,8 @@ class BulkGeneralTest {
 
         // some indexable fieldName tests
         assertTrue(BulkValidator.isValidFieldName("Encounter.mediaAsset123"));
-        assertEquals(BulkValidator.indexPrefixValue("Encounter.mediaAsset123"), "Encounter.mediaAsset");
+        assertEquals(BulkValidator.indexPrefixValue("Encounter.mediaAsset123"),
+            "Encounter.mediaAsset");
         assertEquals(BulkValidator.indexIntValue("Encounter.mediaAsset123"), 123);
         assertNull(BulkValidator.indexPrefixValue(fieldNameValidEncounterYear));
         assertEquals(BulkValidator.indexIntValue(fieldNameValidEncounterYear), -1);
@@ -70,14 +72,15 @@ class BulkGeneralTest {
     }
 
     @Test void basicUtilTestValidateRow() {
-	Map<String, Object> rowResult = BulkImportUtil.validateRow(null, null);
+        Map<String, Object> rowResult = BulkImportUtil.validateRow(null, null);
+
         assertNotNull(rowResult);
         assertEquals(rowResult.size(), 0);
 
         JSONObject rowData = new JSONObject();
         rowData.put(fieldNameValidEncounterYear, 2000);
         rowData.put(fieldNameInvalid, "fail");
-	rowResult = BulkImportUtil.validateRow(rowData, null);
+        rowResult = BulkImportUtil.validateRow(rowData, null);
         assertNotNull(rowResult);
         assertEquals(rowResult.size(), 4);
         assertTrue(rowResult.get(fieldNameValidEncounterYear) instanceof BulkValidator);
@@ -85,5 +88,4 @@ class BulkGeneralTest {
         BulkValidator bv = (BulkValidator)rowResult.get(fieldNameValidEncounterYear);
         assertEquals(bv.getFieldName(), fieldNameValidEncounterYear);
     }
-
 }
