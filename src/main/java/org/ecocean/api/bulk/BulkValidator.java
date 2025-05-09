@@ -203,10 +203,10 @@ public class BulkValidator {
         return raw.replace("#", "");
     }
 
-        private static String rawToRegex(String prefix) {
-            String regex = "^" + prefix.replace(".", "\\.") + "$";
-            return regex.replace("#", "(\\d+)");
-        }
+    private static String rawToRegex(String prefix) {
+        String regex = "^" + prefix.replace(".", "\\.") + "$";
+        return regex.replace("#", "(\\d+)");
+    }
 
         private static String getRawIndexableFieldName(String fieldName) {
             for (String ifn : FIELD_NAMES_INDEXABLE) {
