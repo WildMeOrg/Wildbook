@@ -13,8 +13,6 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 
 
-
-
 const handleDragOver = (e) => {
   e.preventDefault();
   e.dataTransfer.dropEffect = "copy";
@@ -31,7 +29,10 @@ export const BulkImportImageUpload = observer(({ store }) => {
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
   const maxSize = data?.maximumMediaSizeMegabytes || 3;
-  const maxImageCount = data?.maximumMediaCount || 200;
+
+  store.setMaxImageCount(data?.maximumMediaCount || 2);
+  // const maxImageCount = data?.maximumMediaCount || 200;
+  const currentCount = store.imagePreview.length;
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -40,10 +41,20 @@ export const BulkImportImageUpload = observer(({ store }) => {
   };
 
   useEffect(() => {
-    if (!store.flow && fileInputRef.current) {
+    if (!fileInputRef.current) return;
+
+    if (!store.flow) {
       store.initializeFlow(fileInputRef.current, maxSize);
+    } else {
+      store.flow.assignBrowse(fileInputRef.current);
     }
-  }, [store.flow, fileInputRef]);
+
+    return () => {
+      if (store.flow) {
+        store.flow.cancel();
+      }
+    };
+  }, [store.flow, fileInputRef.current, maxSize]);
 
   useEffect(() => {
     if (store.imagePreview.length > 0) {
@@ -59,7 +70,24 @@ export const BulkImportImageUpload = observer(({ store }) => {
   }, []);
 
   const handleDrop = (e) => {
+    if (currentCount >= store.maxImageCount) {
+      alert(`maximum image count: ${store.maxImageCount} exceeded`);
+      return;
+    }
     e.preventDefault();
+
+    const items1 = Array.from(e.dataTransfer.items);
+    const newFilesCount = items1.filter(item => {
+      const entry = item.webkitGetAsEntry?.();
+      return entry
+        ? entry.isFile
+        : item.getAsFile() != null;
+    }).length;
+
+    if (currentCount + newFilesCount > store.maxImageCount) {
+      alert(`you are choosing ${newFilesCount} iamges, total count exceeding ${store.maxImageCount}`);
+      return;
+    }
     e.currentTarget.style.border = "1px dashed #007BFF";
     const items = e.dataTransfer.items;
     for (let i = 0; i < items.length; i++) {
@@ -90,7 +118,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
           <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE_DESC"
             values={{
               maxSize: maxSize,
-              maxImageCount: maxImageCount,
+              maxImageCount: store.maxImageCount,
             }}
           />
 
@@ -240,7 +268,15 @@ export const BulkImportImageUpload = observer(({ store }) => {
                   <FormattedMessage id="BULK_IMPORT_PHOTO_INSTRUCTION" />
                 </p>
                 <MainButton
-                  onClick={() => fileInputRef.current.click()}
+                  onClick={() => {
+                    if (currentCount >= store.maxImageCount) {
+                      alert(`exceeding ${store.maxImageCount}`);
+                    } else {
+                      fileInputRef.current.click();
+                    }
+                    // fileInputRef.current.click()
+                  }
+                  }
                   backgroundColor={theme.wildMeColors.cyan700}
                   color={theme.defaultColors.white}
                   noArrow={true}
@@ -258,6 +294,10 @@ export const BulkImportImageUpload = observer(({ store }) => {
               accept=".jpg,.jpeg,.png,.bmp"
               ref={fileInputRef}
               style={{ display: "none" }}
+              onChange={(e) => {
+                // Handle file selection
+                e.target.value = "";
+              }}
             />
           </div>
         </Col>
