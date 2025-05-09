@@ -906,56 +906,37 @@
 				     ]
 					
 				  },
-				  
-			
-				  {
-				  "name": "Galapagos Islands", "id": "Galapagos Islands", "prefix": "G-", "prefixDigitPadding": 3 },
+				  {"name": "Galapagos Islands", "id": "Galapagos Islands", "prefix": "G-", "prefixDigitPadding": 3 },
 				   
+				  {"name": "Hawaii", "id": "Hawaii", "prefix": "HW-", "prefixDigitPadding": 3 },
 				  
-				  {
-				  "name": "Hawaii", "id": "Hawaii", "prefix": "HW-", "prefixDigitPadding": 3 },
+				  {"name": "Mexico-BLP", "id": "Mexico-BLP", "locationID": [
 				  
-				  {
-				  "name": "Mexico-BLP", "id": "Mexico-BLP", "locationID": [
-				  
-						{
-							"name": "Baja California", "id": "Baja California" }
+						{"name": "Baja California", "id": "Baja California" }
 
 					], "prefix": "MX-", "prefixDigitPadding": 3
 				  },
 				  
-				  {
-				  "name": "Mexico-LC", "id": "Mexico-LC", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  {"name": "Mexico-LC", "id": "Mexico-LC", "prefix": "MX-", "prefixDigitPadding": 3 },
 				  
-				  {
-				  "name": "Mexico-Nayarit", "id": "Mexico-Nayarit", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  {"name": "Mexico-Nayarit", "id": "Mexico-Nayarit", "prefix": "MX-", "prefixDigitPadding": 3 },
 				  
-				  {
-				  "name": "Mexico-BLA", "id": "Mexico-BLA", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  {"name": "Mexico-BLA", "id": "Mexico-BLA", "prefix": "MX-", "prefixDigitPadding": 3 },
 
-
-				{
-				  "name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  {"name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo", "prefix": "MX-", "prefixDigitPadding": 3 },
 				  
-				  {
-				  "name": "Mexico-BC", "id": "Mexico-BC", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  {"name": "Mexico-BC", "id": "Mexico-BC", "prefix": "MX-", "prefixDigitPadding": 3 },
 				  
-				  {
-					  "name": "Oregon", "id": "Oregon" },
+				  {"name": "New Caledonia", "id": "New Caledonia", "prefix": "NC-SP-", "prefixDigitPadding": 4 },
+				  
+				  {"name": "Oregon", "id": "Oregon" },
 
-				{
-				  "name": "Eastern Australian Coast", "id": "Eastern Australian Coast" },
+				{"name": "Eastern Australian Coast", "id": "Eastern Australian Coast" },
 				  	  
-				  {
-				  "name": "Panama", "id": "Panama", "prefix": "PAN-", "prefixDigitPadding": 3 },
+				  {"name": "Panama", "id": "Panama", "prefix": "PAN-", "prefixDigitPadding": 3 },
 				  
-				  {
-				  "name": "Peru", "id": "Peru" },
-				  {
-					  "name": "Washington", "id": "Washington" }
-				  
-				  
-				  
+				  {"name": "Peru", "id": "Peru" },
+				  {"name": "Washington", "id": "Washington" }
 			] },
 			{"name": "None", "id": "None", "locationID": []}
 
