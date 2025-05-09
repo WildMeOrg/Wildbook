@@ -10,7 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
@@ -69,6 +72,19 @@ class BulkGeneralTest {
             BulkValidator.indexPrefixValue(fieldNameInvalid);
         });
         assertTrue(ex.getMessage().contains("invalid fieldName"));
+    }
+
+    @Test void basicUtilTests() {
+        Set<String> fields = new HashSet<String>();
+
+        fields.add("Encounter.mediaAsset0");
+        fields.add("Encounter.mediaAsset1");
+        fields.add("Encounter.mediaAsset4");
+        fields.add("Encounter.year");
+        List<String> found = BulkImportUtil.findIndexedFieldNames(fields, "Encounter.mediaAsset0");
+        assertEquals(found.size(), 5);
+        assertEquals(found.get(4), "Encounter.mediaAsset4");
+        assertNull(found.get(3));
     }
 
     @Test void basicUtilTestValidateRow() {
