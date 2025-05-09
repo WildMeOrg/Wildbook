@@ -264,7 +264,7 @@ public class BulkImport extends ApiBase {
             } else {
                 // if we get here, it means we should attempt to create and persist objects for real
                 // (we may have some errors in rows depending on tolerance)
-                System.out.println("================= about to createImport for " + bulkImportId + "=================");
+                System.out.println("================= about to createImport for " + bulkImportId + " =================");
                 JSONObject results = BulkImporter.createImport(validatedRows, maMap, myShepherd);
                 for (String rkey : results.keySet()) {
                     rtn.put(rkey, results.get(rkey));

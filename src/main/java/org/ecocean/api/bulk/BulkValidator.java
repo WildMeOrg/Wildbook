@@ -6,6 +6,9 @@ import java.time.Year;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.ecocean.api.ApiException;
 import org.ecocean.api.SiteSettings;
 import org.ecocean.shepherd.core.Shepherd;
@@ -15,186 +18,199 @@ import org.ecocean.Util;
 
 
 public class BulkValidator {
-	public static final Set<String> FIELD_NAMES = new HashSet<>(Arrays.asList(
-		"Encounter.alternateID",
-		"Encounter.behavior",
-		"Encounter.country",
-		"Encounter.dateInMilliseconds",
-		"Encounter.day",
-		"Encounter.decimalLatitude",
-		"Encounter.decimalLongitude",
-		"Encounter.depth",
-		"Encounter.distinguishingScar",
-		"Encounter.elevation",
-		"Encounter.genus",
-		"Encounter.groupRole",
-		"Encounter.hour",
-		"Encounter.identificationRemarks",
-		"Encounter.individualID",
-		"Encounter.informOther",
-		"Encounter.latitude",
-		"Encounter.lifeStage",
-		"Encounter.livingStatus",
-		"Encounter.locationID",
-		"Encounter.longitude",
-		"Encounter.measurement",
-		"Encounter.minutes",
-		"Encounter.month",
-		"Encounter.occurrenceID",
-		"Encounter.occurrenceRemarks",
-		"Encounter.otherCatalogNumbers",
-		"Encounter.patterningCode",
-		"Encounter.photographer",
-		"Encounter.project",
-		"Encounter.quality",
-		"Encounter.researcherComments",
-		"Encounter.sex",
-		"Encounter.specificEpithet",
-		"Encounter.state",
-		"Encounter.submitter",
-		"Encounter.submitterID",
-		"Encounter.submitterName",
-		"Encounter.submitterOrganization",
-		"Encounter.verbatimLocality",
-		"Encounter.year",
-		"MarkedIndividual.individualID",
-		"MarkedIndividual.name",
-		"MarkedIndividual.nickName",
-		"MarkedIndividual.nickname",
-		"Membership.role",
-		"MicrosatelliteMarkersAnalysis.alleleNames",
-		"MicrosatelliteMarkersAnalysis.analysisID",
-		"MitochondrialDNAAnalysis.haplotype",
-		"Occurrence.bearing",
-		"Occurrence.bestGroupSizeEstimate",
-		"Occurrence.comments",
-		"Occurrence.dateInMilliseconds",
-		"Occurrence.day",
-		"Occurrence.decimalLatitude",
-		"Occurrence.decimalLongitude",
-		"Occurrence.distance",
-		"Occurrence.effortCode",
-		"Occurrence.fieldStudySite",
-		"Occurrence.fieldSurveyCode",
-		"Occurrence.groupBehavior",
-		"Occurrence.groupComposition",
-		"Occurrence.hour",
-		"Occurrence.humanActivityNearby",
-		"Occurrence.individualCount",
-		"Occurrence.initialCue",
-		"Occurrence.maxGroupSizeEstimate",
-		"Occurrence.millis",
-		"Occurrence.minGroupSizeEstimate",
-		"Occurrence.minutes",
-		"Occurrence.month",
-		"Occurrence.numAdults",
-		"Occurrence.numCalves",
-		"Occurrence.numJuveniles",
-		"Occurrence.observer",
-		"Occurrence.occurrenceID",
-		"Occurrence.seaState",
-		"Occurrence.seaSurfaceTemp",
-		"Occurrence.seaSurfaceTemperature",
-		"Occurrence.swellHeight",
-		"Occurrence.transectBearing",
-		"Occurrence.transectName",
-		"Occurrence.visibilityIndex",
-		"Occurrence.year",
-		"SatelliteTag.serialNumber",
-		"SexAnalysis.processingLabTaskID",
-		"SexAnalysis.sex",
-		"SocialUnit.socialUnitName",
-		"Survey.comments",
-		"Survey.id",
-		"Survey.vessel",
-		"SurveyTrack.vesselID",
-		"Taxonomy.commonName",
-		"Taxonomy.scientificName",
-		"TissueSample.sampleID",
-		"TissueSample.tissueType"
+    public static final Set<String> FIELD_NAMES = new HashSet<>(Arrays.asList(
+        "Encounter.alternateID",
+        "Encounter.behavior",
+        "Encounter.country",
+        "Encounter.dateInMilliseconds",
+        "Encounter.day",
+        "Encounter.decimalLatitude",
+        "Encounter.decimalLongitude",
+        "Encounter.depth",
+        "Encounter.distinguishingScar",
+        "Encounter.elevation",
+        "Encounter.genus",
+        "Encounter.groupRole",
+        "Encounter.hour",
+        "Encounter.identificationRemarks",
+        "Encounter.individualID",
+        "Encounter.informOther",
+        "Encounter.latitude",
+        "Encounter.lifeStage",
+        "Encounter.livingStatus",
+        "Encounter.locationID",
+        "Encounter.longitude",
+        "Encounter.measurement",
+        "Encounter.minutes",
+        "Encounter.month",
+        "Encounter.occurrenceID",
+        "Encounter.occurrenceRemarks",
+        "Encounter.otherCatalogNumbers",
+        "Encounter.patterningCode",
+        "Encounter.photographer",
+        "Encounter.project",
+        "Encounter.quality",
+        "Encounter.researcherComments",
+        "Encounter.sex",
+        "Encounter.specificEpithet",
+        "Encounter.state",
+        "Encounter.submitter",
+        "Encounter.submitterID",
+        "Encounter.submitterName",
+        "Encounter.submitterOrganization",
+        "Encounter.verbatimLocality",
+        "Encounter.year",
+        "MarkedIndividual.individualID",
+        "MarkedIndividual.name",
+        "MarkedIndividual.nickName",
+        "MarkedIndividual.nickname",
+        "Membership.role",
+        "MicrosatelliteMarkersAnalysis.alleleNames",
+        "MicrosatelliteMarkersAnalysis.analysisID",
+        "MitochondrialDNAAnalysis.haplotype",
+        "Occurrence.bearing",
+        "Occurrence.bestGroupSizeEstimate",
+        "Occurrence.comments",
+        "Occurrence.dateInMilliseconds",
+        "Occurrence.day",
+        "Occurrence.decimalLatitude",
+        "Occurrence.decimalLongitude",
+        "Occurrence.distance",
+        "Occurrence.effortCode",
+        "Occurrence.fieldStudySite",
+        "Occurrence.fieldSurveyCode",
+        "Occurrence.groupBehavior",
+        "Occurrence.groupComposition",
+        "Occurrence.hour",
+        "Occurrence.humanActivityNearby",
+        "Occurrence.individualCount",
+        "Occurrence.initialCue",
+        "Occurrence.maxGroupSizeEstimate",
+        "Occurrence.millis",
+        "Occurrence.minGroupSizeEstimate",
+        "Occurrence.minutes",
+        "Occurrence.month",
+        "Occurrence.numAdults",
+        "Occurrence.numCalves",
+        "Occurrence.numJuveniles",
+        "Occurrence.observer",
+        "Occurrence.occurrenceID",
+        "Occurrence.seaState",
+        "Occurrence.seaSurfaceTemp",
+        "Occurrence.seaSurfaceTemperature",
+        "Occurrence.swellHeight",
+        "Occurrence.transectBearing",
+        "Occurrence.transectName",
+        "Occurrence.visibilityIndex",
+        "Occurrence.year",
+        "SatelliteTag.serialNumber",
+        "SexAnalysis.processingLabTaskID",
+        "SexAnalysis.sex",
+        "SocialUnit.socialUnitName",
+        "Survey.comments",
+        "Survey.id",
+        "Survey.vessel",
+        "SurveyTrack.vesselID",
+        "Taxonomy.commonName",
+        "Taxonomy.scientificName",
+        "TissueSample.sampleID",
+        "TissueSample.tissueType"
         ));
 
-	public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
-		"Encounter.keyword",
-		"Encounter.mediaAsset",
-		"MicrosatelliteMarkersAnalysis.alleles",
-		"Occurrence.taxonomy"
-	));
+    public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
+        "Encounter.keyword#",
+        "Encounter.mediaAsset#",
+        "Encounter.informOther#.emailAddress",
+        "Encounter.photographer#.emailAddress",
+        "MicrosatelliteMarkersAnalysis.alleles#",
+        "Occurrence.taxonomy#"
+    ));
 
-	public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
-		"Encounter.genus",
-		"Encounter.specificEpithet",
-		"Encounter.year"
-	));
+    public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
+        "Encounter.genus",
+        "Encounter.specificEpithet",
+        "Encounter.year"
+    ));
 
-        private String fieldName = null;
-        private Object value = null;
-        private int indexInt = -3;
-        private String indexPrefix = null;
+    private String fieldName = null;
+    private Object value = null;
+    private int indexInt = -3;
+    private String indexPrefix = null;
 
-	//public BulkValidator(String fieldName, JSONObject jvalue) throws BulkValidatorException {
+    //public BulkValidator(String fieldName, JSONObject jvalue) throws BulkValidatorException {
 
-	public BulkValidator(String fieldNamePassed, Object valuePassed, Shepherd myShepherd) throws BulkValidatorException {
-            indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if valid fieldName
-            if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldNamePassed);
-            fieldName = fieldNamePassed;
-            value = validateValue(fieldNamePassed, (valuePassed == JSONObject.NULL ? null : valuePassed), myShepherd);
-	}
+    public BulkValidator(String fieldNamePassed, Object valuePassed, Shepherd myShepherd) throws BulkValidatorException {
+        indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if valid fieldName
+        if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldNamePassed);
+        fieldName = fieldNamePassed;
+        value = validateValue(fieldNamePassed, (valuePassed == JSONObject.NULL ? null : valuePassed), myShepherd);
+    }
 
-        public boolean isIndexed() {
-            return (indexInt >= 0);
+    public boolean isIndexed() {
+        return (indexInt >= 0);
+    }
+
+    public int getIndexInt() {
+        return indexInt;
+    }
+    public String getIndexPrefix() {
+        return indexPrefix;
+    }
+    public boolean indexPrefixEquals(String val) {
+        if (indexPrefix == null) return false;
+        return indexPrefix.equals(val);
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public String getValueString() {
+        if (value == null) return null;
+        return value.toString();
+    }
+
+    public static boolean isValidFieldName(String fieldName) {
+        if (fieldName == null) return false;
+        if (FIELD_NAMES.contains(fieldName)) return true;
+        if (getRawIndexableFieldName(fieldName) != null) return true;
+        return false;
+    }
+
+    // returns -1 if valid field but not indexable, -2 if could not parse where int should be
+    public static int indexIntValue(String fieldName) throws BulkValidatorException {
+        if (!isValidFieldName(fieldName)) throw new BulkValidatorException("invalid fieldName: " + fieldName, ApiException.ERROR_RETURN_CODE_INVALID);
+        String raw = getRawIndexableFieldName(fieldName);
+        if (raw == null) return -1;
+        Pattern p = Pattern.compile(rawToRegex(raw));
+        Matcher m = p.matcher(fieldName);
+        if (!m.find()) return -2;
+        try {
+            return Integer.parseInt(m.group(1));
+        } catch (Exception ex) {}
+        return -3;
+    }
+
+    // will return null if valid fieldName, but not indexable
+    public static String indexPrefixValue(String fieldName) throws BulkValidatorException {
+        if (!isValidFieldName(fieldName)) throw new BulkValidatorException("invalid fieldName: " + fieldName, ApiException.ERROR_RETURN_CODE_INVALID);
+        String raw = getRawIndexableFieldName(fieldName);
+        if (raw == null) return null;
+        return raw.replace("#", "");
+    }
+
+        private static String rawToRegex(String prefix) {
+            String regex = "^" + prefix.replace(".", "\\.") + "$";
+            return regex.replace("#", "(\\d+)");
         }
 
-        public int getIndexInt() {
-            return indexInt;
-        }
-        public String getIndexPrefix() {
-            return indexPrefix;
-        }
-        public boolean indexPrefixEquals(String val) {
-            if (indexPrefix == null) return false;
-            return indexPrefix.equals(val);
-        }
-
-        public String getFieldName() {
-            return fieldName;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-
-        public String getValueString() {
-            if (value == null) return null;
-            return value.toString();
-        }
-
-        public static boolean isValidFieldName(String fieldName) {
-            if (fieldName == null) return false;
-            if (FIELD_NAMES.contains(fieldName)) return true;
-            for (String prefix : FIELD_NAMES_INDEXABLE) {
-                String dotFix = prefix.replace(".", "\\.");
-                if (fieldName.matches("^" + dotFix + "\\d+$")) return true;
-            }
-            return false;
-        }
-
-        // returns -1 if valid field but not indexable, -2 if could not parse where int should be
-        public static int indexIntValue(String fieldName) throws BulkValidatorException {
-            String prefix = indexPrefixValue(fieldName);
-            if (prefix == null) return -1;
-            try {
-                return Integer.parseInt(fieldName.substring(prefix.length()));
-            } catch (Exception ex) {}
-            return -2;
-        }
-
-        // will return null if valid fieldName, but not indexable
-        public static String indexPrefixValue(String fieldName) throws BulkValidatorException {
-            if (!isValidFieldName(fieldName)) throw new BulkValidatorException("invalid fieldName: " + fieldName, ApiException.ERROR_RETURN_CODE_INVALID);
-            for (String prefix : FIELD_NAMES_INDEXABLE) {
-                String dotFix = prefix.replace(".", "\\.");
-                if (fieldName.matches("^" + dotFix + "\\d+$")) return prefix;
+        private static String getRawIndexableFieldName(String fieldName) {
+            for (String ifn : FIELD_NAMES_INDEXABLE) {
+                if (fieldName.matches(rawToRegex(ifn))) return ifn;
             }
             return null;
         }
