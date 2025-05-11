@@ -598,7 +598,7 @@ try{
 	        	//for(Task task:tasks){
 	        		out.println(
 						"<li>" +
-							"<a target=\"_blank\" href=\"iaResults.jsp?taskId=" + tasks.get(0).getId() + "\" >"
+							"<a target=\"_blank\" href=\"iaResults.jsp?taskId=" + t.getId() + "\" >"
 								+ annotTypesByTask.get(t.getId()) + ": " + getOverallStatus(t, myShepherd, idStatusMap, request) +
 							"</a>" +
 						"</li>"

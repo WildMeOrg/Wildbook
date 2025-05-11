@@ -180,7 +180,16 @@ public class Task implements java.io.Serializable {
     }
 
     public List<Task> getChildren() {
-        return children;
+        if (children == null) return children;
+
+        ArrayList<Task> kids = new ArrayList<>();
+        for (Task kid : children) {
+            if (kid.getStatus2() == null || !kid.getStatus2().equalsIgnoreCase("retried")) {
+                kids.add(kid);
+            }
+        }
+
+        return kids;
     }
 
     public void setChildren(List<Task> kids) {
