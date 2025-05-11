@@ -575,7 +575,7 @@ try{
 	        } //end for
 	        
 	        out.println("<td>");
-	        if(tasks.size()>0){
+	        if(!tasks.isEmpty()){
 	        	
             	//put the newest tasks at the top
                 Collections.sort(tasks, new Comparator<Task>() {
@@ -583,7 +583,15 @@ try{
                         return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
                     }
                 });
-                Collections.reverse(tasks); 		
+				Collections.reverse(tasks);
+
+				Task t = tasks.get(0);
+				for (Task t2: tasks) {
+					if (t2.getStatus2() == null || t2.getStatus2().equalsIgnoreCase("retried")) {
+						t = t2;
+						break;
+					}
+				}
 	        	
 	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
@@ -591,7 +599,7 @@ try{
 	        		out.println(
 						"<li>" +
 							"<a target=\"_blank\" href=\"iaResults.jsp?taskId=" + tasks.get(0).getId() + "\" >"
-								+ annotTypesByTask.get(tasks.get(0).getId()) + ": " + getOverallStatus(tasks.get(0), myShepherd, idStatusMap, request) +
+								+ annotTypesByTask.get(t.getId()) + ": " + getOverallStatus(t, myShepherd, idStatusMap, request) +
 							"</a>" +
 						"</li>"
 					);
