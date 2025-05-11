@@ -78,7 +78,7 @@ public final class EmailTemplate {
     /** Determines whether to use STARTTLS protocol. */
     private boolean useStartTLS = false;
     /** Port number to use on mail server. */
-    private int port = 25;
+    private int port = 465;
     /** {@code Authenticator} instance to use if SMTP Authentication is required. */
     private SMTPAuthenticator auth;
 
@@ -977,6 +977,7 @@ public final class EmailTemplate {
             props.setProperty("mail.transport.protocol", "smtps");
             props.setProperty("mail.smtps.host", host);
             props.setProperty("mail.smtps.port", Integer.toString(port));
+            props.setProperty("mail.smtps.ssl.protocols", "TLSv1.2");
             props.remove("mail.smtp.host");
             props.remove("mail.smtp.port");
         } else {
