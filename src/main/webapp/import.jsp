@@ -168,7 +168,15 @@ public String getOverallStatus(Task task, Shepherd myShepherd, HashMap<String, I
 				for(Task childTask2:childTask.getChildren()){
 					if(childTask2.getObjectAnnotations()!=null && childTask2.getObjectAnnotations().size()>0
 							&& childTask2.getObjectAnnotations().get(0).getMatchAgainst() && childTask2.getObjectAnnotations().get(0).getIAClass()!=null){
-								map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+								if (
+									!(
+										(childTask2.getParameters() == null)
+										&& (childTask2.getStatus2() == null)
+										&& (childTask2.getQueueResumeMessage() == null)
+									)
+								) {
+									map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+								}
 								//if resume
 								if(resumeStalledTasks && childTask2.getStatus(myShepherd).equals(queueStatusToFix)){
 									System.out.println("Requeuing task: "+childTask2.getId());
@@ -183,8 +191,15 @@ public String getOverallStatus(Task task, Shepherd myShepherd, HashMap<String, I
 			else{
 				if(childTask.getObjectAnnotations()!=null && childTask.getObjectAnnotations().size()>0
 						&& childTask.getObjectAnnotations().get(0).getMatchAgainst() && childTask.getObjectAnnotations().get(0).getIAClass()!=null){
-							map.put(childTask.getId(),childTask.getStatus(myShepherd));
-							
+							if (
+								!(
+									(childTask.getParameters() == null)
+									&& (childTask.getStatus2() == null)
+									&& (childTask.getQueueResumeMessage() == null)
+								)
+							) {
+								map.put(childTask.getId(), childTask.getStatus(myShepherd));
+							}
 							
 							//if resume
 							if(resumeStalledTasks && childTask.getStatus(myShepherd).equals(queueStatusToFix)){
@@ -483,12 +498,13 @@ try{
 	        set.addAll(mas);
 	        mas.clear();
 	        mas.addAll(set);
-	        
-	        
-	        if (Util.collectionSize(mas) < 1) {
+
+
+			int masSize = Util.collectionSize(mas);
+	        if (masSize < 1) {
 	            out.println("<td class=\"dim\">0</td>");
 	        } else {
-	            out.println("<td>" + Util.collectionSize(mas) + "</td>");
+	            out.println("<td>" + masSize + "</td>");
 	            for (MediaAsset ma : mas) {
 	                if (!allAssets.contains(ma)) {
 	                    allAssets.add(ma);
