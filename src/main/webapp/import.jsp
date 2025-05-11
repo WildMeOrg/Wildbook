@@ -147,7 +147,7 @@ public String dumpTask(Task task) {
 
 
 <%!
-public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap, HttpServletRequest request){
+public String getOverallStatus(Task task, Shepherd myShepherd, HashMap<String, Integer> idStatusMap, HttpServletRequest request){
 	String status="unknown";
 	//resumeStalledTasks
 	boolean resumeStalledTasks = false;
@@ -215,8 +215,8 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 			}
 			
 		}
+
 	    return resultsMap.toString();
-		
 	}
 	else{
 		status=task.getStatus(myShepherd);
@@ -588,7 +588,13 @@ try{
 	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
-	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+": "+getOverallStatus(tasks.get(0),myShepherd,idStatusMap,request)+"</a>");
+	        		out.println(
+						"<li>" +
+							"<a target=\"_blank\" href=\"iaResults.jsp?taskId=" + tasks.get(0).getId() + "\" >"
+								+ annotTypesByTask.get(tasks.get(0).getId()) + ": " + getOverallStatus(tasks.get(0), myShepherd, idStatusMap, request) +
+							"</a>" +
+						"</li>"
+					);
 	        	//}
 	        	out.println("     </ul>");
 	        	numMatchTasks++;
