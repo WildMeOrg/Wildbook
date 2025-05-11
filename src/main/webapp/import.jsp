@@ -587,7 +587,7 @@ try{
 
 				Task t = tasks.get(0);
 				for (Task t2: tasks) {
-					if (t2.getStatus2() == null || t2.getStatus2().equalsIgnoreCase("retried")) {
+					if (t2.getStatus2() == null || !t2.getStatus2().equalsIgnoreCase("retried")) {
 						t = t2;
 						break;
 					}
