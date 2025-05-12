@@ -180,7 +180,16 @@ public class Task implements java.io.Serializable {
     }
 
     public List<Task> getChildren() {
-        return children;
+        if (children == null) return children;
+
+        ArrayList<Task> kids = new ArrayList<>();
+        for (Task kid : children) {
+            if (kid.getStatus2() == null || !kid.getStatus2().equalsIgnoreCase("retried")) {
+                kids.add(kid);
+            }
+        }
+
+        return kids;
     }
 
     public void setChildren(List<Task> kids) {
@@ -476,21 +485,18 @@ public class Task implements java.io.Serializable {
     }
 
     public String getStatus(Shepherd myShepherd) {
-        // if status is not null, just send it
         if (status != null) return status;
-        // otherwise
+
         String status = "waiting to queue";
-        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA",
-            myShepherd);
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA", myShepherd);
+
         if (logs != null && logs.size() > 0) {
             Collections.reverse(logs); // so it has newest first like mostRecent above
-            IdentityServiceLog l = logs.get(0);
-            JSONObject islObj = l.toJSONObject();
-            if (islObj.optString("status") != null &&
-                islObj.optString("status").equals("completed")) {
+            JSONObject islObj = logs.get(0).toJSONObject();
+
+            if (islObj.optString("status") != null && islObj.optString("status").equals("completed")) {
                 status = islObj.optString("status");
-            } else if (islObj.optJSONObject("status") != null &&
-                (islObj.optJSONObject("status").optJSONObject("needReview") != null)) {
+            } else if (islObj.optJSONObject("status") != null && (islObj.optJSONObject("status").optJSONObject("needReview") != null)) {
                 status = "completed";
             } else if (logs.toString().indexOf("score") > -1) {
                 status = "completed";
@@ -498,13 +504,19 @@ public class Task implements java.io.Serializable {
                 status = "error";
             } else if (!islObj.optString("queueStatus").equals("")) {
                 status = islObj.optString("queueStatus");
-            } else if (islObj.opt("status") != null &&
-                islObj.opt("status").toString().indexOf("initIdentify") > -1) {
+            } else if (islObj.opt("status") != null && islObj.opt("status").toString().indexOf("initIdentify") > -1) {
                 status = "queuing";
             }
+
             // if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
-            // if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
+
+            if(status.equals("waiting to queue")) {
+                System.out.println("TaskIDX: " + getId() + ", islObj: " + islObj.toString());
+            }
+        } else {
+            System.out.println("TaskIDX: " + getId() + ", logs.size(): " + (logs == null ? null : logs.size()));
         }
+
         return status;
     }
 

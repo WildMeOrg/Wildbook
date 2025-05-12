@@ -147,7 +147,7 @@ public String dumpTask(Task task) {
 
 
 <%!
-public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap, HttpServletRequest request){
+public String getOverallStatus(Task task, Shepherd myShepherd, HashMap<String, Integer> idStatusMap, HttpServletRequest request){
 	String status="unknown";
 	//resumeStalledTasks
 	boolean resumeStalledTasks = false;
@@ -168,7 +168,15 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 				for(Task childTask2:childTask.getChildren()){
 					if(childTask2.getObjectAnnotations()!=null && childTask2.getObjectAnnotations().size()>0
 							&& childTask2.getObjectAnnotations().get(0).getMatchAgainst() && childTask2.getObjectAnnotations().get(0).getIAClass()!=null){
-								map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+								if (
+									!(
+										(childTask2.getParameters() == null)
+										&& (childTask2.getStatus2() == null)
+										&& (childTask2.getQueueResumeMessage() == null)
+									)
+								) {
+									map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+								}
 								//if resume
 								if(resumeStalledTasks && childTask2.getStatus(myShepherd).equals(queueStatusToFix)){
 									System.out.println("Requeuing task: "+childTask2.getId());
@@ -183,8 +191,15 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 			else{
 				if(childTask.getObjectAnnotations()!=null && childTask.getObjectAnnotations().size()>0
 						&& childTask.getObjectAnnotations().get(0).getMatchAgainst() && childTask.getObjectAnnotations().get(0).getIAClass()!=null){
-							map.put(childTask.getId(),childTask.getStatus(myShepherd));
-							
+							if (
+								!(
+									(childTask.getParameters() == null)
+									&& (childTask.getStatus2() == null)
+									&& (childTask.getQueueResumeMessage() == null)
+								)
+							) {
+								map.put(childTask.getId(), childTask.getStatus(myShepherd));
+							}
 							
 							//if resume
 							if(resumeStalledTasks && childTask.getStatus(myShepherd).equals(queueStatusToFix)){
@@ -215,8 +230,8 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 			}
 			
 		}
+
 	    return resultsMap.toString();
-		
 	}
 	else{
 		status=task.getStatus(myShepherd);
@@ -483,12 +498,13 @@ try{
 	        set.addAll(mas);
 	        mas.clear();
 	        mas.addAll(set);
-	        
-	        
-	        if (Util.collectionSize(mas) < 1) {
+
+
+			int masSize = Util.collectionSize(mas);
+	        if (masSize < 1) {
 	            out.println("<td class=\"dim\">0</td>");
 	        } else {
-	            out.println("<td>" + Util.collectionSize(mas) + "</td>");
+	            out.println("<td>" + masSize + "</td>");
 	            for (MediaAsset ma : mas) {
 	                if (!allAssets.contains(ma)) {
 	                    allAssets.add(ma);
@@ -575,7 +591,7 @@ try{
 	        } //end for
 	        
 	        out.println("<td>");
-	        if(tasks.size()>0){
+	        if(!tasks.isEmpty()){
 	        	
             	//put the newest tasks at the top
                 Collections.sort(tasks, new Comparator<Task>() {
@@ -583,12 +599,26 @@ try{
                         return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
                     }
                 });
-                Collections.reverse(tasks); 		
+				Collections.reverse(tasks);
+
+				Task t = tasks.get(0);
+				for (Task t2: tasks) {
+					if (t2.getStatus2() == null || !t2.getStatus2().equalsIgnoreCase("retried")) {
+						t = t2;
+						break;
+					}
+				}
 	        	
 	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
-	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+": "+getOverallStatus(tasks.get(0),myShepherd,idStatusMap,request)+"</a>");
+	        		out.println(
+						"<li>" +
+							"<a target=\"_blank\" href=\"iaResults.jsp?taskId=" + t.getId() + "\" >"
+								+ annotTypesByTask.get(t.getId()) + ": " + getOverallStatus(t, myShepherd, idStatusMap, request) +
+							"</a>" +
+						"</li>"
+					);
 	        	//}
 	        	out.println("     </ul>");
 	        	numMatchTasks++;
