@@ -976,7 +976,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
 
 
-      <!--
+      
       <div class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutPhotographer") %></h3>
 
@@ -998,7 +998,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
       </div>
-      -->
+     
 
     </div>
   </fielset>
