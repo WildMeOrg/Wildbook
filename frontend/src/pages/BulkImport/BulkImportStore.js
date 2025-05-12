@@ -1,10 +1,10 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, runInAction, toJS, reaction } from 'mobx';
 import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4, validate } from "uuid";
 import { client } from "../../api/client";
-import { runInAction } from "mobx";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { makePersistable, stopPersisting, clearPersistedStore  } from 'mobx-persist-store';
 
 dayjs.extend(customParseFormat);
 
@@ -19,7 +19,6 @@ export class BulkImportStore {
   _spreadsheetData = [];
   _rawData = [];
   _imageUploadStatus = "notStarted";
-  _steps = ["Upload Image", "Upload Spreadsheet", "Review"];
   _activeStep = 0;
   _imageUploadProgress = 0;
   _spreadsheetUploadProgress = 0;
@@ -30,12 +29,13 @@ export class BulkImportStore {
   _rawColumns = [];
   _maxImageCount = 200;
   _worksheetInfo = {
-    sheetCount: 1,
-    sheetNames: ["Sheet1"],
+    sheetCount: 0,
+    sheetNames: "",
     columnCount: 0,
     rowCount: 0,
     uploadProgress: this._spreadsheetUploadProgress,
   }
+  _submissionErrors = {};
   _specifiedColumns = [
     "Encounter.mediaAsset0",
     "Encounter.year",
@@ -213,6 +213,70 @@ export class BulkImportStore {
 
   constructor() {
     makeAutoObservable(this);
+    makePersistable(this, {
+      name: 'BulkImportStore',
+      properties: [
+        '_submissionId',
+        '_imagePreview',
+        '_imageSectionFileNames',
+        '_imageUploadStatus',
+        '_imageUploadProgress',
+        '_spreadsheetUploadProgress',
+        '_activeStep',
+        '_uploadFinished',
+        '_imageCount',
+        '_uploadedImages',
+        '_initialUploadFileCount',
+        '_rawData',
+        '_spreadsheetData',
+        '_columnsDef',
+        '_rawColumns',
+        '_worksheetInfo',
+        '_submissionErrors',
+      ],
+      storage: window.localStorage,
+    },
+      {
+        delay: 200,
+        fireImmediately: true,
+      }
+    );
+    reaction(
+      () => this.stateSnapshot,
+      snapshot => localStorage.setItem('BulkImportStore', JSON.stringify(snapshot)),
+      { fireImmediately: false }
+    );
+  }
+
+  get stateSnapshot() {
+    return {
+      submissionId: this._submissionId,
+      imagePreview: toJS(this._imagePreview),
+      imageSectionFileNames: toJS(this._imageSectionFileNames),
+      imageUploadStatus: this._imageUploadStatus,
+      imageUploadProgress: this._imageUploadProgress,
+      spreadsheetUploadProgress: this._spreadsheetUploadProgress,
+      activeStep: this._activeStep,
+      uploadFinished: this._uploadFinished,
+      imageCount: this._imageCount,
+      uploadedImages: toJS(this._uploadedImages),
+      initialUploadFileCount: this._initialUploadFileCount,
+      rawData: toJS(this._rawData),
+      spreadsheetData: toJS(this._spreadsheetData),
+      columnsDef: toJS(this._columnsDef),
+      rawColumns: toJS(this._rawColumns),
+      worksheetInfo: toJS(this._worksheetInfo),
+      submissionErrors: toJS(this._submissionErrors),
+    };
+  }
+
+  hydrate(state) {
+    runInAction(() => {
+      Object.entries(state).forEach(([key, value]) => {
+        const field = `_${key}`;
+        if (field in this) this[field] = value;
+      });
+    });
   }
 
   get imagePreview() {
@@ -247,9 +311,6 @@ export class BulkImportStore {
     return this._imageUploadStatus;
   }
 
-  get steps() {
-    return this._steps;
-  }
   get activeStep() {
     return this._activeStep;
   }
@@ -324,6 +385,10 @@ export class BulkImportStore {
 
   get worksheetInfo() {
     return this._worksheetInfo;
+  }
+
+  get submissionErrors() {
+    return this._submissionErrors;
   }
 
   setSpreadsheetData(data) {
@@ -403,6 +468,42 @@ export class BulkImportStore {
     this._worksheetInfo.columnCount = columnCount;
     this._worksheetInfo.rowCount = rowCount;
     this._worksheetInfo.uploadProgress = this._spreadsheetUploadProgress;
+  }
+
+  setSubmissionErrors(errors) {
+    this._submissionErrors = errors;
+  }
+
+  clearSubmissionErrors() {
+    this._submissionErrors = {};
+  }
+
+  resetToDefaults() {
+    runInAction(() => {
+      this._submissionErrors = {};
+      this._submissionId = null;
+      this._imagePreview = [];
+      this._imageSectionFileNames = [];
+      this._imageUploadStatus = 'notStarted';
+      this._imageUploadProgress = 0;
+      this._spreadsheetUploadProgress = 0;
+      this._activeStep = 0;
+      this._uploadFinished = false;
+      this._imageCount = 0;
+      this._uploadedImages = [];
+      this._initialUploadFileCount = 0;
+      this._rawData = [];
+      this._spreadsheetData = [];
+      this._columnsDef = [];
+      this._rawColumns = [];
+      this._worksheetInfo = {
+        sheetCount: 0,
+        sheetNames: '',
+        columnCount: 0,
+        rowCount: 0,
+        uploadProgress: 0,
+      };
+    });
   }
 
   getOptionsForSelectCell(col) {
@@ -790,14 +891,6 @@ export class BulkImportStore {
     }
   }
 
-  restoreFromLocalStorage() {
-    const saved = JSON.parse(localStorage.getItem("uploadedFiles"));
-    if (saved) this._imagePreview = saved;
-  }
-
-  handleLoginRedirect = () => {
-    // console.log("Handle login redirect - save state if needed");
-  };
 }
 
 export default BulkImportStore;
