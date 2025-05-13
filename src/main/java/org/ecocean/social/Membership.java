@@ -103,13 +103,15 @@ public class Membership implements java.io.Serializable {
             this.role = null;
         } else { this.role = role; }
     }
-
-    public void setStartDate(long startDate) {
-        this.startDate = startDate;
+    
+    public void setStartDate(Long startDate) {
+    	if(startDate==null) {this.startDate=null;}
+    	else{this.startDate = startDate;}
     }
 
-    public void setEndDate(long endDate) {
-        this.endDate = endDate;
+    public void setEndDate(Long endDate) {
+    	if(endDate==null) {this.endDate=null;}
+    	else{this.endDate = endDate;}
     }
 
     public String getId() {
