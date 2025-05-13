@@ -229,7 +229,11 @@ public class UploadServlet extends HttpServlet {
         String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
             request);
         String submissionId = null;
-        if (values != null) submissionId = values.get("submissionId");
+        boolean skipCreation = false;
+        if (values != null) {
+            submissionId = values.get("submissionId");
+            skipCreation = Util.booleanNotFalse(values.get("skipCreation"));
+        }
         if (Util.isUUID(submissionId)) {
 /*  for now we cannot use username due to the fact that a user can upload while anon, and login later! :(
             String context = ServletUtilities.getContext(request);
@@ -242,7 +246,7 @@ public class UploadServlet extends HttpServlet {
             } else {
                 subDir = username + "/submission/" + submissionId;
             }
-*/
+ */
             subDir = "_anonymous/submission/" + submissionId;
         }
         System.out.println("UploadServlet got subdir " + subDir);
@@ -250,7 +254,7 @@ public class UploadServlet extends HttpServlet {
         String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request)) +
             subDir;
         System.out.println("UploadServlet got uploadDir fullDir = " + fullDir);
-        ensureDirectoryExists(fullDir);
+        if (!skipCreation) ensureDirectoryExists(fullDir);
         return fullDir;
     }
 
