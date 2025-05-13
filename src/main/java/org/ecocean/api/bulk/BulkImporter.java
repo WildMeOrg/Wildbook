@@ -55,6 +55,13 @@ public class BulkImporter {
             fmap.put(field.getFieldName(), field);
         }
         Set<String> allFieldNames = fmap.keySet();
+/*
+        these are in order based on indexing numerical value such that list.get(i)
+        will return the i-th field note that this means if the user data skipped
+        values, there will be nulls, e.g. providing mediaAsset0 and mediaAsset2 only
+        but should provide a way to match up, for example, mediaAssetX with keywordX
+        based on this index value.
+ */
         List<String> maFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.mediaAsset");
         List<String> kwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,

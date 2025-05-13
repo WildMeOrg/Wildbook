@@ -43,7 +43,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BulkImport extends ApiBase {
-/*
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
@@ -56,7 +55,37 @@ public class BulkImport extends ApiBase {
 
         try {
             User currentUser = myShepherd.getUser(request);
-
+            if (currentUser == null) {
+                response.setStatus(401);
+                response.setHeader("Content-Type", "application/json");
+                response.getWriter().write("{\"success\": false}");
+                return;
+            }
+            String uri = request.getRequestURI();
+            String[] args = uri.substring(8).split("/");
+            if (args.length < 2) throw new IOException("invalid api endpoint");
+            String bulkImportId = args[1];
+            if (!Util.isUUID(bulkImportId)) throw new IOException("invalid bulk import id passed");
+            if (args.length == 2) {
+                rtn.put("message", "not yet implemented");
+            } else if (args[2].equals("files")) {
+                File uploadDir = UploadedFiles.getUploadDir(request, bulkImportId, true);
+                if (!uploadDir.exists()) {
+                    statusCode = 404;
+                    throw new IOException("uploadDir " + uploadDir + " not found");
+                }
+                JSONArray farr = new JSONArray();
+                for (final File f : uploadDir.listFiles()) {
+                    if (f.isDirectory()) continue;
+                    JSONObject jf = new JSONObject();
+                    jf.put("filename", f.getName());
+                    jf.put("sizeBytes", f.length());
+                    farr.put(jf);
+                }
+                statusCode = 200;
+                rtn.put("success", true);
+                rtn.put("files", farr);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
@@ -67,7 +96,7 @@ public class BulkImport extends ApiBase {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(rtn.toString());
     }
- */
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
