@@ -29,23 +29,13 @@ For over two decades, Botswana Predator Conservation has been working to study a
 <br/>
 
 <p>
-<strong>Wild Me</strong> - a 501(c)(3) non-profit organization, staffed by a small but passionate and innovative team of technologists. Wild Me developed the carnivore-specific algorithms needed in ACW and delivered them on a powerful and easy to use image data management platform, Wildbook.  They accomplished this in less than 4 months with a relatively small training dataset, as compared to mainstream AI and computer vision projects.
+<strong>Wild Me Lab</strong> - a lab of <a href="https://www.conservationxlabs.org">Conservation X Labs</a>, a 501(c)(3) non-profit organization, staffed by a small but passionate and innovative team of technologists. Wild Me developed the carnivore-specific algorithms needed in ACW and delivered them on a powerful and easy to use image data management platform, Wildbook.  They accomplished this in less than 4 months with a relatively small training dataset, as compared to mainstream AI and computer vision projects.
 Learn more about Wild Me, and donate to their work here: https://www.wildme.org/
 </p>
 <p>
     <a href="https://www.wildme.org/"><img width="300px" style="max-width: 100%; width:13%" alt="Wild Me Logo" src="images/WildMe-Logo-04.png" class="img-responsive center-block"></a>
 </p>
 
-<br/>
-
-
-<p>
-<strong>Tech 4 Conservation (T4C)</strong> - a Canadian non-profit organization, acting as bridge between the research team and the technologists, funded and oversaw the creation of the African Carnivore Wildbook platform, with the intention of delivering it to accredited researchers in support of the conservation of these iconic species across Africa.
-To learn more about T4C, contact us at: <a href = "mailto: info@tech4conservation.org">info@tech4conservation.org</a>
-</p>
-<p>
-    <img src="images/T4C_full_white_cropped_web.jpg" alt="Tech 4 Conservation Logo" class="img-responsive center-block">
-</p>
 <br/>
 
 
