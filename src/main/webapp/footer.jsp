@@ -30,23 +30,23 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         %>
 
         <!-- footer -->
-        <div class="container footer-container footer-font">
+        <div class="container footer-container footer-font" style="padding-top: 40px; padding-bottom: 50px;">
             <div class="footer-row">
                 <div class="py-2">
-                    <a href="mailto:info@tech4conservation.org" class="footer-link text-reset px-2 footer-text">Request an Account</a>
-                    <a href="mailto:support@tech4conservation.org" class="footer-link footer-text">Password Reset</a>
+                    <a target="_blank" href="mailto:info@tech4conservation.org" class="footer-link text-reset px-2 footer-text">Request an Account</a>
+                    <a target="_blank" href="/resetPassword.jsp" class="footer-link footer-text">Password Reset</a>
                 </div>
                 <div class="py-2">
-                    <a href="http://forum.arguswild.ai/" class="footer-link text-reset px-2 footer-text">Community Support Forum</a>
+                    <a target="_blank" href="http://forum.arguswild.ai/" class="footer-link text-reset px-2 footer-text">Community Support Forum</a>
                 </div>
                 <div class="py-2">
-                    <a href="mailto:info@tech4conservation.org" class="footer-link text-reset px-2 footer-text">General Inquiries</a>
-                    <a href="https://github.com/Tech-4-Conservation" class="footer-link text-reset px-2 footer-text">GitHub</a>
+                    <a target="_blank" href="mailto:info@tech4conservation.org" class="footer-link text-reset px-2 footer-text">General Inquiries</a>
+                    <a target="_blank" href="https://github.com/Tech-4-Conservation" class="footer-link text-reset px-2 footer-text">GitHub</a>
                 </div>
             </div>
             <div class="footer-powered-by py-3 text-center">
                 <span>Powered by</span> 
-                <a href="http://www.tech4conservation.org" class="footer-link text-reset px-2 footer-text">Tech 4 Conservation</a>
+                <a target="_blank" href="http://www.tech4conservation.org" class="footer-link text-reset px-2 footer-text">Tech 4 Conservation</a>
             </div>
         </div>
 
