@@ -77,10 +77,10 @@ public class BulkImport extends ApiBase {
                 JSONArray farr = new JSONArray();
                 for (final File f : uploadDir.listFiles()) {
                     if (f.isDirectory()) continue;
-                    JSONObject jf = new JSONObject();
-                    jf.put("filename", f.getName());
-                    jf.put("sizeBytes", f.length());
-                    farr.put(jf);
+                    JSONArray fa = new JSONArray();
+                    fa.put(f.getName());
+                    fa.put(f.length());
+                    farr.put(fa);
                 }
                 statusCode = 200;
                 rtn.put("success", true);
