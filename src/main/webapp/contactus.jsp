@@ -21,16 +21,10 @@
 
 <p><strong>For more information, contact us:</strong></p>
 
-<p><a href="mailto: info@tech4conservation.org">info@tech4conservation.org</a></p>
-
 
 <h3>Wild Me</h3>
 
 <p><a href="https://www.wildme.org/"><img src="images/WildMe-Logo-04.png" width="200px" height="*" /></a></p>
-
-<h3>Wildbook</h3>
-
-<p><a href="https://www.wildbook.org/"><img src="images/WildBook_logo_300dpi-04.png" width="200px" height="*" /></a></p>
 
 
 <!-- end maintext -->
