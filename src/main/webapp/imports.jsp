@@ -272,6 +272,12 @@ try{
     
     %>
 
+	<script type="text/javascript">
+		var pageSize = <%= pageSize %>;
+		var pageIndex = <%= pageIndex %>;
+	
+	</script>
+
 	<div class="pagination">
 		<% int previousPage = pageIndex - 1;
 		   int nextPage = pageIndex + 1;
@@ -504,10 +510,11 @@ try{
 					$('#table-info').html('<b>no matches found</b>');
 					return;
 				}
+				var currentSize = pageIndex * pageSize
 
 				var max = start + howMany;
 				if (sTable.matchesFilter.length < max) max = sTable.matchesFilter.length;
-				$('#table-info').html((start+1) + ' - ' + max + ' of ' + sTable.matchesFilter.length);
+				$('#table-info').html((start+1+currentSize) + ' - ' + (max + currentSize) + ' of ' + (sTable.matchesFilter.length+ currentSize));
 			}
 			function newSlice(col, reverse) {
 				results = sTable.slice(col, start, start + howMany, reverse);
