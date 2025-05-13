@@ -7,39 +7,38 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.ecocean.Encounter;
-import org.ecocean.resumableupload.UploadServlet;
-import org.ecocean.media.MediaAsset;
 import org.ecocean.media.AssetStore;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.resumableupload.UploadServlet;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 public class UploadedFiles {
-
     public static List<File> findFiles(HttpServletRequest request, String submissionId)
     throws IOException {
         return findFiles(request, submissionId, null);
     }
 
-    public static List<File> findFiles(HttpServletRequest request, String submissionId, Set<String> filenames)
+    public static List<File> findFiles(HttpServletRequest request, String submissionId,
+        Set<String> filenames)
     throws IOException {
         List<File> files = new ArrayList<File>();
+
         if (!Util.isUUID(submissionId)) {
             System.out.println("WARNING: valid submissionId required; no files possible");
             return files;
         }
-        Map<String, String> values = new HashMap<String, String>();
-        values.put("submissionId", submissionId);
-        File uploadDir = new File(UploadServlet.getUploadDir(request, values));
+        File uploadDir = getUploadDir(request, submissionId);
         System.out.println("findFiles() uploadDir=" + uploadDir);
         if (!uploadDir.exists())
             throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
@@ -57,6 +56,23 @@ public class UploadedFiles {
         }
         System.out.println("findFiles(): files=" + files);
         return files;
+    }
+
+    // this default behavior WILL CREATE the dir if it does not exist
+    // use skipCreation=true below, otherwise
+    public static File getUploadDir(HttpServletRequest request, String submissionId)
+    throws IOException {
+        return getUploadDir(request, submissionId, false);
+    }
+
+    public static File getUploadDir(HttpServletRequest request, String submissionId,
+        boolean skipCreation)
+    throws IOException {
+        Map<String, String> values = new HashMap<String, String>();
+
+        values.put("submissionId", submissionId);
+        values.put("skipCreation", Boolean.toString(skipCreation));
+        return new File(UploadServlet.getUploadDir(request, values));
     }
 
 /*
@@ -92,8 +108,7 @@ public class UploadedFiles {
         }
         return results;
     }
-*/
-
+ */
     public static MediaAsset makeMediaAsset(File file, Shepherd myShepherd)
     throws ApiException {
         return makeMediaAsset(Util.generateUUID(), file, myShepherd);
@@ -102,6 +117,7 @@ public class UploadedFiles {
     public static MediaAsset makeMediaAsset(String dirId, File file, Shepherd myShepherd)
     throws ApiException {
         JSONObject error = new JSONObject();
+
         error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
         error.put("filename", file.getName());
         AssetStore astore = AssetStore.getDefault(myShepherd);
@@ -110,7 +126,8 @@ public class UploadedFiles {
             throw new ApiException(file.getName() + " is not a valid image file", error);
         }
         String sanitizedItemName = ServletUtilities.cleanFileName(file.getName());
-        JSONObject sp = astore.createParameters(new File(Encounter.subdir(dirId) + File.separator + sanitizedItemName));
+        JSONObject sp = astore.createParameters(new File(Encounter.subdir(dirId) + File.separator +
+            sanitizedItemName));
         sp.put("userFilename", file.getName());
         System.out.println("UploadedFiles.makeMediaAsset(): file=" + file + " => " + sp);
         MediaAsset ma = new MediaAsset(astore, sp);
