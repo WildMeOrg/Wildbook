@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
 
 import {
   useReactTable,
@@ -10,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
-import SelectCell from "./SelectCell";
+import SelectCell from "../../components/SelectCell";
 
 const EditableCell = ({
   store,
@@ -40,7 +41,9 @@ const EditableCell = ({
     }
   };
 
-  const useSelectCell = store.columnsUseSelectCell.includes(columnId);
+  const useSelectCell = columnsUseSelectCell.includes(columnId);
+
+  console.log("spreadsheetData", JSON.stringify(store.spreadsheetData));
 
   const renderInput = () => {
     if (useSelectCell) {
@@ -124,16 +127,13 @@ export const DataTable = observer(({ store }) => {
   store.setValidBehavior(validBehavior);
 
   useEffect(() => {
-    if (store.spreadsheetData.length > 0) {
-      const errors = store.validateSpreadsheet();
-      if (errors) {
-        setCellErrors(errors);
-      }
-    }
-  }, [store.spreadsheetData]);
+  if (siteData) {
+    setCellErrors(store.validateSpreadsheet())
+  }
+}, [store.spreadsheetData, siteData])
 
   const columns = columnsDef.map((col) => ({
-    header: store.tableHeaderMapping[col] || col,
+    header: tableHeaderMapping[col] || col,
     accessorKey: col,
     cell: ({ row }) => (
       <EditableCell
@@ -188,54 +188,6 @@ export const DataTable = observer(({ store }) => {
     >
       <div className="table-responsive">
         <table className="table table-bordered table-hover table-sm">
-          {/* <thead className="table-light">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  <th key={header.id} className="text-capitalize">
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext(),
-                    )}
-                    {header.getCanResize() && (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className="resizer"
-                      />
-                    )}
-                  </th>
-                })}
-              </tr>
-            ))}
-          </thead> */}
-
-          {/* <thead className="table-light">
-  {table.getHeaderGroups().map(headerGroup => (
-    <tr key={headerGroup.id}>
-      {headerGroup.headers.map(header => (
-        <th
-          key={header.id}
-          className="text-capitalize position-relative"
-          style={{ width: header.column.getSize() }}
-        >
-          {flexRender(
-            header.column.columnDef.header,
-            header.getContext()
-          )}
-          {header.column.getCanResize() && (
-            <div
-              onMouseDown={header.column.getResizeHandler()}
-              onTouchStart={header.column.getResizeHandler()}
-              className="resizer"
-            />
-          )}
-        </th>
-      ))}
-    </tr>
-  ))}
-</thead> */}
-
           <thead className="table-light">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>

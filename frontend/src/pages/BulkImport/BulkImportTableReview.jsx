@@ -9,33 +9,57 @@ import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
 import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
 import { BulkImportSpreadsheetUploadInof } from "./BulkImportSpreadsheetUploadInof";
+import { stopPersisting, clearPersistedStore } from 'mobx-persist-store';
+import { runInAction } from "mobx";
 
 export const BulkImportTableReview = observer(({ store }) => {
   const theme = useContext(ThemeContext);
-  const { submit, isLoading, error } = usePostBulkImport();
+  const { submit, isLoading, error:postError } = usePostBulkImport();
 
   const submissionId = store.submissionId || uuidv4();
+  const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
 
-  const handleStartImport = () => {
+  const handleStartImport = useCallback(async () => {
     console.log("Starting import with data:", JSON.stringify(store.spreadsheetData));
-    submit(submissionId, store.rawColumns, store.spreadsheetData)
-      .then(result => {
-        store.bulkImportId = result.id;
+    store.clearSubmissionErrors();
+    try {
+      const result = await submit(submissionId, store.rawColumns, store.spreadsheetData);
+      runInAction(() => {
+        store.setSubmissionId(submissionId);
+        store.setSubmissionResult(result);
         store.setActiveStep(3);
+        store.setUploadFinished(true);
+        store.clearRawData();
+        store.clearSpreadsheetData();
+        store.clearWorksheetInfo();
+        store.clearRawColumns();
+        store.clearColumnsDef();
+        store.clearImageSectionFileNames();
       })
-      .catch(err => {
+      stopPersisting(store);
+      await clearPersistedStore(store);
+      store.resetToDefaults();
+    } catch (err) {
+      const errors = err.response?.data?.errors;
+      console.log("Error during import:", err);
+      if (errors) {
+        store.setSubmissionErrors(errors);
+      } else {
         console.error('Import failed', err);
-      });
-  };
+      }
+    }
+
+
+  });
 
   return (
     <div >
       <div className="d-flex flex-row ">
-      <BulkImportImageUploadInfo store={store}/>
-      <BulkImportSpreadsheetUploadInof store={store}/>
+        <BulkImportImageUploadInfo store={store} />
+        <BulkImportSpreadsheetUploadInof store={store} />
       </div>
       <EditableDataTable store={store} />
-      {error && <div className="alert alert-danger">{JSON.stringify(error)}</div>}
+      {store.submissionErrors && <div className="alert alert-danger">{JSON.stringify(store.submissionErrors)}</div>}
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton
           onClick={() => {

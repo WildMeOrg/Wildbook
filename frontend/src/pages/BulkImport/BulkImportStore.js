@@ -1,13 +1,12 @@
 import { makeAutoObservable, runInAction, toJS, reaction } from 'mobx';
 import Flow from "@flowjs/flow.js";
-import { v4 as uuidv4, validate } from "uuid";
-import { client } from "../../api/client";
+import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
-import { makePersistable, stopPersisting, clearPersistedStore  } from 'mobx-persist-store';
+import { makePersistable } from 'mobx-persist-store';
+import { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
-
 export class BulkImportStore {
   _imagePreview = [];
   _imageSectionFileNames = [];
@@ -36,60 +35,7 @@ export class BulkImportStore {
     uploadProgress: this._spreadsheetUploadProgress,
   }
   _submissionErrors = {};
-  _specifiedColumns = [
-    "Encounter.mediaAsset0",
-    "Encounter.year",
-    "Encounter.genus",
-    "Encounter.decimalLatitude",
-    "Encounter.locationID",
-    "Encounter.country",
-    "Encounter.occurrenceID",
-    "MarkedIndividual.individualID",
-    "Encounter.sex",
-    "Encounter.lifeStage",
-    "Encounter.livingStatus",
-    "Encounter.behavior",
-    "Encounter.submitterID",
-    "Encounter.occurrenceRemarks",
-    "Encounter.verbatimLocality",
-    "Encounter.dateInMilliseconds",
-    "Encounter.researcherComments",
-    "Encounter.photographer0.emailAddress",
-    "Encounter.informOther0.emailAddress",
-    "TissueSample.sampleID",
-    "SexAnalysis.sex",
-  ];
-
-  _removedColumns = [
-    "Encounter.month",
-    "Encounter.day",
-    "Encounter.hour",
-    "Encounter.minutes",
-    "Encounter.decimalLongitude",
-    "Encounter.specificEpithet",
-  ];
-
-  _tableHeaderMapping = {
-    "Encounter.mediaAsset0": "Media Assets",
-    "Encounter.genus": "Species",
-    "MarkedIndividual.individualID": "Individual name",
-    "Encounter.occurrenceID": "occurrence ID",
-    "Encounter.occurrenceRemarks": "occurrence Remarks",
-    "Encounter.locationID": "location",
-    "Encounter.country": "country",
-    "Encounter.decimalLatitude": "Lat, long (DD)",
-    "Encounter.year": "date",
-    "Encounter.sex": "sex",
-    "Encounter.lifeStage": "life Stage",
-    "Encounter.livingStatus": "living Status",
-    "Encounter.behavior": "behavior",
-    "Encounter.researcherComments": "researcher Comments",
-    "Encounter.submitterID": "submitterID",
-    "Encounter.photographer0.emailAddress": "photographer Email",
-    "Encounter.informOther0.emailAddress": "informOther Email",
-    "TissueSample.sampleID": "sample ID",
-  };
-
+ 
   isValidISO(val) {
     const dt = new Date(val);
     return !isNaN(dt.getTime());
@@ -104,7 +50,7 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
-  _columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.submitterID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
+  // _columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.submitterID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
   _validationRules = {
     "Encounter.mediaAsset0": {
       required: true,
@@ -351,25 +297,21 @@ export class BulkImportStore {
     return this._validSubmitterIDs;
   }
 
-  get tableHeaderMapping() {
-    return this._tableHeaderMapping;
-  }
+  // get tableHeaderMapping() {
+  //   return this._tableHeaderMapping;
+  // }
 
-  get columnsUseSelectCell() {
-    return this._columnsUseSelectCell;
-  }
+  // get columnsUseSelectCell() {
+  //   return this._columnsUseSelectCell;
+  // }
 
-  get columnsDef() {
-    return this._columnsDef;
-  }
+  // get specifiedColumns() {
+  //   return this._specifiedColumns;
+  // }
 
-  get specifiedColumns() {
-    return this._specifiedColumns;
-  }
-
-  get removedColumns() {
-    return this._removedColumns;
-  }
+  // get removedColumns() {
+  //   return this._removedColumns;
+  // }
 
   get rawColumns() {
     return this._rawColumns;
@@ -392,7 +334,7 @@ export class BulkImportStore {
   }
 
   setSpreadsheetData(data) {
-    this._spreadsheetData = data;
+    this._spreadsheetData = [...data];
   }
 
   setRawData(data) {
@@ -707,14 +649,7 @@ export class BulkImportStore {
     });
 
     flowInstance.on("fileSuccess", (file) => {
-      // this._imagePreview = this._imagePreview.map((f) =>
-      //   f.fileName === file.name ? { ...f, progress: 100 } : f,
-      // );
-
-      // this._uploadedImages.push(file.name);
-
       runInAction(() => {
-        // update both preview and uploadedImages inside an action
         this._imagePreview = this._imagePreview.map(f =>
           f.fileName === file.name ? { ...f, progress: 100 } : f
         );
@@ -894,3 +829,100 @@ export class BulkImportStore {
 }
 
 export default BulkImportStore;
+
+
+// import { makeAutoObservable, runInAction } from "mobx";
+// import { UploadService } from "./BulkImportUploadService";
+// import { ValidationService } from "./BulkImportValidationService";
+// import { setupPersistence } from "./BulkImportPersistenceService";
+
+// export class BulkImportStore {
+//   submissionId = null;
+//   imagePreview = [];
+//   imageSectionFileNames = [];
+//   imageUploadStatus = "notStarted";
+//   imageUploadProgress = 0;
+//   spreadsheetData = [];
+//   spreadsheetUploadProgress = 0;
+//   worksheetInfo = { sheetCount: 0, sheetNames: "", columnCount: 0, rowCount: 0 };
+//   submissionErrors = {};
+
+//   validLists = {
+//     species: [],
+//     locationIDs: [],
+//     submitterIDs: [],
+//     countryIDs: [],
+//     livingStatus: [],
+//     lifeStages: [],
+//     sexes: [],
+//     behaviors: [],
+//   };
+
+//   constructor({ fileInputRef, maxImageCount = 200, maxImageSizeMB } = {}) {
+//     makeAutoObservable(this);
+
+//     this.validationService = new ValidationService(this.validLists);
+
+//     this.uploadService = new UploadService({
+//       maxCount: maxImageCount,
+//       onProgress: ({ type, file, percent }) => {
+//         if (type === "progress") {
+//           this.setImageUploadProgress(percent);
+//         }
+//         // 可处理 type==='added' 事件
+//       },
+//       onSuccess: file => this.handleUploadSuccess(file.name),
+//       onError:   file => this.handleUploadError(file.name),
+//     });
+//     this.uploadService.init(this.submissionId, fileInputRef, maxImageSizeMB);
+
+//     setupPersistence(this, {
+//       properties: [
+//         'submissionId',
+//         'imagePreview',
+//         'imageSectionFileNames',
+//         'imageUploadStatus',
+//         'imageUploadProgress',
+//         'spreadsheetData',
+//         'spreadsheetUploadProgress',
+//         'worksheetInfo',
+//         'submissionErrors',
+//       ],
+//       fireImmediately: true,
+//     });
+//   }
+
+//   setSpreadsheetData(data) {
+//     this.spreadsheetData = [...data];
+//   }
+
+//   setImageUploadProgress(pct) {
+//     this.imageUploadProgress = pct;
+//   }
+
+//   handleUploadSuccess(fileName) {
+//     this.imagePreview = this.imagePreview.map(f =>
+//       f.fileName === fileName ? { ...f, progress: 100 } : f
+//     );
+//     this.imageSectionFileNames = [...this.imageSectionFileNames, fileName];
+//   }
+
+//   handleUploadError(fileName) {
+//   }
+
+//   runValidation() {
+//     this.submissionErrors = this.validationService.validateAll(this.spreadsheetData);
+//   }
+
+//   startUpload() {
+//     this.imageUploadStatus = "uploading";
+//     this.uploadService.uploadAll(/* maxSizeMB */);
+//   }
+
+//   setWorksheetInfo(info) {
+//     this.worksheetInfo = { ...info };
+//   }
+// }
+
+// export default BulkImportStore;
+
