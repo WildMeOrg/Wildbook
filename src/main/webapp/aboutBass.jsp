@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-import="org.ecocean.*,
+import="org.ecocean.*,org.ecocean.shepherd.core.*,
          org.ecocean.servlet.ServletUtilities,
          java.util.Properties
          "

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*,java.util.Properties, org.ecocean.servlet.ServletUtilities" %>
+         import="org.ecocean.*,java.util.Properties, org.ecocean.servlet.ServletUtilities,org.ecocean.shepherd.core.*" %>
 <%
   //setup our Properties object to hold all properties
 
