@@ -16,7 +16,7 @@ In 2023, a small but passionate international collaboration came together to del
 
 
 <p>
-<strong>Wild Me</strong> - a 501(c)(3) non-profit organization, staffed by a small but passionate and innovative team of technologists. Wild Me developed the species-specific algorithms needed in Wild North and delivered them on a powerful and easy to use image data management platform, Wildbook.
+<strong>Wild Me Lab</strong> - of Conservation X Labs, a 501(c)(3) non-profit organization, staffed by a small but passionate and innovative team of technologists. Wild Me developed the species-specific algorithms needed in Wild North and delivered them on a powerful and easy to use image data management platform, Wildbook.
 Learn more about Wild Me, and donate to their work here: <a href="https://www.wildme.org">https://www.wildme.org</a>
 </p>
 <p>
@@ -25,14 +25,7 @@ Learn more about Wild Me, and donate to their work here: <a href="https://www.wi
 
 
 
-<p>
-<strong>Tech 4 Conservation (T4C)</strong> - a Canadian non-profit organization, acting as bridge between the research team and the technologists, funded and oversaw the creation of the Wild North Wildbook platform, with the intention of delivering it to accredited researchers in support of the conservation of these iconic species across the Northern hemisphere.
-To learn more about T4C, contact us at: <a href = "mailto: info@tech4conservation.org">info@tech4conservation.org</a>
-</p>
-<p>
-    <img src="images/T4C_full_white_cropped_web.jpg" alt="Tech 4 Conservation Logo" class="img-responsive center-block">
-</p>
-<br/>
+
 
 
 <p><strong>Funding provided by:</strong></p>
