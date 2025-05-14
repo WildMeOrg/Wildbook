@@ -167,6 +167,18 @@ public class BulkImporter {
                 enc.setState(bv.getValueString());
                 break;
 
+            case "Encounter.submitterID":
+                enc.setSubmitterID(bv.getValueString());
+                break;
+
+            case "Encounter.submitterName":
+                enc.setSubmitterName(bv.getValueString());
+                break;
+
+            case "Encounter.submitterOrganization":
+                enc.setSubmitterOrganization(bv.getValueString());
+                break;
+
             case "Encounter.distinguishingScar":
             case "Encounter.groupRole":
             case "Encounter.identificationRemarks":
@@ -181,9 +193,6 @@ public class BulkImporter {
             case "Encounter.project":
             case "Encounter.quality":
             case "Encounter.researcherComments":
-            case "Encounter.submitterID":
-            case "Encounter.submitterName":
-            case "Encounter.submitterOrganization":
             case "Encounter.verbatimLocality":
             case "MarkedIndividual.individualID":
             case "MarkedIndividual.name":
