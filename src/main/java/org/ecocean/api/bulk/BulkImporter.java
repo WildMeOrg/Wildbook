@@ -106,18 +106,23 @@ public class BulkImporter {
                 Long val = bv.getValueLong();
                 if (val != null) enc.setDateInMilliseconds(val);
                 break;
+            case "Occurrence.year":
             case "Encounter.year":
                 enc.setYear(bv.getValueInteger());
                 break;
+            case "Occurrence.month":
             case "Encounter.month":
                 enc.setMonth(bv.getValueInteger());
                 break;
+            case "Occurrence.day":
             case "Encounter.day":
                 enc.setDay(bv.getValueInteger());
                 break;
+            case "Occurrence.hour":
             case "Encounter.hour":
                 enc.setHour(bv.getValueInteger());
                 break;
+            case "Occurrence.minutes":
             case "Encounter.minutes":
                 enc.setMinutes(bv.getValueString()); // why?? :(
                 break;
@@ -136,20 +141,23 @@ public class BulkImporter {
                 enc.setSpecificEpithet(bv.getValueString());
                 break;
 
+            case "Encounter.lifeStage":
+                enc.setLifeStage(bv.getValueString());
+                break;
+
+            case "Encounter.livingStatus":
+                enc.setLivingStatus(bv.getValueString());
+                break;
+
+            case "Encounter.locationID":
+                enc.setLocationID(bv.getValueString());
+                break;
+
             case "Encounter.distinguishingScar":
             case "Encounter.groupRole":
             case "Encounter.identificationRemarks":
             case "Encounter.individualID":
             case "Encounter.informOther":
-            case "Encounter.lifeStage":
-                enc.setGenus(bv.getValueString());
-                break;
-            case "Encounter.livingStatus":
-                enc.setGenus(bv.getValueString());
-                break;
-            case "Encounter.locationID":
-                enc.setGenus(bv.getValueString());
-                break;
             case "Encounter.measurement":
             case "Encounter.occurrenceID":
             case "Encounter.occurrenceRemarks":
@@ -178,22 +186,18 @@ public class BulkImporter {
             case "Occurrence.bestGroupSizeEstimate":
             case "Occurrence.comments":
             case "Occurrence.dateInMilliseconds":
-            case "Occurrence.day":
             case "Occurrence.distance":
             case "Occurrence.effortCode":
             case "Occurrence.fieldStudySite":
             case "Occurrence.fieldSurveyCode":
             case "Occurrence.groupBehavior":
             case "Occurrence.groupComposition":
-            case "Occurrence.hour":
             case "Occurrence.humanActivityNearby":
             case "Occurrence.individualCount":
             case "Occurrence.initialCue":
             case "Occurrence.maxGroupSizeEstimate":
             case "Occurrence.millis":
             case "Occurrence.minGroupSizeEstimate":
-            case "Occurrence.minutes":
-            case "Occurrence.month":
             case "Occurrence.numAdults":
             case "Occurrence.numCalves":
             case "Occurrence.numJuveniles":
@@ -206,7 +210,6 @@ public class BulkImporter {
             case "Occurrence.transectBearing":
             case "Occurrence.transectName":
             case "Occurrence.visibilityIndex":
-            case "Occurrence.year":
             case "SatelliteTag.serialNumber":
             case "SexAnalysis.processingLabTaskID":
             case "SexAnalysis.sex":

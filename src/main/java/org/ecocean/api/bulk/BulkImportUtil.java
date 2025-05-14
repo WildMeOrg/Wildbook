@@ -50,16 +50,8 @@ public class BulkImportUtil {
             }
         }
         // now we do inter-dependent validations
-        Object dateY = getValue(rtn, "Encounter.year");
-        Object dateM = getValue(rtn, "Encounter.month");
-        Object dateD = getValue(rtn, "Encounter.day");
-        if ((dateY != null) && (dateM != null) && (dateD != null)) {
-            YearMonth yearMonth = YearMonth.of((Integer)dateY, (Integer)dateM);
-            if (!yearMonth.isValidDay((Integer)dateD))
-                rtn.put("Encounter.day",
-                    new BulkValidatorException("day is out of range for month",
-                    ApiException.ERROR_RETURN_CODE_INVALID));
-        }
+        checkYMD(rtn, "Encounter.year", "Encounter.month", "Encounter.day");
+        checkYMD(rtn, "Occurrence.year", "Occurrence.month", "Occurrence.day");
         for (String reqFieldName : BulkValidator.FIELD_NAMES_REQUIRED) {
             if (!rtn.containsKey(reqFieldName)) {
                 rtn.put(reqFieldName,
@@ -74,20 +66,6 @@ public class BulkImportUtil {
                         ApiException.ERROR_RETURN_CODE_REQUIRED));
                 }
             }
-        }
-        if ((dateM == null) && (dateD != null))
-            rtn.put("Encounter.month",
-                new BulkValidatorException("must supply month along with day",
-                ApiException.ERROR_RETURN_CODE_REQUIRED));
-        dateY = getValue(rtn, "Occurrence.year");
-        dateM = getValue(rtn, "Occurrence.month");
-        dateD = getValue(rtn, "Occurrence.day");
-        if ((dateY != null) && (dateM != null) && (dateD != null)) {
-            YearMonth yearMonth = YearMonth.of((Integer)dateY, (Integer)dateM);
-            if (!yearMonth.isValidDay((Integer)dateD))
-                rtn.put("Occurrence.day",
-                    new BulkValidatorException("day is out of range for month",
-                    ApiException.ERROR_RETURN_CODE_INVALID));
         }
         // why do we have THREE different ways for users to provide same fields? :(
         checkLatLon(rtn, "Encounter.latitude", "Encounter.longitude");
@@ -108,6 +86,24 @@ public class BulkImportUtil {
             }
         }
         return rtn;
+    }
+
+    private static void checkYMD(Map<String, Object> map, String ykey, String mkey, String dkey) {
+        Object dateY = getValue(map, ykey);
+        Object dateM = getValue(map, mkey);
+        Object dateD = getValue(map, dkey);
+
+        if ((dateY != null) && (dateM != null) && (dateD != null)) {
+            YearMonth yearMonth = YearMonth.of((Integer)dateY, (Integer)dateM);
+            if (!yearMonth.isValidDay((Integer)dateD))
+                map.put(dkey,
+                    new BulkValidatorException("day is out of range for month",
+                    ApiException.ERROR_RETURN_CODE_INVALID));
+        }
+        if ((dateM == null) && (dateD != null))
+            map.put(mkey,
+                new BulkValidatorException("must supply a valid month along with day",
+                ApiException.ERROR_RETURN_CODE_REQUIRED));
     }
 
     private static void checkLatLon(Map<String, Object> map, String latKey, String lonKey) {
