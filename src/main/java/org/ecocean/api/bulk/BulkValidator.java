@@ -105,6 +105,31 @@ public class BulkValidator {
         return value.toString();
     }
 
+    public Double getValueDouble() {
+        if (value == null) return null;
+        if (value instanceof Double) return (Double)value;
+        System.out.println("not a Double: " + value);
+        return null;
+    }
+
+    public Integer getValueInteger() {
+        if (value == null) return null;
+        if (value instanceof Integer) return (Integer)value;
+        System.out.println("not an Integer: " + value);
+        return null;
+    }
+
+    public Long getValueLong() {
+        if (value == null) return null;
+        if (value instanceof Long) return (Long)value;
+        if (value instanceof Integer) {
+            Integer i = (Integer)value;
+            return i.longValue();
+        }
+        System.out.println("not a Long: " + value);
+        return null;
+    }
+
     public static boolean isValidFieldName(String fieldName) {
         if (fieldName == null) return false;
         if (FIELD_NAMES.contains(fieldName)) return true;
