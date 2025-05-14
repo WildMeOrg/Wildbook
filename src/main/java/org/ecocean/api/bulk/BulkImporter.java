@@ -72,7 +72,12 @@ public class BulkImporter {
         System.out.println(">>>>>>>>>>>> kwFields: " + kwFields);
         System.out.println(">>>>>>>>>>>> multiKwFields: " + multiKwFields);
         // Keyword kw = myShepherd.getOrCreateKeyword(kwString);
-        // core functionality: creating data.....
+/*
+   core functionality: creating data.....
+
+   StandardImport seems to treat a lot of Occurrence.fubar exactly as if it was Encounter.fubar, namely
+   setting the value on the Encouner only. so we follow this as represented in that class, fbow.
+ */
         for (BulkValidator bv : fields) {
             System.out.println("bv>>>> " + bv);
             String fieldName = bv.getFieldName();
@@ -102,6 +107,7 @@ public class BulkImporter {
 
             // this will supercede year/month/date but that
             // should be handled via validation step FIXME
+            case "Occurrence.dateInMilliseconds":
             case "Encounter.dateInMilliseconds":
                 Long val = bv.getValueLong();
                 if (val != null) enc.setDateInMilliseconds(val);
@@ -153,6 +159,14 @@ public class BulkImporter {
                 enc.setLocationID(bv.getValueString());
                 break;
 
+            case "Encounter.sex":
+                enc.setSex(bv.getValueString());
+                break;
+
+            case "Encounter.state":
+                enc.setState(bv.getValueString());
+                break;
+
             case "Encounter.distinguishingScar":
             case "Encounter.groupRole":
             case "Encounter.identificationRemarks":
@@ -167,9 +181,6 @@ public class BulkImporter {
             case "Encounter.project":
             case "Encounter.quality":
             case "Encounter.researcherComments":
-            case "Encounter.sex":
-            case "Encounter.state":
-            case "Encounter.submitter":
             case "Encounter.submitterID":
             case "Encounter.submitterName":
             case "Encounter.submitterOrganization":
@@ -185,7 +196,6 @@ public class BulkImporter {
             case "Occurrence.bearing":
             case "Occurrence.bestGroupSizeEstimate":
             case "Occurrence.comments":
-            case "Occurrence.dateInMilliseconds":
             case "Occurrence.distance":
             case "Occurrence.effortCode":
             case "Occurrence.fieldStudySite":
