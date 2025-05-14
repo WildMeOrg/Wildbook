@@ -31,7 +31,7 @@ public class BulkImporter {
                 }
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
-            System.out.println(">>>>>> " + rowNum);
+            System.out.println("createImport() row " + rowNum);
             processRow(fields, maMap, myShepherd);
         }
         return rtn;
@@ -71,7 +71,151 @@ public class BulkImporter {
         System.out.println(">>>>>>>>>>>> maFields: " + maFields);
         System.out.println(">>>>>>>>>>>> kwFields: " + kwFields);
         System.out.println(">>>>>>>>>>>> multiKwFields: " + multiKwFields);
-
         // Keyword kw = myShepherd.getOrCreateKeyword(kwString);
+        // core functionality: creating data.....
+        for (BulkValidator bv : fields) {
+            System.out.println("bv>>>> " + bv);
+            String fieldName = bv.getFieldName();
+            switch (fieldName) {
+            case "Encounter.decimalLatitude":
+                enc.setDecimalLatitude(bv.getValueDouble());
+                break;
+            case "Encounter.decimalLongitude":
+                enc.setDecimalLongitude(bv.getValueDouble());
+                break;
+
+            case "Encounter.alternateID":
+                enc.setAlternateID(bv.getValueString());
+                break;
+
+            case "Encounter.behavior":
+                enc.setBehavior(bv.getValueString());
+                break;
+
+            case "Encounter.country":
+                enc.setCountry(bv.getValueString());
+                break;
+
+            // this will supercede year/month/date but that
+            // should be handled via validation step FIXME
+            case "Encounter.dateInMilliseconds":
+                Long val = bv.getValueLong();
+                if (val != null) enc.setDateInMilliseconds(val);
+                break;
+
+            case "Encounter.year":
+                enc.setYear(bv.getValueInteger());
+                break;
+
+            case "Encounter.month":
+                enc.setMonth(bv.getValueInteger());
+                break;
+
+            case "Encounter.day":
+                enc.setDay(bv.getValueInteger());
+                break;
+
+            case "Encounter.hour":
+                enc.setHour(bv.getValueInteger());
+                break;
+
+            case "Encounter.minutes":
+                enc.setMinutes(bv.getValueString()); // why?? :(
+                break;
+
+            case "Encounter.depth":
+            case "Encounter.distinguishingScar":
+            case "Encounter.elevation":
+            case "Encounter.genus":
+            case "Encounter.groupRole":
+            case "Encounter.identificationRemarks":
+            case "Encounter.individualID":
+            case "Encounter.informOther":
+            case "Encounter.latitude":
+            case "Encounter.lifeStage":
+            case "Encounter.livingStatus":
+            case "Encounter.locationID":
+            case "Encounter.longitude":
+            case "Encounter.measurement":
+            case "Encounter.occurrenceID":
+            case "Encounter.occurrenceRemarks":
+            case "Encounter.otherCatalogNumbers":
+            case "Encounter.patterningCode":
+            case "Encounter.photographer":
+            case "Encounter.project":
+            case "Encounter.quality":
+            case "Encounter.researcherComments":
+            case "Encounter.sex":
+            case "Encounter.specificEpithet":
+            case "Encounter.state":
+            case "Encounter.submitter":
+            case "Encounter.submitterID":
+            case "Encounter.submitterName":
+            case "Encounter.submitterOrganization":
+            case "Encounter.verbatimLocality":
+            case "MarkedIndividual.individualID":
+            case "MarkedIndividual.name":
+            case "MarkedIndividual.nickName":
+            case "MarkedIndividual.nickname":
+            case "Membership.role":
+            case "MicrosatelliteMarkersAnalysis.alleleNames":
+            case "MicrosatelliteMarkersAnalysis.analysisID":
+            case "MitochondrialDNAAnalysis.haplotype":
+            case "Occurrence.bearing":
+            case "Occurrence.bestGroupSizeEstimate":
+            case "Occurrence.comments":
+            case "Occurrence.dateInMilliseconds":
+            case "Occurrence.day":
+            case "Occurrence.decimalLatitude":
+            case "Occurrence.decimalLongitude":
+            case "Occurrence.distance":
+            case "Occurrence.effortCode":
+            case "Occurrence.fieldStudySite":
+            case "Occurrence.fieldSurveyCode":
+            case "Occurrence.groupBehavior":
+            case "Occurrence.groupComposition":
+            case "Occurrence.hour":
+            case "Occurrence.humanActivityNearby":
+            case "Occurrence.individualCount":
+            case "Occurrence.initialCue":
+            case "Occurrence.maxGroupSizeEstimate":
+            case "Occurrence.millis":
+            case "Occurrence.minGroupSizeEstimate":
+            case "Occurrence.minutes":
+            case "Occurrence.month":
+            case "Occurrence.numAdults":
+            case "Occurrence.numCalves":
+            case "Occurrence.numJuveniles":
+            case "Occurrence.observer":
+            case "Occurrence.occurrenceID":
+            case "Occurrence.seaState":
+            case "Occurrence.seaSurfaceTemp":
+            case "Occurrence.seaSurfaceTemperature":
+            case "Occurrence.swellHeight":
+            case "Occurrence.transectBearing":
+            case "Occurrence.transectName":
+            case "Occurrence.visibilityIndex":
+            case "Occurrence.year":
+            case "SatelliteTag.serialNumber":
+            case "SexAnalysis.processingLabTaskID":
+            case "SexAnalysis.sex":
+            case "SocialUnit.socialUnitName":
+            case "Survey.comments":
+            case "Survey.id":
+            case "Survey.vessel":
+            case "SurveyTrack.vesselID":
+            case "Taxonomy.commonName":
+            case "Taxonomy.scientificName":
+            case "TissueSample.sampleID":
+            case "TissueSample.tissueType":
+                System.out.println("NOT YET IMPLEMENTED: " + fieldName);
+                break;
+
+            default:
+                System.out.println("UNSUPPORTED FIELDNAME: " + fieldName);
+            }
+        }
+        // fields done
+        System.out.println("+ populated data on " + enc);
     }
 }
