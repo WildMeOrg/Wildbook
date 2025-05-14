@@ -65,10 +65,6 @@ export const BulkImportImageUpload = observer(({ store }) => {
     }
   }, [JSON.stringify(store.imagePreview), store.imageUploadStatus]);
 
-  useEffect(() => {
-    store.restoreFromLocalStorage();
-  }, []);
-
   const handleDrop = (e) => {
     if (currentCount >= store.maxImageCount) {
       alert(`maximum image count: ${store.maxImageCount} exceeded`);

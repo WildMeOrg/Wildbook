@@ -14,7 +14,7 @@ import { runInAction } from "mobx";
 
 export const BulkImportTableReview = observer(({ store }) => {
   const theme = useContext(ThemeContext);
-  const { submit, isLoading, error:postError } = usePostBulkImport();
+  const { submit, isLoading, error: postError } = usePostBulkImport();
 
   const submissionId = store.submissionId || uuidv4();
   const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
@@ -24,21 +24,10 @@ export const BulkImportTableReview = observer(({ store }) => {
     store.clearSubmissionErrors();
     try {
       const result = await submit(submissionId, store.rawColumns, store.spreadsheetData);
-      runInAction(() => {
-        store.setSubmissionId(submissionId);
-        store.setSubmissionResult(result);
-        store.setActiveStep(3);
-        store.setUploadFinished(true);
-        store.clearRawData();
-        store.clearSpreadsheetData();
-        store.clearWorksheetInfo();
-        store.clearRawColumns();
-        store.clearColumnsDef();
-        store.clearImageSectionFileNames();
-      })
-      stopPersisting(store);
-      await clearPersistedStore(store);
-      store.resetToDefaults();
+
+      if (result?.success) {
+        store.resetToDefaults();
+      }
     } catch (err) {
       const errors = err.response?.data?.errors;
       console.log("Error during import:", err);
@@ -48,8 +37,6 @@ export const BulkImportTableReview = observer(({ store }) => {
         console.error('Import failed', err);
       }
     }
-
-
   });
 
   return (
@@ -66,8 +53,8 @@ export const BulkImportTableReview = observer(({ store }) => {
             // store.setActiveStep(3);
             handleStartImport();
           }}
-          // disabled={store.isSubmitting || store._uploadFinished || Object.keys(store.validateSpreadsheet()).length > 0}
-          disabled={store.isSubmitting || store._uploadFinished}
+          // disabled={store.isSubmitting || store.imageUploadProgress !== 100  || Object.keys(store.validateSpreadsheet()).length > 0}
+          disabled={store.isSubmitting || store.imageUploadProgress !== 100 || store.spreadsheetUploadProgress !== 100}
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}

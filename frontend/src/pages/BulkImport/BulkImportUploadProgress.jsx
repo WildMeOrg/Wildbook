@@ -76,8 +76,9 @@ export const BulkImportUploadProgress = observer(({ store }) => {
                 fontSize: "20px",
             }}
                 onClick={() => {
-                    console.log("Review Progress: ", store.spreadsheetUploadProgress);
-                    store.setActiveStep(2);
+                    if (store.spreadsheetUploadProgress === 100) {
+                        store.setActiveStep(2);
+                    }
                 }
                 }
             >
@@ -97,12 +98,11 @@ export const BulkImportUploadProgress = observer(({ store }) => {
             }}
                 onClick={() => {
                     console.log("Review Progress: ", store.spreadsheetUploadProgress);
-                    if (store.spreadsheetUploadProgress === 100) {
-                        store.setActiveStep(3);
-                    }
+
                 }}
             >
-                <i class="bi bi-crosshair"></i>
+                <i class="bi bi-geo"></i>
+                {/* <i class="bi bi-crosshair2"></i>             */}
             </div>
         </div>
     );

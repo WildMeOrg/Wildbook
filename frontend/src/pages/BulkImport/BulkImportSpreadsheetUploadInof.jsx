@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { observer } from "mobx-react-lite";
-import InfoAccordion from './InfoAccordion';    
+import InfoAccordion from "../../components/InfoAccordion";    
 
 export const BulkImportSpreadsheetUploadInof = observer(({store}) => {
     

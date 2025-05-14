@@ -5,12 +5,16 @@ import * as XLSX from "xlsx";
 import { observer } from "mobx-react-lite";
 import ThemeContext from "../../ThemeColorProvider";
 import ProgressBar from "react-bootstrap/ProgressBar";
+import { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
+
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);
 
   const CHUNK_SIZE = 5;
   const [isDragging, setIsDragging] = React.useState(false);
+
+  console.log("++++++++++", store.imagePreview.length > 0 || store.rawData.length > 0)
 
   const processFile = (file) => {
     if (!file) return;
@@ -24,8 +28,8 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const sheetStats = sheetNames.map((name) => {
         const ws = workbook.Sheets[name];
         const arr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
-        const colCount = arr[0]?.length || 0;    
-        const rowCount = arr.length - 1;         
+        const colCount = arr[0]?.length || 0;
+        const rowCount = arr.length - 1;
         return { name, rowCount, colCount };
       });
 
@@ -40,7 +44,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       //   const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       //   return acc.concat(jsonData);
       // }, []);
-      const firstSheetName = workbook.SheetNames[0];      
+      const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       const allJsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       store.setRawData(allJsonData || []);
@@ -52,10 +56,10 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       store.setRawColumns(rowKeys);
       const mediaAssetsCols = rowKeys.filter(k => k.startsWith("Encounter.mediaAsset"));
       const remaining = rowKeys
-        .filter(k => !store.specifiedColumns.includes(k))
-        .filter(k => !store.removedColumns.includes(k))
+        .filter(k => !specifiedColumns.includes(k))
+        .filter(k => !removedColumns.includes(k))
         .filter(k => !mediaAssetsCols.includes(k));
-      store.setColumnsDef([...store.specifiedColumns, ...remaining]);
+      store.setColumnsDef([...specifiedColumns, ...remaining]);
 
       const processChunk = () => {
         const chunk = allJsonData.slice(currentIndex, currentIndex + CHUNK_SIZE);
@@ -231,7 +235,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         <MainButton
           onClick={() => store.setActiveStep(2)}
           backgroundColor={theme.wildMeColors.cyan700}
-          disabled={store.spreadsheetUploadProgress!==100}
+          disabled={store.spreadsheetUploadProgress !== 100}
           color={theme.defaultColors.white}
           noArrow={true}
           style={{ width: "auto", fontSize: "1rem" }}
