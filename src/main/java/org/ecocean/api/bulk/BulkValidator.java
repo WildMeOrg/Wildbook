@@ -249,20 +249,22 @@ public class BulkValidator {
             return intVal;
 
         case "Encounter.decimalLatitude":
+        case "Encounter.latitude":
         case "Occurrence.decimalLatitude":
             Double doubleVal = tryDouble(value);
             if (doubleVal == null) return null;
             if (!Util.isValidDecimalLatitude(doubleVal))
-                throw new BulkValidatorException("invalid decimalLatitude value: " + doubleVal,
+                throw new BulkValidatorException("invalid " + fieldName + " value: " + doubleVal,
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return doubleVal;
 
         case "Encounter.decimalLongitude":
+        case "Encounter.longitude":
         case "Occurrence.decimalLongitude":
             doubleVal = tryDouble(value);
             if (doubleVal == null) return null;
             if (!Util.isValidDecimalLongitude(doubleVal))
-                throw new BulkValidatorException("invalid decimalLongitude value: " + doubleVal,
+                throw new BulkValidatorException("invalid " + fieldName + " value: " + doubleVal,
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return doubleVal;
 

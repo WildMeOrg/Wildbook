@@ -77,10 +77,14 @@ public class BulkImporter {
             System.out.println("bv>>>> " + bv);
             String fieldName = bv.getFieldName();
             switch (fieldName) {
+            case "Encounter.latitude":
             case "Encounter.decimalLatitude":
+            case "Occurrence.decimalLatitude":
                 enc.setDecimalLatitude(bv.getValueDouble());
                 break;
+            case "Encounter.longitude":
             case "Encounter.decimalLongitude":
+            case "Occurrence.decimalLongitude":
                 enc.setDecimalLongitude(bv.getValueDouble());
                 break;
 
@@ -102,40 +106,50 @@ public class BulkImporter {
                 Long val = bv.getValueLong();
                 if (val != null) enc.setDateInMilliseconds(val);
                 break;
-
             case "Encounter.year":
                 enc.setYear(bv.getValueInteger());
                 break;
-
             case "Encounter.month":
                 enc.setMonth(bv.getValueInteger());
                 break;
-
             case "Encounter.day":
                 enc.setDay(bv.getValueInteger());
                 break;
-
             case "Encounter.hour":
                 enc.setHour(bv.getValueInteger());
                 break;
-
             case "Encounter.minutes":
                 enc.setMinutes(bv.getValueString()); // why?? :(
                 break;
 
             case "Encounter.depth":
-            case "Encounter.distinguishingScar":
+                enc.setDepth(bv.getValueDouble());
+                break;
             case "Encounter.elevation":
+                enc.setMaximumElevationInMeters(bv.getValueDouble());
+                break;
+
             case "Encounter.genus":
+                enc.setGenus(bv.getValueString());
+                break;
+            case "Encounter.specificEpithet":
+                enc.setSpecificEpithet(bv.getValueString());
+                break;
+
+            case "Encounter.distinguishingScar":
             case "Encounter.groupRole":
             case "Encounter.identificationRemarks":
             case "Encounter.individualID":
             case "Encounter.informOther":
-            case "Encounter.latitude":
             case "Encounter.lifeStage":
+                enc.setGenus(bv.getValueString());
+                break;
             case "Encounter.livingStatus":
+                enc.setGenus(bv.getValueString());
+                break;
             case "Encounter.locationID":
-            case "Encounter.longitude":
+                enc.setGenus(bv.getValueString());
+                break;
             case "Encounter.measurement":
             case "Encounter.occurrenceID":
             case "Encounter.occurrenceRemarks":
@@ -146,7 +160,6 @@ public class BulkImporter {
             case "Encounter.quality":
             case "Encounter.researcherComments":
             case "Encounter.sex":
-            case "Encounter.specificEpithet":
             case "Encounter.state":
             case "Encounter.submitter":
             case "Encounter.submitterID":
@@ -166,8 +179,6 @@ public class BulkImporter {
             case "Occurrence.comments":
             case "Occurrence.dateInMilliseconds":
             case "Occurrence.day":
-            case "Occurrence.decimalLatitude":
-            case "Occurrence.decimalLongitude":
             case "Occurrence.distance":
             case "Occurrence.effortCode":
             case "Occurrence.fieldStudySite":

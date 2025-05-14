@@ -89,16 +89,11 @@ public class BulkImportUtil {
                     new BulkValidatorException("day is out of range for month",
                     ApiException.ERROR_RETURN_CODE_INVALID));
         }
-        Object dlat = getValue(rtn, "Encounter.decimalLatitude");
-        Object dlon = getValue(rtn, "Encounter.decimalLongitude");
-        if ((dlat == null) && (dlon != null))
-            rtn.put("Encounter.decimalLatitude",
-                new BulkValidatorException("must supply both latitude and longitude",
-                ApiException.ERROR_RETURN_CODE_REQUIRED));
-        if ((dlat != null) && (dlon == null))
-            rtn.put("Encounter.decimalLongitude",
-                new BulkValidatorException("must supply both latitude and longitude",
-                ApiException.ERROR_RETURN_CODE_REQUIRED));
+        // why do we have THREE different ways for users to provide same fields? :(
+        checkLatLon(rtn, "Encounter.latitude", "Encounter.longitude");
+        checkLatLon(rtn, "Encounter.decimalLatitude", "Encounter.decimalLongitude");
+        checkLatLon(rtn, "Occurrence.decimalLatitude", "Occurrence.decimalLongitude");
+
         Object taxG = getValue(rtn, "Encounter.genus");
         Object taxS = getValue(rtn, "Encounter.specificEpithet");
         if ((taxG != null) && (taxS != null)) {
@@ -113,6 +108,20 @@ public class BulkImportUtil {
             }
         }
         return rtn;
+    }
+
+    private static void checkLatLon(Map<String, Object> map, String latKey, String lonKey) {
+        Object dlat = getValue(map, latKey);
+        Object dlon = getValue(map, lonKey);
+
+        if ((dlat == null) && (dlon != null))
+            map.put(latKey,
+                new BulkValidatorException("must supply both latitude and longitude",
+                ApiException.ERROR_RETURN_CODE_REQUIRED));
+        if ((dlat != null) && (dlon == null))
+            map.put(lonKey,
+                new BulkValidatorException("must supply both latitude and longitude",
+                ApiException.ERROR_RETURN_CODE_REQUIRED));
     }
 
     // this is just a helper function for validateRow
