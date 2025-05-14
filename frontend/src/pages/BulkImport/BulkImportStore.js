@@ -1,10 +1,9 @@
-import { makeAutoObservable, runInAction, toJS, reaction } from 'mobx';
+import { makeAutoObservable, runInAction, toJS } from 'mobx';
 import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { makePersistable } from 'mobx-persist-store';
-import { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -17,13 +16,10 @@ export class BulkImportStore {
   _submissionId = null;
   _spreadsheetData = [];
   _rawData = [];
-  _imageUploadStatus = "notStarted";
   _activeStep = 0;
   _imageUploadProgress = 0;
   _spreadsheetUploadProgress = 0;
-  _uploadFinished = false;
   _uploadedImages = [];
-  _initialUploadFileCount = 0;
   _columnsDef = [];
   _rawColumns = [];
   _maxImageCount = 200;
@@ -35,7 +31,7 @@ export class BulkImportStore {
     uploadProgress: this._spreadsheetUploadProgress,
   }
   _submissionErrors = {};
- 
+
   isValidISO(val) {
     const dt = new Date(val);
     return !isNaN(dt.getTime());
@@ -50,7 +46,6 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
-  // _columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.submitterID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
   _validationRules = {
     "Encounter.mediaAsset0": {
       required: true,
@@ -159,60 +154,42 @@ export class BulkImportStore {
 
   constructor() {
     makeAutoObservable(this);
-    makePersistable(this, {
-      name: 'BulkImportStore',
-      properties: [
-        '_submissionId',
-        '_imagePreview',
-        '_imageSectionFileNames',
-        '_imageUploadStatus',
-        '_imageUploadProgress',
-        '_spreadsheetUploadProgress',
-        '_activeStep',
-        '_uploadFinished',
-        '_imageCount',
-        '_uploadedImages',
-        '_initialUploadFileCount',
-        '_rawData',
-        '_spreadsheetData',
-        '_columnsDef',
-        '_rawColumns',
-        '_worksheetInfo',
-        '_submissionErrors',
-      ],
-      storage: window.localStorage,
-    },
-      {
-        delay: 200,
-        fireImmediately: true,
-      }
-    );
-    reaction(
-      () => this.stateSnapshot,
-      snapshot => localStorage.setItem('BulkImportStore', JSON.stringify(snapshot)),
-      { fireImmediately: false }
-    );
   }
 
   get stateSnapshot() {
+    // const finishedImage = this._imagePreview.filter(
+    //   (img) => img.progress === 100,
+    // );
+    // const finishedImageCount = finishedImage.length;
+    // const spreadsheetFinished = this._spreadsheetUploadProgress === 100;
+
+    // runInAction(() => {
+    //   this._imageUploadProgress = finishedImageCount
+    //   this._imagePreview = finishedImage;
+    //   this._imageCount = finishedImageCount;
+    //   if (!spreadsheetFinished) {
+    //     this._spreadsheetUploadProgress = 0;
+    //     this._spreadsheetData = [];
+    //   }
+    // });
+
     return {
       submissionId: this._submissionId,
+
+      rawData: toJS(this._rawData),
+      rawColumns: toJS(this._rawColumns),      
+      columnsDef: toJS(this._columnsDef),      
+
       imagePreview: toJS(this._imagePreview),
       imageSectionFileNames: toJS(this._imageSectionFileNames),
-      imageUploadStatus: this._imageUploadStatus,
       imageUploadProgress: this._imageUploadProgress,
-      spreadsheetUploadProgress: this._spreadsheetUploadProgress,
-      activeStep: this._activeStep,
-      uploadFinished: this._uploadFinished,
       imageCount: this._imageCount,
       uploadedImages: toJS(this._uploadedImages),
-      initialUploadFileCount: this._initialUploadFileCount,
-      rawData: toJS(this._rawData),
+
       spreadsheetData: toJS(this._spreadsheetData),
-      columnsDef: toJS(this._columnsDef),
-      rawColumns: toJS(this._rawColumns),
+      spreadsheetUploadProgress: this._spreadsheetUploadProgress,      
+
       worksheetInfo: toJS(this._worksheetInfo),
-      submissionErrors: toJS(this._submissionErrors),
     };
   }
 
@@ -253,10 +230,6 @@ export class BulkImportStore {
     return this._rawData;
   }
 
-  get imageUploadStatus() {
-    return this._imageUploadStatus;
-  }
-
   get activeStep() {
     return this._activeStep;
   }
@@ -268,10 +241,6 @@ export class BulkImportStore {
     return this._spreadsheetUploadProgress;
   }
 
-  get uploadFinished() {
-    return this._uploadFinished;
-  }
-
   get imageCount() {
     return this._imageCount;
   }
@@ -280,9 +249,6 @@ export class BulkImportStore {
     return this._uploadedImages;
   }
 
-  get initialUploadFileCount() {
-    return this._initialUploadFileCount;
-  }
   get columnsDef() {
     return this._columnsDef;
   }
@@ -296,22 +262,6 @@ export class BulkImportStore {
   get validSubmitterIDs() {
     return this._validSubmitterIDs;
   }
-
-  // get tableHeaderMapping() {
-  //   return this._tableHeaderMapping;
-  // }
-
-  // get columnsUseSelectCell() {
-  //   return this._columnsUseSelectCell;
-  // }
-
-  // get specifiedColumns() {
-  //   return this._specifiedColumns;
-  // }
-
-  // get removedColumns() {
-  //   return this._removedColumns;
-  // }
 
   get rawColumns() {
     return this._rawColumns;
@@ -341,10 +291,6 @@ export class BulkImportStore {
     this._rawData = data;
   }
 
-  setImageUploadStatus(status) {
-    this._imageUploadStatus = status;
-  }
-
   setActiveStep(step) {
     this._activeStep = step;
   }
@@ -353,9 +299,6 @@ export class BulkImportStore {
   }
   setSpreadsheetUploadProgress(progress) {
     this._spreadsheetUploadProgress = progress;
-  }
-  setUploadFinished(finished) {
-    this._uploadFinished = finished;
   }
   setImageCount(count) {
     this._imageCount = count;
@@ -426,14 +369,11 @@ export class BulkImportStore {
       this._submissionId = null;
       this._imagePreview = [];
       this._imageSectionFileNames = [];
-      this._imageUploadStatus = 'notStarted';
       this._imageUploadProgress = 0;
       this._spreadsheetUploadProgress = 0;
       this._activeStep = 0;
-      this._uploadFinished = false;
       this._imageCount = 0;
       this._uploadedImages = [];
-      this._initialUploadFileCount = 0;
       this._rawData = [];
       this._spreadsheetData = [];
       this._columnsDef = [];
@@ -446,6 +386,17 @@ export class BulkImportStore {
         uploadProgress: 0,
       };
     });
+
+    window.localStorage.removeItem('BulkImportStore');
+  }
+
+  saveState() {
+    try {
+      const json = JSON.stringify(this.stateSnapshot);
+      window.localStorage.setItem('BulkImportStore', json);
+    } catch (e) {
+      console.error('saving as draft failed', e);
+    }
   }
 
   getOptionsForSelectCell(col) {
@@ -552,7 +503,7 @@ export class BulkImportStore {
       forceChunkSize: true,
       testChunks: false,
       allowFolderDragAndDrop: true,
-      maxChunkRetries: 3,
+      maxChunkRetries: 10,
       chunkRetryInterval: 2000,
       simultaneousUploads: 6,
       chunkSize: 5 * 1024 * 1024,
@@ -629,6 +580,22 @@ export class BulkImportStore {
       this._imageSectionFileNames.push(file.name);
     });
 
+    flowInstance.opts.createXhr = () => {
+      const xhr = new XMLHttpRequest();
+      xhr.timeout = 30_000;
+      xhr.ontimeout = () => {
+        console.warn('XHR timeout, retrying...');
+        this._flow.retry();
+      };
+      return xhr;
+    };
+
+    flowInstance.on('fileRetry', (file, chunk) => {
+      console.log(
+        `file ${file.name} chunk #${chunk.offset} is retrying # ${chunk.retries} `
+      );
+    });
+
     flowInstance.on("fileProgress", (file) => {
       const percent = (file._prevUploadedSize / file.size) * 100;
 
@@ -657,7 +624,22 @@ export class BulkImportStore {
       });
     });
 
-    flowInstance.on("fileError", (file) => {
+    window.addEventListener('offline', () => {
+      console.warn('no internet connection, pausing upload');
+      flowInstance.pause();
+    });
+
+    window.addEventListener('online', () => {
+      console.info('internet connection restored, resuming upload');
+      flowInstance.resume();
+      // flowInstance.upload()
+    });
+
+    flowInstance.on("fileError", (file, chunk) => {
+      if (!navigator.onLine) {
+        console.log(`Chunk uploading failed due to no internet connection`, file.name, chunk.offset);
+        return;
+      }
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, error: true, progress: 0 } : f,
       );
@@ -676,12 +658,9 @@ export class BulkImportStore {
       (file) => file.size <= maxSize * 1024 * 1024,
     );
 
-    this._initialUploadFileCount = validFiles.length;
-
     if (validFiles.length === 0) {
       return;
     }
-    this.setImageUploadStatus("uploading");
 
     const currentSubmissionId = this._submissionId || uuidv4();
     if (!this._submissionId) {
@@ -829,100 +808,4 @@ export class BulkImportStore {
 }
 
 export default BulkImportStore;
-
-
-// import { makeAutoObservable, runInAction } from "mobx";
-// import { UploadService } from "./BulkImportUploadService";
-// import { ValidationService } from "./BulkImportValidationService";
-// import { setupPersistence } from "./BulkImportPersistenceService";
-
-// export class BulkImportStore {
-//   submissionId = null;
-//   imagePreview = [];
-//   imageSectionFileNames = [];
-//   imageUploadStatus = "notStarted";
-//   imageUploadProgress = 0;
-//   spreadsheetData = [];
-//   spreadsheetUploadProgress = 0;
-//   worksheetInfo = { sheetCount: 0, sheetNames: "", columnCount: 0, rowCount: 0 };
-//   submissionErrors = {};
-
-//   validLists = {
-//     species: [],
-//     locationIDs: [],
-//     submitterIDs: [],
-//     countryIDs: [],
-//     livingStatus: [],
-//     lifeStages: [],
-//     sexes: [],
-//     behaviors: [],
-//   };
-
-//   constructor({ fileInputRef, maxImageCount = 200, maxImageSizeMB } = {}) {
-//     makeAutoObservable(this);
-
-//     this.validationService = new ValidationService(this.validLists);
-
-//     this.uploadService = new UploadService({
-//       maxCount: maxImageCount,
-//       onProgress: ({ type, file, percent }) => {
-//         if (type === "progress") {
-//           this.setImageUploadProgress(percent);
-//         }
-//         // 可处理 type==='added' 事件
-//       },
-//       onSuccess: file => this.handleUploadSuccess(file.name),
-//       onError:   file => this.handleUploadError(file.name),
-//     });
-//     this.uploadService.init(this.submissionId, fileInputRef, maxImageSizeMB);
-
-//     setupPersistence(this, {
-//       properties: [
-//         'submissionId',
-//         'imagePreview',
-//         'imageSectionFileNames',
-//         'imageUploadStatus',
-//         'imageUploadProgress',
-//         'spreadsheetData',
-//         'spreadsheetUploadProgress',
-//         'worksheetInfo',
-//         'submissionErrors',
-//       ],
-//       fireImmediately: true,
-//     });
-//   }
-
-//   setSpreadsheetData(data) {
-//     this.spreadsheetData = [...data];
-//   }
-
-//   setImageUploadProgress(pct) {
-//     this.imageUploadProgress = pct;
-//   }
-
-//   handleUploadSuccess(fileName) {
-//     this.imagePreview = this.imagePreview.map(f =>
-//       f.fileName === fileName ? { ...f, progress: 100 } : f
-//     );
-//     this.imageSectionFileNames = [...this.imageSectionFileNames, fileName];
-//   }
-
-//   handleUploadError(fileName) {
-//   }
-
-//   runValidation() {
-//     this.submissionErrors = this.validationService.validateAll(this.spreadsheetData);
-//   }
-
-//   startUpload() {
-//     this.imageUploadStatus = "uploading";
-//     this.uploadService.uploadAll(/* maxSizeMB */);
-//   }
-
-//   setWorksheetInfo(info) {
-//     this.worksheetInfo = { ...info };
-//   }
-// }
-
-// export default BulkImportStore;
 
