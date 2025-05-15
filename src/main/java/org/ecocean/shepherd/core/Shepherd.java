@@ -3784,12 +3784,15 @@ public class Shepherd {
     }
 
     public List<Encounter> getEncountersByIndividualAndOccurrence(String indID, String occID) {
+        ArrayList al = new ArrayList();
+
+        if (!Util.stringExists(indID) || !Util.stringExists(occID)) return al;
         String filter = "this.individual.individualID == \"" + indID +
             "\" && this.occurrenceID == \"" + occID + "\"";
         Extent encClass = pm.getExtent(Encounter.class, true);
         Query acceptedEncounters = pm.newQuery(encClass, filter);
         Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
+        al = new ArrayList(c);
 
         acceptedEncounters.closeAll();
         return al;
