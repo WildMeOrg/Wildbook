@@ -1,29 +1,29 @@
 import React from 'react';
 import { observer } from "mobx-react-lite";
-import InfoAccordion from './InfoAccordion';
+import InfoAccordion from "../../components/InfoAccordion";
 import { FormattedMessage } from "react-intl";
 import { toJS } from 'mobx';
 export const BulkImportImageUploadInfo = observer(({ store }) => {
 
-    console.log("uploadedImages", JSON.stringify(store.uploadedImages));
-
-    const allPhotosShouldBeUploaded = [];
-    store.spreadsheetData.forEach((row) => {
-        const mediaAssets = Object.keys(row).filter((key) => key.startsWith("Encounter.mediaAsset"));
-        mediaAssets.forEach((mediaAsset) => {
-            if (row[mediaAsset]) {
-                allPhotosShouldBeUploaded.push(row[mediaAsset]);
-            }
-        });
-    }
-    );
     const allPhotosUploading = toJS(store.imageSectionFileNames);
     const uploadedPhotos = store.uploadedImages;
 
-    console.log("allPhotosShouldBeUploaded", allPhotosShouldBeUploaded);
-    console.log("allPhotosUploading", allPhotosUploading);
-    console.log("uploadedPhotos", uploadedPhotos);
-    const missingPhotos = allPhotosShouldBeUploaded.filter((photo) => !uploadedPhotos.includes(photo));
+    const missingPhotos = store.spreadsheetData.reduce((acc, row) => {
+        const mediaAssets = Object.keys(row).filter((key) => key.startsWith("Encounter.mediaAsset0"));
+        console.log("mediaAssets", mediaAssets);
+        mediaAssets.forEach((mediaAsset) => {
+            if (row[mediaAsset]) {
+                const photo = row[mediaAsset].split(",");
+                if (!uploadedPhotos.includes(photo) && !allPhotosUploading.includes(photo)) {
+                    acc.push(...photo);
+                }
+            }
+        });
+        return acc;
+    }, [])?.filter((photo) => !uploadedPhotos.includes(photo));
+
+    console.log("missingPhotos", missingPhotos);
+
     const data = [
         {
             label: <FormattedMessage id="PHOTOS_MISSING"

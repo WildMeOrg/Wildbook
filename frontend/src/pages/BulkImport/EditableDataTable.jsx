@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
+import { useState, useEffect } from "react";
+import { tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
 
 import {
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
-  ColumnResizeMode,
-  ColumnResizeDirection,
   flexRender,
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
@@ -22,10 +20,10 @@ const EditableCell = ({
 }) => {
   const [value, setValue] = useState(initialValue ?? "");
   const [error, setError] = useState(externalError ?? "");
+  
   useEffect(() => {
     setError(externalError ?? "");
   }, [externalError]);
-
 
   const handleBlur = () => {
     store.spreadsheetData[rowIndex][columnId] = value;
@@ -42,8 +40,6 @@ const EditableCell = ({
   };
 
   const useSelectCell = columnsUseSelectCell.includes(columnId);
-
-  console.log("spreadsheetData", JSON.stringify(store.spreadsheetData));
 
   const renderInput = () => {
     if (useSelectCell) {
@@ -62,6 +58,7 @@ const EditableCell = ({
         />
       );
     } else {
+      console.log("rendering input", columnId, value);
       return (
         <input
           type="text"
@@ -74,6 +71,7 @@ const EditableCell = ({
             minWidth: "100px",
             maxWidth: "250px",
           }}
+          title={value}
         />
       );
     }

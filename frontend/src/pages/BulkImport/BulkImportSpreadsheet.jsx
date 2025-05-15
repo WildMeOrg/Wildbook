@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 import { observer } from "mobx-react-lite";
 import ThemeContext from "../../ThemeColorProvider";
 import ProgressBar from "react-bootstrap/ProgressBar";
-import { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
+import { specifiedColumns, removedColumns } from "./BulkImportConstants";
 
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
@@ -14,8 +14,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   const CHUNK_SIZE = 5;
   const [isDragging, setIsDragging] = React.useState(false);
 
-  console.log("++++++++++", store.imagePreview.length > 0 || store.rawData.length > 0)
-
   const processFile = (file) => {
     if (!file) return;
     const reader = new FileReader();
@@ -23,7 +21,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
       const sheetNames = workbook.SheetNames;
-      console.log("sheetNames", sheetNames);
 
       const sheetStats = sheetNames.map((name) => {
         const ws = workbook.Sheets[name];
@@ -38,17 +35,10 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
       store.setWorksheetInfo(sheetNames.length, sheetNames, totalRows, maxCols);
 
-      // const firstSheetName = workbook.SheetNames[0];
-      // const allJsonData  = sheetNames.reduce((acc, name) => {
-      //   const worksheet = workbook.Sheets[name];
-      //   const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-      //   return acc.concat(jsonData);
-      // }, []);
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       const allJsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       store.setRawData(allJsonData || []);
-      // const totalRows = allJsonData.length;
       const processedData = [];
       let currentIndex = 0;
 
@@ -67,19 +57,20 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
           const formatDate = (year, month, day, hour, minute) => {
             const pad = v => v?.toString().padStart(2, '0');
-            // if (year && month && day && hour != null && minute != null) {
-            //   return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000`
-            // }
-            // if (year && month && day) {
-            //   return `${year}-${pad(month)}-${pad(day)}`
-            // }
-            // if (year && month) {
-            //   return `${year}-${pad(month)}`
-            // }
-            // if (year) {
-            //   return year.toString()
-            // }
-            return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000`;
+             
+            if (year && month && day && hour != null && minute != null) {
+              return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000`
+            }
+            if (year && month && day) {
+              return `${year}-${pad(month)}-${pad(day)}`
+            }
+            if (year && month) {
+              return `${year}-${pad(month)}`
+            }
+            if (year) {
+              return year.toString()
+            }
+            return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000Z`;
           }
 
           const getLatLong = (lat, lon) => {
@@ -102,6 +93,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           }).join(", ");
 
           return {
+            ...row,
             "Encounter.mediaAsset0": mediaAssets,
             "Encounter.decimalLatitude": getLatLong(
               row["Encounter.decimalLatitude"],
@@ -117,7 +109,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             ),
             "Encounter.genus":
               row["Encounter.genus"] + " " + row["Encounter.specificEpithet"],
-            ...row,
+            
           };
         });
 

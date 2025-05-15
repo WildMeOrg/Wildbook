@@ -9,8 +9,6 @@ import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
 import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
 import { BulkImportSpreadsheetUploadInof } from "./BulkImportSpreadsheetUploadInof";
-import { stopPersisting, clearPersistedStore } from 'mobx-persist-store';
-import { runInAction } from "mobx";
 
 export const BulkImportTableReview = observer(({ store }) => {
   const theme = useContext(ThemeContext);
