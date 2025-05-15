@@ -517,7 +517,7 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                          <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                          <li><a href="<%=urlLoc %>/imports.jsp?showAll=true"><%=props.getProperty("standardImportListing")%></a></li>
                             <%
                             if(CommonConfiguration.useSpotPatternRecognition(context)){
                             %>

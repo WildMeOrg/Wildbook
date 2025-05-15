@@ -207,9 +207,9 @@ try{
     int end = start + pageSize;
 	
     String uclause = "";
-    //if (request.getParameter("showAll")==null) {
-    //	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
-    //}
+    if (request.getParameter("showAll")==null) {
+    	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
+    }
 
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
