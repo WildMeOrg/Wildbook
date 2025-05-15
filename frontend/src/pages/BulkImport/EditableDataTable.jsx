@@ -5,6 +5,7 @@ import {
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
+  getColumnPinningRowModel,
   flexRender,
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
@@ -20,7 +21,7 @@ const EditableCell = ({
 }) => {
   const [value, setValue] = useState(initialValue ?? "");
   const [error, setError] = useState(externalError ?? "");
-  
+
   useEffect(() => {
     setError(externalError ?? "");
   }, [externalError]);
@@ -80,7 +81,14 @@ const EditableCell = ({
   return (
     <div>
       {renderInput()}
-      {error && <div className="invalid-feedback">{error}</div>}
+      {error && <div
+        // className="invalid-feedback"
+        style={{
+          height: "auto",
+          whiteSpace: "normal",
+          overflowWrap: "break-word",
+        }}
+      >{error}</div>}
     </div>
   );
 };
@@ -98,6 +106,11 @@ export const DataTable = observer(({ store }) => {
   const validLifeStages = siteData?.lifeStage || [];
   const validLivingStatus = siteData?.livingStatus || [];
   const validBehavior = siteData?.behavior || [];
+  const freezeCount = 2;
+  const [columnPinning, setColumnPinning] = useState({
+    left: ["rowNumber", columnsDef[0] || ""],
+    right: [],
+  });
 
   const extractAllValues = (treeData) => {
     const values = [];
@@ -125,10 +138,10 @@ export const DataTable = observer(({ store }) => {
   store.setValidBehavior(validBehavior);
 
   useEffect(() => {
-  if (siteData) {
-    setCellErrors(store.validateSpreadsheet())
-  }
-}, [store.spreadsheetData, siteData])
+    if (siteData) {
+      setCellErrors(store.validateSpreadsheet())
+    }
+  }, [store.spreadsheetData, siteData])
 
   const columns = columnsDef.map((col) => ({
     header: tableHeaderMapping[col] || col,
@@ -156,6 +169,8 @@ export const DataTable = observer(({ store }) => {
     columns,
     columnResizeMode: 'onChange',
     columnResizeDirection: 'ltr',
+    state: { columnPinning },                    
+    onColumnPinningChange: setColumnPinning, 
     defaultColumn: {
       enableResizing: true,
       size: 150,
@@ -165,12 +180,14 @@ export const DataTable = observer(({ store }) => {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
+    // getColumnPinningRowModel: getColumnPinningRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
         pageIndex: 0,
         pageSize: 20,
       },
+      columnPinning: columnPinning,   
     },
   });
 
@@ -185,27 +202,49 @@ export const DataTable = observer(({ store }) => {
       }}
     >
       <div className="table-responsive">
-        <table className="table table-bordered table-hover table-sm">
+        <table
+          className="table table-bordered table-hover table-sm"
+          style={{
+            // tableLayout: 'fixed' 
+            tableLayout: "auto",
+            width: "max-content"
+          }}
+        >
           <thead className="table-light">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th
-                    key={header.id}
-                    className="text-capitalize position-relative"
-                    style={{ width: header.getSize() }}
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                {headerGroup.headers.map((header, colIndex) => {
+                 
+                  return (
+                    <th
+                      key={header.id}
+                      className="text-capitalize position-relative"
+                      style={{
+                        width: header.getSize(),
+                      }}
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
 
-                    {header.column.getCanResize() && (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className="resizer"
-                      />
-                    )}
-                  </th>
-                ))}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className="resizer"
+                          style={{
+                            position: 'absolute',
+                            right: 0,
+                            top: 0,
+                            width: '6px',
+                            height: '100%',
+                            cursor: 'col-resize',
+                            userSelect: 'none',
+                            touchAction: 'none',
+                            zIndex: 1,
+                          }}
+                        />
+                      )}
+                    </th>)
+                })}
               </tr>
             ))}
           </thead>
@@ -214,7 +253,7 @@ export const DataTable = observer(({ store }) => {
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
+                  <td key={cell.id}>                  
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

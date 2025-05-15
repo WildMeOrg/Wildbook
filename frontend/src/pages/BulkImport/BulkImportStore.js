@@ -22,6 +22,7 @@ export class BulkImportStore {
   _columnsDef = [];
   _rawColumns = [];
   _maxImageCount = 200;
+  _missingImages = [];
   _worksheetInfo = {
     sheetCount: 0,
     sheetNames: "",
@@ -48,6 +49,28 @@ export class BulkImportStore {
   _validationRules = {
     "Encounter.mediaAsset0": {
       required: true,
+      validate: (val) => {
+        console.log("val", val);
+        const images = val.split(",").map((img) => img.trim());
+        images.forEach((img) => {
+          const missing = images.filter((img) =>
+            !this._imageSectionFileNames.includes(img)
+          );
+          return missing.length === 0;
+        }
+        );
+      },
+      message: (val) => {
+        console.log("val", val);
+        const images = val.split(",").map((img) => img.trim());
+        console.log("images", images);
+        const missing = images.filter((img) =>
+          !this._imageSectionFileNames.includes(img)
+        );
+
+        console.log("missing++++++++++++++++++++", missing);
+        return `missing images: ${missing.join(", ")}`;
+      },
     },
     "Encounter.year": {
       required: true,
@@ -66,9 +89,10 @@ export class BulkImportStore {
     "Encounter.genus": {
       required: true,
       validate: (val) => {
+        console.log("genus val+++++++++++++++++++++++++", val);
         return this._validspecies.includes(val);
       },
-      message: "Must enter a valid species",
+      message: "must enter a valid species",
     },
     "Encounter.decimalLatitude": {
       required: false,
@@ -103,51 +127,67 @@ export class BulkImportStore {
     "Encounter.locationID": {
       required: true,
       validate: (value) => {
+        if (!value) {
+          return true;
+        }
         return this._validLocationIDs.includes(value);
       },
-      message: "Must enter a valid location ID",
+      message: "valid location ID",
     },
     "Encounter.submitterID": {
       required: true,
       validate: (value) => {
         return this._validSubmitterIDs.includes(value);
       },
-      message: "Submitter ID must be a valid submitter ID",
+      message: "invalid submitter ID",
     },
     "Encounter.country": {
       required: false,
       validate: (val) => {
+        if (!val) {
+          return true;
+        }
         return this._validCountryIDs.includes(val);
       },
-      message: "must be a valid country ID",
+      message: "invalid country ID",
     },
     "Encounter.livingStatus": {
       required: false,
       validate: (val) => {
+        if (!val) {
+          return true;
+        }
         return this._validLivingStatus.includes(val);
       },
-      message: "must be a valid living status",
+      message: "invalid living status",
     },
     "Encounter.lifeStage": {
       required: false,
       validate: (val) => {
+        if (!val) {
+          return true;
+        }
         return this._validLifeStages.includes(val);
       },
-      message: "must be a valid life stage",
+      message: "invalid life stage",
     },
     "Encounter.sex": {
       required: false,
       validate: (val) => {
+        if (!val) return true;
         return this._validSex.includes(val);
       },
-      message: "must be a valid sex",
+      message: "invalid sex",
     },
     "Encounter.behavior": {
       required: false,
       validate: (val) => {
+        if (!val) {
+          return true;
+        }
         return this._validBehavior.includes(val);
       },
-      message: "must be a valid behavior",
+      message: "invalid behavior",
     },
   };
 
@@ -176,8 +216,8 @@ export class BulkImportStore {
       submissionId: this._submissionId,
 
       rawData: toJS(this._rawData),
-      rawColumns: toJS(this._rawColumns),      
-      columnsDef: toJS(this._columnsDef),      
+      rawColumns: toJS(this._rawColumns),
+      columnsDef: toJS(this._columnsDef),
 
       imagePreview: toJS(this._imagePreview),
       imageSectionFileNames: toJS(this._imageSectionFileNames),
@@ -186,7 +226,7 @@ export class BulkImportStore {
       uploadedImages: toJS(this._uploadedImages),
 
       spreadsheetData: toJS(this._spreadsheetData),
-      spreadsheetUploadProgress: this._spreadsheetUploadProgress,      
+      spreadsheetUploadProgress: this._spreadsheetUploadProgress,
 
       worksheetInfo: toJS(this._worksheetInfo),
     };
@@ -405,11 +445,11 @@ export class BulkImportStore {
         value: id,
         label: id,
       }));
-    } else if (col === "Encounter.submitterID") {
-      return this._validSubmitterIDs.map((id) => ({
-        value: id,
-        label: id,
-      }));
+    // } else if (col === "Encounter.submitterID") {
+    //   return this._validSubmitterIDs.map((id) => ({
+    //     value: id,
+    //     label: id,
+    //   }));
     } else if (col === "Encounter.genus") {
       return this._validspecies.map((species) => ({
         value: species,
@@ -777,7 +817,10 @@ export class BulkImportStore {
         if (rules.required && !value.trim()) {
           error = "This field is required";
         } else if (rules.validate && !rules.validate(value)) {
-          error = rules.message || "Invalid format";
+          error =
+            typeof rules.message === "function"
+              ? rules.message(value)
+              : rules.message || "Invalid format";
         }
 
         if (error) {
