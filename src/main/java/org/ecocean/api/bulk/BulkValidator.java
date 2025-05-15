@@ -55,7 +55,7 @@ public class BulkValidator {
         "Encounter.submitter#.affiliation", "Encounter.submitter#.emailAddress",
         "Encounter.submitter#.fullName", "Encounter.informOther#.emailAddress",
         "Encounter.photographer#.emailAddress", "MicrosatelliteMarkersAnalysis.alleles#",
-        "Occurrence.taxonomy#"));
+        "MarkedIndividual.name#.label", "MarkedIndividual.name#.value", "Occurrence.taxonomy#"));
 
     public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
         "Encounter.genus", "Encounter.specificEpithet", "Encounter.year"));
@@ -313,13 +313,6 @@ public class BulkValidator {
             if ("public".equals(value)) return value;
             if ((value != null) && (myShepherd.getUser(value.toString()) == null))
                 throw new BulkValidatorException("invalid username: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
-            return value;
-
-        case "Encounter.individualID":
-        case "MarkedIndividual.individualID":
-            if ((value != null) && (myShepherd.getMarkedIndividual(value.toString()) == null))
-                throw new BulkValidatorException("invalid individual ID: " + value,
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return value;
 
