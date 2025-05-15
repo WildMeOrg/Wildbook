@@ -243,14 +243,24 @@ public class RestServlet extends HttpServlet {
                     }
                     System.out.println("Fetch plan class: " +
                         query.getFetchPlan().getGroups().toString());
+                    
+                        long t1 = System.currentTimeMillis();
+
 
                     Object result = filterResult(query.execute());
+                    System.out.println("Query time: " + (System.currentTimeMillis() - t1) + " ms");
                     if (result instanceof Collection) {
+                        t1 = System.currentTimeMillis();
                         JSONArray jsonobj = convertToJson(req, (Collection)result,
                             ((JDOPersistenceManager)pm).getExecutionContext());
+                        System.out.println("JSON conversion time: " + (System.currentTimeMillis() - t1) + " ms");
+
                         // JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result,
                         // ((JDOPersistenceManager)pm).getExecutionContext());
+                        t1 = System.currentTimeMillis();
                         tryCompress(req, resp, jsonobj, useCompression);
+                        System.out.println("compression time: " + (System.currentTimeMillis() - t1) + " ms");
+
                     } else {
                         JSONObject jsonobj = convertToJson(req, result,
                             ((JDOPersistenceManager)pm).getExecutionContext());
