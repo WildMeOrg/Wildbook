@@ -53,7 +53,6 @@ const tableHeaderMapping = {
     "TissueSample.sampleID": "sample ID",
   };
 
-  const columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.submitterID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
-
+  const columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
 
   export { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell };

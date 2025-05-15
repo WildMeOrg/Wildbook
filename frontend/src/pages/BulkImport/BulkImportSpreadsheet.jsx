@@ -108,7 +108,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               row["Encounter.minutes"],
             ),
             "Encounter.genus":
-              row["Encounter.genus"] + " " + row["Encounter.specificEpithet"],
+              row["Encounter.genus"].trim() + " " + row["Encounter.specificEpithet"].trim(),
             
           };
         });

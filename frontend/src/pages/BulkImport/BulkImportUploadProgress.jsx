@@ -101,8 +101,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
 
                 }}
             >
-                <i class="bi bi-geo"></i>
-                {/* <i class="bi bi-crosshair2"></i>             */}
+                <i class="bi bi-crosshair"></i>
             </div>
         </div>
     );
