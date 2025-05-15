@@ -23,7 +23,7 @@ context=ServletUtilities.getContext(request);
 
     <hr/>
 
-    <embed src="cust/Addendum 2 - WN Privacy Policy_Eng-Fr_20230905.pdf" type="application/pdf" width="100%" height="1000px" />
+    <embed src="cust/CXL-Privacy-Policy-20250514.pdf" type="application/pdf" width="100%" height="1000px" />
 
     <hr/>
 
