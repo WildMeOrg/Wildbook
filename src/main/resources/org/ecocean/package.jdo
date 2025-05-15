@@ -485,7 +485,7 @@
 
 	  <fetch-group name="searchResults">
 
-        <field name="individual"/>
+<!-- <field name="individual"/> -->  <!-- Removed to improve performance -->
 		<field name="occurrenceID"/>
 		<field name="year"/>
 		<field name="month"/>
