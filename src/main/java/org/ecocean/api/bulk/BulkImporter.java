@@ -302,14 +302,22 @@ public class BulkImporter {
 
     private static Encounter getOrCreateEncounter(Map<String, BulkValidator> fmap,
         MarkedIndividual indiv, Occurrence occ, Shepherd myShepherd) {
-        // apparently this is a thing?
+        String encId = null;
         Encounter enc = null;
 
-        if ((indiv != null) && (occ != null))
+        if (fmap.containsKey("Encounter.id")) encId = fmap.get("Encounter.id").getValueString();
+        if ((encId == null) && fmap.containsKey("Encounter.catalogNumber"))
+            encId = fmap.get("Encounter.catalogNumber").getValueString();
+        if (encId != null) {
+            enc = myShepherd.getEncounter(encId);
+        } else if ((indiv != null) && (occ != null)) {
+            // apparently this is a thing?
             enc = myShepherd.getEncounterByIndividualAndOccurrence(indiv.getId(), occ.getId());
+        }
         if (enc == null) {
             enc = new Encounter();
-            enc.setId(Util.generateUUID());
+            if (encId == null) encId = Util.generateUUID();
+            enc.setId(encId);
             enc.setDWCDateAdded();
             enc.setDWCDateLastModified();
         }

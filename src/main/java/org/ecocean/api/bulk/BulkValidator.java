@@ -18,16 +18,17 @@ import org.ecocean.Util;
 
 public class BulkValidator {
     public static final Set<String> FIELD_NAMES = new HashSet<>(Arrays.asList(
-        "Encounter.alternateID", "Encounter.behavior", "Encounter.country",
-        "Encounter.dateInMilliseconds", "Encounter.day", "Encounter.decimalLatitude",
-        "Encounter.decimalLongitude", "Encounter.depth", "Encounter.distinguishingScar",
-        "Encounter.elevation", "Encounter.genus", "Encounter.groupRole", "Encounter.hour",
-        "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.informOther",
-        "Encounter.latitude", "Encounter.lifeStage", "Encounter.livingStatus",
-        "Encounter.locationID", "Encounter.longitude", "Encounter.measurement", "Encounter.minutes",
-        "Encounter.month", "Encounter.occurrenceID", "Encounter.occurrenceRemarks",
-        "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.photographer",
-        "Encounter.project", "Encounter.quality", "Encounter.researcherComments", "Encounter.sex",
+        "Encounter.alternateID", "Encounter.behavior", "Encounter.catalogNumber",
+        "Encounter.country", "Encounter.dateInMilliseconds", "Encounter.day",
+        "Encounter.decimalLatitude", "Encounter.decimalLongitude", "Encounter.depth",
+        "Encounter.distinguishingScar", "Encounter.elevation", "Encounter.genus",
+        "Encounter.groupRole", "Encounter.hour", "Encounter.id", "Encounter.identificationRemarks",
+        "Encounter.individualID", "Encounter.informOther", "Encounter.latitude",
+        "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.locationID",
+        "Encounter.longitude", "Encounter.measurement", "Encounter.minutes", "Encounter.month",
+        "Encounter.occurrenceID", "Encounter.occurrenceRemarks", "Encounter.otherCatalogNumbers",
+        "Encounter.patterningCode", "Encounter.photographer", "Encounter.project",
+        "Encounter.quality", "Encounter.researcherComments", "Encounter.sex",
         "Encounter.specificEpithet", "Encounter.state", "Encounter.submitterID",
         "Encounter.submitterName", "Encounter.submitterOrganization", "Encounter.verbatimLocality",
         "Encounter.year", "MarkedIndividual.individualID", "MarkedIndividual.name",
@@ -188,6 +189,14 @@ public class BulkValidator {
                     ApiException.ERROR_RETURN_CODE_INVALID,
                     BulkValidatorException.TYPE_UNKNOWN_FIELDNAME);
         switch (fieldName) {
+        case "Encounter.id":
+        case "Encounter.catalogNumber":
+            if (value == null) return null;
+            if (!Util.isUUID(value.toString()))
+                throw new BulkValidatorException("must be proper UUID",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+            return value.toString();
+
         case "Encounter.year":
         case "Occurrence.year":
             Integer intVal = tryInteger(value);
