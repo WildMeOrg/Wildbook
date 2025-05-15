@@ -23,6 +23,7 @@ const BulkImport = observer(() => {
       setSavedSubmissionId(submissionId);
       store.hydrate(savedStore);
       store.setActiveStep(0);
+       store.fetchAndApplyUploaded();
     }
   }, []);
 

@@ -67,8 +67,6 @@ export class BulkImportStore {
         const missing = images.filter((img) =>
           !this._imageSectionFileNames.includes(img)
         );
-
-        console.log("missing++++++++++++++++++++", missing);
         return `missing images: ${missing.join(", ")}`;
       },
     },
@@ -196,21 +194,6 @@ export class BulkImportStore {
   }
 
   get stateSnapshot() {
-    // const finishedImage = this._imagePreview.filter(
-    //   (img) => img.progress === 100,
-    // );
-    // const finishedImageCount = finishedImage.length;
-    // const spreadsheetFinished = this._spreadsheetUploadProgress === 100;
-
-    // runInAction(() => {
-    //   this._imageUploadProgress = finishedImageCount
-    //   this._imagePreview = finishedImage;
-    //   this._imageCount = finishedImageCount;
-    //   if (!spreadsheetFinished) {
-    //     this._spreadsheetUploadProgress = 0;
-    //     this._spreadsheetData = [];
-    //   }
-    // });
 
     return {
       submissionId: this._submissionId,
@@ -438,18 +421,49 @@ export class BulkImportStore {
     }
   }
 
+  applyServerUploadStatus(uploaded = []) {
+    const uploadedFileNames = uploaded.map(p => p[0]);
+    console.log("uploadedFileNames", uploadedFileNames);
+    runInAction(() => {
+      this._uploadedImages = uploaded;
+      this._imagePreview = this._imagePreview.map(p => ({
+        ...p,
+        progress: uploadedFileNames.includes(p.fileName) ? 100 : 0
+      }));
+      this._imagePreview.sort((a, b) => {
+        if (a.progress === 0 && b.progress !== 0) return -1;
+        if (a.progress !== 0 && b.progress === 0) return 1;
+        return 0;
+      });
+    });
+  }
+
+  async fetchAndApplyUploaded() {
+    if (!this._submissionId) return;
+    const resp = await fetch(
+      `/api/v3/bulk-import/${this._submissionId}/files`
+    );
+
+    if (!resp.ok) {
+      console.error("Unexpected response", resp.status);
+      return;
+    }
+
+    const data = await resp.json();
+    this.applyServerUploadStatus(data.files);
+  }
+
   getOptionsForSelectCell(col) {
-    // console.log("getOptionsForSelectCell", col);
     if (col === "Encounter.locationID") {
       return this._validLocationIDs.map((id) => ({
         value: id,
         label: id,
       }));
-    // } else if (col === "Encounter.submitterID") {
-    //   return this._validSubmitterIDs.map((id) => ({
-    //     value: id,
-    //     label: id,
-    //   }));
+      // } else if (col === "Encounter.submitterID") {
+      //   return this._validSubmitterIDs.map((id) => ({
+      //     value: id,
+      //     label: id,
+      //   }));
     } else if (col === "Encounter.genus") {
       return this._validspecies.map((species) => ({
         value: species,
