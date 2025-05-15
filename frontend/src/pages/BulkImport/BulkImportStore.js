@@ -255,8 +255,15 @@ export class BulkImportStore {
   get activeStep() {
     return this._activeStep;
   }
+  // get imageUploadProgress() {
+  //   return this._imageUploadProgress;
+  // }
+
   get imageUploadProgress() {
-    return this._imageUploadProgress;
+    const previews = this._imagePreview;
+    if (previews.length === 0) return 0;
+    const total = previews.reduce((sum, f) => sum + (f.progress || 0), 0);
+    return total / previews.length;
   }
 
   get spreadsheetUploadProgress() {
@@ -660,12 +667,12 @@ export class BulkImportStore {
         (sum, f) => sum + (f.progress || 0),
         0,
       );
-      const averageProgress =
-        this._imagePreview.length > 0
-          ? totalProgress / this._imagePreview.length
-          : 0;
+      // const averageProgress =
+      //   this._imagePreview.length > 0
+      //     ? totalProgress / this._imagePreview.length
+      //     : 0;
 
-      this.setImageUploadProgress(averageProgress);
+      // this.setImageUploadProgress(averageProgress);
     });
 
     flowInstance.on("fileSuccess", (file) => {
