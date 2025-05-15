@@ -445,7 +445,7 @@ try{
 			
 			function rowClick(el) {
 				console.log(el);
-				var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
+				var target = '_blank';
 				var w = window.open('import.jsp?taskId=' + el.getAttribute('data-id'), target);
 				w.focus();
 				return false;
