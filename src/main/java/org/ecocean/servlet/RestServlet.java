@@ -913,6 +913,7 @@ public class RestServlet extends HttpServlet {
                     Encounter e = (Encounter) obj;
                     if (e.getIndividual() != null) {
                         jobj.put("individualID", e.getIndividual().getId());
+                        jobj.put("displayName", e.getIndividual().getDisplayName());
      
                     }
                 }
