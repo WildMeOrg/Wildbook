@@ -20,13 +20,25 @@ import org.ecocean.User;
 import org.ecocean.Util;
 
 public class BulkImporter {
-    public static JSONObject createImport(List<Map<String, Object> > rows,
-        Map<String, MediaAsset> maMap, User user, Shepherd myShepherd) {
+    public List<Map<String, Object> > dataRows = null;
+    public Map<String, MediaAsset> mediaAssetMap = null;
+    public User user = null;
+    public Shepherd myShepherd = null;
+
+    public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
+        Shepherd myShepherd) {
+        this.dataRows = rows;
+        this.mediaAssetMap = maMap;
+        this.user = user;
+        this.myShepherd = myShepherd;
+    }
+
+    public JSONObject createImport() {
         JSONObject rtn = new JSONObject();
 
-        for (int rowNum = 0; rowNum < rows.size(); rowNum++) {
+        for (int rowNum = 0; rowNum < dataRows.size(); rowNum++) {
             List<BulkValidator> fields = new ArrayList<BulkValidator>();
-            Map<String, Object> rowResult = rows.get(rowNum);
+            Map<String, Object> rowResult = dataRows.get(rowNum);
             for (String rowFieldName : rowResult.keySet()) {
                 Object fieldObj = rowResult.get(rowFieldName);
                 if (fieldObj instanceof BulkValidator) {
@@ -35,14 +47,13 @@ public class BulkImporter {
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
             System.out.println("createImport() row " + rowNum);
-            processRow(fields, maMap, user, myShepherd);
+            processRow(fields);
         }
         return rtn;
     }
 
     // this assumes all values have been validated, so just go for it! set data with values. good luck!
-    private static void processRow(List<BulkValidator> fields, Map<String, MediaAsset> maMap,
-        User user, Shepherd myShepherd) {
+    private void processRow(List<BulkValidator> fields) {
         // some fields we do on a subsequent pass, as they require special care
         // handy for these subsequent passes
         Map<String, BulkValidator> fmap = new HashMap<String, BulkValidator>();
@@ -57,9 +68,9 @@ public class BulkImporter {
             indivId = fmap.get("Encounter.individualID").getValueString();
         if ((indivId == null) && fmap.containsKey("MarkedIndividual.individualID"))
             indivId = fmap.get("MarkedIndividual.individualID").getValueString();
-        MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap, user, myShepherd);
-        Occurrence occ = getOrCreateOccurrence(fmap, myShepherd);
-        Encounter enc = getOrCreateEncounter(fmap, indiv, occ, myShepherd);
+        MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
+        Occurrence occ = getOrCreateOccurrence(fmap);
+        Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
         if (enc != null) return; // FIXME temp disable
 
 /*
@@ -270,7 +281,7 @@ public class BulkImporter {
                 break;
 
             default:
-                System.out.println("field ignored by main loop: " + fieldName);
+                System.out.println("DEBUG: field ignored by main loop: " + fieldName);
             }
         }
         // fields done
@@ -282,8 +293,8 @@ public class BulkImporter {
     StandardImport does all sorts of weird caching and the like here, so likely this will need to be refined and repaired
     we could apply the naming fields here too, but meh lets let that be done in the main loop -- seems easier for the indexed ones
  */
-    private static MarkedIndividual getOrCreateMarkedIndividual(String id,
-        Map<String, BulkValidator> fmap, User user, Shepherd myShepherd) {
+    private MarkedIndividual getOrCreateMarkedIndividual(String id,
+        Map<String, BulkValidator> fmap) {
         if (id == null) return null;
         MarkedIndividual indiv = myShepherd.getMarkedIndividual(id);
         // these "should always exists" as they are required; how much fate am i tempting here by not checking?
@@ -300,8 +311,8 @@ public class BulkImporter {
         return indiv;
     }
 
-    private static Encounter getOrCreateEncounter(Map<String, BulkValidator> fmap,
-        MarkedIndividual indiv, Occurrence occ, Shepherd myShepherd) {
+    private Encounter getOrCreateEncounter(Map<String, BulkValidator> fmap, MarkedIndividual indiv,
+        Occurrence occ) {
         String encId = null;
         Encounter enc = null;
 
@@ -324,8 +335,7 @@ public class BulkImporter {
         return enc;
     }
 
-    private static Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap,
-        Shepherd myShepherd) {
+    private Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap) {
         // FIXME
         return null;
     }
