@@ -882,23 +882,23 @@ public class RestServlet extends HttpServlet {
 
         // call sanitizeJson on object
 
-        sj = null;
-        try {
-            sj = obj.getClass().getMethod("sanitizeJson",
-                new Class[] { HttpServletRequest.class, JSONObject.class });
-        } catch (NoSuchMethodException nsm) { // do nothing
-            // System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
-        }
-        if (sj != null) {
-            // System.out.println("trying sanitizeJson on "+obj.getClass());
-            try {
-                jobj = (JSONObject)sj.invoke(obj, req, jobj);
-                // System.out.println("sanitizeJson result: " +jobj.toString());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                // System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
-            }
-        }
+        // sj = null;
+        // try {
+        //     sj = obj.getClass().getMethod("sanitizeJson",
+        //         new Class[] { HttpServletRequest.class, JSONObject.class });
+        // } catch (NoSuchMethodException nsm) { // do nothing
+        //     // System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+        // }
+        // if (sj != null) {
+        //     // System.out.println("trying sanitizeJson on "+obj.getClass());
+        //     try {
+        //         jobj = (JSONObject)sj.invoke(obj, req, jobj);
+        //         // System.out.println("sanitizeJson result: " +jobj.toString());
+        //     } catch (Exception ex) {
+        //         ex.printStackTrace();
+        //         // System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+        //     }
+        // }
         return jobj;
     }
 
