@@ -287,6 +287,8 @@ export const BulkImportImageUpload = observer(({ store }) => {
               id="file-chooser"
               multiple
               // webkitdirectory="true"
+              webkitdirectory=""
+              directory=""
               accept=".jpg,.jpeg,.png,.bmp"
               ref={fileInputRef}
               style={{ display: "none" }}

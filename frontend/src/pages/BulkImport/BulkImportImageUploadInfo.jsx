@@ -33,7 +33,7 @@ export const BulkImportImageUploadInfo = observer(({ store }) => {
         {
             label: <FormattedMessage id="FAILED"
                 defaultMessage="photos failed" />,
-            value: 123
+            value: store.failedImages.length
         },
         {
             label: <FormattedMessage id="FAILED"
@@ -42,7 +42,7 @@ export const BulkImportImageUploadInfo = observer(({ store }) => {
         },
     ];
 
-    const title = `images uploaded: ${store.uploadedImages.length} `;
+    const title = `photos uploaded: ${store.uploadedImages.length} `;
 
     return (
         <div style={{ marginTop: '2rem' }}>

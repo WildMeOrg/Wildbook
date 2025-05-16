@@ -17,6 +17,7 @@ export class BulkImportStore {
   _rawData = [];
   _activeStep = 0;
   _imageUploadProgress = 0;
+  _failedImages = [];
   _spreadsheetUploadProgress = 0;
   _uploadedImages = [];
   _columnsDef = [];
@@ -311,6 +312,10 @@ export class BulkImportStore {
     return this._submissionErrors;
   }
 
+  get failedImages() {
+    return this._failedImages;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
   }
@@ -383,6 +388,10 @@ export class BulkImportStore {
 
   setSubmissionErrors(errors) {
     this._submissionErrors = errors;
+  }
+
+  setFailedImages(image) {
+    this._failedImages.push(image);
   }
 
   clearSubmissionErrors() {
@@ -682,10 +691,11 @@ export class BulkImportStore {
     });
 
     flowInstance.on("fileError", (file, chunk) => {
-      if (!navigator.onLine) {
-        console.log(`Chunk uploading failed due to no internet connection`, file.name, chunk.offset);
-        return;
-      }
+      console.log("fileError", file, chunk);
+      // if (!navigator.onLine) {
+      //   console.log(`Chunk uploading failed due to no internet connection`, file.name, chunk.offset);
+      //   return;
+      // }
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, error: true, progress: 0 } : f,
       );
@@ -719,78 +729,89 @@ export class BulkImportStore {
     });
   }
 
-  updateRawFromNormalizedRow(rowIndex) {
-    const norm = this._spreadsheetData[rowIndex];
-    const raw = this._rawData[rowIndex];
+  updateRawFromNormalizedRow() {
 
-    runInAction(() => {
-      if (norm["Encounter.year"]) {
-        const val = norm["Encounter.year"];
-        if (val) {
-          if (/^\d{4}$/.test(val)) {
-            const y = Number(val);
-            raw["Encounter.year"] = y;
-            raw["Encounter.month"] = "";
-            raw["Encounter.day"] = "";
-            raw["Encounter.hour"] = "";
-            raw["Encounter.minutes"] = "";
-          }
-          else if (/^\d{4}-\d{2}$/.test(val)) {
-            const [y, m] = val.split("-").map(Number);
-            raw["Encounter.year"] = y;
-            raw["Encounter.month"] = m;
-            raw["Encounter.day"] = "";
-            raw["Encounter.hour"] = "";
-            raw["Encounter.minutes"] = "";
-          }
-          else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-            const [y, m, d] = val.split("-").map(Number);
-            raw["Encounter.year"] = y;
-            raw["Encounter.month"] = m;
-            raw["Encounter.day"] = d;
-            raw["Encounter.hour"] = "";
-            raw["Encounter.minutes"] = "";
-          }
-          else {
-            const dt = new Date(val);
-            raw["Encounter.year"] = dt.getFullYear();
-            raw["Encounter.month"] = dt.getMonth() + 1;
-            raw["Encounter.day"] = dt.getDate();
-            raw["Encounter.hour"] = dt.getHours();
-            raw["Encounter.minutes"] = dt.getMinutes();
+    this._spreadsheetData.forEach((_, rowIndex) => {
+
+      const norm = this._spreadsheetData[rowIndex];
+      const raw = this._rawData[rowIndex];
+      console.log("updateRawFromNormalizedRow", rowIndex);
+      console.log("norm", JSON.stringify(norm));
+      runInAction(() => {
+        if (norm["Encounter.year"]) {
+          const val = norm["Encounter.year"];
+          if (val) {
+            if (/^\d{4}$/.test(val)) {
+              const y = Number(val);
+              raw["Encounter.year"] = y;
+              raw["Encounter.month"] = "";
+              raw["Encounter.day"] = "";
+              raw["Encounter.hour"] = "";
+              raw["Encounter.minutes"] = "";
+            }
+            else if (/^\d{4}-\d{2}$/.test(val)) {
+              const [y, m] = val.split("-").map(Number);
+              raw["Encounter.year"] = y;
+              raw["Encounter.month"] = m;
+              raw["Encounter.day"] = "";
+              raw["Encounter.hour"] = "";
+              raw["Encounter.minutes"] = "";
+            }
+            else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+              const [y, m, d] = val.split("-").map(Number);
+              raw["Encounter.year"] = y;
+              raw["Encounter.month"] = m;
+              raw["Encounter.day"] = d;
+              raw["Encounter.hour"] = "";
+              raw["Encounter.minutes"] = "";
+            }
+            else {
+              const dt = new Date(val);
+              raw["Encounter.year"] = dt.getFullYear();
+              raw["Encounter.month"] = dt.getMonth() + 1;
+              raw["Encounter.day"] = dt.getDate();
+              raw["Encounter.hour"] = dt.getHours();
+              raw["Encounter.minutes"] = dt.getMinutes();
+            }
           }
         }
-      }
 
-      if (norm["Encounter.genus"] != null) {
-        const [g, s = ""] = norm["Encounter.genus"].split(" ");
-        raw["Encounter.genus"] = g;
-        raw["Encounter.specificEpithet"] = s;
-      }
+        if (norm["Encounter.genus"] != null) {
+          const [g, s = ""] = norm["Encounter.genus"].split(" ");
+          raw["Encounter.genus"] = g;
+          raw["Encounter.specificEpithet"] = s;
 
-      if (norm["Encounter.mediaAsset0"] != null) {
-        Object.keys(raw).forEach((key) => {
-          if (key.startsWith("Encounter.mediaAsset")) {
-            delete raw[key];
-          }
-        });
-        const assets = norm["Encounter.mediaAsset0"]
-          .split(/\s*,\s*/)
-          .filter((v) => v !== "");
-        assets.forEach((val, idx) => {
-          raw[`Encounter.mediaAsset${idx}`] = val;
-        });
-      }
+          console.log("Encounter.genus", g, s);
+        }
 
-      if (norm["Encounter.decimalLatitude"] != null) {
-        const m = /^\s*([^,]+)\s*,\s*([^,]+)\s*$/.exec(
-          norm["Encounter.decimalLatitude"]
-        );
-        raw["Encounter.decimalLatitude"] = m ? m[1] : "";
-        raw["Encounter.decimalLongitude"] = m ? m[2] : "";
-      }
+        if (norm["Encounter.mediaAsset0"] != null) {
+          Object.keys(raw).forEach((key) => {
+            if (key.startsWith("Encounter.mediaAsset")) {
+              delete raw[key];
+            }
+          });
+          const assets = norm["Encounter.mediaAsset0"]
+            .split(/\s*,\s*/)
+            .filter((v) => v !== "");
+          assets.forEach((val, idx) => {
+            raw[`Encounter.mediaAsset${idx}`] = val;
+          });
+        }
 
-    });
+        if (norm["Encounter.decimalLatitude"] != null) {
+          const m = /^\s*([^,]+)\s*,\s*([^,]+)\s*$/.exec(
+            norm["Encounter.decimalLatitude"]
+          );
+          raw["Encounter.decimalLatitude"] = m ? m[1] : "";
+          raw["Encounter.decimalLongitude"] = m ? m[2] : "";
+        }
+
+      });
+    }
+
+    );
+
+
   }
 
   traverseFileTree(item, maxSize, path = "") {

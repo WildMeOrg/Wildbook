@@ -59,7 +59,6 @@ const EditableCell = ({
         />
       );
     } else {
-      console.log("rendering input", columnId, value);
       return (
         <input
           type="text"
@@ -82,7 +81,7 @@ const EditableCell = ({
     <div>
       {renderInput()}
       {error && <div
-        // className="invalid-feedback"
+        className="invalid-feedback"
         style={{
           height: "auto",
           whiteSpace: "normal",

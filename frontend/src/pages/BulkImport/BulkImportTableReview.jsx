@@ -12,17 +12,14 @@ import { BulkImportSpreadsheetUploadInof } from "./BulkImportSpreadsheetUploadIn
 
 export const BulkImportTableReview = observer(({ store }) => {
   const theme = useContext(ThemeContext);
-  const { submit, isLoading, error: postError } = usePostBulkImport();
-
+  const { submit, isLoading } = usePostBulkImport();
   const submissionId = store.submissionId || uuidv4();
   const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
 
   const handleStartImport = useCallback(async () => {
-    console.log("Starting import with data:", JSON.stringify(store.spreadsheetData));
     store.clearSubmissionErrors();
     try {
-      const result = await submit(submissionId, store.rawColumns, store.spreadsheetData);
-
+      const result = await submit(submissionId, store.rawColumns, store.rawData);
       if (result?.success) {
         store.resetToDefaults();
       }
@@ -44,15 +41,27 @@ export const BulkImportTableReview = observer(({ store }) => {
         <BulkImportSpreadsheetUploadInof store={store} />
       </div>
       <EditableDataTable store={store} />
-      {store.submissionErrors && <div className="alert alert-danger">{JSON.stringify(store.submissionErrors)}</div>}
+      {hasSubmissionErrors && <div className="alert alert-danger">
+        Errors:
+        <ul>
+          {
+            store.submissionErrors.map((error, index) => (
+              <li key={index}>
+                { `field: ${error.fieldName}, row number: ${error.rowNumber}, error: ${error.type}` }
+              </li>
+            ))
+
+          }
+        </ul>
+        
+        </div>}
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton
           onClick={() => {
-            // store.setActiveStep(3);
             handleStartImport();
           }}
-          // disabled={store.isSubmitting || store.imageUploadProgress !== 100  || Object.keys(store.validateSpreadsheet()).length > 0}
-          disabled={store.isSubmitting || store.imageUploadProgress !== 100 || store.spreadsheetUploadProgress !== 100}
+          // disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
+          // disabled={store.isSubmitting || store.imageUploadProgress !== 100 || store.spreadsheetUploadProgress !== 100}
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}
