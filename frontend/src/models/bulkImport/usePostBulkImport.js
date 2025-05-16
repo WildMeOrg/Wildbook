@@ -6,12 +6,24 @@ export default function usePostBulkImport() {
   const [error, setError] = useState(null);
 
   const submit = useCallback(async (bulkImportId, fieldNames, rows) => {
-    const data = rows.map((row) =>
+
+    const rowsWithNulls = rows.map((row) => {
+      const newRow = { ...row };
+      Object.keys(newRow).forEach((key) => {
+        if (newRow[key] === "") {
+          newRow[key] = null;
+        }
+      });
+      return newRow;
+    });
+
+    const data = rowsWithNulls.map((row) =>
       fieldNames.map((fieldName) => {
         const val = row[fieldName];
         return val;
       }),
     );
+
     const payload = {
       bulkImportId: bulkImportId,
       fieldNames,

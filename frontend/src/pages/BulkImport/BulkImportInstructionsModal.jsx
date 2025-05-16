@@ -12,7 +12,7 @@ const BulkImportInstructionsModal = ({ show, onHide }) => (
     centered
     scrollable
   >
-    <Modal.Header closeButton>
+    <Modal.Header >
       <Modal.Title id="bulk-import-modal">
         <FormattedMessage
           id="bulkImport.instructions.title"
