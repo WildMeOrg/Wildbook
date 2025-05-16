@@ -56,22 +56,36 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         const normalizedChunk = chunk.map((row) => {
 
           const formatDate = (year, month, day, hour, minute) => {
-            const pad = v => v?.toString().padStart(2, '0');
-             
-            if (year && month && day && hour != null && minute != null) {
-              return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000`
+            // 把用户原始输入补成两位，不存在则空字符串
+            const pad2 = s =>
+              (s != null && s !== '' ? String(s).padStart(2, '0') : '');
+
+            const y = String(year);
+            const m = pad2(month);
+            const d = pad2(day);
+            const hh = pad2(hour);
+            const mm = pad2(minute);
+
+
+            let result = y;
+            if (month || day) {
+              result += '-' + m;
+              if (day) {
+                result += '-' + d;
+              }
             }
-            if (year && month && day) {
-              return `${year}-${pad(month)}-${pad(day)}`
+
+            if (hour || minute) {
+              result += 'T' + hh;
+              if (minute) {
+                result += ':' + mm;
+              }
             }
-            if (year && month) {
-              return `${year}-${pad(month)}`
-            }
-            if (year) {
-              return year.toString()
-            }
-            return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00.000Z`;
-          }
+
+            return result;
+          };
+
+
 
           const getLatLong = (lat, lon) => {
             const hasLat = lat !== undefined && lat !== null && lat !== "";
@@ -88,8 +102,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             }
           };
 
-          const mediaAssets = mediaAssetsCols.map((col) => {
-            return row[col];
+          const mediaAssets = mediaAssetsCols.filter(v => row[v] != null && row[v] !== "").map((col) => {
+            const mediaAsset = row[col].trim();
+            return mediaAsset;
           }).join(", ");
 
           return {
@@ -109,7 +124,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             ),
             "Encounter.genus":
               row["Encounter.genus"].trim() + " " + row["Encounter.specificEpithet"].trim(),
-            
           };
         });
 

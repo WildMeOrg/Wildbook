@@ -48,8 +48,11 @@ export class BulkImportStore {
   _validBehavior = [];
   _validationRules = {
     "Encounter.mediaAsset0": {
-      required: true,
+      required: false,
       validate: (val) => {
+        if (!val) {
+          return true;
+        }
         console.log("val", val);
         const images = val.split(",").map((img) => img.trim());
         images.forEach((img) => {
@@ -77,17 +80,16 @@ export class BulkImportStore {
           'YYYY',
           'YYYY-MM',
           'YYYY-MM-DD',
-          'YYYY-MM-DDTHH:mm:ss.SSS',
-        ]
-        return dayjs(val, FORMATS, true).isValid()
+          'YYYY-MM-DDTHH:mm',
+        ];
+        return dayjs(val, FORMATS, true).isValid();
       },
       message:
-        "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or full ISO datetime “YYYY-MM-DDThh:mm:ss.sss”",
+        "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
     },
     "Encounter.genus": {
       required: true,
       validate: (val) => {
-        console.log("genus val+++++++++++++++++++++++++", val);
         return this._validspecies.includes(val);
       },
       message: "must enter a valid species",
@@ -98,8 +100,8 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        const re = /^\s*([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)\s*$/;
 
+        const re = /^\s*([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)\s*$/;
         const m = re.exec(val);
         if (!m) {
           return false;
@@ -255,9 +257,6 @@ export class BulkImportStore {
   get activeStep() {
     return this._activeStep;
   }
-  // get imageUploadProgress() {
-  //   return this._imageUploadProgress;
-  // }
 
   get imageUploadProgress() {
     const previews = this._imagePreview;
@@ -323,9 +322,7 @@ export class BulkImportStore {
   setActiveStep(step) {
     this._activeStep = step;
   }
-  setImageUploadProgress(progress) {
-    this._imageUploadProgress = progress;
-  }
+
   setSpreadsheetUploadProgress(progress) {
     this._spreadsheetUploadProgress = progress;
   }
@@ -466,11 +463,6 @@ export class BulkImportStore {
         value: id,
         label: id,
       }));
-      // } else if (col === "Encounter.submitterID") {
-      //   return this._validSubmitterIDs.map((id) => ({
-      //     value: id,
-      //     label: id,
-      //   }));
     } else if (col === "Encounter.genus") {
       return this._validspecies.map((species) => ({
         value: species,
@@ -667,12 +659,6 @@ export class BulkImportStore {
         (sum, f) => sum + (f.progress || 0),
         0,
       );
-      // const averageProgress =
-      //   this._imagePreview.length > 0
-      //     ? totalProgress / this._imagePreview.length
-      //     : 0;
-
-      // this.setImageUploadProgress(averageProgress);
     });
 
     flowInstance.on("fileSuccess", (file) => {
@@ -774,7 +760,6 @@ export class BulkImportStore {
             raw["Encounter.minutes"] = dt.getMinutes();
           }
         }
-
       }
 
       if (norm["Encounter.genus"] != null) {
