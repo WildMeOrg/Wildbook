@@ -20,13 +20,32 @@ import org.ecocean.User;
 import org.ecocean.Util;
 
 public class BulkImporter {
-    public static JSONObject createImport(List<Map<String, Object> > rows,
-        Map<String, MediaAsset> maMap, User user, Shepherd myShepherd) {
+    public List<Map<String, Object> > dataRows = null;
+    public Map<String, MediaAsset> mediaAssetMap = null;
+    public User user = null;
+    public Shepherd myShepherd = null;
+
+    // caching loaded and (more imporantly?) newly created objects, so they can be
+    // used across all rows. StandardImport seemed to do some caching *based on user*
+    // (of, for example, MarkedIndividuals). not sure why. maybe this will be revealed later.
+    private Map<String, Encounter> encounterCache = new HashMap<String, Encounter>();
+    private Map<String, Occurrence> occurrenceCache = new HashMap<String, Occurrence>();
+    private Map<String, MarkedIndividual> individualCache = new HashMap<String, MarkedIndividual>();
+
+    public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
+        Shepherd myShepherd) {
+        this.dataRows = rows;
+        this.mediaAssetMap = maMap;
+        this.user = user;
+        this.myShepherd = myShepherd;
+    }
+
+    public JSONObject createImport() {
         JSONObject rtn = new JSONObject();
 
-        for (int rowNum = 0; rowNum < rows.size(); rowNum++) {
+        for (int rowNum = 0; rowNum < dataRows.size(); rowNum++) {
             List<BulkValidator> fields = new ArrayList<BulkValidator>();
-            Map<String, Object> rowResult = rows.get(rowNum);
+            Map<String, Object> rowResult = dataRows.get(rowNum);
             for (String rowFieldName : rowResult.keySet()) {
                 Object fieldObj = rowResult.get(rowFieldName);
                 if (fieldObj instanceof BulkValidator) {
@@ -35,14 +54,13 @@ public class BulkImporter {
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
             System.out.println("createImport() row " + rowNum);
-            processRow(fields, maMap, user, myShepherd);
+            processRow(fields);
         }
         return rtn;
     }
 
     // this assumes all values have been validated, so just go for it! set data with values. good luck!
-    private static void processRow(List<BulkValidator> fields, Map<String, MediaAsset> maMap,
-        User user, Shepherd myShepherd) {
+    private void processRow(List<BulkValidator> fields) {
         // some fields we do on a subsequent pass, as they require special care
         // handy for these subsequent passes
         Map<String, BulkValidator> fmap = new HashMap<String, BulkValidator>();
@@ -57,10 +75,10 @@ public class BulkImporter {
             indivId = fmap.get("Encounter.individualID").getValueString();
         if ((indivId == null) && fmap.containsKey("MarkedIndividual.individualID"))
             indivId = fmap.get("MarkedIndividual.individualID").getValueString();
-        MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap, user, myShepherd);
-        Occurrence occ = getOrCreateOccurrence(fmap, myShepherd);
-        Encounter enc = getOrCreateEncounter(fmap, indiv, occ, myShepherd);
-        if (enc != null) return; // FIXME temp disable
+        MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
+        Occurrence occ = getOrCreateOccurrence(fmap);
+        Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
+        // if (enc != null) return; // FIXME temp disable
 
 /*
         these are in order based on indexing numerical value such that list.get(i)
@@ -270,7 +288,7 @@ public class BulkImporter {
                 break;
 
             default:
-                System.out.println("field ignored by main loop: " + fieldName);
+                System.out.println("DEBUG: field ignored by main loop: " + fieldName);
             }
         }
         // fields done
@@ -282,9 +300,10 @@ public class BulkImporter {
     StandardImport does all sorts of weird caching and the like here, so likely this will need to be refined and repaired
     we could apply the naming fields here too, but meh lets let that be done in the main loop -- seems easier for the indexed ones
  */
-    private static MarkedIndividual getOrCreateMarkedIndividual(String id,
-        Map<String, BulkValidator> fmap, User user, Shepherd myShepherd) {
+    private MarkedIndividual getOrCreateMarkedIndividual(String id,
+        Map<String, BulkValidator> fmap) {
         if (id == null) return null;
+        if (individualCache.containsKey(id)) return individualCache.get(id);
         MarkedIndividual indiv = myShepherd.getMarkedIndividual(id);
         // these "should always exists" as they are required; how much fate am i tempting here by not checking?
         String genus = fmap.get("Encounter.genus").getValueString();
@@ -296,28 +315,43 @@ public class BulkImporter {
             System.out.println(
                 "BulkImporter.getMarkedIndividual() could not find existing indiv based on id=" +
                 id);
+        } else {
+            individualCache.put(id, indiv);
         }
         return indiv;
     }
 
-    private static Encounter getOrCreateEncounter(Map<String, BulkValidator> fmap,
-        MarkedIndividual indiv, Occurrence occ, Shepherd myShepherd) {
-        // apparently this is a thing?
+    private Encounter getOrCreateEncounter(Map<String, BulkValidator> fmap, MarkedIndividual indiv,
+        Occurrence occ) {
+        String encId = null;
         Encounter enc = null;
 
-        if ((indiv != null) && (occ != null))
+        if (fmap.containsKey("Encounter.id")) encId = fmap.get("Encounter.id").getValueString();
+        if ((encId == null) && fmap.containsKey("Encounter.catalogNumber"))
+            encId = fmap.get("Encounter.catalogNumber").getValueString();
+        if (encId != null) {
+            if (encounterCache.containsKey(encId)) {
+                return encounterCache.get(encId);
+            } else {
+                enc = myShepherd.getEncounter(encId);
+            }
+        } else if ((indiv != null) && (occ != null)) {
+            // apparently this is a thing?
             enc = myShepherd.getEncounterByIndividualAndOccurrence(indiv.getId(), occ.getId());
+            // this doesnt read from cache - not sure how much of a problem that will be, but likely some
+        }
         if (enc == null) {
             enc = new Encounter();
-            enc.setId(Util.generateUUID());
+            if (encId == null) encId = Util.generateUUID();
+            enc.setId(encId);
             enc.setDWCDateAdded();
             enc.setDWCDateLastModified();
         }
+        if (encId != null) encounterCache.put(encId, enc);
         return enc;
     }
 
-    private static Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap,
-        Shepherd myShepherd) {
+    private Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap) {
         // FIXME
         return null;
     }

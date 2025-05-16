@@ -311,8 +311,9 @@ public class BulkImport extends ApiBase {
                 // (we may have some errors in rows depending on tolerance)
                 System.out.println("================= about to createImport for " + bulkImportId +
                     " =================");
-                JSONObject results = BulkImporter.createImport(validatedRows, maMap, currentUser,
+                BulkImporter importer = new BulkImporter(validatedRows, maMap, currentUser,
                     myShepherd);
+                JSONObject results = importer.createImport();
                 for (String rkey : results.keySet()) {
                     rtn.put(rkey, results.get(rkey));
                 }
