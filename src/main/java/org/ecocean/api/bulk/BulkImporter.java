@@ -25,6 +25,13 @@ public class BulkImporter {
     public User user = null;
     public Shepherd myShepherd = null;
 
+    // caching loaded and (more imporantly?) newly created objects, so they can be
+    // used across all rows. StandardImport seemed to do some caching *based on user*
+    // (of, for example, MarkedIndividuals). not sure why. maybe this will be revealed later.
+    private Map<String, Encounter> encounterCache = new HashMap<String, Encounter>();
+    private Map<String, Occurrence> occurrenceCache = new HashMap<String, Occurrence>();
+    private Map<String, MarkedIndividual> individualCache = new HashMap<String, MarkedIndividual>();
+
     public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
         Shepherd myShepherd) {
         this.dataRows = rows;
@@ -71,7 +78,7 @@ public class BulkImporter {
         MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
         Occurrence occ = getOrCreateOccurrence(fmap);
         Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
-        if (enc != null) return; // FIXME temp disable
+        // if (enc != null) return; // FIXME temp disable
 
 /*
         these are in order based on indexing numerical value such that list.get(i)
@@ -296,6 +303,7 @@ public class BulkImporter {
     private MarkedIndividual getOrCreateMarkedIndividual(String id,
         Map<String, BulkValidator> fmap) {
         if (id == null) return null;
+        if (individualCache.containsKey(id)) return individualCache.get(id);
         MarkedIndividual indiv = myShepherd.getMarkedIndividual(id);
         // these "should always exists" as they are required; how much fate am i tempting here by not checking?
         String genus = fmap.get("Encounter.genus").getValueString();
@@ -307,6 +315,8 @@ public class BulkImporter {
             System.out.println(
                 "BulkImporter.getMarkedIndividual() could not find existing indiv based on id=" +
                 id);
+        } else {
+            individualCache.put(id, indiv);
         }
         return indiv;
     }
@@ -320,10 +330,15 @@ public class BulkImporter {
         if ((encId == null) && fmap.containsKey("Encounter.catalogNumber"))
             encId = fmap.get("Encounter.catalogNumber").getValueString();
         if (encId != null) {
-            enc = myShepherd.getEncounter(encId);
+            if (encounterCache.containsKey(encId)) {
+                return encounterCache.get(encId);
+            } else {
+                enc = myShepherd.getEncounter(encId);
+            }
         } else if ((indiv != null) && (occ != null)) {
             // apparently this is a thing?
             enc = myShepherd.getEncounterByIndividualAndOccurrence(indiv.getId(), occ.getId());
+            // this doesnt read from cache - not sure how much of a problem that will be, but likely some
         }
         if (enc == null) {
             enc = new Encounter();
@@ -332,6 +347,7 @@ public class BulkImporter {
             enc.setDWCDateAdded();
             enc.setDWCDateLastModified();
         }
+        if (encId != null) encounterCache.put(encId, enc);
         return enc;
     }
 
