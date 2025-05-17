@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>10.6.0</version>
+  <version>10.7.1</version>
   <packaging>war</packaging>
 
   <properties>
@@ -649,7 +649,6 @@
               <workingDirectory>${basedir}/src/main/webapp/javascript</workingDirectory>
             </configuration>
           </execution>
-
           <execution>
             <id>Build React Directory</id>
             <phase>clean</phase>
