@@ -26,7 +26,7 @@ public class BulkValidator {
         "Encounter.individualID", "Encounter.informOther", "Encounter.latitude",
         "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.locationID",
         "Encounter.longitude", "Encounter.measurement", "Encounter.minutes", "Encounter.month",
-        "Encounter.occurrenceID", "Encounter.occurrenceRemarks", "Encounter.otherCatalogNumbers",
+        "Encounter.sightingID", "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers",
         "Encounter.patterningCode", "Encounter.photographer", "Encounter.project",
         "Encounter.quality", "Encounter.researcherComments", "Encounter.sex",
         "Encounter.specificEpithet", "Encounter.state", "Encounter.submitterID",

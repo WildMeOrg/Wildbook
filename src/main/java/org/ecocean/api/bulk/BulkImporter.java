@@ -231,8 +231,8 @@ public class BulkImporter {
             case "Encounter.identificationRemarks":
             case "Encounter.informOther":
             case "Encounter.measurement":
-            case "Encounter.occurrenceID":
-            case "Encounter.occurrenceRemarks":
+            case "Encounter.sightingID":
+            case "Encounter.sightingRemarks":
             case "Encounter.otherCatalogNumbers":
             case "Encounter.patterningCode":
             case "Encounter.photographer":
