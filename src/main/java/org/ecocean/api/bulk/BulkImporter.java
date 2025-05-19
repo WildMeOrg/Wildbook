@@ -11,6 +11,7 @@ import java.util.Set;
 import org.json.JSONObject;
 
 import org.ecocean.api.bulk.*;
+import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
@@ -56,6 +57,17 @@ public class BulkImporter {
             System.out.println("createImport() row " + rowNum);
             processRow(fields);
         }
+        System.out.println(
+            "------------ all rows processed; beginning persistence -------------\n");
+        for (Encounter enc : encounterCache.values()) {
+            System.out.println("EEEE " + enc);
+        }
+        for (Occurrence occ : occurrenceCache.values()) {
+            System.out.println("OOOO " + occ);
+        }
+        for (MarkedIndividual indiv : individualCache.values()) {
+            System.out.println("IIII " + indiv);
+        }
         return rtn;
     }
 
@@ -78,7 +90,7 @@ public class BulkImporter {
         MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
         Occurrence occ = getOrCreateOccurrence(fmap);
         Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
-        // if (enc != null) return; // FIXME temp disable
+        if (enc != null) return; // FIXME temp disable
 
 /*
         these are in order based on indexing numerical value such that list.get(i)
@@ -293,6 +305,24 @@ public class BulkImporter {
         }
         // fields done
         System.out.println("+ populated data on " + enc);
+        // now attach annotations
+        String tx = enc.getTaxonomyString();
+        List<Annotation> annots = new ArrayList<Annotation>();
+        for (String maKey : maFields) {
+            if (maKey == null) continue; // data skipped an index
+            BulkValidator bv = fmap.get(maKey);
+            if (bv == null) throw new RuntimeException("could not find fmap for key=" + maKey);
+            if (bv.getValueString() == null) continue;
+            MediaAsset ma = this.mediaAssetMap.get(bv.getValueString());
+            if (ma == null)
+                throw new RuntimeException("could not find MediaAsset for maKey=" + maKey +
+                        ", bv=" + bv.getValueString() + " in " + this.mediaAssetMap);
+            Annotation ann = new Annotation(tx, ma);
+            ann.setIsExemplar(true);
+            annots.add(ann);
+        }
+        if (annots.size() > 0) enc.addAnnotations(annots);
+        System.out.println("+ populated " + annots.size() + " MediaAssets on " + enc);
     }
 
 /*
@@ -310,14 +340,17 @@ public class BulkImporter {
         String specificEpithet = fmap.get("Encounter.specificEpithet").getValueString();
         if (indiv == null)
             indiv = MarkedIndividual.withName(myShepherd, id, genus, specificEpithet);
-        // FIXME create if does not exist
         if (indiv == null) {
             System.out.println(
-                "BulkImporter.getMarkedIndividual() could not find existing indiv based on id=" +
-                id);
-        } else {
-            individualCache.put(id, indiv);
+                "BulkImporter.getMarkedIndividual() creating new; could not find existing indiv based on id="
+                + id);
+            indiv = new MarkedIndividual();
+            indiv.setId(id);
+            indiv.setGenus(genus);
+            indiv.setSpecificEpithet(specificEpithet);
+            // FIXME what else???
         }
+        individualCache.put(id, indiv);
         return indiv;
     }
 
