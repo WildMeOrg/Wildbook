@@ -51,7 +51,7 @@ public class BulkImportUtil {
         }
         // now we do inter-dependent validations
         checkYMD(rtn, "Encounter.year", "Encounter.month", "Encounter.day");
-        checkYMD(rtn, "Occurrence.year", "Occurrence.month", "Occurrence.day");
+        checkYMD(rtn, "Sighting.year", "Sighting.month", "Sighting.day");
         for (String reqFieldName : BulkValidator.FIELD_NAMES_REQUIRED) {
             if (!rtn.containsKey(reqFieldName)) {
                 rtn.put(reqFieldName,
@@ -70,7 +70,7 @@ public class BulkImportUtil {
         // why do we have THREE different ways for users to provide same fields? :(
         checkLatLon(rtn, "Encounter.latitude", "Encounter.longitude");
         checkLatLon(rtn, "Encounter.decimalLatitude", "Encounter.decimalLongitude");
-        checkLatLon(rtn, "Occurrence.decimalLatitude", "Occurrence.decimalLongitude");
+        checkLatLon(rtn, "Sighting.decimalLatitude", "Sighting.decimalLongitude");
 
         Object taxG = getValue(rtn, "Encounter.genus");
         Object taxS = getValue(rtn, "Encounter.specificEpithet");

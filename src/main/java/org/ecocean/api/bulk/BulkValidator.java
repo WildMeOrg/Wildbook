@@ -34,19 +34,18 @@ public class BulkValidator {
         "Encounter.year", "MarkedIndividual.individualID", "MarkedIndividual.name",
         "MarkedIndividual.nickName", "MarkedIndividual.nickname", "Membership.role",
         "MicrosatelliteMarkersAnalysis.alleleNames", "MicrosatelliteMarkersAnalysis.analysisID",
-        "MitochondrialDNAAnalysis.haplotype", "Occurrence.bearing",
-        "Occurrence.bestGroupSizeEstimate", "Occurrence.comments", "Occurrence.dateInMilliseconds",
-        "Occurrence.day", "Occurrence.decimalLatitude", "Occurrence.decimalLongitude",
-        "Occurrence.distance", "Occurrence.effortCode", "Occurrence.fieldStudySite",
-        "Occurrence.fieldSurveyCode", "Occurrence.groupBehavior", "Occurrence.groupComposition",
-        "Occurrence.hour", "Occurrence.humanActivityNearby", "Occurrence.individualCount",
-        "Occurrence.initialCue", "Occurrence.maxGroupSizeEstimate", "Occurrence.millis",
-        "Occurrence.minGroupSizeEstimate", "Occurrence.minutes", "Occurrence.month",
-        "Occurrence.numAdults", "Occurrence.numCalves", "Occurrence.numJuveniles",
-        "Occurrence.observer", "Occurrence.occurrenceID", "Occurrence.seaState",
-        "Occurrence.seaSurfaceTemp", "Occurrence.seaSurfaceTemperature", "Occurrence.swellHeight",
-        "Occurrence.transectBearing", "Occurrence.transectName", "Occurrence.visibilityIndex",
-        "Occurrence.year", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
+        "MitochondrialDNAAnalysis.haplotype", "Sighting.bearing", "Sighting.bestGroupSizeEstimate",
+        "Sighting.comments", "Sighting.dateInMilliseconds", "Sighting.day",
+        "Sighting.decimalLatitude", "Sighting.decimalLongitude", "Sighting.distance",
+        "Sighting.effortCode", "Sighting.fieldStudySite", "Sighting.fieldSurveyCode",
+        "Sighting.groupBehavior", "Sighting.groupComposition", "Sighting.hour",
+        "Sighting.humanActivityNearby", "Sighting.individualCount", "Sighting.initialCue",
+        "Sighting.maxGroupSizeEstimate", "Sighting.millis", "Sighting.minGroupSizeEstimate",
+        "Sighting.minutes", "Sighting.month", "Sighting.numAdults", "Sighting.numCalves",
+        "Sighting.numJuveniles", "Sighting.observer", "Sighting.occurrenceID", "Sighting.seaState",
+        "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature", "Sighting.swellHeight",
+        "Sighting.transectBearing", "Sighting.transectName", "Sighting.visibilityIndex",
+        "Sighting.year", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
         "SexAnalysis.sex", "SocialUnit.socialUnitName", "Survey.comments", "Survey.id",
         "Survey.vessel", "SurveyTrack.vesselID", "Taxonomy.commonName", "Taxonomy.scientificName",
         "TissueSample.sampleID", "TissueSample.tissueType"));
@@ -56,7 +55,7 @@ public class BulkValidator {
         "Encounter.submitter#.affiliation", "Encounter.submitter#.emailAddress",
         "Encounter.submitter#.fullName", "Encounter.informOther#.emailAddress",
         "Encounter.photographer#.emailAddress", "MicrosatelliteMarkersAnalysis.alleles#",
-        "MarkedIndividual.name#.label", "MarkedIndividual.name#.value", "Occurrence.taxonomy#"));
+        "MarkedIndividual.name#.label", "MarkedIndividual.name#.value", "Sighting.taxonomy#"));
 
     public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
         "Encounter.genus", "Encounter.specificEpithet", "Encounter.year"));
@@ -198,7 +197,7 @@ public class BulkValidator {
             return value.toString();
 
         case "Encounter.year":
-        case "Occurrence.year":
+        case "Sighting.year":
             Integer intVal = tryInteger(value);
             if (intVal == null) return null;
             if (intVal < 1000)
@@ -210,7 +209,7 @@ public class BulkValidator {
             return intVal;
 
         case "Encounter.month":
-        case "Occurrence.month":
+        case "Sighting.month":
             intVal = tryInteger(value);
             if (intVal == null) return null;
             if (intVal < 1)
@@ -222,7 +221,7 @@ public class BulkValidator {
             return intVal;
 
         case "Encounter.day":
-        case "Occurrence.day":
+        case "Sighting.day":
             intVal = tryInteger(value);
             if (intVal == null) return null;
             if (intVal < 1)
@@ -235,7 +234,7 @@ public class BulkValidator {
             return intVal;
 
         case "Encounter.hour":
-        case "Occurrence.hour":
+        case "Sighting.hour":
             intVal = tryInteger(value);
             if (intVal == null) return null;
             if (intVal < 0)
@@ -247,7 +246,7 @@ public class BulkValidator {
             return intVal;
 
         case "Encounter.minutes":
-        case "Occurrence.minutes":
+        case "Sighting.minutes":
             intVal = tryInteger(value);
             if (intVal == null) return null;
             if (intVal < 0)
@@ -260,7 +259,7 @@ public class BulkValidator {
 
         case "Encounter.decimalLatitude":
         case "Encounter.latitude":
-        case "Occurrence.decimalLatitude":
+        case "Sighting.decimalLatitude":
             Double doubleVal = tryDouble(value);
             if (doubleVal == null) return null;
             if (!Util.isValidDecimalLatitude(doubleVal))
@@ -270,7 +269,7 @@ public class BulkValidator {
 
         case "Encounter.decimalLongitude":
         case "Encounter.longitude":
-        case "Occurrence.decimalLongitude":
+        case "Sighting.decimalLongitude":
             doubleVal = tryDouble(value);
             if (doubleVal == null) return null;
             if (!Util.isValidDecimalLongitude(doubleVal))
@@ -326,9 +325,9 @@ public class BulkValidator {
             return value;
 
         // just generic (positive) ints
-        case "Occurrence.individualCount":
-        case "Occurrence.maxGroupSizeEstimate":
-        case "Occurrence.minGroupSizeEstimate":
+        case "Sighting.individualCount":
+        case "Sighting.maxGroupSizeEstimate":
+        case "Sighting.minGroupSizeEstimate":
             if (value == null) return null;
             intVal = tryInteger(value);
             if (intVal < 0)
@@ -336,12 +335,12 @@ public class BulkValidator {
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return intVal;
 
-        case "Occurrence.seaSurfaceTemp":
-        case "Occurrence.seaSurfaceTemperature":
-        case "Occurrence.swellHeight":
-        case "Occurrence.transectBearing":
-        case "Occurrence.bearing":
-        case "Occurrence.distance":
+        case "Sighting.seaSurfaceTemp":
+        case "Sighting.seaSurfaceTemperature":
+        case "Sighting.swellHeight":
+        case "Sighting.transectBearing":
+        case "Sighting.bearing":
+        case "Sighting.distance":
         case "Encounter.depth":
         case "Encounter.elevation":
             if (value == null) return null;

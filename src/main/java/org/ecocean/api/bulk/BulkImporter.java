@@ -117,7 +117,7 @@ public class BulkImporter {
 /*
    core functionality: creating data.....
 
-   StandardImport seems to treat a lot of Occurrence.fubar exactly as if it was Encounter.fubar, namely
+   StandardImport seems to treat a lot of Sighting.fubar exactly as if it was Encounter.fubar, namely
    setting the value on the Encouner only. so we follow this as represented in that class, fbow.
  */
         for (BulkValidator bv : fields) {
@@ -126,12 +126,12 @@ public class BulkImporter {
             switch (fieldName) {
             case "Encounter.latitude":
             case "Encounter.decimalLatitude":
-            case "Occurrence.decimalLatitude":
+            case "Sighting.decimalLatitude":
                 enc.setDecimalLatitude(bv.getValueDouble());
                 break;
             case "Encounter.longitude":
             case "Encounter.decimalLongitude":
-            case "Occurrence.decimalLongitude":
+            case "Sighting.decimalLongitude":
                 enc.setDecimalLongitude(bv.getValueDouble());
                 break;
 
@@ -149,28 +149,28 @@ public class BulkImporter {
 
             // this will supercede year/month/date but that
             // should be handled via validation step FIXME
-            case "Occurrence.dateInMilliseconds":
+            case "Sighting.dateInMilliseconds":
             case "Encounter.dateInMilliseconds":
                 Long val = bv.getValueLong();
                 if (val != null) enc.setDateInMilliseconds(val);
                 break;
-            case "Occurrence.year":
+            case "Sighting.year":
             case "Encounter.year":
                 enc.setYear(bv.getValueInteger());
                 break;
-            case "Occurrence.month":
+            case "Sighting.month":
             case "Encounter.month":
                 enc.setMonth(bv.getValueInteger());
                 break;
-            case "Occurrence.day":
+            case "Sighting.day":
             case "Encounter.day":
                 enc.setDay(bv.getValueInteger());
                 break;
-            case "Occurrence.hour":
+            case "Sighting.hour":
             case "Encounter.hour":
                 enc.setHour(bv.getValueInteger());
                 break;
-            case "Occurrence.minutes":
+            case "Sighting.minutes":
             case "Encounter.minutes":
                 enc.setMinutes(bv.getValueString()); // why?? :(
                 break;
@@ -245,33 +245,33 @@ public class BulkImporter {
             case "MicrosatelliteMarkersAnalysis.alleleNames":
             case "MicrosatelliteMarkersAnalysis.analysisID":
             case "MitochondrialDNAAnalysis.haplotype":
-            case "Occurrence.bearing":
-            case "Occurrence.bestGroupSizeEstimate":
-            case "Occurrence.comments":
-            case "Occurrence.distance":
-            case "Occurrence.effortCode":
-            case "Occurrence.fieldStudySite":
-            case "Occurrence.fieldSurveyCode":
-            case "Occurrence.groupBehavior":
-            case "Occurrence.groupComposition":
-            case "Occurrence.humanActivityNearby":
-            case "Occurrence.individualCount":
-            case "Occurrence.initialCue":
-            case "Occurrence.maxGroupSizeEstimate":
-            case "Occurrence.millis":
-            case "Occurrence.minGroupSizeEstimate":
-            case "Occurrence.numAdults":
-            case "Occurrence.numCalves":
-            case "Occurrence.numJuveniles":
-            case "Occurrence.observer":
-            case "Occurrence.occurrenceID":
-            case "Occurrence.seaState":
-            case "Occurrence.seaSurfaceTemp":
-            case "Occurrence.seaSurfaceTemperature":
-            case "Occurrence.swellHeight":
-            case "Occurrence.transectBearing":
-            case "Occurrence.transectName":
-            case "Occurrence.visibilityIndex":
+            case "Sighting.bearing":
+            case "Sighting.bestGroupSizeEstimate":
+            case "Sighting.comments":
+            case "Sighting.distance":
+            case "Sighting.effortCode":
+            case "Sighting.fieldStudySite":
+            case "Sighting.fieldSurveyCode":
+            case "Sighting.groupBehavior":
+            case "Sighting.groupComposition":
+            case "Sighting.humanActivityNearby":
+            case "Sighting.individualCount":
+            case "Sighting.initialCue":
+            case "Sighting.maxGroupSizeEstimate":
+            case "Sighting.millis":
+            case "Sighting.minGroupSizeEstimate":
+            case "Sighting.numAdults":
+            case "Sighting.numCalves":
+            case "Sighting.numJuveniles":
+            case "Sighting.observer":
+            case "Sighting.occurrenceID":
+            case "Sighting.seaState":
+            case "Sighting.seaSurfaceTemp":
+            case "Sighting.seaSurfaceTemperature":
+            case "Sighting.swellHeight":
+            case "Sighting.transectBearing":
+            case "Sighting.transectName":
+            case "Sighting.visibilityIndex":
             case "SatelliteTag.serialNumber":
             case "SexAnalysis.processingLabTaskID":
             case "SexAnalysis.sex":
