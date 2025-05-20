@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Accordion, Card, useAccordionButton } from 'react-bootstrap';
+import ThemeColorContext from '../ThemeColorProvider';
 
 function ContextAwareToggle({ children, eventKey }) {
   const decoratedOnClick = useAccordionButton(eventKey);
@@ -12,27 +13,28 @@ function ContextAwareToggle({ children, eventKey }) {
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '0.75rem 1.25rem',
-        background: '#f7f7f7',
         cursor: 'pointer',
         userSelect: 'none',
       }}
     >
       {children}
-      <span className="bi bi-caret-right"  
-            style={{ transition: 'transform .2s' }}
-            data-bs-target={`#collapse-${eventKey}`}
+      <span className="bi bi-chevron-down"
+        style={{ transition: 'transform .2s', marginLeft: "1rem" }}
+        data-bs-target={`#collapse-${eventKey}`}
       />
     </div>
   );
 }
 
-export default function InfoAccordion({icon, title, data=[]}) {
+export default function InfoAccordion({ icon, title, data = [] }) {
+  const theme = React.useContext(ThemeColorContext);
   return (
-    <Accordion defaultActiveKey="0" style={{ maxWidth: 400,  }}>
-      <Card>
-        <Card.Header>
+    <Accordion defaultActiveKey="0" style={{ maxWidth: 400 }}>
+      <Card style={{ backgroundColor: theme.primaryColors.primary50 }}>
+        <Card.Header style={{ backgroundColor: theme.primaryColors.primary50 }}>
           <ContextAwareToggle eventKey="0">
-            {icon} {title}
+            {icon}
+            <span style={{ marginLeft: 8 }}>{title}</span>
           </ContextAwareToggle>
         </Card.Header>
         <Accordion.Collapse eventKey="0">

@@ -3,6 +3,8 @@ import { observer } from "mobx-react-lite";
 import InfoAccordion from "../../components/InfoAccordion";
 import { FormattedMessage } from "react-intl";
 import { toJS } from 'mobx';
+import { FaImage } from "react-icons/fa";
+
 export const BulkImportImageUploadInfo = observer(({ store }) => {
 
     const allPhotosUploading = toJS(store.imageSectionFileNames);
@@ -47,7 +49,11 @@ export const BulkImportImageUploadInfo = observer(({ store }) => {
     return (
         <div style={{ marginTop: '2rem' }}>
             <InfoAccordion
-                icon={<span className="bi bi-file-earmark-image" style={{ fontSize: '1.5rem' }} />}
+                icon={<FaImage
+                                        size={20}
+                                        // color="#00b3d9" 
+                                        color={store.activeStep === 0 ? "#fff" : "#00b3d9"}
+                                    />}
                 title={title}
                 data={data}
             />

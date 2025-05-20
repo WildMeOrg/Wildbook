@@ -9,6 +9,7 @@ import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
 import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
 import { BulkImportSpreadsheetUploadInof } from "./BulkImportSpreadsheetUploadInof";
+import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 
 export const BulkImportTableReview = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -35,7 +36,22 @@ export const BulkImportTableReview = observer(({ store }) => {
   });
 
   return (
-    <div >
+    <div className="mt-4">
+      <div>
+        <div>
+          <div className="d-flex flex-row justify-content-between">
+                  <div>
+                    <h5 style={{ fontWeight: "600" }}>
+                      <FormattedMessage id="BULK_IMPORT_TABLE_REVIEW" />
+                    </h5>
+                    <p>
+                      <FormattedMessage id="BULK_IMPORT_TABLE_REVIEW_DESC" />
+                    </p>
+                  </div>
+                  <BulkImportSeeInstructionsButton store={store} />
+                </div>
+        </div>
+      </div>
       <div className="d-flex flex-row ">
         <BulkImportImageUploadInfo store={store} />
         <BulkImportSpreadsheetUploadInof store={store} />
