@@ -11,6 +11,7 @@ import java.util.Set;
 import org.json.JSONObject;
 
 import org.ecocean.api.bulk.*;
+import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
@@ -56,6 +57,17 @@ public class BulkImporter {
             System.out.println("createImport() row " + rowNum);
             processRow(fields);
         }
+        System.out.println(
+            "------------ all rows processed; beginning persistence -------------\n");
+        for (Encounter enc : encounterCache.values()) {
+            System.out.println("EEEE " + enc);
+        }
+        for (Occurrence occ : occurrenceCache.values()) {
+            System.out.println("OOOO " + occ);
+        }
+        for (MarkedIndividual indiv : individualCache.values()) {
+            System.out.println("IIII " + indiv);
+        }
         return rtn;
     }
 
@@ -78,7 +90,7 @@ public class BulkImporter {
         MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
         Occurrence occ = getOrCreateOccurrence(fmap);
         Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
-        // if (enc != null) return; // FIXME temp disable
+        if (enc != null) return; // FIXME temp disable
 
 /*
         these are in order based on indexing numerical value such that list.get(i)
@@ -117,7 +129,7 @@ public class BulkImporter {
 /*
    core functionality: creating data.....
 
-   StandardImport seems to treat a lot of Occurrence.fubar exactly as if it was Encounter.fubar, namely
+   StandardImport seems to treat a lot of Sighting.fubar exactly as if it was Encounter.fubar, namely
    setting the value on the Encouner only. so we follow this as represented in that class, fbow.
  */
         for (BulkValidator bv : fields) {
@@ -126,12 +138,12 @@ public class BulkImporter {
             switch (fieldName) {
             case "Encounter.latitude":
             case "Encounter.decimalLatitude":
-            case "Occurrence.decimalLatitude":
+            case "Sighting.decimalLatitude":
                 enc.setDecimalLatitude(bv.getValueDouble());
                 break;
             case "Encounter.longitude":
             case "Encounter.decimalLongitude":
-            case "Occurrence.decimalLongitude":
+            case "Sighting.decimalLongitude":
                 enc.setDecimalLongitude(bv.getValueDouble());
                 break;
 
@@ -149,28 +161,28 @@ public class BulkImporter {
 
             // this will supercede year/month/date but that
             // should be handled via validation step FIXME
-            case "Occurrence.dateInMilliseconds":
+            case "Sighting.dateInMilliseconds":
             case "Encounter.dateInMilliseconds":
                 Long val = bv.getValueLong();
                 if (val != null) enc.setDateInMilliseconds(val);
                 break;
-            case "Occurrence.year":
+            case "Sighting.year":
             case "Encounter.year":
                 enc.setYear(bv.getValueInteger());
                 break;
-            case "Occurrence.month":
+            case "Sighting.month":
             case "Encounter.month":
                 enc.setMonth(bv.getValueInteger());
                 break;
-            case "Occurrence.day":
+            case "Sighting.day":
             case "Encounter.day":
                 enc.setDay(bv.getValueInteger());
                 break;
-            case "Occurrence.hour":
+            case "Sighting.hour":
             case "Encounter.hour":
                 enc.setHour(bv.getValueInteger());
                 break;
-            case "Occurrence.minutes":
+            case "Sighting.minutes":
             case "Encounter.minutes":
                 enc.setMinutes(bv.getValueString()); // why?? :(
                 break;
@@ -231,8 +243,8 @@ public class BulkImporter {
             case "Encounter.identificationRemarks":
             case "Encounter.informOther":
             case "Encounter.measurement":
-            case "Encounter.occurrenceID":
-            case "Encounter.occurrenceRemarks":
+            case "Encounter.sightingID":
+            case "Encounter.sightingRemarks":
             case "Encounter.otherCatalogNumbers":
             case "Encounter.patterningCode":
             case "Encounter.photographer":
@@ -245,33 +257,33 @@ public class BulkImporter {
             case "MicrosatelliteMarkersAnalysis.alleleNames":
             case "MicrosatelliteMarkersAnalysis.analysisID":
             case "MitochondrialDNAAnalysis.haplotype":
-            case "Occurrence.bearing":
-            case "Occurrence.bestGroupSizeEstimate":
-            case "Occurrence.comments":
-            case "Occurrence.distance":
-            case "Occurrence.effortCode":
-            case "Occurrence.fieldStudySite":
-            case "Occurrence.fieldSurveyCode":
-            case "Occurrence.groupBehavior":
-            case "Occurrence.groupComposition":
-            case "Occurrence.humanActivityNearby":
-            case "Occurrence.individualCount":
-            case "Occurrence.initialCue":
-            case "Occurrence.maxGroupSizeEstimate":
-            case "Occurrence.millis":
-            case "Occurrence.minGroupSizeEstimate":
-            case "Occurrence.numAdults":
-            case "Occurrence.numCalves":
-            case "Occurrence.numJuveniles":
-            case "Occurrence.observer":
-            case "Occurrence.occurrenceID":
-            case "Occurrence.seaState":
-            case "Occurrence.seaSurfaceTemp":
-            case "Occurrence.seaSurfaceTemperature":
-            case "Occurrence.swellHeight":
-            case "Occurrence.transectBearing":
-            case "Occurrence.transectName":
-            case "Occurrence.visibilityIndex":
+            case "Sighting.bearing":
+            case "Sighting.bestGroupSizeEstimate":
+            case "Sighting.comments":
+            case "Sighting.distance":
+            case "Sighting.effortCode":
+            case "Sighting.fieldStudySite":
+            case "Sighting.fieldSurveyCode":
+            case "Sighting.groupBehavior":
+            case "Sighting.groupComposition":
+            case "Sighting.humanActivityNearby":
+            case "Sighting.individualCount":
+            case "Sighting.initialCue":
+            case "Sighting.maxGroupSizeEstimate":
+            case "Sighting.millis":
+            case "Sighting.minGroupSizeEstimate":
+            case "Sighting.numAdults":
+            case "Sighting.numCalves":
+            case "Sighting.numJuveniles":
+            case "Sighting.observer":
+            case "Sighting.occurrenceID":
+            case "Sighting.seaState":
+            case "Sighting.seaSurfaceTemp":
+            case "Sighting.seaSurfaceTemperature":
+            case "Sighting.swellHeight":
+            case "Sighting.transectBearing":
+            case "Sighting.transectName":
+            case "Sighting.visibilityIndex":
             case "SatelliteTag.serialNumber":
             case "SexAnalysis.processingLabTaskID":
             case "SexAnalysis.sex":
@@ -293,6 +305,24 @@ public class BulkImporter {
         }
         // fields done
         System.out.println("+ populated data on " + enc);
+        // now attach annotations
+        String tx = enc.getTaxonomyString();
+        List<Annotation> annots = new ArrayList<Annotation>();
+        for (String maKey : maFields) {
+            if (maKey == null) continue; // data skipped an index
+            BulkValidator bv = fmap.get(maKey);
+            if (bv == null) throw new RuntimeException("could not find fmap for key=" + maKey);
+            if (bv.getValueString() == null) continue;
+            MediaAsset ma = this.mediaAssetMap.get(bv.getValueString());
+            if (ma == null)
+                throw new RuntimeException("could not find MediaAsset for maKey=" + maKey +
+                        ", bv=" + bv.getValueString() + " in " + this.mediaAssetMap);
+            Annotation ann = new Annotation(tx, ma);
+            ann.setIsExemplar(true);
+            annots.add(ann);
+        }
+        if (annots.size() > 0) enc.addAnnotations(annots);
+        System.out.println("+ populated " + annots.size() + " MediaAssets on " + enc);
     }
 
 /*
@@ -310,14 +340,17 @@ public class BulkImporter {
         String specificEpithet = fmap.get("Encounter.specificEpithet").getValueString();
         if (indiv == null)
             indiv = MarkedIndividual.withName(myShepherd, id, genus, specificEpithet);
-        // FIXME create if does not exist
         if (indiv == null) {
             System.out.println(
-                "BulkImporter.getMarkedIndividual() could not find existing indiv based on id=" +
-                id);
-        } else {
-            individualCache.put(id, indiv);
+                "BulkImporter.getMarkedIndividual() creating new; could not find existing indiv based on id="
+                + id);
+            indiv = new MarkedIndividual();
+            indiv.setId(id);
+            indiv.setGenus(genus);
+            indiv.setSpecificEpithet(specificEpithet);
+            // FIXME what else???
         }
+        individualCache.put(id, indiv);
         return indiv;
     }
 
