@@ -2,11 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import { FormattedMessage } from 'react-intl';
+import { observer } from 'mobx-react-lite';
 
-const BulkImportInstructionsModal = ({ show, onHide }) => (
+const BulkImportInstructionsModal = observer(({ store }) => (
   <Modal
-    show={show}
-    onHide={onHide}
+    show={store.showInstructions}
+    onHide={() => store.setShowInstructions(false)}
     size="lg"
     aria-labelledby="bulk-import-modal"
     centered
@@ -235,7 +236,10 @@ const BulkImportInstructionsModal = ({ show, onHide }) => (
     </Modal.Body>
 
     <Modal.Footer>
-      <Button variant="secondary" onClick={onHide}>
+      <Button variant="secondary" 
+      // onClick={onHide}
+      onClick={() => store.setShowInstructions(false)}
+      >
         <FormattedMessage
           id="bulkImport.instructions.closeButton"
           defaultMessage="Close"
@@ -243,7 +247,7 @@ const BulkImportInstructionsModal = ({ show, onHide }) => (
       </Button>
     </Modal.Footer>
   </Modal>
-);
+));
 
 BulkImportInstructionsModal.propTypes = {
   show: PropTypes.bool.isRequired,
