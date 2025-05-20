@@ -198,7 +198,8 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
-        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
+        return
+                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
@@ -805,8 +806,11 @@ public class Annotation extends Base implements java.io.Serializable {
             }
             // this does either/or part/iaClass - unsure if this is correct
             boolean usedPart = false;
+            // do not filter iaClass when it starts with 'wild_dog'; see commit 93b99db
+            boolean skipWildDog = ((this.getIAClass() != null) &&
+                this.getIAClass().startsWith("wild_dog"));
             if (Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
-                "usePartsForIdentification"))) {
+                "usePartsForIdentification")) && !skipWildDog) {
                 String part = this.getPartIfPresent();
                 if (!Util.stringIsEmptyOrNull(part)) {
                     arg = new JSONObject();
@@ -818,7 +822,7 @@ public class Annotation extends Base implements java.io.Serializable {
                     usedPart = true;
                 }
             }
-            if (!usedPart && (this.getIAClass() != null)) {
+            if (!usedPart && !skipWildDog && (this.getIAClass() != null)) {
                 arg = new JSONObject();
                 arg.put("iaClass", this.getIAClass());
                 wrapper = new JSONObject();
