@@ -33,6 +33,8 @@ export class BulkImportStore {
   }
   _submissionErrors = {};
   _showInstructions = false;
+  _isSavingDraft = false;
+  _lastSavedAt = null;
 
   isValidISO(val) {
     const dt = new Date(val);
@@ -216,6 +218,7 @@ export class BulkImportStore {
       spreadsheetUploadProgress: this._spreadsheetUploadProgress,
 
       worksheetInfo: toJS(this._worksheetInfo),
+      lastSavedAt: this._lastSavedAt,
     };
   }
 
@@ -318,7 +321,14 @@ export class BulkImportStore {
   }
 
   get showInstructions() {
-    return this._showInstructions;  
+    return this._showInstructions;
+  }
+
+  get isSavingDraft() {
+    return this._isSavingDraft;
+  }
+  get lastSavedAt() {
+    return this._lastSavedAt;
   }
 
   setSpreadsheetData(data) {
@@ -436,10 +446,20 @@ export class BulkImportStore {
 
   saveState() {
     try {
+      runInAction(() => {
+        this._isSavingDraft = true;
+        this._lastSavedAt = Date.now();
+      });
+
       const json = JSON.stringify(this.stateSnapshot);
       window.localStorage.setItem('BulkImportStore', json);
     } catch (e) {
       console.error('saving as draft failed', e);
+    } finally {
+      setTimeout(
+        () => runInAction(() => { this._isSavingDraft = false; }),
+        700
+      );
     }
   }
 

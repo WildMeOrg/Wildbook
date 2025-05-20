@@ -12,6 +12,7 @@ import { BulkImportTask } from "./BulkImportTask";
 import { BulkImportSetLocation } from "./BulkImportSetLocation";
 import { BulkImportContinueModal } from "./BulkImportContinueModal";
 import BulkImportInstructionsModal from "./BulkImportInstructionsModal";
+import DraftSaveIndicator from "./BulkImportDraftSavedIndicator";
 
 const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
@@ -38,9 +39,13 @@ const BulkImport = observer(() => {
 
   return (
     <Container>
+      <div className="d-flex flex-row justify-content-between align-items-center">
       <h1 className="mt-3">
         <FormattedMessage id="BULK_IMPORT" />
       </h1>
+      <DraftSaveIndicator store={store}/>
+      </div>
+
       {<BulkImportUploadProgress store={store} />}
       {store.activeStep === 0 && <BulkImportImageUpload store={store} />}
       {store.activeStep === 1 && <BulkImportSpreadsheet store={store} />}
