@@ -11,7 +11,6 @@ const getCollaborationNotifications = async () => {
         const invites = [...doc.querySelectorAll('.collaboration-invite-notification')];        
         return { collaborationTitle: title, collaborationData: invites };        
       } else {
-        console.log('No title found');
         return { collaborationTitle: '', collaborationData: [] };
       }
     } catch (error) {

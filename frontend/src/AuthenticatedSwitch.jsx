@@ -1,56 +1,87 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import NotFound from "./pages/errorPages/NotFound";
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
-import Home from "./pages/Home";
-import Footer from "./components/Footer";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
-import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
+import Footer from "./components/Footer";
 import useGetMe from "./models/auth/users/useGetMe";
-import AlertBanner from "./components/AlertBanner";
 
-export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
-  const { isFetched, data, error } = useGetMe();
+// Lazy load pages
+const Login = lazy(() => import("./pages/Login"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Home = lazy(() => import("./pages/Home"));
+const EncounterSearch = lazy(
+  () => import("./pages/SearchPages/EncounterSearch"),
+);
+const Citation = lazy(() => import("./pages/Citation"));
+const AdminLogs = lazy(() => import("./pages/AdminLogs"));
+const ReportEncounter = lazy(
+  () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
+);
+const ReportConfirm = lazy(
+  () => import("./pages/ReportsAndManagamentPages/ReportConfirm"),
+);
+const ProjectList = lazy(() => import("./pages/ProjectList"));
+const ManualAnnotation = lazy(() => import("./pages/ManualAnnotation"));
+
+export default function AuthenticatedSwitch({
+  showclassicsubmit,
+  showClassicEncounterSearch,
+}) {
+  const { data } = useGetMe();
   const username = data?.username;
-  const avatar = data?.imageURL || "/react/images/Avatar.png";
+  const avatar =
+    data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
+  const [header, setHeader] = React.useState(true);
 
   return (
-    <main>
+    <div className="d-flex flex-column min-vh-100">
+      {/* Header */}
       <div
+        id="header"
         className="position-fixed top-0 mx-auto w-100"
         style={{
-          maxWidth: "1440px",
           zIndex: "100",
+          height: "50px",
+          backgroundColor: "#303336",
         }}
       >
-        {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
         <AuthenticatedAppHeader
           username={username}
           avatar={avatar}
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
+          showclassicsubmit={showclassicsubmit}
+          showClassicEncounterSearch={showClassicEncounterSearch}
         />
       </div>
 
+      {/* Main Content */}
       <div
-        className="position-absolute top-0 start-0 justify-content-center align-items-center overflow-hidden w-100"
+        id="main-content"
+        className="flex-grow-1 d-flex justify-content-center"
         style={{
           boxSizing: "border-box",
-          minHeight: "calc(100vh - 40px)", // Assuming the header height is 40px
+          overflow: "hidden",
+          paddingTop: header ? "48px" : "0",
         }}
       >
-        <Routes>
-          <Route path="/profile" element={<Profile />} />
-          {/* <Route path="/about" element={<About />} /> */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-
-        <Footer />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/citation" element={<Citation />} />
+            <Route path="/projects/overview" element={<ProjectList />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/report" element={<ReportEncounter />} />
+            <Route path="/reportConfirm" element={<ReportConfirm />} />
+            <Route path="/encounter-search" element={<EncounterSearch />} />
+            <Route path="/admin/logs" element={<AdminLogs />} />
+            <Route path="/manual-annotation" element={<ManualAnnotation />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Home />} />
+            <Route path="*" element={<NotFound setHeader={setHeader} />} />
+          </Routes>
+        </Suspense>
       </div>
-    </main>
+
+      <Footer />
+    </div>
   );
 }

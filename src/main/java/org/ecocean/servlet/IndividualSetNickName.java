@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +46,6 @@ public class IndividualSetNickName extends HttpServlet {
             MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
             try {
                 myShark.setNickName(nickname);
-                myShark.setNickNamer(namer);
             } catch (Exception le) {
                 locked = true;
                 myShepherd.rollbackDBTransaction();

@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%!
@@ -112,12 +114,12 @@ context=ServletUtilities.getContext(request);
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
-z-index: 1 !imporant;
+z-index: 1 !important;
 width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
 margin-bottom: 8px !important;
-</style>
+}</style>
 
 <script>
   function resetMap() {
@@ -146,7 +148,7 @@ String formAction="surveySearchResults.jsp";
 
 
 <h1 class="intro"><strong><span class="para">
-		<img src="../images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+		<img src="../images/WildMe-Logo-100x100.png" width="50" align="absmiddle"/></span></strong>
   <%=titleString%>
 </h1>
 </p>

@@ -6,6 +6,7 @@ target
 bin
 out
 .idea*
+.sdkmanrc
 *.ipr
 *.iml
 *.iws
@@ -29,6 +30,7 @@ src/main/caribwhale_data_dir
 /node_modules
 .vscode/
 *.swp
+/src/jsp/
 
 \.classpath
 .classpath
@@ -39,4 +41,5 @@ catalina.base_IS_UNDEFINED
 /frontend/dist
 /frontend/.env
 /frontend/build
-/frontend/.env
+/frontend/src/serviceWorkerRegistration.js
+/frontend/src/serviceWorker.js

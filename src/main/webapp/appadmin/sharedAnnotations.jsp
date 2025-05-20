@@ -18,6 +18,7 @@ org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*
               "
 %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 private String scrubUrl(URL u) {

@@ -16,6 +16,7 @@ java.lang.StringBuffer,
 java.util.Vector,
 java.util.Iterator,
 java.lang.NumberFormatException"%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%
 String context="context0";
@@ -26,7 +27,6 @@ myShepherd.setAction("myUsers.jsp");
 myShepherd.beginDBTransaction();
 int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-//TODO which of the above not needed?
 %>
 <jsp:include page="/header.jsp" flush="true"/>
 <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>

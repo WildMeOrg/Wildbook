@@ -1,3 +1,5 @@
+// TODO: evaluate for deprecation and removal as we do not support S3 specifically anymore
+
 package org.ecocean.media;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -40,10 +42,8 @@ public class S3AssetStore extends AssetStore {
         org.ecocean.media.S3AssetStore.class);
 
     /**
-       For information on credentials used to access Amazon AWS S3, see:
-       https://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html TODO possibly allow per-AssetStore or even per-MediaAsset
-          credentials. these should be passed by reference (e.g. dont store them in, for example, MediaAsset parameters) perhaps to Profile or some
-          properties etc?
+        possibly allow per-AssetStore or even per-MediaAsset credentials. these should be passed by reference 
+        (e.g. dont store them in, for example, MediaAsset parameters) perhaps to Profile or some properties etc?
      */
     AmazonS3 s3Client = null;
 
@@ -91,7 +91,6 @@ public class S3AssetStore extends AssetStore {
      */
     @Override public MediaAsset create(final JSONObject params)
     throws IllegalArgumentException {
-        // TODO sanity check of params?
         try {
             return new MediaAsset(this, params);
         } catch (IllegalArgumentException e) {
@@ -103,7 +102,7 @@ public class S3AssetStore extends AssetStore {
     throws IOException {
         Path lpath = localPath(ma);
 
-        if (lpath == null) return false; // TODO or throw Exception?
+        if (lpath == null) return false;
         if (!force && Files.exists(lpath)) return true; // we assume if we have it, then we should be cool
         System.out.println("S3.cacheLocal() trying to write to " + lpath);
         S3Object s3obj = getS3Object(ma);
@@ -139,7 +138,6 @@ public class S3AssetStore extends AssetStore {
     throws IOException {
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
         if (!file.exists()) throw new IOException(file.toString() + " does not exist");
-        // TODO handle > 5G files:  https://docs.aws.amazon.com/AmazonS3/latest/dev/UploadingObjects.html
         if (file.length() > 5 * 1024 * 1024 * 1024)
             throw new IOException("S3AssetStore does not yet support file upload > 5G");
         Object bp = getParameter(params, "bucket");
@@ -189,12 +187,6 @@ public class S3AssetStore extends AssetStore {
             throw new IllegalArgumentException("Invalid bucket and/or key value");
         getS3Client().deleteObject(new DeleteObjectRequest(bp.toString(), kp.toString()));
     }
-
-/*
-    public File getFile(final Path path) {
-        return new File(root().toString(), path.toString());
-    }
- */
 
     /**
      * Return a full URL to the given MediaAsset, or null if the asset is not web-accessible.

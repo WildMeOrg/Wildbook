@@ -14,6 +14,8 @@ import org.ecocean.servlet.ServletUtilities;
 import java.io.File;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.ecocean.shepherd.core.Shepherd;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -70,7 +72,7 @@ public class ApiAccess {
 
     // returns map of (negative) permissions for this user (based on role) for this object class
     // note: no hash key for a property means all access, therefore a null value means user CANNOT write
-    // TODO this structure is subject to change for sure!
+    // TODO: this structure is subject to change for sure!
     public HashMap<String, String> permissions(Object o, HttpServletRequest request) {
         return permissions(o.getClass().getName(), request);
     }
@@ -120,7 +122,7 @@ public class ApiAccess {
                                 Element pel = (Element)props.item(j);
                                 String propName = pel.getAttribute("name");
                                 if (propName != null) {
-                                    ///////////// TODO for now we assume we ONLY have a sub element for <write> perm here so we skip a step
+                                    // TODO: for now we assume we ONLY have a sub element for <write> perm here so we skip a step
                                     NodeList proles = pel.getElementsByTagName("role");
                                     boolean allowed = false;
                                     for (int k = 0; k < proles.getLength(); k++) {

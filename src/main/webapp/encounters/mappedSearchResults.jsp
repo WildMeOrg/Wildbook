@@ -1,7 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
-  <%
+<%
   String context="context0";
   context=ServletUtilities.getContext(request);
 
@@ -71,7 +73,6 @@
 
     List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
-    //TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 %>
 
 
@@ -477,7 +478,7 @@ if (request.getQueryString() != null) {
 
  <ul id="tabmenu">
 
-   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
    </a></li>
    <li><a
      href="projectManagement.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("projectManagement")%>

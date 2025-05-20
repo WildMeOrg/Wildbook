@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.jdo.Query;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class WBQuery implements java.io.Serializable {
     private static final long serialVersionUID = -7934850478934029842L;
@@ -22,7 +23,6 @@ public class WBQuery implements java.io.Serializable {
     protected AccessControl owner;
     protected long revision;
 
-    // TODO: ? find a more elegant solution to range queries
     protected int range;
     protected int minRange;
 
@@ -41,7 +41,6 @@ public class WBQuery implements java.io.Serializable {
         this.className = params.optString("class");
         this.parameters = new JSONObject(params.optString("query", "{}"));
         System.out.println("initialized query-param as " + this.parameters.toString());
-        // TODO: ? find a more elegant solution to range queries
         this.minRange = params.optInt("minRange", 0);
         this.range = params.optInt("range", 100);
 
@@ -115,10 +114,6 @@ public class WBQuery implements java.io.Serializable {
         return out;
     }
 
-/* something like this?
-    WBQuery qry = new WBQuery(new JSONObject("{ \"foo\" : \"bar\" }"));
-    List<Object> res = qry.doQuery(myShepherd);
- */
     public Query toQuery(Shepherd myShepherd)
     throws RuntimeException {
         Query query = null;
@@ -131,7 +126,6 @@ public class WBQuery implements java.io.Serializable {
             query = myShepherd.getPM().newQuery(qString);
             query.setClass(getCandidateClass());
 
-            // TODO: double-check that this is the best way to do datestuff
             queryDeclareImports(query);
 
             querySetOrdering(query);
@@ -170,8 +164,7 @@ public class WBQuery implements java.io.Serializable {
     }
 
     /**
-     * this is run on each query, and is necessary to enable e.g. datetime comparisons in the query TODO: double-check that this is necessary; I
-     * haven't seen this kind of thing elsewhere in wildbook -DB
+     * this is run on each query, and is necessary to enable e.g. datetime comparisons in the query
      **/
     private void queryDeclareImports(Query query) {
         if (containsDateTime()) {
@@ -180,23 +173,19 @@ public class WBQuery implements java.io.Serializable {
     }
 
     /**
-     * TODO: make this not constant
      * @returns whether or not this WBQuery contains a datetime within it, which has implications for how to handle the jdoql query
      **/
     private boolean containsDateTime() {
         return parameters.has("dateTime");
     }
 
-    // TODO: parse parameters for an optional range entry
     // note: mongoDB's 'find' command (which is our syntactic model for json queries) just adds this as a callback function 'limit' e.g.
     // db.collection.find({queryargs}).limit(10);
-    // this parses the range, which is passed as an optional third argument of the original query TODO:
+    // this parses the range, which is passed as an optional third argument of the original query 
     public void querySetRange(Query query) {
-        // TODO: ? find a more elegant solution to range queries
         query.setRange(minRange, range);
     }
 
-    // TODO
     private void querySetOrdering(Query query) {
         if (this.ordering != null && !this.ordering.equals("")) {
             query.setOrdering(this.ordering);
@@ -307,7 +296,7 @@ public class WBQuery implements java.io.Serializable {
                 output += ("LOGICAL OPERATORS NOT SUPPORTED YET: Error parsing " + operator);
             }
         }
-        return output; // " operators = ("+output+"): ( (not parsable)" + fieldQuery.toString() + ")";
+        return output;
     }
 
     private static String parseOperator(String field, String operator, String value) {
@@ -348,7 +337,7 @@ public class WBQuery implements java.io.Serializable {
     private static String buildBooleanOperator(String field, String operator, String value) {
         String isNot = "";
 
-        if (value != "true") isNot = " not"; // TODO: double-check the logic on this line once we have examples
+        if (value != "true") isNot = " not";
         return buildComparisonOperator(field, "is" + isNot, value);
     }
 
@@ -449,7 +438,6 @@ public class WBQuery implements java.io.Serializable {
     }
 
     // Here are literal sets for looking up which class fields are _not_ string-like (for use with classFieldIsEscapedInQuotes)
-    // TODO: perhaps generate these dynamically? These MUST correspond with classDefinitions.json
     private static final Set<String> encounterNonStringFields;
     private static final Set<String> mediaAssetNonStringFields;
     private static final Set<String> mediaAssetSetNonStringFields;

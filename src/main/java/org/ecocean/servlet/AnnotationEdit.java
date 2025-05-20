@@ -14,7 +14,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.json.JSONObject;
@@ -43,7 +43,6 @@ public class AnnotationEdit extends HttpServlet {
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
 
-        // TODO we could make this check owner of Encounter(s) etc etc
         User user = AccessControl.getUser(request, myShepherd);
         boolean isAdmin = false;
         if (user != null)

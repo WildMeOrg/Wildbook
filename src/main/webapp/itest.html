@@ -520,7 +520,7 @@ function checkAround(imageData, x, y, m, lvl) {
 		var ldepth = 4;
 		if (lvl > 1) ldepth = 8;
 console.log('%d: (%d,%d) -------------', lvl, x, y);
-		var m2 = -1 / m;  //TODO handle 1/0
+		var m2 = -1 / m;  
 		var b = y - m2 * x;
 var x2 = x + ldepth;
 var y2 = m2 * x2 + b;
