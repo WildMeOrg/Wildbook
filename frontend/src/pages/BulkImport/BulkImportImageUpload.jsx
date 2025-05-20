@@ -11,7 +11,7 @@ import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
-
+import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton"
 
 const handleDragOver = (e) => {
   e.preventDefault();
@@ -105,20 +105,25 @@ export const BulkImportImageUpload = observer(({ store }) => {
   };
 
   return (
-    <div className="p-2">
-      <Row>
-        <h5 style={{ fontWeight: "600" }}>
-          <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE" /> {store.imageRequired && "*"}
-        </h5>
-        <p>
-          <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE_DESC"
-            values={{
-              maxSize: maxSize,
-              maxImageCount: store.maxImageCount,
-            }}
-          />
+    <div className="mt-4">
+      <Row >
+        <div className="d-flex flex-row justify-content-between">
+          <div>
+            <h5 style={{ fontWeight: "600" }}>
+              <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE" /> {store.imageRequired && "*"}
+            </h5>
+            <p>
+              <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE_DESC"
+                values={{
+                  maxSize: maxSize,
+                  maxImageCount: store.maxImageCount,
+                }}
+              />
 
-        </p>
+            </p>
+          </div>
+          <BulkImportSeeInstructionsButton store={store} />
+        </div>
       </Row>
 
       <Row>

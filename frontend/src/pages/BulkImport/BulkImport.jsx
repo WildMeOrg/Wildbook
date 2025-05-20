@@ -11,6 +11,8 @@ import { BulkImportIdentification } from "./BulkImportIdentification";
 import { BulkImportTask } from "./BulkImportTask";
 import { BulkImportSetLocation } from "./BulkImportSetLocation";
 import { BulkImportContinueModal } from "./BulkImportContinueModal";
+import BulkImportInstructionsModal from "./BulkImportInstructionsModal";
+
 const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
   const [savedSubmissionId, setSavedSubmissionId] = React.useState(null);
@@ -23,7 +25,7 @@ const BulkImport = observer(() => {
       setSavedSubmissionId(submissionId);
       store.hydrate(savedStore);
       store.setActiveStep(0);
-       store.fetchAndApplyUploaded();
+      store.fetchAndApplyUploaded();
     }
   }, []);
 
@@ -51,6 +53,9 @@ const BulkImport = observer(() => {
           <BulkImportContinueModal store={store} />
         )
       }
+      <BulkImportInstructionsModal
+        store={store}
+      />
     </Container>
   );
 });

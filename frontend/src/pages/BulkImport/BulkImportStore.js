@@ -8,7 +8,7 @@ dayjs.extend(customParseFormat);
 export class BulkImportStore {
   _imagePreview = [];
   _imageSectionFileNames = [];
-  _imageRequired = true;
+  _imageRequired = false;
   _imageSectionError = false;
   _imageCount = 0;
   _flow = null;
@@ -32,6 +32,7 @@ export class BulkImportStore {
     uploadProgress: this._spreadsheetUploadProgress,
   }
   _submissionErrors = {};
+  _showInstructions = false;
 
   isValidISO(val) {
     const dt = new Date(val);
@@ -316,6 +317,10 @@ export class BulkImportStore {
     return this._failedImages;
   }
 
+  get showInstructions() {
+    return this._showInstructions;  
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
   }
@@ -392,6 +397,10 @@ export class BulkImportStore {
 
   setFailedImages(image) {
     this._failedImages.push(image);
+  }
+
+  setShowInstructions(show) {
+    this._showInstructions = show;
   }
 
   clearSubmissionErrors() {
@@ -699,6 +708,8 @@ export class BulkImportStore {
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, error: true, progress: 0 } : f,
       );
+
+      this.setFailedImages(file.name);
     });
 
     this._flow = flowInstance;

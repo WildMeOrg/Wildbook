@@ -6,6 +6,7 @@ import { observer } from "mobx-react-lite";
 import ThemeContext from "../../ThemeColorProvider";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { specifiedColumns, removedColumns } from "./BulkImportConstants";
+import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 
 
 export const BulkImportSpreadsheet = observer(({ store }) => {
@@ -33,7 +34,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const totalRows = sheetStats.reduce((sum, s) => sum + s.rowCount, 0);
       const maxCols = Math.max(...sheetStats.map((s) => s.colCount), 0);
 
-      store.setWorksheetInfo(sheetNames.length, sheetNames, totalRows, maxCols);
+      store.setWorksheetInfo(sheetNames.length, sheetNames, maxCols, totalRows);
 
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
@@ -211,14 +212,19 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   };
 
   return (
-    <div className="p-2">
-      <h5 style={{ fontWeight: "600" }}>
-        <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET" />
-      </h5>
-      <p>
-        <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART1" />
-        <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART2" />
-      </p>
+    <div className="mt-4">
+      <div className="d-flex flex-row justify-content-between">
+        <div>
+          <h5 style={{ fontWeight: "600" }}>
+            <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET" />
+          </h5>
+          <p>
+            <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART1" />
+            <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART2" />
+          </p>
+        </div>
+        <BulkImportSeeInstructionsButton store={store} />
+      </div>
 
       <div
         className={`d-flex 
