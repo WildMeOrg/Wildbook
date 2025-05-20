@@ -8,7 +8,7 @@ import org.dom4j.Element;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.grid.*;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.SuperSpot;
 
 import java.io.*;

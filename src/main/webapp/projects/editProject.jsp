@@ -11,6 +11,8 @@
          java.io.File, java.text.DecimalFormat,
          org.apache.commons.lang3.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -81,7 +83,6 @@ function doProjectGetAjax(json){
           addHTMLListeners();
       },
       error: function(x,y,z) {
-        //TODO some sort of indication on user end that something has gone wrong
           console.warn('%o %o %o', x, y, z);
       }
   });
@@ -228,7 +229,6 @@ function doDeleteAjax(json){
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-        //TODO indicate to user that something good happened
           window.location.replace('/projects/projectList.jsp');
       },
       error: function(x,y,z) {

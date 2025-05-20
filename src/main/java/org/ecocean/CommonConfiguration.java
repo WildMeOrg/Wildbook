@@ -10,6 +10,9 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 import javax.servlet.ServletContext;
+
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
@@ -215,7 +218,6 @@ public class CommonConfiguration {
         return u.toASCIIString().replaceFirst(":80\\b", ""); // hide :80 cuz its tacky
     }
 
-    // TODO maybe these should be private so as not to be overused
     public static JSONObject getServerInfo(Shepherd myShepherd) {
         return SystemValue.getJSONObject(myShepherd, "SERVER_INFO");
     }
@@ -328,16 +330,6 @@ public class CommonConfiguration {
         }
     }
 
-    public static String getAdoptionCampaignUrl(String context) {
-        try {
-            return getProperty("adoptionCampaignUrl", context).trim();
-        } catch (NullPointerException e) {
-            System.out.println(
-                "NPE in getAdoptionCampaignUrl. Returning blank string as a default.");
-            return "";
-        }
-    }
-
     public static String getAnimalSingular(String context) {
         try {
             return getProperty("animalSingular", context).trim();
@@ -394,22 +386,6 @@ public class CommonConfiguration {
 
     public static String getNewSubmissionEmail(String context) {
         return getProperty("newSubmissionEmail", context).trim();
-    }
-
-    public static String getDefaultSelectedProject(String context) {
-        return getProperty("defaultProjName", context).trim();
-    }
-
-    public static String getDefaultProjectOrganizationParameter(String context) {
-        return getProperty("defaultProjectOrganizationParameter", context).trim();
-    }
-
-    public static String getDefaultSelectedProjectId(String context) {
-        return getProperty("defaultProjId", context).trim();
-    }
-
-    public static boolean getLoggedOutDefaultDesired(String context) {
-        return parseBoolean(getProperty("loggedOutDefaultDesired", context), false);
     }
 
     public static String getR(String context) {
@@ -529,11 +505,6 @@ public class CommonConfiguration {
                 context).getProperty("ga_id", context);
     }
 
-    /*
-       public static String getGoogleSearchKey(String context) {
-       return getProperty("googleSearchKey",context);
-       }
-     */
     public static String getDefaultGoogleMapsCenter(String context) {
         if (getProperty("googleMapsCenter", context) != null) {
             return getProperty("googleMapsCenter", context);
@@ -585,22 +556,6 @@ public class CommonConfiguration {
         if ((getProperty(thisString, context) != null) && (getProperty(thisString,
             context).equals("false"))) { return false; }
         return true;
-    }
-
-    /**
-     * This configuration option defines whether adoptions of MarkedIndividual or encounter objects are allowed. Generally adoptions are used as a
-     * fundraising or public awareness tool.
-     *
-     * @return true if adoption functionality should be displayed. False if adoptions are not supported in this catalog.
-     */
-    public static boolean allowAdoptions(String context) {
-        initialize(context);
-        boolean canAdopt = true;
-        if ((getProperty("allowAdoptions", context) != null) && (getProperty("allowAdoptions",
-            context).equals("false"))) {
-            canAdopt = false;
-        }
-        return canAdopt;
     }
 
     public static Double getCenterLat(String context) {
@@ -673,7 +628,6 @@ public class CommonConfiguration {
      * @return Fully-qualified class name of the plugin to use, or null.
      */
     public static String getBatchUploadPlugin(String context) {
-        // initialize(context);
         if (getProperty("batchUploadPlugin", context) != null) {
             return getProperty("batchUploadPlugin", context).trim();
         }
@@ -808,7 +762,7 @@ public class CommonConfiguration {
 
     public static String appendEmailRemoveHashString(HttpServletRequest request,
         String originalString, String emailAddress, String context) {
-        return null; // disabled via issue #397
+        return null;
     }
 
     public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
@@ -920,7 +874,6 @@ public class CommonConfiguration {
         initialize(context);
         String dataDirectoryName = "shepherd_data_dir";
         // new context code here
-        // if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
         if ((ContextConfiguration.getDataDirForContext(context) != null) &&
             (!ContextConfiguration.getDataDirForContext(context).trim().equals(""))) {
             dataDirectoryName = ContextConfiguration.getDataDirForContext(context);

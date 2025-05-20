@@ -9,6 +9,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import com.google.gson.*;
+import org.ecocean.shepherd.core.Shepherd;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

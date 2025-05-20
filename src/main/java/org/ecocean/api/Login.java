@@ -17,9 +17,11 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.web.util.SavedRequest;
+import org.apache.shiro.web.util.WebUtils;
 
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 
 public class Login extends ApiBase {
@@ -55,7 +57,7 @@ public class Login extends ApiBase {
                 // user.setAcceptedUserAgreement(true);
                 // myShepherd.commitDBTransaction();
             } catch (Exception ex) {
-                myShepherd.rollbackDBTransaction();
+                myShepherd.rollbackAndClose();
                 results.put("error", "invalid_credentials");
             }
             if (user != null) {
@@ -72,6 +74,12 @@ public class Login extends ApiBase {
                     success = true;
                     results = user.infoJSONObject(context, true);
                     results.put("success", true);
+
+                    // check for redirect URL
+                    SavedRequest saved = WebUtils.getAndClearSavedRequest(request);
+                    if (saved != null) {
+                        results.put("redirectUrl", saved.getRequestUrl());
+                    }
                 } catch (UnknownAccountException ex) {
                     // username not found
                     ex.printStackTrace();
@@ -91,7 +99,7 @@ public class Login extends ApiBase {
                     myShepherd.closeDBTransaction();
                 }
             }
-            myShepherd.rollbackAndClose();
+            if (myShepherd.isDBTransactionActive()) myShepherd.rollbackAndClose();
         }
         if (success) {
             response.setStatus(200);

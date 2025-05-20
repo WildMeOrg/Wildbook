@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -389,7 +390,7 @@ public class MultiValue implements java.io.Serializable {
     }
 
     // returns N, where N is the lowest number that is NOT a value in a name w/ nameKey.
-    // valuePrefix comes before N for weird double-labeled values like indocet-
+    // valuePrefix comes before N for weird double-labeled values
 
     public static String nextUnusedValueForKey(String nameKey, String valuePrefix,
         Shepherd myShepherd) {

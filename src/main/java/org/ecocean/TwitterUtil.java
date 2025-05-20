@@ -1,4 +1,5 @@
 /*
+    TODO: deprecate and remove entirely
     this class is for **generic** (usable across many applications) Twitter functions.
     for application-specific Twitter functionality, please create own class e.g. TwitterBot.java
  */
@@ -9,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Properties;
 
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -24,7 +27,7 @@ import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Status;
 
 public class TwitterUtil {
-    private static TwitterFactory tfactory = null; // note should be based on context like below no????  TODO
+    private static TwitterFactory tfactory = null; // note should be based on context like below no???? 
     private static HashMap<String, Properties> Props = new HashMap<String, Properties>(); // keyed on context
 
     public static Twitter init(HttpServletRequest request) {
@@ -145,21 +148,13 @@ public class TwitterUtil {
 
     // http://twitter4j.org/en/configuration.html
     public static TwitterFactory getTwitterFactory(String context) {
-/*
-    Properties props = ShepherdProperties.getProperties("twitter.properties", "", context);
-    if (props == null) throw new RuntimeException("no twitter.properties");
-    String debug = props.getProperty("debug");
-    String consumerKey = props.getProperty("consumerKey");
- */
+
         String debug = getProperty(context, "debug");
         String consumerKey = getProperty(context, "consumerKey");
 
         if ((consumerKey == null) || consumerKey.equals(""))
             throw new RuntimeException("twitter.properties missing consumerKey"); // hopefully enough of
                                                                                   // a hint
-        // String consumerSecret = props.getProperty("consumerSecret");
-        // String accessToken = props.getProperty("accessToken");
-        // String accessTokenSecret = props.getProperty("accessTokenSecret");
         String consumerSecret = getProperty(context, "consumerSecret");
         String accessToken = getProperty(context, "accessToken");
         String accessTokenSecret = getProperty(context, "accessTokenSecret");

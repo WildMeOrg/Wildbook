@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Badge } from "react-bootstrap";
 import { Bell } from "react-bootstrap-icons";
 import Modal from "react-bootstrap/Modal";
@@ -20,9 +20,10 @@ const NotificationButton = ({
       style={{
         width: "35px",
         height: "35px",
-        marginLeft: "20px",
+        marginLeft: "5px",
         position: "relative",
       }}
+      data-testid="notification-button"
       tabIndex={0}
     >
       <Modal.Dialog

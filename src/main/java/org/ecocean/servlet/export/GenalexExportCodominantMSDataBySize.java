@@ -11,6 +11,7 @@ import org.ecocean.servlet.ServletUtilities;
 
 import jxl.write.*;
 import jxl.Workbook;
+import org.ecocean.shepherd.core.Shepherd;
 
 // adds spots to a new encounter
 public class GenalexExportCodominantMSDataBySize extends HttpServlet {

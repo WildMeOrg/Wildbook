@@ -11,6 +11,8 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -44,10 +46,6 @@ import java.util.Properties;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.text.WordUtils;
-import org.ecocean.servlet.ServletUtilities;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ServletUtilities {
     public static String getHeader(HttpServletRequest request) {
@@ -176,7 +174,8 @@ public class ServletUtilities {
                 CommonConfiguration.getURLToMastheadGraphic(templateContext));
 
             templateFile = templateFile.replaceAll("SITE_NAME", siteName);
-            templateFile = templateFile.replaceAll("USER_NAME", username);
+            templateFile = templateFile.replaceAll("USER_NAME",
+                ((username == null) ? "" : username));
             templateFile = templateFile.replaceAll("NOTIFICATION_DETAILS", notifications);
             templateFile = templateFile.replaceAll("LANGUAGE_SELECTOR", languageString);
             templateFile = templateFile.replaceAll("SELECTED_IMAGE_URL", selectedImgURL);
@@ -537,8 +536,6 @@ public class ServletUtilities {
                     return true;
                 }
                 // allow WDP edit stenella frontalis cit sci encounters
-                // TODO make a mmore resonable way for researchers to ID and edit cit sci
-                // submissions
                 if (!isOwner && "wdp".equals(request.getUserPrincipal().getName())) {
                     List<User> users = enc.getSubmitters();
                     boolean researcherSubmitted = false;
@@ -702,39 +699,6 @@ public class ServletUtilities {
         return myString.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
     }
 
-    /*
-     * public static String cleanFileName(String aTagFragment) {
-     * final StringBuffer result = new StringBuffer();
-     *
-     * final StringCharacterIterator iterator = new
-     * StringCharacterIterator(aTagFragment);
-     * char character = iterator.current();
-     * while (character != CharacterIterator.DONE) {
-     * if (character == '<') {
-     * result.append("_");
-     * } else if (character == '>') {
-     * result.append("_");
-     * } else if (character == '\"') {
-     * result.append("_");
-     * } else if (character == '\'') {
-     * result.append("_");
-     * } else if (character == '\\') {
-     * result.append("_");
-     * } else if (character == '&') {
-     * result.append("_");
-     * } else if (character == ' ') {
-     * result.append("_");
-     * } else if (character == '#') {
-     * result.append("_");
-     * } else {
-     * //the char is not a special one
-     * //add it to the result as is result.append(character);
-     * }
-     * character = iterator.next();
-     * }
-     * return result.toString();
-     * }
-     */
     public static String getEncounterUrl(String encID, HttpServletRequest request) {
         return (CommonConfiguration.getServerURL(request) + "/encounters/encounter.jsp?number=" +
                    encID);
@@ -898,20 +862,6 @@ public class ServletUtilities {
         return dataDir(context, rootWebappPath) + File.separator + subdir;
     }
 
-    /*
-     * //like above, but only need request passed public static String
-     * dataDir(HttpServletRequest request) {
-     * String context = "context0";
-     * context = ServletUtilities.getContext(request);
-     * //String rootWebappPath = request.getServletContext().getRealPath("/"); //
-     * only in 3.0??
-     * //String rootWebappPath =
-     * request.getSession(true).getServlet().getServletContext().getRealPath("/");
-     * ServletContext s = request.getServletContext();
-     * String rootWebappPath = "xxxxxx";
-     * return dataDir(context, rootWebappPath);
-     * }
-     */
     private static String loadOverrideText(String shepherdDataDir, String fileName,
         String langCode) {
         // System.out.println("Starting loadOverrideProps");
@@ -1156,8 +1106,7 @@ public class ServletUtilities {
         request.getRequestDispatcher(filename).include(request, response);
     }
 
-    // used to determine if we want to apply a custom UI style, e.g. for IndoCet or
-    // the New England Aquarium to a web page
+    // used to determine if we want to apply a custom UI style, e.g. the New England Aquarium to a web page
     public static boolean useCustomStyle(HttpServletRequest request, String orgName) {
         // check url for "organization=____" arg
         String organization = request.getParameter("organization");

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -174,6 +175,45 @@ public class IAJsonProperties extends JsonProperties {
             }
         }
         return taxs;
+    }
+
+    public Set<String> getAllIAClasses() {
+        return getAllIAClasses(this.getJson());
+    }
+
+    public Set<String> getAllIAClasses(JSONObject jobj) {
+        Set<String> rtn = new HashSet<String>();
+
+        if (jobj == null) return rtn;
+        JSONArray detectConf = jobj.optJSONArray("_detect_conf");
+        boolean correctLevel = (detectConf != null);
+        for (String key : (Set<String>)jobj.keySet()) {
+            if (key.startsWith("_")) continue;
+            String parts[] = key.split("\\+");
+            if (correctLevel) rtn.add(parts[0]);
+            JSONObject child = jobj.optJSONObject(key);
+            rtn.addAll(getAllIAClasses(child));
+        }
+        return rtn;
+    }
+
+    public Set<String> getAllIAClassesWithParts() {
+        return getAllIAClassesWithParts(this.getJson());
+    }
+
+    public Set<String> getAllIAClassesWithParts(JSONObject jobj) {
+        Set<String> rtn = new HashSet<String>();
+
+        if (jobj == null) return rtn;
+        JSONArray detectConf = jobj.optJSONArray("_detect_conf");
+        boolean correctLevel = (detectConf != null);
+        for (String key : (Set<String>)jobj.keySet()) {
+            if (key.startsWith("_")) continue;
+            if (correctLevel) rtn.add(key);
+            JSONObject child = jobj.optJSONObject(key);
+            rtn.addAll(getAllIAClassesWithParts(child));
+        }
+        return rtn;
     }
 
     public List<Taxonomy> getAllTaxonomies(Shepherd myShepherd) {

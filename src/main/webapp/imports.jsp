@@ -19,6 +19,7 @@ java.util.HashMap,
 java.util.LinkedHashSet,
 java.util.Collection,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 
@@ -242,7 +243,10 @@ try{
 	        jobj.put("indivCount", indivCount);
 	        jobj.put("status", status);
 		    if(task.getParameters()!=null){
-		    	jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+				JSONObject passedParams = task.getParameters().optJSONObject("_passedParameters");
+				String filenameParam = "originalFilename";
+				if(!passedParams.has(filenameParam)) filenameParam = "filename";
+				jobj.put("filename", passedParams.optString(filenameParam, ""));
 		    }	
 	        
 	        jsonobj.put(jobj);

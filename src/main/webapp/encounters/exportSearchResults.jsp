@@ -1,8 +1,10 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
-  <%
+<%
   String context="context0";
   context=ServletUtilities.getContext(request);
 
@@ -12,7 +14,7 @@
 
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
+    map_props= ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
 
 		Properties collabProps = new Properties();
  		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
@@ -40,7 +42,6 @@
 		    EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
 		    rEncounters = queryResult.getResult();
 				blocked = Encounter.blocked(rEncounters, request);
-		     //TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 
 		  %>
 
@@ -118,7 +119,7 @@
 
 		 <ul id="tabmenu">
 
-		   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+		   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
 		   </a></li>
        <li><a
          href="projectManagement.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("projectManagement")%>

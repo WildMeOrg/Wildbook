@@ -6,6 +6,7 @@
          org.joda.time.format.DateTimeFormatter,
 		 org.joda.time.format.ISODateTimeFormat,
 		 org.joda.time.DateTime" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <%
@@ -36,7 +37,6 @@ context=ServletUtilities.getContext(request);
   calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
 
 
-  //TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 %>
 
 <style type="text/css">
@@ -180,7 +180,7 @@ if(request.getParameter("scDate")==null){
       <ul id="tabmenu">
 
         <li><a
-          href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%>
+          href="../react/encounter-search?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%>
         </a></li>
         <li><a
           href="../encounters/projectManagement.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("projectManagement")%>

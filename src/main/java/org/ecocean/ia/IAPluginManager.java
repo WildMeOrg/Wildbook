@@ -11,7 +11,7 @@ import javax.servlet.ServletContextEvent;
 import org.ecocean.Annotation;
 import org.ecocean.ia.plugin.*;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class IAPluginManager {
     private static Map<String, List<IAPlugin> > plugins = new HashMap<String, List<IAPlugin> >();
@@ -19,7 +19,7 @@ public class IAPluginManager {
     // StartupWildbook calls this
     public static void startup(ServletContextEvent sce) {
         System.out.println("INFO: IAPluginManager.startup() called");
-// TODO do we only call this in ONE context based on sce?????  FIXME
+// do we only call this in ONE context based on sce?????
         for (String context : plugins.keySet()) {
             for (IAPlugin p : plugins.get(context)) {
                 p.startup(sce);
@@ -109,21 +109,4 @@ public class IAPluginManager {
         return rootTask;
     }
 
-/*
-    public static List<Class> getAllEnabledPluginClasses(String context) {
-        List<Class> all = getAllPluginClasses(context);
-        List<Class> enabled = new ArrayList<Class>();
-        for (Class c : all) {
-            Object p;
-            try {
-                p = c.getDeclaredConstructor(String.class).newInstance(context);
-            } catch (Exception ex) {
-                throw new RuntimeException("ERROR: IAPluginManager.getAllEnabledPlugins() broke -- " + ex.toString());
-            }
-            IAPlugin plugin = (IAPlugin)p;
-            if (plugin.isEnabled()) enabled.add(c);
-        }
-        return enabled;
-    }
- */
 }

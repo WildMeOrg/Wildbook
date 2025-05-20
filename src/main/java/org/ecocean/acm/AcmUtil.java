@@ -4,13 +4,12 @@ import java.util.List;
 import org.ecocean.Annotation;
 import org.ecocean.ia.IA;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class AcmUtil {
     // these take a list of objects and a parallel list of acmIds to assign
     // returns number actually changed
     // it should "handle weirdness" whatever that may mean?
-    // if we could get AcmBase to work (grrr) we could generalize this
     public static int rectifyMediaAssetIds(List<MediaAsset> mas, List<String> acmIds) {
         if ((mas == null) || (acmIds == null) || (mas.size() != acmIds.size())) {
             IA.log("ERROR: AcmUtil.rectifyMediaAssetIds() has invalid lists passed; failing");

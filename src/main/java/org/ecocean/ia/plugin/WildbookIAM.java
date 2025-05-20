@@ -12,11 +12,14 @@ import javax.servlet.ServletContextEvent;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.acm.AcmUtil;
 import org.ecocean.Annotation;
+import org.ecocean.cache.CachedQuery;
+import org.ecocean.cache.QueryCache;
+import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -27,9 +30,7 @@ import org.ecocean.identity.IBEISIA;
 
 /*
     Wildbook Image Analysis Module (IAM)
-
     Initial stab at "plugin architecture" for "Image Analysis"
-
  */
 public class WildbookIAM extends IAPlugin {
     private String context = null;
@@ -53,7 +54,6 @@ public class WildbookIAM extends IAPlugin {
     }
 
     @Override public void startup(ServletContextEvent sce) {
-        // TODO genericize this to be under .ia (with startup hooks for *any* IA plugin)
         // if we dont need identificaiton, no need to prime
         boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context,
             "IBEISIADisableIdentification"));
@@ -61,7 +61,6 @@ public class WildbookIAM extends IAPlugin {
         if (!skipIdent && !org.ecocean.StartupWildbook.skipInit(sce, "PRIMEIA")) prime();
     }
 
-    // TODO we need to "reclaim" these from IA.intake() stuff!
     @Override public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas,
         final Task parentTask) {
         return null;
@@ -81,54 +80,6 @@ public class WildbookIAM extends IAPlugin {
         IA.log("INFO: WildbookIAM.prime(" + this.context +
             ") called - NOTE this is deprecated and does nothing now.");
         IBEISIA.setIAPrimed(true);
-    }
-
-    public void _OLD_prime() {
-        IA.log("INFO: WildbookIAM.prime(" + this.context + ") called");
-        IBEISIA.setIAPrimed(false);
-        if (!isEnabled()) return;
-        final List<String> iaAnnotIds = iaAnnotationIds();
-        final List<String> iaImageIds = iaImageIds();
-        Runnable r = new Runnable() {
-            public void run() {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("WildbookIAM.prime");
-                myShepherd.beginDBTransaction();
-                ArrayList<Annotation> matchingSet = Annotation.getAllMatchAgainstTrue(myShepherd);
-                ArrayList<Annotation> sendAnns = new ArrayList<Annotation>();
-                ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-                for (Annotation ann : matchingSet) {
-                    if (iaAnnotIds.contains(ann.getAcmId())) continue; // no need to send
-                    sendAnns.add(ann);
-                    MediaAsset ma = ann.getDerivedMediaAsset();
-                    if (ma == null) ma = ann.getMediaAsset();
-                    if (ma == null) continue;
-                    if (iaImageIds.contains(ma.getAcmId())) continue;
-                    mas.add(ma);
-                }
-                IA.log("INFO: WildbookIAM.prime(" + context + ") sending " + sendAnns.size() +
-                    " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
-                try {
-                    // think we can checkFirst on both of these -- no need to re-send anything during priming
-                    sendMediaAssets(mas, true);
-                    sendAnnotations(sendAnns, true, myShepherd);
-                } catch (Exception ex) {
-                    IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
-                    ex.printStackTrace();
-                }
-/*
-                for (MediaAsset ma : mas) {
-   System.out.println("B: " + ma.getAcmId() + " --> " + ma);
-                    MediaAssetFactory.save(ma, myShepherd);
-                }
- */
-                myShepherd.commitDBTransaction(); // MAs and annots may have had acmIds changed
-                myShepherd.closeDBTransaction();
-                IBEISIA.setIAPrimed(true);
-                IA.log("INFO: WildbookIAM.prime(" + context + ") complete");
-            }
-        };
-        new Thread(r).start();
     }
 
 /*
@@ -152,7 +103,6 @@ public class WildbookIAM extends IAPlugin {
         // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaImageIds = new ArrayList<String>();
         if (checkFirst) iaImageIds = iaImageIds();
-        // initial initialization(!)
         HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
         map.put("image_unixtime_list", new ArrayList<Integer>());
@@ -233,18 +183,6 @@ public class WildbookIAM extends IAPlugin {
         URL url = new URL(u);
         int ct = 0;
         // may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
-        /*
-           Shepherd myShepherd = null;
-           try {
-            myShepherd = new Shepherd(context);
-           } catch (Exception e) {
-            e.printStackTrace();
-           }
-
-           myShepherd.setAction("WildbookIAM.sendAnnotations");
-           myShepherd.beginDBTransaction();
-         */
-
         // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaAnnotIds = new ArrayList<String>();
         if (checkFirst) iaAnnotIds = iaAnnotationIds();
@@ -283,8 +221,6 @@ public class WildbookIAM extends IAPlugin {
             map.get("image_uuid_list").add(iid);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
-// TODO both of these shepherd/db calls can probably be combined !!!  FIXME
-
             // yuck - IA class is not species
             // map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
             // better
@@ -339,9 +275,27 @@ public class WildbookIAM extends IAPlugin {
     public static List<String> iaAnnotationIds(String context) {
         List<String> ids = new ArrayList<String>();
         JSONArray jids = null;
+        String cacheName = "iaAnnotationIds";
 
         try {
-            jids = apiGetJSONArray("/api/annot/json/", context);
+            QueryCache qc = QueryCacheFactory.getQueryCache(context);
+            if (qc.getQueryByName(cacheName) != null &&
+                System.currentTimeMillis() <
+                qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(
+                    qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+                jids = Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+            } else {
+                jids = apiGetJSONArray("/api/annot/json/", context);
+                if (jids != null) {
+                    org.datanucleus.api.rest.orgjson.JSONObject jobj =
+                        new org.datanucleus.api.rest.orgjson.JSONObject();
+                    jobj.put("iaAnnotationIds", Util.toggleJSONArray(jids));
+                    CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
+                    cq.nextExpirationTimeout = System.currentTimeMillis() + (15 * 60 * 1000);
+                    qc.addCachedQuery(cq);
+                }
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
@@ -426,9 +380,6 @@ public class WildbookIAM extends IAPlugin {
     }
 
     private static Object mediaAssetToUri(MediaAsset ma) {
-        // URL curl = ma.containerURLIfPresent();  //what is this??
-        // if (curl == null) curl = ma.webURL();
-
         URL curl = ma.webURL();
         String urlStr = curl.toString();
 

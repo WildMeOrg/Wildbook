@@ -8,10 +8,12 @@ org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdPMF" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
-
-  <%!
+<%!
 
   // if there is a MediaAsset with detection status not null and no annotation that is done
   boolean shouldEvict(Annotation ann) {
@@ -97,7 +99,7 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
-  System.out.println("EncounterMediaGallery about to execute query "+query);
+  //System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
 	query.closeAll();
@@ -129,7 +131,7 @@ function forceLink(el) {
 		  //System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
-        org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+        ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
       }
 
       if (!enc.canUserAccess(request)) {
@@ -158,8 +160,8 @@ function forceLink(el) {
 		      MediaAsset ma = ann.getMediaAsset();
 				if (ma == null) continue;
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
-                        maIds.add(Integer.toString(ma.getId()));
-                        MediaAssetOwner.put(Integer.toString(ma.getId()),isEncounterOwner); 
+                        maIds.add(ma.getId());
+                        MediaAssetOwner.put(ma.getId(),isEncounterOwner); 
 
 
 
@@ -202,7 +204,7 @@ function forceLink(el) {
 
 		      //end caption render JSP side
 
-		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
+		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! 
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
 
@@ -253,8 +255,7 @@ function forceLink(el) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
 
-							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
-							//   also: prob should check *what* is detected. :) somewhere....
+							// here we skip unity feature annots. also: prob should check *what* is detected.
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
 System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
 							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
@@ -962,7 +963,6 @@ console.info(' ===========>   %o %o', el, enh);
 	if (!opt.init) opt.init = []; //maybe created if logged in?
 
 	opt.init.push(
-		//function(el, enh) { enhancerDisplayAnnots(el, enh); },  //TODO fix for scaled/watermark image
 		function(el, enh) { enhancerCaption(el, enh); }
 	);
 
@@ -1070,7 +1070,6 @@ function featureSortOrder(feat) {
 function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
-    //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     let widthScale = el; //.width;// / el.naturalWidth;
@@ -1133,7 +1132,6 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 }
 
 function checkImageEnhancerResize() {
-//TODO update enhancerScale when this happens!
 	var needUpdate = false;
 	$('.image-enhancer-wrapper').each(function(i,el) {
             var jel = $(el);
@@ -1335,8 +1333,6 @@ function refreshKeywordsForMediaAsset(mid, data) {
             });
         }
     }
-
-    //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
 
     console.log("in refreshKeywordsForMediaAsset, looking for #asset-id-"+mid);
     $('#asset-id-'+mid).each(function(i,el) {
@@ -1700,8 +1696,7 @@ function _parseDetection(task) {
             rtn.msg = 'Detection task found, but no results.  Possibly still processing?';
         } else {
             for (var i = 0 ; i < task.results.length ; i++) {
-                if (!task.results[i].status) continue;  //kinda cheap hack.. should probably investigate this TODO
-                //TODO actually check out what most recent has to say here....
+                if (!task.results[i].status) continue;  //kinda cheap hack
                 rtn.state = 'complete';
                 rtn.msg = 'most recent result status _action=' + task.results[i].status._action;
                 break;
