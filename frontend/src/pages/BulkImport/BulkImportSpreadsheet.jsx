@@ -34,7 +34,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const totalRows = sheetStats.reduce((sum, s) => sum + s.rowCount, 0);
       const maxCols = Math.max(...sheetStats.map((s) => s.colCount), 0);
 
-      store.setWorksheetInfo(sheetNames.length, sheetNames, maxCols, totalRows);
+      store.setWorksheetInfo(sheetNames.length, sheetNames, maxCols, totalRows, file.name);
 
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
@@ -96,49 +96,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       };
       const processChunk = () => {
         const chunk = allJsonData.slice(currentIndex, currentIndex + CHUNK_SIZE);
-        const normalizedChunk = chunk.map((row) => {
-
-          // const formatDate = (year, month, day, hour, minute) => {
-          //   const pad2 = s =>
-          //     (s != null && s !== '' ? String(s).padStart(2, '0') : '');
-
-          //   const y = String(year);
-          //   const m = pad2(month);
-          //   const d = pad2(day);
-          //   const hh = pad2(hour);
-          //   const mm = pad2(minute);
-
-          //   let result = y;
-          //   if (month || day) {
-          //     result += '-' + m;
-          //     if (day) {
-          //       result += '-' + d;
-          //     }
-          //   }
-          //   if (hour || minute) {
-          //     result += 'T' + hh;
-          //     if (minute) {
-          //       result += ':' + mm;
-          //     }
-          //   }
-
-          //   return result;
-          // };
-
-          // const getLatLong = (lat, lon) => {
-          //   const hasLat = lat !== undefined && lat !== null && lat !== "";
-          //   const hasLon = lon !== undefined && lon !== null && lon !== "";
-
-          //   if (hasLat && hasLon) {
-          //     return `${lat}, ${lon}`;
-          //   } else if (hasLat) {
-          //     return `${lat}, `;
-          //   } else if (hasLon) {
-          //     return `, ${lon}`;
-          //   } else {
-          //     return "";
-          //   }
-          // };
+        const normalizedChunk = chunk.map((row) => {         
 
           const mediaAssets = mediaAssetsCols.filter(v => row[v] != null && row[v] !== "").map((col) => {
             const mediaAsset = row[col].trim();

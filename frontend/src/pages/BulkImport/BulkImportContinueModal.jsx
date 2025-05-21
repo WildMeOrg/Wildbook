@@ -3,9 +3,6 @@ import React, { useEffect, useState } from "react";
 import {
   Modal,
   Button,
-  Row,
-  Col,
-  Stack ,
 } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { FaDownload  } from "react-icons/fa";
@@ -25,12 +22,6 @@ export const BulkImportContinueModal = ({ store }) => {
     store.resetToDefaults();
     localStorage.removeItem("BulkImportStore");
     window.location.reload();
-  };
-
-  const draftMeta = store?.draftMeta ?? {
-    fileName: "Upload.xlsx",
-    imageCount: 50,
-    lastEdited: "2024-11-17",
   };
 
   return (
@@ -61,9 +52,9 @@ export const BulkImportContinueModal = ({ store }) => {
           </div>
 
           <div className="flex-grow-1">
-            <div className="fw-semibold">{draftMeta.fileName}</div>
+            <div className="fw-semibold">{store.worksheetInfo.fileName}</div>
             <div className="small text-muted">
-              {draftMeta.imageCount}{" "}
+              {store.uploadedImages.length || 0}{" "}
               <FormattedMessage
                 id="IMAGES_UPLOADED"
                 defaultMessage="Images uploaded"
@@ -74,7 +65,7 @@ export const BulkImportContinueModal = ({ store }) => {
                 id="LAST_EDITED"
                 defaultMessage="Last Edited"
               />
-              : {draftMeta.lastEdited}
+              : {new Date(store.lastSavedAt).toLocaleString()}
             </div>
           </div>
 

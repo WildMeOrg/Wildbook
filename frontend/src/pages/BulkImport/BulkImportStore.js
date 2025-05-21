@@ -3,6 +3,7 @@ import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { NUMERIC_COLS, numericRule } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -24,6 +25,7 @@ export class BulkImportStore {
   _maxImageCount = 200;
   _missingImages = [];
   _worksheetInfo = {
+    fileName: "",
     sheetCount: 0,
     sheetNames: "",
     columnCount: 0,
@@ -50,6 +52,7 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
+  
   _validationRules = {
     "Encounter.mediaAsset0": {
       required: false,
@@ -57,7 +60,6 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        console.log("val", val);
         const images = val.split(",").map((img) => img.trim());
         let missing = false;
         images.forEach((img) => {
@@ -67,18 +69,9 @@ export class BulkImportStore {
         });
 
         return !missing;
-        // images.forEach((img) => {
-        //   const missing = images.filter((img) =>
-        //     !this._imageSectionFileNames.includes(img)
-        //   );
-        //   return missing.length === 0;
-        // }
-        // );
       },
       message: (val) => {
-        console.log("val", val);
         const images = val.split(",").map((img) => img.trim());
-        console.log("images", images);
         const missing = images.filter((img) =>
           !this._imageSectionFileNames.includes(img)
         );
@@ -147,8 +140,11 @@ export class BulkImportStore {
       message: "valid location ID",
     },
     "Encounter.submitterID": {
-      required: true,
+      required: false,
       validate: (value) => {
+        if (!value) {
+          return true;
+        }
         return this._validSubmitterIDs.includes(value);
       },
       message: "invalid submitter ID",
@@ -205,6 +201,12 @@ export class BulkImportStore {
 
   constructor() {
     makeAutoObservable(this);
+    this._validationRules = {
+  ...this._validationRules,               
+  ...Object.fromEntries(
+    NUMERIC_COLS.map((col) => [col, numericRule])
+  ),
+};
   }
 
   get stateSnapshot() {
@@ -436,12 +438,13 @@ get errorSummary() {
     this._maxImageCount = maxImageCount;
   }
 
-  setWorksheetInfo(sheetCount, sheetNames, columnCount, rowCount) {
+  setWorksheetInfo(sheetCount, sheetNames, columnCount, rowCount, fileName) {
     this._worksheetInfo.sheetCount = sheetCount;
     this._worksheetInfo.sheetNames = sheetNames;
     this._worksheetInfo.columnCount = columnCount;
     this._worksheetInfo.rowCount = rowCount;
     this._worksheetInfo.uploadProgress = this._spreadsheetUploadProgress;
+    this._worksheetInfo.fileName = fileName || "";
   }
 
   setSubmissionErrors(errors) {
@@ -808,8 +811,6 @@ get errorSummary() {
 
       const norm = this._spreadsheetData[rowIndex];
       const raw = this._rawData[rowIndex];
-      console.log("updateRawFromNormalizedRow", rowIndex);
-      console.log("norm", JSON.stringify(norm));
       runInAction(() => {
         if (norm["Encounter.year"]) {
           const val = norm["Encounter.year"];

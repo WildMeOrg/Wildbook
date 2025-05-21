@@ -30,9 +30,14 @@ const BulkImport = observer(() => {
     }
   }, []);
 
+  const firstRun = React.useRef(true);
+
   useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
     if (store.submissionId && (store.imagePreview.length > 0 || store.spreadsheetData.length > 0)) {
-      console.log("Saving store to localStorage", store.submissionId);
       store.saveState();
     }
   }, [JSON.stringify(store.imagePreview), JSON.stringify(store.spreadsheetData)])
@@ -40,10 +45,10 @@ const BulkImport = observer(() => {
   return (
     <Container>
       <div className="d-flex flex-row justify-content-between align-items-center">
-      <h1 className="mt-3">
-        <FormattedMessage id="BULK_IMPORT" />
-      </h1>
-      <DraftSaveIndicator store={store}/>
+        <h1 className="mt-3">
+          <FormattedMessage id="BULK_IMPORT" />
+        </h1>
+        <DraftSaveIndicator store={store} />
       </div>
 
       {<BulkImportUploadProgress store={store} />}
