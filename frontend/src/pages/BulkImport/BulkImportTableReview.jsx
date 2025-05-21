@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from "uuid";
 import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
 import { BulkImportSpreadsheetUploadInof } from "./BulkImportSpreadsheetUploadInof";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
+import BulkImportInstructionsModal from "./BulkImportInstructionsModal";
+import ErrorSummaryBar from "./BulkImportErrorSummaryBar";
 
 export const BulkImportTableReview = observer(({ store }) => {
   const theme = useContext(ThemeContext);
@@ -57,6 +59,7 @@ export const BulkImportTableReview = observer(({ store }) => {
         <BulkImportSpreadsheetUploadInof store={store} />
       </div>
       <EditableDataTable store={store} />
+      <ErrorSummaryBar store={store}/>
       {hasSubmissionErrors && <div className="alert alert-danger">
         Errors:
         <ul>
@@ -76,7 +79,7 @@ export const BulkImportTableReview = observer(({ store }) => {
           onClick={() => {
             handleStartImport();
           }}
-          // disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
+          disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
           // disabled={store.isSubmitting || store.imageUploadProgress !== 100 || store.spreadsheetUploadProgress !== 100}
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}

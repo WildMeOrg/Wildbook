@@ -217,7 +217,7 @@ export const DataTable = observer(({ store }) => {
                   return (
                     <th
                       key={header.id}
-                      className="text-capitalize position-relative"
+                      className="text-capitalize position-relative text-center align-middle"
                       style={{
                         width: header.getSize(),
                       }}
