@@ -144,6 +144,7 @@ public class BulkImport extends ApiBase {
                 toleranceFailImportOnError = false;
                 toleranceSkipRowOnError = false;
             }
+            boolean verboseReturn = payload.optBoolean("verbose", false);
             List<File> files = UploadedFiles.findFiles(request, bulkImportId);
             JSONArray fieldNamesArr = payload.optJSONArray("fieldNames");
             Set<String> fieldNames = null;
@@ -316,6 +317,12 @@ public class BulkImport extends ApiBase {
                 JSONObject results = importer.createImport();
                 for (String rkey : results.keySet()) {
                     rtn.put(rkey, results.get(rkey));
+                }
+                if (!verboseReturn) {
+                    rtn.remove("mediaAssets");
+                    rtn.remove("encounters");
+                    rtn.remove("sightings");
+                    rtn.remove("individuals");
                 }
                 rtn.put("success", true);
                 rtn.put("note", "INCOMPLETE IMPORT CREATION; in development");

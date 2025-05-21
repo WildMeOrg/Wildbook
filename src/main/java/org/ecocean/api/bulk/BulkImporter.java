@@ -8,15 +8,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.ecocean.api.bulk.*;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.User;
 import org.ecocean.Util;
 
@@ -59,15 +62,41 @@ public class BulkImporter {
         }
         System.out.println(
             "------------ all rows processed; beginning persistence -------------\n");
+        JSONArray arr = new JSONArray();
+        for (MediaAsset ma : mediaAssetMap.values()) {
+            ma.setSkipAutoIndexing(true);
+            MediaAssetFactory.save(ma, myShepherd);
+            System.out.println("MMMM " + ma);
+            arr.put(ma.getId());
+        }
+        rtn.put("mediaAssets", arr);
+        arr = new JSONArray();
         for (Encounter enc : encounterCache.values()) {
+            // it is a certain kind of painful that if you do not pass id here it assigns a new random one
+            enc.setSkipAutoIndexing(true);
+            myShepherd.storeNewEncounter(enc, enc.getId());
             System.out.println("EEEE " + enc);
+            arr.put(enc.getId());
         }
+        rtn.put("encounters", arr);
+        arr = new JSONArray();
         for (Occurrence occ : occurrenceCache.values()) {
+            occ.setSkipAutoIndexing(true);
+            myShepherd.storeNewOccurrence(occ);
             System.out.println("OOOO " + occ);
+            arr.put(occ.getId());
         }
+        rtn.put("sightings", arr);
+        arr = new JSONArray();
         for (MarkedIndividual indiv : individualCache.values()) {
+            indiv.setSkipAutoIndexing(true);
+            myShepherd.storeNewMarkedIndividual(indiv);
             System.out.println("IIII " + indiv);
+            arr.put(indiv.getId());
         }
+        rtn.put("individuals", arr);
+        // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
+        ShepherdPMF.getPMF(myShepherd.getContext()).getDataStoreCache().evictAll();
         return rtn;
     }
 
@@ -312,13 +341,14 @@ public class BulkImporter {
             if (maKey == null) continue; // data skipped an index
             BulkValidator bv = fmap.get(maKey);
             if (bv == null) throw new RuntimeException("could not find fmap for key=" + maKey);
-            if (bv.getValueString() == null) continue;
+            if (bv.valueIsNull()) continue;
             MediaAsset ma = this.mediaAssetMap.get(bv.getValueString());
             if (ma == null)
                 throw new RuntimeException("could not find MediaAsset for maKey=" + maKey +
                         ", bv=" + bv.getValueString() + " in " + this.mediaAssetMap);
             Annotation ann = new Annotation(tx, ma);
             ann.setIsExemplar(true);
+            ann.setSkipAutoIndexing(true);
             annots.add(ann);
         }
         if (annots.size() > 0) enc.addAnnotations(annots);

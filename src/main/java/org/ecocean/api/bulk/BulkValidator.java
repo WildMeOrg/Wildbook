@@ -101,6 +101,10 @@ public class BulkValidator {
         return value;
     }
 
+    public boolean valueIsNull() {
+        return (value == null);
+    }
+
     public String getValueString() {
         if (value == null) return null;
         return value.toString();
@@ -340,6 +344,7 @@ public class BulkValidator {
         case "Sighting.swellHeight":
         case "Sighting.transectBearing":
         case "Sighting.bearing":
+        case "Sighting.bestGroupSizeEstimate":
         case "Sighting.distance":
         case "Encounter.depth":
         case "Encounter.elevation":
