@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import org.ecocean.api.bulk.*;
 import org.ecocean.Annotation;
+import org.ecocean.Base;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
@@ -46,6 +47,7 @@ public class BulkImporter {
 
     public JSONObject createImport() {
         JSONObject rtn = new JSONObject();
+        List<Base> needIndexing = new ArrayList<Base>();
 
         for (int rowNum = 0; rowNum < dataRows.size(); rowNum++) {
             List<BulkValidator> fields = new ArrayList<BulkValidator>();
@@ -67,7 +69,8 @@ public class BulkImporter {
             ma.setSkipAutoIndexing(true);
             MediaAssetFactory.save(ma, myShepherd);
             System.out.println("MMMM " + ma);
-            arr.put(ma.getId());
+            arr.put(ma.getIdInt());
+            needIndexing.add(ma);
         }
         rtn.put("mediaAssets", arr);
         arr = new JSONArray();
@@ -77,6 +80,7 @@ public class BulkImporter {
             myShepherd.storeNewEncounter(enc, enc.getId());
             System.out.println("EEEE " + enc);
             arr.put(enc.getId());
+            needIndexing.add(enc);
         }
         rtn.put("encounters", arr);
         arr = new JSONArray();
@@ -85,6 +89,7 @@ public class BulkImporter {
             myShepherd.storeNewOccurrence(occ);
             System.out.println("OOOO " + occ);
             arr.put(occ.getId());
+            needIndexing.add(occ);
         }
         rtn.put("sightings", arr);
         arr = new JSONArray();
@@ -93,10 +98,12 @@ public class BulkImporter {
             myShepherd.storeNewMarkedIndividual(indiv);
             System.out.println("IIII " + indiv);
             arr.put(indiv.getId());
+            needIndexing.add(indiv);
         }
         rtn.put("individuals", arr);
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
         ShepherdPMF.getPMF(myShepherd.getContext()).getDataStoreCache().evictAll();
+        BulkImportUtil.bulkOpensearchIndex(needIndexing);
         return rtn;
     }
 

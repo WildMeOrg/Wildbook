@@ -3,11 +3,15 @@ package org.ecocean.api.bulk;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.ecocean.api.ApiException;
+import org.ecocean.Base;
+import org.ecocean.OpenSearch;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.json.JSONArray;
@@ -148,5 +152,40 @@ public class BulkImportUtil {
             rtn.set(index, fn);
         }
         return rtn;
+    }
+
+    // possibly could be moved to OpenSearch or something, but lets test in bulk context first
+    // this (intentionally) does not use IndexManager queues as we assume these are newly created
+    // and dont need to be done deeply
+    public static void bulkOpensearchIndex(final List<Base> objs) {
+        if (objs == null) return;
+        Integer numThreads = (Integer)OpenSearch.getConfigurationValue("indexingNumAllowedThreads",
+            4);
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("bulkOpensearchIndex");
+                bgShepherd.beginDBTransaction();
+                int ct = 0;
+                for (Base obj : objs) {
+                    ct++;
+                    String id = obj.getId();
+                    // we cant use the obj directly, as its shepherd likely closed,
+                    // so we hackily reload under our shepherd
+                    try {
+                        Class myClass = obj.getClass();
+                        Base base = (Base)bgShepherd.getPM().getObjectById(myClass, id);
+                        System.out.println("bulkOpensearchIndex[" + ct + "/" + objs.size() + "]: " +
+                            base);
+                        base.opensearchIndex();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                bgShepherd.rollbackAndClose();
+            }
+        };
+        executor.execute(rn);
     }
 }
