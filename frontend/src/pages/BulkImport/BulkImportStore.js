@@ -3,6 +3,7 @@ import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { run } from 'jest';
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -10,7 +11,6 @@ export class BulkImportStore {
   _imageSectionFileNames = [];
   _imageRequired = false;
   _imageSectionError = false;
-  _imageCount = 0;
   _flow = null;
   _submissionId = null;
   _spreadsheetData = [];
@@ -59,13 +59,21 @@ export class BulkImportStore {
         }
         console.log("val", val);
         const images = val.split(",").map((img) => img.trim());
+        let missing = false;
         images.forEach((img) => {
-          const missing = images.filter((img) =>
-            !this._imageSectionFileNames.includes(img)
-          );
-          return missing.length === 0;
-        }
-        );
+          if (!this._imageSectionFileNames.includes(img)) {
+            missing = true;
+          }
+        });
+
+        return !missing;
+        // images.forEach((img) => {
+        //   const missing = images.filter((img) =>
+        //     !this._imageSectionFileNames.includes(img)
+        //   );
+        //   return missing.length === 0;
+        // }
+        // );
       },
       message: (val) => {
         console.log("val", val);
@@ -211,7 +219,6 @@ export class BulkImportStore {
       imagePreview: toJS(this._imagePreview),
       imageSectionFileNames: toJS(this._imageSectionFileNames),
       imageUploadProgress: this._imageUploadProgress,
-      imageCount: this._imageCount,
       uploadedImages: toJS(this._uploadedImages),
 
       spreadsheetData: toJS(this._spreadsheetData),
@@ -272,10 +279,6 @@ export class BulkImportStore {
 
   get spreadsheetUploadProgress() {
     return this._spreadsheetUploadProgress;
-  }
-
-  get imageCount() {
-    return this._imageCount;
   }
 
   get uploadedImages() {
@@ -345,9 +348,6 @@ export class BulkImportStore {
 
   setSpreadsheetUploadProgress(progress) {
     this._spreadsheetUploadProgress = progress;
-  }
-  setImageCount(count) {
-    this._imageCount = count;
   }
 
   setValidLocationIDs(locationIDs) {
@@ -426,7 +426,6 @@ export class BulkImportStore {
       this._imageUploadProgress = 0;
       this._spreadsheetUploadProgress = 0;
       this._activeStep = 0;
-      this._imageCount = 0;
       this._uploadedImages = [];
       this._rawData = [];
       this._spreadsheetData = [];
@@ -902,6 +901,12 @@ export class BulkImportStore {
       this._flow.removeFile(file);
       this.setImagePreview(fileName, "remove");
       this.setImageSectionFileNames(fileName, "remove");
+      runInAction(() => {
+        this._uploadedImages = this._uploadedImages.filter(
+        (n) => n !== fileName,
+      );
+      });
+      
     }
   }
 
