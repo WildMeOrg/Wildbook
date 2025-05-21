@@ -325,7 +325,7 @@ finally{
                 <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span><%=props.getProperty("identifiedAnimals") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings<%=props.getProperty("reportedSightings") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
