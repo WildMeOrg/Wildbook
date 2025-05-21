@@ -24,14 +24,12 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener preDelete() event on " + base);
             try {
-                
-            	//old way = direct indexing
-            	//base.opensearchUnindexDeep();
-            	//new way - put indexing in managed queue
-            	IndexingManager im=IndexingManagerFactory.getIndexingManager();
-            	im.addIndexingQueueEntry(base,true);
-            	
-                
+                if (base.getSkipAutoIndexing()) return;
+                // old way = direct indexing
+                // base.opensearchUnindexDeep();
+                // new way - put indexing in managed queue
+                IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                im.addIndexingQueueEntry(base, true);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -68,12 +66,11 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener postStore() event on " + base);
             try {
-            	
-                //base.opensearchIndexDeep();
-            	//new way - put indexing in managed queue
-            	IndexingManager im=IndexingManagerFactory.getIndexingManager();
-            	im.addIndexingQueueEntry(base,false);
-                
+                if (base.getSkipAutoIndexing()) return;
+                // base.opensearchIndexDeep();
+                // new way - put indexing in managed queue
+                IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                im.addIndexingQueueEntry(base, false);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
