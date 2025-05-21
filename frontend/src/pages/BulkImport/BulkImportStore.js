@@ -3,7 +3,6 @@ import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
-import { run } from 'jest';
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -35,6 +34,7 @@ export class BulkImportStore {
   _showInstructions = false;
   _isSavingDraft = false;
   _lastSavedAt = null;
+  _errorSummary = {};
 
   isValidISO(val) {
     const dt = new Date(val);
@@ -333,6 +333,49 @@ export class BulkImportStore {
   get lastSavedAt() {
     return this._lastSavedAt;
   }
+
+get errorSummary() {
+  let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
+
+  const uploadingSet = new Set(
+    this._imagePreview
+      .filter(p => p.progress > 0 && p.progress < 100)
+      .map(p => p.fileName)
+  );
+
+  this._spreadsheetData.forEach((row, rowIdx) => {
+    let rowHasPendingUpload = false;
+
+    this._columnsDef.forEach(col => {
+      const rules  = this._validationRules[col] ?? {};
+      const value  = String(row[col] ?? "").trim();
+      const errMsg = this._submissionErrors[rowIdx]?.[col]
+                  ?? this.validateSpreadsheet()[rowIdx]?.[col];
+
+      if (errMsg) {
+        error += 1;
+        if (/required/i.test(errMsg)) missingField += 1;
+        return;                         
+      }
+
+      if (!value) {
+        if (rules.required) missingField += 1;
+        else                emptyField   += 1;
+      }
+
+      if (col.startsWith("Encounter.mediaAsset") && value) {
+        const imgs = value.split(/\s*,\s*/);
+        if (imgs.some(img => uploadingSet.has(img))) rowHasPendingUpload = true;
+      }
+    });
+
+    if (rowHasPendingUpload) imgVerifyPending += 1;
+  });
+
+  return { error, missingField, emptyField, imgVerifyPending };
+}
+
+
 
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
