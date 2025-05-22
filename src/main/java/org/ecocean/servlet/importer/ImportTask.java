@@ -31,10 +31,15 @@ public class ImportTask implements java.io.Serializable {
     public ImportTask() {
         this((User)null);
     }
+
     public ImportTask(User u) {
+        this(u, Util.generateUUID());
+    }
+
+    public ImportTask(User u, String id) {
         this.creator = u;
         this.updateCreated();
-        this.id = Util.generateUUID();
+        this.id = id;
     }
 
     public String getId() {
@@ -131,6 +136,14 @@ public class ImportTask implements java.io.Serializable {
 
         if (p == null) p = new JSONObject();
         p.put("_passedParameters", Util.requestParametersToJSONObject(request));
+        parameters = p.toString();
+    }
+
+    public void setPassedParameters(JSONObject passed) {
+        JSONObject p = getParameters();
+
+        if (p == null) p = new JSONObject();
+        p.put("_passedParameters", passed);
         parameters = p.toString();
     }
 
