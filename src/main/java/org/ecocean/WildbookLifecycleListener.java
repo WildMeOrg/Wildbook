@@ -29,12 +29,10 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
         
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
-            System.out.println("WildbookLifecycleListener preDelete() event on " + base);
             try {
                 
             	base.opensearchUnindexDeep();
-            	
-                
+            	               
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
