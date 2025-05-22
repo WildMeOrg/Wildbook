@@ -101,6 +101,8 @@ public class BulkImporter {
             needIndexing.add(indiv);
         }
         rtn.put("individuals", arr);
+        System.out.println(
+            "------------ persistence complete; background indexing -------------\n");
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
         myShepherd.cacheEvictAll();
         BulkImportUtil.bulkOpensearchIndex(needIndexing);

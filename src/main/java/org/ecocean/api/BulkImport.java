@@ -17,6 +17,7 @@ import javax.servlet.ServletException;
 import org.ecocean.api.bulk.*;
 
 import org.ecocean.media.MediaAsset;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
@@ -341,6 +342,16 @@ public class BulkImport extends ApiBase {
                 }
                 rtn.put("success", true);
                 rtn.put("note", "INCOMPLETE IMPORT CREATION; in development");
+
+                ImportTask itask = new ImportTask(currentUser, bulkImportId);
+                JSONObject passedParams = new JSONObject();
+                for (String k : payload.keySet()) {
+                    if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
+                    passedParams.put(k, payload.get(k));
+                }
+                itask.setPassedParameters(passedParams);
+                itask.setStatus("started");
+                myShepherd.getPM().makePersistent(itask);
                 statusCode = 200;
             }
             response.setStatus(statusCode);
