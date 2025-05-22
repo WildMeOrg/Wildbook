@@ -102,7 +102,7 @@ public class BulkImporter {
         }
         rtn.put("individuals", arr);
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
-        ShepherdPMF.getPMF(myShepherd.getContext()).getDataStoreCache().evictAll();
+        myShepherd.cacheEvictAll();
         BulkImportUtil.bulkOpensearchIndex(needIndexing);
         return rtn;
     }

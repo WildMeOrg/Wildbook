@@ -25,8 +25,8 @@ import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.social.*;
 import org.ecocean.shepherd.utils.ShepherdState;
+import org.ecocean.social.*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -514,7 +514,8 @@ public class Shepherd {
 
     public Setting getSetting(String group, String id) {
         if ((group == null) || (id == null)) return null;
-        Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group + "' && id=='" + id + "'");
+        Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group +
+            "' && id=='" + id + "'");
         Setting st = null;
         Collection results = (Collection)(qry.execute());
         if (!results.isEmpty()) st = (Setting)results.iterator().next();
@@ -524,6 +525,7 @@ public class Shepherd {
 
     public Setting getOrCreateSetting(String group, String id) {
         Setting st = getSetting(group, id);
+
         if (st != null) return st;
         st = new Setting(group, id);
         pm.makePersistent(st);
@@ -532,6 +534,7 @@ public class Shepherd {
 
     public Object getSettingValue(String group, String id) {
         Setting st = getSetting(group, id);
+
         if (st == null) return null;
         return st.getValue();
     }
@@ -1900,26 +1903,25 @@ public class Shepherd {
         }
     }
 
-    public List<List<String>> getAllTaxonomyCommonNames() {return getAllTaxonomyCommonNames(false);
+    public List<List<String> > getAllTaxonomyCommonNames() {
+        return getAllTaxonomyCommonNames(false);
     }
 
     // forceSpaces will turn `Foo bar_bar` into `Foo bar bar` - use with caution!
-    public List<List<String>> getAllTaxonomyCommonNames(boolean forceSpaces) {
+    public List<List<String> > getAllTaxonomyCommonNames(boolean forceSpaces) {
         Set<String> allSciNames = new LinkedHashSet<String>();
         Set<String> allComNames = new LinkedHashSet<String>();
-
         List<String> configNamesSci = CommonConfiguration.getIndexedPropertyValues("genusSpecies",
-                getContext());
+            getContext());
         List<String> configNamesCom = CommonConfiguration.getIndexedPropertyValues("commonName",
-                getContext());
+            getContext());
+
         allSciNames.addAll(configNamesSci);
         allComNames.addAll(configNamesCom);
 
         List<String> allSciNamesList = new ArrayList<String>(allSciNames);
         List<String> allComNamesList = new ArrayList<String>(allComNames);
-
-        List<List<String>> result = new ArrayList<>();
-
+        List<List<String> > result = new ArrayList<>();
         if (forceSpaces) {
             List<String> spaceySci = new ArrayList<String>();
             for (String tx : allSciNamesList) {
@@ -2053,14 +2055,14 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection) (acceptedEncounters.execute());
+            c = (Collection)(acceptedEncounters.execute());
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2071,7 +2073,7 @@ public class Shepherd {
 
         try {
             // System.out.println("getAllOccurrences is called on query "+myQuery);
-            c = (Collection) (myQuery.execute());
+            c = (Collection)(myQuery.execute());
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2079,7 +2081,7 @@ public class Shepherd {
             return list;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2092,7 +2094,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+                "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
             npe.printStackTrace();
             return null;
         }
@@ -2102,42 +2104,42 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection) (acceptedEncounters.execute());
+            c = (Collection)(acceptedEncounters.execute());
             ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
             return list;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Encounter> getAllEncounters(Query acceptedEncounters,
-                                                Map<String, Object> paramMap) {
+        Map<String, Object> paramMap) {
         Collection c;
 
         try {
-            c = (Collection) (acceptedEncounters.executeWithMap(paramMap));
+            c = (Collection)(acceptedEncounters.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences,
-                                                  Map<String, Object> paramMap) {
+        Map<String, Object> paramMap) {
         Collection c;
 
         try {
             // System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
-            c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
+            c = (Collection)(acceptedOccurrences.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2145,7 +2147,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2156,15 +2158,15 @@ public class Shepherd {
 
         try {
             System.out.println("getAllSurveys is called on query " + acceptedSurveys +
-                    " and paramMap " + paramMap);
-            c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
+                " and paramMap " + paramMap);
+            c = (Collection)(acceptedSurveys.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             System.out.println("getAllSurveys got " + list.size() + " surveys");
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -4590,5 +4592,11 @@ public class Shepherd {
             allAnnotIds.put(ann);
         }
         return allAnnotIds;
+    }
+
+    public void cacheEvictAll() {
+        PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
+
+        if (pmf != null) pmf.getDataStoreCache().evictAll();
     }
 }
