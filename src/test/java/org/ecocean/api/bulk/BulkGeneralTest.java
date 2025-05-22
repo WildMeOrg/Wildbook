@@ -107,4 +107,19 @@ class BulkGeneralTest {
         BulkValidator bv = (BulkValidator)rowResult.get(fieldNameValidEncounterYear);
         assertEquals(bv.getFieldName(), fieldNameValidEncounterYear);
     }
+
+    @Test void fieldIntegrity() {
+        for (String f : BulkValidator.MINIMAL_FIELD_NAMES_STRING) {
+            if (!BulkValidator.FIELD_NAMES.contains(f))
+                throw new RuntimeException("BulkValidator.FIELD_NAMES is missing " + f);
+        }
+        for (String f : BulkValidator.MINIMAL_FIELD_NAMES_INT) {
+            if (!BulkValidator.FIELD_NAMES.contains(f))
+                throw new RuntimeException("BulkValidator.FIELD_NAMES is missing " + f);
+        }
+        for (String f : BulkValidator.MINIMAL_FIELD_NAMES_DOUBLE) {
+            if (!BulkValidator.FIELD_NAMES.contains(f))
+                throw new RuntimeException("BulkValidator.FIELD_NAMES is missing " + f);
+        }
+    }
 }

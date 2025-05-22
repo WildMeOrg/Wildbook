@@ -326,6 +326,7 @@ public class BulkImporter {
             case "SocialUnit.socialUnitName":
             case "Survey.comments":
             case "Survey.id":
+            case "Survey.type":
             case "Survey.vessel":
             case "SurveyTrack.vesselID":
             case "Taxonomy.commonName":

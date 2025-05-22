@@ -157,6 +157,21 @@ public class BulkImport extends ApiBase {
                     fieldNames.add(fn);
                 }
             }
+            // we might grow matching filter stuff later, but for now we only have locationIds from ui
+            Set<String> matchingLocations = new HashSet<String>();
+            JSONArray mloc = payload.optJSONArray("matchingLocations");
+            if (mloc != null) {
+                for (int i = 0; i < mloc.length(); i++) {
+                    String locId = mloc.optString(i, null);
+                    if (locId == null) continue;
+                    // VALIDATE locId  FIXME
+                    matchingLocations.add(locId);
+                }
+            }
+            boolean skipDetection = payload.optBoolean("skipDetection", false);
+            // if you skipDetection, you cant do identification, so:
+            boolean skipIdentification = skipDetection || payload.optBoolean("skipIdentification",
+                false);
             Set<String> filenamesNeeded = new HashSet<String>();
             List<Map<String, Object> > validatedRows = new ArrayList<Map<String, Object> >();
             for (int i = 0; i < rows.length(); i++) {

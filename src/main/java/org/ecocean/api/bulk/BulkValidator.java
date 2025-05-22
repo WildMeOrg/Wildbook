@@ -42,12 +42,15 @@ public class BulkValidator {
         "Sighting.humanActivityNearby", "Sighting.individualCount", "Sighting.initialCue",
         "Sighting.maxGroupSizeEstimate", "Sighting.millis", "Sighting.minGroupSizeEstimate",
         "Sighting.minutes", "Sighting.month", "Sighting.numAdults", "Sighting.numCalves",
-        "Sighting.numJuveniles", "Sighting.observer", "Sighting.occurrenceID", "Sighting.seaState",
+        "Sighting.numJuveniles", "Sighting.observer", "Sighting.sightingID", "Sighting.seaState",
+        "Sighting.groupSize", "Sighting.numSubAdults", "Sighting.numAdultMales",
+        "Sighting.numAdultFemales", "Sighting.numSubFemales", "Sighting.numSubMales",
         "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature", "Sighting.swellHeight",
-        "Sighting.transectBearing", "Sighting.transectName", "Sighting.visibilityIndex",
-        "Sighting.year", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
-        "SexAnalysis.sex", "SocialUnit.socialUnitName", "Survey.comments", "Survey.id",
-        "Survey.vessel", "SurveyTrack.vesselID", "Taxonomy.commonName", "Taxonomy.scientificName",
+        "Sighting.terrain", "Sighting.transectBearing", "Sighting.transectName",
+        "Sighting.vegetation", "Sighting.visibilityIndex", "Sighting.year",
+        "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID", "SexAnalysis.sex",
+        "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type", "Survey.vessel",
+        "SurveyTrack.vesselID", "Taxonomy.commonName", "Taxonomy.scientificName",
         "TissueSample.sampleID", "TissueSample.tissueType"));
 
     public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
@@ -59,6 +62,36 @@ public class BulkValidator {
 
     public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
         "Encounter.genus", "Encounter.specificEpithet", "Encounter.year"));
+
+    // this is for frontend, and it contains "minimally supported" fields: those which will NOT be
+    // validated, but just accepted as-is and set on appropriate object
+    public static final Set<String> MINIMAL_FIELD_NAMES_STRING = new HashSet<>(Arrays.asList(
+        "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupRole",
+        "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.informOther",
+        "Encounter.measurement", "Encounter.sightingID", "Encounter.sightingRemarks",
+        "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.photographer",
+        "Encounter.project", "Encounter.quality", "Encounter.state", "Encounter.submitterName",
+        "Encounter.submitterOrganization", "MarkedIndividual.name", "MarkedIndividual.nickname",
+        "MarkedIndividual.nickName", "Membership.role", "MicrosatelliteMarkersAnalysis.alleleNames",
+        "MicrosatelliteMarkersAnalysis.analysisID", "MitochondrialDNAAnalysis.haplotype",
+        "Sighting.comments", "Sighting.fieldStudySite", "Sighting.groupBehavior",
+        "Sighting.groupComposition", "Sighting.humanActivityNearby", "Sighting.initialCue",
+        "Sighting.observer", "Sighting.sightingID", "Sighting.terrain", "Sighting.transectName",
+        "Sighting.vegetation", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
+        "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type",
+        "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName", "Taxonomy.scientificName",
+        "TissueSample.tissueType"));
+    public static final Set<String> MINIMAL_FIELD_NAMES_INT = new HashSet<>(Arrays.asList(
+        "Sighting.fieldSurveyCode", "Sighting.groupSize", "Sighting.individualCount",
+        "Sighting.maxGroupSizeEstimate", "Sighting.minGroupSizeEstimate",
+        "Sighting.numAdultFemales", "Sighting.numAdultMales", "Sighting.numAdults",
+        "Sighting.numCalves", "Sighting.numJuveniles", "Sighting.numSubAdults",
+        "Sighting.numSubFemales", "Sighting.numSubMales", "Sighting.seaState",
+        "Sighting.visibilityIndex"));
+    public static final Set<String> MINIMAL_FIELD_NAMES_DOUBLE = new HashSet<>(Arrays.asList(
+        "Encounter.depth", "Encounter.elevation", "Encounter.quality", "Sighting.bearing",
+        "Sighting.bestGroupSizeEstimate", "Sighting.distance", "Sighting.effortCode",
+        "Sighting.seaSurfaceTemperature", "Sighting.swellHeight", "Sighting.transectBearing"));
 
     private String fieldName = null;
     private Object value = null;
@@ -389,5 +422,20 @@ public class BulkValidator {
         }
         str += " value=(" + value + ")";
         return str;
+    }
+
+    public static JSONObject minimalFieldsJson() {
+        JSONObject mf = new JSONObject();
+
+        for (String f : MINIMAL_FIELD_NAMES_STRING) {
+            mf.put(f, "string");
+        }
+        for (String f : MINIMAL_FIELD_NAMES_INT) {
+            mf.put(f, "int");
+        }
+        for (String f : MINIMAL_FIELD_NAMES_DOUBLE) {
+            mf.put(f, "double");
+        }
+        return mf;
     }
 }
