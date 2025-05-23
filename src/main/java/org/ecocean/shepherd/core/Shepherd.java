@@ -512,6 +512,14 @@ public class Shepherd {
         return tempEnc;
     }
 
+    public void storeNewImportTask(ImportTask itask) {
+        try {
+            pm.makePersistent(itask);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public Setting getSetting(String group, String id) {
         if ((group == null) || (id == null)) return null;
         Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group +

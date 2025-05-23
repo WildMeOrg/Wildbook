@@ -361,7 +361,7 @@ public class BulkImport extends ApiBase {
                 }
                 itask.setPassedParameters(passedParams);
                 itask.setStatus("started");
-                myShepherd.getPM().makePersistent(itask);
+                myShepherd.storeNewImportTask(itask);
                 statusCode = 200;
             }
             response.setStatus(statusCode);
