@@ -1097,7 +1097,6 @@ public class MediaAsset extends Base implements java.io.Serializable {
         if ((types == null) || (types.size() < 1)) return null;
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (String type : types) {
-            System.out.println(">> updateStandardChildren(): type = " + type);
             MediaAsset c = null;
             try {
                 c = this.updateChild(type);
