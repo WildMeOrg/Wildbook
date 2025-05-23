@@ -125,7 +125,7 @@ public class BulkImport extends ApiBase {
             String bulkImportId = payload.optString("bulkImportId", null);
             if (bulkImportId == null) throw new ServletException("bulkImportId is required");
             rtn.put("bulkImportId", bulkImportId);
-            archivePayload(payload);
+            archiveBulkJson(payload, "payload");
 
             JSONObject tolerance = payload.optJSONObject("tolerance");
             if (tolerance == null) tolerance = new JSONObject();
@@ -368,6 +368,7 @@ public class BulkImport extends ApiBase {
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write(rtn.toString());
+            archiveBulkJson(rtn, "return" + statusCode);
         } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
         } catch (Exception ex) {
@@ -421,9 +422,9 @@ public class BulkImport extends ApiBase {
         }
     }
 
-    private void archivePayload(JSONObject payload) {
+    private void archiveBulkJson(JSONObject payload, String suffix) {
         String path = BulkImportUtil.bulkImportArchiveFilepath(payload.optString("bulkImportId",
-            "__FAIL__"));
+            "__FAIL__"), suffix);
 
         try {
             Util.writeToFile(payload.toString(4), path);

@@ -189,7 +189,8 @@ public class BulkImportUtil {
         executor.execute(rn);
     }
 
-    public static String bulkImportArchiveFilepath(String id) {
-        return "/tmp/bulkImportArchive_" + id + "_" + System.currentTimeMillis() + ".json";
+    public static String bulkImportArchiveFilepath(String id, String suffix) {
+        return "/tmp/bulkImportArchive_" + id + "_" + suffix + "_" + System.currentTimeMillis() +
+                   ".json";
     }
 }
