@@ -19,24 +19,6 @@ export const BulkImportTableReview = observer(({ store }) => {
   const submissionId = store.submissionId || uuidv4();
   const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
 
-  const handleStartImport = useCallback(async () => {
-    store.clearSubmissionErrors();
-    try {
-      const result = await submit(submissionId, store.rawColumns, store.rawData);
-      if (result?.success) {
-        store.resetToDefaults();
-      }
-    } catch (err) {
-      const errors = err.response?.data?.errors;
-      console.log("Error during import:", err);
-      if (errors) {
-        store.setSubmissionErrors(errors);
-      } else {
-        console.error('Import failed', err);
-      }
-    }
-  });
-
   return (
     <div className="mt-4">
       <div>
@@ -76,10 +58,13 @@ export const BulkImportTableReview = observer(({ store }) => {
         </div>}
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton
-          onClick={() => {
-            handleStartImport();
+          // onClick={() => {
+          //   handleStartImport();
+          // }}
+          onClick ={() => {
+            store.setActiveStep(3);
           }}
-          disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
+          // disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
           // disabled={store.isSubmitting || store.imageUploadProgress !== 100 || store.spreadsheetUploadProgress !== 100}
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
@@ -88,7 +73,7 @@ export const BulkImportTableReview = observer(({ store }) => {
         >
           {isLoading
             ? <FormattedMessage id="LOADING" defaultMessage="Loading..." />
-            : <FormattedMessage id="START_BULK_IMPORT" />}
+            : <FormattedMessage id="SET_LOCATION" />}
         </MainButton>
       </div>
     </div>

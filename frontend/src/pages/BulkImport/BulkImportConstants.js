@@ -86,7 +86,7 @@ const extraStringCols = [
   "Encounter.sightingID",	
   "Encounter.sightingRemarks",	
   "Encounter.verbatimLocality",
-  "sample ID",
+  "TissueSample.sampleID",
   "TissueSample.sampleID",
   "SexAnalysis.sex",
   "researcher Comments",
@@ -94,7 +94,6 @@ const extraStringCols = [
   "Encounter.sightingRemarks",
   "Encounter.researcherComments",
   "MarkedIndividual.individualID",
-  
 ];
 
 
