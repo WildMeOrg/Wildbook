@@ -36,8 +36,8 @@ const tableHeaderMapping = {
   "Encounter.mediaAsset0": "Media Assets",
   "Encounter.genus": "Species",
   "MarkedIndividual.individualID": "Individual name",
-  "Encounter.occurrenceID": "occurrence ID",
-  "Encounter.occurrenceRemarks": "occurrence Remarks",
+  "Encounter.sightingID": "sighting ID",
+  "Encounter.sightingRemarks": "sighting Remarks",
   "Encounter.locationID": "location",
   "Encounter.country": "country",
   "Encounter.decimalLatitude": "Lat, long (DD)",
@@ -55,19 +55,47 @@ const tableHeaderMapping = {
 
 const columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
 
-const NUMERIC_COLS = [
-  "Encounter.count",
-  "Encounter.weight",
-  "Encounter.length",
-];
+const stringRule = {
+  required: false,
+  validate: (val) => {
+    if (!val) return true;                 
+    return /^[a-zA-Z0-9\s.,-]+$/.test(val); 
+  },
+  message: "Must be a string",
+};
 
-const numericRule = {
+const intRule = {
+  required: false,
+  validate: (val) => {
+    if (!val) return true;                 
+    return /^-?\d+$/.test(val);   
+  },
+  message: "Must be an integer",
+};
+
+const doubleRule = {
   required: false,
   validate: (val) => {
     if (!val) return true;                 
     return /^-?\d+(\.\d+)?$/.test(val);   
   },
-  message: "Must be a number",
+  message: "Must be a double",
 };
 
-export { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell, NUMERIC_COLS, numericRule };
+const extraStringCols = [
+  "Encounter.sightingID",	
+  "Encounter.sightingRemarks",	
+  "Encounter.verbatimLocality",
+  "sample ID",
+  "TissueSample.sampleID",
+  "SexAnalysis.sex",
+  "researcher Comments",
+  "Encounter.sightingID",
+  "Encounter.sightingRemarks",
+  "Encounter.researcherComments",
+  "MarkedIndividual.individualID",
+  
+];
+
+
+export { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell, doubleRule, intRule, stringRule, extraStringCols };

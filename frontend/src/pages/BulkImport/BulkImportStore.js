@@ -3,10 +3,14 @@ import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
-import { NUMERIC_COLS, numericRule } from "./BulkImportConstants";
+import { extraStringCols, intRule, doubleRule, stringRule } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
+  _minimalFields = {};
+  _STRING_COLS = [];
+  _INT_COLS = [];
+  _DOUBLE_COLS = [];
   _imagePreview = [];
   _imageSectionFileNames = [];
   _imageRequired = false;
@@ -52,7 +56,7 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
-  
+
   _validationRules = {
     "Encounter.mediaAsset0": {
       required: false,
@@ -197,16 +201,51 @@ export class BulkImportStore {
       },
       message: "invalid behavior",
     },
+    "Encounter.photographer0.emailAddress": {
+      required: false,
+      validate: (val) => {
+        console.log("email validation", val);
+        if (!val) {
+          return true;
+        }
+        const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        console.log("email regex", re.test(val));
+        return re.test(val);
+      },
+      message: "invalid email address",
+    },
+    "Encounter.informOther0.emailAddress": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return re.test(val);
+      },
+      message: "invalid email address",
+    },
   };
 
   constructor() {
     makeAutoObservable(this);
+
+    // this._STRING_COLS = Object.keys(this._minimalFields).filter((field) => this._minimalFields[field] === "string");
+    // this._INT_COLS = Object.keys(this._minimalFields).filter((field) => this._minimalFields[field] === "int");
+    // this._DOUBLE_COLS = Object.keys(this._minimalFields).filter((field) => this._minimalFields[field] === "double");
+
     this._validationRules = {
-  ...this._validationRules,               
-  ...Object.fromEntries(
-    NUMERIC_COLS.map((col) => [col, numericRule])
-  ),
-};
+      ...this._validationRules,
+      ...Object.fromEntries(
+        this._INT_COLS.map((col) => [col, intRule])
+      ),
+      ...Object.fromEntries(
+        this._DOUBLE_COLS.map((col) => [col, doubleRule])
+      ),
+      ...Object.fromEntries(
+        this._STRING_COLS.map((col) => [col, { stringRule }])
+      ),
+    };
   }
 
   get stateSnapshot() {
@@ -336,48 +375,58 @@ export class BulkImportStore {
     return this._lastSavedAt;
   }
 
-get errorSummary() {
-  let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
+  get errorSummary() {
+    let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
 
-  const uploadingSet = new Set(
-    this._imagePreview
-      .filter(p => p.progress > 0 && p.progress < 100)
-      .map(p => p.fileName)
-  );
+    const uploadingSet = new Set(
+      this._imagePreview
+        .filter(p => p.progress > 0 && p.progress < 100)
+        .map(p => p.fileName)
+    );
 
-  this._spreadsheetData.forEach((row, rowIdx) => {
-    let rowHasPendingUpload = false;
+    this._spreadsheetData.forEach((row, rowIdx) => {
+      let rowHasPendingUpload = false;
 
-    this._columnsDef.forEach(col => {
-      const rules  = this._validationRules[col] ?? {};
-      const value  = String(row[col] ?? "").trim();
-      const errMsg = this._submissionErrors[rowIdx]?.[col]
-                  ?? this.validateSpreadsheet()[rowIdx]?.[col];
+      this._columnsDef.forEach(col => {
+        const rules = this._validationRules[col] ?? {};
+        const value = String(row[col] ?? "").trim();
+        const errMsg = this._submissionErrors[rowIdx]?.[col]
+          ?? this.validateSpreadsheet()[rowIdx]?.[col];
 
-      if (errMsg) {
-        error += 1;
-        if (/required/i.test(errMsg)) missingField += 1;
-        return;                         
-      }
+        if (errMsg) {
+          error += 1;
+          if (/required/i.test(errMsg)) missingField += 1;
+          return;
+        }
 
-      if (!value) {
-        if (rules.required) missingField += 1;
-        else                emptyField   += 1;
-      }
+        if (!value) {
+          if (rules.required) missingField += 1;
+          else emptyField += 1;
+        }
 
-      if (col.startsWith("Encounter.mediaAsset") && value) {
-        const imgs = value.split(/\s*,\s*/);
-        if (imgs.some(img => uploadingSet.has(img))) rowHasPendingUpload = true;
-      }
+        if (col.startsWith("Encounter.mediaAsset") && value) {
+          const imgs = value.split(/\s*,\s*/);
+          if (imgs.some(img => uploadingSet.has(img))) rowHasPendingUpload = true;
+        }
+      });
+
+      if (rowHasPendingUpload) imgVerifyPending += 1;
     });
 
-    if (rowHasPendingUpload) imgVerifyPending += 1;
-  });
+    return { error, missingField, emptyField, imgVerifyPending };
+  }
 
-  return { error, missingField, emptyField, imgVerifyPending };
-}
+  // get STRING_COLS() {
+  //  return Object.keys(this._minimalFields).filter(k => this._minimalFields[k] === "string");
+  // }
 
+  // get INT_COLS() {
+  //   return Object.keys(this._minimalFields).filter(k => this._minimalFields[k] === "int");
+  // }
 
+  // get DOUBLE_COLS() {
+  //   return Object.keys(this._minimalFields).filter(k => this._minimalFields[k] === "double");
+  // }
 
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
@@ -457,6 +506,27 @@ get errorSummary() {
 
   setShowInstructions(show) {
     this._showInstructions = show;
+  }
+
+  setMinimalFields(minimalFields) {
+    runInAction(() => {
+      this._minimalFields = minimalFields;
+
+      this._STRING_COLS = Object.keys(minimalFields)
+        .filter(k => minimalFields[k] === "string")
+        .concat(extraStringCols);
+      this._INT_COLS = Object.keys(minimalFields)
+        .filter(k => minimalFields[k] === "int");
+      this._DOUBLE_COLS = Object.keys(minimalFields)
+        .filter(k => minimalFields[k] === "double");
+
+      this._validationRules = {
+        ...this._validationRules,
+        ...Object.fromEntries(this._INT_COLS.map(c => [c, intRule])),
+        ...Object.fromEntries(this._DOUBLE_COLS.map(c => [c, doubleRule])),
+        ...Object.fromEntries(this._STRING_COLS.map(c => [c, stringRule])),
+      };
+    });
   }
 
   clearSubmissionErrors() {
@@ -907,6 +977,8 @@ get errorSummary() {
   }
 
   validateSpreadsheet() {
+    console.log("minimalFields", this._minimalFields);
+    console.log(".....++---++.....", JSON.stringify(this._STRING_COLS), JSON.stringify(this._INT_COLS), JSON.stringify(this._DOUBLE_COLS));
     const errors = {};
     this._spreadsheetData.forEach((row, rowIndex) => {
       this._columnsDef.forEach((col) => {
@@ -947,10 +1019,10 @@ get errorSummary() {
       this.setImageSectionFileNames(fileName, "remove");
       runInAction(() => {
         this._uploadedImages = this._uploadedImages.filter(
-        (n) => n !== fileName,
-      );
+          (n) => n !== fileName,
+        );
       });
-      
+
     }
   }
 

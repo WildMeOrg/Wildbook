@@ -97,6 +97,7 @@ export const DataTable = observer(({ store }) => {
   const [cellErrors, setCellErrors] = useState({});
   const columnsDef = store.columnsDef || [];
   const { data: siteData } = useGetSiteSettings();
+  const minimalFields = siteData?.bulkImportMinimalFields || {};
   const validLocationIDs = siteData?.locationData.locationID || [];
   const validSubmitterIDs = siteData?.users?.map((user) => user.username) || [];
   const validSpecies = siteData?.siteTaxonomies || [];
@@ -125,6 +126,7 @@ export const DataTable = observer(({ store }) => {
     return values;
   };
 
+  store.setMinimalFields(minimalFields);
   store.setValidLocationIDs(
     extractAllValues(store.convertToTreeData(validLocationIDs)),
   );
