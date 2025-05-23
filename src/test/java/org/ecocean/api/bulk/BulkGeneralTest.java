@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -121,5 +123,25 @@ class BulkGeneralTest {
             if (!BulkValidator.FIELD_NAMES.contains(f))
                 throw new RuntimeException("BulkValidator.FIELD_NAMES is missing " + f);
         }
+    }
+
+    @Test void fieldNameCoverage() {
+        List<Map<String, Object> > rows = new ArrayList<Map<String, Object> >();
+        Map<String, Object> row = new HashMap<String, Object>();
+
+        for (String fn : BulkValidator.FIELD_NAMES) {
+            BulkValidator bv = null;
+            try {
+                bv = new BulkValidator(fn, "value-" + fn, null);
+            } catch (Exception ex) {}
+            if (bv != null) row.put(fn, bv);
+        }
+        rows.add(row);
+        // throwing NPE here means we got far enough :)
+        Exception ex = assertThrows(NullPointerException.class, () -> {
+            BulkImporter imp = new BulkImporter(rows, null, null, null);
+            imp.createImport();
+        });
+        assertTrue(ex.getMessage().contains("mediaAssetMap"));
     }
 }

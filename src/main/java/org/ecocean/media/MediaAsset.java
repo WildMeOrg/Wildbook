@@ -521,7 +521,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     /**
-       this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or human-input 
+       this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or human-input
        FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string), then (b) crawl metadata.exif for something date-y
      */
     public DateTime getDateTime() {
@@ -651,7 +651,6 @@ public class MediaAsset extends Base implements java.io.Serializable {
             return annA.comparePositional(annB);
         }
     }
-
 
     /**
      * Return a full web-accessible url to the asset, or null if the asset is not web-accessible. NOTE: now you should *almost always* use .safeURL()
@@ -1098,7 +1097,6 @@ public class MediaAsset extends Base implements java.io.Serializable {
         if ((types == null) || (types.size() < 1)) return null;
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (String type : types) {
-            System.out.println(">> updateStandardChildren(): type = " + type);
             MediaAsset c = null;
             try {
                 c = this.updateChild(type);
@@ -1353,7 +1351,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     public MediaAssetMetadata updateMetadata()
-    throws IOException { 
+    throws IOException {
         if (store == null) return null;
         metadata = store.extractMetadata(this);
         return metadata;
@@ -1682,11 +1680,19 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     @Override public String getAllVersionsSql() {
-        return "SELECT CAST(\"ID\" AS text), \"REVISION\" AS version FROM \"MEDIAASSET\" WHERE \"PARENTID\" IS NULL ORDER BY version";
+        return
+                "SELECT CAST(\"ID\" AS text), \"REVISION\" AS version FROM \"MEDIAASSET\" WHERE \"PARENTID\" IS NULL ORDER BY version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
         return myShepherd.getMediaAsset(id);
+    }
+
+    // we override Base version, as we want to (dont we?) always skip auto-indexing children assets
+    public boolean getSkipAutoIndexing() {
+        if (this.skipAutoIndexing) return true;
+        if (this.parentId != null) return true;
+        return false;
     }
 
     // comment cruft only needed for Base class

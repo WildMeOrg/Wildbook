@@ -59,17 +59,24 @@ public class BulkImporter {
                 }
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
-            System.out.println("createImport() row " + rowNum);
-            processRow(fields);
+            System.out.println("createImport() row=" + rowNum);
+            try {
+                processRow(fields);
+            } catch (Exception ex) {
+                System.out.println("createImport() row=" + rowNum + " failed with " + ex);
+                ex.printStackTrace();
+            }
         }
         System.out.println(
             "------------ all rows processed; beginning persistence -------------\n");
+        List<Integer> maIds = new ArrayList<Integer>(); // used later to build child MAs
         JSONArray arr = new JSONArray();
         for (MediaAsset ma : mediaAssetMap.values()) {
             ma.setSkipAutoIndexing(true);
             MediaAssetFactory.save(ma, myShepherd);
             System.out.println("MMMM " + ma);
             arr.put(ma.getIdInt());
+            maIds.add(ma.getIdInt());
             needIndexing.add(ma);
         }
         rtn.put("mediaAssets", arr);
@@ -102,10 +109,11 @@ public class BulkImporter {
         }
         rtn.put("individuals", arr);
         System.out.println(
-            "------------ persistence complete; background indexing -------------\n");
+            "------------ persistence complete; background indexing and MA children -------------\n");
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
         myShepherd.cacheEvictAll();
         BulkImportUtil.bulkOpensearchIndex(needIndexing);
+        MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds);
         return rtn;
     }
 
@@ -128,7 +136,9 @@ public class BulkImporter {
         MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
         Occurrence occ = getOrCreateOccurrence(fmap);
         Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
-        if (enc != null) return; // FIXME temp disable
+        // this line can be uncommented to disable persisting for development purposes
+        // TODO remove this when no longer useful
+        // if (enc != null) return;
 
 /*
         these are in order based on indexing numerical value such that list.get(i)
@@ -311,6 +321,8 @@ public class BulkImporter {
             case "Sighting.millis":
             case "Sighting.minGroupSizeEstimate":
             case "Sighting.numAdults":
+            case "Sighting.numAdultMales":
+            case "Sighting.numSubFemales":
             case "Sighting.numCalves":
             case "Sighting.numJuveniles":
             case "Sighting.observer":
@@ -339,7 +351,8 @@ public class BulkImporter {
                 break;
 
             default:
-                System.out.println("DEBUG: field ignored by main loop: " + fieldName);
+                System.out.println("[INFO] processRow() ignored a field [" + fieldName +
+                    "] that was flagged valid");
             }
         }
         // fields done
