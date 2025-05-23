@@ -59,8 +59,13 @@ public class BulkImporter {
                 }
                 // } else if (fieldObj instanceof BulkValidatorException) {
             }
-            System.out.println("createImport() row " + rowNum);
-            processRow(fields);
+            System.out.println("createImport() row=" + rowNum);
+            try {
+                processRow(fields);
+            } catch (Exception ex) {
+                System.out.println("createImport() row=" + rowNum + " failed with " + ex);
+                ex.printStackTrace();
+            }
         }
         System.out.println(
             "------------ all rows processed; beginning persistence -------------\n");
@@ -316,6 +321,8 @@ public class BulkImporter {
             case "Sighting.millis":
             case "Sighting.minGroupSizeEstimate":
             case "Sighting.numAdults":
+            case "Sighting.numAdultMales":
+            case "Sighting.numSubFemales":
             case "Sighting.numCalves":
             case "Sighting.numJuveniles":
             case "Sighting.observer":
@@ -344,7 +351,8 @@ public class BulkImporter {
                 break;
 
             default:
-                System.out.println("DEBUG: field ignored by main loop: " + fieldName);
+                System.out.println("[INFO] processRow() ignored a field [" + fieldName +
+                    "] that was flagged valid");
             }
         }
         // fields done
