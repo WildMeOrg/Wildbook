@@ -125,6 +125,7 @@ public class BulkImport extends ApiBase {
             String bulkImportId = payload.optString("bulkImportId", null);
             if (bulkImportId == null) throw new ServletException("bulkImportId is required");
             rtn.put("bulkImportId", bulkImportId);
+            archivePayload(payload);
 
             JSONObject tolerance = payload.optJSONObject("tolerance");
             if (tolerance == null) tolerance = new JSONObject();
@@ -343,7 +344,16 @@ public class BulkImport extends ApiBase {
                 rtn.put("success", true);
                 rtn.put("note", "INCOMPLETE IMPORT CREATION; in development");
 
-                ImportTask itask = new ImportTask(currentUser, bulkImportId);
+                ImportTask itask = myShepherd.getImportTask(bulkImportId);
+                if (itask != null) {
+                    itask.addLog(
+                        "WARNING! BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask");
+                    System.out.println(
+                        "WARNING: BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask ***************** "
+                        + itask);
+                } else {
+                    itask = new ImportTask(currentUser, bulkImportId);
+                }
                 JSONObject passedParams = new JSONObject();
                 for (String k : payload.keySet()) {
                     if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
@@ -409,5 +419,14 @@ public class BulkImport extends ApiBase {
             }
             myShepherd.closeDBTransaction();
         }
+    }
+
+    private void archivePayload(JSONObject payload) {
+        String path = BulkImportUtil.bulkImportArchiveFilepath(payload.optString("bulkImportId",
+            "__FAIL__"));
+
+        try {
+            Util.writeToFile(payload.toString(4), path);
+        } catch (java.io.FileNotFoundException ex) {}
     }
 }

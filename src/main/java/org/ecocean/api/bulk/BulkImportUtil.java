@@ -188,4 +188,8 @@ public class BulkImportUtil {
         };
         executor.execute(rn);
     }
+
+    public static String bulkImportArchiveFilepath(String id) {
+        return "/tmp/bulkImportArchive_" + id + "_" + System.currentTimeMillis() + ".json";
+    }
 }
