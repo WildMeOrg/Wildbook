@@ -4005,7 +4005,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 //better: ask the question, who else can see this encounter via collaboration?
                 //get the entry set for all collaborations
                 Set<String> uids=collab.keySet();
-                //iterate over the entry set
+                //iterate over the key set
                 Iterator<String> uidsIter=uids.iterator();
                 while(uidsIter.hasNext()) {
                 	
@@ -4013,7 +4013,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 	String localUid = uidsIter.next();
                 	//get the list of usernames in this entry
                 	Set<String> localCollabs = collab.get(localUid);
-                	//eva;uate if the submitterId (a username) of this encounter is in this list
+                	//evaluate if the submitterId (a username) of this encounter is in this list
                 	if(localCollabs.contains(submitterId)) {
                 		//if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
                 		viewUsers.put(localUid);
