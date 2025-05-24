@@ -3965,6 +3965,7 @@ public class Encounter extends Base implements java.io.Serializable {
             q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
             List results = (List)q.execute();
             Iterator it = results.iterator();
+            q.closeAll();
             Util.mark("perm: start encs, size=" + results.size(), startT);
             while (it.hasNext()) {
                 Object[] row = (Object[])it.next();
@@ -3981,6 +3982,13 @@ public class Encounter extends Base implements java.io.Serializable {
                 encCount++;
                 if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
                 // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
+                
+                //this first part asks the question: who is the owner of the Encounter collaborating with?
+                //Let those people see the encounter
+                //This ignores the one-way visibility of admins and orgAdmins
+                //the question is backwards: it asks: who can the owning user see?
+                //better to ask: who can see this Encounter by collaborating with its owner?
+                /*
                 if (collab.containsKey(uid)) {
                     for (String colUsername : collab.get(uid)) {
                         String colId = usernameToId.get(colUsername);
@@ -3992,7 +4000,27 @@ public class Encounter extends Base implements java.io.Serializable {
                         }
                         viewUsers.put(colId);
                     }
+                }*/
+                
+                //better: ask the question, who else can see this encounter via collaboration?
+                //get the entry set for all collaborations
+                Set<String> uids=collab.keySet();
+                //iterate over the entry set
+                Iterator<String> uidsIter=uids.iterator();
+                while(uidsIter.hasNext()) {
+                	
+                	//get the uid for the user of this entry
+                	String localUid = uidsIter.next();
+                	//get the list of usernames in this entry
+                	Set<String> localCollabs = collab.get(localUid);
+                	//eva;uate if the submitterId (a username) of this encounter is in this list
+                	if(localCollabs.contains(submitterId)) {
+                		//if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
+                		viewUsers.put(localUid);
+                	}
                 }
+
+                
                 if (viewUsers.length() > 0) {
                     updateData.put("viewUsers", viewUsers);
                     try {
@@ -4003,12 +4031,12 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                 }
             }
-            q.closeAll();
+            
         } catch (Exception ex) {
             System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
             ex.printStackTrace();
         } finally {
-            if (q != null) q.closeAll();
+            
         }
         Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
