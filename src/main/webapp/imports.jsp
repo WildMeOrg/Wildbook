@@ -247,6 +247,7 @@ try{
 				String filenameParam = "originalFilename";
 				if(!passedParams.has(filenameParam)) filenameParam = "filename";
 				jobj.put("filename", passedParams.optString(filenameParam, ""));
+                                if (passedParams.has("bulkImportId")) jobj.put("filename", "from API");
 		    }	
 	        
 	        jsonobj.put(jobj);
