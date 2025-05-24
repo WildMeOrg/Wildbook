@@ -52,12 +52,19 @@ class BulkGeneralTest {
         assertEquals(bv.getFieldName(), "Encounter.mediaAsset123");
 
         // tests the embedded 3-part flavor
-        bv = new BulkValidator("Encounter.informOther99.emailAddress", "fake", null);
+        bv = new BulkValidator("Encounter.informOther99.emailAddress", "fake@example.com", null);
         assertTrue(bv.isIndexed());
         assertEquals(bv.getIndexInt(), 99);
         assertEquals(bv.getIndexPrefix(), "Encounter.informOther.emailAddress");
-        assertEquals(bv.getValue(), "fake");
+        assertEquals(bv.getValue(), "fake@example.com");
         assertEquals(bv.getFieldName(), "Encounter.informOther99.emailAddress");
+
+        // invalid email address on indexy thing
+        ex = assertThrows(BulkValidatorException.class, () -> {
+            BulkValidator bvFail = new BulkValidator("Encounter.photographer11.emailAddress",
+                "not_email_valid_example.com", null);
+        });
+        assertTrue(ex.getMessage().equals("invalid email address"));
 
         // some indexable fieldName tests
         assertTrue(BulkValidator.isValidFieldName("Encounter.mediaAsset123"));

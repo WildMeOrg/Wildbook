@@ -354,6 +354,7 @@ public class BulkImport extends ApiBase {
                 } else {
                     itask = new ImportTask(currentUser, bulkImportId);
                 }
+                itask.setEncounters(importer.getEncounters());
                 JSONObject passedParams = new JSONObject();
                 for (String k : payload.keySet()) {
                     if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
