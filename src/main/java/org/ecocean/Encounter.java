@@ -3307,6 +3307,39 @@ public class Encounter extends Base implements java.io.Serializable {
         return jobj;
     }
 
+    public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj, boolean fullAccess)
+    throws JSONException {
+
+        String useProjectContext = "false";
+
+        if (request.getParameter("useProjectContext") != null) {
+            useProjectContext = request.getParameter("useProjectContext");
+        }
+        if (fullAccess) {
+            if (this.individual != null) {
+                jobj.put("individualID", this.individual.getIndividualID());
+                if ("true".equals(useProjectContext)) {
+                    jobj.put("displayName", this.individual.getDisplayName(request));
+                } else {
+                    jobj.put("displayName", this.individual.getDisplayName());
+                }
+            }
+            return jobj;
+        }
+        jobj.remove("gpsLatitude");
+        jobj.remove("location");
+        jobj.remove("gpsLongitude");
+        jobj.remove("verbatimLocality");
+        jobj.remove("locationID");
+        jobj.remove("gpsLongitude");
+        jobj.remove("genus");
+        jobj.remove("specificEpithet");
+        jobj.put("_sanitized", true);
+
+        return jobj;
+    }
+
+
     public JSONObject decorateJsonNoAnnots(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         jobj.put("location", this.getLocation());
