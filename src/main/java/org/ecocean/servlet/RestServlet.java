@@ -1017,7 +1017,16 @@ public class RestServlet extends HttpServlet {
                 jarr.put(convertToJson(req, (Collection<?>) o, ec));
             } else if (o instanceof Encounter) {
                 Encounter enc = (Encounter) o;
-                boolean fullAccess = accessMap.getOrDefault(enc.getAssignedUsername(), false);
+                boolean fullAccess = false;
+                
+
+                if (enc.getAssignedUsername() == null) {
+                    fullAccess = true;
+                }
+                else {
+                    fullAccess = accessMap.getOrDefault(enc.getAssignedUsername(), false);
+                }
+
                 jarr.put(convertEncounterToJson(req, enc, ec, fullAccess));
             } else {
                 jarr.put(convertToJson(req, o, ec));
