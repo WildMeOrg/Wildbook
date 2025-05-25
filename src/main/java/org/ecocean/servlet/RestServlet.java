@@ -952,7 +952,7 @@ public class RestServlet extends HttpServlet {
         if (sj != null) {
             // System.out.println("trying sanitizeJson on "+obj.getClass());
             try {
-                jobj = (JSONObject)sj.invoke(obj, req, jobj, true);
+                jobj = (JSONObject)sj.invoke(obj, req, jobj, fullAccess);
                 // System.out.println("sanitizeJson result: " +jobj.toString());
             } catch (Exception ex) {
                 ex.printStackTrace();
