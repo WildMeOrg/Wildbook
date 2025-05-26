@@ -384,6 +384,24 @@ public class BulkValidator {
             if (value == null) return null;
             return tryDouble(value);
         }
+        // now we validated prefixed ones
+        String prefix = indexPrefixValue(fieldName);
+        if (prefix != null)
+            switch (prefix) {
+            case "Encounter.submitter.emailAddress":
+            case "Encounter.photographer.emailAddress":
+            case "Encounter.informOther.emailAddress":
+                if (value == null) return null;
+                if (!Util.isValidEmailAddress(value.toString()))
+                    throw new BulkValidatorException("invalid email address",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                return value;
+
+            case "Sighting.taxonomy":
+                if (value == null) return null;
+                throw new BulkValidatorException("net yet supporting validating Sighting.taxonomy",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+            }
         System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName +
             " and value=" + value);
         return value;

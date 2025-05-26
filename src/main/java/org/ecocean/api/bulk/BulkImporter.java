@@ -36,6 +36,7 @@ public class BulkImporter {
     private Map<String, Encounter> encounterCache = new HashMap<String, Encounter>();
     private Map<String, Occurrence> occurrenceCache = new HashMap<String, Occurrence>();
     private Map<String, MarkedIndividual> individualCache = new HashMap<String, MarkedIndividual>();
+    private Map<String, User> userCache = new HashMap<String, User>();
 
     public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
         Shepherd myShepherd) {
@@ -80,6 +81,9 @@ public class BulkImporter {
             needIndexing.add(ma);
         }
         rtn.put("mediaAssets", arr);
+        for (User u : userCache.values()) {
+            myShepherd.getPM().makePersistent(u);
+        }
         arr = new JSONArray();
         for (Encounter enc : encounterCache.values()) {
             // it is a certain kind of painful that if you do not pass id here it assigns a new random one
@@ -136,6 +140,15 @@ public class BulkImporter {
         MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
         Occurrence occ = getOrCreateOccurrence(fmap);
         Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
+        if (indiv != null) {
+            indiv.addEncounter(enc);
+            enc.setIndividual(indiv);
+            indiv.setTaxonomyFromEncounters(true);
+        }
+        if (occ != null) {
+            occ.addEncounter(enc);
+            occ.setLatLonFromEncs(false);
+        }
         // this line can be uncommented to disable persisting for development purposes
         // TODO remove this when no longer useful
         // if (enc != null) return;
@@ -157,12 +170,7 @@ public class BulkImporter {
             "MarkedIndividual.name.label");
         List<String> nameValueFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "MarkedIndividual.name.value");
-        System.out.println(">>>>>>>>>>>> maFields: " + maFields);
-        System.out.println(">>>>>>>>>>>> kwFields: " + kwFields);
-        System.out.println(">>>>>>>>>>>> multiKwFields: " + multiKwFields);
-        System.out.println(">>>>>>>>>>>> nameLabelFields: " + nameLabelFields);
-        System.out.println(">>>>>>>>>>>> nameValueFields: " + nameValueFields);
-        // Keyword kw = myShepherd.getOrCreateKeyword(kwString);
+        // Keyword kw = myShepherd.getOrCreateKeyword(kwString); // no we need to make our own as this commits :(
         if (indiv != null) {
             for (int i = 0; i < Math.min(nameLabelFields.size(), nameValueFields.size()); i++) {
                 String label = nameLabelFields.get(i);
@@ -173,6 +181,26 @@ public class BulkImporter {
                 indiv.addName(label, value);
             }
             indiv.refreshNamesCache();
+        }
+        // submitterID sets "owner", but it has already been validated, so we now it
+        // is either a (valid) username [which might be this.user] or "public" which
+        // is, sadly, what public encounters seem to be assigned
+        // not it is also required, so we should have *something*
+        enc.setSubmitterID(fmap.get("Encounter.submitterID").getValueString());
+        if (occ != null) occ.setSubmitterIDFromEncs(false);
+        // but we also have enc.submitters, whatever this is about (!?)
+        // StandardImport actually *creates Users* based on these, so here we go....
+        List<String> submitterEmails = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.submitter.emailAddress");
+        List<String> submitterNames = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.submitter.fullName");
+        List<String> submitterAffiliations = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.submitter.affiliation");
+        for (int i = 0; i < submitterEmails.size(); i++) {
+            User sub = getOrCreateUser(submitterEmails.get(i),
+                i < submitterNames.size() ? submitterNames.get(i) : null,
+                i < submitterAffiliations.size() ? submitterAffiliations.get(i) : null, myShepherd);
+            enc.addSubmitter(sub); // weeds out null and duplicates, yay!
         }
 /*
    core functionality: creating data.....
@@ -378,6 +406,10 @@ public class BulkImporter {
         System.out.println("+ populated " + annots.size() + " MediaAssets on " + enc);
     }
 
+    public List<Encounter> getEncounters() {
+        return new ArrayList<Encounter>(encounterCache.values());
+    }
+
 /*
     this will create an individual if none can be found
     StandardImport does all sorts of weird caching and the like here, so likely this will need to be refined and repaired
@@ -435,6 +467,21 @@ public class BulkImporter {
         }
         if (encId != null) encounterCache.put(encId, enc);
         return enc;
+    }
+
+    private User getOrCreateUser(String email, String fullname, String affiliation,
+        Shepherd myShepherd) {
+        if (email == null) return null;
+        if (userCache.containsKey(email)) return userCache.get(email);
+        User user = myShepherd.getUserByEmailAddress(email);
+        if (user == null) {
+            user = new User(email, Util.generateUUID());
+            user.setFullName(fullname);
+            user.setAffiliation(affiliation);
+            System.out.println("[INFO] BulkImporter.getOrCreateUser() created new " + user);
+        }
+        userCache.put(email, user);
+        return user;
     }
 
     private Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap) {
