@@ -3964,9 +3964,9 @@ public class Encounter extends Base implements java.io.Serializable {
         try {
             q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
             List results = (List)q.execute();
+            Util.mark("perm: start encs, size=" + results.size(), startT);
             Iterator it = results.iterator();
             q.closeAll();
-            Util.mark("perm: start encs, size=" + results.size(), startT);
             while (it.hasNext()) {
                 Object[] row = (Object[])it.next();
                 String id = (String)row[0];
