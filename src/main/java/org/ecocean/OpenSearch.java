@@ -159,7 +159,9 @@ public class OpenSearch {
                         myShepherd.rollbackAndClose();
                     } catch (Exception ex) {
                         ex.printStackTrace();
+                    } finally {
                         myShepherd.rollbackAndClose();
+                        unsetActiveIndexingBackground();
                     }
                 }
             }, 2, // initial delay
