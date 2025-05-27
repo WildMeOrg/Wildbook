@@ -3966,7 +3966,6 @@ public class Encounter extends Base implements java.io.Serializable {
             List results = (List)q.execute();
             Util.mark("perm: start encs, size=" + results.size(), startT);
             Iterator it = results.iterator();
-            q.closeAll();
             while (it.hasNext()) {
                 Object[] row = (Object[])it.next();
                 String id = (String)row[0];
@@ -4036,7 +4035,7 @@ public class Encounter extends Base implements java.io.Serializable {
             System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
             ex.printStackTrace();
         } finally {
-            
+        	if(q!=null)q.closeAll();
         }
         Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
