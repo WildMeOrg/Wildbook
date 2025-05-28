@@ -18,6 +18,7 @@ export class BulkImportStore {
   _flow = null;
   _submissionId = null;
   _spreadsheetData = [];
+  _spreadsheetFileName = "";
   _rawData = [];
   _activeStep = 0;
   _imageUploadProgress = 0;
@@ -204,12 +205,10 @@ export class BulkImportStore {
     "Encounter.photographer0.emailAddress": {
       required: false,
       validate: (val) => {
-        console.log("email validation", val);
         if (!val) {
           return true;
         }
         const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        console.log("email regex", re.test(val));
         return re.test(val);
       },
       message: "invalid email address",
@@ -229,10 +228,6 @@ export class BulkImportStore {
 
   constructor() {
     makeAutoObservable(this);
-
-    // this._STRING_COLS = Object.keys(this._minimalFields).filter((field) => this._minimalFields[field] === "string");
-    // this._INT_COLS = Object.keys(this._minimalFields).filter((field) => this._minimalFields[field] === "int");
-    // this._DOUBLE_COLS = Object.keys(this._minimalFields).filter((field) => this._minimalFields[field] === "double");
 
     this._validationRules = {
       ...this._validationRules,
@@ -268,15 +263,6 @@ export class BulkImportStore {
       worksheetInfo: toJS(this._worksheetInfo),
       lastSavedAt: this._lastSavedAt,
     };
-  }
-
-  hydrate(state) {
-    runInAction(() => {
-      Object.entries(state).forEach(([key, value]) => {
-        const field = `_${key}`;
-        if (field in this) this[field] = value;
-      });
-    });
   }
 
   get imagePreview() {
@@ -416,17 +402,9 @@ export class BulkImportStore {
     return { error, missingField, emptyField, imgVerifyPending };
   }
 
-  // get STRING_COLS() {
-  //  return Object.keys(this._minimalFields).filter(k => this._minimalFields[k] === "string");
-  // }
-
-  // get INT_COLS() {
-  //   return Object.keys(this._minimalFields).filter(k => this._minimalFields[k] === "int");
-  // }
-
-  // get DOUBLE_COLS() {
-  //   return Object.keys(this._minimalFields).filter(k => this._minimalFields[k] === "double");
-  // }
+  get spreadsheetFileName() {
+    return this._spreadsheetFileName;
+  }
 
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
@@ -529,6 +507,19 @@ export class BulkImportStore {
     });
   }
 
+  setSpreadsheetFileName(fileName) {
+    this._spreadsheetFileName = fileName;
+  }
+
+  hydrate(state) {
+    runInAction(() => {
+      Object.entries(state).forEach(([key, value]) => {
+        const field = `_${key}`;
+        if (field in this) this[field] = value;
+      });
+    });
+  }
+
   clearSubmissionErrors() {
     this._submissionErrors = {};
   }
@@ -580,7 +571,6 @@ export class BulkImportStore {
 
   applyServerUploadStatus(uploaded = []) {
     const uploadedFileNames = uploaded.map(p => p[0]);
-    console.log("uploadedFileNames", uploadedFileNames);
     runInAction(() => {
       this._uploadedImages = uploaded;
       this._imagePreview = this._imagePreview.map(p => ({
@@ -696,11 +686,9 @@ export class BulkImportStore {
 
   setSubmissionId(submissionId) {
     this._submissionId = submissionId;
-    console.log("setSubmissionId", submissionId);
   }
 
   initializeFlow(fileInputRef, maxSize) {
-    console.log("initializeFlow", fileInputRef, maxSize);
     const submissionId = this._submissionId || uuidv4();
     this._submissionId = submissionId;
     const flowInstance = new Flow({
@@ -835,7 +823,6 @@ export class BulkImportStore {
     });
 
     flowInstance.on("fileError", (file, chunk) => {
-      console.log("fileError", file, chunk);
       // if (!navigator.onLine) {
       //   console.log(`Chunk uploading failed due to no internet connection`, file.name, chunk.offset);
       //   return;
@@ -925,7 +912,6 @@ export class BulkImportStore {
           raw["Encounter.genus"] = g;
           raw["Encounter.specificEpithet"] = s;
 
-          console.log("Encounter.genus", g, s);
         }
 
         if (norm["Encounter.mediaAsset0"] != null) {
@@ -977,8 +963,6 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
-    console.log("minimalFields", this._minimalFields);
-    console.log(".....++---++.....", JSON.stringify(this._STRING_COLS), JSON.stringify(this._INT_COLS), JSON.stringify(this._DOUBLE_COLS));
     const errors = {};
     this._spreadsheetData.forEach((row, rowIndex) => {
       this._columnsDef.forEach((col) => {

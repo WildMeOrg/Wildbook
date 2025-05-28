@@ -18,22 +18,8 @@ import {
   BsShieldExclamation,
 } from "react-icons/bs";
 import { observer } from "mobx-react-lite";
-
-const StepCard = ({ icon, title, subtitle, variant = "success" }) => (
-  <Card
-    className="text-center d-flex align-items-center justify-content-center p-2"
-    style={{ width: 110, minHeight: 90 }}
-  >
-    <div className="mb-1" style={{ fontSize: 24, color: variant === "success" ? "#16a34a" : "#0d6efd" }}>
-      {icon}
-    </div>
-    <div style={{ fontSize: 12, lineHeight: 1.1 }}>
-      {title}
-      <br />
-      <span className="text-muted">{subtitle}</span>
-    </div>
-  </Card>
-);
+import useGetBulkImportTask from "../../models/bulkImport/useGetBulkImportTask";
+import { ProgressCard } from "../../components/ProgressCard";
 
 const FilesHeader = ({ imageCount, spreadsheetName }) => (
   <Row className="g-3 align-items-center mb-3">
@@ -51,27 +37,20 @@ const FilesHeader = ({ imageCount, spreadsheetName }) => (
 export const BulkImportTask = observer(({
   taskId,
   onDeleteTask,
+  store
 }) => {
   const intl = useIntl();
-  const [loading, setLoading] = useState(true);
-  const [task, setTask] = useState(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
 
-  useEffect(() => {
-    (async () => {
-      await new Promise((r) => setTimeout(r, 600));
-      setTask(dummyTaskData);
-      setLoading(false);
-    })();
-  }, []);
+  const { task, isLoading } = useGetBulkImportTask(taskId);
 
-  const totalPages = useMemo(
-    () => (task ? Math.ceil(task.rows.length / pageSize) : 1),
-    [task, pageSize]
-  );
+  // const totalPages = useMemo(
+  //   () => (task ? Math.ceil(task?.rows?.length / pageSize) : 1),
+  //   [task, pageSize]
+  // );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="d-flex justify-content-center p-5">
         <Spinner animation="border" />
@@ -80,14 +59,13 @@ export const BulkImportTask = observer(({
   }
 
   const deleteTask = () => {
-    console.warn("Delete task", task.id);
+    console.warn("Delete task", task?.id);
   };
 
-  const pagedRows = task.rows.slice((page - 1) * pageSize, page * pageSize);
+  const pagedRows = task?.rows?.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <Container fluid className="mt-3 d-flex flex-column gap-3">
-      {/* Title & breadcrumb */}
       <div>
         <h2 className="mb-0">
           <FormattedMessage id="BULK_IMPORT_TASK" defaultMessage="Bulk Import Task" />
@@ -97,44 +75,42 @@ export const BulkImportTask = observer(({
           <Breadcrumb.Item active>
             {intl.formatMessage(
               { id: "BULK_IMPORT_TASK_BREADCRUMB", defaultMessage: "Import Task: {id}" },
-              { id: task.id }
+              { id: task?.id }
             )}
           </Breadcrumb.Item>
         </Breadcrumb>
       </div>
 
-      {/* Step indicator */}
       <Row className="g-2">
-        {task.steps.map((s) => (
-          <Col key={s.name} xs="auto">
-            <StepCard
-              icon={s.status === "completed" ? <BsCheckCircleFill /> : <BsShieldExclamation />}
-              title={s.title}
-              subtitle={s.subtitle}
-              variant={s.status === "completed" ? "success" : "primary"}
-            />
-          </Col>
-        ))}
+
+        <div className="d-flex flex-row gap-3">
+          {[
+            { title: "Images Uploaded", progress: task?.imageUploadProgress || 100 },
+            { title: "Spreadsheet Uploaded", progress: task?.spreadsheetUploadProgress || 10 },
+            { title: "Data Processed", progress: task?.dataProcessingProgress || 0 },
+          ].map(({ title, progress }) => (
+            <ProgressCard key={title} title={title} progress={progress} />
+          ))}
+        </div>
+        
       </Row>
 
-      {/* Data uploaded */}
       <section>
         <h5 className="fw-semibold mb-2">Data Uploaded</h5>
-        <FilesHeader imageCount={task.imageCount} spreadsheetName={task.spreadsheetName} />
+        <FilesHeader imageCount={store.imagecount || 0} spreadsheetName={store.spreadsheetFileName} />
 
         <Table bordered hover size="sm">
           <thead className="table-light align-middle">
             <tr>
-              {task.columns.map((c) => (
+              {task?.columns?.map((c) => (
                 <th key={c}>{c}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {pagedRows.map((r) => (
+            {pagedRows?.map((r) => (
               <tr key={r.id} style={{ verticalAlign: "middle" }}>
-                {task.columns.map((c) => {
-                  console.log("Column:", c, "Row:", r[c]);
+                {task?.columns?.map((c) => {
                   return c === "Encounter" ? (
                     <td key={c}>
                       <a href={`/encounters/encounter.jsp?number=${r[c]}`} className="text-decoration-none">
@@ -150,9 +126,8 @@ export const BulkImportTask = observer(({
           </tbody>
         </Table>
 
-        {/* pagination */}
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <span className="small text-muted">Total {task.rows.length} items</span>
+        {/* <div className="d-flex justify-content-between align-items-center mb-3">
+          <span className="small text-muted">Total {task?.rows?.length} items</span>
           <Pagination size="sm" className="mb-0">
             <Pagination.First disabled={page === 1} onClick={() => setPage(1)} />
             <Pagination.Prev disabled={page === 1} onClick={() => setPage(page - 1)} />
@@ -160,10 +135,9 @@ export const BulkImportTask = observer(({
             <Pagination.Next disabled={page === totalPages} onClick={() => setPage(page + 1)} />
             <Pagination.Last disabled={page === totalPages} onClick={() => setPage(totalPages)} />
           </Pagination>
-        </div>
+        </div> */}
       </section>
 
-      {/* action buttons */}
       <Row className="g-2 mb-4">
 
         <Col xs="auto">
@@ -175,39 +149,3 @@ export const BulkImportTask = observer(({
     </Container>
   );
 });
-
-const dummyTaskData = {
-  id: "2b7e1b6e-acd5-4cxx-9xys-dfes-1re5sd23",
-  imageCount: 123,
-  spreadsheetName: "spreadsheet-name.xlsx",
-  steps: [
-    { name: "import", title: "Import", subtitle: "Completed", status: "completed" },
-    { name: "validation", title: "Image Validation", subtitle: "Completed", status: "completed" },
-    { name: "detection", title: "Detection", subtitle: "Completed", status: "completed" },
-    { name: "identification", title: "Identification", subtitle: "Queued", status: "queued" },
-  ],
-  columns: [
-    "Encounter",
-    "Encounter Date",
-    "User",
-    "Occurrence",
-    "Individual",
-    "Images",
-    "Class",
-  ],
-  rows: new Array(85).fill(null).map((_, i) => ({
-    id: `enc-${i}`,
-    Encounter: `123abc${i}`,
-    "Encounter Date": "2024-03-08",
-    User: "Erin Keene",
-    Occurrence: "-",
-    Individual: "-",
-    Images: "2 images",
-    Class: "-",
-  })),
-  locationOptions: [
-    { value: "Cape Washington", label: "Cape Washington" },
-    { value: "Los Angeles", label: "Los Angeles" },
-    { value: "New York", label: "New York" },
-  ],
-};

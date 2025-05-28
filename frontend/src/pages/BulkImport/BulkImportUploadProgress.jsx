@@ -98,7 +98,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
             }}
                 onClick={() => {
                     console.log("Review Progress: ", store.spreadsheetUploadProgress);
-
+                    store.setActiveStep(3);
                 }}
             >
                 <i class="bi bi-crosshair"></i>

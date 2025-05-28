@@ -8,7 +8,7 @@ import MainButton from "../../components/MainButton";
 import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
 import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
-import { BulkImportSpreadsheetUploadInof } from "./BulkImportSpreadsheetUploadInof";
+import { BulkImportSpreadsheetUploadInfo } from "./BulkImportSpreadsheetUploadInfo";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import BulkImportInstructionsModal from "./BulkImportInstructionsModal";
 import ErrorSummaryBar from "./BulkImportErrorSummaryBar";
@@ -38,7 +38,7 @@ export const BulkImportTableReview = observer(({ store }) => {
       </div>
       <div className="d-flex flex-row ">
         <BulkImportImageUploadInfo store={store} />
-        <BulkImportSpreadsheetUploadInof store={store} />
+        <BulkImportSpreadsheetUploadInfo store={store} />
       </div>
       <EditableDataTable store={store} />
       <ErrorSummaryBar store={store}/>
