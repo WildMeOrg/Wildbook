@@ -29,6 +29,7 @@ export class BulkImportStore {
   _rawColumns = [];
   _maxImageCount = 200;
   _missingImages = [];
+  _locationID = "";
   _worksheetInfo = {
     fileName: "",
     sheetCount: 0,
@@ -142,7 +143,7 @@ export class BulkImportStore {
         }
         return this._validLocationIDs.includes(value);
       },
-      message: "valid location ID",
+      message: "invalid location ID",
     },
     "Encounter.submitterID": {
       required: false,
@@ -259,6 +260,7 @@ export class BulkImportStore {
 
       spreadsheetData: toJS(this._spreadsheetData),
       spreadsheetUploadProgress: this._spreadsheetUploadProgress,
+      spreadsheetFileName: this._spreadsheetFileName,
 
       worksheetInfo: toJS(this._worksheetInfo),
       lastSavedAt: this._lastSavedAt,
@@ -406,6 +408,10 @@ export class BulkImportStore {
     return this._spreadsheetFileName;
   }
 
+  get locationID() {
+    return this._locationID;
+  }
+
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
   }
@@ -472,6 +478,10 @@ export class BulkImportStore {
     this._worksheetInfo.rowCount = rowCount;
     this._worksheetInfo.uploadProgress = this._spreadsheetUploadProgress;
     this._worksheetInfo.fileName = fileName || "";
+  }
+
+  setLocationID(locationID) {
+    this._locationID = locationID;
   }
 
   setSubmissionErrors(errors) {

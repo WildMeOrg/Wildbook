@@ -160,6 +160,8 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
     const file = event.target.files[0];
     const filename = file?.name || "";
     store.setSpreadsheetFileName(filename);
+    store.setSpreadsheetUploadProgress(0);
+    console.log("Processing file %:", store.spreadsheetUploadProgress);
     if (!file) return;
     processFile(file);
   };
@@ -239,11 +241,24 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       {store.spreadsheetUploadProgress > 0 && (
         <ProgressBar
           now={store.spreadsheetUploadProgress}
-          label={`${store.spreadsheetUploadProgress}%`}
+          // label={`${store.spreadsheetUploadProgress}%`}
+          label={store.spreadsheetUploadProgress === 100
+            ? <FormattedMessage id="COMPLETE" />
+            : `${store.spreadsheetUploadProgress}%`
+          }
           striped
           animated
         />
       )}
+
+
+      {
+        store.spreadsheetUploadProgress === 100 && (
+          <div className="mt-2">
+            <FormattedMessage id="BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE" /> {store.spreadsheetFileName}
+          </div>
+        )
+      }
 
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton

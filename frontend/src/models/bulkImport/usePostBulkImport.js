@@ -28,7 +28,7 @@ export default function usePostBulkImport() {
         bulkImportId: bulkImportId,
         fieldNames,
         rows: data,
-        fileName: fileName,
+        sourceName: fileName,
       };
 
       setLoading(true);

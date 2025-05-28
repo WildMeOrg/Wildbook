@@ -18,7 +18,8 @@ const SelectCell = ({ options, value, onChange, onBlur, isInvalid, error }) => {
           onBlur={onBlur}
           isClearable
           isSearchable
-          menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+          menuPortalTarget={document.body}
+          menuPosition="fixed"
           filterOption={filterOption}
           placeholder="searching"
           className={
@@ -42,6 +43,7 @@ const SelectCell = ({ options, value, onChange, onBlur, isInvalid, error }) => {
               ...base,
               zIndex: 9999,
             }),
+            menuPortal: base => ({ ...base, zIndex: 1060 }),   
           }}
         />      
   );

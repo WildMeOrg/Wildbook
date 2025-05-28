@@ -6,6 +6,7 @@ import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
+import Select from "react-select";
 
 export const BulkImportSetLocation = observer(({ store }) => {
     const theme = useContext(ThemeContext);
@@ -13,14 +14,18 @@ export const BulkImportSetLocation = observer(({ store }) => {
     const submissionId = store.submissionId || uuidv4();
     const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
 
-    console.log("BulkImportSetLocation component rendered");
+    console.log("locationID", store.locationID);
     const handleStartImport = useCallback(async () => {
         store.clearSubmissionErrors();
         try {
-            const result = await submit(submissionId, store.rawColumns, store.rawData);
+            const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName);
             if (result?.success) {
-                // store.resetToDefaults();
+                store.resetToDefaults();
                 alert("Import successful");
+                localStorage.removeItem("BulkImportStore");
+                store.setActiveStep(0); // Move to the next step after successful import
+                // localStorage.setItem("lastBulkImportTask", result.bulkImportId);
+                localStorage.setItem("lastBulkImportTask", submissionId);
             }
         } catch (err) {
             alert("Import failed");
@@ -33,6 +38,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
             }
         }
     });
+
     return (
         <div className="d-flex flex-column mt-4">
             <h2>
@@ -44,11 +50,29 @@ export const BulkImportSetLocation = observer(({ store }) => {
             <div style={{
                 width: "500px"
             }}>
-                <select>
-                    <option value="location1">Location 1</option>
-                    <option value="location2">Location 2</option>
-                    <option value="location3">Location 3</option>
-                </select>
+                <Select
+                    isMulti={false}
+                    options={store.validLocationIDs.map((location) => ({
+                        value: location,
+                        label: location
+                    }
+                    ))}
+                    placeholder={<FormattedMessage id="SELECT_LOCATION" defaultMessage="Select Location" />}
+                    noOptionsMessage={() => <FormattedMessage id="NO_LOCATIONS_FOUND" defaultMessage="No locations found" />}
+                    isClearable={true}
+                    isSearchable={true}
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    menuPlacement="auto"
+                    menuPortalTarget={document.body}
+                    value={store.locationID}
+                    onChange={(selectedOption) => {
+                        console.log("Selected location:", selectedOption);
+                        store.setLocationID(selectedOption ? selectedOption.value : null);
+                        console.log("Updated store locationID:", store.locationID);
+                    }
+                    }
+                />
             </div>
 
             <div className="d-flex flex-row justify-content-between mt-4">
@@ -56,7 +80,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
                     onClick={() => {
                         handleStartImport();
                     }}
-                    disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
+                    // disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
                     // disabled={store.isSubmitting || store.imageUploadProgress !== 100 || store.spreadsheetUploadProgress !== 100}
                     backgroundColor={theme.wildMeColors.cyan700}
                     color={theme.defaultColors.white}

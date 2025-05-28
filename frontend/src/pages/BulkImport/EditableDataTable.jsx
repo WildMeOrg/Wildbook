@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
 
 import {
@@ -49,6 +49,11 @@ const EditableCell = ({
           options={
             store.getOptionsForSelectCell(columnId)
           }
+          // menuPortalTarget={document.body}
+          // menuPosition="fixed"
+          // styles={{  
+          //   menuPortal: base => ({ ...base, zIndex: 1060 }),   
+          // }}
           value={value ? { value, label: value } : null}
           onChange={(sel) => {
             console.log("selected value", sel);
@@ -170,8 +175,8 @@ export const DataTable = observer(({ store }) => {
     columns,
     columnResizeMode: 'onChange',
     columnResizeDirection: 'ltr',
-    state: { columnPinning },                    
-    onColumnPinningChange: setColumnPinning, 
+    state: { columnPinning },
+    onColumnPinningChange: setColumnPinning,
     defaultColumn: {
       enableResizing: true,
       size: 150,
@@ -188,7 +193,7 @@ export const DataTable = observer(({ store }) => {
         pageIndex: 0,
         pageSize: 20,
       },
-      columnPinning: columnPinning,   
+      columnPinning: columnPinning,
     },
   });
 
@@ -215,7 +220,7 @@ export const DataTable = observer(({ store }) => {
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header, colIndex) => {
-                 
+
                   return (
                     <th
                       key={header.id}
@@ -254,7 +259,7 @@ export const DataTable = observer(({ store }) => {
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>                  
+                  <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

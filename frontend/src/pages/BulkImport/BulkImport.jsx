@@ -12,10 +12,17 @@ import { BulkImportSetLocation } from "./BulkImportSetLocation";
 import { BulkImportContinueModal } from "./BulkImportContinueModal";
 import BulkImportInstructionsModal from "./BulkImportInstructionsModal";
 import DraftSaveIndicator from "./BulkImportDraftSavedIndicator";
+import useGetBulkImportTask from "../../models/bulkImport/useGetBulkImportTask";
+import { BulkImportUnfinishedTaskModal } from "./BulkImportUnfinishedTaskModal";
 
 const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
   const [savedSubmissionId, setSavedSubmissionId] = React.useState(null);
+  const lastTask = localStorage.getItem("lastBulkImportTask") || null;
+console.log("lastTask", lastTask);  
+  const { task: unfinishedTask, isLoading } = useGetBulkImportTask(lastTask);
+
+  console.log("unfinishedTask", unfinishedTask);
 
   useEffect(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
@@ -63,7 +70,10 @@ const BulkImport = observer(() => {
       {store.activeStep === 3 && <BulkImportSetLocation store={store} />}
       {savedSubmissionId && <BulkImportContinueModal store={store} />}
       <BulkImportInstructionsModal store={store} />
-      <BulkImportTask
+      {lastTask ? <BulkImportUnfinishedTaskModal 
+        taskId={lastTask}
+      />: null}
+      {/* <BulkImportTask
         store={store}
         taskId={store.submissionId}
         onDeleteTask={() => {
@@ -71,7 +81,7 @@ const BulkImport = observer(() => {
           setSavedSubmissionId(null);
           store.resetToDefaults();
         }}
-      />
+      /> */}
     </Container>
   );
 });
