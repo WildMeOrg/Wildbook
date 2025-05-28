@@ -4569,6 +4569,21 @@ public class Shepherd {
         return all;
     }
 
+    public List<ImportTask> getImportTasks() {
+        List<ImportTask> all = new ArrayList<ImportTask>();
+        String filter = "SELECT FROM org.ecocean.servlet.importer.ImportTask";
+        Query query = getPM().newQuery(filter);
+
+        query.setOrdering("created DESC");
+        Collection c = (Collection)(query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            all.add((ImportTask)it.next());
+        }
+        query.closeAll();
+        return all;
+    }
+
     public User getUserByTwitterHandle(String handle) {
         User user = null;
         String filter = "SELECT FROM org.ecocean.User WHERE twitterHandle == \"" + handle.trim() +
