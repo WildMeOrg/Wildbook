@@ -54,6 +54,10 @@ public class ImportTask implements java.io.Serializable {
         return created;
     }
 
+    public int numberEncounters() {
+        return Util.collectionSize(encounters);
+    }
+
     public List<Encounter> getEncounters() {
         return encounters;
     }
@@ -74,6 +78,30 @@ public class ImportTask implements java.io.Serializable {
 
     public User getCreator() {
         return creator;
+    }
+
+    // classically the excel filename the user uploaded, generalized for api usage
+    public String getSourceName() {
+        if (getParameters() == null) return null;
+        JSONObject passed = getParameters().optJSONObject("_passedParameters");
+        if (passed == null) return null;
+        String name = passed.optString("sourceName", null);
+        if (name != null) return name;
+        // for some reason (!???) these are arrays with 1 element
+        JSONArray nameArr = passed.optJSONArray("originalFilename");
+        if (nameArr == null) nameArr = passed.optJSONArray("filename");
+        if ((nameArr != null) && (nameArr.length() > 0)) return nameArr.optString(0, null);
+        return null;
+    }
+
+    // this means was NOT sent via api
+    // NOTE this logic may end up being flaky; adjust accordingly
+    public boolean isLegacy() {
+        if (getParameters() == null) return true; // ????
+        JSONObject passed = getParameters().optJSONObject("_passedParameters");
+        if (passed == null) return true; // ?????
+        if (passed.optString("bulkImportId", null) != null) return false;
+        return true;
     }
 
     public List<MarkedIndividual> getMarkedIndividuals() {
