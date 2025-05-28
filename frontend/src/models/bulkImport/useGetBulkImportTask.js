@@ -1,22 +1,23 @@
 import { client } from "../../api/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "react-query";
 
 export default function useGetBulkImportTask(taskId) {
   const fetchTask = async () => {
-    const response = await client.get(`/bulk-import/task/${taskId}`);
-    return response.data;
+    const { data } = await client.get(`/bulk-import/task/${taskId}`);
+    return data;
   };
 
   const {
-    data: task,
+    data: task = [],
     isLoading,
     error,
-    refresh,
+    refetch,
   } = useQuery(["bulkImportTask", taskId], fetchTask, {
-    enabled: !!taskId,
+    enabled: Boolean(taskId),
     refetchOnWindowFocus: false,
     retry: false,
+    select: (d) => d ?? [],
   });
 
-  return { task, isLoading, error, refresh };
+  return { task, isLoading, error, refetch };
 }

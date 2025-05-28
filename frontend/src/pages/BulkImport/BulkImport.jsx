@@ -7,7 +7,6 @@ import { FormattedMessage } from "react-intl";
 import { BulkImportUploadProgress } from "./BulkImportUploadProgress";
 import { BulkImportSpreadsheet } from "./BulkImportSpreadsheet";
 import { BulkImportTableReview } from "./BulkImportTableReview";
-import { BulkImportIdentification } from "./BulkImportIdentification";
 import { BulkImportTask } from "./BulkImportTask";
 import { BulkImportSetLocation } from "./BulkImportSetLocation";
 import { BulkImportContinueModal } from "./BulkImportContinueModal";
@@ -37,10 +36,16 @@ const BulkImport = observer(() => {
       firstRun.current = false;
       return;
     }
-    if (store.submissionId && (store.imagePreview.length > 0 || store.spreadsheetData.length > 0)) {
+    if (
+      store.submissionId &&
+      (store.imagePreview.length > 0 || store.spreadsheetData.length > 0)
+    ) {
       store.saveState();
     }
-  }, [JSON.stringify(store.imagePreview), JSON.stringify(store.spreadsheetData)])
+  }, [
+    JSON.stringify(store.imagePreview),
+    JSON.stringify(store.spreadsheetData),
+  ]);
 
   return (
     <Container>
@@ -55,16 +60,17 @@ const BulkImport = observer(() => {
       {store.activeStep === 0 && <BulkImportImageUpload store={store} />}
       {store.activeStep === 1 && <BulkImportSpreadsheet store={store} />}
       {store.activeStep === 2 && <BulkImportTableReview store={store} />}
-      {store.activeStep === 3 && (
-        <BulkImportSetLocation store={store} />
-      )}
-      {
-        savedSubmissionId && (
-          <BulkImportContinueModal store={store} />
-        )
-      }
-      <BulkImportInstructionsModal
+      {store.activeStep === 3 && <BulkImportSetLocation store={store} />}
+      {savedSubmissionId && <BulkImportContinueModal store={store} />}
+      <BulkImportInstructionsModal store={store} />
+      <BulkImportTask
         store={store}
+        taskId={store.submissionId}
+        onDeleteTask={() => {
+          store.deleteTask(store.submissionId);
+          setSavedSubmissionId(null);
+          store.resetToDefaults();
+        }}
       />
     </Container>
   );

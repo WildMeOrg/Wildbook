@@ -11,7 +11,7 @@ import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
-import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton"
+import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 
 const handleDragOver = (e) => {
   e.preventDefault();
@@ -73,15 +73,15 @@ export const BulkImportImageUpload = observer(({ store }) => {
     e.preventDefault();
 
     const items1 = Array.from(e.dataTransfer.items);
-    const newFilesCount = items1.filter(item => {
+    const newFilesCount = items1.filter((item) => {
       const entry = item.webkitGetAsEntry?.();
-      return entry
-        ? entry.isFile
-        : item.getAsFile() != null;
+      return entry ? entry.isFile : item.getAsFile() != null;
     }).length;
 
     if (currentCount + newFilesCount > store.maxImageCount) {
-      alert(`you are choosing ${newFilesCount} iamges, total count exceeding ${store.maxImageCount}`);
+      alert(
+        `you are choosing ${newFilesCount} iamges, total count exceeding ${store.maxImageCount}`,
+      );
       return;
     }
     e.currentTarget.style.border = "1px dashed #007BFF";
@@ -106,20 +106,21 @@ export const BulkImportImageUpload = observer(({ store }) => {
 
   return (
     <div className="mt-4">
-      <Row >
+      <Row>
         <div className="d-flex flex-row justify-content-between">
           <div>
             <h5 style={{ fontWeight: "600" }}>
-              <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE" /> {store.imageRequired && "*"}
+              <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE" />{" "}
+              {store.imageRequired && "*"}
             </h5>
             <p>
-              <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE_DESC"
+              <FormattedMessage
+                id="BULK_IMPORT_UPLOAD_IMAGE_DESC"
                 values={{
                   maxSize: maxSize,
                   maxImageCount: store.maxImageCount,
                 }}
               />
-
             </p>
           </div>
           <BulkImportSeeInstructionsButton store={store} />
@@ -179,8 +180,21 @@ export const BulkImportImageUpload = observer(({ store }) => {
                   alt={`Preview ${index + 1}`}
                 />
               ) : (
-                <div style={{ height: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <i className="bi bi-file-image" style={{ fontSize: "2rem", color: theme.primaryColors.primary700 }}></i>
+                <div
+                  style={{
+                    height: "120px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <i
+                    className="bi bi-file-image"
+                    style={{
+                      fontSize: "2rem",
+                      color: theme.primaryColors.primary700,
+                    }}
+                  ></i>
                 </div>
               )}
 
@@ -276,8 +290,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
                       fileInputRef.current.click();
                     }
                     // fileInputRef.current.click()
-                  }
-                  }
+                  }}
                   backgroundColor={theme.wildMeColors.cyan700}
                   color={theme.defaultColors.white}
                   noArrow={true}
@@ -292,8 +305,8 @@ export const BulkImportImageUpload = observer(({ store }) => {
               id="file-chooser"
               multiple
               // webkitdirectory="true"
-              webkitdirectory=""
-              directory=""
+              // webkitdirectory=""
+              // directory=""
               accept=".jpg,.jpeg,.png,.bmp"
               ref={fileInputRef}
               style={{ display: "none" }}
@@ -313,9 +326,9 @@ export const BulkImportImageUpload = observer(({ store }) => {
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
           noArrow={true}
-          style={{ width: "auto", fontSize: "1rem", }}
+          style={{ width: "auto", fontSize: "1rem" }}
         >
-          <FormattedMessage id="BULK_IMPORT_NEXT" />
+          <FormattedMessage id="NEXT" />
         </MainButton>
       </Row>
     </div>

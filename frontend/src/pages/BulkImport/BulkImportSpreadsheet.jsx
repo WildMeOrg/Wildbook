@@ -8,7 +8,6 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import { specifiedColumns, removedColumns } from "./BulkImportConstants";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 
-
 export const BulkImportSpreadsheet = observer(({ store }) => {
   const theme = useContext(ThemeContext);
 
@@ -34,7 +33,13 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       const totalRows = sheetStats.reduce((sum, s) => sum + s.rowCount, 0);
       const maxCols = Math.max(...sheetStats.map((s) => s.colCount), 0);
 
-      store.setWorksheetInfo(sheetNames.length, sheetNames, maxCols, totalRows, file.name);
+      store.setWorksheetInfo(
+        sheetNames.length,
+        sheetNames,
+        maxCols,
+        totalRows,
+        file.name,
+      );
 
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
@@ -45,17 +50,19 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
       const rowKeys = Object.keys(allJsonData[0] || {});
       store.setRawColumns(rowKeys);
-      const mediaAssetsCols = rowKeys.filter(k => k.startsWith("Encounter.mediaAsset"));
+      const mediaAssetsCols = rowKeys.filter((k) =>
+        k.startsWith("Encounter.mediaAsset"),
+      );
       const remaining = rowKeys
-        .filter(k => !specifiedColumns.includes(k))
-        .filter(k => !removedColumns.includes(k))
-        .filter(k => !mediaAssetsCols.includes(k));
+        .filter((k) => !specifiedColumns.includes(k))
+        .filter((k) => !removedColumns.includes(k))
+        .filter((k) => !mediaAssetsCols.includes(k));
       store.setColumnsDef([...specifiedColumns, ...remaining]);
 
       const formatDate = (year, month, day, hour, minute) => {
-        console.log("working")
-        const pad2 = s =>
-          (s != null && s !== '' ? String(s).padStart(2, '0') : '');
+        console.log("working");
+        const pad2 = (s) =>
+          s != null && s !== "" ? String(s).padStart(2, "0") : "";
 
         const y = String(year);
         const m = pad2(month);
@@ -65,15 +72,15 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         let result = y;
         if (month || day) {
-          result += '-' + m;
+          result += "-" + m;
           if (day) {
-            result += '-' + d;
+            result += "-" + d;
           }
         }
         if (hour || minute) {
-          result += 'T' + hh;
+          result += "T" + hh;
           if (minute) {
-            result += ':' + mm;
+            result += ":" + mm;
           }
         }
 
@@ -95,13 +102,18 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         }
       };
       const processChunk = () => {
-        const chunk = allJsonData.slice(currentIndex, currentIndex + CHUNK_SIZE);
-        const normalizedChunk = chunk.map((row) => {         
-
-          const mediaAssets = mediaAssetsCols.filter(v => row[v] != null && row[v] !== "").map((col) => {
-            const mediaAsset = row[col].trim();
-            return mediaAsset;
-          }).join(", ");
+        const chunk = allJsonData.slice(
+          currentIndex,
+          currentIndex + CHUNK_SIZE,
+        );
+        const normalizedChunk = chunk.map((row) => {
+          const mediaAssets = mediaAssetsCols
+            .filter((v) => row[v] != null && row[v] !== "")
+            .map((col) => {
+              const mediaAsset = row[col].trim();
+              return mediaAsset;
+            })
+            .join(", ");
 
           return {
             ...row,
@@ -118,7 +130,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               row["Encounter.minutes"],
             ),
             "Encounter.genus":
-              row["Encounter.genus"].trim() + " " + row["Encounter.specificEpithet"].trim(),
+              row["Encounter.genus"].trim() +
+              " " +
+              row["Encounter.specificEpithet"].trim(),
           };
         });
 
@@ -138,13 +152,14 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       };
       processChunk();
       store.updateRawFromNormalizedRow();
-
     };
     reader.readAsArrayBuffer(file);
   };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+    const filename = file?.name || "";
+    store.setSpreadsheetFileName(filename);
     if (!file) return;
     processFile(file);
   };
@@ -221,14 +236,14 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           <FormattedMessage id="BROWSE" />
         </MainButton>
       </div>
-      {store.spreadsheetUploadProgress > 0 &&
+      {store.spreadsheetUploadProgress > 0 && (
         <ProgressBar
           now={store.spreadsheetUploadProgress}
           label={`${store.spreadsheetUploadProgress}%`}
           striped
           animated
         />
-      }
+      )}
 
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton
