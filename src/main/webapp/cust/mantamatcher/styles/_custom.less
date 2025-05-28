@@ -1,6 +1,6 @@
 .main-section {
-	padding-top: 50px;
-	padding-bottom: 80px;
+	padding-top: 20px;
+	padding-bottom: 40px;
 	}
 
 	.main-section h1, .main-section h2 {
@@ -45,12 +45,14 @@ h5 { text-decoration: underline; }
 .page-content a { text-decoration: underline; }
 
 .maincontent { 
-	margin-top: 25px; 
+	margin-top: 70px; 
 	margin-bottom: 80px;
 	}
 
 @media (min-width: @screen-md) { 
-	.maincontent { margin-top: 25px; }
+/*
+	.maincontent { margin-top: 100px; }
+*/
 }
 
 .img-container img {
@@ -433,7 +435,7 @@ form table td, form table th {
 				margin: 0;
 				}
 
-		.nav-bar-wrapper { background: rgba(255, 255, 255, .7); }
+		.nav-bar-wrapper { background: rgba(255, 255, 255, 1.0); }
 
 /* Footer */
 .page-footer .container-fluid { background: @brand-light; }
@@ -468,11 +470,21 @@ form table td, form table th {
 */
 
 /* Hero */
+.main-background {
+	padding-top: 35%;
+	margin-bottom: -1%;
+}
+
+#index-splash-text {
+	position: relative;
+	top: -450px;
+}
+
 .hero, .data-section {
-	background-image: url("../img/hero_manta.jpg");
+	background-image: url("../img/new_home_background.jpeg");
     background-size: cover;
     background-repeat: no-repeat;
-    background-position: 50% 50%;
+    background-position: 50% 35%;
 	}
 
 .hero { position: relative; }
@@ -529,3 +541,11 @@ form table td, form table th {
 	height:100%;
 	overflow-y:auto;
 	}
+
+br .half-break {
+	line-height: 8px;
+}
+
+.socialUnitMargin {
+	margin-bottom: 10px;
+}
