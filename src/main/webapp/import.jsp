@@ -417,17 +417,13 @@ try{
 	    
 	    out.println("<p id=\"refreshPara\" class=\"caption\">Refreshing results in <span id=\"countdown\"></span> seconds.</p><script>$('#refreshPara').hide();</script>");
 	    
-	    if(itask.getParameters()!=null){
-                JSONObject passedParams = itask.getParameters().optJSONObject("_passedParameters");
-                if (passedParams != null) {
-                    if (passedParams.optString("bulkImportId", null) != null) {
-                        out.println("<br>Sent via Bulk Import API");
-                    } else {
-                        String filenameParam = itask.getParameters().getJSONObject("_passedParameters").has("originalFilename") ? "originalFilename" : "filename";
-                        out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray(filenameParam).toString());
-                    }
-                }
-	    }	
+            String sourceName = itask.getSourceName();
+            if (sourceName == null) {
+                out.println("<br>No source name.");
+            } else {
+                out.println("<br>Filename: " + sourceName);
+            }
+
 	    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
 	    String[] headers = new String[]{"Encounter", "Date", "Occurrence", "Individual", "#Images","Match Results by Class"};
 	    if (adminMode) headers = new String[]{"Encounter", "Date", "User", "Occurrence", "Individual", "#Images","Match Results by Class"};
