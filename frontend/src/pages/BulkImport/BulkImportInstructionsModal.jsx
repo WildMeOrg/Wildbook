@@ -1,8 +1,8 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Modal, Button } from 'react-bootstrap';
-import { FormattedMessage } from 'react-intl';
-import { observer } from 'mobx-react-lite';
+import React from "react";
+import PropTypes from "prop-types";
+import { Modal, Button } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
+import { observer } from "mobx-react-lite";
 
 const BulkImportInstructionsModal = observer(({ store }) => (
   <Modal
@@ -13,7 +13,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
     centered
     scrollable
   >
-    <Modal.Header >
+    <Modal.Header>
       <Modal.Title id="bulk-import-modal">
         <FormattedMessage
           id="bulkImport.instructions.title"
@@ -26,7 +26,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
       <p>
         <FormattedMessage
           id="bulkImport.instructions.description"
-          defaultMessage="Bulk Import helps you upload many records at once. You’ll go through 4 upload steps, but there's one important step before you begin:"
+          defaultMessage="Bulk Import helps you upload many records at once. You'll go through 4 upload steps, but there's one important step before you begin:"
         />
       </p>
 
@@ -42,7 +42,11 @@ const BulkImportInstructionsModal = observer(({ store }) => (
           defaultMessage="Prepare your spreadsheet and images using the guidance in our {helpDocsLink}."
           values={{
             helpDocsLink: (
-              <a href="/help/docs" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://wildbook.docs.wildme.org/data/bulk-import-beta.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FormattedMessage
                   id="bulkImport.instructions.helpDocs"
                   defaultMessage="help docs"
@@ -118,7 +122,11 @@ const BulkImportInstructionsModal = observer(({ store }) => (
             defaultMessage="View {link}"
             values={{
               link: (
-                <a href="/photography-guidelines" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://wildbook.docs.wildme.org/data/photography-guidelines.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <FormattedMessage
                     id="bulkImport.instructions.photographyGuidelinesLink"
                     defaultMessage="Photography Guidelines"
@@ -140,10 +148,14 @@ const BulkImportInstructionsModal = observer(({ store }) => (
         <li>
           <FormattedMessage
             id="bulkImport.instructions.step2.useTemplate"
-            defaultMessage="Use Wildbook Standard Format Spreadsheet"
+            defaultMessage="Use {link}"
             values={{
               link: (
-                <a href="/spreadsheet-template.xlsx" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="/import/WildbookStandardFormat.xlsx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <FormattedMessage
                     id="bulkImport.instructions.step2.templateLink"
                     defaultMessage="Wildbook Standard Format Spreadsheet"
@@ -153,6 +165,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
             }}
           />
         </li>
+
         <li>
           <FormattedMessage
             id="bulkImport.instructions.step2.mediaAssetMatch"
@@ -206,7 +219,11 @@ const BulkImportInstructionsModal = observer(({ store }) => (
             defaultMessage="Watch our step by step {youtubeLink}"
             values={{
               youtubeLink: (
-                <a href="https://www.youtube.com/watch?v=..." target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://www.youtube.com/playlist?list=PLKr_by6qM_PwaBUyzncua6481TOf6ziPk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <FormattedMessage
                     id="bulkImport.instructions.youtubeLinkText"
                     defaultMessage="video tutorial in YouTube"
@@ -222,7 +239,11 @@ const BulkImportInstructionsModal = observer(({ store }) => (
             defaultMessage="Check the {wildbookDocsLink} for troubleshooting or contact support"
             values={{
               wildbookDocsLink: (
-                <a href="https://docs.wildbook.org" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://docs.wildme.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <FormattedMessage
                     id="bulkImport.instructions.wildbookDocs"
                     defaultMessage="Wildbook Docs"
@@ -236,9 +257,10 @@ const BulkImportInstructionsModal = observer(({ store }) => (
     </Modal.Body>
 
     <Modal.Footer>
-      <Button variant="secondary" 
-      // onClick={onHide}
-      onClick={() => store.setShowInstructions(false)}
+      <Button
+        variant="secondary"
+        // onClick={onHide}
+        onClick={() => store.setShowInstructions(false)}
       >
         <FormattedMessage
           id="bulkImport.instructions.closeButton"
