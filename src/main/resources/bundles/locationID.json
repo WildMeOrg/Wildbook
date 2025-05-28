@@ -927,12 +927,52 @@
 					"locationID":[]
 				},
 				{
-					"name": "Zambezi",
-					"id": "Zambezi",
+					"name": "KAZA",
+					"id": "KAZA",
 					"locationID": [
+						{
+							"name": "Balyerwa Conservancy",
+							"id": "Balyerwa Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Bamunu Conservancy",
+							"id": "Bamunu Conservancy",
+							"locationID": []
+						},
 						{
 							"name": "Bwabwata National Park",
 							"id": "Bwabwata National Park",
+							"locationID": []
+						},
+						{
+							"name": "Dzoti Conservancy",
+							"id": "Dzoti Conservancy",
+							"locationID":[]
+						},
+						{
+							"name": "George Mukoya Conservancy",
+							"id": "George Mukoya Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Kwandu Conservancy",
+							"id": "Kwandu Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Mangetti National Park",
+							"id": "Mangetti National Park",
+							"locationID": []
+						},
+						{
+							"name": "Mashi Conservancy",
+							"id": "Mashi Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Mayuni Conservancy",
+							"id": "Mayuni Conservancy",
 							"locationID": []
 						},
 						{
@@ -941,8 +981,43 @@
 							"locationID": []
 						},
 						{
+							"name": "Muduva Nyangana Conservancy",
+							"id": "Muduva Nyangana Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Najagna Conservancy",
+							"id": "Najagna Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Nkasa Lupala National Park",
+							"id": "Nkasa Lupala National Park",
+							"locationID": []
+						},
+						{
+							"name": "Nyae Nyae Conservancy",
+							"id": "Nyae Nyae Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Salambala Conservancy",
+							"id": "Salambala Conservancy",
+							"locationID": []
+						},
+						{
 							"name": "Sikunga Conservancy",
 							"id": "Sikunga Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Sobbe Conservancy",
+							"id": "Sobbe Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Wuparo Conservancy",
+							"id": "Wuparo Conservancy",
 							"locationID": []
 						}
 					]
