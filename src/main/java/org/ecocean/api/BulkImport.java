@@ -16,6 +16,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.api.bulk.*;
 
+import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
@@ -63,29 +64,65 @@ public class BulkImport extends ApiBase {
                 return;
             }
             String uri = request.getRequestURI();
-            String[] args = uri.substring(8).split("/");
-            if (args.length < 2) throw new IOException("invalid api endpoint");
-            String bulkImportId = args[1];
-            if (!Util.isUUID(bulkImportId)) throw new IOException("invalid bulk import id passed");
-            if (args.length == 2) {
-                rtn.put("message", "not yet implemented");
-            } else if (args[2].equals("files")) {
-                File uploadDir = UploadedFiles.getUploadDir(request, bulkImportId, true);
-                if (!uploadDir.exists()) {
-                    statusCode = 404;
-                    throw new IOException("uploadDir " + uploadDir + " not found");
+            String[] args = uri.substring(8).split("/"); // args[0] == 'bulk-import'
+            String bulkImportId = null;
+            if (args.length == 1) {
+                List<ImportTask> tasks = null;
+                if (currentUser.isAdmin(myShepherd)) {
+                    tasks = myShepherd.getImportTasks();
+                } else {
+                    tasks = myShepherd.getImportTasksForUser(currentUser);
                 }
-                JSONArray farr = new JSONArray();
-                for (final File f : uploadDir.listFiles()) {
-                    if (f.isDirectory()) continue;
-                    JSONArray fa = new JSONArray();
-                    fa.put(f.getName());
-                    fa.put(f.length());
-                    farr.put(fa);
+                JSONArray tasksArr = new JSONArray();
+                for (ImportTask task : tasks) {
+                    JSONObject jt = new JSONObject();
+                    jt.put("id", task.getId());
+                    jt.put("creator",
+                        task.getCreator() ==
+                        null ? JSONObject.NULL : task.getCreator().infoJSONObject(context));
+                    jt.put("dateCreated", task.getCreated());
+                    jt.put("sourceName", task.getSourceName());
+                    jt.put("legacy", task.isLegacy());
+                    jt.put("status", task.getStatus());
+                    jt.put("numberEncounters", task.numberEncounters());
+                    if (task.numberEncounters() > 0) {
+                        JSONArray encArr = new JSONArray();
+                        for (Encounter enc : task.getEncounters()) {
+                            encArr.put(enc.getId());
+                        }
+                        jt.put("encounterIds", encArr);
+                    }
+                    tasksArr.put(jt);
                 }
-                statusCode = 200;
+                rtn.put("tasks", tasksArr);
                 rtn.put("success", true);
-                rtn.put("files", farr);
+                statusCode = 200;
+            } else if (args.length < 2) {
+                throw new IOException("invalid api endpoint");
+            } else {
+                bulkImportId = args[1];
+                if (!Util.isUUID(bulkImportId))
+                    throw new IOException("invalid bulk import id passed");
+                if (args.length == 2) {
+                    rtn.put("message", "not yet implemented"); // dump info on single?
+                } else if (args[2].equals("files")) {
+                    File uploadDir = UploadedFiles.getUploadDir(request, bulkImportId, true);
+                    if (!uploadDir.exists()) {
+                        statusCode = 404;
+                        throw new IOException("uploadDir " + uploadDir + " not found");
+                    }
+                    JSONArray farr = new JSONArray();
+                    for (final File f : uploadDir.listFiles()) {
+                        if (f.isDirectory()) continue;
+                        JSONArray fa = new JSONArray();
+                        fa.put(f.getName());
+                        fa.put(f.length());
+                        farr.put(fa);
+                    }
+                    statusCode = 200;
+                    rtn.put("success", true);
+                    rtn.put("files", farr);
+                }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
