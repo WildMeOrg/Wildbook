@@ -620,6 +620,10 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return (getAnnotations().size() > 0);
     }
 
+    public int numAnnotations() {
+        return getAnnotations().size();
+    }
+
     public List<Taxonomy> getTaxonomies(Shepherd myShepherd) {
         Set<Taxonomy> taxis = new HashSet<Taxonomy>();
 
