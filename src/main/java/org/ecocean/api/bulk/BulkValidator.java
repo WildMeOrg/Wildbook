@@ -458,6 +458,17 @@ public class BulkValidator {
         for (String f : MINIMAL_FIELD_NAMES_DOUBLE) {
             mf.put(f, "double");
         }
+        // for now we are treating measurements as minimalFields (double)
+        int i = 0;
+        for (String mname : BulkImportUtil.getMeasurementValues()) {
+            mf.put("Encounter.measurement" + i, "double");
+            mf.put("Encounter." + mname, "double");
+            mf.put("Encounter.measurement." + mname, "double");
+            mf.put("Encounter.measurement" + i + ".samplingProtocol", "string");
+            mf.put("Encounter." + mname + ".samplingProtocol", "string");
+            mf.put("Encounter.measurement." + mname + ".samplingProtocol", "string");
+            i++;
+        }
         return mf;
     }
 
