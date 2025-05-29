@@ -14,7 +14,20 @@ export const BulkImportSetLocation = observer(({ store }) => {
     const submissionId = store.submissionId || uuidv4();
     const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
 
-    console.log("locationID", store.locationID);
+    const options = React.useMemo(
+        () =>
+            store.validLocationIDs.map(id => ({
+                value: id,
+                label: id,
+            })),
+        [store.validLocationIDs]
+    );
+
+    const selectedOption = React.useMemo(
+        () => options.find(o => o.value === store.locationID) ?? null,
+        [options, store.locationID]
+    );
+
     const handleStartImport = useCallback(async () => {
         store.clearSubmissionErrors();
         try {
@@ -52,11 +65,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
             }}>
                 <Select
                     isMulti={false}
-                    options={store.validLocationIDs.map((location) => ({
-                        value: location,
-                        label: location
-                    }
-                    ))}
+                    options={options}
                     placeholder={<FormattedMessage id="SELECT_LOCATION" defaultMessage="Select Location" />}
                     noOptionsMessage={() => <FormattedMessage id="NO_LOCATIONS_FOUND" defaultMessage="No locations found" />}
                     isClearable={true}
@@ -65,11 +74,16 @@ export const BulkImportSetLocation = observer(({ store }) => {
                     classNamePrefix="select"
                     menuPlacement="auto"
                     menuPortalTarget={document.body}
-                    value={store.locationID}
+                    value={selectedOption}
                     onChange={(selectedOption) => {
-                        console.log("Selected location:", selectedOption);
                         store.setLocationID(selectedOption ? selectedOption.value : null);
-                        console.log("Updated store locationID:", store.locationID);
+                        store.spreadsheetData.forEach(row => {
+                            row["Encounter.locationID"] = selectedOption ? selectedOption.value : null;
+                        }
+                        );
+                        store.rawData.forEach(row => {
+                            row["Encounter.locationID"] = selectedOption ? selectedOption.value : null;
+                        });
                     }
                     }
                 />
