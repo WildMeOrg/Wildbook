@@ -1339,12 +1339,11 @@ console.info('qdata[%s] = %o', taskId, qdata);
             url: illustrationUrl,
             type: 'GET',
             dataType: 'json',
-            //contentType: 'application/json',
+            contentType: 'application/json',
             success: function(data) {
               const statusCode = data?.status?.code;
               $('#loadingText').remove();
               if(statusCode===200) $(selector).append(illustrationHtml);
-              if(statusCode===405) $(selector).append(illustrationHtml);
               if(statusCode===400) $(selector).append(illustrationFailHtml);
             },
             error: function(data){
@@ -1352,11 +1351,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
               $('#loadingText').remove();
               if(statusCode===200){
                 $(selector).append(illustrationHtml);
-              } 
-              else if(statusCode===405){
-                  $(selector).append(illustrationHtml);
-                } 
-              else{
+              } else{
                 $(selector).append(errorText);
               }
             }
@@ -1378,13 +1373,13 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 var displayName = ft.displayName;
                 if (encId) {
                 	imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
-                	console.log("another encId = "+encId);
+                	//console.log("another encId = "+encId);
                 }
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
                 //add social unit name
-                //if(socialUnitName){
-                //	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
-                //}
+                if(socialUnitName){
+                	imgInfo +='<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>';
+                }
             }
             imgInfo += '</li>';
         }
