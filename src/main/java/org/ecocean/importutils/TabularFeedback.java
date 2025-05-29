@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Row;
+import org.ecocean.LocationID;
+import org.ecocean.Util;
+import org.json.JSONObject;
 
 import java.io.PrintWriter;
 
@@ -109,6 +112,15 @@ public class TabularFeedback {
     public void logParseError(int colNum, Object value, Row row, String exactMessageToDisplay) {
         if (!committing) {
             this.currentRow.logParseError(colNum, value, row, exactMessageToDisplay);
+        }
+    }
+
+    public void logParseErrorLocationID(String locationID, int  colNum, Row row) {
+        if (!committing) {
+            ArrayList<String> locationIDs = LocationID.getAllIds();
+            if (!Util.stringExists(locationID) || !locationIDs.contains(locationID) ) {
+                this.currentRow.logParseError(colNum, "Invalid or Missing Location ID", row, "Invalid or Missing Location ID");
+            }
         }
     }
 
