@@ -1,65 +1,59 @@
-import React from 'react';
+import React from "react";
 import { observer } from "mobx-react-lite";
 import InfoAccordion from "../../components/InfoAccordion";
 import { FormattedMessage } from "react-intl";
-import { toJS } from 'mobx';
 import { FaImage } from "react-icons/fa";
 
 export const BulkImportImageUploadInfo = observer(({ store }) => {
+  const missingPhotos = store.spreadsheetData.reduce((acc, row) => {
+    const mediaAssets = row["Encounter.mediaAsset0"];
+    if (mediaAssets) {
+      const photos = mediaAssets.split(",");
+      photos.forEach((photo) => {
+        if (
+          !store.uploadedImages.includes(photo) &&
+          !store.imageSectionFileNames.includes(photo)
+        ) {
+          acc.push(photo);
+        }
+      });
+    }
+    return acc;
+  }, []);
 
-    const allPhotosUploading = toJS(store.imageSectionFileNames);
-    const uploadedPhotos = store.uploadedImages;
+  const data = [
+    {
+      label: (
+        <FormattedMessage id="PHOTOS_MISSING" defaultMessage="photos missing" />
+      ),
+      value: missingPhotos.length,
+    },
+    {
+      label: <FormattedMessage id="FAILED" defaultMessage="photos failed" />,
+      value: store.failedImages.length,
+    },
+    {
+      label: <FormattedMessage id="FAILED" defaultMessage="photos uploaded" />,
+      value: store.uploadedImages.length,
+    },
+  ];
 
-    const missingPhotos = store.spreadsheetData.reduce((acc, row) => {
-        const mediaAssets = Object.keys(row).filter((key) => key.startsWith("Encounter.mediaAsset0"));
-        console.log("mediaAssets", mediaAssets);
-        mediaAssets.forEach((mediaAsset) => {
-            if (row[mediaAsset]) {
-                const photo = row[mediaAsset].split(",");
-                if (!uploadedPhotos.includes(photo) && !allPhotosUploading.includes(photo)) {
-                    acc.push(...photo);
-                }
-            }
-        });
-        return acc;
-    }, [])?.filter((photo) => !uploadedPhotos.includes(photo));
+  const title = `photos uploaded: ${store.uploadedImages.length} `;
 
-    console.log("missingPhotos", missingPhotos);
-
-    const data = [
-        {
-            label: <FormattedMessage id="PHOTOS_MISSING"
-                defaultMessage="photos missing" />,
-            value: missingPhotos.length
-        },
-        {
-            label: <FormattedMessage id="FAILED"
-                defaultMessage="photos failed" />,
-            value: store.failedImages.length
-        },
-        {
-            label: <FormattedMessage id="FAILED"
-                defaultMessage="photos uploaded" />,
-            value: uploadedPhotos.length
-        },
-    ];
-
-    const title = `photos uploaded: ${store.uploadedImages.length} `;
-
-    return (
-        <div style={{ marginTop: '2rem' }}>
-            <InfoAccordion
-                icon={<FaImage
-                                        size={20}
-                                        // color="#00b3d9" 
-                                        color={store.activeStep === 0 ? "#fff" : "#00b3d9"}
-                                    />}
-                title={title}
-                data={data}
-            />
-        </div>
-    );
-}
-);
+  return (
+    <div style={{ marginTop: "2rem" }}>
+      <InfoAccordion
+        icon={
+          <FaImage
+            size={20}
+            color={store.activeStep === 0 ? "#fff" : "#00b3d9"}
+          />
+        }
+        title={title}
+        data={data}
+      />
+    </div>
+  );
+});
 
 export default BulkImportImageUploadInfo;
