@@ -11,44 +11,37 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { FormattedMessage, useIntl } from "react-intl";
-import {
-  BsCheckCircleFill,
-  BsImage,
-  BsFileEarmarkExcel,
-  BsShieldExclamation,
-} from "react-icons/bs";
-import { observer } from "mobx-react-lite";
+import { FaImage } from "react-icons/fa";
+import { MdTableChart } from "react-icons/md";
 import useGetBulkImportTask from "../../models/bulkImport/useGetBulkImportTask";
 import { ProgressCard } from "../../components/ProgressCard";
+import ThemeColorContext from "../../ThemeColorProvider";
 
-const FilesHeader = ({ imageCount, spreadsheetName }) => (
+const FilesHeader = ({ imageCount, spreadsheetName, theme }) => (
   <Row className="g-3 align-items-center mb-3">
     <Col xs="auto" className="d-flex align-items-center">
-      <BsImage className="me-1" />
+      <FaImage
+        size={20}
+        color={theme.primaryColors.primary500}
+      />
       <span>{imageCount} images uploaded</span>
     </Col>
     <Col xs="auto" className="d-flex align-items-center">
-      <BsFileEarmarkExcel className="me-1" />
+      <MdTableChart size={20} color={theme.primaryColors.primary500} />
       <span>{spreadsheetName}</span>
     </Col>
   </Row>
 );
 
-export const BulkImportTask = observer(({
-  taskId,
-  onDeleteTask,
-  store
-}) => {
+export const BulkImportTask = () => {
   const intl = useIntl();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const theme = React.useContext(ThemeColorContext);
+
+  const taskId = new URLSearchParams(window.location.search).get("id");
 
   const { task, isLoading } = useGetBulkImportTask(taskId);
-
-  // const totalPages = useMemo(
-  //   () => (task ? Math.ceil(task?.rows?.length / pageSize) : 1),
-  //   [task, pageSize]
-  // );
 
   if (isLoading) {
     return (
@@ -65,7 +58,7 @@ export const BulkImportTask = observer(({
   const pagedRows = task?.rows?.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <Container fluid className="mt-3 d-flex flex-column gap-3">
+    <Container className="mt-3 d-flex flex-column gap-3">
       <div>
         <h2 className="mb-0">
           <FormattedMessage id="BULK_IMPORT_TASK" defaultMessage="Bulk Import Task" />
@@ -92,12 +85,12 @@ export const BulkImportTask = observer(({
             <ProgressCard key={title} title={title} progress={progress} />
           ))}
         </div>
-        
+
       </Row>
 
       <section>
         <h5 className="fw-semibold mb-2">Data Uploaded</h5>
-        <FilesHeader imageCount={store.imagecount || 0} spreadsheetName={store.spreadsheetFileName} />
+        <FilesHeader imageCount={task.imagecount || 0} spreadsheetName={task.spreadsheetFileName || "dummy.xlsx"} theme={theme} />
 
         <Table bordered hover size="sm">
           <thead className="table-light align-middle">
@@ -148,4 +141,4 @@ export const BulkImportTask = observer(({
       </Row>
     </Container>
   );
-});
+};
