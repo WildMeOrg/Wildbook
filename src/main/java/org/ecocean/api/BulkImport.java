@@ -475,6 +475,23 @@ public class BulkImport extends ApiBase {
         jt.put("legacy", task.isLegacy());
         jt.put("status", task.getStatus());
         jt.put("numberEncounters", task.numberEncounters());
+        List<MediaAsset> mas = task.getMediaAssets();
+        int numMA = 0;
+        int numAnn = 0;
+        int numAcm = 0;
+        if (mas != null)
+            for (MediaAsset ma : mas) {
+                numMA++;
+                numAnn += ma.numAnnotations();
+                if (ma.getAcmId() != null) numAcm++;
+            }
+        jt.put("numberMediaAssets", numMA);
+        jt.put("numberAnnotations", numAnn);
+        jt.put("numberMediaAssetACMIds", numAcm);
+        // not sure what "valid for image analysis" means FIXME
+        jt.put("numberMediaAssetValidIA", numMA);
+
+        Set<String> indivIds = new HashSet<String>();
         if (task.numberEncounters() > 0) {
             JSONArray encArr = new JSONArray();
             for (Encounter enc : task.getEncounters()) {
@@ -484,7 +501,10 @@ public class BulkImport extends ApiBase {
                     encj.put("id", enc.getId());
                     encj.put("date", enc.getDate());
                     encj.put("occurrenceId", enc.getOccurrenceID());
-                    encj.put("individualId", enc.getIndividualID());
+                    if (enc.hasMarkedIndividual()) {
+                        indivIds.add(enc.getIndividualID());
+                        encj.put("individualId", enc.getIndividualID());
+                    }
                     encj.put("numberMediaAssets", enc.numAnnotations());
                     User sub = enc.getSubmitterUser(myShepherd);
                     if (sub != null)
@@ -493,6 +513,7 @@ public class BulkImport extends ApiBase {
                 encArr.put(encj);
             }
             jt.put("encounters", encArr);
+            jt.put("numberMarkedIndividuals", indivIds.size());
         }
         return jt;
     }
