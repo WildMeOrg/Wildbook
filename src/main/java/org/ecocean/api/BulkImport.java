@@ -63,49 +63,43 @@ public class BulkImport extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
+            boolean isAdmin = currentUser.isAdmin(myShepherd); // only compute once
             String uri = request.getRequestURI();
             String[] args = uri.substring(8).split("/"); // args[0] == 'bulk-import'
             String bulkImportId = null;
             if (args.length == 1) {
                 List<ImportTask> tasks = null;
-                if (currentUser.isAdmin(myShepherd)) {
+                if (isAdmin) {
                     tasks = myShepherd.getImportTasks();
                 } else {
                     tasks = myShepherd.getImportTasksForUser(currentUser);
                 }
                 JSONArray tasksArr = new JSONArray();
                 for (ImportTask task : tasks) {
-                    JSONObject jt = new JSONObject();
-                    jt.put("id", task.getId());
-                    jt.put("creator",
-                        task.getCreator() ==
-                        null ? JSONObject.NULL : task.getCreator().infoJSONObject(context));
-                    jt.put("dateCreated", task.getCreated());
-                    jt.put("sourceName", task.getSourceName());
-                    jt.put("legacy", task.isLegacy());
-                    jt.put("status", task.getStatus());
-                    jt.put("numberEncounters", task.numberEncounters());
-                    if (task.numberEncounters() > 0) {
-                        JSONArray encArr = new JSONArray();
-                        for (Encounter enc : task.getEncounters()) {
-                            encArr.put(enc.getId());
-                        }
-                        jt.put("encounterIds", encArr);
-                    }
-                    tasksArr.put(jt);
+                    tasksArr.put(taskJson(task, false, myShepherd));
                 }
                 rtn.put("tasks", tasksArr);
                 rtn.put("success", true);
                 statusCode = 200;
-            } else if (args.length < 2) {
+            } else if (args.length < 2) { // i guess this means 0?
                 throw new IOException("invalid api endpoint");
             } else {
                 bulkImportId = args[1];
                 if (!Util.isUUID(bulkImportId))
                     throw new IOException("invalid bulk import id passed");
-                if (args.length == 2) {
-                    rtn.put("message", "not yet implemented"); // dump info on single?
-                } else if (args[2].equals("files")) {
+                if (args.length == 2) { // dump info on single task
+                    ImportTask task = myShepherd.getImportTask(bulkImportId);
+                    if (task == null) {
+                        statusCode = 404;
+                    } else if (!isAdmin && !currentUser.equals(task.getCreator())) {
+                        statusCode = 403;
+                        rtn.put("message", "no access to task");
+                    } else {
+                        rtn.put("task", taskJson(task, true, myShepherd));
+                        statusCode = 200;
+                        rtn.put("success", true);
+                    }
+                } else if (args[2].equals("files")) { // list files uploaded for this id
                     File uploadDir = UploadedFiles.getUploadDir(request, bulkImportId, true);
                     if (!uploadDir.exists()) {
                         statusCode = 404;
@@ -467,5 +461,39 @@ public class BulkImport extends ApiBase {
         try {
             Util.writeToFile(payload.toString(4), path);
         } catch (java.io.FileNotFoundException ex) {}
+    }
+
+    private static JSONObject taskJson(ImportTask task, boolean detailed, Shepherd myShepherd) {
+        JSONObject jt = new JSONObject();
+
+        jt.put("id", task.getId());
+        jt.put("creator",
+            task.getCreator() ==
+            null ? JSONObject.NULL : task.getCreator().infoJSONObject(myShepherd.getContext()));
+        jt.put("dateCreated", task.getCreated());
+        jt.put("sourceName", task.getSourceName());
+        jt.put("legacy", task.isLegacy());
+        jt.put("status", task.getStatus());
+        jt.put("numberEncounters", task.numberEncounters());
+        if (task.numberEncounters() > 0) {
+            JSONArray encArr = new JSONArray();
+            for (Encounter enc : task.getEncounters()) {
+                JSONObject encj = new JSONObject();
+                encj.put("id", enc.getId());
+                if (detailed) {
+                    encj.put("id", enc.getId());
+                    encj.put("date", enc.getDate());
+                    encj.put("occurrenceId", enc.getOccurrenceID());
+                    encj.put("individualId", enc.getIndividualID());
+                    encj.put("numberMediaAssets", enc.numAnnotations());
+                    User sub = enc.getSubmitterUser(myShepherd);
+                    if (sub != null)
+                        encj.put("submitter", sub.infoJSONObject(myShepherd.getContext()));
+                }
+                encArr.put(encj);
+            }
+            jt.put("encounters", encArr);
+        }
+        return jt;
     }
 }
