@@ -18,6 +18,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.Measurement;
 import org.ecocean.Occurrence;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
@@ -173,8 +174,11 @@ public class BulkImporter {
         // Keyword kw = myShepherd.getOrCreateKeyword(kwString); // no we need to make our own as this commits :(
         if (indiv != null) {
             for (int i = 0; i < Math.min(nameLabelFields.size(), nameValueFields.size()); i++) {
-                String label = nameLabelFields.get(i);
-                String value = nameValueFields.get(i);
+                String labelFN = nameLabelFields.get(i);
+                String valueFN = nameValueFields.get(i);
+                if ((labelFN == null) || (valueFN == null)) continue;
+                String label = fmap.get(labelFN).getValueString();
+                String value = fmap.get(valueFN).getValueString();
                 if ((label == null) || (value == null)) continue;
                 if (indiv.getName(label) != null)
                     indiv.getNames().removeValuesByKey(label, indiv.getName(label));
@@ -190,6 +194,7 @@ public class BulkImporter {
         if (occ != null) occ.setSubmitterIDFromEncs(false);
         // but we also have enc.submitters, whatever this is about (!?)
         // StandardImport actually *creates Users* based on these, so here we go....
+        // NOTE: these are FIELDNAMES not actual values
         List<String> submitterEmails = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.submitter.emailAddress");
         List<String> submitterNames = BulkImportUtil.findIndexedFieldNames(allFieldNames,
@@ -197,10 +202,56 @@ public class BulkImporter {
         List<String> submitterAffiliations = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.submitter.affiliation");
         for (int i = 0; i < submitterEmails.size(); i++) {
-            User sub = getOrCreateUser(submitterEmails.get(i),
-                i < submitterNames.size() ? submitterNames.get(i) : null,
-                i < submitterAffiliations.size() ? submitterAffiliations.get(i) : null, myShepherd);
+            if (submitterEmails.get(i) == null) continue; // handles case where an offset was skipped
+            String sname = null;
+            if ((i < submitterNames.size()) && (submitterNames.get(i) != null))
+                sname = fmap.get(submitterNames.get(i)).getValueString();
+            String saffil = null;
+            if ((i < submitterAffiliations.size()) && (submitterAffiliations.get(i) != null))
+                saffil = fmap.get(submitterAffiliations.get(i)).getValueString();
+            User sub = getOrCreateUser(fmap.get(submitterEmails.get(i)).getValueString(), sname,
+                saffil, myShepherd);
             enc.addSubmitter(sub); // weeds out null and duplicates, yay!
+        }
+        // like above, but informOther
+        List<String> informOtherEmails = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.informOther.emailAddress");
+        List<String> informOtherNames = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.informOther.fullName");
+        List<String> informOtherAffiliations = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.informOther.affiliation");
+        for (int i = 0; i < informOtherEmails.size(); i++) {
+            if (informOtherEmails.get(i) == null) continue;
+            String ioname = null;
+            if ((i < informOtherNames.size()) && (informOtherNames.get(i) != null))
+                ioname = fmap.get(informOtherNames.get(i)).getValueString();
+            String ioaffil = null;
+            if ((i < informOtherAffiliations.size()) && (informOtherAffiliations.get(i) != null))
+                ioaffil = fmap.get(informOtherAffiliations.get(i)).getValueString();
+            User inf = getOrCreateUser(fmap.get(informOtherEmails.get(i)).getValueString(), ioname,
+                ioaffil, myShepherd);
+            enc.addInformOther(inf); // weeds out null and duplicates, yay!
+        }
+        // measurements kinda suck eggs. good luck with this.
+        List<String> measFN = BulkImportUtil.findMeasurementFieldNames(allFieldNames);
+        List<String> mspFN = BulkImportUtil.findMeasurementSamplingProtocolFieldNames(
+            allFieldNames);
+        List<String> munits = BulkImportUtil.getMeasurementUnits();
+        List<String> mvals = BulkImportUtil.getMeasurementValues();
+        for (int i = 0; i < measFN.size(); i++) {
+            if (measFN.get(i) == null) continue;
+            if (i >= mvals.size()) continue;
+            Double mdbl = fmap.get(measFN.get(i)).getValueDouble();
+            System.out.println("MEAS???? mval=" + mvals.get(i) + " > " + mdbl);
+            if (mdbl == null) continue;
+            String sampProt = null;
+            if ((i < mspFN.size()) && (mspFN.get(i) != null))
+                sampProt = fmap.get(mspFN.get(i)).getValueString();
+            String munit = null;
+            if (i < munits.size()) munit = munits.get(i);
+            Measurement meas = new Measurement(enc.getId(), mvals.get(i), mdbl, munit, sampProt);
+            System.out.println("MEASUREMENT??? " + meas);
+            // enc.setMeasurement() // this commits, so lets figure out the right way (but still updates-in-place)
         }
 /*
    core functionality: creating data.....
@@ -315,10 +366,17 @@ public class BulkImporter {
                 break;
 
             case "Encounter.distinguishingScar":
+                enc.setDistinguishingScar(bv.getValueString());
+                break;
+
             case "Encounter.groupRole":
+                enc.setGroupRole(bv.getValueString());
+                break;
+
             case "Encounter.identificationRemarks":
-            case "Encounter.informOther":
-            case "Encounter.measurement":
+                enc.setIdentificationRemarks(bv.getValueString());
+                break;
+
             case "Encounter.sightingID":
             case "Encounter.sightingRemarks":
             case "Encounter.otherCatalogNumbers":

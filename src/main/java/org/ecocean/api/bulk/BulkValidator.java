@@ -23,12 +23,11 @@ public class BulkValidator {
         "Encounter.decimalLatitude", "Encounter.decimalLongitude", "Encounter.depth",
         "Encounter.distinguishingScar", "Encounter.elevation", "Encounter.genus",
         "Encounter.groupRole", "Encounter.hour", "Encounter.id", "Encounter.identificationRemarks",
-        "Encounter.individualID", "Encounter.informOther", "Encounter.latitude",
-        "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.locationID",
-        "Encounter.longitude", "Encounter.measurement", "Encounter.minutes", "Encounter.month",
-        "Encounter.sightingID", "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers",
-        "Encounter.patterningCode", "Encounter.photographer", "Encounter.project",
-        "Encounter.quality", "Encounter.researcherComments", "Encounter.sex",
+        "Encounter.individualID", "Encounter.latitude", "Encounter.lifeStage",
+        "Encounter.livingStatus", "Encounter.locationID", "Encounter.longitude",
+        "Encounter.minutes", "Encounter.month", "Encounter.sightingID", "Encounter.sightingRemarks",
+        "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.photographer",
+        "Encounter.project", "Encounter.quality", "Encounter.researcherComments", "Encounter.sex",
         "Encounter.specificEpithet", "Encounter.state", "Encounter.submitterID",
         "Encounter.submitterName", "Encounter.submitterOrganization", "Encounter.verbatimLocality",
         "Encounter.year", "MarkedIndividual.individualID", "MarkedIndividual.name",
@@ -67,20 +66,19 @@ public class BulkValidator {
     // validated, but just accepted as-is and set on appropriate object
     public static final Set<String> MINIMAL_FIELD_NAMES_STRING = new HashSet<>(Arrays.asList(
         "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupRole",
-        "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.informOther",
-        "Encounter.measurement", "Encounter.sightingID", "Encounter.sightingRemarks",
-        "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.photographer",
-        "Encounter.project", "Encounter.quality", "Encounter.state", "Encounter.submitterName",
-        "Encounter.submitterOrganization", "MarkedIndividual.name", "MarkedIndividual.nickname",
-        "MarkedIndividual.nickName", "Membership.role", "MicrosatelliteMarkersAnalysis.alleleNames",
-        "MicrosatelliteMarkersAnalysis.analysisID", "MitochondrialDNAAnalysis.haplotype",
-        "Sighting.comments", "Sighting.fieldStudySite", "Sighting.groupBehavior",
-        "Sighting.groupComposition", "Sighting.humanActivityNearby", "Sighting.initialCue",
-        "Sighting.observer", "Sighting.sightingID", "Sighting.terrain", "Sighting.transectName",
-        "Sighting.vegetation", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
-        "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type",
-        "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName", "Taxonomy.scientificName",
-        "TissueSample.tissueType"));
+        "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.sightingID",
+        "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers", "Encounter.patterningCode",
+        "Encounter.photographer", "Encounter.project", "Encounter.quality", "Encounter.state",
+        "Encounter.submitterName", "Encounter.submitterOrganization", "MarkedIndividual.name",
+        "MarkedIndividual.nickname", "MarkedIndividual.nickName", "Membership.role",
+        "MicrosatelliteMarkersAnalysis.alleleNames", "MicrosatelliteMarkersAnalysis.analysisID",
+        "MitochondrialDNAAnalysis.haplotype", "Sighting.comments", "Sighting.fieldStudySite",
+        "Sighting.groupBehavior", "Sighting.groupComposition", "Sighting.humanActivityNearby",
+        "Sighting.initialCue", "Sighting.observer", "Sighting.sightingID", "Sighting.terrain",
+        "Sighting.transectName", "Sighting.vegetation", "SatelliteTag.serialNumber",
+        "SexAnalysis.processingLabTaskID", "SocialUnit.socialUnitName", "Survey.comments",
+        "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName",
+        "Taxonomy.scientificName", "TissueSample.tissueType"));
     public static final Set<String> MINIMAL_FIELD_NAMES_INT = new HashSet<>(Arrays.asList(
         "Sighting.fieldSurveyCode", "Sighting.groupSize", "Sighting.individualCount",
         "Sighting.maxGroupSizeEstimate", "Sighting.minGroupSizeEstimate",
@@ -172,6 +170,7 @@ public class BulkValidator {
         if (fieldName == null) return false;
         if (FIELD_NAMES.contains(fieldName)) return true;
         if (getRawIndexableFieldName(fieldName) != null) return true;
+        if (isMeasurementFieldName(fieldName)) return true;
         return false;
     }
 
@@ -381,7 +380,6 @@ public class BulkValidator {
         case "Sighting.distance":
         case "Encounter.depth":
         case "Encounter.elevation":
-            if (value == null) return null;
             return tryDouble(value);
         }
         // now we validated prefixed ones
@@ -402,6 +400,12 @@ public class BulkValidator {
                 throw new BulkValidatorException("net yet supporting validating Sighting.taxonomy",
                         ApiException.ERROR_RETURN_CODE_INVALID);
             }
+        // now we validate, um, weird ones
+        int offset = BulkImportUtil.findMeasurementOffset(fieldName);
+        if (offset >= 0) return tryDouble(value);
+        offset = BulkImportUtil.findMeasurementSamplingProtocolOffset(fieldName);
+        if (offset >= 0) return value;
+        // probably should never get to this point, so worth noting
         System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName +
             " and value=" + value);
         return value;
@@ -455,5 +459,19 @@ public class BulkValidator {
             mf.put(f, "double");
         }
         return mf;
+    }
+
+    // apparently measurements can be any of the following. :|  sigh
+    // - Encounter.measurement0  [for valid int]
+    // - Encounter.mname  [where "mname" is actual name of measurement]
+    // - Encounter.measurement.mname
+    // any of these can also be followed by ".samplingProtocol"
+    public static boolean isMeasurementFieldName(String fieldName) {
+        int offset = BulkImportUtil.findMeasurementOffset(fieldName);
+
+        if (offset >= 0) return true;
+        offset = BulkImportUtil.findMeasurementSamplingProtocolOffset(fieldName);
+        if (offset >= 0) return true;
+        return false;
     }
 }

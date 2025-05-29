@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
+import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.CommonConfiguration;
@@ -183,6 +184,15 @@ class BulkApiPostTest {
         return rtn.toString();
     }
 
+    // adds values to only first row of data
+    private String addToRows(String jsonString, String fieldName, Object value) {
+        JSONObject json = new JSONObject(jsonString);
+
+        json.getJSONArray("fieldNames").put(fieldName);
+        json.getJSONArray("rows").getJSONArray(0).put(value);
+        return json.toString();
+    }
+
 /*
     "errors": [
         {
@@ -280,10 +290,40 @@ class BulkApiPostTest {
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
                     verify(mockResponse).setStatus(200);
-/*
-   //// FIXME from here on we need code to work!
-                assertTrue(jout.getBoolean("success"));
- */
+                    assertTrue(jout.getBoolean("success"));
+                }
+            }
+        }
+    }
+
+    // FIXME need to have commonConfig mock a list of actual measurement values/units
+    @Test void apiPostValidMeasurements()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        String requestBody = getValidPayloadArrays();
+
+        requestBody = addToRows(requestBody, "Encounter.measurement0", 12.345);
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    System.out.println(jout.toString(4));
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
                 }
             }
         }

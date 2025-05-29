@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import org.ecocean.api.ApiException;
 import org.ecocean.Base;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.OpenSearch;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
@@ -18,6 +19,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BulkImportUtil {
+    // cache these so we dont have to keep reading them from commonConfig
+    public static List<String> measurementValues = null;
+    public static List<String> measurementUnits = null;
+
     public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
         Shepherd myShepherd) {
         if ((fieldNames == null) || (rowValues == null)) return new HashMap<String, Object>();
@@ -192,5 +197,76 @@ public class BulkImportUtil {
     public static String bulkImportArchiveFilepath(String id, String suffix) {
         return "/tmp/bulkImportArchive_" + id + "_" + suffix + "_" + System.currentTimeMillis() +
                    ".json";
+    }
+
+    public static List<String> getMeasurementValues() {
+        if (measurementValues != null) return measurementValues;
+        measurementValues = new ArrayList<String>();
+        try {
+            measurementValues = (List<String>)CommonConfiguration.getIndexedPropertyValues(
+                "measurement", "context0");
+        } catch (Exception ex) {}
+        return measurementValues;
+    }
+
+    public static List<String> getMeasurementUnits() {
+        if (measurementUnits != null) return measurementUnits;
+        measurementUnits = new ArrayList<String>();
+        try {
+            measurementUnits = (List<String>)CommonConfiguration.getIndexedPropertyValues(
+                "measurementUnits", "context0");
+        } catch (Exception ex) {}
+        return measurementUnits;
+    }
+
+    public static int findMeasurementOffset(String fieldName) {
+        if (fieldName == null) return -1;
+        int offset = 0;
+        for (String mval : getMeasurementValues()) {
+            if (fieldName.equals("Encounter.measurement" + offset)) return offset;
+            if (fieldName.equals("Encounter." + mval)) return offset;
+            if (fieldName.equals("Encounter.measurement." + mval)) return offset;
+            offset++;
+        }
+        return -1;
+    }
+
+    public static int findMeasurementSamplingProtocolOffset(String fieldName) {
+        if (fieldName == null) return -1;
+        int offset = 0;
+        for (String mval : getMeasurementValues()) {
+            if (fieldName.equals("Encounter.measurement" + offset + ".samplingProtocol"))
+                return offset;
+            if (fieldName.equals("Encounter." + mval + ".samplingProtocol")) return offset;
+            if (fieldName.equals("Encounter.measurement." + mval + ".samplingProtocol"))
+                return offset;
+            offset++;
+        }
+        return -1;
+    }
+
+    // like findIndexedFieldNames() but for measurement chaos
+    public static List<String> findMeasurementFieldNames(Set<String> fieldNames) {
+        List<String> rtn = new ArrayList<String>();
+
+        for (String fn : fieldNames) {
+            int offset = findMeasurementOffset(fn);
+            if (offset < 0) continue;
+            while (rtn.size() <= offset) rtn.add(null);
+            rtn.set(offset, fn);
+        }
+        return rtn;
+    }
+
+    public static List<String> findMeasurementSamplingProtocolFieldNames(Set<String> fieldNames) {
+        List<String> rtn = new ArrayList<String>();
+
+        for (String fn : fieldNames) {
+            int offset = findMeasurementSamplingProtocolOffset(fn);
+            if (offset < 0) continue;
+            while (rtn.size() <= offset) rtn.add(null);
+            rtn.set(offset, fn);
+        }
+        return rtn;
     }
 }
