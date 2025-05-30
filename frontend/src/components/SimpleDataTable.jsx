@@ -26,19 +26,39 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     setPagedData(data.slice(start, end));
   }, [data, currentPage, perPage]);
 
-const wrappedColumns = useMemo(() =>
-  columns.map(col => ({
-    id: col.selector,
-    name: col.name,
-    selector: col.selector, 
-    sortable: col.sortable ?? true,
-    cell: col.cell || (row => row[col.selector] || "-"),
-  })), [columns]);
+  // const wrappedColumns = useMemo(() =>
+  //   columns.map(col => ({
+  //     id: col.selector,
+  //     name: col.name,
+  //     selector: col.selector,
+  //     sortable: col.sortable ?? true,
+  //     cell: col.cell || (row => row[col.selector] || "-"),
+  //   })), [columns]);
 
+  const wrappedColumns = useMemo(() => {
+    const indexColumn = {
+      id: "__index",
+      name: "#",
+      selector: (_, index) => index + 1 + currentPage * perPage,
+      sortable: false,
+      width: "60px",
+      cell: (_, index) => index + 1 + currentPage * perPage,
+    };
+
+    const userColumns = columns.map((col) => ({
+      id: col.selector,
+      name: col.name,
+      selector: col.selector,
+      sortable: col.sortable ?? true,
+      cell: col.cell || ((row) => row[col.selector] || "-"),
+    }));
+
+    return [indexColumn, ...userColumns];
+  }, [columns, currentPage, perPage]);
 
   const conditionalRowStyles = [
     {
-      when: row => row.tableID % 2 === 0,
+      when: (row) => row.tableID % 2 === 0,
       style: {
         backgroundColor: "#ffffff",
         "&:hover": {
@@ -47,7 +67,7 @@ const wrappedColumns = useMemo(() =>
       },
     },
     {
-      when: row => row.tableID % 2 !== 0,
+      when: (row) => row.tableID % 2 !== 0,
       style: {
         backgroundColor: "#f2f2f2",
         "&:hover": {

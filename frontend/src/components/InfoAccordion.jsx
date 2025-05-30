@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Accordion, Card, useAccordionButton } from 'react-bootstrap';
-import ThemeColorContext from '../ThemeColorProvider';
+import React from "react";
+import { Accordion, Card, useAccordionButton } from "react-bootstrap";
+import ThemeColorContext from "../ThemeColorProvider";
 
 function ContextAwareToggle({ children, eventKey }) {
   const decoratedOnClick = useAccordionButton(eventKey);
@@ -9,17 +8,18 @@ function ContextAwareToggle({ children, eventKey }) {
     <div
       onClick={decoratedOnClick}
       style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '0.75rem 1.25rem',
-        cursor: 'pointer',
-        userSelect: 'none',
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "0.75rem 1.25rem",
+        cursor: "pointer",
+        userSelect: "none",
       }}
     >
       {children}
-      <span className="bi bi-chevron-down"
-        style={{ transition: 'transform .2s', marginLeft: "1rem" }}
+      <span
+        className="bi bi-chevron-down"
+        style={{ transition: "transform .2s", marginLeft: "1rem" }}
         data-bs-target={`#collapse-${eventKey}`}
       />
     </div>
@@ -29,19 +29,29 @@ function ContextAwareToggle({ children, eventKey }) {
 export default function InfoAccordion({ icon, title, data = [] }) {
   const theme = React.useContext(ThemeColorContext);
   return (
-    <Accordion defaultActiveKey="0" style={{ maxWidth: 400 }}>
+    <Accordion defaultActiveKey="0" style={{ maxWidth: 500 }}>
       <Card style={{ backgroundColor: theme.primaryColors.primary50 }}>
         <Card.Header style={{ backgroundColor: theme.primaryColors.primary50 }}>
           <ContextAwareToggle eventKey="0">
             {icon}
-            <span style={{ marginLeft: 8 }}>{title}</span>
+            <span
+              style={{
+                marginLeft: 8,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                display: "inline-block",
+                maxWidth: "100%",
+              }}
+            >
+              {title}
+            </span>
           </ContextAwareToggle>
         </Card.Header>
         <Accordion.Collapse eventKey="0">
           <Card.Body>
-            <ul style={{ paddingLeft: 20, margin: 0, listStyleType: 'none' }}>
+            <ul style={{ paddingLeft: 20, margin: 0, listStyleType: "none" }}>
               {data.map((item, index) => (
-                <li key={index} style={{ marginBottom: '0.5rem' }}>
+                <li key={index} style={{ marginBottom: "0.5rem" }}>
                   {item.label}: {item.value}
                 </li>
               ))}
