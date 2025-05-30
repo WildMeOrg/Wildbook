@@ -39,9 +39,9 @@ services:
       - autoheal=true
     entrypoint: /docker-entrypoint.sh
     volumes:
-      - /data/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/
-      - /data/wildbook_data_dir/:/usr/local/tomcat/webapps/wildbook_data_dir/
-      - /data/wb-docker-deploy/logs/:/usr/local/tomcat/logs/
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/"
+      - "$WILDBOOK_BASE_DIR/wildbook_data_dir/:/usr/local/tomcat/webapps/wildbook_data_dir/"
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/:/usr/local/tomcat/logs/"
       - /var/run/docker.sock:/var/run/docker.sock
       - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
       - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
@@ -54,7 +54,7 @@ services:
       - "81:8080"
     healthcheck:
       # TODO on deployment:  change test.example.org to desired url ... this wildbook?
-      test: [ "CMD-SHELL", "curl --fail-with-body https://test.example.org || exit 1" ]
+      test: [ "CMD-SHELL", "curl --fail-with-body ${WILDBOOK_URL} || exit 1" ]
       interval: 180s
       timeout: 60s
       retries: 3
