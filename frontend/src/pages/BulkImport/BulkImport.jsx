@@ -7,7 +7,6 @@ import { FormattedMessage } from "react-intl";
 import { BulkImportUploadProgress } from "./BulkImportUploadProgress";
 import { BulkImportSpreadsheet } from "./BulkImportSpreadsheet";
 import { BulkImportTableReview } from "./BulkImportTableReview";
-import { BulkImportTask } from "./BulkImportTask";
 import { BulkImportSetLocation } from "./BulkImportSetLocation";
 import { BulkImportContinueModal } from "./BulkImportContinueModal";
 import BulkImportInstructionsModal from "./BulkImportInstructionsModal";
@@ -73,15 +72,6 @@ console.log("lastTask", lastTask);
       {lastTask ? <BulkImportUnfinishedTaskModal 
         taskId={lastTask}
       />: null}
-      {/* <BulkImportTask
-        store={store}
-        taskId={store.submissionId}
-        onDeleteTask={() => {
-          store.deleteTask(store.submissionId);
-          setSavedSubmissionId(null);
-          store.resetToDefaults();
-        }}
-      /> */}
     </Container>
   );
 });
