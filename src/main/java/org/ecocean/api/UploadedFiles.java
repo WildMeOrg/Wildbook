@@ -132,9 +132,10 @@ public class UploadedFiles {
         System.out.println("UploadedFiles.makeMediaAsset(): file=" + file + " => " + sp);
         MediaAsset ma = new MediaAsset(astore, sp);
         ma.addLabel("_original");
+        boolean valid = false;
         try {
             ma.copyIn(file);
-            ma.validateSourceImage();
+            valid = ma.validateSourceImage();
             ma.updateMetadata();
         } catch (IOException ioe) {
             System.out.println("UploadedFiles.makeMediaAsset() failed on " + file + ": " + ioe);
@@ -142,6 +143,9 @@ public class UploadedFiles {
             error.put("code", ApiException.ERROR_RETURN_CODE_UNKNOWN);
             throw new ApiException(file.getName() + " MediaAsset creation threw: " + ioe);
         }
+        if (!valid)
+            throw new ApiException(file.getName() +
+                    " MediaAsset creation failed validateSourceImage()");
         return ma;
     }
 }
