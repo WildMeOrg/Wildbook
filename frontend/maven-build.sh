@@ -3,7 +3,7 @@
 # it seems like we dont need a full/absolute url here
 #export PUBLIC_URL=https://example.com/react/
 export PUBLIC_URL=/react/
-export SITE_NAME="Sharkbook"
+export SITE_NAME="Wildbook"
 
 npm install react-app-rewired
 

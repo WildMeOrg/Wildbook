@@ -1,4 +1,12 @@
-# placeholder dev pwd and user settings should be changed for production environments
+
+## placeholder dev pwd and user settings should be changed for production environments
+
+WILDBOOK_BASE_DIR=/data
+
+# the public url for this wildbook.
+# this value should likely be set to the same in several places in ./dockerfiles/nginx/nignx.conf
+WILDBOOK_DOMAIN=example.wildbook.org
+WILDBOOK_URL=https://${WILDBOOK_DOMAIN}
 
 ## for smtp (postfix) usage:
 MAIL_HOSTNAME=example.org

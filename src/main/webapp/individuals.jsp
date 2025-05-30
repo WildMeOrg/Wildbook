@@ -1286,13 +1286,17 @@ if (sharky.getNames() != null) {
     <br/>
     <%
       List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(sharky);
-      String unitName = "";
-      String role = "";
-      String startDate = "";
-      String endDate = "";
+
       if (isOwner&&CommonConfiguration.isCatalogEditable(context)) {
         if (units!=null) {
             for (SocialUnit unit : units) {
+            	
+                String unitName = "";
+                String role = "";
+                String startDate = "";
+                String endDate = "";	
+            	
+            
                 Membership membership = unit.getMembershipForMarkedIndividual(sharky);
                 if (unit.getSocialUnitName()!=null) {unitName=unit.getSocialUnitName();}
                 if (membership.getRole()!=null) {role=membership.getRole();}
@@ -1318,7 +1322,7 @@ if (sharky.getNames() != null) {
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
-              <p class="socialGroupMembershipStart"><%=startDate%></p>
+              <p id="<%=membership.getStartDateLong() %>" class="socialGroupMembershipStart"><%=startDate%></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
@@ -1349,6 +1353,12 @@ if (sharky.getNames() != null) {
               <select id="socialGroupNameSelect" name="socialGroupNameSelect" onchange="socialGroupNameSelectChanged(this)">
                 <option value="new" selected>CREATE NEW</option>
                 <%
+                
+                String unitName = "";
+                String role = "";
+                String startDate = "";
+                String endDate = "";
+                
                 System.out.println("How many social unit??? "+units.size());
                 if (units!=null&&units.size()>0) {
                   for (SocialUnit formUnit : units) {
