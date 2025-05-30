@@ -1453,7 +1453,12 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return validImageForIA;
     }
 
-    public Boolean validateSourceImage() {
+    public boolean isValidImageForIAForced() {
+        if (validImageForIA == null) return false;
+        return validImageForIA;
+    }
+
+    public boolean validateSourceImage() {
         if ("LOCAL".equals(this.getStore().getType().toString())) {
             Path lPath = this.localPath();
             String typeString = null;
@@ -1474,7 +1479,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
                 this.validImageForIA = false;
             }
         }
-        return isValidImageForIA();
+        return isValidImageForIAForced();
     }
 
 /*
