@@ -475,6 +475,8 @@ public class BulkImport extends ApiBase {
         jt.put("legacy", task.isLegacy());
         jt.put("status", task.getStatus());
         jt.put("numberEncounters", task.numberEncounters());
+        if (detailed) jt.put("iaSummary", task.iaSummaryJson());
+/*  THIS SHOULD BE REPLACED BY iaSummary ABOVE
         List<MediaAsset> mas = task.getMediaAssets();
         int numMA = 0;
         int numAnn = 0;
@@ -490,6 +492,7 @@ public class BulkImport extends ApiBase {
         jt.put("numberMediaAssetACMIds", numAcm);
         // not sure what "valid for image analysis" means FIXME
         jt.put("numberMediaAssetValidIA", numMA);
+ */
 
         Set<String> indivIds = new HashSet<String>();
         if (task.numberEncounters() > 0) {
