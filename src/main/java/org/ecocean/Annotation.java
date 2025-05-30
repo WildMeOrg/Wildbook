@@ -784,24 +784,22 @@ public class Annotation extends Base implements java.io.Serializable {
             if (!Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(),
                 "ignoreViewpointMatching", this.getTaxonomy(myShepherd)))) {
                 String[] viewpoints = this.getViewpointAndNeighbors();
-                if (viewpoints == null) {
-                    System.out.println(
-                        "WARNING: getMatchingSetQuery() could not find neighboring viewpoints for "
-                        + this);
-                    return null;
+                if (viewpoints != null) {
+
+	                arg = new JSONObject();
+	                arg.put("viewpoint", new JSONArray(viewpoints));
+	                wrapper = new JSONObject();
+	                wrapper.put("terms", arg);
+	                // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+	                // to handle allowing null viewpoint, opensearch query gets messy!
+	                JSONArray should = new JSONArray(
+	                    "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
+	                should.put(wrapper);
+	                JSONObject bool = new JSONObject("{\"bool\": {}}");
+	                bool.getJSONObject("bool").put("should", should);
+	                query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(bool);
+
                 }
-                arg = new JSONObject();
-                arg.put("viewpoint", new JSONArray(viewpoints));
-                wrapper = new JSONObject();
-                wrapper.put("terms", arg);
-                // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
-                // to handle allowing null viewpoint, opensearch query gets messy!
-                JSONArray should = new JSONArray(
-                    "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
-                should.put(wrapper);
-                JSONObject bool = new JSONObject("{\"bool\": {}}");
-                bool.getJSONObject("bool").put("should", should);
-                query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(bool);
             }
             // this does either/or part/iaClass - unsure if this is correct
             boolean usedPart = false;
