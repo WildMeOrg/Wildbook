@@ -257,6 +257,7 @@ public class ImportTask implements java.io.Serializable {
         return stats;
     }
 
+    // this doesnt seem to be used anywhere, but leaving it in here
     public Map<String, Integer> statsMediaAssets() {
         if (iaTask == null) return null;
         List<Task> tasks = iaTask.findNodesWithMediaAssets();
@@ -269,6 +270,7 @@ public class ImportTask implements java.io.Serializable {
         return stats;
     }
 
+    // same as above comment
     public Map<String, Integer> statsAnnotations() {
         if (iaTask == null) return null;
         List<Task> tasks = iaTask.findNodesWithAnnotations();
@@ -279,5 +281,99 @@ public class ImportTask implements java.io.Serializable {
             stats = Util.mapAdd(stats, tsum);
         }
         return stats;
+    }
+
+    // this is hobbled together from some complex code in import.jsp
+    // some of this is only necessary to handle legacy (non-api) uploads
+    // may the gods have mercy on our soul
+    public JSONObject iaSummaryJson() {
+        int numDetectionComplete = 0;
+        int numAcmId = 0;
+        int numAllowedIA = 0;
+        int numAssets = 0;
+        int numAnnotations = 0;
+
+        if (this.getMediaAssets() != null)
+            numAssets = this.getMediaAssets().size();
+        for (MediaAsset ma : this.getMediaAssets()) {
+            numAnnotations += ma.numAnnotations();
+            if (ma.getAcmId() != null) numAcmId++;
+            // check if we can get validity off the image before the expensive check of hitting the AssetStore
+            if (ma.isValidImageForIA() != null) {
+                if (ma.isValidImageForIA().booleanValue()) numAllowedIA++;
+            } else if (ma.validateSourceImage()) {
+                numAllowedIA++;
+            }
+/*
+                if ((ma.isValidImageForIA() == null) || !ma.isValidImageForIA().booleanValue()) {
+                    invalidMediaAssets.add(asset);
+                }
+ */
+            if ((ma.getDetectionStatus() != null) &&
+                (ma.getDetectionStatus().equals("complete") ||
+                ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
+        }
+        JSONObject pj = new JSONObject();
+        pj.put("numberMediaAssets", numAssets);
+        pj.put("numberAnnotations", numAnnotations);
+        pj.put("numberMediaAssetACMIds", numAcmId);
+        pj.put("numberMediaAssetValidIA", numAllowedIA);
+        pj.put("detectionNumComplete", numDetectionComplete);
+        // non-legacy flavor
+        if ((this.getIATask() != null) && this.iaTaskStarted()) {
+            if (!this.iaTaskRequestedIdentification()) {
+                if (numDetectionComplete == numAllowedIA) {
+                    pj.put("detectionPercent", 1.0);
+                    pj.put("detectionStatus", "complete");
+                } else {
+                    if (numAssets > 0) pj.put("detectionPercent", numDetectionComplete / numAssets);
+                    pj.put("detectionStatus", "sent");
+                }
+            } else {
+                // detection completion implied by ident running... i think?
+                pj.put("detectionPercent", 1.0);
+                pj.put("detectionStatus", "complete");
+                int numIdentificationComplete = 0;
+                int numIdentificationTotal = 0;
+/*
+                //let's tabulate ID status map for complete
+                int numComplete = 0;
+                int numTotal = 0;
+                if (idStatusMap.get("completed")!=null){numComplete=idStatusMap.get("completed");}
+                for(Integer key:idStatusMap.values()){
+                        numTotal+=key;
+                }
+                String idStatusString="";
+                if(numTotal>0)idStatusString=numComplete+" individual computer vision tasks complete of "+numTotal+" total. ";
+
+                if(numComplete==numTotal)shouldRefresh=false;
+
+                iaStatusString="identification requests sent (see table below for links to each matching job). "+idStatusString+queueStatementID;
+                if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
+ */
+                pj.put("identificationStatus", "not yet implemented");
+                pj.put("identificationNumComplete", numIdentificationComplete);
+                pj.put("identificationNumTotal", numIdentificationTotal);
+                if (numIdentificationTotal > 0)
+                    pj.put("identificationPercent",
+                        numIdentificationComplete / numIdentificationTotal);
+            }
+            // legacy flavor
+        } else if ((this.getIATask() == null) && (numDetectionComplete > 0)) {
+            if (numDetectionComplete == numAssets) {
+                pj.put("detectionPercent", 1.0);
+                pj.put("detectionStatus", "complete");
+            } else {
+                if (numAssets > 0) pj.put("detectionPercent", numDetectionComplete / numAssets);
+                pj.put("detectionStatus", "sent");
+            }
+/*
+            if(numMatchTasks>0){
+                iaStatusString="identification requests sent (see below)";
+                if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
+            }
+ */
+        }
+        return pj;
     }
 }
