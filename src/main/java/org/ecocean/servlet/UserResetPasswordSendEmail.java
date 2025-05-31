@@ -93,6 +93,8 @@ public class UserResetPasswordSendEmail extends HttpServlet {
                     Map<String, String> tagMap = new HashMap<String, String>() {{
                         put("@RESET_LINK@", npLink);
                     }};
+                    tagMap.put("@URL_LOCATION@",String.format("https://%s", CommonConfiguration.getURLLocation(request)));
+
                     String mailTo = myUser.getEmailAddress();
                     NotificationMailer mailer = new NotificationMailer(context, null, mailTo,
                         "passwordReset", tagMap, true);                                                                // override user.receiveEmails
