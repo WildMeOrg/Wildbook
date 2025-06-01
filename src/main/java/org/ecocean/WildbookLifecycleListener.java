@@ -14,32 +14,11 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
     public void preDelete(InstanceLifecycleEvent event) {
         Persistable obj = (Persistable)event.getSource();
 
-/*
-        System.out.println("WildbookLifecycleListener preDelete() event type=" +
-            event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() +
-            "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" +
-            event.getPersistentInstance());
- */
-        if (Base.class.isInstance(obj)) {
-            Base base = (Base)obj;
-            System.out.println("WildbookLifecycleListener preDelete() event on " + base);
-            try {
-                
-            	//old way = direct indexing
-            	//base.opensearchUnindexDeep();
-            	//new way - put indexing in managed queue
-            	IndexingManager im=IndexingManagerFactory.getIndexingManager();
-            	im.addIndexingQueueEntry(base,true);
-            	
-                
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
+
     }
 
     public void postDelete(InstanceLifecycleEvent event) {
-        Persistable obj = (Persistable)event.getSource();
+        Persistable obj = (Persistable)event.getDetachedInstance();
 
         // cannot actually use obj, as it will throw: javax.jdo.JDOUserException: Cannot read fields from a deleted object
 /*
@@ -47,6 +26,18 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             event.getEventType() + "; source id=" + obj.dnGetObjectId());
         // System.out.println("WildbookLifecycleListener postDelete() event type=" + event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() + "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" + event.getPersistentInstance());
  */
+        
+        if (Base.class.isInstance(obj)) {
+            Base base = (Base)obj;
+            try {
+                
+            	base.opensearchUnindexDeep();
+            	               
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        
     }
 
     public void preStore(InstanceLifecycleEvent event) {}
