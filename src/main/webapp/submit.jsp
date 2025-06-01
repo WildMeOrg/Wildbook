@@ -857,7 +857,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("locationID") %></label>
+        <label class="control-label"><%=props.getProperty("locationID") %><span class="text-danger">*</span></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
@@ -1432,8 +1432,13 @@ function sendButtonClicked() {
 	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
 	// 	return false;
 	// }
+  if(!$('#locationID').val()){
+    $('#locationID').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('Select the location ID'); }, 100);
+		return false;
+  }
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
-		$('#location').closest('.form-group').addClass('required-missing');
+    $('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
 		return false;
 	}
