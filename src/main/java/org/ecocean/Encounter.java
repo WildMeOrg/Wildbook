@@ -1058,7 +1058,11 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         if (hour != -1) {
             String localMinutes = minutes;
-            if (localMinutes.length() == 1) { localMinutes = "0" + localMinutes; }
+            if (!Util.stringExists(localMinutes)) {
+                localMinutes = "00";
+            } else if (localMinutes.length() == 1) {
+                localMinutes = "0" + localMinutes;
+            }
             time = String.format("%02d:%s", hour, localMinutes);
         }
         if (day > 0) {
@@ -3393,7 +3397,8 @@ public class Encounter extends Base implements java.io.Serializable {
         try {
             String queryString =
                 "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(feat) && mediaAsset.features.contains(feat) && mediaAsset.id =="
-                + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset mediaAsset; org.ecocean.Annotation ann; org.ecocean.media.Feature feat";
+                + ma.getId() +
+                " VARIABLES org.ecocean.media.MediaAsset mediaAsset; org.ecocean.Annotation ann; org.ecocean.media.Feature feat";
             Query query = myShepherd.getPM().newQuery(queryString);
             Collection results = (Collection)query.execute();
             returnEncs = new ArrayList<Encounter>(results);
@@ -4549,7 +4554,8 @@ public class Encounter extends Base implements java.io.Serializable {
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
         if (CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()) != null) {
-            enc.setState(CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()));
+            enc.setState(CommonConfiguration.getProperty("encounterState0",
+                myShepherd.getContext()));
         }
         enc.setComments(payload.optString("comments", null));
         if (user == null) {
