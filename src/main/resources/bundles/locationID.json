@@ -1,6 +1,6 @@
 {
   "description": "Hierarchical Encounter.locationID list in Wildbook",
-  "source": "http://en.wikipedia.org/wiki/List_of_seas",
+  "source": "T4C",
   "locationID": [
     {
       "name": "Africa - All",
@@ -44,6 +44,11 @@
             {
               "name": "Lesotho",
               "id": "Lesotho",
+              "locationID": []
+            },
+            {
+              "name": "Madagascar",
+              "id": "Madagascar",
               "locationID": []
             },
             {
@@ -535,6 +540,468 @@
               "locationID": []
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Asia - All",
+      "id": "Asia",
+      "locationID": [
+        {
+          "name": "Afghanistan",
+          "id": "Afghanistan",
+          "locationID": []
+        },
+        {
+          "name": "Armenia",
+          "id": "Armenia",
+          "locationID": []
+        },
+        {
+          "name": "Azerbaijan",
+          "id": "Azerbaijan",
+          "locationID": []
+        },
+        {
+          "name": "Bahrain",
+          "id": "Bahrain",
+          "locationID": []
+        },
+        {
+          "name": "Bangladesh",
+          "id": "Bangladesh",
+          "locationID": []
+        },
+        {
+          "name": "Bhutan",
+          "id": "Bhutan",
+          "locationID": []
+        },
+        {
+          "name": "Brunei",
+          "id": "Brunei",
+          "locationID": []
+        },
+        {
+          "name": "Cambodia",
+          "id": "Cambodia",
+          "locationID": []
+        },
+        {
+          "name": "China",
+          "id": "China",
+          "locationID": []
+        },
+        {
+          "name": "East Timor (Timor-Leste)",
+          "id": "East Timor",
+          "locationID": []
+        },
+        {
+          "name": "Georgia",
+          "id": "Georgia",
+          "locationID": []
+        },
+        {
+          "name": "India",
+          "id": "India",
+          "locationID": []
+        },
+        {
+          "name": "Indonesia",
+          "id": "Indonesia",
+          "locationID": []
+        },
+        {
+          "name": "Iran",
+          "id": "Iran",
+          "locationID": []
+        },
+        {
+          "name": "Iraq",
+          "id": "Iraq",
+          "locationID": []
+        },
+        {
+          "name": "Israel",
+          "id": "Israel",
+          "locationID": []
+        },
+        {
+          "name": "Japan",
+          "id": "Japan",
+          "locationID": []
+        },
+        {
+          "name": "Jordan",
+          "id": "Jordan",
+          "locationID": []
+        },
+        {
+          "name": "Kazakhstan",
+          "id": "Kazakhstan",
+          "locationID": []
+        },
+        {
+          "name": "Kuwait",
+          "id": "Kuwait",
+          "locationID": []
+        },
+        {
+          "name": "Kyrgyzstan",
+          "id": "Kyrgyzstan",
+          "locationID": []
+        },
+        {
+          "name": "Laos",
+          "id": "Laos",
+          "locationID": []
+        },
+        {
+          "name": "Lebanon",
+          "id": "Lebanon",
+          "locationID": []
+        },
+        {
+          "name": "Malaysia",
+          "id": "Malaysia",
+          "locationID": []
+        },
+        {
+          "name": "Maldives",
+          "id": "Maldives",
+          "locationID": []
+        },
+        {
+          "name": "Mongolia",
+          "id": "Mongolia",
+          "locationID": []
+        },
+        {
+          "name": "Myanmar (Burma)",
+          "id": "Myanmar",
+          "locationID": []
+        },
+        {
+          "name": "Nepal",
+          "id": "Nepal",
+          "locationID": []
+        },
+        {
+          "name": "Oman",
+          "id": "Oman",
+          "locationID": []
+        },
+        {
+          "name": "Pakistan",
+          "id": "Pakistan",
+          "locationID": []
+        },
+        {
+          "name": "Palestine",
+          "id": "Palestine",
+          "locationID": []
+        },
+        {
+          "name": "Philippines",
+          "id": "Philippines",
+          "locationID": []
+        },
+        {
+          "name": "Qatar",
+          "id": "Qatar",
+          "locationID": []
+        },
+        {
+          "name": "Russia",
+          "id": "Russia",
+          "locationID": []
+        },
+        {
+          "name": "Saudi Arabia",
+          "id": "Saudi Arabia",
+          "locationID": []
+        },
+        {
+          "name": "Singapore",
+          "id": "Singapore",
+          "locationID": []
+        },
+        {
+          "name": "South Korea",
+          "id": "South Korea",
+          "locationID": []
+        },
+        {
+          "name": "Sri Lanka",
+          "id": "Sri Lanka",
+          "locationID": []
+        },
+        {
+          "name": "Syria",
+          "id": "Syria",
+          "locationID": []
+        },
+        {
+          "name": "Taiwan",
+          "id": "Taiwan",
+          "locationID": []
+        },
+        {
+          "name": "Tajikistan",
+          "id": "Tajikistan",
+          "locationID": []
+        },
+        {
+          "name": "Thailand",
+          "id": "Thailand",
+          "locationID": []
+        },
+        {
+          "name": "Turkey",
+          "id": "Turkey",
+          "locationID": []
+        },
+        {
+          "name": "Turkmenistan",
+          "id": "Turkmenistan",
+          "locationID": []
+        },
+        {
+          "name": "United Arab Emirates",
+          "id": "United Arab Emirates",
+          "locationID": []
+        },
+        {
+          "name": "Uzbekistan",
+          "id": "Uzbekistan",
+          "locationID": []
+        },
+        {
+          "name": "Vietnam",
+          "id": "Vietnam",
+          "locationID": []
+        },
+        {
+          "name": "Yemen",
+          "id": "Yemen",
+          "locationID": []
+        }
+      ]
+    },
+    {
+      "name": "Europe - All",
+      "id": "Europe",
+      "locationID": [
+        {
+          "name": "Albania",
+          "id": "Albania",
+          "locationID": []
+        },
+        {
+          "name": "Andorra",
+          "id": "Andorra",
+          "locationID": []
+        },
+        {
+          "name": "Austria",
+          "id": "Austria",
+          "locationID": []
+        },
+        {
+          "name": "Belarus",
+          "id": "Belarus",
+          "locationID": []
+        },
+        {
+          "name": "Belgium",
+          "id": "Belgium",
+          "locationID": []
+        },
+        {
+          "name": "Bosnia and Herzegovina",
+          "id": "Bosnia and Herzegovina",
+          "locationID": []
+        },
+        {
+          "name": "Bulgaria",
+          "id": "Bulgaria",
+          "locationID": []
+        },
+        {
+          "name": "Croatia",
+          "id": "Croatia",
+          "locationID": []
+        },
+        {
+          "name": "Cyprus",
+          "id": "Cyprus",
+          "locationID": []
+        },
+        {
+          "name": "Czech Republic",
+          "id": "Czech Republic",
+          "locationID": []
+        },
+        {
+          "name": "Denmark",
+          "id": "Denmark",
+          "locationID": []
+        },
+        {
+          "name": "Estonia",
+          "id": "Estonia",
+          "locationID": []
+        },
+        {
+          "name": "Finland",
+          "id": "Finland",
+          "locationID": []
+        },
+        {
+          "name": "France",
+          "id": "France",
+          "locationID": []
+        },
+        {
+          "name": "Germany",
+          "id": "Germany",
+          "locationID": []
+        },
+        {
+          "name": "Greece",
+          "id": "Greece",
+          "locationID": []
+        },
+        {
+          "name": "Hungary",
+          "id": "Hungary",
+          "locationID": []
+        },
+        {
+          "name": "Iceland",
+          "id": "Iceland",
+          "locationID": []
+        },
+        {
+          "name": "Ireland",
+          "id": "Ireland",
+          "locationID": []
+        },
+        {
+          "name": "Italy",
+          "id": "Italy",
+          "locationID": []
+        },
+        {
+          "name": "Kosovo",
+          "id": "Kosovo",
+          "locationID": []
+        },
+        {
+          "name": "Latvia",
+          "id": "Latvia",
+          "locationID": []
+        },
+        {
+          "name": "Liechtenstein",
+          "id": "Liechtenstein",
+          "locationID": []
+        },
+        {
+          "name": "Lithuania",
+          "id": "Lithuania",
+          "locationID": []
+        },
+        {
+          "name": "Luxembourg",
+          "id": "Luxembourg",
+          "locationID": []
+        },
+        {
+          "name": "Moldova",
+          "id": "Moldova",
+          "locationID": []
+        },
+        {
+          "name": "Montenegro",
+          "id": "Montenegro",
+          "locationID": []
+        },
+        {
+          "name": "Netherlands",
+          "id": "Netherlands",
+          "locationID": []
+        },
+        {
+          "name": "North Macedonia",
+          "id": "North Macedonia",
+          "locationID": []
+        },
+        {
+          "name": "Norway",
+          "id": "Norway",
+          "locationID": []
+        },
+        {
+          "name": "Poland",
+          "id": "Poland",
+          "locationID": []
+        },
+        {
+          "name": "Portugal",
+          "id": "Portugal",
+          "locationID": []
+        },
+        {
+          "name": "Romania",
+          "id": "Romania",
+          "locationID": []
+        },
+        {
+          "name": "San Marino",
+          "id": "San Marino",
+          "locationID": []
+        },
+        {
+          "name": "Serbia",
+          "id": "Serbia",
+          "locationID": []
+        },
+        {
+          "name": "Slovakia",
+          "id": "Slovakia",
+          "locationID": []
+        },
+        {
+          "name": "Slovenia",
+          "id": "Slovenia",
+          "locationID": []
+        },
+        {
+          "name": "Spain",
+          "id": "Spain",
+          "locationID": []
+        },
+        {
+          "name": "Sweden",
+          "id": "Sweden",
+          "locationID": []
+        },
+        {
+          "name": "Switzerland",
+          "id": "Switzerland",
+          "locationID": []
+        },
+        {
+          "name": "Ukraine",
+          "id": "Ukraine",
+          "locationID": []
+        },
+        {
+          "name": "United Kingdom",
+          "id": "United Kingdom",
+          "locationID": []
         }
       ]
     }
