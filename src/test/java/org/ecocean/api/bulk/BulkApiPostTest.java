@@ -296,6 +296,66 @@ class BulkApiPostTest {
         }
     }
 
+    @Test void apiPostValidArrays()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        String requestBody = getValidPayloadArrays();
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                }
+            }
+        }
+    }
+
+    @Test void apiPostValidArraysNullInt()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        String requestBody = getValidPayloadArrays();
+
+        requestBody = addToRows(requestBody, "Encounter.month", null);
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                }
+            }
+        }
+    }
+
     @Test void apiPostValidMeasurements()
     throws ServletException, IOException {
         User user = mock(User.class);
