@@ -2,6 +2,7 @@ package org.ecocean;
 
 import org.ecocean.api.bulk.*;
 
+import javax.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.*;
@@ -144,8 +145,8 @@ class BulkGeneralTest {
             if (bv != null) row.put(fn, bv);
         }
         rows.add(row);
-        // throwing NPE here means we got far enough :)
-        Exception ex = assertThrows(NullPointerException.class, () -> {
+        // exception here means we got far enough :)
+        Exception ex = assertThrows(ServletException.class, () -> {
             BulkImporter imp = new BulkImporter(rows, null, null, null);
             imp.createImport();
         });
