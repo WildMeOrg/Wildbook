@@ -675,15 +675,16 @@ if(request.getParameter("encounterNumber")!=null){
 
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
+    var encNum = '<%=encNum%>';
     console.log("   EMG asset "+index+" id: "+assetId);
     if (<%=isGrid%>) {
     	    console.log("   EMG : isGrid true!");
 
-      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction, encNum)
     } else {
     	    	    console.log("   EMG : isGrid false!");
 
-    maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+    maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction, encNum)
 
       //maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
     }
