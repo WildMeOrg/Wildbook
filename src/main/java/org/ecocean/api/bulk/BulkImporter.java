@@ -11,6 +11,8 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.servlet.ServletException;
+
 import org.ecocean.api.bulk.*;
 import org.ecocean.Annotation;
 import org.ecocean.Base;
@@ -47,7 +49,8 @@ public class BulkImporter {
         this.myShepherd = myShepherd;
     }
 
-    public JSONObject createImport() {
+    public JSONObject createImport()
+    throws ServletException {
         JSONObject rtn = new JSONObject();
         List<Base> needIndexing = new ArrayList<Base>();
 
@@ -65,8 +68,11 @@ public class BulkImporter {
             try {
                 processRow(fields);
             } catch (Exception ex) {
+                // TODO we could allow this some leeway with a tolerance setting
                 System.out.println("createImport() row=" + rowNum + " failed with " + ex);
                 ex.printStackTrace();
+                throw new ServletException("unexpected exception on processRow for row=" + rowNum +
+                        ": " + ex);
             }
         }
         System.out.println(
