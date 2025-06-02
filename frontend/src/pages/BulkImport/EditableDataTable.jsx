@@ -18,20 +18,25 @@ const EditableCell = ({
   rowIndex,
   columnId,
   externalError,
+  externalWarning,
 }) => {
   const [value, setValue] = useState(initialValue ?? "");
   const [error, setError] = useState(externalError ?? "");
+  const [warning, setWarning] = useState(externalWarning ?? "");
 
   useEffect(() => {
     setError(externalError ?? "");
+    setWarning(externalWarning ?? "");
   }, [externalError]);
 
   const handleBlur = () => {
     store.spreadsheetData[rowIndex][columnId] = value;
     store.rawData[rowIndex][columnId] = value;
     store.updateRawFromNormalizedRow(rowIndex);
-    const errors = store.validateSpreadsheet();
+    const { errors, warnings } = store.validateSpreadsheet();
+    // const errors = store.validateSpreadsheet();
     setError(errors[rowIndex]?.[columnId] || "");
+    setWarning(warnings[rowIndex]?.[columnId] || "");
   };
 
   const handleKeyDown = (e) => {
@@ -67,7 +72,7 @@ const EditableCell = ({
       return (
         <input
           type="text"
-          className={`form-control form-control-sm rounded ${error ? "is-invalid" : ""}`}
+          className={`form-control form-control-sm rounded ${error ? "is-invalid" : warning ? "border-warning bg-warning-subtle" : ""}`}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleBlur}
@@ -92,7 +97,15 @@ const EditableCell = ({
           whiteSpace: "normal",
           overflowWrap: "break-word",
         }}
-      >{error}</div>}
+      >
+        {error}
+      </div>}
+      {warning && (
+        <div className="form-text text-warning" style={{ whiteSpace: "normal" }}>
+          ⚠ {warning}
+        </div>
+      )}
+
     </div>
   );
 };
@@ -100,6 +113,7 @@ const EditableCell = ({
 export const DataTable = observer(({ store }) => {
   const data = store.spreadsheetData || [];
   const [cellErrors, setCellErrors] = useState({});
+  const [cellWarnings, setCellWarnings] = useState({});
   const columnsDef = store.columnsDef || [];
   const { data: siteData } = useGetSiteSettings();
   const minimalFields = siteData?.bulkImportMinimalFields || {};
@@ -116,6 +130,7 @@ export const DataTable = observer(({ store }) => {
     left: ["rowNumber", columnsDef[0] || ""],
     right: [],
   });
+
 
   const extractAllValues = (treeData) => {
     const values = [];
@@ -145,7 +160,11 @@ export const DataTable = observer(({ store }) => {
 
   useEffect(() => {
     if (siteData) {
-      setCellErrors(store.validateSpreadsheet())
+      // setCellErrors(store.validateSpreadsheet());
+      const { errors, warnings } = store.validateSpreadsheet();
+      setCellErrors(errors);
+      setCellWarnings(warnings);
+
     }
   }, [store.spreadsheetData, siteData])
 
@@ -159,6 +178,7 @@ export const DataTable = observer(({ store }) => {
         rowIndex={row.index}
         columnId={col}
         externalError={cellErrors[row.index]?.[col] || ""}
+        externalWarning={cellWarnings[row.index]?.[col] || ""}
       />
     ),
   }));
@@ -184,9 +204,6 @@ export const DataTable = observer(({ store }) => {
       maxSize: 500,
     },
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getCoreRowModel: getCoreRowModel(),
-    // getColumnPinningRowModel: getColumnPinningRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {

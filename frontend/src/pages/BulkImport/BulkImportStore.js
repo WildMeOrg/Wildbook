@@ -3,7 +3,7 @@ import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
-import { extraStringCols, intRule, doubleRule, stringRule } from "./BulkImportConstants";
+import { extraStringCols, intRule, doubleRule, stringRule, specializedColumns } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -974,10 +974,26 @@ export class BulkImportStore {
 
   validateSpreadsheet() {
     const errors = {};
+    const warnings = {};
+
     this._spreadsheetData.forEach((row, rowIndex) => {
+
       this._columnsDef.forEach((col) => {
+
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
+
+        const isKnown =
+          col in this._minimalFields ||
+          extraStringCols.includes(col) ||
+          specializedColumns.includes(col);
+
+        if (!isKnown) {
+          if (!warnings[rowIndex]) warnings[rowIndex] = {};
+          warnings[rowIndex][col] = "Unknown column — may not be processed";
+          return;
+        }
+
         if (!rules) return;
 
         let error = "";
@@ -996,7 +1012,7 @@ export class BulkImportStore {
         }
       });
     });
-    return errors;
+    return {errors, warnings};
   }
 
   removePreview(fileName) {

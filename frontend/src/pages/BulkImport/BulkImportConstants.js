@@ -96,5 +96,22 @@ const extraStringCols = [
   "MarkedIndividual.individualID",
 ];
 
+const specializedColumns = [
+  "Encounter.mediaAsset0",
+  "Encounter.year",
+  "Encounter.genus",
+  "Encounter.decimalLatitude",
+  "Encounter.locationID",
+  "Encounter.country",
+  "Encounter.submiterID",
+  "Encounter.livingStatus",
+  "Encounter.lifeStage",
+  "Encounter.sex",
+  "Encounter.behavior",
+  "Encounter.occurrenceRemarks",
+  "Encounter.photographer0.emailAddress",
+  "Encounter.informOther0.emailAddress",];
 
-export { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell, doubleRule, intRule, stringRule, extraStringCols };
+
+
+export { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell, doubleRule, intRule, stringRule, extraStringCols, specializedColumns };
