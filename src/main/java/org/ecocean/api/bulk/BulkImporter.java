@@ -305,15 +305,15 @@ public class BulkImporter {
                 break;
             case "Sighting.month":
             case "Encounter.month":
-                enc.setMonth(bv.getValueInteger());
+                if (!bv.valueIsNull()) enc.setMonth(bv.getValueInteger());
                 break;
             case "Sighting.day":
             case "Encounter.day":
-                enc.setDay(bv.getValueInteger());
+                if (!bv.valueIsNull()) enc.setDay(bv.getValueInteger());
                 break;
             case "Sighting.hour":
             case "Encounter.hour":
-                enc.setHour(bv.getValueInteger());
+                if (!bv.valueIsNull()) enc.setHour(bv.getValueInteger());
                 break;
             case "Sighting.minutes":
             case "Encounter.minutes":
