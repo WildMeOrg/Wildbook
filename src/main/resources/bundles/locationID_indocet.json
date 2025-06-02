@@ -2,8 +2,6 @@
   "description": "Hierarchical Encounter.locationIDs in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-
-
 		{
 		"name": "Indian Ocean",
 		"locationID":[
