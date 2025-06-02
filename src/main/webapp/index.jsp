@@ -421,7 +421,7 @@ h2.vidcap {
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/tico_meeting.jpg" data-src="cust/mantamatcher/img/tico_meeting.jpg" alt="Tico McNutt Quote Image" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
+                    <img src="cust/mantamatcher/img/dog_match.jpg" data-src="cust/mantamatcher/img/dog_match.jpg" alt="Hotspotter Wild Dog Match" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
 
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
