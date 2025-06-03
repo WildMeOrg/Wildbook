@@ -220,7 +220,7 @@ export const DataTable = observer(({ store }) => {
   return (
     <div className="p-3 border rounded shadow-sm bg-white mt-4"
       style={{
-        maxHeight: "500px",
+        // maxHeight: "500px",
         overflowY: "auto",
       }}
     >
@@ -229,6 +229,8 @@ export const DataTable = observer(({ store }) => {
           className="table table-bordered table-hover table-sm"
           style={{
             // tableLayout: 'fixed' 
+            maxHeight: "500px",
+            overflowY: "auto",
             tableLayout: "auto",
             width: "max-content"
           }}

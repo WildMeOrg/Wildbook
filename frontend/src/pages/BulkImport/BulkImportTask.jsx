@@ -52,7 +52,7 @@ export const BulkImportTask = () => {
       cell: (row) =>
         row.encounterID ? (
           <a
-            href={`/encounters/encounter.jsp?number==${row.encounterID}`}
+            href={`/encounters/encounter.jsp?number=${row.encounterID}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -156,24 +156,24 @@ export const BulkImportTask = () => {
           <InfoAccordion
             icon={<FaImage size={20} color={theme.primaryColors.primary500} />}
             title={
-              "Images Uploaded: " + (task?.iaSummary?.numberMediaAssets || 999)
+              "Images Uploaded: " + (task?.iaSummary?.numberMediaAssets || 0)
             }
             data={[
               {
                 label: "Has acmID",
-                value: task?.iaSummary?.numberMediaAssetACMIds || 999,
+                value: task?.iaSummary?.numberMediaAssetACMIds || 0,
               },
               {
                 label: "Total Annotations",
-                value: task?.iaSummary?.numberAnnotations || 999,
+                value: task?.iaSummary?.numberAnnotations || 0,
               },
               {
                 label: "Valid for Image Analysis",
-                value: task?.iaSummary?.numberMediaAssetValidIA || 999,
+                value: task?.iaSummary?.numberMediaAssetValidIA || 0,
               },
               {
                 label: "Total Marked Individuals",
-                value: task?.detectionSummary?.numberMediaAssets || 999,
+                value: task?.detectionSummary?.numberMediaAssets || 0,
               },
             ]}
           />

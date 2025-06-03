@@ -52,7 +52,7 @@ export default function InfoAccordion({ icon, title, data = [] }) {
             <ul style={{ paddingLeft: 20, margin: 0, listStyleType: "none" }}>
               {data.map((item, index) => (
                 <li key={index} style={{ marginBottom: "0.5rem" }}>
-                  {item.label}: {item.value}
+                  {Object.prototype.hasOwnProperty.call(item, 'value') ? `${item.label} : ${item.value}` : item.label}
                 </li>
               ))}
             </ul>
