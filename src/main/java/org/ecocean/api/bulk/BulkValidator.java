@@ -27,7 +27,7 @@ public class BulkValidator {
         "Encounter.livingStatus", "Encounter.locationID", "Encounter.longitude",
         "Encounter.minutes", "Encounter.month", "Encounter.sightingID", "Encounter.sightingRemarks",
         "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.photographer",
-        "Encounter.project", "Encounter.quality", "Encounter.researcherComments", "Encounter.sex",
+        "Encounter.project", "Encounter.researcherComments", "Encounter.sex",
         "Encounter.specificEpithet", "Encounter.state", "Encounter.submitterID",
         "Encounter.submitterName", "Encounter.submitterOrganization", "Encounter.verbatimLocality",
         "Encounter.year", "MarkedIndividual.individualID", "MarkedIndividual.name",
@@ -54,6 +54,8 @@ public class BulkValidator {
 
     public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
         "Encounter.keyword#", "Encounter.mediaAsset#", "Encounter.mediaAsset#.keywords",
+        "Encounter.project#.projectIdPrefix", "Encounter.project#.researchProjectName",
+        "Encounter.project#.ownerUsername", "Encounter.quality#",
         "Encounter.submitter#.affiliation", "Encounter.submitter#.emailAddress",
         "Encounter.submitter#.fullName", "Encounter.informOther#.emailAddress",
         "Encounter.photographer#.emailAddress", "MicrosatelliteMarkersAnalysis.alleles#",
@@ -68,17 +70,17 @@ public class BulkValidator {
         "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupRole",
         "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.sightingID",
         "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers", "Encounter.patterningCode",
-        "Encounter.photographer", "Encounter.project", "Encounter.quality", "Encounter.state",
-        "Encounter.submitterName", "Encounter.submitterOrganization", "MarkedIndividual.name",
-        "MarkedIndividual.nickname", "MarkedIndividual.nickName", "Membership.role",
-        "MicrosatelliteMarkersAnalysis.alleleNames", "MicrosatelliteMarkersAnalysis.analysisID",
-        "MitochondrialDNAAnalysis.haplotype", "Sighting.comments", "Sighting.fieldStudySite",
-        "Sighting.groupBehavior", "Sighting.groupComposition", "Sighting.humanActivityNearby",
-        "Sighting.initialCue", "Sighting.observer", "Sighting.sightingID", "Sighting.terrain",
-        "Sighting.transectName", "Sighting.vegetation", "SatelliteTag.serialNumber",
-        "SexAnalysis.processingLabTaskID", "SocialUnit.socialUnitName", "Survey.comments",
-        "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName",
-        "Taxonomy.scientificName", "TissueSample.tissueType"));
+        "Encounter.state", "Encounter.submitterName", "Encounter.submitterOrganization",
+        "MarkedIndividual.name", "MarkedIndividual.nickname", "MarkedIndividual.nickName",
+        "Membership.role", "MicrosatelliteMarkersAnalysis.alleleNames",
+        "MicrosatelliteMarkersAnalysis.analysisID", "MitochondrialDNAAnalysis.haplotype",
+        "Sighting.comments", "Sighting.fieldStudySite", "Sighting.groupBehavior",
+        "Sighting.groupComposition", "Sighting.humanActivityNearby", "Sighting.initialCue",
+        "Sighting.observer", "Sighting.sightingID", "Sighting.terrain", "Sighting.transectName",
+        "Sighting.vegetation", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
+        "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type",
+        "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName", "Taxonomy.scientificName",
+        "TissueSample.tissueType"));
     public static final Set<String> MINIMAL_FIELD_NAMES_INT = new HashSet<>(Arrays.asList(
         "Sighting.fieldSurveyCode", "Sighting.groupSize", "Sighting.individualCount",
         "Sighting.maxGroupSizeEstimate", "Sighting.minGroupSizeEstimate",
@@ -87,7 +89,7 @@ public class BulkValidator {
         "Sighting.numSubFemales", "Sighting.numSubMales", "Sighting.seaState",
         "Sighting.visibilityIndex"));
     public static final Set<String> MINIMAL_FIELD_NAMES_DOUBLE = new HashSet<>(Arrays.asList(
-        "Encounter.depth", "Encounter.elevation", "Encounter.quality", "Sighting.bearing",
+        "Encounter.depth", "Encounter.elevation", "Sighting.bearing",
         "Sighting.bestGroupSizeEstimate", "Sighting.distance", "Sighting.effortCode",
         "Sighting.seaSurfaceTemperature", "Sighting.swellHeight", "Sighting.transectBearing"));
 

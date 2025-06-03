@@ -24,6 +24,7 @@ import org.ecocean.Measurement;
 import org.ecocean.Occurrence;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
+import org.ecocean.tag.SatelliteTag;
 import org.ecocean.User;
 import org.ecocean.Util;
 
@@ -173,10 +174,13 @@ public class BulkImporter {
             "Encounter.keyword");
         List<String> multiKwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "Encounter.mediaAsset.keywords");
+        List<String> maQuality = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.quality");
         List<String> nameLabelFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "MarkedIndividual.name.label");
         List<String> nameValueFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "MarkedIndividual.name.value");
+        // FIXME also do quality etc on MediaAsset ...
         // Keyword kw = myShepherd.getOrCreateKeyword(kwString); // no we need to make our own as this commits :(
         if (indiv != null) {
             for (int i = 0; i < Math.min(nameLabelFields.size(), nameValueFields.size()); i++) {
@@ -238,6 +242,8 @@ public class BulkImporter {
                 ioaffil, myShepherd);
             enc.addInformOther(inf); // weeds out null and duplicates, yay!
         }
+        // FIXME photographer (like above)
+        // FIXME project foo
         // measurements kinda suck eggs. good luck with this.
         List<String> measFN = BulkImportUtil.findMeasurementFieldNames(allFieldNames);
         List<String> mspFN = BulkImportUtil.findMeasurementSamplingProtocolFieldNames(
@@ -286,6 +292,7 @@ public class BulkImporter {
 
             case "Encounter.behavior":
                 enc.setBehavior(bv.getValueString());
+                if ((occ != null) && !bv.valueIsNull()) occ.setGroupBehavior(bv.getValueString());
                 break;
 
             case "Encounter.country":
@@ -295,6 +302,7 @@ public class BulkImporter {
             // this will supercede year/month/date but that
             // should be handled via validation step FIXME
             case "Sighting.dateInMilliseconds":
+            case "Sighting.millis":
             case "Encounter.dateInMilliseconds":
                 Long val = bv.getValueLong();
                 if (val != null) enc.setDateInMilliseconds(val);
@@ -383,65 +391,155 @@ public class BulkImporter {
                 enc.setIdentificationRemarks(bv.getValueString());
                 break;
 
-            case "Encounter.sightingID":
             case "Encounter.sightingRemarks":
-            case "Encounter.otherCatalogNumbers":
-            case "Encounter.patterningCode":
-            case "Encounter.photographer":
-            case "Encounter.project":
-            case "Encounter.quality":
-            case "Encounter.researcherComments":
-            case "Encounter.verbatimLocality":
-
-            case "Membership.role":
-            case "MicrosatelliteMarkersAnalysis.alleleNames":
-            case "MicrosatelliteMarkersAnalysis.analysisID":
-            case "MitochondrialDNAAnalysis.haplotype":
-            case "Sighting.bearing":
-            case "Sighting.bestGroupSizeEstimate":
-            case "Sighting.comments":
-            case "Sighting.distance":
-            case "Sighting.effortCode":
-            case "Sighting.fieldStudySite":
-            case "Sighting.fieldSurveyCode":
-            case "Sighting.groupBehavior":
-            case "Sighting.groupComposition":
-            case "Sighting.humanActivityNearby":
-            case "Sighting.individualCount":
-            case "Sighting.initialCue":
-            case "Sighting.maxGroupSizeEstimate":
-            case "Sighting.millis":
-            case "Sighting.minGroupSizeEstimate":
-            case "Sighting.numAdults":
-            case "Sighting.numAdultMales":
-            case "Sighting.numSubFemales":
-            case "Sighting.numCalves":
-            case "Sighting.numJuveniles":
-            case "Sighting.observer":
-            case "Sighting.occurrenceID":
-            case "Sighting.seaState":
-            case "Sighting.seaSurfaceTemp":
-            case "Sighting.seaSurfaceTemperature":
-            case "Sighting.swellHeight":
-            case "Sighting.transectBearing":
-            case "Sighting.transectName":
-            case "Sighting.visibilityIndex":
-            case "SatelliteTag.serialNumber":
-            case "SexAnalysis.processingLabTaskID":
-            case "SexAnalysis.sex":
-            case "SocialUnit.socialUnitName":
-            case "Survey.comments":
-            case "Survey.id":
-            case "Survey.type":
-            case "Survey.vessel":
-            case "SurveyTrack.vesselID":
-            case "Taxonomy.commonName":
-            case "Taxonomy.scientificName":
-            case "TissueSample.sampleID":
-            case "TissueSample.tissueType":
-                System.out.println("NOT YET IMPLEMENTED: " + fieldName);
+                enc.setOccurrenceRemarks(bv.getValueString());
                 break;
 
+            case "Encounter.otherCatalogNumbers":
+                enc.setOtherCatalogNumbers(bv.getValueString());
+                break;
+
+            case "Encounter.patterningCode":
+                enc.setPatterningCode(bv.getValueString());
+                break;
+
+            case "Encounter.researcherComments":
+                if (!bv.valueIsNull()) enc.addComments(bv.getValueString());
+                break;
+
+            case "Encounter.verbatimLocality":
+                enc.setVerbatimLocality(bv.getValueString());
+                break;
+
+            case "Sighting.bearing":
+                if (occ != null) occ.setBearing(bv.getValueDouble());
+                break;
+
+            case "Sighting.bestGroupSizeEstimate":
+                if (occ != null) occ.setBestGroupSizeEstimate(bv.getValueDouble());
+                break;
+
+            case "Sighting.comments":
+                if (occ != null) occ.setComments(bv.getValueString());
+                break;
+
+            case "Sighting.distance":
+                if (occ != null) occ.setDistance(bv.getValueDouble());
+                break;
+
+            case "Sighting.effortCode":
+                if (occ != null) occ.setEffortCode(bv.getValueDouble());
+                break;
+
+            case "Sighting.fieldStudySite":
+                if (occ != null) occ.setFieldStudySite(bv.getValueString());
+                break;
+
+            case "Sighting.fieldSurveyCode":
+            case "Survey.id":
+                if (occ != null) occ.setFieldSurveyCode(bv.getValueString());
+                break;
+
+            case "Sighting.groupBehavior":
+                if (occ != null) occ.setGroupBehavior(bv.getValueString());
+                break;
+
+            case "Sighting.groupComposition":
+                if (occ != null) occ.setGroupComposition(bv.getValueString());
+                break;
+
+            case "Sighting.humanActivityNearby":
+                if (occ != null) occ.setHumanActivityNearby(bv.getValueString());
+                break;
+
+            case "Sighting.individualCount":
+                if (occ != null) occ.setIndividualCount(bv.getValueInteger());
+                break;
+
+            case "Sighting.initialCue":
+                if (occ != null) occ.setInitialCue(bv.getValueString());
+                break;
+
+            case "Sighting.maxGroupSizeEstimate":
+                if (occ != null) occ.setMaxGroupSizeEstimate(bv.getValueInteger());
+                break;
+
+            case "Sighting.minGroupSizeEstimate":
+                if (occ != null) occ.setMinGroupSizeEstimate(bv.getValueInteger());
+                break;
+
+            case "Sighting.numAdults":
+                if (occ != null) occ.setIndividualCount(bv.getValueInteger());
+                break;
+
+            case "Sighting.numCalves":
+                if (occ != null) occ.setNumCalves(bv.getValueInteger());
+                break;
+
+            case "Sighting.numJuveniles":
+                if (occ != null) occ.setNumJuveniles(bv.getValueInteger());
+                break;
+
+            case "Sighting.observer":
+                if (occ != null) occ.setObserver(bv.getValueString());
+                break;
+
+            case "Sighting.seaState":
+                if (occ != null) occ.setObserver(bv.getValueString());
+                break;
+
+            case "Sighting.seaSurfaceTemp":
+            case "Sighting.seaSurfaceTemperature":
+                if (occ != null) occ.setSeaSurfaceTemp(bv.getValueDouble());
+                break;
+
+            case "Sighting.swellHeight":
+                if (occ != null) occ.setSwellHeight(bv.getValueDouble());
+                break;
+
+            case "Sighting.transectBearing":
+                if (occ != null) occ.setTransectBearing(bv.getValueDouble());
+                break;
+
+            case "Sighting.transectName":
+                if (occ != null) occ.setTransectName(bv.getValueString());
+                break;
+
+            case "Sighting.visibilityIndex":
+                if (occ != null) occ.setVisibilityIndex(bv.getValueDouble());
+                break;
+
+            case "SatelliteTag.serialNumber":
+                if (!bv.valueIsNull()) {
+                    SatelliteTag stag = new SatelliteTag("", bv.getValueString(), "");
+                    enc.setSatelliteTag(stag);
+                }
+                break;
+
+            case "Survey.comments":
+                if ((occ != null) && !bv.valueIsNull() &&
+                    !occ.getComments().contains(bv.getValueString()))
+                    occ.addComments(bv.getValueString());
+                break;
+
+            case "Survey.vessel":
+            case "SurveyTrack.vesselID":
+                if (occ != null) occ.setSightingPlatform(bv.getValueString());
+                break;
+
+            // these add to Occurence.taxonomies, which i am not sure are supported any more
+            case "Sighting.taxonomy0":
+            case "Taxonomy.commonName":
+            case "Taxonomy.scientificName":
+                System.out.println("[INFO] " + fieldName + " currently not implemented");
+                break;
+
+/*
+            unsure where these came from; possibly specific wildbooks?
+            //case "Survey.type":
+            //case "Sighting.numAdultMales":
+            //case "Sighting.numSubFemales":
+ */
             default:
                 System.out.println("[INFO] processRow() ignored a field [" + fieldName +
                     "] that was flagged valid");
@@ -473,6 +571,22 @@ public class BulkImporter {
     public List<Encounter> getEncounters() {
         return new ArrayList<Encounter>(encounterCache.values());
     }
+
+/* this sample stuff is over-the-top   FIXME
+
+            case "MicrosatelliteMarkersAnalysis.alleleNames":
+            case "MicrosatelliteMarkersAnalysis.analysisID":
+            case "MitochondrialDNAAnalysis.haplotype":
+            case "SexAnalysis.processingLabTaskID":
+            case "SexAnalysis.sex":
+            case "TissueSample.sampleID":
+            case "TissueSample.tissueType":
+ */
+
+/* FIXME do SocialUnit
+            SocialUnit.socialUnitName
+            Membership.role
+ */
 
 /*
     this will create an individual if none can be found
@@ -549,7 +663,9 @@ public class BulkImporter {
     }
 
     private Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap) {
-        // FIXME
+        // accessed as Occurrence.occurrenceID or Encounter.occurrenceID in StandardImport
+        // but we change to .sightingID
+        // FIXME  do the work
         return null;
     }
 }
