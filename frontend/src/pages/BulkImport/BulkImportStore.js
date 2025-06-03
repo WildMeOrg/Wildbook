@@ -225,6 +225,17 @@ export class BulkImportStore {
       },
       message: "invalid email address",
     },
+    "Encounter.dateInMilliseconds": {
+      required: false,  
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        const dt = new Date(val);
+        return !isNaN(dt.getTime());
+      },
+      message: "must be a valid date in milliseconds",
+    }
   };
 
   constructor() {
@@ -982,7 +993,6 @@ export class BulkImportStore {
 
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
-
         const isKnown =
           col in this._minimalFields ||
           extraStringCols.includes(col) ||

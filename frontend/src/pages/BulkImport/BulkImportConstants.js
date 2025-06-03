@@ -94,6 +94,7 @@ const extraStringCols = [
   "Encounter.sightingRemarks",
   "Encounter.researcherComments",
   "MarkedIndividual.individualID",
+  "Encounter.occurrenceID",
 ];
 
 const specializedColumns = [
@@ -103,14 +104,16 @@ const specializedColumns = [
   "Encounter.decimalLatitude",
   "Encounter.locationID",
   "Encounter.country",
-  "Encounter.submiterID",
   "Encounter.livingStatus",
   "Encounter.lifeStage",
   "Encounter.sex",
   "Encounter.behavior",
   "Encounter.occurrenceRemarks",
   "Encounter.photographer0.emailAddress",
-  "Encounter.informOther0.emailAddress",];
+  "Encounter.informOther0.emailAddress",  
+  "Encounter.submitterID",
+  "Encounter.dateInMilliseconds",
+];
 
 
 
