@@ -401,6 +401,8 @@ public class BulkValidator {
                 if (value == null) return null;
                 throw new BulkValidatorException("net yet supporting validating Sighting.taxonomy",
                         ApiException.ERROR_RETURN_CODE_INVALID);
+            case "Encounter.quality":
+                return tryDouble(value);
             }
         // now we validate, um, weird ones
         int offset = BulkImportUtil.findMeasurementOffset(fieldName);

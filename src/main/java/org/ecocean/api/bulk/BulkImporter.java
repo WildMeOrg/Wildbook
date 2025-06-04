@@ -570,7 +570,6 @@ public class BulkImporter {
         // now attach annotations
         String tx = enc.getTaxonomyString();
         List<Annotation> annots = new ArrayList<Annotation>();
-        // List<String> maQuality = BulkImportUtil.findIndexedFieldNames(allFieldNames,
         int offset = 0;
         for (String maKey : maFields) {
             if (maKey == null) continue; // data skipped an index
@@ -593,6 +592,8 @@ public class BulkImporter {
             Annotation ann = new Annotation(tx, ma);
             ann.setIsExemplar(true);
             ann.setSkipAutoIndexing(true);
+            if ((offset < maQuality.size()) && (maQuality.get(offset) != null))
+                ann.setQuality(fmap.get(maQuality.get(offset)).getValueDouble());
             annots.add(ann);
             offset++;
         }
