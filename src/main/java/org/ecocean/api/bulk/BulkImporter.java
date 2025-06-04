@@ -570,8 +570,6 @@ public class BulkImporter {
         // now attach annotations
         String tx = enc.getTaxonomyString();
         List<Annotation> annots = new ArrayList<Annotation>();
-        // List<String> kwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
-        // List<String> multiKwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
         // List<String> maQuality = BulkImportUtil.findIndexedFieldNames(allFieldNames,
         int offset = 0;
         for (String maKey : maFields) {
@@ -585,10 +583,12 @@ public class BulkImporter {
                         ", bv=" + bv.getValueString() + " in " + this.mediaAssetMap);
             Set<String> kws = new HashSet<String>();
             if ((offset < kwFields.size()) && (kwFields.get(offset) != null))
-                kws.add(kwFields.get(offset));
+                kws.add(fmap.get(kwFields.get(offset)).getValueString());
             // StandardImport claims multivalue keywordS is delimited by underscore :/ is this for real?
-            if ((offset < multiKwFields.size()) && (multiKwFields.get(offset) != null))
-                kws.addAll(Arrays.asList(multiKwFields.get(offset).split("_")));
+            if ((offset < multiKwFields.size()) && (multiKwFields.get(offset) != null)) {
+                String multi = fmap.get(multiKwFields.get(offset)).getValueString();
+                if (multi != null) kws.addAll(Arrays.asList(multi.split("_")));
+            }
             handleKeywords(ma, kws);
             Annotation ann = new Annotation(tx, ma);
             ann.setIsExemplar(true);
@@ -606,6 +606,7 @@ public class BulkImporter {
 
     private void handleKeywords(MediaAsset ma, Set<String> keywordValues) {
         for (String kval : keywordValues) {
+            if (kval == null) continue;
             Keyword key = keywordCache.get(kval);
             if (key == null) key = myShepherd.getKeyword(kval);
             if (key == null) key = new Keyword(kval);
