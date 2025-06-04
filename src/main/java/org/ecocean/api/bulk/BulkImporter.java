@@ -243,7 +243,25 @@ public class BulkImporter {
                 ioaffil);
             enc.addInformOther(inf); // weeds out null and duplicates, yay!
         }
-        // FIXME photographer (like above)
+        // like above, but photographer
+        List<String> photographerEmails = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.photographer.emailAddress");
+        List<String> photographerNames = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.photographer.fullName");
+        List<String> photographerAffiliations = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.photographer.affiliation");
+        for (int i = 0; i < photographerEmails.size(); i++) {
+            if (photographerEmails.get(i) == null) continue;
+            String pname = null;
+            if ((i < photographerNames.size()) && (photographerNames.get(i) != null))
+                pname = fmap.get(photographerNames.get(i)).getValueString();
+            String paffil = null;
+            if ((i < photographerAffiliations.size()) && (photographerAffiliations.get(i) != null))
+                paffil = fmap.get(photographerAffiliations.get(i)).getValueString();
+            User pho = getOrCreateUser(fmap.get(photographerEmails.get(i)).getValueString(), pname,
+                paffil);
+            enc.addPhotographer(pho); // weeds out null and duplicates, yay!
+        }
         // FIXME project foo
         // measurements kinda suck eggs. good luck with this.
         List<String> measFN = BulkImportUtil.findMeasurementFieldNames(allFieldNames);
