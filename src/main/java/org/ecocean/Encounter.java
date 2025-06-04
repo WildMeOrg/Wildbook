@@ -2507,9 +2507,27 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    // like above but way less persisty
+    public void setMeasurement(Measurement measurement) {
+        if (measurement == null) return;
+        if (measurements == null) measurements = new ArrayList<Measurement>();
+        Measurement hasType = this.getMeasurement(measurement.getType());
+        if (hasType == null) {
+            measurements.add(measurement);
+        } else if (measurement.getValue() == null) {
+            // i guess this means we remove it
+            measurements.remove(hasType);
+        } else {
+            // update existing
+            hasType.setValue(measurement.getValue());
+            hasType.setSamplingProtocol(measurement.getSamplingProtocol());
+        }
+    }
+
     public void removeMeasurement(int num) { measurements.remove(num); }
     public List<Measurement> getMeasurements() { return measurements; }
     public void removeMeasurement(Measurement num) { measurements.remove(num); }
+    // FIXME this seems suspiciously just like getMeasurement(type)
     public Measurement findMeasurementOfType(String type) {
         List<Measurement> measurements = getMeasurements();
 
