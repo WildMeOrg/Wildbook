@@ -267,13 +267,14 @@ public class BulkImporter {
         List<String> measFN = BulkImportUtil.findMeasurementFieldNames(allFieldNames);
         List<String> mspFN = BulkImportUtil.findMeasurementSamplingProtocolFieldNames(
             allFieldNames);
+        // note that StandardImport does no validation against commonConfig for
+        // samplingProtocol. so we ignore it just the same. :/
         List<String> munits = BulkImportUtil.getMeasurementUnits();
-        List<String> mvals = BulkImportUtil.getMeasurementValues();
+        List<String> mvals = BulkImportUtil.getMeasurementValues(); // really more like "names"
         for (int i = 0; i < measFN.size(); i++) {
             if (measFN.get(i) == null) continue;
             if (i >= mvals.size()) continue;
             Double mdbl = fmap.get(measFN.get(i)).getValueDouble();
-            System.out.println("MEAS???? mval=" + mvals.get(i) + " > " + mdbl);
             if (mdbl == null) continue;
             String sampProt = null;
             if ((i < mspFN.size()) && (mspFN.get(i) != null))
@@ -281,8 +282,8 @@ public class BulkImporter {
             String munit = null;
             if (i < munits.size()) munit = munits.get(i);
             Measurement meas = new Measurement(enc.getId(), mvals.get(i), mdbl, munit, sampProt);
-            System.out.println("MEASUREMENT??? " + meas);
-            // enc.setMeasurement() // this commits, so lets figure out the right way (but still updates-in-place)
+            System.out.println("[INFO] field " + measFN.get(i) + " [i=" + i + "] created " + meas);
+            enc.setMeasurement(meas);
         }
 /*
    core functionality: creating data.....
