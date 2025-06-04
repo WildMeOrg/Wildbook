@@ -1,0 +1,6 @@
+.grecaptcha-badge {
+    z-index: 1000 !important; /* Ensure the badge is on top of other elements */
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed; /* Ensure it remains fixed in position */
+  }

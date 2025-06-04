@@ -1,24 +1,13 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
          com.google.gson.Gson,
+         org.ecocean.datacollection.Instant,
          org.ecocean.*,
          org.ecocean.tag.*,
          org.datanucleus.api.rest.orgjson.JSONObject
          " %>
-<%!
-private static String niceNull(Double val) {
-    if (val == null) return "-";
-    return val.toString();
-}
-private static String niceNull(Integer val) {
-    if (val == null) return "-";
-    return val.toString();
-}
-private static String niceNull(String val) {
-    if (val == null) return "-";
-    return val;
-}
-%>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <%
 
@@ -254,6 +243,35 @@ context=ServletUtilities.getContext(request);
 	<div class="row">	
 		<div class="col-xs-12">
 		<br/>
+		<p><%=props.getProperty("species") %>: 
+<%
+    if (Util.collectionIsEmptyOrNull(occ.getTaxonomies())) {
+        out.println("-");
+    } else {
+        String wait = "";
+        out.println("<ul>");
+        for (Taxonomy tx : occ.getTaxonomies()) {
+            if (tx.getNonSpecific()) {
+                wait += "<li style=\"color: #888;\">" + tx.getScientificName() + "</li>";
+            } else {
+                out.println("<li><i>" + tx.getScientificName() + "</i></li>");
+            }
+        }
+        out.println(wait);
+        out.println("</ul>");
+    }
+%>
+</p>
+
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
+    out.println("<p>" + props.getProperty("behaviors") + ":<ul>");
+    for (Instant behav : occ.getBehaviors()) {
+        out.println("<li>" + behav.getValue().toString().substring(0,19) + " <b>" + behav.getName() + "</b></li>");
+    }
+    out.println("</ul></p>");
+}
+%>
 		<p><%=props.getProperty("groupBehavior") %>: 
 			<%if(occ.getGroupBehavior()!=null){%>
 				<%=occ.getGroupBehavior() %>
@@ -271,28 +289,20 @@ context=ServletUtilities.getContext(request);
 			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
 			            <%=props.getProperty("groupBehavior") %>:
 			        
-				        <%if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){%>
-				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
-				        <%} else { %>
+				        <%
+				        List<String> groupBehaviors = CommonConfiguration.getIndexedPropertyValues("groupBehavior",request);
+				        System.out.println("We have groupBehaviors "+groupBehaviors);
+				        if (!Util.isEmpty(groupBehaviors)) {%>
 				        	<select name="behaviorComment" id="behaviorComment">
 				        		<option value=""></option>
-				   
-				   				<%
-				   				boolean hasMoreStages=true;
-				   				int taxNum=0;
-				   				while(hasMoreStages){
-				   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-				   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-					   	  		%>
-					   	  	 
-					   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-					   	  		<%
-					   					taxNum++;
-				      				} else {
-				         				hasMoreStages=false;
-				      				}
-				   				}%>
-				  			</select>
+					   				<%
+					   					for (String groupBehavior: groupBehaviors) {
+					   					  String selected = (occ.getGroupBehavior()!=null && occ.getGroupBehavior().equals(groupBehavior)) ? "selected=\"selected\"" : "";
+              					%><option <%=selected %> value="<%=groupBehavior%>"><%=groupBehavior%></option>
+					   					<%}%>
+				  				</select>
+					   		<%} else {%>
+				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
 				        <%}%>
 			        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
 			        </form>
@@ -423,39 +433,11 @@ context=ServletUtilities.getContext(request);
 
 
 	
+		<p><%=props.getProperty("numAdults") %>: <%=occ.getNumAdults() %></p>
+
 		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 		
-                <p>
-			<%=props.getProperty("groupSizeLabel") %>: 
-                        <%=niceNull(occ.getGroupSize())%><br />
-			&nbsp; <%=props.getProperty("numAdults") %>: 
-                        <%=niceNull(occ.getNumAdults())%><br />
-			&nbsp; <%=props.getProperty("numAdultFemales") %>: 
-                        <%=niceNull(occ.getNumAdultFemales())%><br />
-			&nbsp; <%=props.getProperty("numAdultMales") %>: 
-                        <%=niceNull(occ.getNumAdultMales())%><br />
-			&nbsp; <%=props.getProperty("numSubAdults") %>: 
-                        <%=niceNull(occ.getNumSubAdults())%><br />
-			&nbsp; <%=props.getProperty("numSubFemales") %>: 
-                        <%=niceNull(occ.getNumSubFemales())%><br />
-			&nbsp; <%=props.getProperty("numSubMales") %>: 
-                        <%=niceNull(occ.getNumSubMales())%><br />
-			&nbsp; <%=props.getProperty("numCalves") %>: 
-                        <%=niceNull(occ.getNumCalves())%>
-                </p>
-
-                <p>
-			<%=props.getProperty("bearing") %>: 
-                        <%=niceNull(occ.getBearing())%><br />
-			<%=props.getProperty("distance") %>: 
-                        <%=niceNull(occ.getDistance())%><br />
-			<%=props.getProperty("vegetation") %>: 
-                        <%=niceNull(occ.getVegetation())%><br />
-			<%=props.getProperty("terrain") %>: 
-                        <%=niceNull(occ.getTerrain())%>
-                </p>
-
-		<p style="display: none;">
+		<p>
 			<%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
 			<%if(occ.getIndividualCount()!=null){%>
 				<%=occ.getIndividualCount() %>
@@ -484,7 +466,6 @@ context=ServletUtilities.getContext(request);
 			</table>
 		</div>
 		
-		
 	<script>
 		var dlgIndies = $("#dialogIndies").dialog({
 		  autoOpen: false,
@@ -502,13 +483,7 @@ context=ServletUtilities.getContext(request);
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
-
-		
-<% if (occ.getObserver() != null) { %>
-		<p><%=props.getProperty("observer") %>: 
-                <%=occ.getObserver()%></p>
 <%
-	} 
 if(visible){
 %>
 <p>
@@ -566,7 +541,9 @@ if(visible){
 </script>
 <%
 }
+%>
 
+<%
 if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
     out.println("<p>" + props.getProperty("submittedBy") + ": ");
     List<String> subs = new ArrayList<String>();
@@ -585,7 +562,8 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
     out.println(String.join(", ", subs) + "</p>");
 }
 %>
-    
+
+                </p>
 		<table id="encounter_report" style="width:100%;">
 			<tr>
 			
@@ -850,11 +828,16 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 						</div>
 					</form>
 				</div>		
-			</div>				
-			<br/><br/>
+			</div>		
 
+			<br/><br/>
+		</div>
+		
+			<div>
 				<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;" class="comments">Comments: <%=occ.getComments()%></div>
-			
+
+			</div>
+
 			<%
 	  		}
 	  		else{
@@ -875,7 +858,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
   }
 	  
 		%>
-		
+
 </div> <!-- End Maincontent Div --> 
 
 <jsp:include page="footer.jsp" flush="true"/>

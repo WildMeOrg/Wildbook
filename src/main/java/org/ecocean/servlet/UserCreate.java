@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
 public class UserCreate extends HttpServlet {
@@ -113,6 +114,7 @@ public class UserCreate extends HttpServlet {
                             newUser.setSalt(salt);
                         }
                     }
+                    OpenSearch.setPermissionsNeeded(myShepherd, true);
                     // here handle all of the other User fields (e.g., email address, etc.)
                     if ((request.getParameter("username") != null) &&
                         (!request.getParameter("username").trim().equals(""))) {

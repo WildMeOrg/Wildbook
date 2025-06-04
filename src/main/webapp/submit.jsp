@@ -1,11 +1,12 @@
-
 <%@ page contentType="text/html; charset=utf-8"
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
-                 java.util.Properties,java.util.ArrayList,
-                 java.util.List,
+                 java.util.Properties,
+                 java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <!-- Add reCAPTCHA -->
@@ -55,7 +56,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     Properties recaptchaProps=ShepherdProperties.getProperties("recaptcha.properties", "", context);
 
-    Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
@@ -98,7 +98,7 @@ $(document).ready( function() {
    $('#locationID').select2({width: '100%', height:'50px'});
    $('#country').select2({width: '100%', height:'50px'});
 
-	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	populateProjectNameDropdown([],[],"", false);
 	<%
 	if(user != null){
 		%>
@@ -117,35 +117,26 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
-	if(useCustomStyle){
-		//do nothing unusual
-	}else{
-		defaultSelectItem = null;
-		defaultSelectItemId = null;
-		loggedOutDefaultDesired = false;
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId){
+
+	defaultSelectItem = null;
+	defaultSelectItemId = null;
+	
+	if(options.length<1){
+	 	isVisible=false;
 	}
-	// if(options.length<1){
-	// 	isVisible=false;
-	// }
 		let projectNameHtml = '';
-		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		if(loggedOutDefaultDesired){
-			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
-			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
-		}
+
 		if(isVisible){
-			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
-			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
-		}else{
-			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+			projectNameHtml += '<div class="col-xs-6 col-md-4"><label class="control-label"><%=props.getProperty("projectMultiSelectLabel") %></label></div><div class="col-xs-6 col-lg-8"><select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}
-		projectNameHtml += '<option value=""></option>';
-		if(defaultSelectItem){
+
+		//options
+    if(defaultSelectItem){
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 			options = options.remove(defaultSelectItem);
 		}
+    projectNameHtml += '<option value=""></option>';
 		for(let i=0; i<options.length; i++){
 			if(options[i] === selectedOption){
 				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
@@ -153,7 +144,8 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
 			}
 		}
-		projectNameHtml += '</div>';
+    
+		projectNameHtml += '</div></div>';
 		$("#proj-id-dropdown-container").empty();
 		$("#proj-id-dropdown-container").append(projectNameHtml);
 }
@@ -169,26 +161,6 @@ Array.prototype.remove = function() {
     return this;
 };
 
-function getDefaultSelectedProject(){
-	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
-	return defaultProject;
-}
-
-function getDefaultProjectOrganizationParameter(){
-	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
-	return defaultProjectOrganizationParameter;
-}
-
-function getDefaultSelectedProjectId(){
-	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
-	return defaultProjectId;
-}
-
-function getLoggedOutDefaultDesired(){
-	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
-	return loggedOutDefaultDesired;
-}
-
 function doAjaxForProject(requestJSON,userId){
 	$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -202,7 +174,7 @@ function doAjaxForProject(requestJSON,userId){
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
 					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
-					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true);
 				}
 			},
 			error: function(x,y,z) {
@@ -219,16 +191,17 @@ function doAjaxForProject(requestJSON,userId){
     position: absolute !important;
     top: 0px !important;
     left: 0px !important;
-    z-index: 1 !imporant;
+    z-index: 1 !important;
     width: 100% !important;
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
-	}
+    }
 
-.ul-small li {
-	font-size: 0.7em;
-}
+	.required-missing {
+		outline: solid 4px rgba(255,0,0,0.5);
+		background-color: #FF0;
+	}
 
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -308,18 +281,6 @@ function validate() {
       requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
     }
 
-      /*
-      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-
-           requiredfields += "\n   *  valid Email address";
-      }
-      if ((document.encounter_submission.location.value.length == 0)) {
-          requiredfields += "\n   *  valid sighting location";
-      }
-      */
-
     if (requiredfields != "") {
       requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
       wildbook.showAlert(requiredfields, null, "Validate Issue");
@@ -342,7 +303,8 @@ function sendSocialPhotosBackground() {
 		iframeUrl += '&fileUrl=' + escape($(el).val());
 	});
 
-console.log('iframeUrl %o', iframeUrl);
+console.log('iframeUrl %o (setting action to EncounterForm)', iframeUrl);
+    	$("#encounterForm").attr("action", "EncounterForm");
 	document.getElementById('social_files_iframe').src = iframeUrl;
 	return true;
 }
@@ -455,7 +417,7 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    var mapZoom = 4;
+    var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -594,7 +556,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
 <script>
 
 
-/*
 $('#social_files_iframe').on('load', function(ev) {
 	if (!ev || !ev.target) return;
 //console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
@@ -612,7 +573,6 @@ $('#social_files_iframe').on('load', function(ev) {
 	//now do actual submit
 	submitForm();
 });
-*/
 
 
 //this is a simple wrapper to this, as it is called from 2 places (so far)
@@ -649,7 +609,6 @@ function updateList(inp) {
 var dtList = [];
 var llList = [];
 var commentJson = {};
-//TODO Bearing, Altitude
 function gotExif(file) {
     exifFindDateTimes(file.exifdata);
 console.log('dtList => %o', dtList);
@@ -754,25 +713,6 @@ function showUploadBox() {
     $("#submitupload").removeClass("hidden");
 }
 
-
-function setFormIndiv(indData) {
-console.log('indiv data = %o', indData);
-    if (!indData) {  //this UNsets various ui
-        $('#encounterForm input[name="sex"][value="unknown"]').prop('checked', true);
-        $('#indiv-name-hint').html('');
-        $('#genusSpecies').val('');
-        return;
-    }
-    if (indData.sex) $('#encounterForm input[name="sex"][value="' + indData.sex + '"]').prop('checked', true);
-    if (indData.label) $('#indiv-name-hint').html('<i>' + indData.label + '</i>');
-    if (indData.species) {
-        var gs = indData.species.split(' ');  //this is cuz we need 3-part ones to be like "aaa bbb_ccc".  sigh!
-        var gsVal = gs[0];
-        if (gs.length > 1) gsVal += ' ' + gs[1];
-        if (gs.length > 2) gsVal += '_' + gs[2];
-        $('#genusSpecies').val(gsVal);
-    }
-}
 </script>
 
 
@@ -827,7 +767,7 @@ console.log('indiv data = %o', indData);
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p class="help-block">
           <%=props.getProperty("examples") %>
-          <ul class="ul-small">
+          <ul>
             <li>2014-01-05 12:30</li>
             <li>2014-03-23</li>
             <li>2013-12</li>
@@ -853,10 +793,10 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 </fieldset>
 
+<hr />
+
 <fieldset>
-<!--
     <h3><%=props.getProperty("submit_location")%></h3>
--->
 
     <p class="help-block"><%=props.getProperty("locationIDMatchNote") %></p>
 
@@ -877,19 +817,16 @@ if(CommonConfiguration.showReleaseDate(context)){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("studySites") %></label>
+        <label class="control-label"><%=props.getProperty("locationID") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-      
-      	<%
-      	ArrayList<String> selectedIDs=null;
-      	%>
-          <%=LocationID.getHTMLSelector(false, selectedIDs,qualifier,"locationID","locationID","form-control") %>
+          <%=LocationID.getHTMLSelector(false,(String)null,qualifier,"locationID","locationID","form-control") %>
+
       </div>
     </div>
 <%
-//}
+
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -921,7 +858,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <div>
     <p id="map">
     <!--
-      <p style="font-size: 0.9em;">Use the arrow and +/- keys to navigate to a portion of the globe,, then click
+      <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
         a point to set the sighting location. You can also use the text boxes below the map to specify exact
         latitude and longitude.</p>
     -->
@@ -931,18 +868,18 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
     <div>
       <div class=" form-group form-inline">
-        <div style="white-space: nowrap;" class="col-xs-12 col-sm-6">
+        <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
           <input class="form-control" name="lat" type="text" id="lat"> &deg;
         </div>
 
-        <div style="white-space: nowrap;" class="col-xs-12 col-sm-6">
+        <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
           <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
         </div>
       </div>
 
-      <p class="help-block" style="font-size: 0.9em;">
+      <p class="help-block">
         <%=props.getProperty("gpsConverter") %></p>
     </div>
 
@@ -1021,10 +958,11 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     </div>
   </fielset>
 
+  <hr/>
 
   <fieldset>
 
-		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		<div class="form-group" id="proj-id-dropdown-container">
 		</div>
 
     <div class="form-group">
@@ -1039,52 +977,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 
 
-
-  <h4 xclass="accordion">
-<!--
-    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
-      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
-      <%=props.getProperty("advancedInformation") %>
-    </a>
--->
-  </h4>
-<hr />
-
-    <div id="advancedInformation" xfade="1" xstyle="display: none;">
-
-      <h3><%=props.getProperty("aboutAnimal") %></h3>
-
-      <fieldset>
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_indiv") %></label>
-            <div id="indiv-name-hint">&nbsp;</div>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-	        <input type="text" id="indiv-id" placeholder="type name to search known individuals" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="indiv-id" />
-		</div>
-	</div>
-
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_sex") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <label class="radio-inline">
-              <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male") %>
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="sex" value="female"> <%=props.getProperty("submit_female") %>
-            </label>
-            <label class="radio-inline">
-              <input name="sex" type="radio" value="unknown" checked="checked"> <%=props.getProperty("submit_unsure") %>
-            </label>
-          </div>
-        </div>
-        </fieldset>
-
-        <fieldset>
 <%
 
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -1097,7 +989,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
              	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
   <%
 
@@ -1144,6 +1036,42 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
 
+
+
+  <h4 class="accordion">
+    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
+      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
+      <%=props.getProperty("advancedInformation") %>
+    </a>
+  </h4>
+
+    <div id="advancedInformation" fade="1" style="display: none;">
+
+      <h3><%=props.getProperty("aboutAnimal") %></h3>
+
+      <fieldset>
+
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_sex") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <label class="radio-inline">
+              <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male") %>
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="sex" value="female"> <%=props.getProperty("submit_female") %>
+            </label>
+            <label class="radio-inline">
+              <input name="sex" type="radio" value="unknown" checked="checked"> <%=props.getProperty("submit_unsure") %>
+            </label>
+          </div>
+        </div>
+        </fieldset>
+        <hr>
+        <fieldset>
+
   <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("status") %></label>
@@ -1157,30 +1085,15 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
 
-        <!--
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("manual_id") %></label>
+            <label class="control-label"><%=props.getProperty("occurrence_id") %></label>
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="manualID" type="text" id="manualID" size="75">
+            <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
           </div>
         </div>
-        -->
-
-<!--
-				<div class="form-group">
-					<div class="col-xs-6 col-md-4">
-						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
-					</div>
-
-					<div class="col-xs-6 col-lg-8">
-						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
-					</div>
-				</div>
--->
-
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1188,23 +1101,12 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-		<select class="form-control" name="behavior">
-			<option value="">NONE</option>
-			<option>standing</option>
-			<option>standing alert</option>
-			<option>ruminating</option>
-			<option>walking</option>
-			<option>running</option>
-			<option>feeding</option>
-			<option>laying</option>
-			<option>drinking</option>
-			<option>necking</option>
-		</select>
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
           </div>
         </div>
 
 
-<!--
+
            <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_scars") %></label>
@@ -1214,7 +1116,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="scars" type="text" id="scars" size="75">
           </div>
         </div>
--->
 
 <%
 
@@ -1226,7 +1127,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label class="control-label"><%=props.getProperty("lifeStage") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-  <select class="form-control" name="lifeStage" id="lifeStage">
+  <select name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
   <%
                      boolean hasMoreStages=true;
@@ -1305,9 +1206,10 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
+      <hr/>
 
        <fieldset>
-        <!-- <h3><%=props.getProperty("tags") %></h3>-->
+        <h3><%=props.getProperty("tags") %></h3>
       <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
@@ -1393,15 +1295,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
       </fieldset>
 
+<hr/>
 
-<!--
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails") %></label>
         <input class="form-control" name="informothers" type="text" id="informothers" size="75">
         <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
       </div>
       </div>
--->
 
 
          <%
@@ -1433,68 +1334,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         %>
 <script>
 
-$(document).ready(function() {
-        $('#indiv-id').autocomplete({
-            select: function(ev, ui) {
-                setFormIndiv(ui.item);
-            },
-            source: function( request, response ) {
-                $.ajax({
-                    url: './SiteSearch',
-                    dataType: "json",
-                    data: {
-                        term: request.term
-                    },
-                    success: function( data ) {
-                        var res = $.map(data, function(item) {
-                            var label="";
-                            if ((item.type == "individual")&&(item.species!=null)) {
-//                                label = item.species + ": ";
-                            }
-                            else if (item.type == "user") {
-                                label = "User: ";
-                            } else {
-                                label = "";
-                            }
-                            return {label: label + item.label,
-                                    sex: item.sex,
-                                    species: item.species,
-                                    value: item.value,
-                                    type: item.type};
-                            });
-
-                        response(res);
-                    }
-                });
-            }
-        }).on('change', function(ev) {
-            if (!ev.target.value || (ev.target.value.length == 36)) return;  //blank or uuid
-            $.ajax({
-                url: './SiteSearch',
-                dataType: "json",
-                data: { term: ev.target.value },
-                success: function( data ) {
-console.info('got %o', data);
-                    if (!data || (data.length != 1)) {
-                        console.warn('note: did not get a single match, so will create new individual.  result=%o', data);
-                        setFormIndiv();
-                        return;
-                    }
-                    setFormIndiv(data[0]);
-                }
-            });
-        });
-});
-
 function sendButtonClicked() {
-	// $('.required-missing').removeClass('required-missing')
-	// if an mediaAsset is ever required
-	// if(!$('#theFiles').val()){
-	// 	console.log("No file submitted!");
-	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
-	// 	return false;
-	// }
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
 		$('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
@@ -1510,22 +1350,6 @@ function sendButtonClicked() {
 				return false;
 			}
 	}
-
-	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
-	// 	// console.log("email address not present");
-	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
-	// 	return false;
-	// }else{
-	// 	var email = $('#submitterEmail').val();
-  //   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  //   if(!re.test(email.toLowerCase())){
-	// 		console.log("not a valid email address");
-	// 		$('#submitterEmail').closest('.form-group').addClass('required-missing');
-	// 		window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
-	// 		return false;
-	// 	}
-  // }
 
 	if (!$('#datepicker').val()) {
 		$('#datepicker').closest('.form-group').addClass('required-missing');

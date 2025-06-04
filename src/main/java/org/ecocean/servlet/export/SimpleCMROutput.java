@@ -19,6 +19,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.*;
 import org.joda.time.format.*;
 
@@ -182,8 +183,9 @@ public class SimpleCMROutput extends HttpServlet {
             }
             String includeID = "";
             if (request.getParameter("includeIndividualID") != null) {
-                includeID = "     /* " + indie.getIndividualID() + " */";
+                includeID = "     /* " +indie.getDisplayName()+" "+ indie.getIndividualID() + " */";
             }
+            //this if drops individuals never sighted and only prints individuals with at least one capture
             if (thisRecord.indexOf("1") != -1) {
                 histories.append(thisRecord + " 1;" + includeID + "\r\n");
             }

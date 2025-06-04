@@ -1,12 +1,11 @@
-import { get } from 'lodash-es';
 // import * as Sentry from '@sentry/react';
-import queryKeys from '../../../constants/queryKeys';
-import useFetch from '../../../hooks/useFetch';
+import queryKeys from "../../../constants/queryKeys";
+import useFetch from "../../../hooks/useFetch";
 
 export default function useGetMe() {
   return useFetch({
     queryKey: queryKeys.me,
-    url: '/user',
+    url: "/user",
     // onSuccess,
     queryOptions: { retry: false },
   });

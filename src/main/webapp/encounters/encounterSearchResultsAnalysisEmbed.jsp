@@ -1,11 +1,13 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration,org.ecocean.security.HiddenEncReporter" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     
 
   <%
-  System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
+  // System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
   String context="context0";
   context=ServletUtilities.getContext(request);
   
@@ -17,7 +19,7 @@
     
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
-    encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
+    encprops= ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
     
     
     Properties haploprops = new Properties();

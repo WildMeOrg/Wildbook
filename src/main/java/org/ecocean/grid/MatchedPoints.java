@@ -1,9 +1,5 @@
 package org.ecocean.grid;
 
-/**
- * ToDO: comment here
- */
-
 import org.ecocean.Spot;
 
 import java.util.ArrayList;

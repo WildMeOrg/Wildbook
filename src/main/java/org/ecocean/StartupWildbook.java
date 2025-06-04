@@ -3,7 +3,7 @@ package org.ecocean;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Properties;
 import java.net.URL;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletContext;
@@ -17,11 +17,18 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.media.LocalAssetStore;
+
+import org.ecocean.media.MediaAsset;
+
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
+import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.ServletUtilities;
 
 import java.util.concurrent.ThreadPoolExecutor;
+
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -44,7 +51,7 @@ public class StartupWildbook implements ServletContextListener {
     }
 
     /*
-        right now this *only* uses SERVER_URL env variable TODO: should _probably_ make this work in the more general case where it isnt e.g.
+        right now this *only* uses SERVER_URL env variable TODO: make this work in the more general case where it isnt e.g.
            CommonConfiguration.checkServerInfo(myShepherd, request)
      */
     public static void ensureServerInfo(Shepherd myShepherd) {
@@ -118,9 +125,6 @@ public class StartupWildbook implements ServletContextListener {
                 Role newRole3 = new Role("tomcat", "machinelearning");
                 newRole3.setContext("context0");
                 myShepherd.getPM().makePersistent(newRole3);
-                // Role newRole4=new Role("tomcat","destroyer");
-                // newRole4.setContext("context0");
-                // myShepherd.getPM().makePersistent(newRole4);
                 Role newRole5 = new Role("tomcat", "rest");
                 newRole5.setContext("context0");
                 myShepherd.getPM().makePersistent(newRole5);
@@ -156,7 +160,7 @@ public class StartupWildbook implements ServletContextListener {
     // these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
-        String context = "context0"; // TODO ??? how????
+        String context = "context0";
 
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " +
             servletContextInfo(sContext));
@@ -164,6 +168,7 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("- SKIPPED initialization due to skipInit()");
             return;
         }
+        Setting.initialize(context);
         // initialize the plugin (instances)
         IAPluginManager.initPlugins(context);
         // this should be handling all plugin startups
@@ -172,14 +177,15 @@ public class StartupWildbook implements ServletContextListener {
         if (CommonConfiguration.useSpotPatternRecognition(context)) {
             createMatchGraph();
         }
-        // TODO genericize starting "all" consumers ... configurable? how?  etc.
-        // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
-        startIAQueues(context); // TODO this should get moved to plugins!!!!  FIXME
+        // TODO: set strategy for the following (genericize starting "all" consumers, make configurable, move to WildbookIAM.startup, move to plugins, or other)
+        startIAQueues(context);
         TwitterBot.startServices(context);
         MetricsBot.startServices(context);
         AcmIdBot.startServices(context);
-
         AnnotationLite.startup(sContext, context);
+        OpenSearch.unsetActiveIndexingBackground(); // since tomcat is just starting, these reset to false
+        OpenSearch.unsetActiveIndexingForeground();
+        OpenSearch.backgroundStartup(context);
 
         try {
             startWildbookScheduledTaskThread(context);
@@ -192,9 +198,7 @@ public class StartupWildbook implements ServletContextListener {
         myShepherd.setAction("MarkedIndividual.initNamesCache");
         myShepherd.beginDBTransaction();
         try {
-            System.out.println("XXXXXXXXXX INIT NAMES CACHE sTART");
             boolean cached = org.ecocean.MarkedIndividual.initNamesCache(myShepherd);
-            System.out.println("XXXXXXXXXX INIT NAMES CACHE END: " + cached);
         } catch (Exception f) {
             f.printStackTrace();
         } finally { myShepherd.rollbackAndClose(); }
@@ -210,6 +214,71 @@ public class StartupWildbook implements ServletContextListener {
                         ex.toString());
                     ex.printStackTrace();
                 }
+                return true;
+            }
+        }
+        
+        //instructions on what to do if a message is published to the acmid queue
+        //which handles ACM ID registration for MediaAssets
+        class AcmIdMessageHandler extends QueueMessageHandler {
+            public boolean handler(String mediaAssetID) {
+            	Shepherd myShepherd = new Shepherd(context);
+            	myShepherd.setAction("AcmIdMessageHandler.handler."+mediaAssetID);
+            	myShepherd.beginDBTransaction();
+            	try {
+            		MediaAsset asset=myShepherd.getMediaAsset(mediaAssetID);
+            		if(asset!=null) {
+		                ArrayList<MediaAsset> fixMe = new ArrayList<MediaAsset>();
+	            		fixMe.add(asset);
+		                IBEISIA.sendMediaAssetsNew(fixMe, context);
+		                myShepherd.updateDBTransaction();
+            		}
+            	}
+            	//RuntimeExceptions include an array of timeout and connectivitivity issues
+            	//indicating WBIA may be overloaded or restarting
+            	//therefore this exception includes a simple sleep function to pause ACM ID registration
+            	//to give WBIA time to restart or be less busy.
+            	//This implementation is temporary until ACM ID registration is removed entirely
+                catch (java.lang.RuntimeException ex) {
+                    System.out.println("\r\n\r\nWARNING: AcmIdMessageHandler processQueueMessage() threw " +
+                        ex.toString()+"\r\n\r\n");
+                    ex.printStackTrace();
+                    
+                    long timeoutMilliseconds=60000;
+                    Properties props = ShepherdProperties.getProperties("queue.properties", "", context);
+                    if(props!=null && props.getProperty("timeoutMilliseconds")!=null) {
+                    	String millis = props.getProperty("timeoutMilliseconds");
+                    	Long millisAsLong = Long.getLong(millis);
+                    	if(millisAsLong!=null)timeoutMilliseconds=millisAsLong.longValue();
+                    }
+                    
+                    try {
+                    	Thread.sleep(timeoutMilliseconds);
+                    	Queue acmIdQueue=IAGateway.getAcmIdQueue(context);
+                    	acmIdQueue.publish(mediaAssetID);
+                    }
+                    catch(Exception ioe) {
+                    	ioe.printStackTrace();
+                    }
+                    return false;
+                }
+                catch (Exception ex) {
+                    System.out.println("\r\n\r\nWARNING: AcmIdMessageHandler processQueueMessage() threw " +
+                        ex.toString()+"\r\n\r\n");
+                    ex.printStackTrace();
+                    
+                    try {
+                    	Queue acmIdQueue=IAGateway.getAcmIdQueue(context);
+                    	acmIdQueue.publish(mediaAssetID);
+                    }
+                    catch(Exception ioe) {
+                    	ioe.printStackTrace();
+                    }
+                    return false;
+                }
+            	finally {
+            		myShepherd.rollbackAndClose();
+            	}
                 return true;
             }
         }
@@ -249,7 +318,14 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("+ ERROR: detection queue startup exception: " + ex.toString());
         }
-        if ((queue == null) || (queueCallback == null) || (detectionQ == null)) {
+        //MediaAsset ACM ID registration queue
+        Queue acmidQ = null;
+        try {
+            acmidQ = QueueUtil.getBest(context, "acmid");
+        } catch (IOException ex) {
+            System.out.println("+ ERROR: acmid queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null) || (detectionQ == null) || (acmidQ == null)) {
             System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
         }
@@ -283,6 +359,17 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() FAILED on " +
                 detectionQ.toString() + ": " + iox.toString());
         }
+        //ACM ID queue handler
+        AcmIdMessageHandler qh4 = new AcmIdMessageHandler();
+        try {
+            acmidQ.consume(qh4);
+            System.out.println(
+                "+ StartupWildbook.startIAQueues() acmidQ.consume() started on " +
+                acmidQ.toString());
+        } catch (IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() acmidQ.consume() FAILED on " +
+                acmidQ.toString() + ": " + iox.toString());
+        }
     }
 
     private static void startWildbookScheduledTaskThread(String context) {
@@ -307,13 +394,12 @@ public class StartupWildbook implements ServletContextListener {
                 }
                 myShepherd.closeDBTransaction();
             }
-            // }, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing
         }, 0, 1, TimeUnit.HOURS);
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
-        String context = "context0"; ///HOW?? (see above) TODO FIXME
+        String context = "context0";
 
         System.out.println("* StartupWildbook destroyed called for: " +
             servletContextInfo(sContext));
@@ -323,6 +409,7 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.cleanup();
         MetricsBot.cleanup();
         AcmIdBot.cleanup();
+        IndexingManagerFactory.getIndexingManager().shutdown();
     }
 
     public static void createMatchGraph() {
@@ -333,13 +420,9 @@ public class StartupWildbook implements ServletContextListener {
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {
         ServletContext sc = sce.getServletContext();
+
 /*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
      see:  https://octopus.com/blog/defining-tomcat-context-paths
-
-        if ("".equals(sc.getContextPath())) {
-            System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
-            return true;
-        }
  */
         String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
         boolean skip = new File(fname).exists();
@@ -349,24 +432,6 @@ public class StartupWildbook implements ServletContextListener {
         return skip;
     }
 
-/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem...
-    //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
-    private static boolean properStartupResource(ServletContextEvent sce) {
-        if (sce == null) return false;
-        ServletContext context = sce.getServletContext();
-        if (context == null) return false;
-        URL res = null;
-        try {
-            res = context.getResource("/");
-        } catch (Exception ex) {
-            System.out.println("  ERROR: StartupWildbook.properStartupResource() .getResource() threw exception: " + ex);
-            return false;
-        }
-   System.out.println("  StartupWildbook.properStartupResource() res = " + res);
-        if (res == null) return false;
-        return res.toString().equals("jndi:/localhost/uptest/");
-    }
- */
     public static String servletContextInfo(ServletContext sc) {
         if (sc == null) return null;
         try {
@@ -378,4 +443,7 @@ public class StartupWildbook implements ServletContextListener {
             return "<unknown>";
         }
     }
+    
+    
+    
 }

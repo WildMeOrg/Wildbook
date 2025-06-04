@@ -11,7 +11,7 @@ org.datanucleus.api.jdo.JDOPersistenceManager,
 org.ecocean.media.*,
 org.ecocean.cache.*,
 java.util.zip.GZIPOutputStream,org.ecocean.servlet.importer.*,org.json.JSONObject,
-java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%><%@ page import="org.ecocean.shepherd.core.Shepherd"%>
 <%!
 //try to see if encounter was part of ImportTask so we can mark complete
 //  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
@@ -36,7 +36,7 @@ private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
 			System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
 	    }
 	    SystemValue.set(myShepherd, svKey, m);
-	    myShepherd.commitDBTransaction();
+	    myShepherd.updateDBTransaction();
 	}
 	catch(Exception e){e.printStackTrace();}
 }
@@ -98,7 +98,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 	//res.put("encounterOther", otherEncIds);
 	List<Encounter> otherEncs = new ArrayList<Encounter>();
         List<MarkedIndividual> otherIndivs = new ArrayList<MarkedIndividual>();
-        for (String oeId : otherEncIds) {
+        if (otherEncIds != null) for (String oeId : otherEncIds) {
 		Encounter oenc = myShepherd.getEncounter(oeId);
 		myShepherd.getPM().refresh(oenc);
 
@@ -176,6 +176,8 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		e.printStackTrace();
 	}
 
+        boolean isNewIndiv = false;
+
 	// allow flow either way if one or the other has an ID
 	//if ((indiv == null || indiv2 == null) && (enc != null)) {
         if ((indiv == null || (otherIndivs.size() == 0)) && (enc != null)) {
@@ -202,6 +204,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 					}
 					if (indiv==null) {
 						indiv = new MarkedIndividual(individualID, enc);
+                                                isNewIndiv = true;
 					}
 
 
@@ -235,9 +238,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
                     }
                     indiv.refreshNamesCache();
 
-                    // FIXME add these emails back in
-                    //if(enc2!=null)IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
-                    //IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
+                    if ((indiv != null) && (enc != null)) IndividualAddEncounter.executeEmails(myShepherd, request, indiv, isNewIndiv, enc, context, langCode);
 
 
 				} else {
@@ -257,7 +258,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 				myShepherd.updateDBTransaction();
 				// if(enc2!=null){
                                 for (Encounter oenc : otherEncs) {
-                                    //IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, oenc, context, langCode);
+                                    IndividualAddEncounter.executeEmails(myShepherd, request, indiv, false, oenc, context, langCode);
                                     setImportTaskComplete(myShepherd, oenc);
                                 }
 			}
@@ -273,7 +274,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 				res.put("individualName", oindiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
 
-				//IndividualAddEncounter.executeEmails(myShepherd, request,oindiv ,false, enc, context, langCode);
+				IndividualAddEncounter.executeEmails(myShepherd, request, oindiv, false, enc, context, langCode);
                                 setImportTaskComplete(myShepherd, enc);
 			}
 

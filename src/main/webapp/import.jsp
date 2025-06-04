@@ -23,6 +23,7 @@ org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
 org.json.JSONObject,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 public static void intakeTask(Shepherd myShepherd, Task task) {
@@ -417,7 +418,8 @@ try{
 	    out.println("<p id=\"refreshPara\" class=\"caption\">Refreshing results in <span id=\"countdown\"></span> seconds.</p><script>$('#refreshPara').hide();</script>");
 	    
 	    if(itask.getParameters()!=null){
-	    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+	    	String filenameParam = itask.getParameters().getJSONObject("_passedParameters").has("originalFilename") ? "originalFilename" : "filename";
+	    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray(filenameParam).toString());
 	    }	
 	    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
 	    String[] headers = new String[]{"Encounter", "Date", "Occurrence", "Individual", "#Images","Match Results by Class"};
@@ -492,7 +494,7 @@ try{
 	            for (MediaAsset ma : mas) {
 	                if (!allAssets.contains(ma)) {
 	                    allAssets.add(ma);
-	                    jarr.put(ma.getId());
+	                    jarr.put(ma.getIdInt());
 	                    if (ma.getDetectionStatus() != null) numIA++;
 	                    
 	                    //check acmID and build self-heal list if its missing due to an unexpected WBIA outtage

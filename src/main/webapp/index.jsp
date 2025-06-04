@@ -10,7 +10,8 @@
               org.ecocean.cache.*
               "
 %>
-
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -310,7 +311,7 @@ int numUsers=0;
 myShepherd.beginDBTransaction();
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
-//String url = "login.jsp";
+//String url = "/react/login";
 //response.sendRedirect(url);
 //RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
 //dispatcher.forward(request, response);
@@ -520,7 +521,7 @@ finally{
                         %>
 
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
+                    <a href="/react/encounter-search?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">

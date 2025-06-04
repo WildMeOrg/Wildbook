@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -78,7 +78,7 @@ public class IndividualSetSex extends HttpServlet {
                    if(allStatesSize>0){
                    for(int i=0;i<allStatesSize;i++){
                     String stateName=allStates.get(i);
-                    //out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
+                    //out.println("<p><a href=\"/react/encounter-search?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
                    }
                    }*/
                 // out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
@@ -103,7 +103,7 @@ public class IndividualSetSex extends HttpServlet {
                    if(allStatesSize>0){
                    for(int i=0;i<allStatesSize;i++){
                     String stateName=allStates.get(i);
-                    //out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
+                    //out.println("<p><a href=\"/react/encounter-search?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
                    }
                    }*/
                 // out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
@@ -120,7 +120,7 @@ public class IndividualSetSex extends HttpServlet {
                if(allStatesSize>0){
                for(int i=0;i<allStatesSize;i++){
                 String stateName=allStates.get(i);
-                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
+                out.println("<p><a href=\"/react/encounter-search?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
                }
                }*/
             // out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");

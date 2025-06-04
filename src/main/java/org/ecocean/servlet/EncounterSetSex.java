@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -91,7 +91,7 @@ public class EncounterSetSex extends HttpServlet {
                         myShepherd.rollbackDBTransaction();
                     }
                     if (!locked) {
-                        myShepherd.commitDBTransaction(action);
+                        myShepherd.commitDBTransaction();
                         // out.println(ServletUtilities.getHeader(request));
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.println(

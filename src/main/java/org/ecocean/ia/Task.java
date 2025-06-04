@@ -14,7 +14,7 @@ import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -304,7 +304,7 @@ public class Task implements java.io.Serializable {
         return cts;
     }
 
-    public JSONObject getParameters() { // only return as JSONObject!  TODO probably validate content below?
+    public JSONObject getParameters() { // only return as JSONObject!
         if (parameters == null) return null;
         return Util.stringToJSONObject(parameters);
     }
@@ -412,7 +412,7 @@ public class Task implements java.io.Serializable {
         return t;
     }
 
-    // TODO versions for multiple objects (when needed)
+    // TODO: evaluate if we should support versions for multiple objects (when needed)
     public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd) {
         String qstr =
             "SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(obj) && obj.id == \""
