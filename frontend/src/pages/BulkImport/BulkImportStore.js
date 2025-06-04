@@ -426,9 +426,9 @@ export class BulkImportStore {
   }
 
   setSpreadsheetData(data) {
-    // this._spreadsheetData = [...data];
     this._spreadsheetData = [...data];
     this.invalidateValidation();
+    this.updateRawFromNormalizedRow(); 
   }
 
   setRawData(data) {
@@ -936,7 +936,6 @@ export class BulkImportStore {
           const [g, s = ""] = norm["Encounter.genus"].split(" ");
           raw["Encounter.genus"] = g;
           raw["Encounter.specificEpithet"] = s;
-
         }
 
         if (norm["Encounter.mediaAsset0"] != null) {
