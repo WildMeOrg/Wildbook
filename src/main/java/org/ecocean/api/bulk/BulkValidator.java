@@ -173,6 +173,7 @@ public class BulkValidator {
         if (FIELD_NAMES.contains(fieldName)) return true;
         if (getRawIndexableFieldName(fieldName) != null) return true;
         if (isMeasurementFieldName(fieldName)) return true;
+        if (isLabeledKeywordFieldName(fieldName)) return true;
         return false;
     }
 
@@ -384,7 +385,7 @@ public class BulkValidator {
         case "Encounter.elevation":
             return tryDouble(value);
         }
-        // now we validated prefixed ones
+        // now we validate prefixed ones
         String prefix = indexPrefixValue(fieldName);
         if (prefix != null)
             switch (prefix) {
@@ -407,6 +408,13 @@ public class BulkValidator {
         if (offset >= 0) return tryDouble(value);
         offset = BulkImportUtil.findMeasurementSamplingProtocolOffset(fieldName);
         if (offset >= 0) return value;
+        String kwLabel = BulkImportUtil.getLabeledKeywordLabel(fieldName);
+        if (kwLabel != null) {
+            if (value == null) return null; // null is okay (just dont set keyword)
+            if (BulkImportUtil.isValidLabeledKeywordValue(kwLabel, value.toString())) return value;
+            throw new BulkValidatorException("LabeledKeyword " + kwLabel + " cannot accept value " +
+                    value, ApiException.ERROR_RETURN_CODE_INVALID);
+        }
         // probably should never get to this point, so worth noting
         System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName +
             " and value=" + value);
@@ -486,5 +494,9 @@ public class BulkValidator {
         offset = BulkImportUtil.findMeasurementSamplingProtocolOffset(fieldName);
         if (offset >= 0) return true;
         return false;
+    }
+
+    public static boolean isLabeledKeywordFieldName(String fieldName) {
+        return (BulkImportUtil.getLabeledKeywordOffset(fieldName) >= 0);
     }
 }

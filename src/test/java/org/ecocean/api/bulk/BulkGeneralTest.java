@@ -153,4 +153,28 @@ class BulkGeneralTest {
         // on QA, ex.getMessage() returns null WTF!? so skipping this
         // assertTrue(ex.getMessage().contains("mediaAssetMap"));
     }
+
+    @Test void measurement() {
+        List<String> mockMeasValues = new ArrayList<String>();
+
+        mockMeasValues.add("Measurement0");
+        mockMeasValues.add("Measurement1");
+        try (MockedStatic<BulkImportUtil> mockUtil = mockStatic(BulkImportUtil.class)) {
+            // allows us to skip commonConfig to get list of values
+            mockUtil.when(() -> BulkImportUtil.getMeasurementValues()).thenReturn(mockMeasValues);
+            JSONObject mf = BulkValidator.minimalFieldsJson();
+            int ct = 0;
+            for (String key : mockMeasValues) {
+                assertEquals(mf.getString("Encounter.measurement" + ct), "double");
+                assertEquals(mf.getString("Encounter.measurement" + ct + ".samplingProtocol"),
+                    "string");
+                assertEquals(mf.getString("Encounter." + key), "double");
+                assertEquals(mf.getString("Encounter." + key + ".samplingProtocol"), "string");
+                assertEquals(mf.getString("Encounter.measurement." + key), "double");
+                assertEquals(mf.getString("Encounter.measurement." + key + ".samplingProtocol"),
+                    "string");
+                ct++;
+            }
+        }
+    }
 }

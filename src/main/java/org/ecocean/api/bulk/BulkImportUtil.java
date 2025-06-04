@@ -6,8 +6,11 @@ import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Set;
 import org.ecocean.api.ApiException;
 import org.ecocean.Base;
@@ -22,6 +25,7 @@ public class BulkImportUtil {
     // cache these so we dont have to keep reading them from commonConfig
     public static List<String> measurementValues = null;
     public static List<String> measurementUnits = null;
+    public static Map<String, Set<String> > labeledKeywordMap = null;
 
     public static Map<String, Object> validateRow(Set<String> fieldNames, JSONArray rowValues,
         Shepherd myShepherd) {
@@ -268,5 +272,51 @@ public class BulkImportUtil {
             rtn.set(offset, fn);
         }
         return rtn;
+    }
+
+    public static Map<String, Set<String> > getLabeledKeywordMap() {
+        if (labeledKeywordMap != null) return labeledKeywordMap;
+        labeledKeywordMap = new HashMap<String, Set<String> >();
+        try {
+            for (String label : CommonConfiguration.getIndexedPropertyValues("kwLabel",
+                "context0")) {
+                labeledKeywordMap.put(label,
+                    new HashSet<String>(CommonConfiguration.getIndexedPropertyValues(label,
+                        "context0")));
+            }
+        } catch (Exception ex) {}
+        return labeledKeywordMap;
+    }
+
+    public static boolean isValidLabeledKeywordValue(String label, String value) {
+        if (!getLabeledKeywordMap().containsKey(label)) return false;
+        return getLabeledKeywordMap().get(label).contains(value);
+    }
+
+    public static String getLabeledKeywordLabel(String fieldName) {
+        if ((fieldName == null) || !fieldName.startsWith("Encounter.mediaAsset")) return null;
+        String regexPrefix = "^Encounter\\.mediaAsset(\\d+)\\.";
+        for (String label : getLabeledKeywordMap().keySet()) {
+            Pattern p = Pattern.compile(regexPrefix + label + "$");
+            Matcher m = p.matcher(fieldName);
+            if (m.find()) return label;
+        }
+        return null;
+    }
+
+    public static int getLabeledKeywordOffset(String fieldName) {
+        if ((fieldName == null) || !fieldName.startsWith("Encounter.mediaAsset")) return -1;
+        String regexPrefix = "^Encounter\\.mediaAsset(\\d+)\\.";
+        for (String label : getLabeledKeywordMap().keySet()) {
+            Pattern p = Pattern.compile(regexPrefix + label + "$");
+            Matcher m = p.matcher(fieldName);
+            if (m.find()) {
+                try {
+                    return Integer.parseInt(m.group(1));
+                } catch (Exception ex) {}
+                return -3;
+            }
+        }
+        return -2;
     }
 }

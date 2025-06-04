@@ -2,6 +2,7 @@
 package org.ecocean.api.bulk;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.ecocean.api.bulk.*;
 import org.ecocean.Annotation;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
+import org.ecocean.Keyword;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
@@ -41,6 +43,7 @@ public class BulkImporter {
     private Map<String, Occurrence> occurrenceCache = new HashMap<String, Occurrence>();
     private Map<String, MarkedIndividual> individualCache = new HashMap<String, MarkedIndividual>();
     private Map<String, User> userCache = new HashMap<String, User>();
+    private Map<String, Keyword> keywordCache = new HashMap<String, Keyword>();
 
     public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
         Shepherd myShepherd) {
@@ -180,8 +183,6 @@ public class BulkImporter {
             "MarkedIndividual.name.label");
         List<String> nameValueFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
             "MarkedIndividual.name.value");
-        // FIXME also do quality etc on MediaAsset ...
-        // Keyword kw = myShepherd.getOrCreateKeyword(kwString); // no we need to make our own as this commits :(
         if (indiv != null) {
             for (int i = 0; i < Math.min(nameLabelFields.size(), nameValueFields.size()); i++) {
                 String labelFN = nameLabelFields.get(i);
@@ -220,7 +221,7 @@ public class BulkImporter {
             if ((i < submitterAffiliations.size()) && (submitterAffiliations.get(i) != null))
                 saffil = fmap.get(submitterAffiliations.get(i)).getValueString();
             User sub = getOrCreateUser(fmap.get(submitterEmails.get(i)).getValueString(), sname,
-                saffil, myShepherd);
+                saffil);
             enc.addSubmitter(sub); // weeds out null and duplicates, yay!
         }
         // like above, but informOther
@@ -239,7 +240,7 @@ public class BulkImporter {
             if ((i < informOtherAffiliations.size()) && (informOtherAffiliations.get(i) != null))
                 ioaffil = fmap.get(informOtherAffiliations.get(i)).getValueString();
             User inf = getOrCreateUser(fmap.get(informOtherEmails.get(i)).getValueString(), ioname,
-                ioaffil, myShepherd);
+                ioaffil);
             enc.addInformOther(inf); // weeds out null and duplicates, yay!
         }
         // FIXME photographer (like above)
@@ -550,6 +551,10 @@ public class BulkImporter {
         // now attach annotations
         String tx = enc.getTaxonomyString();
         List<Annotation> annots = new ArrayList<Annotation>();
+        // List<String> kwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+        // List<String> multiKwFields = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+        // List<String> maQuality = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+        int offset = 0;
         for (String maKey : maFields) {
             if (maKey == null) continue; // data skipped an index
             BulkValidator bv = fmap.get(maKey);
@@ -559,10 +564,18 @@ public class BulkImporter {
             if (ma == null)
                 throw new RuntimeException("could not find MediaAsset for maKey=" + maKey +
                         ", bv=" + bv.getValueString() + " in " + this.mediaAssetMap);
+            Set<String> kws = new HashSet<String>();
+            if ((offset < kwFields.size()) && (kwFields.get(offset) != null))
+                kws.add(kwFields.get(offset));
+            // StandardImport claims multivalue keywordS is delimited by underscore :/ is this for real?
+            if ((offset < multiKwFields.size()) && (multiKwFields.get(offset) != null))
+                kws.addAll(Arrays.asList(multiKwFields.get(offset).split("_")));
+            handleKeywords(ma, kws);
             Annotation ann = new Annotation(tx, ma);
             ann.setIsExemplar(true);
             ann.setSkipAutoIndexing(true);
             annots.add(ann);
+            offset++;
         }
         if (annots.size() > 0) enc.addAnnotations(annots);
         System.out.println("+ populated " + annots.size() + " MediaAssets on " + enc);
@@ -570,6 +583,16 @@ public class BulkImporter {
 
     public List<Encounter> getEncounters() {
         return new ArrayList<Encounter>(encounterCache.values());
+    }
+
+    private void handleKeywords(MediaAsset ma, Set<String> keywordValues) {
+        for (String kval : keywordValues) {
+            Keyword key = keywordCache.get(kval);
+            if (key == null) key = myShepherd.getKeyword(kval);
+            if (key == null) key = new Keyword(kval);
+            keywordCache.put(kval, key); // always do this so we get new *and* db-loaded ones into cache
+            ma.addKeyword(key);
+        }
     }
 
 /* this sample stuff is over-the-top   FIXME
@@ -647,8 +670,7 @@ public class BulkImporter {
         return enc;
     }
 
-    private User getOrCreateUser(String email, String fullname, String affiliation,
-        Shepherd myShepherd) {
+    private User getOrCreateUser(String email, String fullname, String affiliation) {
         if (email == null) return null;
         if (userCache.containsKey(email)) return userCache.get(email);
         User user = myShepherd.getUserByEmailAddress(email);
