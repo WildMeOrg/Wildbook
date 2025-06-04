@@ -43,6 +43,7 @@ export class BulkImportStore {
   _isSavingDraft = false;
   _lastSavedAt = null;
   _errorSummary = {};
+  _cachedValidation = {};
 
   isValidISO(val) {
     const dt = new Date(val);
@@ -209,7 +210,7 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         return re.test(val);
       },
       message: "invalid email address",
@@ -226,7 +227,7 @@ export class BulkImportStore {
       message: "invalid email address",
     },
     "Encounter.dateInMilliseconds": {
-      required: false,  
+      required: false,
       validate: (val) => {
         if (!val) {
           return true;
@@ -376,7 +377,7 @@ export class BulkImportStore {
 
   get errorSummary() {
     let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
-
+    const { errors } = this.validateSpreadsheet();
     const uploadingSet = new Set(
       this._imagePreview
         .filter(p => p.progress > 0 && p.progress < 100)
@@ -389,8 +390,9 @@ export class BulkImportStore {
       this._columnsDef.forEach(col => {
         const rules = this._validationRules[col] ?? {};
         const value = String(row[col] ?? "").trim();
-        const errMsg = this._submissionErrors[rowIdx]?.[col]
-          ?? this.validateSpreadsheet()[rowIdx]?.[col];
+        // const errMsg = this._submissionErrors[rowIdx]?.[col]
+        //   ?? this.validateSpreadsheet()[rowIdx]?.[col];
+        const errMsg = this._submissionErrors[rowIdx]?.[col] ?? errors[rowIdx]?.[col];
 
         if (errMsg) {
           error += 1;
@@ -424,7 +426,9 @@ export class BulkImportStore {
   }
 
   setSpreadsheetData(data) {
+    // this._spreadsheetData = [...data];
     this._spreadsheetData = [...data];
+    this.invalidateValidation();
   }
 
   setRawData(data) {
@@ -984,6 +988,9 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
+    if (this._cachedValidation) {
+      return this._cachedValidation;
+    }
     const errors = {};
     const warnings = {};
 
@@ -1022,7 +1029,12 @@ export class BulkImportStore {
         }
       });
     });
-    return {errors, warnings};
+    this._cachedValidation = { errors, warnings };
+    return this._cachedValidation;
+  }
+
+  invalidateValidation() {
+    this._cachedValidation = null;
   }
 
   removePreview(fileName) {

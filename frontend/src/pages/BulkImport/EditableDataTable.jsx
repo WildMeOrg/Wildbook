@@ -5,7 +5,6 @@ import {
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
-  getColumnPinningRowModel,
   flexRender,
 } from "@tanstack/react-table";
 import { observer } from "mobx-react-lite";
@@ -29,12 +28,12 @@ const EditableCell = ({
     setWarning(externalWarning ?? "");
   }, [externalError]);
 
-  const handleBlur = () => {
+  const handleBlur = () => {    
     store.spreadsheetData[rowIndex][columnId] = value;
     store.rawData[rowIndex][columnId] = value;
+    store.invalidateValidation();
     store.updateRawFromNormalizedRow(rowIndex);
     const { errors, warnings } = store.validateSpreadsheet();
-    // const errors = store.validateSpreadsheet();
     setError(errors[rowIndex]?.[columnId] || "");
     setWarning(warnings[rowIndex]?.[columnId] || "");
   };
@@ -125,7 +124,6 @@ export const DataTable = observer(({ store }) => {
   const validLifeStages = siteData?.lifeStage || [];
   const validLivingStatus = siteData?.livingStatus || [];
   const validBehavior = siteData?.behavior || [];
-  const freezeCount = 2;
   const [columnPinning, setColumnPinning] = useState({
     left: ["rowNumber", columnsDef[0] || ""],
     right: [],
@@ -238,7 +236,7 @@ export const DataTable = observer(({ store }) => {
           <thead className="table-light">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header, colIndex) => {
+                {headerGroup.headers.map((header) => {
 
                   return (
                     <th
