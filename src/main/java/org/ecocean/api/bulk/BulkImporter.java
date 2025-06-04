@@ -221,7 +221,7 @@ public class BulkImporter {
             if ((i < submitterAffiliations.size()) && (submitterAffiliations.get(i) != null))
                 saffil = fmap.get(submitterAffiliations.get(i)).getValueString();
             User sub = getOrCreateUser(fmap.get(submitterEmails.get(i)).getValueString(), sname,
-                saffil, myShepherd);
+                saffil);
             enc.addSubmitter(sub); // weeds out null and duplicates, yay!
         }
         // like above, but informOther
@@ -240,7 +240,7 @@ public class BulkImporter {
             if ((i < informOtherAffiliations.size()) && (informOtherAffiliations.get(i) != null))
                 ioaffil = fmap.get(informOtherAffiliations.get(i)).getValueString();
             User inf = getOrCreateUser(fmap.get(informOtherEmails.get(i)).getValueString(), ioname,
-                ioaffil, myShepherd);
+                ioaffil);
             enc.addInformOther(inf); // weeds out null and duplicates, yay!
         }
         // FIXME photographer (like above)
@@ -670,8 +670,7 @@ public class BulkImporter {
         return enc;
     }
 
-    private User getOrCreateUser(String email, String fullname, String affiliation,
-        Shepherd myShepherd) {
+    private User getOrCreateUser(String email, String fullname, String affiliation) {
         if (email == null) return null;
         if (userCache.containsKey(email)) return userCache.get(email);
         User user = myShepherd.getUserByEmailAddress(email);
