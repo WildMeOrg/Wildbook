@@ -15,23 +15,23 @@
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
-        <h1 class="intro">Contact us</h1>
+          <h1 class="intro">Contact us </h1>
+
+
         <p>The team welcomes your comments and questions.</p>
-	<p>Email us at <em>info at wildme dot org</em>, and one of us will respond as quickly as possible.</p>
 
-	<h2>Photos for Media Publications about Wildbook</h2>
-	<p>For any resources that can be used without express permission from the Wild Me team, see <a href="https://www.wildme.org/media-resources.html">Media Resources</a>.</p>
+<p>Please email us at: wildbook dot community at conservationxlabs dot org
 
-	<h2>Logos</h2>
-	<p>The following logos may be used in conjunction with our project.</p>
 
-	<h3>Wild Me</h3>
-	<p><img src="images/WildMe-Logo-100x100.png" width="500px" height="*" /></p>
+<h2>Technical Support</h2>
 
-	<h3>Wildbook&reg;</h3>
-	<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
-
-	<p>Any additional photo resources should be obtained with express permission from the Wild Me or CXL team.</p>
+<p>
+Questions about GiraffeSpotter accounts, technical problems, or generally about the
+open source <a target="_new" href="https://www.wildme.org/#/wildbook">Wildbook software</a>, please visit
+<a href="https://community.wildme.org/">the Wild Me Community Forums</a>
+</p>
 
       <!-- end maintext -->
       </div>
+      
+      <jsp:include page="footer.jsp" flush="true" />
