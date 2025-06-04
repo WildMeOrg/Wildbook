@@ -30,9 +30,9 @@ const EditableCell = ({
 
   const handleBlur = () => {    
     store.spreadsheetData[rowIndex][columnId] = value;
-    store.rawData[rowIndex][columnId] = value;
+    store.rawData[rowIndex][columnId] = value;    
     store.invalidateValidation();
-    store.updateRawFromNormalizedRow(rowIndex);
+    store.updateRawFromNormalizedRow(rowIndex);    
     const { errors, warnings } = store.validateSpreadsheet();
     setError(errors[rowIndex]?.[columnId] || "");
     setWarning(warnings[rowIndex]?.[columnId] || "");
