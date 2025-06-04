@@ -160,19 +160,31 @@ export const BulkImportTask = () => {
             }
             data={[
               {
-                label: "Has acmID",
+                label: intl.formatMessage({
+                  id: "HAS_ACM_ID",
+                  defaultMessage: "Has acmID",
+                }),
                 value: task?.iaSummary?.numberMediaAssetACMIds || 0,
               },
               {
-                label: "Total Annotations",
+                label: intl.formatMessage({
+                  id: "TOTAL_ANNOTATIONS",
+                  defaultMessage: "Total Annotations",
+                }),
                 value: task?.iaSummary?.numberAnnotations || 0,
               },
               {
-                label: "Valid for Image Analysis",
+                label: intl.formatMessage({
+                  id: "VALID_FOR_IMAGE_ANALYSIS",
+                  defaultMessage: "Valid for Image Analysis",
+                }),
                 value: task?.iaSummary?.numberMediaAssetValidIA || 0,
               },
               {
-                label: "Total Marked Individuals",
+                label: intl.formatMessage({
+                  id: "TOTAL_MARKED_INDIVIDUALS",
+                  defaultMessage: "Total Marked Individuals",
+                }),
                 value: task?.detectionSummary?.numberMediaAssets || 0,
               },
             ]}
