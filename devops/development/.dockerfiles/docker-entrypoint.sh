@@ -22,4 +22,4 @@ fi
 echo Done pre-initializing Wildbook.
 
 # now run tomcat normally
-exec $CATALINA_HOME/bin/catalina.sh run
+exec $CATALINA_HOME/bin/catalina.sh jpda run
