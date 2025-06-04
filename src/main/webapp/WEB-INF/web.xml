@@ -863,6 +863,13 @@
     <servlet-name>StandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
   </servlet>
+
+
+  <servlet>
+    <servlet-name>EncounterImportExcelServlet</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.EncounterImportExcelServlet</servlet-class>
+  </servlet>
+
   <servlet>
     <servlet-name>UpdateStandard</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.UpdateStandard</servlet-class>
@@ -2246,9 +2253,11 @@
   </servlet-mapping>
 
   <servlet-mapping>
-      <servlet-name>StandardImport</servlet-name>
-      <url-pattern>/StandardImport</url-pattern>
+      <servlet-name>EncounterImportExcelServlet</servlet-name>
+      <url-pattern>/EncounterImportExcelServlet</url-pattern>
   </servlet-mapping>
+
+  
 
   <servlet-mapping>
     <servlet-name>StandardImport</servlet-name>

@@ -444,6 +444,8 @@ if(request.getUserPrincipal()!=null){
                             -->
 
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            <li class="dropdown"><a href="<%=urlLoc %>/EncounterImportExcelServlet">File Import</a></li>
+
                         </ul>
                       </li>
                       <li class="dropdown">
