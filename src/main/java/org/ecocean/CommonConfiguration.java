@@ -517,8 +517,9 @@ public class CommonConfiguration {
     }
 
     public static String getGoogleMapsKey(String context) {
-        return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES, "",
-                context).getProperty("googleMapsKey", context);
+
+        String s = System.getenv("googleMapsKey");
+        return s;
     }
 
     public static String getGoogleTagManagerKey(String context) {
