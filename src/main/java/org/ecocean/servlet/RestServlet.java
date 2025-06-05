@@ -18,13 +18,23 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.StringTokenizer;
+import java.util.HashMap;
 
+
+import org.ecocean.Encounter;
 import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
+import org.ecocean.security.Collaboration;
+import org.ecocean.User;
 
 import java.lang.reflect.Method;
+
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
@@ -243,14 +253,24 @@ public class RestServlet extends HttpServlet {
                     }
                     System.out.println("Fetch plan class: " +
                         query.getFetchPlan().getGroups().toString());
+                    
+                        long t1 = System.currentTimeMillis();
+
 
                     Object result = filterResult(query.execute());
+                    System.out.println("Query time: " + (System.currentTimeMillis() - t1) + " ms");
                     if (result instanceof Collection) {
+                        t1 = System.currentTimeMillis();
                         JSONArray jsonobj = convertToJson(req, (Collection)result,
                             ((JDOPersistenceManager)pm).getExecutionContext());
+                        System.out.println("JSON conversion time: " + (System.currentTimeMillis() - t1) + " ms");
+
                         // JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result,
                         // ((JDOPersistenceManager)pm).getExecutionContext());
+                        t1 = System.currentTimeMillis();
                         tryCompress(req, resp, jsonobj, useCompression);
+                        System.out.println("compression time: " + (System.currentTimeMillis() - t1) + " ms");
+
                     } else {
                         JSONObject jsonobj = convertToJson(req, result,
                             ((JDOPersistenceManager)pm).getExecutionContext());
@@ -844,6 +864,7 @@ public class RestServlet extends HttpServlet {
         }
         return out;
     }
+    
 
     JSONObject convertToJson(HttpServletRequest req, Object obj, ExecutionContext ec) {
         JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
@@ -872,10 +893,10 @@ public class RestServlet extends HttpServlet {
 
         // call sanitizeJson on object
 
+
         sj = null;
         try {
-            sj = obj.getClass().getMethod("sanitizeJson",
-                new Class[] { HttpServletRequest.class, JSONObject.class });
+            sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
         } catch (NoSuchMethodException nsm) { // do nothing
             // System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
         }
@@ -889,19 +910,129 @@ public class RestServlet extends HttpServlet {
                 // System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
             }
         }
+
+    
         return jobj;
     }
 
-    JSONArray convertToJson(HttpServletRequest req, Collection coll, ExecutionContext ec) {
+
+    JSONObject convertEncounterToJson(HttpServletRequest req, Object obj, ExecutionContext ec, boolean fullAccess) {
+        JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
+        Method sj = null;
+
+        // call decorateJson on object
+        if (req.getParameter("noDecorate") == null) {
+            try {
+                sj = obj.getClass().getMethod("decorateJson",
+                    new Class[] { HttpServletRequest.class, JSONObject.class });
+            } catch (NoSuchMethodException nsm) { // do nothing
+                // System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
+            }
+            if (sj != null) {
+                // System.out.println("trying decorateJson on "+obj.getClass());
+                try {
+                    jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                    // System.out.println("decorateJson");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    // System.out.println("got Exception trying to invoke decorateJson: " + ex.toString());
+                }
+            }
+        }
+
+        // call sanitizeJson on object
+
+
+        sj = null;
+        try {
+            sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class, boolean.class });
+        } catch (NoSuchMethodException nsm) { // do nothing
+            // System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+        }
+        if (sj != null) {
+            // System.out.println("trying sanitizeJson on "+obj.getClass());
+            try {
+                jobj = (JSONObject)sj.invoke(obj, req, jobj, fullAccess);
+                // System.out.println("sanitizeJson result: " +jobj.toString());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                // System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+            }
+        }
+
+    
+        return jobj;
+    }
+
+    private Map<String, Boolean> buildAccessMap(HttpServletRequest req, Set<String> ownerUsernames) {
+        Map<String, Boolean> accessMap = new HashMap<>();
+        String context = ServletUtilities.getContext(req);
+        String currentUser = req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : null;
+        boolean isAdmin = req.isUserInRole("admin");
+        boolean securityDisabled = !Collaboration.securityEnabled(context);
+
+        for (String owner : ownerUsernames) {
+            boolean canAccess = false;
+
+            if (securityDisabled || isAdmin || User.isUsernameAnonymous(owner)) {
+                canAccess = true;
+            } else if (currentUser == null) {
+                canAccess = Collaboration.canCollaborate(context, owner, "public");
+            } else {
+                canAccess = Collaboration.canCollaborate(context, currentUser, owner);
+            }
+
+            accessMap.put(owner, canAccess);
+        }
+
+        return accessMap;
+    }
+
+    public JSONArray convertToJson(HttpServletRequest req, Collection<?> coll, ExecutionContext ec) {
         JSONArray jarr = new JSONArray();
+
+        // Step 1: Check if we're processing a homogeneous Encounter collection
+        boolean isEncounterCollection = false;
+        for (Object obj : coll) {
+            if (obj instanceof Encounter) {
+                isEncounterCollection = true;
+                break;
+            }
+        }
+
+        Map<String, Boolean> accessMap = Collections.emptyMap();
+        if (isEncounterCollection) {
+            Set<String> uniqueOwners = new HashSet<>();
+            for (Object o : coll) {
+                if (o instanceof Encounter) {
+                    String owner = ((Encounter) o).getAssignedUsername();
+                    if (owner != null) uniqueOwners.add(owner);
+                }
+            }
+            accessMap = this.buildAccessMap(req, uniqueOwners);
+        }
 
         for (Object o : coll) {
             if (o instanceof Collection) {
-                jarr.put(convertToJson(req, (Collection)o, ec));
-            } else { // TODO can it *only* be an JSONObject-worthy object at this point?
+                jarr.put(convertToJson(req, (Collection<?>) o, ec));
+            } else if (o instanceof Encounter) {
+                Encounter enc = (Encounter) o;
+                boolean fullAccess = false;
+                
+
+                if (enc.getAssignedUsername() == null) {
+                    fullAccess = true;
+                }
+                else {
+                    fullAccess = accessMap.getOrDefault(enc.getAssignedUsername(), false);
+                }
+
+                jarr.put(convertEncounterToJson(req, enc, ec, fullAccess));
+            } else {
                 jarr.put(convertToJson(req, o, ec));
             }
         }
+
         return jarr;
     }
 

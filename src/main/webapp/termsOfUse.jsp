@@ -23,7 +23,7 @@ context=ServletUtilities.getContext(request);
 
     <hr/>
 
-    <embed src="cust/AW_ToU_FINAL_Eng-Fr-Port-Esp_20250320.pdf" type="application/pdf" width="100%" height="1000px" />
+    <embed src="cust/ArgusWild AI ToU_Final_Eng_202500512.pdf" type="application/pdf" width="100%" height="1000px" />
 
     <hr/>
 

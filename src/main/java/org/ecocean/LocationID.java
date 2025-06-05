@@ -433,4 +433,31 @@ public class LocationID {
         }
         return rtn;
     }
+
+    public static ArrayList<String> getAllIds() {
+        JSONArray inputArray = getLocationIDStructure().getJSONArray("locationID");
+        ArrayList<String> ids = new ArrayList<>();
+        flatten(inputArray, ids);
+        return ids;
+    }
+
+    private static void flatten(Object obj, ArrayList<String> ids) {
+        if (obj instanceof JSONArray) {
+            JSONArray arr = (JSONArray) obj;
+            for (int i = 0; i < arr.length(); i++) {
+                flatten(arr.get(i), ids);
+            }
+        } else if (obj instanceof JSONObject) {
+            JSONObject jsonObj = (JSONObject) obj;
+            if (jsonObj.has("name")) {
+                ids.add(jsonObj.getString("name"));
+            }
+            for (Object key : jsonObj.keySet()) {
+                Object val = jsonObj.get((String)key);
+                if (val instanceof JSONObject || val instanceof JSONArray) {
+                    flatten(val, ids);
+                }
+            }
+        }
+    }
 }

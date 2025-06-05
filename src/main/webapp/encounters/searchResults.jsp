@@ -546,6 +546,7 @@ $(document).ready( function() {
 			useProjectContext: useProjectContext,
 			fetch: "searchResults",
 			noDecorate: true,
+			noSanitize: true,
 			jdoql: jdoql,
 			success: function() {
         searchResults = encs.models;
