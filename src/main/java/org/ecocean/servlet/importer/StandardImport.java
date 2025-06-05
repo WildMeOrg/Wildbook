@@ -470,35 +470,41 @@ public class StandardImport extends HttpServlet {
         out.println("<p>Number of errors: <span id='errorCount'></span></p>");
         out.println("<p>Error columns: <span id='errorElements'></span></p>");
         out.println("<script>");
-        out.println("\t  var errorElementNames = [];");
-        out.println("     const err_elements = document.querySelectorAll('.cellFeedback.error');");
-        out.println("     const errorCount = err_elements.length;");
-        out.println("     document.getElementById('errorCount').textContent=errorCount");
-        out.println("     if(errorCount>0){");
-        out.println("        var errorTitle = document.getElementById('errorHeader');  ");
-        out.println("        var errorMessage = document.createElement('p');  ");
-        out.println("        errorMessage.style.color='red';  ");
-        out.println(
-            "        errorMessage.innerText='Errors are preventing submission of this bulk import.';  ");
-        out.println("        errorTitle.insertAdjacentElement('afterend', errorMessage);   ");
-
-        out.println("     \tfor (var i = 0; i < err_elements.length; i ++ ){");
-        out.println("     \t\tvar errorElement = err_elements[i];");
-        out.println("     \t  var table = errorElement.closest('table');");
-        out.println("     \t  var headerRow = table.querySelector('tbody tr.headerRow');");
-        out.println(
-            "     \t  var th = headerRow.children[errorElement.cellIndex].querySelector('th div span.tableFeedbackColumnHeader').innerHTML;");
-        out.println("     \t  if(!errorElementNames.includes(th))errorElementNames.push(th); ");
-        out.println("     \t}");
-        out.println("     \tvar errorList = document.getElementById('errorElements')");
-        out.println("     \tconst ul = document.createElement('ul');");
-        out.println("     \terrorElementNames.toString().split(',').forEach((item) => {");
-        out.println("          const li = document.createElement('li');");
-        out.println("     \t   li.textContent = item;");
-        out.println("          ul.appendChild(li);");
-        out.println("     \t});");
-        out.println("     \terrorList.appendChild(ul);");
-        out.println("     }");
+        out.println("var errorElementNames = [];");
+        out.println("const err_elements = document.querySelectorAll('.cellFeedback.error');");
+        out.println("const errorCount = err_elements.length;");
+        out.println("document.getElementById('errorCount').textContent=errorCount");
+        out.println("if(errorCount>0){");
+        out.println("   var errorTitle = document.getElementById('errorHeader');  ");
+        out.println("   var errorMessage = document.createElement('p');  ");
+        out.println("   errorMessage.style.color='red';  ");
+        out.println("   errorMessage.innerText='Errors are preventing submission of this bulk import.';  ");
+        out.println("   errorTitle.insertAdjacentElement('afterend', errorMessage);   ");
+        out.println("   for (var i = 0; i < err_elements.length; i ++ ){");
+        out.println("   var errorElement = err_elements[i];");
+        out.println("     var table = errorElement.closest('table');");
+        out.println("     var headerRow = table.querySelector('tbody tr.headerRow');");
+        out.println("     var th = headerRow.children[errorElement.cellIndex].querySelector('th div span.tableFeedbackColumnHeader').innerHTML;");
+        out.println("     if(!errorElementNames.includes(th))errorElementNames.push(th); ");
+        out.println("   }");
+        out.println("   var errorList = document.getElementById('errorElements')");
+        out.println("   const ul = document.createElement('ul');");
+        out.println("   const errorElementNames2 = errorElementNames.filter(i => i !== 'Encounter.locationID');");
+        out.println("   let locationIDErrorNote = '';");
+        out.println("   if (errorElementNames2.length < errorElementNames.length) {");
+        out.println("     errorElementNames2.push('Encounter.locationID');");
+        out.println("     locationIDErrorNote = 'Please provide a Location ID that exists in the system. Check spelling and formatting carefully.';");
+        out.println("   }");
+        out.println("   errorElementNames2.toString().split(',').forEach((item) => {");
+        out.println("     const li = document.createElement('li');");
+        out.println("     li.textContent = item;");
+        out.println("     ul.appendChild(li);");
+        out.println("   });");
+        out.println("   errorList.appendChild(ul);");
+        out.println("   const errorNotesDiv = document.createElement('div');");
+        out.println("   errorNotesDiv.innerHTML = locationIDErrorNote;");
+        out.println("   errorList.appendChild(errorNotesDiv);");
+        out.println("}");
         out.println("</script>");
 
         String uName = request.getUserPrincipal().getName();
@@ -641,9 +647,11 @@ public class StandardImport extends HttpServlet {
         String fieldStudySite = getString(row, "Occurrence.fieldStudySite", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
         // fieldStudySite defaults to locationID
-        if (fieldStudySite == null)
-            fieldStudySite = getString(row, "Encounter.locationID", colIndexMap, verbose,
-                missingColumns, unusedColumns, feedback);
+        if (fieldStudySite == null) {
+            fieldStudySite = getString(row, "Encounter.locationID", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+            feedback.logParseErrorLocationID(fieldStudySite, getColIndexFromColName("Encounter.locationID", colIndexMap), row);
+        }
+
         if (fieldStudySite != null) occ.setFieldStudySite(fieldStudySite);
         String groupComposition = getString(row, "Occurrence.groupComposition", colIndexMap,
             verbose, missingColumns, unusedColumns, feedback);
@@ -871,7 +879,11 @@ public class StandardImport extends HttpServlet {
         if (validCoord(longitude)) enc.setDecimalLongitude(longitude);
         String locationID = getString(row, "Encounter.locationID", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
-        if (Util.stringExists(locationID)) enc.setLocationID(locationID);
+        if (Util.stringExists(locationID)) {
+            enc.setLocationID(locationID);
+        }
+        feedback.logParseErrorLocationID(locationID, getColIndexFromColName("Encounter.locationID", colIndexMap), row);
+
         String country = getString(row, "Encounter.country", colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
         if (country != null) enc.setCountry(country);

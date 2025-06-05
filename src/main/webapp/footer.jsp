@@ -37,7 +37,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     <a target="_blank" href="/resetPassword.jsp" class="footer-link footer-text">Password Reset</a>
                 </div>
                 <div class="py-2">
-                    <a target="_blank" href="http://forum.arguswild.ai/" class="footer-link text-reset px-2 footer-text">Community Support Forum</a>
+                    <a target="_blank" href="http://community.arguswild.ai/" class="footer-link text-reset px-2 footer-text">Community Support Forum</a>
                 </div>
                 <div class="py-2">
                     <a target="_blank" href="mailto:info@tech4conservation.org" class="footer-link text-reset px-2 footer-text">General Inquiries</a>

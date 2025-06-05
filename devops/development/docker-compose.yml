@@ -66,6 +66,7 @@ services:
       JAVA_OPTS: '-Djava.awt.headless=true -Xms4096m -Xmx4096m'
       JPDA_ADDRESS: '8000'
       JPDA_TRANSPORT: 'dt_socket'
+      WILDBOOK_APP_URL: '${WILDBOOK_APP_URL}'
 
   # opensearch:
   #   image: opensearchproject/opensearch:latest
