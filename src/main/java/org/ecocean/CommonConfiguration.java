@@ -518,7 +518,7 @@ public class CommonConfiguration {
 
     public static String getGoogleMapsKey(String context) {
 
-        String s = System.getenv("mailAuth");
+        String s = System.getenv("googleMapsKey");
         return s;
     }
 
