@@ -295,6 +295,17 @@ public class Collaboration implements java.io.Serializable {
         return false;
     }
 
+    public static boolean canCollaborate(String context, String u1, String u2, boolean canExport) {
+        if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true; // TODO not sure???
+        if (u1.equals(u2)) return true;
+        Collaboration c = collaborationBetweenUsers(u1, u2, context);
+        // System.out.println("canCollaborate(String context, String u1, String u2)");
+        if (c == null) return false;
+        if (c.getState().equals(STATE_EDIT_PRIV))
+            return true;
+        return false;
+    }
+
     public static boolean canEditEncounter(Encounter enc, HttpServletRequest request) {
         try {
             String name1 = request.getUserPrincipal().getName();
@@ -424,10 +435,33 @@ public class Collaboration implements java.io.Serializable {
         return canCollaborate(context, username, ownerName);
     }
 
+
+    public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request, boolean canExport) {
+        String context = ServletUtilities.getContext(request);
+
+        if (!securityEnabled(context)) return true;
+        if (request.isUserInRole("admin")) return true; // TODO generalize and/or allow other roles all-access
+        if (User.isUsernameAnonymous(ownerName)) return true; // anon-owned is "fair game" to anyone
+        if (request.getUserPrincipal() == null) {
+            return canCollaborate(context, ownerName, "public");
+        }
+        String username = request.getUserPrincipal().getName();
+        // System.out.println("canUserAccessOwnedObject(String ownerName, HttpServletRequest request)");
+        return canCollaborate(context, username, ownerName, canExport);
+    }
+
+
+
     public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
         if (enc != null && enc.getSubmitterID() == null) return true;
         // System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
         return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
+    }
+
+    public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request, boolean canExport) {
+        if (enc != null && enc.getSubmitterID() == null) return true;
+        // System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
+        return canUserAccessOwnedObject(enc.getAssignedUsername(), request, canExport);
     }
 
     public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
