@@ -2,6 +2,9 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServlet;
@@ -117,6 +120,22 @@ public class MediaAssetAttach extends HttpServlet {
             }
             // DETACH MEDIAASSET FROM ENCOUNTER
             else if (args.optString("detach") != null && args.optString("detach").equals("true")) {
+                if (maIds.size() == 1) {
+                    List<Object[]> results = SqlHelper.executeRawSql(
+                        ShepherdPMF.getPMF("context0").getPersistenceManager(),
+                        "select \"PARAMETERS\" from \"MEDIAASSET\" where \"ID\" = " + maIds.get(0)
+                    );
+
+                    String path = new JSONObject((String)results.get(0)[0]).getString("path");
+                    String regex = "(?i).*\\.(mp4|avi|mov|wmv|webm|flv|avchd|mkv)$";
+                    if (path.matches(regex)) {
+                        MediaAsset ma = myShepherd.getMediaAsset(maIds.get(0));
+                        LocalAssetStore las = (LocalAssetStore) ma.getStore();
+                        Path absoluteVideoFilePath = Paths.get(las.root() + "/" + path);
+                        Files.delete(absoluteVideoFilePath);
+                    }
+                }
+
                 boolean success = false;
                 for (MediaAsset ma : alreadyAttached) {
                     System.out.println("DETACH: " + ma);

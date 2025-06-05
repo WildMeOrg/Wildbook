@@ -108,8 +108,8 @@ maLib.testCaptionFunction = function(maJson) {
  *
  * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
  */
-maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
-  if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
+maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction, encNum) {
+  if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction, encNum)) return;  // true means it is done!
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   caption = caption || "";
   maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
@@ -226,12 +226,12 @@ goToEncounterHighlighted = function (mediaAssetId, maAnnotationId){
   window.open('encounter.jsp?number=' + currentFocalEncounterId, '_self');
 }
 
-maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
+maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction, encNum) {
   console.log("      MALIB! maJsonToFigureElemCaptionGrid called for maJson "+maJson);
 
   intoElem.append('<div class=\"col-md-6\"></div>');
   intoElem = intoElem.find('div.col-md-6').last();
-  maLib.maJsonToFigureElemCaption(maJson, intoElem, caption, maCaptionFunction);
+  maLib.maJsonToFigureElemCaption(maJson, intoElem, caption, maCaptionFunction, encNum);
 }
 
 
@@ -614,7 +614,7 @@ maLib.isImage = function(maJson) {
     return regex.test(maJson.url);
 }
 
-maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
+maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction, encNum) {
 
     if (maLib.isImage(maJson)) return false;
     if (!maJson.url) return false;
@@ -627,16 +627,71 @@ maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
     var i = filename.lastIndexOf("/");
     if (i >= 0) filename = filename.substring(i + 1);
 
-    if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {
-        intoElem.append('<div class="video-display"><video class="video-element" style="width: 100%;" controls>' +
+if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {
+    const mid = maJson.id;
+    const aid = 'video-annotation-' + mid;
+
+    const videoWrapper = $('<div class="video-display" style="position: relative;"></div>');
+
+    const videoElem = $('<video class="video-element" ' +
+        'style="width: 100%;" controls ' +
+        'data-enh-mediaassetid="' + mid + '" ' +
+        'data-enh-annotationid="' + aid + '">' +
         '<source src="' + maJson.url + '" type="' + maJson.metadata.contentType + '" />' +
-        '<div><a target="_new" href="' + maJson.url + '">play video</a></div>' +
-        '</video><div class="video-caption"><small>File: <b>' + filename + '</b></small></div></div>');
-    } else {
-        intoElem.append('<div class="non-image-display" style="text-align: center;"><a download style="padding: 10px; background-color: #AAA; margin: 10px;" href="' +
-        maJson.url + '"><small>File: <b>' + filename + '</b></small></a></div>');
+        '</video>');
+
+    const captionWrapper = $('<div class="video-caption" style="display: flex; align-items: center; gap: 10px; position: relative;"></div>');
+
+    captionWrapper.append('<small>File: <b>' + filename + '</b></small>');
+
+    const dropdownContainer = $('<div class="dropdown-helper-container image-enhancer-menu" style="margin-left: auto; opacity: 1; bottom: 0; margin-bottom: 1px; cursor: pointer;"></div>');
+    captionWrapper.append(dropdownContainer);
+
+    videoWrapper.append(videoElem).append(captionWrapper);
+
+    intoElem.append(videoWrapper);
+
+    // Attach dropdownHelper menu here
+    dropdownHelper.attach(dropdownContainer[0], {
+        menu: [
+            ['remove this video', function($wrapper) {
+                removeVideoHandler(videoWrapper, mid, encNum);
+            }]
+        ]
+    });
+
+} else {
+    intoElem.append(
+        '<div class="non-image-display" style="text-align: center;">' +
+        '<a download style="padding: 10px; background-color: #AAA; margin: 10px;" href="' + maJson.url + '">' +
+        '<small>File: <b>' + filename + '</b></small></a>' +
+        '</div>'
+    );
+}
+
+
+  return true;
+}
+
+
+function removeVideoHandler(videoElem, maId, encNum) {
+  if (confirm("Are you sure you want to remove this video? This will also remove all annotations associated with this video. The video will not be deleted from the database and can be recovered.")) {
+      $.ajax({
+        url: '../MediaAssetAttach',
+        type: 'POST',
+        dataType: 'json',
+        contentType: "application/json",
+        data: JSON.stringify({"detach":"true","EncounterID":encNum,"MediaAssetID":maId}),
+        success: function(d) {
+          console.info("I detached MediaAsset "+maId+" from encounter <%=encNum%>");
+          videoElem.remove();
+        },
+        error: function(x,y,z) {
+          console.warn("failed to MediaAssetDetach");
+          console.warn('%o %o %o', x, y, z);
+        }
+      });
     }
-    return true;
 }
 
 
@@ -674,3 +729,52 @@ $(document).ready(function() {
   		maLib.initPhotoSwipeFromDOM('#enc-gallery');
 	}
 });
+
+var dropdownHelper = {
+    attach: function(wrapperEl, options) {
+        var $wrapper = $(wrapperEl);
+        if ($wrapper.data('dropdown-attached')) return; // prevent double attach
+        $wrapper.data('dropdown-attached', true);
+
+        $wrapper.css('position', 'relative');
+
+        // Create hidden menu container
+        var menu = $('<div class="video-dropdown image-enhancer-menu-open" style="display: none; width: fit-content; right: 0"></div>');
+        $wrapper.append(menu);
+
+        // Populate menu items
+        options.menu.forEach(function(item, index) {
+            if (typeof item[0] === 'function') return;
+            var label = item[0];
+            var callback = item[1];
+            var extra = item[2];
+            var menuItem = $('<div class="menu-item" style="padding: 5px; cursor: pointer;" data-i="' + index + '">' + label + '</div>');
+            menuItem.on('click', function(e) {
+                e.stopPropagation();
+                dropdownHelper.closeAll();
+                callback($wrapper, extra);
+            });
+            menu.append(menuItem);
+        });
+
+        // Toggle menu visibility
+        $wrapper.on('click', function(e) {
+            e.stopPropagation();
+            const isOpen = menu.is(':visible');
+            dropdownHelper.closeAll();
+            if (!isOpen) {
+                menu.show();
+            }
+        });
+
+        // Close when clicking outside
+        $(document).on('click', function() {
+            dropdownHelper.closeAll();
+        });
+    },
+
+    closeAll: function() {
+        $('.video-dropdown').hide();
+    }
+};
+
