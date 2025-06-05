@@ -3266,9 +3266,9 @@ public class Encounter extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, request);
     }
 
-    public boolean canUserAccess(HttpServletRequest request, boolean canExport) {
-        return Collaboration.canUserAccessEncounter(this, request, canExport);
-    }
+    // public boolean canUserAccess(HttpServletRequest request, boolean canExport) {
+    //     return Collaboration.canUserAccessEncounter(this, request, canExport);
+    // }
 
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
