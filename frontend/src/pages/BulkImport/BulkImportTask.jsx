@@ -48,7 +48,7 @@ export const BulkImportTask = () => {
   const columns = [
     {
       name: "Encounter ID",
-      selector: "encounterID",
+      selector: row => row.encounterID,
       cell: (row) =>
         row.encounterID ? (
           <a
@@ -64,21 +64,21 @@ export const BulkImportTask = () => {
     },
     {
       name: "Encounter Date",
-      selector: "encounterDate",
+      selector: row => row.encounterDate,
     },
     {
       name: "User",
-      selector: "user",
+      selector: row => row.user,
     },
     {
       name: "Occurrence",
-      selector: "occurrence",
+      selector: row => row.occurrence,
     },
     {
       name: "Individual ID",
-      selector: "individualID",
+      selector: row => row.encounterID,
       cell: (row) =>
-        row.individualID ? (
+        row.individualID !== "-" ? (
           <a
             href={`/individuals.jsp?id=${row.individualID}`}
             target="_blank"
@@ -92,11 +92,11 @@ export const BulkImportTask = () => {
     },
     {
       name: "Image Count",
-      selector: "imageCount",
+      selector: row => row.imageCount,
     },
     {
       name: "Class",
-      selector: "class",
+      selector: row => row.class,
     },
   ];
 

@@ -58,6 +58,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         .filter((k) => !removedColumns.includes(k))
         .filter((k) => !mediaAssetsCols.includes(k));
       store.setColumnsDef([...specifiedColumns, ...remaining]);
+      store.applyDynamicValidationRules();
 
       const formatDate = (year, month, day, hour, minute) => {
         console.log("working");

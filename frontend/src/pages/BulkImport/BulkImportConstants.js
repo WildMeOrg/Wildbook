@@ -59,7 +59,8 @@ const stringRule = {
   required: false,
   validate: (val) => {
     if (!val) return true;                 
-    return /^[a-zA-Z0-9\s.,-]+$/.test(val); 
+    // return /^[a-zA-Z0-9\s.,-]+$/.test(val); 
+    return typeof val === "string" || val instanceof String;
   },
   message: "Must be a string",
 };

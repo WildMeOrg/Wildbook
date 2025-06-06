@@ -59,6 +59,8 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
+  _labeledKeywordAllowedKeys = ["label", "keywords"];
+  _labeledKeywordAllowedValues = ["value1", "value2"];
 
   _validationRules = {
     "Encounter.mediaAsset0": {
@@ -984,23 +986,118 @@ export class BulkImportStore {
     }
   }
 
+  isDynamicKnownColumn(col) {
+    const mediaAssetMatch = col.match(/^Encounter\.mediaAsset(\d+)\.(\w+)$/);
+    if (mediaAssetMatch) {
+      const suffix = mediaAssetMatch[2];
+      if (suffix === "keyword") {
+        return true;
+      } else return this._labeledKeywordAllowedKeys.includes(suffix);
+    }
+
+    return (
+      /^Encounter\.keyword\d+$/.test(col) ||
+      /^Encounter\.mediaAsset\d+\.keywords$/.test(col) ||
+      /^Encounter\.photographer\d+\.emailAddress$/.test(col) ||
+      /^Encounter\.photographer\d+\.fullName$/.test(col) ||
+      /^Encounter\.photographer\d+\.affiliation$/.test(col) ||
+      /^Encounter\.submitter\d+\.emailAddress$/.test(col) ||
+      /^Encounter\.submitter\d+\.fullName$/.test(col) ||
+      /^Encounter\.submitter\d+\.affiliation$/.test(col) ||
+      /^Encounter\.informOther\d+\.emailAddress$/.test(col) ||
+      /^Encounter\.informOther\d+\.fullName$/.test(col) ||
+      /^Encounter\.informOther\d+\.affiliation$/.test(col) ||
+      /^Encounter\.project\d+\.projectIdPrefix$/.test(col) ||
+      /^Encounter\.project\d+\.researchProjectName$/.test(col) ||
+      /^Encounter\.project\d+\.ownerUsername$/.test(col)
+    );
+  }
+
+  applyDynamicValidationRules() {
+    const isEmail = (val) => {
+      if (!val) return true;
+      const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return re.test(val);
+    };
+
+    const isString = (val) => {
+      return typeof val === "string" || val instanceof String;
+    };
+
+    const isInLabeledKeywordAllowedValues = (val) => {
+      return this._labeledKeywordAllowedValues.includes(val);
+    };
+
+    this._columnsDef.forEach((col) => {
+      if (/^Encounter\.keyword\d+$/.test(col)) {
+        this._validationRules[col] = {
+          required: false,
+          validate: isString,
+          message: "must be a string",
+        };
+      }
+
+      if (/^Encounter\.mediaAsset\d+\.keywords$/.test(col)) {
+        this._validationRules[col] = {
+          required: false,
+          validate: isString,
+          message: "must be a string",
+        };
+      }
+
+      const mediaAssetLabeledMatch = col.match(/^Encounter\.mediaAsset\d+\.(\w+)$/);
+      if (mediaAssetLabeledMatch) {
+        const field = mediaAssetLabeledMatch[1];
+        if (field !== "keywords") { 
+          this._validationRules[col] = {
+            required: false,
+            validate: isInLabeledKeywordAllowedValues,
+            message: "invalid value — must match an allowed label",
+          };
+        }
+      }
+
+      const personFieldMatch = col.match(/^Encounter\.(photographer|submitter|informOther)\d+\.(emailAddress|fullName|affiliation)$/);
+      if (personFieldMatch) {
+        const fieldType = personFieldMatch[2];
+        if (fieldType === "emailAddress") {
+          this._validationRules[col] = {
+            required: false,
+            validate: isEmail,
+            message: "invalid email address",
+          };
+        } else {
+          this._validationRules[col] = {
+            required: false,
+            validate: isString,
+            message: "must be a string",
+          };
+        }
+      }
+    });
+  }
+
   validateSpreadsheet() {
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
     const errors = {};
     const warnings = {};
-
+    const knownColumnCache = {};
     this._spreadsheetData.forEach((row, rowIndex) => {
-
       this._columnsDef.forEach((col) => {
 
+        if (!(col in knownColumnCache)) {
+          knownColumnCache[col] =
+            col in this._minimalFields ||
+            extraStringCols.includes(col) ||
+            specializedColumns.includes(col) ||
+            this.isDynamicKnownColumn(col);
+        }
+
+        const isKnown = knownColumnCache[col];
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
-        const isKnown =
-          col in this._minimalFields ||
-          extraStringCols.includes(col) ||
-          specializedColumns.includes(col);
 
         if (!isKnown) {
           if (!warnings[rowIndex]) warnings[rowIndex] = {};
