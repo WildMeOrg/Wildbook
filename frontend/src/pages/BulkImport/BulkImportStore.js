@@ -376,12 +376,9 @@ export class BulkImportStore {
   }
 
   get errorSummary() {
-    console.log("errrrrrrrrrrrrrrrrrrrrrrrrrr")
     let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
-    // const { errors } = this.validateSpreadsheet();
-const { errors = {} } = this.validateSpreadsheet() || {};
+    const { errors = {} } = this.validateSpreadsheet() || {};
 
-    console.log("Spreadsheet validation errors+++++++++++++++", errors);
     const uploadingSet = new Set(
       this._imagePreview
         .filter(p => p.progress > 0 && p.progress < 100)
@@ -393,8 +390,6 @@ const { errors = {} } = this.validateSpreadsheet() || {};
       this._columnsDef.forEach(col => {
         const rules = this._validationRules[col] ?? {};
         const value = String(row[col] ?? "").trim();
-        // const errMsg = this._submissionErrors[rowIdx]?.[col]
-        //   ?? this.validateSpreadsheet()[rowIdx]?.[col];
         const errMsg = this._submissionErrors[rowIdx]?.[col] ?? errors[rowIdx]?.[col];
 
         if (errMsg) {
@@ -431,7 +426,7 @@ const { errors = {} } = this.validateSpreadsheet() || {};
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
     this.invalidateValidation();
-    this.updateRawFromNormalizedRow(); 
+    this.updateRawFromNormalizedRow();
   }
 
   setRawData(data) {
@@ -990,7 +985,6 @@ const { errors = {} } = this.validateSpreadsheet() || {};
   }
 
   validateSpreadsheet() {
-    console.log("Validating spreadsheet 11111", JSON.stringify(this._cachedValidation));
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
@@ -1033,7 +1027,6 @@ const { errors = {} } = this.validateSpreadsheet() || {};
       });
     });
     this._cachedValidation = { errors, warnings };
-    console.log("Spreadsheet validation 22222", JSON.stringify(this._cachedValidation));
     return this._cachedValidation;
   }
 

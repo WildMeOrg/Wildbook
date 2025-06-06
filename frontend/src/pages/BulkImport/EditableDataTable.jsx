@@ -28,11 +28,11 @@ const EditableCell = ({
     setWarning(externalWarning ?? "");
   }, [externalError]);
 
-  const handleBlur = () => {    
+  const handleBlur = () => {
     store.spreadsheetData[rowIndex][columnId] = value;
-    store.rawData[rowIndex][columnId] = value;    
+    store.rawData[rowIndex][columnId] = value;
     store.invalidateValidation();
-    store.updateRawFromNormalizedRow(rowIndex);    
+    store.updateRawFromNormalizedRow(rowIndex);
     const { errors, warnings } = store.validateSpreadsheet();
     setError(errors[rowIndex]?.[columnId] || "");
     setWarning(warnings[rowIndex]?.[columnId] || "");
@@ -53,15 +53,17 @@ const EditableCell = ({
           options={
             store.getOptionsForSelectCell(columnId)
           }
-          // menuPortalTarget={document.body}
-          // menuPosition="fixed"
-          // styles={{  
-          //   menuPortal: base => ({ ...base, zIndex: 1060 }),   
-          // }}
           value={value ? { value, label: value } : null}
           onChange={(sel) => {
-            console.log("selected value", sel);
-            setValue(sel ? sel.value : "")
+            const newValue = sel ? sel.value : "";
+            setValue(newValue);
+            store.spreadsheetData[rowIndex][columnId] = newValue;
+            store.rawData[rowIndex][columnId] = newValue;
+            store.invalidateValidation();
+            store.updateRawFromNormalizedRow(rowIndex);
+            const { errors, warnings } = store.validateSpreadsheet();
+            setError(errors[rowIndex]?.[columnId] || "");
+            setWarning(warnings[rowIndex]?.[columnId] || "");
           }}
           onBlur={handleBlur}
           error={error}
