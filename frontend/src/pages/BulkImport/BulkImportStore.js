@@ -59,8 +59,8 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
-  _labeledKeywordAllowedKeys = ["label", "keywords"];
-  _labeledKeywordAllowedValues = ["value1", "value2"];
+  _labeledKeywordAllowedKeys = [];
+  _labeledKeywordAllowedPairs = [];
 
   _validationRules = {
     "Encounter.mediaAsset0": {
@@ -405,7 +405,7 @@ export class BulkImportStore {
           else emptyField += 1;
         }
 
-        if (col.startsWith("Encounter.mediaAsset") && value) {
+        if (col.startsWith("Encounter.mediaAsset") && value && col.split(".").length === 2) {
           const imgs = value.split(/\s*,\s*/);
           if (imgs.some(img => uploadingSet.has(img))) rowHasPendingUpload = true;
         }
@@ -423,6 +423,14 @@ export class BulkImportStore {
 
   get locationID() {
     return this._locationID;
+  }
+
+  setLabeledKeywordAllowedKeys (keys) {
+    this._labeledKeywordAllowedKeys = keys;
+  }
+
+  setLabeledKeywordAllowedPairs (values) {
+    this._labeledKeywordAllowedPairs = values;
   }
 
   setSpreadsheetData(data) {
@@ -940,7 +948,7 @@ export class BulkImportStore {
 
         if (norm["Encounter.mediaAsset0"] != null) {
           Object.keys(raw).forEach((key) => {
-            if (key.startsWith("Encounter.mediaAsset")) {
+            if (key.startsWith("Encounter.mediaAsset") && key.split(".").length === 2) {
               delete raw[key];
             }
           });
@@ -1093,6 +1101,19 @@ export class BulkImportStore {
             extraStringCols.includes(col) ||
             specializedColumns.includes(col) ||
             this.isDynamicKnownColumn(col);
+        }
+
+        if (col.startsWith("Encounter.mediaAsset") && this._labeledKeywordAllowedKeys.includes(col.split(".")[2])) {
+          console.log("Applying dynamic validation rules for labeled keywords");
+          const columnName = col.split(".")[2];
+          
+            const value = row[col];
+            if (value && !this._labeledKeywordAllowedPairs[columnName].includes(value)) {
+              if (!errors[rowIndex]) errors[rowIndex] = {};
+              errors[rowIndex][col] = `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
+            }
+         
+          return;
         }
 
         const isKnown = knownColumnCache[col];
