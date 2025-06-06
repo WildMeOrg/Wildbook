@@ -86,6 +86,13 @@ export const BulkImportSetLocation = observer(({ store }) => {
                         });
                     }
                     }
+                    styles={{
+                        menu: (base) => ({
+                            ...base,
+                            zIndex: 9999,
+                        }),
+                        menuPortal: base => ({ ...base, zIndex: 1060 }),
+                    }}
                 />
             </div>
 
