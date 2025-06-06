@@ -26,15 +26,6 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     setPagedData(data.slice(start, end));
   }, [data, currentPage, perPage]);
 
-  // const wrappedColumns = useMemo(() =>
-  //   columns.map(col => ({
-  //     id: col.selector,
-  //     name: col.name,
-  //     selector: col.selector,
-  //     sortable: col.sortable ?? true,
-  //     cell: col.cell || (row => row[col.selector] || "-"),
-  //   })), [columns]);
-
   const wrappedColumns = useMemo(() => {
     const indexColumn = {
       id: "__index",
@@ -62,7 +53,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
       style: {
         backgroundColor: "#ffffff",
         "&:hover": {
-          backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
+          backgroundColor: theme?.primaryColors?.primary50,
         },
       },
     },
@@ -71,7 +62,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
       style: {
         backgroundColor: "#f2f2f2",
         "&:hover": {
-          backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
+          backgroundColor: theme?.primaryColors?.primary50,
         },
       },
     },
@@ -90,7 +81,6 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
         highlightOnHover
-        pointerOnHover
       />
       <Row className="mt-3 d-flex justify-content-center">
         <Col xs="auto">

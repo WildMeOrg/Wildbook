@@ -29,7 +29,7 @@ function ContextAwareToggle({ children, eventKey }) {
 export default function InfoAccordion({ icon, title, data = [] }) {
   const theme = React.useContext(ThemeColorContext);
   return (
-    <Accordion defaultActiveKey="0" style={{ maxWidth: 500 }}>
+    <Accordion defaultActiveKey="null" style={{ maxWidth: 500 }}>
       <Card style={{ backgroundColor: theme.primaryColors.primary50 }}>
         <Card.Header style={{ backgroundColor: theme.primaryColors.primary50 }}>
           <ContextAwareToggle eventKey="0">
@@ -52,7 +52,9 @@ export default function InfoAccordion({ icon, title, data = [] }) {
             <ul style={{ paddingLeft: 20, margin: 0, listStyleType: "none" }}>
               {data.map((item, index) => (
                 <li key={index} style={{ marginBottom: "0.5rem" }}>
-                  {Object.prototype.hasOwnProperty.call(item, 'value') ? `${item.label} : ${item.value}` : item.label}
+                  {Object.prototype.hasOwnProperty.call(item, "value")
+                    ? `${item.label} : ${item.value}`
+                    : item.label}
                 </li>
               ))}
             </ul>
