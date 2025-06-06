@@ -24,6 +24,7 @@ import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Measurement;
 import org.ecocean.Occurrence;
+import org.ecocean.Project;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.tag.SatelliteTag;
@@ -44,6 +45,7 @@ public class BulkImporter {
     private Map<String, MarkedIndividual> individualCache = new HashMap<String, MarkedIndividual>();
     private Map<String, User> userCache = new HashMap<String, User>();
     private Map<String, Keyword> keywordCache = new HashMap<String, Keyword>();
+    private Map<String, Project> projectCache = new HashMap<String, Project>();
 
     public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
         Shepherd myShepherd) {
@@ -123,6 +125,10 @@ public class BulkImporter {
             needIndexing.add(indiv);
         }
         rtn.put("individuals", arr);
+        for (Project proj : projectCache.values()) {
+            myShepherd.storeNewProject(proj);
+            System.out.println("PPPP " + proj);
+        }
         System.out.println(
             "------------ persistence complete; background indexing and MA children -------------\n");
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
@@ -262,7 +268,29 @@ public class BulkImporter {
                 paffil);
             enc.addPhotographer(pho); // weeds out null and duplicates, yay!
         }
-        // FIXME project foo
+        // projects
+        List<String> projectPrefixes = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.project.projectIdPrefix");
+        List<String> projectNames = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.project.researchProjectName");
+        List<String> projectOwnerUsernames = BulkImportUtil.findIndexedFieldNames(allFieldNames,
+            "Encounter.project.ownerUsername");
+        for (int i = 0; i < projectPrefixes.size(); i++) {
+            if (projectPrefixes.get(i) == null) continue;
+            String projectPrefix = fmap.get(projectPrefixes.get(i)).getValueString();
+            if (projectPrefix == null) continue;
+            String projectName = null;
+            if ((i < projectNames.size()) && (projectNames.get(i) != null))
+                projectName = fmap.get(projectNames.get(i)).getValueString();
+            // for whatever reason StandardImport bails on doing anything unless we have *both* prefix and name,
+            // despite the fact, the lookup of existing projects uses prefix only. so replicating questionable behavior here.
+            if (projectName == null) continue;
+            String projectOwnerUsername = null;
+            if ((i < projectOwnerUsernames.size()) && (projectOwnerUsernames.get(i) != null))
+                projectOwnerUsername = fmap.get(projectOwnerUsernames.get(i)).getValueString();
+            Project proj = getOrCreateProject(projectPrefix, projectName, projectOwnerUsername);
+            if (proj != null) proj.addEncounter(enc);
+        }
         // measurements kinda suck eggs. good luck with this.
         List<String> measFN = BulkImportUtil.findMeasurementFieldNames(allFieldNames);
         List<String> mspFN = BulkImportUtil.findMeasurementSamplingProtocolFieldNames(
@@ -703,6 +731,36 @@ public class BulkImporter {
         }
         userCache.put(email, user);
         return user;
+    }
+
+    private Project getOrCreateProject(String projectPrefix, String projectName,
+        String projectOwnerUsername) {
+        if (projectPrefix == null) return null;
+        Project proj = projectCache.get(projectPrefix);
+        if (proj == null) proj = myShepherd.getProjectByProjectIdPrefix(projectPrefix);
+        if (proj == null) {
+            // in StandardImport, both of these are required to create a new Project
+            if ((projectName == null) || (projectOwnerUsername == null)) return null;
+/*
+            sadly: (1) we cannot use getOrCreateUser, as we dont have an email address(!)
+            (2) we also create a user based purely on username (!) if we dont find one
+            we dont want to end up with duplicated usernames, so we still use userCache to find this
+            to find this user again (for example, if *another* project is made with same username),
+            by keying off of username. sigh
+ */
+            User owner = userCache.get(projectOwnerUsername);
+            if (owner == null) owner = myShepherd.getUser(projectOwnerUsername);
+            if (owner == null) {
+                owner = new User(Util.generateUUID());
+                owner.setUsername(projectOwnerUsername);
+                userCache.put(projectOwnerUsername, owner);
+            }
+            proj = new Project(projectPrefix);
+            proj.setResearchProjectName(projectName);
+            proj.setOwner(owner);
+        }
+        projectCache.put(projectPrefix, proj);
+        return proj;
     }
 
     private Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap) {
