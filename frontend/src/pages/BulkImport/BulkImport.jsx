@@ -18,15 +18,11 @@ const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
   const [savedSubmissionId, setSavedSubmissionId] = React.useState(null);
   const lastTask = localStorage.getItem("lastBulkImportTask") || null;
-console.log("lastTask", lastTask);  
   const { task: unfinishedTask, isLoading } = useGetBulkImportTask(lastTask);
-
-  console.log("unfinishedTask", unfinishedTask);
 
   useEffect(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
     const submissionId = savedStore?.submissionId;
-    console.log("submissionId", submissionId);
     if (submissionId) {
       setSavedSubmissionId(submissionId);
       store.hydrate(savedStore);

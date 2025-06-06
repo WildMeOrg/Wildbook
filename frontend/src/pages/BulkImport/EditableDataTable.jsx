@@ -159,14 +159,13 @@ export const DataTable = observer(({ store }) => {
   store.setValidBehavior(validBehavior);
 
   useEffect(() => {
-    if (siteData) {
-      // setCellErrors(store.validateSpreadsheet());
+    if (siteData) { 
+      store.invalidateValidation();
       const { errors, warnings } = store.validateSpreadsheet();
       setCellErrors(errors);
       setCellWarnings(warnings);
-
     }
-  }, [store.spreadsheetData, siteData])
+  }, [store.spreadsheetData, siteData, store.imageSectionFileNames])
 
   const columns = columnsDef.map((col) => ({
     header: tableHeaderMapping[col] || col,
