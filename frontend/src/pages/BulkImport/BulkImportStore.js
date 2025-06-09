@@ -29,7 +29,7 @@ export class BulkImportStore {
   _rawColumns = [];
   _maxImageCount = 200;
   _missingImages = [];
-  _locationID = "";
+  _locationID = [];
   _worksheetInfo = {
     fileName: "",
     sheetCount: 0,
@@ -1087,13 +1087,9 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
-    console.log("Validating spreadsheet data...");
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
-    console.log(
-      "Cached validation not found, performing new validation."
-    )
     const errors = {};
     const warnings = {};
     const knownColumnCache = {};

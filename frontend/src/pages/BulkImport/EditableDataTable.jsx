@@ -126,7 +126,7 @@ export const DataTable = observer(({ store }) => {
   const validLifeStages = siteData?.lifeStage || [];
   const validLivingStatus = siteData?.livingStatus || [];
   const validBehavior = siteData?.behavior || [];
-  const LabeledKeywordAllowedKeys = Object.keys(siteData?.labeledKeywordAllowedValues) || [];
+  const LabeledKeywordAllowedKeys = Object.keys(siteData?.labeledKeywordAllowedValues || {}) || [];
   const LabeledKeywordAllowedPairs = siteData?.labeledKeywordAllowedValues;
   const [columnPinning, setColumnPinning] = useState({
     left: ["rowNumber", columnsDef[0] || ""],
