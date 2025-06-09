@@ -998,9 +998,10 @@ export class BulkImportStore {
     const mediaAssetMatch = col.match(/^Encounter\.mediaAsset(\d+)\.(\w+)$/);
     if (mediaAssetMatch) {
       const suffix = mediaAssetMatch[2];
-      if (suffix === "keyword") {
+      if (suffix === "keywords") {
         return true;
-      } else return this._labeledKeywordAllowedKeys.includes(suffix);
+      } else  {
+        return this._labeledKeywordAllowedKeys.includes(suffix);}     
     }
 
     return (
@@ -1086,9 +1087,13 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
+    console.log("Validating spreadsheet data...");
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
+    console.log(
+      "Cached validation not found, performing new validation."
+    )
     const errors = {};
     const warnings = {};
     const knownColumnCache = {};
