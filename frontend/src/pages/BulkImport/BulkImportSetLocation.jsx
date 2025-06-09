@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { useContext, useCallback } from "react";
@@ -7,13 +7,21 @@ import MainButton from "../../components/MainButton";
 import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
 import Select from "react-select";
+import { reaction } from "mobx";
+import SuccessModal from "./BulkImportSuccessModal";
+import { useState } from "react";
+import dayjs from "dayjs";
+import FailureModal from "./BulkImportFailureModal";
+
 
 export const BulkImportSetLocation = observer(({ store }) => {
     const theme = useContext(ThemeContext);
     const { submit, isLoading } = usePostBulkImport();
     const submissionId = store.submissionId || uuidv4();
     const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
-
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showFailureModal, setShowFailureModal] = useState(false);
+    const [lastEditedDate, setLastEditedDate] = useState(dayjs().format("YYYY-MM-DD"));
     const options = React.useMemo(
         () =>
             store.validLocationIDs.map(id => ({
@@ -23,8 +31,25 @@ export const BulkImportSetLocation = observer(({ store }) => {
         [store.validLocationIDs]
     );
 
-    const selectedOption = React.useMemo(
-        () => options.find(o => o.value === store.locationID) ?? null,
+    useEffect(() => {
+        const disposer = reaction(
+            () => store.spreadsheetData.map(row => row["Encounter.locationID"]),
+            (locationIDs) => {
+                const uniqueIDs = Array.from(
+                    new Set(locationIDs.filter(id => id && id.length > 0))
+                );
+                store.setLocationID(uniqueIDs);
+            },
+            { fireImmediately: true }
+        );
+
+        return () => disposer();
+    }, []);
+
+
+    const selectedOptions = React.useMemo(
+        () =>
+            options.filter(o => store.locationID?.includes(o.value)),
         [options, store.locationID]
     );
 
@@ -34,21 +59,21 @@ export const BulkImportSetLocation = observer(({ store }) => {
             const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName);
             if (result?.success) {
                 store.resetToDefaults();
-                alert("Import successful");
                 localStorage.removeItem("BulkImportStore");
-                store.setActiveStep(0); // Move to the next step after successful import
-                // localStorage.setItem("lastBulkImportTask", result.bulkImportId);
-                localStorage.setItem("lastBulkImportTask", submissionId);
+                localStorage.setItem("lastBulkImportTask", result.bulkImportId);
+                setLastEditedDate(dayjs().format("YYYY-MM-DD"));
+                setShowSuccessModal(true);
             }
         } catch (err) {
-            alert("Import failed");
             const errors = err.response?.data?.errors;
             console.log("Error during import:", err);
             if (errors) {
+                // store.setSubmissionErrors(JSON.stringify(errors, null, 2));
                 store.setSubmissionErrors(errors);
             } else {
                 console.error('Import failed', err);
             }
+            setShowFailureModal(true);
         }
     });
 
@@ -64,7 +89,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
                 width: "500px"
             }}>
                 <Select
-                    isMulti={false}
+                    isMulti={true}
                     options={options}
                     placeholder={<FormattedMessage id="SELECT_LOCATION" defaultMessage="Select Location" />}
                     noOptionsMessage={() => <FormattedMessage id="NO_LOCATIONS_FOUND" defaultMessage="No locations found" />}
@@ -74,16 +99,9 @@ export const BulkImportSetLocation = observer(({ store }) => {
                     classNamePrefix="select"
                     menuPlacement="auto"
                     menuPortalTarget={document.body}
-                    value={selectedOption}
-                    onChange={(selectedOption) => {
-                        store.setLocationID(selectedOption ? selectedOption.value : null);
-                        store.spreadsheetData.forEach(row => {
-                            row["Encounter.locationID"] = selectedOption ? selectedOption.value : null;
-                        }
-                        );
-                        store.rawData.forEach(row => {
-                            row["Encounter.locationID"] = selectedOption ? selectedOption.value : null;
-                        });
+                    value={selectedOptions}
+                    onChange={(selectedOptions) => {
+                        store.setLocationID(selectedOptions ? selectedOptions.map(opt => opt.value) : []);
                     }
                     }
                     styles={{
@@ -113,6 +131,18 @@ export const BulkImportSetLocation = observer(({ store }) => {
                         : <FormattedMessage id="START_BULK_IMPORT" />}
                 </MainButton>
             </div>
+            <SuccessModal
+                show={showSuccessModal}
+                onHide={() => setShowSuccessModal(false)}
+                fileName={store.spreadsheetFileName}
+                submissionId={submissionId}
+                lastEdited={lastEditedDate}
+            />
+            <FailureModal
+                show={showFailureModal}
+                onHide={() => setShowFailureModal(false)}
+                errorMessage={store.submissionErrors}
+            />
         </div>
     );
 });

@@ -29,7 +29,7 @@ export class BulkImportStore {
   _rawColumns = [];
   _maxImageCount = 200;
   _missingImages = [];
-  _locationID = "";
+  _locationID = [];
   _worksheetInfo = {
     fileName: "",
     sheetCount: 0,
@@ -998,9 +998,10 @@ export class BulkImportStore {
     const mediaAssetMatch = col.match(/^Encounter\.mediaAsset(\d+)\.(\w+)$/);
     if (mediaAssetMatch) {
       const suffix = mediaAssetMatch[2];
-      if (suffix === "keyword") {
+      if (suffix === "keywords") {
         return true;
-      } else return this._labeledKeywordAllowedKeys.includes(suffix);
+      } else  {
+        return this._labeledKeywordAllowedKeys.includes(suffix);}     
     }
 
     return (

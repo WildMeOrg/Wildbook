@@ -126,25 +126,8 @@ export const DataTable = observer(({ store }) => {
   const validLifeStages = siteData?.lifeStage || [];
   const validLivingStatus = siteData?.livingStatus || [];
   const validBehavior = siteData?.behavior || [];
-  const siteData1 = {
-  "labeledKeywordAllowedValues": {
-    "Label1": [
-      "Label1ValueA",
-      "Label1ValueB",
-      "Label1ValueC"
-    ],
-    "Label1Toooooo": [],
-    "LabelZero": [
-      "ZeroValueB",
-      "ZeroValueA",
-      "ZeroValueC"
-    ]
-  }
-}
-
-
-  const LabeledKeywordAllowedKeys = Object.keys(siteData1?.labeledKeywordAllowedValues) || [];
-  const LabeledKeywordAllowedPairs = siteData1?.labeledKeywordAllowedValues;
+  const LabeledKeywordAllowedKeys = Object.keys(siteData?.labeledKeywordAllowedValues || {}) || [];
+  const LabeledKeywordAllowedPairs = siteData?.labeledKeywordAllowedValues;
   const [columnPinning, setColumnPinning] = useState({
     left: ["rowNumber", columnsDef[0] || ""],
     right: [],
