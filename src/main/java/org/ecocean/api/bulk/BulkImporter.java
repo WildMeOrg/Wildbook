@@ -25,6 +25,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.Measurement;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.tag.SatelliteTag;
@@ -35,6 +36,7 @@ public class BulkImporter {
     public List<Map<String, Object> > dataRows = null;
     public Map<String, MediaAsset> mediaAssetMap = null;
     public User user = null;
+    public ImportTask itask = null;
     public Shepherd myShepherd = null;
 
     // caching loaded and (more imporantly?) newly created objects, so they can be
@@ -48,10 +50,11 @@ public class BulkImporter {
     private Map<String, Project> projectCache = new HashMap<String, Project>();
 
     public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
-        Shepherd myShepherd) {
+        ImportTask itask, Shepherd myShepherd) {
         this.dataRows = rows;
         this.mediaAssetMap = maMap;
         this.user = user;
+        this.itask = itask;
         this.myShepherd = myShepherd;
     }
 
@@ -80,9 +83,15 @@ public class BulkImporter {
                 throw new ServletException("unexpected exception on processRow for row=" + rowNum +
                         ": " + ex);
             }
+            // count this as 75% of the work, persisting does the rest #progressbarkludge
+            markProgress(rowNum, dataRows.size(), 0.0d, 0.75d);
         }
         System.out.println(
             "------------ all rows processed; beginning persistence -------------\n");
+        int persistenceTicksTotal = mediaAssetMap.values().size() + userCache.values().size() +
+            encounterCache.values().size() + occurrenceCache.values().size() +
+            individualCache.values().size() + projectCache.values().size();
+        int persistenceTicks = 0;
         List<Integer> maIds = new ArrayList<Integer>(); // used later to build child MAs
         JSONArray arr = new JSONArray();
         for (MediaAsset ma : mediaAssetMap.values()) {
@@ -92,10 +101,14 @@ public class BulkImporter {
             arr.put(ma.getIdInt());
             maIds.add(ma.getIdInt());
             needIndexing.add(ma);
+            persistenceTicks++;
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
         }
         rtn.put("mediaAssets", arr);
         for (User u : userCache.values()) {
             myShepherd.getPM().makePersistent(u);
+            persistenceTicks++;
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
         }
         arr = new JSONArray();
         for (Encounter enc : encounterCache.values()) {
@@ -105,6 +118,8 @@ public class BulkImporter {
             System.out.println("EEEE " + enc);
             arr.put(enc.getId());
             needIndexing.add(enc);
+            persistenceTicks++;
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
         }
         rtn.put("encounters", arr);
         arr = new JSONArray();
@@ -114,6 +129,8 @@ public class BulkImporter {
             System.out.println("OOOO " + occ);
             arr.put(occ.getId());
             needIndexing.add(occ);
+            persistenceTicks++;
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
         }
         rtn.put("sightings", arr);
         arr = new JSONArray();
@@ -123,11 +140,15 @@ public class BulkImporter {
             System.out.println("IIII " + indiv);
             arr.put(indiv.getId());
             needIndexing.add(indiv);
+            persistenceTicks++;
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
         }
         rtn.put("individuals", arr);
         for (Project proj : projectCache.values()) {
             myShepherd.storeNewProject(proj);
             System.out.println("PPPP " + proj);
+            persistenceTicks++;
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
         }
         System.out.println(
             "------------ persistence complete; background indexing and MA children -------------\n");
@@ -627,6 +648,14 @@ public class BulkImporter {
         }
         if (annots.size() > 0) enc.addAnnotations(annots);
         System.out.println("+ populated " + annots.size() + " MediaAssets on " + enc);
+    }
+
+    public void markProgress(int ticks, int total, double base, double weight) {
+        if (this.itask == null) return;
+        Double progress = base + (weight * new Double(ticks) / new Double(total));
+        System.out.println("--------------------------------------------- MARK-PROGRESS: " +
+            progress);
+        // FIXME alter itask
     }
 
     public List<Encounter> getEncounters() {

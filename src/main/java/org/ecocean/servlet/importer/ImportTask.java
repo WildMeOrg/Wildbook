@@ -27,6 +27,7 @@ public class ImportTask implements java.io.Serializable {
     private List<String> log;
     private String status;
     private Task iaTask;
+    private Double processingProgress;
 
     public ImportTask() {
         this((User)null);
@@ -56,6 +57,14 @@ public class ImportTask implements java.io.Serializable {
 
     public int numberEncounters() {
         return Util.collectionSize(encounters);
+    }
+
+    public Double getProcessingProgress() {
+        return processingProgress;
+    }
+
+    public void setProcessingProgress(Double prog) {
+        processingProgress = prog;
     }
 
     public List<Encounter> getEncounters() {

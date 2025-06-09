@@ -147,7 +147,7 @@ class BulkGeneralTest {
         rows.add(row);
         // exception here means we got far enough :)
         Exception ex = assertThrows(ServletException.class, () -> {
-            BulkImporter imp = new BulkImporter(rows, null, null, null);
+            BulkImporter imp = new BulkImporter(rows, null, null, null, null);
             imp.createImport();
         });
         // on QA, ex.getMessage() returns null WTF!? so skipping this

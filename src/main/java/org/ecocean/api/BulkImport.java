@@ -178,6 +178,9 @@ public class BulkImport extends ApiBase {
                 toleranceSkipRowOnError = false;
             }
             boolean verboseReturn = payload.optBoolean("verbose", false);
+            // should this be on by default?
+            boolean processInBackground = payload.optBoolean("processInBackground",
+                false) && !validateOnly;
             List<File> files = UploadedFiles.findFiles(request, bulkImportId);
             JSONArray fieldNamesArr = payload.optJSONArray("fieldNames");
             Set<String> fieldNames = null;
@@ -360,21 +363,6 @@ public class BulkImport extends ApiBase {
                 // (we may have some errors in rows depending on tolerance)
                 System.out.println("================= about to createImport for " + bulkImportId +
                     " =================");
-                BulkImporter importer = new BulkImporter(validatedRows, maMap, currentUser,
-                    myShepherd);
-                JSONObject results = importer.createImport();
-                for (String rkey : results.keySet()) {
-                    rtn.put(rkey, results.get(rkey));
-                }
-                if (!verboseReturn) {
-                    rtn.remove("mediaAssets");
-                    rtn.remove("encounters");
-                    rtn.remove("sightings");
-                    rtn.remove("individuals");
-                }
-                rtn.put("success", true);
-                rtn.put("note", "INCOMPLETE IMPORT CREATION; in development");
-
                 ImportTask itask = myShepherd.getImportTask(bulkImportId);
                 if (itask != null) {
                     itask.addLog(
@@ -385,15 +373,39 @@ public class BulkImport extends ApiBase {
                 } else {
                     itask = new ImportTask(currentUser, bulkImportId);
                 }
-                itask.setEncounters(importer.getEncounters());
                 JSONObject passedParams = new JSONObject();
                 for (String k : payload.keySet()) {
                     if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
                     passedParams.put(k, payload.get(k));
                 }
                 itask.setPassedParameters(passedParams);
-                itask.setStatus("started");
-                myShepherd.storeNewImportTask(itask);
+
+                BulkImporter importer = new BulkImporter(validatedRows, maMap, currentUser, itask,
+                    myShepherd);
+
+                rtn.put("processInBackground", processInBackground);
+                if (processInBackground) {
+                    itask.setStatus("started-background");
+                    myShepherd.storeNewImportTask(itask);
+                    rtn.put("backgrounded???", "NOT REALLY");
+                    ///archiveBulkJson(rtn, "return" + statusCode);
+                } else {
+                    // foreground processing
+                    JSONObject results = importer.createImport();
+                    for (String rkey : results.keySet()) {
+                        rtn.put(rkey, results.get(rkey));
+                    }
+                    if (!verboseReturn) {
+                        rtn.remove("mediaAssets");
+                        rtn.remove("encounters");
+                        rtn.remove("sightings");
+                        rtn.remove("individuals");
+                    }
+                    itask.setEncounters(importer.getEncounters());
+                    itask.setStatus("started");
+                    myShepherd.storeNewImportTask(itask);
+                }
+                rtn.put("success", true);
                 statusCode = 200;
             }
             response.setStatus(statusCode);
