@@ -7,7 +7,11 @@ import MainButton from "../../components/MainButton";
 import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
 import Select from "react-select";
-    import { reaction } from "mobx";
+import { reaction } from "mobx";
+import SuccessModal from "./BulkImportSuccessModal";
+import { useState } from "react";
+import dayjs from "dayjs";
+import FailureModal from "./BulkImportFailureModal";
 
 
 export const BulkImportSetLocation = observer(({ store }) => {
@@ -15,7 +19,9 @@ export const BulkImportSetLocation = observer(({ store }) => {
     const { submit, isLoading } = usePostBulkImport();
     const submissionId = store.submissionId || uuidv4();
     const hasSubmissionErrors = store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
-
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showFailureModal, setShowFailureModal] = useState(false);
+    const [lastEditedDate, setLastEditedDate] = useState(dayjs().format("YYYY-MM-DD"));
     const options = React.useMemo(
         () =>
             store.validLocationIDs.map(id => ({
@@ -53,21 +59,21 @@ export const BulkImportSetLocation = observer(({ store }) => {
             const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName);
             if (result?.success) {
                 store.resetToDefaults();
-                alert("Import successful");
                 localStorage.removeItem("BulkImportStore");
-                store.setActiveStep(0); // Move to the next step after successful import
-                // localStorage.setItem("lastBulkImportTask", result.bulkImportId);
-                localStorage.setItem("lastBulkImportTask", submissionId);
+                localStorage.setItem("lastBulkImportTask", result.bulkImportId);
+                setLastEditedDate(dayjs().format("YYYY-MM-DD"));
+                setShowSuccessModal(true);
             }
         } catch (err) {
-            alert("Import failed");
             const errors = err.response?.data?.errors;
             console.log("Error during import:", err);
             if (errors) {
+                // store.setSubmissionErrors(JSON.stringify(errors, null, 2));
                 store.setSubmissionErrors(errors);
             } else {
                 console.error('Import failed', err);
             }
+            setShowFailureModal(true);
         }
     });
 
@@ -125,6 +131,18 @@ export const BulkImportSetLocation = observer(({ store }) => {
                         : <FormattedMessage id="START_BULK_IMPORT" />}
                 </MainButton>
             </div>
+            <SuccessModal
+                show={showSuccessModal}
+                onHide={() => setShowSuccessModal(false)}
+                fileName={store.spreadsheetFileName}
+                submissionId={submissionId}
+                lastEdited={lastEditedDate}
+            />
+            <FailureModal
+                show={showFailureModal}
+                onHide={() => setShowFailureModal(false)}
+                errorMessage={store.submissionErrors}
+            />
         </div>
     );
 });

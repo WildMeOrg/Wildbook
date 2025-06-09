@@ -18,7 +18,7 @@ const BulkImport = observer(() => {
   const store = useLocalObservable(() => new BulkImportStore());
   const [savedSubmissionId, setSavedSubmissionId] = React.useState(null);
   const lastTask = localStorage.getItem("lastBulkImportTask") || null;
-  const { task: unfinishedTask, isLoading } = useGetBulkImportTask(lastTask);
+  const { task: unfinishedTask } = useGetBulkImportTask(lastTask);
 
   useEffect(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
@@ -59,13 +59,23 @@ const BulkImport = observer(() => {
       </div>
 
       {<BulkImportUploadProgress store={store} />}
-      {store.activeStep === 0 && <BulkImportImageUpload store={store} />}
-      {store.activeStep === 1 && <BulkImportSpreadsheet store={store} />}
-      {store.activeStep === 2 && <BulkImportTableReview store={store} />}
-      {store.activeStep === 3 && <BulkImportSetLocation store={store} />}
+      
+       <div style={{ display: store.activeStep === 0 ? "block" : "none" }}>
+        <BulkImportImageUpload store={store} />
+      </div>
+      <div style={{ display: store.activeStep === 1 ? "block" : "none" }}>
+        <BulkImportSpreadsheet store={store} />
+      </div>
+      <div style={{ display: store.activeStep === 2 ? "block" : "none" }}>
+        <BulkImportTableReview store={store} />
+      </div>
+      <div style={{ display: store.activeStep === 3 ? "block" : "none" }}>
+        <BulkImportSetLocation store={store} />
+      </div>
+
       {savedSubmissionId && <BulkImportContinueModal store={store} />}
       <BulkImportInstructionsModal store={store} />
-      {lastTask ? <BulkImportUnfinishedTaskModal 
+      {unfinishedTask.status !== "completed" ? <BulkImportUnfinishedTaskModal 
         taskId={lastTask}
       />: null}
     </Container>
