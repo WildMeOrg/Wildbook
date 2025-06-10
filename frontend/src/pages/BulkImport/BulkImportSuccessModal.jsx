@@ -6,10 +6,10 @@ import { ArrowRight, ArrowLeft, Download } from "react-bootstrap-icons";
 
 const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
   const navigate = useNavigate();
-
+console.log("Submission ID:", submissionId);
   const goToTaskDetails = () => {
-    navigate(`/bulk-import-task?id=${submissionId}`);
-                    // window.location.href = `/bulk-import-task?id=${result.bulkImportId}`;
+    // navigate(`/bulk-import-task?id=${submissionId}`);
+                    window.location.href = `${process.env.PUBLIC_URL}/bulk-import-task?id=${submissionId}`;
 
   };
 
@@ -38,14 +38,14 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
             <Download size={24} className="me-2 text-primary" />
             <div>
               <div className="fw-bold">{fileName}</div>
-              <div>Identification in Progress</div>
-              <div className="text-muted">Last Edited: {lastEdited}</div>
+              {/* <div>Identification in Progress</div> */}
+              <div className="text-muted">Reported at: {lastEdited}</div>
             </div>
           </div>
-          <Button variant="outline-primary" onClick={goToTaskDetails}>
+          {/* <Button variant="outline-primary" onClick={goToTaskDetails}>
             <FormattedMessage id="SEE_DETAILS" defaultMessage="See Details" />
             <ArrowRight className="ms-1" />
-          </Button>
+          </Button> */}
         </Card>
       </Modal.Body>
       <Modal.Footer>

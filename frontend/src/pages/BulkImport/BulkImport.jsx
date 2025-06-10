@@ -87,25 +87,17 @@ const BulkImport = observer(() => {
           <BulkImportSetLocation store={store} />
         </div>
       )}
-      {/* 
-      <div style={{ display: store.activeStep === 0 ? "block" : "none" }}>
-        <BulkImportImageUpload store={store} />
-      </div>
-      <div style={{ display: store.activeStep === 1 ? "block" : "none" }}>
-        <BulkImportSpreadsheet store={store} />
-      </div>
-      <div style={{ display: store.activeStep === 2 ? "block" : "none" }}>
-        <BulkImportTableReview store={store} />
-      </div>
-      <div style={{ display: store.activeStep === 3 ? "block" : "none" }}>
-        <BulkImportSetLocation store={store} />
-      </div> */}
 
       {savedSubmissionId && <BulkImportContinueModal store={store} />}
       <BulkImportInstructionsModal store={store} />
+
       {unfinishedTask && unfinishedTask.status && unfinishedTask.status !== "completed" ? <BulkImportUnfinishedTaskModal
+        fileName={unfinishedTask?.sourceName || "file name"}
+        dateCreated={unfinishedTask?.dateCreated || "file last edited date"}
         taskId={lastTask}
+        taskStatus={unfinishedTask?.status || "status not available"}
       /> : null}
+
     </Container>
   );
 });

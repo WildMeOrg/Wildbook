@@ -162,7 +162,7 @@ export const DataTable = observer(({ store }) => {
   store.setLabeledKeywordAllowedKeys(LabeledKeywordAllowedKeys);
   store.setLabeledKeywordAllowedPairs(LabeledKeywordAllowedPairs);
   useEffect(() => {
-    if (siteData) { 
+    if (siteData) {
       store.invalidateValidation();
       const { errors, warnings } = store.validateSpreadsheet();
       setCellErrors(errors);
@@ -296,7 +296,12 @@ export const DataTable = observer(({ store }) => {
           <strong>{pageCount}</strong>
         </div>
 
-        <ul className="pagination pagination-sm mb-0">
+        <ul className="pagination pagination-sm mb-0"
+          style={{
+            flexWrap: "wrap",
+            maxWidth: "100%",
+            overflow: "auto",
+          }}>
           <li
             className={`page-item ${!table.getCanPreviousPage() ? "disabled" : ""}`}
           >
