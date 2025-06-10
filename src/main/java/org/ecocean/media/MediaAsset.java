@@ -268,6 +268,11 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return store;
     }
 
+    // use caution: AssetStore and MediaAsset must use same Shepherd
+    public void setStore(AssetStore astore) {
+        store = astore;
+    }
+
     public Integer getParentId() {
         return parentId;
     }
