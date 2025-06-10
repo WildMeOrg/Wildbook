@@ -112,8 +112,8 @@ public class BulkImporter {
         }
         arr = new JSONArray();
         for (Encounter enc : encounterCache.values()) {
-            // it is a certain kind of painful that if you do not pass id here it assigns a new random one
             enc.setSkipAutoIndexing(true);
+            // it is a certain kind of painful that if you do not pass id here it assigns a new random one
             myShepherd.storeNewEncounter(enc, enc.getId());
             System.out.println("EEEE " + enc);
             arr.put(enc.getId());
@@ -655,7 +655,8 @@ public class BulkImporter {
         Double progress = base + (weight * new Double(ticks) / new Double(total));
         System.out.println("--------------------------------------------- MARK-PROGRESS: " +
             progress);
-        // FIXME alter itask
+        itask.setProcessingProgress(progress);
+        myShepherd.storeNewImportTask(itask);
     }
 
     public List<Encounter> getEncounters() {
