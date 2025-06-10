@@ -58,7 +58,6 @@ export const BulkImportSetLocation = observer(({ store }) => {
         try {
             const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName);
             if (result?.success) {
-                store.resetToDefaults();
                 localStorage.removeItem("BulkImportStore");
                 localStorage.setItem("lastBulkImportTask", result.bulkImportId);
                 setLastEditedDate(dayjs().format("YYYY-MM-DD"));

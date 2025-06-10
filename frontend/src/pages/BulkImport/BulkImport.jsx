@@ -1,5 +1,5 @@
 import { observer, useLocalObservable } from "mobx-react-lite";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import BulkImportStore from "./BulkImportStore";
 import { BulkImportImageUpload } from "./BulkImportImageUpload";
 import { Container } from "react-bootstrap";
@@ -15,10 +15,17 @@ import useGetBulkImportTask from "../../models/bulkImport/useGetBulkImportTask";
 import { BulkImportUnfinishedTaskModal } from "./BulkImportUnfinishedTaskModal";
 
 const BulkImport = observer(() => {
-  const store = useLocalObservable(() => new BulkImportStore());
+  const store = React.useMemo(() => new BulkImportStore(), []);
   const [savedSubmissionId, setSavedSubmissionId] = React.useState(null);
   const lastTask = localStorage.getItem("lastBulkImportTask") || null;
   const { task: unfinishedTask } = useGetBulkImportTask(lastTask);
+  const [mountedSteps, setMountedSteps] = useState([0]);
+
+  useEffect(() => {
+    if (!mountedSteps.includes(store.activeStep)) {
+      setMountedSteps(prev => [...prev, store.activeStep]);
+    }
+  }, [store.activeStep]);
 
   useEffect(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
@@ -59,8 +66,29 @@ const BulkImport = observer(() => {
       </div>
 
       {<BulkImportUploadProgress store={store} />}
-      
-       <div style={{ display: store.activeStep === 0 ? "block" : "none" }}>
+
+      {mountedSteps.includes(0) && (
+        <div style={{ display: store.activeStep === 0 ? "block" : "none" }}>
+          <BulkImportImageUpload store={store} />
+        </div>
+      )}
+      {mountedSteps.includes(1) && (
+        <div style={{ display: store.activeStep === 1 ? "block" : "none" }}>
+          <BulkImportSpreadsheet store={store} />
+        </div>
+      )}
+      {mountedSteps.includes(2) && (
+        <div style={{ display: store.activeStep === 2 ? "block" : "none" }}>
+          <BulkImportTableReview store={store} />
+        </div>
+      )}
+      {mountedSteps.includes(3) && (
+        <div style={{ display: store.activeStep === 3 ? "block" : "none" }}>
+          <BulkImportSetLocation store={store} />
+        </div>
+      )}
+      {/* 
+      <div style={{ display: store.activeStep === 0 ? "block" : "none" }}>
         <BulkImportImageUpload store={store} />
       </div>
       <div style={{ display: store.activeStep === 1 ? "block" : "none" }}>
@@ -71,13 +99,13 @@ const BulkImport = observer(() => {
       </div>
       <div style={{ display: store.activeStep === 3 ? "block" : "none" }}>
         <BulkImportSetLocation store={store} />
-      </div>
+      </div> */}
 
       {savedSubmissionId && <BulkImportContinueModal store={store} />}
       <BulkImportInstructionsModal store={store} />
-      {unfinishedTask.status !== "completed" ? <BulkImportUnfinishedTaskModal 
+      {unfinishedTask && unfinishedTask.status && unfinishedTask.status !== "completed" ? <BulkImportUnfinishedTaskModal
         taskId={lastTask}
-      />: null}
+      /> : null}
     </Container>
   );
 });
