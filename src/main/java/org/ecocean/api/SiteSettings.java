@@ -3,11 +3,11 @@ package org.ecocean.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -62,7 +62,7 @@ public class SiteSettings extends ApiBase {
             settings.put("mapZoom", CommonConfiguration.getMapZoom(context));
             settings.put("googleMapsKey", CommonConfiguration.getGoogleMapsKey(context));
 
-            Set<String> sciNames = new HashSet<String>();  // used later
+            Set<String> sciNames = new HashSet<String>(); // used later
             JSONArray txArr = new JSONArray();
             List<List<String> > nameArray = myShepherd.getAllTaxonomyCommonNames();
             if (Util.collectionSize(nameArray) > 1) {
@@ -109,7 +109,9 @@ public class SiteSettings extends ApiBase {
 
             JSONObject iaForTx = new JSONObject();
             for (String sn : sciNames) {
-                iaForTx.put(sn, iaConfig.getValidIAClassesIgnoreRedirects(new org.ecocean.Taxonomy(sn)));
+                String snSpaces = sn.replaceAll("_", " ");
+                iaForTx.put(snSpaces,
+                    iaConfig.getValidIAClasses(new org.ecocean.Taxonomy(snSpaces)));
             }
             settings.put("iaClassesForTaxonomy", iaForTx);
 
