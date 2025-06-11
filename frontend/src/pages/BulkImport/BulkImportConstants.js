@@ -1,4 +1,3 @@
-
 const specifiedColumns = [
   "Encounter.mediaAsset0",
   "Encounter.year",
@@ -38,7 +37,7 @@ const tableHeaderMapping = {
   "MarkedIndividual.individualID": "Individual name",
   "Encounter.sightingID": "sighting ID",
   "Encounter.sightingRemarks": "sighting Remarks",
-  "Encounter.locationID": "location",
+  "Encounter.locationID": "locationID",
   "Encounter.country": "country",
   "Encounter.decimalLatitude": "Lat, long (DD)",
   "Encounter.year": "date",
@@ -53,13 +52,21 @@ const tableHeaderMapping = {
   "TissueSample.sampleID": "sample ID",
 };
 
-const columnsUseSelectCell = ["Encounter.genus", "Encounter.locationID", "Encounter.country", "Encounter.lifeStage", "Encounter.livingStatus", "Encounter.sex", "Encounter.behavior"];
+const columnsUseSelectCell = [
+  "Encounter.genus",
+  "Encounter.locationID",
+  "Encounter.country",
+  "Encounter.lifeStage",
+  "Encounter.livingStatus",
+  "Encounter.sex",
+  "Encounter.behavior",
+];
 
 const stringRule = {
   required: false,
   validate: (val) => {
-    if (!val) return true;                 
-    // return /^[a-zA-Z0-9\s.,-]+$/.test(val); 
+    if (!val) return true;
+    // return /^[a-zA-Z0-9\s.,-]+$/.test(val);
     return typeof val === "string" || val instanceof String;
   },
   message: "Must be a string",
@@ -68,8 +75,8 @@ const stringRule = {
 const intRule = {
   required: false,
   validate: (val) => {
-    if (!val) return true;                 
-    return /^-?\d+$/.test(val);   
+    if (!val) return true;
+    return /^-?\d+$/.test(val);
   },
   message: "Must be an integer",
 };
@@ -77,15 +84,15 @@ const intRule = {
 const doubleRule = {
   required: false,
   validate: (val) => {
-    if (!val) return true;                 
-    return /^-?\d+(\.\d+)?$/.test(val);   
+    if (!val) return true;
+    return /^-?\d+(\.\d+)?$/.test(val);
   },
   message: "Must be a double",
 };
 
 const extraStringCols = [
-  "Encounter.sightingID",	
-  "Encounter.sightingRemarks",	
+  "Encounter.sightingID",
+  "Encounter.sightingRemarks",
   "Encounter.verbatimLocality",
   "TissueSample.sampleID",
   "TissueSample.sampleID",
@@ -111,11 +118,19 @@ const specializedColumns = [
   "Encounter.behavior",
   "Encounter.occurrenceRemarks",
   "Encounter.photographer0.emailAddress",
-  "Encounter.informOther0.emailAddress",  
+  "Encounter.informOther0.emailAddress",
   "Encounter.submitterID",
   "Encounter.dateInMilliseconds",
 ];
 
-
-
-export { specifiedColumns, removedColumns, tableHeaderMapping, columnsUseSelectCell, doubleRule, intRule, stringRule, extraStringCols, specializedColumns };
+export {
+  specifiedColumns,
+  removedColumns,
+  tableHeaderMapping,
+  columnsUseSelectCell,
+  doubleRule,
+  intRule,
+  stringRule,
+  extraStringCols,
+  specializedColumns,
+};
