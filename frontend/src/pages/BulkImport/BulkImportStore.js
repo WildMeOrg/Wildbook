@@ -44,6 +44,14 @@ export class BulkImportStore {
   _lastSavedAt = null;
   _errorSummary = {};
   _cachedValidation = null;
+  _filesParsed = false;
+  _filesParsingCount = 0
+  _pendingReadCount = 0;
+  _imageFileMap = new Map();
+  _pendingDropFileCount = 0;
+  _hasWarnedDropLimit = false;
+  _collectedValidFiles = [];
+
 
   isValidISO(val) {
     const dt = new Date(val);
@@ -425,6 +433,10 @@ export class BulkImportStore {
     return this._locationID;
   }
 
+  get filesParsed() {
+    return this._filesParsed;
+  }
+
   setLabeledKeywordAllowedKeys(keys) {
     this._labeledKeywordAllowedKeys = keys;
   }
@@ -517,6 +529,10 @@ export class BulkImportStore {
 
   setShowInstructions(show) {
     this._showInstructions = show;
+  }
+
+  setFilesParsed(filesParsed) {
+    this._filesParsed = filesParsed;
   }
 
   setMinimalFields(minimalFields) {
@@ -672,8 +688,6 @@ export class BulkImportStore {
         }
       ))
     }
-
-
     return [];
   }
 
@@ -740,22 +754,18 @@ export class BulkImportStore {
       `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`;
 
     flowInstance.assignBrowse(fileInputRef);
-    let pendingPreview = [];
 
-    let flushTimer = null;
+    flowInstance.on('filesSubmitted', (files) => {
+      console.log("Files submitted:", files.length);
 
-    const flushPendingPreview = () => {
-      if (pendingPreview.length > 0) {
-        this._imagePreview = [...this._imagePreview, ...pendingPreview];
-        pendingPreview = [];
-      }
-    };
+    });
 
     flowInstance.on("fileAdded", (file) => {
       if (this._imageSectionFileNames.length >= this._maxImageCount) {
         console.warn(`maximum ${this._maxImageCount} discard`, file.name);
         return false;
       }
+
       const supportedTypes = [
         "image/jpeg",
         "image/jpg",
@@ -769,69 +779,15 @@ export class BulkImportStore {
         return false;
       }
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.src = reader.result;
-        img.onload = () => {
-          // const shouldGenerateThumbnail = true;
+      this._imageFileMap.set(file.name, file.file);
 
-          // let thumb = null;
-          // // if (shouldGenerateThumbnail) {
-          // //   const canvas = document.createElement("canvas");
-          // //   const ctx = canvas.getContext("2d");
-          // //   const MAX = 150;
-
-          // //   let [width, height] = [img.width, img.height];
-
-          // //   if (width > height) {
-          // //     if (width > MAX) {
-          // //       height = height * (MAX / width);
-          // //       width = MAX;
-          // //     }
-          // //   } else {
-          // //     if (height > MAX) {
-          // //       width = width * (MAX / height);
-          // //       height = MAX;
-          // //     }
-          // //   }
-
-          // //   canvas.width = width;
-          // //   canvas.height = height;
-          // //   ctx.drawImage(img, 0, 0, width, height);
-          // //   thumb = canvas.toDataURL("image/jpeg", 0.7);
-          // // }
-
-          // this._imagePreview.push({
-          //   // src: thumb,
-          //   fileName: file.name,
-          //   fileSize: file.size,
-          //   progress: 0,
-          //   showThumbnail: false,
-          // });
-
-          pendingPreview.push({
-            fileName: file.name,
-            fileSize: file.size,
-            progress: 0,
-            showThumbnail: false,
-          });
-
-          // if (pendingPreview.length >= 50) {
-          //   setTimeout(() => {
-          //     this._imagePreview = [...this._imagePreview, ...pendingPreview];
-          //     pendingPreview = [];
-          //   }, 0);
-          // }
-          if (pendingPreview.length >= 50) {
-            flushPendingPreview();
-          } else {
-            clearTimeout(flushTimer);
-            flushTimer = setTimeout(flushPendingPreview, 100); // flush after idle
-          }
-        };
-      };
-      reader.readAsDataURL(file.file);
+      this._imagePreview.push({
+        src: null,
+        fileName: file.name,
+        fileSize: file.size,
+        progress: 0,
+        showThumbnail: false,
+      });
 
       this._imageSectionFileNames.push(file.name);
     });
@@ -899,6 +855,106 @@ export class BulkImportStore {
 
     this._flow = flowInstance;
   }
+
+  // generateThumbnailsForFirst200() {
+  //   const previews = this._imagePreview;
+
+  //   if (previews.length > 200) {
+  //     console.log("⚠️ More than 200 images, skipping thumbnail generation.");
+  //     return;
+  //   }
+
+  //   previews.forEach((item, index) => {
+  //     if (!item.file || item.src) return;
+
+  //     const reader = new FileReader();
+  //     reader.onload = () => {
+  //       const img = new Image();
+  //       img.src = reader.result;
+  //       img.onload = () => {
+  //         const canvas = document.createElement("canvas");
+  //         const ctx = canvas.getContext("2d");
+  //         const MAX = 150;
+  //         let [width, height] = [img.width, img.height];
+
+  //         if (width > height) {
+  //           if (width > MAX) {
+  //             height = height * (MAX / width);
+  //             width = MAX;
+  //           }
+  //         } else {
+  //           if (height > MAX) {
+  //             width = width * (MAX / height);
+  //             height = MAX;
+  //           }
+  //         }
+
+  //         canvas.width = width;
+  //         canvas.height = height;
+  //         ctx.drawImage(img, 0, 0, width, height);
+  //         const thumb = canvas.toDataURL("image/jpeg", 0.7);
+
+  //         this._imagePreview[index] = {
+  //           ...item,
+  //           src: thumb,
+  //           showThumbnail: true,
+  //         };
+  //       };
+  //     };
+  //     reader.readAsDataURL(item.file);
+  //   });
+  // }
+
+  generateThumbnailsForFirst200() {
+    const previews = this._imagePreview;
+    if (previews.length > 200) return;
+
+    previews.forEach((item, index) => {
+      if (item.src) return; // 已经生成过
+
+      const file = this._imageFileMap.get(item.fileName);
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const MAX = 150;
+          let [width, height] = [img.width, img.height];
+
+          if (width > height) {
+            if (width > MAX) {
+              height *= MAX / width;
+              width = MAX;
+            }
+          } else {
+            if (height > MAX) {
+              width *= MAX / height;
+              height = MAX;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          const thumb = canvas.toDataURL("image/jpeg", 0.7);
+
+          runInAction(() => {
+            this._imagePreview[index] = {
+              ...item,
+              src: thumb,
+              showThumbnail: true,
+            };
+          });
+        };
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
 
   uploadFilteredFiles(maxSize) {
     if (!this._flow) {
@@ -997,32 +1053,184 @@ export class BulkImportStore {
           raw["Encounter.decimalLatitude"] = m ? m[1] : "";
           raw["Encounter.decimalLongitude"] = m ? m[2] : "";
         }
-
       });
-    }
-
-    );
-
-
+    });
   }
 
-  traverseFileTree(item, maxSize, path = "") {
-    if (item.isFile) {
-      item.file((file) => {
-        if (["image/jpeg", "image/png", "image/bmp"].includes(file.type)) {
-          file.relativePath = path + file.name;
-          this._flow.addFile(file);
-        }
-      });
-    } else if (item.isDirectory) {
-      const reader = item.createReader();
+  // traverseFileTree(entry, maxSize) {
+  //   this._incrementPending();
+
+  //   if (entry.isDirectory) {
+  //     const reader = entry.createReader();
+  //     reader.readEntries((entries) => {
+  //       entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
+  //       this._decrementPending();
+  //     });
+  //   } else if (entry.isFile) {
+  //     entry.file((file) => {
+  //       const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
+  //       if (supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024) {
+  //         this.flow.addFile(file);
+  //       }
+  //       this._decrementPending();
+  //     });
+  //   } else {
+  //     this._decrementPending();
+  //   }
+  // }
+
+
+  // traverseFileTree(entry, maxSize) {
+  //   this._incrementPending();
+
+  //   if (entry.isDirectory) {
+  //     const reader = entry.createReader();
+  //     reader.readEntries((entries) => {
+  //       entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
+  //       this._decrementPending();
+  //     });
+  //   } else if (entry.isFile) {
+  //     entry.file((file) => {
+  //       const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
+
+  //       if (supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024) {
+  //         console.log("111111111");
+  //         this._pendingDropFileCount++;
+  //         if (this._pendingDropFileCount > 10) {
+  //           console.log("⚠️ Too many files dropped, ignoring further files.");
+  //           if (!this._hasWarnedDropLimit) {
+  //             alert("⚠️ You can only drop a maximum of 100 images at a time.");
+  //             this._hasWarnedDropLimit = true;
+  //           }
+  //         } else {
+  //           this._imageFileMap.set(file.name, file);
+  //           this.flow.addFile(file);
+  //         }
+  //       }
+  //       this._decrementPending();
+  //     });
+  //   } else {
+  //     this._decrementPending();
+  //   }
+  // }
+
+  // traverseFileTree(entry, maxSize) {
+  //   this._incrementPending();
+
+  //   if (entry.isDirectory) {
+  //     const reader = entry.createReader();
+  //     reader.readEntries((entries) => {
+  //       entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
+  //       this._decrementPending();
+  //     });
+  //   } else if (entry.isFile) {
+  //     entry.file((file) => {
+  //       const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
+  //       const isValid = supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024;
+
+  //       if (isValid) {
+  //         this._pendingDropFileCount++;
+
+  //         if (this._pendingDropFileCount > 9) {
+  //           if (!this._hasWarnedDropLimit) {
+  //             alert("⚠️ You can only drop a maximum of 100 images at a time.");
+  //             this._hasWarnedDropLimit = true;
+  //           }
+
+  //           this._decrementPending();
+  //           return;
+  //         }
+
+  //         this._imageFileMap.set(file.name, file);
+  //         this.flow.addFile(file);
+  //       }
+
+  //       this._decrementPending();
+  //     });
+  //   } else {
+  //     this._decrementPending();
+  //   }
+  // }
+
+  traverseFileTree(entry, maxSize) {
+    this._incrementPending();
+
+    if (entry.isDirectory) {
+      const reader = entry.createReader();
       reader.readEntries((entries) => {
-        entries.forEach((entry) =>
-          this.traverseFileTree(entry, maxSize, path + item.name + "/"),
-        );
+        entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
+        this._decrementPending();
       });
+    } else if (entry.isFile) {
+      entry.file((file) => {
+        const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
+        const isValid = supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024;
+
+        if (isValid) {
+          this._collectedValidFiles.push(file);
+          this._pendingDropFileCount++;
+        }
+
+        this._decrementPending();
+      });
+    } else {
+      this._decrementPending();
     }
   }
+
+
+  _incrementPending() {
+    this._pendingReadCount++;
+  }
+
+  _decrementPending() {
+    this._pendingReadCount--;
+    if (this._pendingReadCount === 0) {
+      this._onAllFilesParsed();
+    }
+  }
+
+  // _onAllFilesParsed() {
+  //   console.log("All files parsed");
+  //   runInAction(() => {
+  //     this.setFilesParsed(true);
+  //   });
+
+  //   if (this._imagePreview.length <= 200) {
+  //     this.generateThumbnailsForFirst200();
+  //   } else {
+  //     console.log("⚠️ More than 200 images, skipping thumbnail generation.");
+  //   }
+  // }
+
+  _onAllFilesParsed() {
+    runInAction(() => {
+      if (this._pendingDropFileCount > 500) {
+        alert("⚠️ You can only drop a maximum of 100 images at a time.");
+
+        this._collectedValidFiles = [];
+        this._pendingDropFileCount = 0;
+        this.setFilesParsed(true);
+        return;
+      }
+
+      this._collectedValidFiles.forEach((file) => {
+        this._imageFileMap.set(file.name, file);
+        this.flow.addFile(file);
+      });
+
+      this._collectedValidFiles = [];
+
+      this.setFilesParsed(true);
+      this.flow.upload();
+
+      if (this._imagePreview.length <= 200) {
+        this.generateThumbnailsForFirst200();
+      }
+    });
+  }
+
+
 
   isDynamicKnownColumn(col) {
     const mediaAssetMatch = col.match(/^Encounter\.mediaAsset(\d+)\.(\w+)$/);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useContext } from "react";
+import React, { useEffect, useRef, useContext, useState } from "react";
 import {
   ProgressBar,
   Image as BootstrapImage,
@@ -32,9 +32,23 @@ export const BulkImportImageUpload = observer(({ store }) => {
   const { data } = useGetSiteSettings();
   const maxSize = data?.maximumMediaSizeMegabytes || 300000;
 
+  const [isProcessingDrop, setIsProcessingDrop] = useState(false);
+  const [renderMode, setRenderMode] = useState("list");
+  const THUMBNAIL_THRESHOLD = 200;
+
   store.setMaxImageCount(data?.maximumMediaCount || 5000);
   // const maxImageCount = data?.maximumMediaCount || 200;
   const currentCount = store.imagePreview.length;
+
+  useEffect(() => {
+    console.log("Files parsed++++++++++++++++:", store.filesParsed);
+    if (store.filesParsed) {
+      setIsProcessingDrop(false);
+      setRenderMode(store.imagePreview.length > THUMBNAIL_THRESHOLD ? "list" : "grid");
+      store.generateThumbnailsForFirst200();
+    }
+  }, [store.filesParsed]);
+
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -63,16 +77,21 @@ export const BulkImportImageUpload = observer(({ store }) => {
       store.setImageSectionFileNames(
         store.imagePreview.map((preview) => preview.fileName),
       );
+      if(store.filesParsed) {
       store.uploadFilteredFiles(maxSize);
+      }
     }
-  }, [JSON.stringify(store.imagePreview), store.imageUploadStatus]);
+
+  }, [store.imagePreview.length]);
 
   const handleDrop = (e) => {
+
     if (currentCount >= store.maxImageCount) {
       alert(`maximum image count: ${store.maxImageCount} exceeded`);
       return;
     }
     e.preventDefault();
+    setIsProcessingDrop(true);
 
     const items1 = Array.from(e.dataTransfer.items);
     const newFilesCount = items1.filter((item) => {
@@ -104,8 +123,9 @@ export const BulkImportImageUpload = observer(({ store }) => {
     }
 
     store.uploadFilteredFiles(maxSize);
-  };
 
+  };
+  
   return (
     <div className="mt-4">
       <Row>
@@ -152,39 +172,48 @@ export const BulkImportImageUpload = observer(({ store }) => {
       </Row>
 
       <Row className="mt-4 w-100">
-        {store.imagePreview.length > 0 && <List
-          height={400}
-          itemCount={store.imagePreview.length}
-          itemSize={60}
-          width="100%"
-          itemData={store.imagePreview.slice()}
-        >
-          {({ index, style }) => {
-            const preview = store.imagePreview[index];
-            return (
-              <div
-                style={{
-                  ...style,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "0 1rem",
-                  // borderBottom: "1px solid #ccc",
-                }}
-              >
-                <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {preview.fileName}
-                </div>
-                <div style={{ width: "150px" }}>
-                  <ProgressBar
-                    now={preview.progress}
-                    label={`${Math.round(preview.progress)}%`}
-                  />
-                </div>
+        {isProcessingDrop && (
+          <div className="text-center p-4">
+            <FormattedMessage id="PROCESSING_IMAGES" defaultMessage="Processing images..." />
+          </div>
+        )}
+
+        {!isProcessingDrop && renderMode === "grid" && (
+          <div className="d-flex flex-wrap gap-3 mb-4" style={{ maxHeight: 400, overflowY: "auto" }}>
+            {store.imagePreview.map((preview) => (
+              <div key={preview.fileName} style={{ width: 150, textAlign: "center", position: "relative" }}>
+                <BootstrapImage src={preview.src || "/img/placeholder.png"} thumbnail />
+                <ProgressBar now={preview.progress} style={{ height: 6, position: "absolute", left: 0, right: 0, bottom: 0 }} />
+                <small className="d-block text-truncate">{preview.fileName}</small>
               </div>
-            );
-          }}
-        </List>}
+            ))}
+          </div>
+        )}
+
+        {!isProcessingDrop && renderMode === "list" && (
+          <List
+            height={400}
+            itemCount={store.imagePreview.length}
+            itemSize={60}
+            width="100%"
+            itemData={store.imagePreview.slice()}
+          >
+            {({ index, style }) => {
+              const preview = store.imagePreview[index];
+              return (
+                <div style={{ ...style, display: "flex", alignItems: "center", padding: "0 1rem" }}>
+                  <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {preview.fileName}
+                  </div>
+                  <div style={{ width: 150 }}>
+                    <ProgressBar now={preview.progress} label={`${Math.round(preview.progress)}%`} />
+                  </div>
+                </div>
+              );
+            }}
+          </List>
+        )}
+
 
         <Col
           md={8}
