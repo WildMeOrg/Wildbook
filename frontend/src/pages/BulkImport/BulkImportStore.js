@@ -425,11 +425,11 @@ export class BulkImportStore {
     return this._locationID;
   }
 
-  setLabeledKeywordAllowedKeys (keys) {
+  setLabeledKeywordAllowedKeys(keys) {
     this._labeledKeywordAllowedKeys = keys;
   }
 
-  setLabeledKeywordAllowedPairs (values) {
+  setLabeledKeywordAllowedPairs(values) {
     this._labeledKeywordAllowedPairs = values;
   }
 
@@ -740,6 +740,16 @@ export class BulkImportStore {
       `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`;
 
     flowInstance.assignBrowse(fileInputRef);
+    let pendingPreview = [];
+
+    let flushTimer = null;
+
+    const flushPendingPreview = () => {
+      if (pendingPreview.length > 0) {
+        this._imagePreview = [...this._imagePreview, ...pendingPreview];
+        pendingPreview = [];
+      }
+    };
 
     flowInstance.on("fileAdded", (file) => {
       if (this._imageSectionFileNames.length >= this._maxImageCount) {
@@ -764,41 +774,61 @@ export class BulkImportStore {
         const img = new Image();
         img.src = reader.result;
         img.onload = () => {
-          const shouldGenerateThumbnail = true;
+          // const shouldGenerateThumbnail = true;
 
-          let thumb = null;
-          if (shouldGenerateThumbnail) {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            const MAX = 150;
+          // let thumb = null;
+          // // if (shouldGenerateThumbnail) {
+          // //   const canvas = document.createElement("canvas");
+          // //   const ctx = canvas.getContext("2d");
+          // //   const MAX = 150;
 
-            let [width, height] = [img.width, img.height];
+          // //   let [width, height] = [img.width, img.height];
 
-            if (width > height) {
-              if (width > MAX) {
-                height = height * (MAX / width);
-                width = MAX;
-              }
-            } else {
-              if (height > MAX) {
-                width = width * (MAX / height);
-                height = MAX;
-              }
-            }
+          // //   if (width > height) {
+          // //     if (width > MAX) {
+          // //       height = height * (MAX / width);
+          // //       width = MAX;
+          // //     }
+          // //   } else {
+          // //     if (height > MAX) {
+          // //       width = width * (MAX / height);
+          // //       height = MAX;
+          // //     }
+          // //   }
 
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-            thumb = canvas.toDataURL("image/jpeg", 0.7);
-          }
+          // //   canvas.width = width;
+          // //   canvas.height = height;
+          // //   ctx.drawImage(img, 0, 0, width, height);
+          // //   thumb = canvas.toDataURL("image/jpeg", 0.7);
+          // // }
 
-          this._imagePreview.push({
-            src: thumb,
+          // this._imagePreview.push({
+          //   // src: thumb,
+          //   fileName: file.name,
+          //   fileSize: file.size,
+          //   progress: 0,
+          //   showThumbnail: false,
+          // });
+
+          pendingPreview.push({
             fileName: file.name,
             fileSize: file.size,
             progress: 0,
-            showThumbnail: shouldGenerateThumbnail,
+            showThumbnail: false,
           });
+
+          // if (pendingPreview.length >= 50) {
+          //   setTimeout(() => {
+          //     this._imagePreview = [...this._imagePreview, ...pendingPreview];
+          //     pendingPreview = [];
+          //   }, 0);
+          // }
+          if (pendingPreview.length >= 50) {
+            flushPendingPreview();
+          } else {
+            clearTimeout(flushTimer);
+            flushTimer = setTimeout(flushPendingPreview, 100); // flush after idle
+          }
         };
       };
       reader.readAsDataURL(file.file);
@@ -1000,8 +1030,9 @@ export class BulkImportStore {
       const suffix = mediaAssetMatch[2];
       if (suffix === "keywords") {
         return true;
-      } else  {
-        return this._labeledKeywordAllowedKeys.includes(suffix);}     
+      } else {
+        return this._labeledKeywordAllowedKeys.includes(suffix);
+      }
     }
 
     return (
@@ -1057,7 +1088,7 @@ export class BulkImportStore {
       const mediaAssetLabeledMatch = col.match(/^Encounter\.mediaAsset\d+\.(\w+)$/);
       if (mediaAssetLabeledMatch) {
         const field = mediaAssetLabeledMatch[1];
-        if (field !== "keywords") { 
+        if (field !== "keywords") {
           this._validationRules[col] = {
             required: false,
             validate: isInLabeledKeywordAllowedValues,
@@ -1107,13 +1138,13 @@ export class BulkImportStore {
         if (col.startsWith("Encounter.mediaAsset") && this._labeledKeywordAllowedKeys.includes(col.split(".")[2])) {
           console.log("Applying dynamic validation rules for labeled keywords");
           const columnName = col.split(".")[2];
-          
-            const value = row[col];
-            if (value && !this._labeledKeywordAllowedPairs[columnName].includes(value)) {
-              if (!errors[rowIndex]) errors[rowIndex] = {};
-              errors[rowIndex][col] = `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
-            }
-         
+
+          const value = row[col];
+          if (value && !this._labeledKeywordAllowedPairs[columnName].includes(value)) {
+            if (!errors[rowIndex]) errors[rowIndex] = {};
+            errors[rowIndex][col] = `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
+          }
+
           return;
         }
 
