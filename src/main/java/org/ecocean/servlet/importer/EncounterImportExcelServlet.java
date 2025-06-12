@@ -18,6 +18,8 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.importutils.TabularFeedback;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.Feature;
+import org.ecocean.media.FeatureType;
 import org.ecocean.resumableupload.UploadServlet;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.Membership;
@@ -25,6 +27,7 @@ import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.SatelliteTag;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
+import edu.stanford.nlp.io.EncodingPrintWriter.out;
 
 
 @MultipartConfig
@@ -188,7 +191,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
         isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
 
-        committing = Util.requestParameterSet(request.getParameter("commit"));
+        committing = true;
         // WHY ISN"T THE URL MAKING IT AAUUUGHGHHHHH
         if (isUserUpload) {
             uploadDirectory = UploadServlet.getUploadDir(request);
@@ -315,8 +318,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
         numFolderRows = 0;
         boolean dataFound = (dataFile != null && dataFile.exists());
-        committing = (request.getParameter("commit") != null &&
-            !request.getParameter("commit").toLowerCase().equals("false"));                                                // false by default
+        // committing = (request.getParameter("commit") != null &&
+        //     !request.getParameter("commit").toLowerCase().equals("false"));                                                // false by default
         if (!dataFound) return;
         Workbook wb = null;
         try {
@@ -472,7 +475,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 Row row = sheet.getRow(i);
                 if (isRowEmpty(row)) continue;
                 if (!committing) feedback.startRow(row, i);
-                Map<String, MediaAsset> myAssets = new HashMap<String, MediaAsset>();
+                Map<String, MediaAsset> myAssets = new HashMap<String, MediaAsset>();                
                 ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets,
                     colIndexMap, verbose, missingColumns, unusedColumns, foundPhotos,
                     photoDirectory, feedback, isUserUpload, committing, missingPhotos, context,
@@ -558,9 +561,9 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     }
                 }
                 // let's register acmIDs for MediaAssets
-                if (itask != null) sendforACMID(itask, myShepherd, context);
+                //if (itask != null) sendforACMID(itask, myShepherd, context);
                 // let's finish up and be done
-                if (itask != null) itask.setStatus("complete");
+                //if (itask != null) itask.setStatus("complete");
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
                 if (itask != null)
@@ -819,10 +822,10 @@ public class EncounterImportExcelServlet extends HttpServlet {
     }
     // end check for missing or unconfigured genus+species
 
-    String submitterOrganization = getString(row, "Encounter.submitterOrganization",
+    String submitterOrganization = getString(row, "Encounter.submitter0.submitterOrganization",
         colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (submitterOrganization != null) enc.setSubmitterOrganization(submitterOrganization);
-    String submitterName = getString(row, "Encounter.submitterName", colIndexMap, verbose,
+    String submitterName = getString(row, "Encounter.submitter0.fullName", colIndexMap, verbose,
         missingColumns, unusedColumns, feedback);
     if (submitterName != null) enc.setSubmitterName(submitterName);
     String patterningCode = getString(row, "Encounter.patterningCode", colIndexMap, verbose,
@@ -831,7 +834,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
     String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks", colIndexMap,
         verbose, missingColumns, unusedColumns, feedback);
     if (occurrenceRemarks != null) enc.setOccurrenceRemarks(occurrenceRemarks);
-    String submitterID = getString(row, "Encounter.submitterID", colIndexMap, verbose,
+    String submitterID = getString(row, "Encounter.submitter0.submitterID", colIndexMap, verbose,
         missingColumns, unusedColumns, feedback);
     // don't commit this line
     if (submitterID == null) submitterID = defaultSubmitterID;
@@ -911,18 +914,18 @@ public class EncounterImportExcelServlet extends HttpServlet {
     boolean hasSubmitters = true;
     int startIter = 0;
     while (hasSubmitters) {
-        String colEmail = "Encounter.submitter" + startIter + ".emailAddress";
-        String val = getString(row, colEmail, colIndexMap, verbose, missingColumns,
+        String colsubmitterID = "Encounter.submitter" + startIter + ".submitterID";
+        String val = getString(row, colsubmitterID, colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
         if (val != null) {
             boolean newUser = true;
-            if (myShepherd.getUserByEmailAddress(val.trim()) != null) {
+            if (myShepherd.getUserByWhatever(val.trim()) != null) {
                 newUser = false;
-                User thisPerson = myShepherd.getUserByEmailAddress(val.trim());
+                User thisPerson = myShepherd.getUserByWhatever(val.trim());
                 if ((enc.getSubmitters() == null) ||
                     !enc.getSubmitters().contains(thisPerson)) {
                     if (committing) enc.addSubmitter(thisPerson);
-                    if (unusedColumns != null) unusedColumns.remove(colEmail);
+                    if (unusedColumns != null) unusedColumns.remove(colsubmitterID);
                 }
             }
             // create a new User
@@ -940,7 +943,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     unusedColumns, feedback);
                 if (val3 != null) thisPerson.setAffiliation(val3.trim());
             }
-            if (unusedColumns != null) unusedColumns.remove(colEmail);
+            if (unusedColumns != null) unusedColumns.remove(colsubmitterID);
             if (unusedColumns != null && val2 != null && !"".equals(val2))
                 unusedColumns.remove(colFullName);
             if (unusedColumns != null && val3 != null && !"".equals(val3))
@@ -960,7 +963,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
     boolean hasPhotographers = true;
     startIter = 0;
     while (hasPhotographers) {
-        String colEmail = "Encounter.photographer" + startIter + ".emailAddress";
+        String colEmail = "Encounter.photographer" + startIter + ".Email";
         String val = getString(row, colEmail, colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
         if (val != null) {
@@ -1267,7 +1270,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
     public SocialUnit loadSocialUnit(Row row, MarkedIndividual mark, Shepherd myShepherd,
         boolean committing, Map<String, Integer> colIndexMap, boolean verbose,
         Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
-        String suName = getString(row, "SocialUnit.socialUnitName", colIndexMap, verbose,
+        String suName = getString(row, "SocialUnit.socialUnitName0", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
 
         if (suName != null) {
@@ -1522,13 +1525,68 @@ public class EncounterImportExcelServlet extends HttpServlet {
             if (ma == null) continue;
             String species = getSpeciesString(row, colIndexMap, verbose, missingColumns,
                 unusedColumns, feedback);
+
+
+            String bbox = getString(row,("Annotation"+i+".bbox"), colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+            int[] bboxArray = new int[4];
+
+            if (bbox != null && bbox.startsWith("[") && bbox.endsWith("]")) {
+                // Remove brackets
+                String content = bbox.substring(1, bbox.length() - 1);
+                String[] parts = content.split(",");
+            
+                if (parts.length == 4) {
+                    for (int j = 0; j < 4; j++) {
+                        bboxArray[j] = Integer.parseInt(parts[j].trim());
+                    }
+                } else {
+                    // Handle unexpected size
+                    throw new IllegalArgumentException("bbox must have 4 elements");
+                }
+            } else {
+                // Handle null or improperly formatted string
+                throw new IllegalArgumentException("Invalid bbox format");
+            }
+            
+
+            String viewPoint = getString(row,("Annotation"+i+".ViewPoint"), colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+  
+
+
+            JSONObject obj = new JSONObject();
+            obj.put("viewpoint", viewPoint);
+            obj.put("x", bboxArray[0]);
+            obj.put("y", bboxArray[1]);
+            obj.put("width", bboxArray[2]);
+            obj.put("height", bboxArray[3]);
+            FeatureType.initAll(myShepherd);
+            Feature f = new Feature("org.ecocean.boundingBox",obj);
+            f.setParameters(obj);
+
+            ArrayList<Feature> features = new  ArrayList<Feature> ();
+            features.add(f);
+
+            ma.setFeatures(features);
+
+
             Annotation ann = new Annotation(species, ma);
             ann.setIsExemplar(true);
+            ann.setFeatures(features);
+            ann.setViewpoint(viewPoint);
 
+            String matchAgainst = getString(row,("Annotation"+i+".MatchAgainst"), colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
+            
+            ann.setMatchAgainst(matchAgainst.toLowerCase().equals("true"));
+            ann.setX(bboxArray[0]);
+            ann.setY(bboxArray[1]);
+            ann.setWidth(bboxArray[2]);
+            ann.setHeight(bboxArray[3]);
+            
             Double quality = getDouble(row, ("Encounter.quality" + i), colIndexMap, verbose,
                 missingColumns, unusedColumns, feedback);
             if (quality != null) ann.setQuality(quality);
-            // ann.setMatchAgainst(true);
+            //Annotation0.ViewPoint
+
             annots.add(ann);
         }
         if (annots.size() > 0) {
@@ -1556,17 +1614,47 @@ public class EncounterImportExcelServlet extends HttpServlet {
         return total;
     }
 
+
+    public String getIndividualName(Row row, Map<String, Integer> colIndexMap, boolean verbose,
+    Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback, String findName){
+
+        String FoundValue = "";
+
+        int numNameColumns = getNumNameColumns(colIndexMap);
+        // import name columns
+        for (int t = 0; t < numNameColumns; t++) {
+            String nameLabel = "Name" + t + ".label";
+            String nameValue = "Name" + t + ".value";
+            System.out.println("in name column: " + nameLabel);
+            if (getStringOrInt(row, nameLabel, colIndexMap, verbose, missingColumns, unusedColumns,
+                feedback) != null && getStringOrInt(row, nameValue, colIndexMap, verbose,
+                missingColumns, unusedColumns, feedback) != null && !getStringOrInt(row, nameValue,
+                colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim().equals("")) {
+                String label = getStringOrInt(row, nameLabel, colIndexMap, verbose, missingColumns,
+                    unusedColumns, feedback).trim();
+                String value = getStringOrInt(row, nameValue, colIndexMap, verbose, missingColumns,
+                    unusedColumns, feedback).trim();
+
+                if (label.equals(findName) ){
+                    FoundValue = value;
+                    break;
+                }
+                
+            }
+        }
+
+        return FoundValue;
+    }
+
     public String getIndividualID(Row row, Map<String, Integer> colIndexMap, boolean verbose,
         Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
         String individualPrefix = "";
-        String indID = getStringOrInt(row, "Encounter.individualID", colIndexMap, verbose,
-            missingColumns, unusedColumns, feedback);
 
-        if (indID == null)
-            indID = getStringOrInt(row, "MarkedIndividual.individualID", colIndexMap, verbose,
-                missingColumns, unusedColumns, feedback);
-        if (!Util.stringExists(indID)) return indID;
-        return individualPrefix + indID;
+        String markedIndividualId = getIndividualName(row,colIndexMap,verbose,missingColumns,unusedColumns,feedback,"Default");
+
+
+        if (!Util.stringExists(markedIndividualId)) return markedIndividualId;
+        return individualPrefix + markedIndividualId;
     }
 
     public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd,
@@ -1904,7 +1992,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
         int numNameColumns = 0;
 
         for (String col : colIndexMap.keySet()) {
-            if ((col != null) && (col.matches("MarkedIndividual.name\\d*.label"))) numNameColumns++;
+            if ((col != null) && (col.matches("Name\\d*.label"))) numNameColumns++;
         }
         System.out.println("getNumNameColumns found: " + numNameColumns);
         return numNameColumns;
@@ -2012,17 +2100,16 @@ public class EncounterImportExcelServlet extends HttpServlet {
         // String alternateID = getString(row, "Encounter.alternateID");
         // if (alternateID!=null) mark.setAlternateID(alternateID);
 
-        String nickname = getString(row, "MarkedIndividual.nickname", colIndexMap, verbose,
-            missingColumns, unusedColumns, feedback);
-        if (nickname == null)
-            nickname = getString(row, "MarkedIndividual.nickName", colIndexMap, verbose,
-                missingColumns, unusedColumns, feedback);
+       
+        String nickname = getIndividualName(row,colIndexMap,verbose,missingColumns,unusedColumns,feedback,"Nickname");
+
+    
         if (nickname != null) mark.setNickName(nickname);
         int numNameColumns = getNumNameColumns(colIndexMap);
         // import name columns
         for (int t = 0; t < numNameColumns; t++) {
-            String nameLabel = "MarkedIndividual.name" + t + ".label";
-            String nameValue = "MarkedIndividual.name" + t + ".value";
+            String nameLabel = "Name" + t + ".label";
+            String nameValue = "Name" + t + ".value";
             System.out.println("in name column: " + nameLabel);
             if (getStringOrInt(row, nameLabel, colIndexMap, verbose, missingColumns, unusedColumns,
                 feedback) != null && getStringOrInt(row, nameValue, colIndexMap, verbose,
@@ -2421,7 +2508,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
     private User getUserForRowOrCurrent(Row row, Shepherd myShepherd,
         Map<String, Integer> colIndexMap, boolean verbose, Set<String> missingColumns,
         Set<String> unusedColumns, TabularFeedback feedback, HttpServletRequest request) {
-        String submitterID = getString(row, "Encounter.submitterID", colIndexMap, verbose,
+        String submitterID = getString(row, "Encounter.submitter0.submitterID", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
         User u = null;
 
