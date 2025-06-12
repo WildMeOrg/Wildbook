@@ -111,7 +111,7 @@ public class SiteSettings extends ApiBase {
             for (String sn : sciNames) {
                 String snSpaces = sn.replaceAll("_", " ");
                 iaForTx.put(snSpaces,
-                    iaConfig.getValidIAClasses(new org.ecocean.Taxonomy(snSpaces)));
+                    iaConfig.getValidIAClassesIgnoreRedirects(new org.ecocean.Taxonomy(snSpaces)));
             }
             settings.put("iaClassesForTaxonomy", iaForTx);
 
