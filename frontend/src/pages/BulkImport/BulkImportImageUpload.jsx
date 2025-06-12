@@ -65,8 +65,6 @@ export const BulkImportImageUpload = observer(({ store }) => {
       fileInputRef.current?.addEventListener("change", () => {
         store.triggerUploadAfterFileInput();
       });
-
-
     } else {
       store.flow.assignBrowse(fileInputRef.current);
     }
@@ -260,10 +258,10 @@ export const BulkImportImageUpload = observer(({ store }) => {
                       {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
                       {(preview.fileSize / (1024 * 1024)).toFixed(2) >
                         maxSize && (
-                          <div style={{ color: theme.statusColors.red500 }}>
-                            <FormattedMessage id="FILE_SIZE_EXCEEDED" />
-                          </div>
-                        )}
+                        <div style={{ color: theme.statusColors.red500 }}>
+                          <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -290,8 +288,12 @@ export const BulkImportImageUpload = observer(({ store }) => {
               height={600}
               itemCount={store.imagePreview.length}
               itemSize={90}
-              width="50%"
               itemData={store.imagePreview.slice()}
+              style={{
+                minWidth: "300px",
+                maxWidth: "600px",
+                width: "100%",
+              }}
             >
               {({ index, style }) => {
                 const preview = store.imagePreview[index];
