@@ -36,7 +36,7 @@ public class BulkImporter {
     public List<Map<String, Object> > dataRows = null;
     public Map<String, MediaAsset> mediaAssetMap = null;
     public User user = null;
-    public ImportTask itask = null;
+    public String importTaskId = null;
     public Shepherd myShepherd = null;
 
     // caching loaded and (more imporantly?) newly created objects, so they can be
@@ -49,12 +49,12 @@ public class BulkImporter {
     private Map<String, Keyword> keywordCache = new HashMap<String, Keyword>();
     private Map<String, Project> projectCache = new HashMap<String, Project>();
 
-    public BulkImporter(List<Map<String, Object> > rows, Map<String, MediaAsset> maMap, User user,
-        ImportTask itask, Shepherd myShepherd) {
+    public BulkImporter(String id, List<Map<String, Object> > rows, Map<String, MediaAsset> maMap,
+        User user, Shepherd myShepherd) {
         this.dataRows = rows;
         this.mediaAssetMap = maMap;
         this.user = user;
-        this.itask = itask;
+        this.importTaskId = id;
         this.myShepherd = myShepherd;
     }
 
@@ -83,8 +83,9 @@ public class BulkImporter {
                 throw new ServletException("unexpected exception on processRow for row=" + rowNum +
                         ": " + ex);
             }
-            // count this as 75% of the work, persisting does the rest #progressbarkludge
-            markProgress(rowNum, dataRows.size(), 0.0d, 0.75d);
+            // (previous) MediaAsset creation counts as 20%, and this counts as 50%,
+            // with persisting making up the remaining 30%  #progressBarKludge
+            markProgress(rowNum, dataRows.size(), 0.2d, 0.5d);
         }
         System.out.println(
             "------------ all rows processed; beginning persistence -------------\n");
@@ -102,13 +103,13 @@ public class BulkImporter {
             maIds.add(ma.getIdInt());
             needIndexing.add(ma);
             persistenceTicks++;
-            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
         rtn.put("mediaAssets", arr);
         for (User u : userCache.values()) {
             myShepherd.getPM().makePersistent(u);
             persistenceTicks++;
-            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
         arr = new JSONArray();
         for (Encounter enc : encounterCache.values()) {
@@ -119,7 +120,7 @@ public class BulkImporter {
             arr.put(enc.getId());
             needIndexing.add(enc);
             persistenceTicks++;
-            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
         rtn.put("encounters", arr);
         arr = new JSONArray();
@@ -130,7 +131,7 @@ public class BulkImporter {
             arr.put(occ.getId());
             needIndexing.add(occ);
             persistenceTicks++;
-            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
         rtn.put("sightings", arr);
         arr = new JSONArray();
@@ -141,14 +142,14 @@ public class BulkImporter {
             arr.put(indiv.getId());
             needIndexing.add(indiv);
             persistenceTicks++;
-            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
         rtn.put("individuals", arr);
         for (Project proj : projectCache.values()) {
             myShepherd.storeNewProject(proj);
             System.out.println("PPPP " + proj);
             persistenceTicks++;
-            markProgress(persistenceTicks, persistenceTicksTotal, 0.75d, 0.25d);
+            markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
         System.out.println(
             "------------ persistence complete; background indexing and MA children -------------\n");
@@ -651,12 +652,23 @@ public class BulkImporter {
     }
 
     public void markProgress(int ticks, int total, double base, double weight) {
-        if (this.itask == null) return;
-        Double progress = base + (weight * new Double(ticks) / new Double(total));
-        System.out.println("--------------------------------------------- MARK-PROGRESS: " +
-            progress);
-        itask.setProcessingProgress(progress);
-        myShepherd.storeNewImportTask(itask);
+        if (this.importTaskId == null) return;
+        // we want our own shepherd here so we can persist this task independent of our main shepherd
+        Shepherd taskShepherd = new Shepherd(this.myShepherd.getContext());
+        taskShepherd.setAction("BulkImporter.markProgress");
+        taskShepherd.beginDBTransaction();
+        try {
+            ImportTask itask = taskShepherd.getImportTask(this.importTaskId);
+            if (itask == null) return;
+            Double progress = base + (weight * new Double(ticks) / new Double(total));
+            itask.setProcessingProgress(progress);
+            taskShepherd.storeNewImportTask(itask);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            taskShepherd.commitDBTransaction();
+            taskShepherd.closeDBTransaction();
+        }
     }
 
     public List<Encounter> getEncounters() {
