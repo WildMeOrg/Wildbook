@@ -443,6 +443,7 @@ public class BulkImport extends ApiBase {
                     };
                     new Thread(r).start();
                     rtn.put("backgrounded", true);
+                    rtn.put("success", true);
                     statusCode = 200;
                 } else {
                     // foreground processing
