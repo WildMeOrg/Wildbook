@@ -10,14 +10,17 @@ import {
 import { observer } from "mobx-react-lite";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import SelectCell from "../../components/SelectCell";
+import BulkImportApplyToAllRowsModal from "./BulkImportApplyToAllRowsModal";
 
-const EditableCell = ({
+const EditableCell = observer(({
   store,
   initialValue,
   rowIndex,
   columnId,
   externalError,
   externalWarning,
+  setColId,
+  setColValue,
 }) => {
   const [value, setValue] = useState(initialValue ?? "");
   const [error, setError] = useState(externalError ?? "");
@@ -53,7 +56,12 @@ const EditableCell = ({
           options={
             store.getOptionsForSelectCell(columnId)
           }
-          value={value ? { value, label: value } : null}
+          value={
+            store.spreadsheetData[rowIndex][columnId]
+              ? { value: store.spreadsheetData[rowIndex][columnId], label: store.spreadsheetData[rowIndex][columnId] }
+              : null
+          }
+
           onChange={(sel) => {
             const newValue = sel ? sel.value : "";
             setValue(newValue);
@@ -64,6 +72,12 @@ const EditableCell = ({
             const { errors, warnings } = store.validateSpreadsheet();
             setError(errors[rowIndex]?.[columnId] || "");
             setWarning(warnings[rowIndex]?.[columnId] || "");
+            if (columnId === "Encounter.locationID") {
+              setColId(columnId);
+              setColValue(newValue);
+              store.setApplyToAllRowModalShow(true);
+            }
+
           }}
           onBlur={handleBlur}
           error={error}
@@ -109,7 +123,7 @@ const EditableCell = ({
 
     </div>
   );
-};
+});
 
 export const DataTable = observer(({ store }) => {
   const data = store.spreadsheetData || [];
@@ -133,6 +147,8 @@ export const DataTable = observer(({ store }) => {
     right: [],
   });
 
+  const [colId, setColId] = useState("");
+  const [colValue, setColValue] = useState("");
 
   const extractAllValues = (treeData) => {
     const values = [];
@@ -181,6 +197,8 @@ export const DataTable = observer(({ store }) => {
         columnId={col}
         externalError={cellErrors[row.index]?.[col] || ""}
         externalWarning={cellWarnings[row.index]?.[col] || ""}
+        setColId={setColId}
+        setColValue={setColValue}
       />
     ),
   }));
@@ -226,6 +244,12 @@ export const DataTable = observer(({ store }) => {
         overflowY: "auto",
       }}
     >
+      <BulkImportApplyToAllRowsModal
+        store={store}
+        columnId={colId}
+        newValue={colValue}
+      />
+
       <div className="table-responsive">
         <table
           className="table table-bordered table-hover table-sm"

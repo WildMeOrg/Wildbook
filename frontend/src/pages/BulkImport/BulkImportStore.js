@@ -70,6 +70,7 @@ export class BulkImportStore {
   _validBehavior = [];
   _labeledKeywordAllowedKeys = [];
   _labeledKeywordAllowedPairs = [];
+  _applyToAllRowModalShow = true;
 
   _validationRules = {
     "Encounter.mediaAsset0": {
@@ -386,6 +387,10 @@ export class BulkImportStore {
     return this._lastSavedAt;
   }
 
+  get applyToAllRowModalShow () {
+    return this._applyToAllRowModalShow;
+  }
+
   get errorSummary() {
     let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
     const { errors = {} } = this.validateSpreadsheet() || {};
@@ -536,6 +541,10 @@ export class BulkImportStore {
     this._filesParsed = filesParsed;
   }
 
+  setApplyToAllRowModalShow(show) {
+    this._applyToAllRowModalShow = show;
+  }
+
   setMinimalFields(minimalFields) {
     runInAction(() => {
       this._minimalFields = minimalFields;
@@ -620,12 +629,9 @@ export class BulkImportStore {
   }
 
   applyServerUploadStatus(uploaded = []) {
-    console.log("applyServerUploadStatus");
     const uploadedFileNames = uploaded.map(p => p[0]);
     runInAction(() => {
       this._uploadedImages = uploaded;
-
-
       this._imageSectionFileNames = this._imageSectionFileNames.filter(
         name => uploadedFileNames.includes(name)
       );
@@ -633,7 +639,6 @@ export class BulkImportStore {
         p => uploadedFileNames.includes(p.fileName)
       );
     });
-    console.log("applyServerUploadStatus done", JSON.stringify(this._imagePreview));
   }
 
   async fetchAndApplyUploaded() {
@@ -843,7 +848,7 @@ export class BulkImportStore {
       //   console.log(`Chunk uploading failed due to no internet connection`, file.name, chunk.offset);
       //   return;
       // }
-      console.error(`❌ Upload failed: ${file.name}, chunk: ${chunk.offset}`);
+      console.error(`Upload failed: ${file.name}, chunk: ${chunk.offset}`);
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, error: true, progress: 0 } : f,
       );
@@ -1066,6 +1071,18 @@ export class BulkImportStore {
     }
   }
 
+  applyToAllRows(col, value) {
+    this._applyToAllRowModalShow = true;
+    this._spreadsheetData.forEach((row, rowIndex) => {
+      if (col in row) {
+        row[col] = value;
+      } else {
+        console.warn(`Column ${col} does not exist in row ${rowIndex}`);
+      }
+    })
+    this.updateRawFromNormalizedRow();
+    this.invalidateValidation();
+  }
 
   _onAllFilesParsed() {
     runInAction(() => {
