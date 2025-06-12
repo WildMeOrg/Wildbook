@@ -47,6 +47,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
       setRenderMode(store.imagePreview.length > THUMBNAIL_THRESHOLD ? "list" : "grid");
       store.generateThumbnailsForFirst200();
     }
+    store.setFilesParsed(false);
   }, [store.filesParsed]);
 
 
@@ -92,6 +93,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
     }
     e.preventDefault();
     setIsProcessingDrop(true);
+    store.setFilesParsed(false);
 
     const items1 = Array.from(e.dataTransfer.items);
     const newFilesCount = items1.filter((item) => {
@@ -125,7 +127,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
     store.uploadFilteredFiles(maxSize);
 
   };
-  
+
   return (
     <div className="mt-4">
       <Row>

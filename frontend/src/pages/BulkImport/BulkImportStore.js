@@ -51,6 +51,7 @@ export class BulkImportStore {
   _pendingDropFileCount = 0;
   _hasWarnedDropLimit = false;
   _collectedValidFiles = [];
+  _MAX_DROP_FILE_COUNT = 1000;
 
 
   isValidISO(val) {
@@ -755,11 +756,6 @@ export class BulkImportStore {
 
     flowInstance.assignBrowse(fileInputRef);
 
-    flowInstance.on('filesSubmitted', (files) => {
-      console.log("Files submitted:", files.length);
-
-    });
-
     flowInstance.on("fileAdded", (file) => {
       if (this._imageSectionFileNames.length >= this._maxImageCount) {
         console.warn(`maximum ${this._maxImageCount} discard`, file.name);
@@ -846,6 +842,7 @@ export class BulkImportStore {
       //   console.log(`Chunk uploading failed due to no internet connection`, file.name, chunk.offset);
       //   return;
       // }
+      console.error(`❌ Upload failed: ${file.name}, chunk: ${chunk.offset}`);
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, error: true, progress: 0 } : f,
       );
@@ -856,105 +853,73 @@ export class BulkImportStore {
     this._flow = flowInstance;
   }
 
-  // generateThumbnailsForFirst200() {
-  //   const previews = this._imagePreview;
-
-  //   if (previews.length > 200) {
-  //     console.log("⚠️ More than 200 images, skipping thumbnail generation.");
-  //     return;
-  //   }
-
-  //   previews.forEach((item, index) => {
-  //     if (!item.file || item.src) return;
-
-  //     const reader = new FileReader();
-  //     reader.onload = () => {
-  //       const img = new Image();
-  //       img.src = reader.result;
-  //       img.onload = () => {
-  //         const canvas = document.createElement("canvas");
-  //         const ctx = canvas.getContext("2d");
-  //         const MAX = 150;
-  //         let [width, height] = [img.width, img.height];
-
-  //         if (width > height) {
-  //           if (width > MAX) {
-  //             height = height * (MAX / width);
-  //             width = MAX;
-  //           }
-  //         } else {
-  //           if (height > MAX) {
-  //             width = width * (MAX / height);
-  //             height = MAX;
-  //           }
-  //         }
-
-  //         canvas.width = width;
-  //         canvas.height = height;
-  //         ctx.drawImage(img, 0, 0, width, height);
-  //         const thumb = canvas.toDataURL("image/jpeg", 0.7);
-
-  //         this._imagePreview[index] = {
-  //           ...item,
-  //           src: thumb,
-  //           showThumbnail: true,
-  //         };
-  //       };
-  //     };
-  //     reader.readAsDataURL(item.file);
-  //   });
-  // }
-
   generateThumbnailsForFirst200() {
     const previews = this._imagePreview;
-    if (previews.length > 200) return;
+    if (previews.length > 200) return Promise.resolve(); 
 
-    previews.forEach((item, index) => {
-      if (item.src) return; // 已经生成过
+    return new Promise((resolve) => {
+      let index = 0;
+      const next = () => {
+        if (index >= previews.length) return resolve();
 
-      const file = this._imageFileMap.get(item.fileName);
-      if (!file) return;
+        const item = previews[index];
+        index++;
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.src = reader.result;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          const MAX = 150;
-          let [width, height] = [img.width, img.height];
+        if (item.src) {
+          next();
+          return;
+        }
 
-          if (width > height) {
-            if (width > MAX) {
-              height *= MAX / width;
-              width = MAX;
+        const file = this._imageFileMap.get(item.fileName);
+        if (!file) {
+          next();
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const MAX = 150;
+            let [w, h] = [img.width, img.height];
+
+            if (w > h) {
+              if (w > MAX) {
+                h *= MAX / w;
+                w = MAX;
+              }
+            } else {
+              if (h > MAX) {
+                w *= MAX / h;
+                h = MAX;
+              }
             }
-          } else {
-            if (height > MAX) {
-              width *= MAX / height;
-              height = MAX;
-            }
-          }
 
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-          const thumb = canvas.toDataURL("image/jpeg", 0.7);
+            canvas.width = w;
+            canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            const thumb = canvas.toDataURL("image/jpeg", 0.7);
 
-          runInAction(() => {
-            this._imagePreview[index] = {
-              ...item,
-              src: thumb,
-              showThumbnail: true,
-            };
-          });
+            runInAction(() => {
+              this._imagePreview[index - 1] = {
+                ...item,
+                src: thumb,
+                showThumbnail: true,
+              };
+            });
+
+            setTimeout(next, 5);
+          };
+          img.src = reader.result;
         };
+        reader.readAsDataURL(file);
       };
-      reader.readAsDataURL(file);
+
+      next();
     });
   }
-
 
   uploadFilteredFiles(maxSize) {
     if (!this._flow) {
@@ -1057,101 +1022,6 @@ export class BulkImportStore {
     });
   }
 
-  // traverseFileTree(entry, maxSize) {
-  //   this._incrementPending();
-
-  //   if (entry.isDirectory) {
-  //     const reader = entry.createReader();
-  //     reader.readEntries((entries) => {
-  //       entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
-  //       this._decrementPending();
-  //     });
-  //   } else if (entry.isFile) {
-  //     entry.file((file) => {
-  //       const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
-  //       if (supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024) {
-  //         this.flow.addFile(file);
-  //       }
-  //       this._decrementPending();
-  //     });
-  //   } else {
-  //     this._decrementPending();
-  //   }
-  // }
-
-
-  // traverseFileTree(entry, maxSize) {
-  //   this._incrementPending();
-
-  //   if (entry.isDirectory) {
-  //     const reader = entry.createReader();
-  //     reader.readEntries((entries) => {
-  //       entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
-  //       this._decrementPending();
-  //     });
-  //   } else if (entry.isFile) {
-  //     entry.file((file) => {
-  //       const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
-
-  //       if (supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024) {
-  //         console.log("111111111");
-  //         this._pendingDropFileCount++;
-  //         if (this._pendingDropFileCount > 10) {
-  //           console.log("⚠️ Too many files dropped, ignoring further files.");
-  //           if (!this._hasWarnedDropLimit) {
-  //             alert("⚠️ You can only drop a maximum of 100 images at a time.");
-  //             this._hasWarnedDropLimit = true;
-  //           }
-  //         } else {
-  //           this._imageFileMap.set(file.name, file);
-  //           this.flow.addFile(file);
-  //         }
-  //       }
-  //       this._decrementPending();
-  //     });
-  //   } else {
-  //     this._decrementPending();
-  //   }
-  // }
-
-  // traverseFileTree(entry, maxSize) {
-  //   this._incrementPending();
-
-  //   if (entry.isDirectory) {
-  //     const reader = entry.createReader();
-  //     reader.readEntries((entries) => {
-  //       entries.forEach((ent) => this.traverseFileTree(ent, maxSize));
-  //       this._decrementPending();
-  //     });
-  //   } else if (entry.isFile) {
-  //     entry.file((file) => {
-  //       const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
-  //       const isValid = supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024;
-
-  //       if (isValid) {
-  //         this._pendingDropFileCount++;
-
-  //         if (this._pendingDropFileCount > 9) {
-  //           if (!this._hasWarnedDropLimit) {
-  //             alert("⚠️ You can only drop a maximum of 100 images at a time.");
-  //             this._hasWarnedDropLimit = true;
-  //           }
-
-  //           this._decrementPending();
-  //           return;
-  //         }
-
-  //         this._imageFileMap.set(file.name, file);
-  //         this.flow.addFile(file);
-  //       }
-
-  //       this._decrementPending();
-  //     });
-  //   } else {
-  //     this._decrementPending();
-  //   }
-  // }
-
   traverseFileTree(entry, maxSize) {
     this._incrementPending();
 
@@ -1178,7 +1048,6 @@ export class BulkImportStore {
     }
   }
 
-
   _incrementPending() {
     this._pendingReadCount++;
   }
@@ -1190,23 +1059,10 @@ export class BulkImportStore {
     }
   }
 
-  // _onAllFilesParsed() {
-  //   console.log("All files parsed");
-  //   runInAction(() => {
-  //     this.setFilesParsed(true);
-  //   });
-
-  //   if (this._imagePreview.length <= 200) {
-  //     this.generateThumbnailsForFirst200();
-  //   } else {
-  //     console.log("⚠️ More than 200 images, skipping thumbnail generation.");
-  //   }
-  // }
-
   _onAllFilesParsed() {
     runInAction(() => {
-      if (this._pendingDropFileCount > 500) {
-        alert("⚠️ You can only drop a maximum of 100 images at a time.");
+      if (this._pendingDropFileCount > this._MAX_DROP_FILE_COUNT) {
+        alert(`⚠️ You can only drop a maximum of ${this._MAX_DROP_FILE_COUNT} images at a time.`);
 
         this._collectedValidFiles = [];
         this._pendingDropFileCount = 0;
@@ -1225,12 +1081,13 @@ export class BulkImportStore {
       this.flow.upload();
 
       if (this._imagePreview.length <= 200) {
-        this.generateThumbnailsForFirst200();
+        this.generateThumbnailsForFirst200().then(() => {
+          this.setFilesParsed(true);
+          this.flow.upload();
+        });
       }
     });
   }
-
-
 
   isDynamicKnownColumn(col) {
     const mediaAssetMatch = col.match(/^Encounter\.mediaAsset(\d+)\.(\w+)$/);
@@ -1344,7 +1201,6 @@ export class BulkImportStore {
         }
 
         if (col.startsWith("Encounter.mediaAsset") && this._labeledKeywordAllowedKeys.includes(col.split(".")[2])) {
-          console.log("Applying dynamic validation rules for labeled keywords");
           const columnName = col.split(".")[2];
 
           const value = row[col];
