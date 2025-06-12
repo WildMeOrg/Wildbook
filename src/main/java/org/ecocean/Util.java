@@ -24,6 +24,7 @@ import net.jpountz.xxhash.StreamingXXHash32;
 import net.jpountz.xxhash.XXHash32;
 import net.jpountz.xxhash.XXHashFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.Tika;
 import org.joda.time.DateTime;
 
 import com.drew.imaging.jpeg.JpegMetadataReader;
@@ -38,7 +39,9 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import java.util.Iterator;
 
@@ -1087,6 +1090,33 @@ public class Util {
 
     public static boolean containsFilename(List<File> files, String filename) {
         return containsFilename(new HashSet<File>(files), filename);
+    }
+
+    // this is a good "quick first pass" at checking an uploaded file for use as MediaAsset
+    // but does not 100% guarantee creation of a MediaAsset will succeed
+    // it can process 1000 files in < 1 second
+    public static boolean fastFileValidation(File file) {
+        if (file == null) return false;
+        if (file.length() < 1000) return false;
+        try {
+            // probeContentType() sux cuz it uses extension first before actually probing :(
+            // String type = Files.probeContentType(file.toPath());
+            // so we just commit to another library, as Tika seems legit at using content of file
+            Tika tika = new Tika();
+            String type = tika.detect(file);
+            if (type == null) return false; // seems to return null for file not exists
+            if (type.startsWith("video/")) return true;
+            String[] accepted = { "jpeg", "png", "bmp", "gif" };
+            for (String subType : accepted) {
+                if (type.equals("image/" + subType)) return true;
+            }
+            System.out.println("fastFileValidation() failed on " + file + ": " + type);
+            return false;
+        } catch (Exception ex) {
+            System.out.println("fastFileValidation() failed on " + file + ": " + ex);
+            // ex.printStackTrace(); // seems overkill
+        }
+        return false;
     }
 
     // h/t StackOverflow user erickson https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java

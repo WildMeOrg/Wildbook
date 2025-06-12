@@ -309,8 +309,27 @@ public class BulkImport extends ApiBase {
             rtn.put("numberFieldsError", dataErrors.length());
             rtn.put("numberFieldsValid", validFields.size());
             if (dataErrors.length() > 0) rtn.put("errors", dataErrors);
-            final Map<String, MediaAsset> maMap = new HashMap<String, MediaAsset>();
+            List<File> validFiles = new ArrayList<File>();
+            // now we only do "lightweight" (fast) file validation, as the MediaAsset creation
+            // takes too long, and therefore we do that later in the background (if applicable)
             if (!validateOnly && (dataErrors.length() == 0)) {
+                for (File file : files) {
+                    String filename = file.getName();
+                    if (!filenamesNeeded.contains(filename)) continue; // uploaded, but not referenced :(
+                    // this takes about 30 sec for 1000 images :(
+                    // if (!AssetStore.isValidImage(file))
+                    // ... but this new method is less than 1 sec :)
+                    if (!Util.fastFileValidation(file)) {
+                        JSONObject err = new JSONObject();
+                        err.put("filename", filename);
+                        err.put("error", filename + " is not a valid file");
+                        dataErrors.put(err);
+                        System.out.println("[ERROR] image validation failed on " + filename);
+                        continue;
+                    }
+                    validFiles.add(file);
+                }
+/*
                 for (File file : files) {
                     String filename = file.getName();
                     if (!filenamesNeeded.contains(filename)) continue; // uploaded, but not referenced :(
@@ -331,10 +350,11 @@ public class BulkImport extends ApiBase {
                 }
                 System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " +
                     files.size() + " files");
+ */
             }
-            rtn.put("numberMediaAssetsCreated", maMap.size());
             rtn.put("numberFilenamesReferenced", filenamesNeeded.size());
             rtn.put("numberFilesUploaded", files.size());
+            rtn.put("numberFilesValid", validFiles.size());
             if (dataWarnings.length() > 0) rtn.put("warnings", dataWarnings);
             if (validateOnly) {
                 rtn.put("validateOnly", true);
@@ -350,6 +370,7 @@ public class BulkImport extends ApiBase {
 
                 rtn.put("processInBackground", processInBackground);
                 if (processInBackground) {
+                    final boolean bgToleranceFailImportOnError = toleranceFailImportOnError; // needs to be final
                     Runnable r = new Runnable() {
                         public void run() {
                             // make our background thread safely use our own Shepherd
@@ -357,27 +378,41 @@ public class BulkImport extends ApiBase {
                             User bgUser = bgShepherd.getUser(currentUser.getUsername());
                             ImportTask bgTask = getOrCreateImportTask(bgShepherd, bgUser,
                                 bulkImportId, payload);
-                            // a little wonky: we need to update assets to use our Shepherd for backgrounding
-                            AssetStore astore = AssetStore.getDefault(bgShepherd);
-                            for (MediaAsset ma : maMap.values()) {
-                                ma.setStore(astore);
-                            }
-                            BulkImporter importer = new BulkImporter(validatedRows, maMap, bgUser,
-                                bgTask, bgShepherd);
                             bgTask.setStatus("processing-background");
                             bgShepherd.storeNewImportTask(bgTask);
+                            bgShepherd.commitDBTransaction(); // get task in db, then open new transaction we can bail on if failure
+                            bgShepherd.beginDBTransaction();
+                            int numNewErrors = dataErrors.length();
+                            Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId,
+                                validFiles, dataErrors, bgShepherd);
+                            numNewErrors = dataErrors.length() - numNewErrors;
+                            boolean blockedByMAErrors = false;
+                            if (numNewErrors > 0) {
+                                System.out.println(bulkImportId +
+                                    " background createMediaAssets() failed: " + dataErrors);
+                                rtn.put("errors", dataErrors);
+                                if (bgToleranceFailImportOnError) blockedByMAErrors = true;
+                            }
+                            rtn.put("numberMediaAssetsCreated", maMap.size());
+                            BulkImporter importer = new BulkImporter(bulkImportId, validatedRows,
+                                maMap, bgUser, bgShepherd);
                             JSONObject results = null;
                             boolean success = false;
-                            try {
-                                results = importer.createImport();
-                                success = true;
-                            } catch (ServletException ex) {
-                                rtn.put("error", ex.toString());
-                                System.out.println("ERROR: background importer on Import Task " +
-                                    bulkImportId + "failed with: " + ex);
-                                ex.printStackTrace();
+                            if (!blockedByMAErrors) {
+                                try {
+                                    results = importer.createImport();
+                                    success = true;
+                                } catch (ServletException ex) {
+                                    // this will overwrite existing errors, but likely we dont have any here?
+                                    rtn.put("errors", ex.toString());
+                                    System.out.println(
+                                        "ERROR: background importer on Import Task " +
+                                        bulkImportId + "failed with: " + ex);
+                                    ex.printStackTrace();
+                                }
+                                System.out.println(bulkImportId + " IMPORTER RESULTS => " +
+                                    results);
                             }
-                            System.out.println(bulkImportId + " IMPORTER RESULTS => " + results);
                             if (results != null)
                                 for (String rkey : results.keySet()) {
                                     rtn.put(rkey, results.get(rkey));
@@ -392,10 +427,11 @@ public class BulkImport extends ApiBase {
                             if (success) {
                                 bgTask.setEncounters(importer.getEncounters());
                                 bgTask.setStatus("imported");
+                                bgTask.setProcessingProgress(1.0D);
                                 bgTask.addLog("import complete");
                             } else {
                                 bgTask.setStatus("failed");
-                                bgTask.addLog("error: " + rtn.get("error"));
+                                bgTask.addLog("errors: " + rtn.get("errors"));
                             }
                             bgShepherd.storeNewImportTask(bgTask);
                             rtn.put("processingTime", System.currentTimeMillis() - startProcess);
@@ -414,29 +450,50 @@ public class BulkImport extends ApiBase {
                         payload);
                     // we update task in db here just in case something is checking on it elsewhere  ???
                     itask.setStatus("processing-foreground");
-                    itask.setEncounters(null);
                     myShepherd.storeNewImportTask(itask);
-                    BulkImporter importer = new BulkImporter(validatedRows, maMap, currentUser,
-                        itask, myShepherd);
-                    JSONObject results = importer.createImport();
-                    for (String rkey : results.keySet()) {
-                        rtn.put(rkey, results.get(rkey));
+                    myShepherd.commitDBTransaction(); // get task in db, then open new transaction we can bail on if failure
+                    myShepherd.beginDBTransaction();
+                    int numNewErrors = dataErrors.length();
+                    Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId, validFiles,
+                        dataErrors, myShepherd);
+                    numNewErrors = dataErrors.length() - numNewErrors;
+                    boolean blockedByMAErrors = false;
+                    if (numNewErrors > 0) {
+                        System.out.println(bulkImportId +
+                            " foreground createMediaAssets() failed: " + dataErrors);
+                        rtn.put("errors", dataErrors);
+                        if (toleranceFailImportOnError) blockedByMAErrors = true;
                     }
-                    if (!verboseReturn) {
-                        rtn.remove("mediaAssets");
-                        rtn.remove("encounters");
-                        rtn.remove("sightings");
-                        rtn.remove("individuals");
+                    rtn.put("numberMediaAssetsCreated", maMap.size());
+                    if (blockedByMAErrors) {
+                        itask.setStatus("failed");
+                        myShepherd.storeNewImportTask(itask);
+                        rtn.put("success", false);
+                        statusCode = 400;
+                    } else {
+                        BulkImporter importer = new BulkImporter(bulkImportId, validatedRows, maMap,
+                            currentUser, myShepherd);
+                        JSONObject results = importer.createImport();
+                        for (String rkey : results.keySet()) {
+                            rtn.put(rkey, results.get(rkey));
+                        }
+                        if (!verboseReturn) {
+                            rtn.remove("mediaAssets");
+                            rtn.remove("encounters");
+                            rtn.remove("sightings");
+                            rtn.remove("individuals");
+                        }
+                        itask.setEncounters(importer.getEncounters());
+                        itask.setStatus("imported");
+                        itask.setProcessingProgress(1.0D);
+                        itask.addLog("import complete");
+                        myShepherd.storeNewImportTask(itask);
+                        rtn.put("success", true);
+                        statusCode = 200;
                     }
-                    itask.setEncounters(importer.getEncounters());
-                    itask.setStatus("imported");
-                    itask.addLog("import complete");
-                    myShepherd.storeNewImportTask(itask);
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     Util.mark("END [foreground] createImport() for " + bulkImportId, startProcess);
                 }
-                rtn.put("success", true);
-                statusCode = 200;
             }
             response.setStatus(statusCode);
             response.setCharacterEncoding("UTF-8");
@@ -494,6 +551,54 @@ public class BulkImport extends ApiBase {
             }
             myShepherd.closeDBTransaction();
         }
+    }
+
+    // files should already be validated and "needed"
+    private Map<String, MediaAsset> createMediaAssets(String bulkImportId, List<File> files,
+        JSONArray dataErrors, Shepherd myShepherd) {
+        Map<String, MediaAsset> maMap = new HashMap<String, MediaAsset>();
+        int ct = 0;
+
+        for (File file : files) {
+            ct++;
+            String filename = file.getName();
+            try {
+                MediaAsset ma = UploadedFiles.makeMediaAsset(bulkImportId, file, myShepherd);
+                maMap.put(filename, ma);
+            } catch (ApiException apiEx) {
+                JSONObject err = new JSONObject();
+                err.put("filename", filename);
+                err.put("mediaAssetError", true);
+                err.put("errors", apiEx.getErrors());
+                err.put("details", apiEx.toString());
+                dataErrors.put(err);
+                System.out.println("[ERROR] " + filename + " MediaAsset creation: " + apiEx);
+            }
+            // just to save a little db overhead, we only do this every 10 files
+            if (ct % 10 == 0) {
+                // we want this to be its own shepherd for the sake of committing without affecting main shepherd
+                Shepherd taskShepherd = new Shepherd(myShepherd.getContext());
+                taskShepherd.setAction("BulkImport.createMediaAssets");
+                taskShepherd.beginDBTransaction();
+                try {
+                    ImportTask itask = taskShepherd.getImportTask(bulkImportId);
+                    if (itask != null) {
+                        // this 20% has to be coordinated with BulkImporter values
+                        Double progress = 0.2D * new Double(ct) / new Double(files.size());
+                        itask.setProcessingProgress(progress);
+                        taskShepherd.storeNewImportTask(itask);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                } finally {
+                    taskShepherd.commitDBTransaction();
+                    taskShepherd.closeDBTransaction();
+                }
+            }
+        }
+        System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " + files.size() +
+            " files");
+        return maMap;
     }
 
     private ImportTask getOrCreateImportTask(Shepherd myShepherd, User user, String id,
