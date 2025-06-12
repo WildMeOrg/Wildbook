@@ -170,7 +170,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
         )}
       </Row>
 
-      <Row className="mt-4 w-100">
+      <Row className="mt-4 mb-4 w-100">
         {isProcessingDrop && (
           <div className="text-center p-4">
             <FormattedMessage
@@ -180,52 +180,111 @@ export const BulkImportImageUpload = observer(({ store }) => {
           </div>
         )}
 
-        {!isProcessingDrop &&
-          store.imagePreview.length > 0 &&
-          renderMode === "grid" && (
-            <div
-              className="d-flex flex-wrap gap-3 mb-4"
-              style={{ maxHeight: 400, overflowY: "auto" }}
-            >
-              {store.imagePreview.map((preview) => (
-                <div
-                  key={preview.fileName}
-                  style={{
-                    width: 150,
-                    textAlign: "center",
-                    position: "relative",
-                  }}
-                >
-                  <BootstrapImage
-                    src={preview.src || "/img/placeholder.png"}
-                    thumbnail
-                  />
-                  <ProgressBar
-                    now={preview.progress}
+        {!isProcessingDrop && renderMode === "grid" && (
+          <Row className="mb-4 ms-2">
+            {store.imagePreview.map((preview, index) => (
+              <Col
+                key={index}
+                className="mb-4 me-4 d-flex flex-column justify-content-between"
+                style={{ maxWidth: "200px", position: "relative" }}
+              >
+                <div style={{ position: "relative" }}>
+                  <i
+                    className="bi bi-x-circle-fill"
                     style={{
-                      height: 6,
                       position: "absolute",
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                      top: "-10px",
+                      right: "-5px",
+                      cursor: "pointer",
+                      fontSize: "1.2rem",
+                      color: theme.primaryColors.primary500,
+                      zIndex: 10,
                     }}
-                  />
-                  <small className="d-block text-truncate">
-                    {preview.fileName}
-                  </small>
+                    title="Remove image"
+                    onClick={() => store.removePreview(preview.fileName)}
+                  ></i>
+
+                  {preview.showThumbnail && preview.src ? (
+                    <BootstrapImage
+                      src={preview.src}
+                      style={{
+                        width: "100%",
+                        height: "120px",
+                        objectFit: "fill",
+                      }}
+                      alt={`Preview ${index + 1}`}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        height: "120px",
+                        backgroundColor: "#f8f9fa",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <i
+                        className="bi bi-file-image"
+                        style={{
+                          fontSize: "2rem",
+                          color: theme.primaryColors.primary700,
+                        }}
+                      ></i>
+                    </div>
+                  )}
+
+                  <div
+                    className="mt-2"
+                    style={{
+                      width: "200px",
+                      wordWrap: "break-word",
+                      whiteSpace: "normal",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    <div className="text-truncate" title={preview.fileName}>
+                      {preview.fileName}
+                    </div>
+                    {preview.error && (
+                      <div style={{ color: theme.statusColors.red500 }}>
+                        <FormattedMessage id="UPLOAD_FAILED" />
+                      </div>
+                    )}
+                    <div>
+                      {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
+                      {(preview.fileSize / (1024 * 1024)).toFixed(2) >
+                        maxSize && (
+                        <div style={{ color: theme.statusColors.red500 }}>
+                          <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                <ProgressBar
+                  now={preview.progress}
+                  label={`${Math.round(preview.progress)}%`}
+                  className="mt-2"
+                  style={{
+                    width: "100%",
+                    backgroundColor: theme.primaryColors.primary50,
+                  }}
+                />
+              </Col>
+            ))}
+          </Row>
+        )}
 
         {!isProcessingDrop &&
           store.imagePreview.length > 0 &&
           renderMode === "list" && (
             <List
-              height={400}
+              height={600}
               itemCount={store.imagePreview.length}
-              itemSize={60}
-              width="100%"
+              itemSize={90}
+              width="50%"
               itemData={store.imagePreview.slice()}
             >
               {({ index, style }) => {
@@ -234,25 +293,70 @@ export const BulkImportImageUpload = observer(({ store }) => {
                   <div
                     style={{
                       ...style,
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "0 1rem",
+                      boxSizing: "border-box",
+                      paddingRight: "16px",
                     }}
                   >
                     <div
                       style={{
-                        flex: 1,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                        // padding: "12px 16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
                       }}
                     >
-                      {preview.fileName}
-                    </div>
-                    <div style={{ width: 150 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            flex: 1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            fontWeight: 500,
+                          }}
+                          title={preview.fileName}
+                        >
+                          {preview.fileName}
+                        </div>
+                        <div
+                          style={{
+                            marginLeft: "16px",
+                            minWidth: "60px",
+                            textAlign: "right",
+                          }}
+                        >
+                          {(preview.fileSize / (1024 * 1024)).toFixed(1)} MB
+                        </div>
+                        <div
+                          style={{ marginLeft: "16px", cursor: "pointer" }}
+                          onClick={() => store.removePreview(preview.fileName)}
+                        >
+                          <i
+                            className="bi bi-trash-fill"
+                            style={{ color: "#dc3545", fontSize: "1.2rem" }}
+                          ></i>
+                        </div>
+                      </div>
+
                       <ProgressBar
                         now={preview.progress}
-                        label={`${Math.round(preview.progress)}%`}
+                        className="custom-progress"
+                        variant="info"
+                        style={{
+                          height: "8px",
+                          borderRadius: "4px",
+                          backgroundColor: theme.primaryColors.primary50,
+                        }}
                       />
                     </div>
                   </div>
@@ -260,7 +364,8 @@ export const BulkImportImageUpload = observer(({ store }) => {
               }}
             </List>
           )}
-
+      </Row>
+      <Row>
         <Col
           md={8}
           style={{ width: store.imagePreview.length ? "200px" : "100%" }}
