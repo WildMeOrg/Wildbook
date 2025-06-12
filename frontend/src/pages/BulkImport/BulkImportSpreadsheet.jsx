@@ -179,6 +179,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   const handleDrop = (event) => {
     event.preventDefault();
     setIsDragging(false);
+    const filename = file?.name || "";
+    store.setSpreadsheetFileName(filename);
+    store.setSpreadsheetUploadProgress(0);
     const file = event.dataTransfer.files[0];
     if (file) {
       processFile(file);
