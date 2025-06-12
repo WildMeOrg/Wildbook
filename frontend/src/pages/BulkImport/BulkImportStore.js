@@ -620,19 +620,20 @@ export class BulkImportStore {
   }
 
   applyServerUploadStatus(uploaded = []) {
+    console.log("applyServerUploadStatus");
     const uploadedFileNames = uploaded.map(p => p[0]);
     runInAction(() => {
       this._uploadedImages = uploaded;
-      this._imagePreview = this._imagePreview.map(p => ({
-        ...p,
-        progress: uploadedFileNames.includes(p.fileName) ? 100 : 0
-      }));
-      this._imagePreview.sort((a, b) => {
-        if (a.progress === 0 && b.progress !== 0) return -1;
-        if (a.progress !== 0 && b.progress === 0) return 1;
-        return 0;
-      });
+
+
+      this._imageSectionFileNames = this._imageSectionFileNames.filter(
+        name => uploadedFileNames.includes(name)
+      );
+      this._imagePreview = this._imagePreview.filter(
+        p => uploadedFileNames.includes(p.fileName)
+      );
     });
+    console.log("applyServerUploadStatus done", JSON.stringify(this._imagePreview));
   }
 
   async fetchAndApplyUploaded() {
@@ -855,7 +856,7 @@ export class BulkImportStore {
 
   generateThumbnailsForFirst200() {
     const previews = this._imagePreview;
-    if (previews.length > 200) return Promise.resolve(); 
+    if (previews.length > 200) return Promise.resolve();
 
     return new Promise((resolve) => {
       let index = 0;
@@ -1058,6 +1059,13 @@ export class BulkImportStore {
       this._onAllFilesParsed();
     }
   }
+
+  triggerUploadAfterFileInput() {
+    if (this._imagePreview.length > 0) {
+      this._onAllFilesParsed();
+    }
+  }
+
 
   _onAllFilesParsed() {
     runInAction(() => {

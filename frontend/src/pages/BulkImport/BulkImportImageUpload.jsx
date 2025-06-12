@@ -62,6 +62,11 @@ export const BulkImportImageUpload = observer(({ store }) => {
 
     if (!store.flow) {
       store.initializeFlow(fileInputRef.current, maxSize);
+      fileInputRef.current?.addEventListener("change", () => {
+        store.triggerUploadAfterFileInput();
+      });
+
+
     } else {
       store.flow.assignBrowse(fileInputRef.current);
     }
@@ -181,7 +186,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
         )}
 
         {!isProcessingDrop && renderMode === "grid" && (
-          <Row className="mb-4 ms-2">
+          <Row className="mb-4 ms-2" id="image-preview-grid">
             {store.imagePreview.map((preview, index) => (
               <Col
                 key={index}
@@ -255,10 +260,10 @@ export const BulkImportImageUpload = observer(({ store }) => {
                       {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
                       {(preview.fileSize / (1024 * 1024)).toFixed(2) >
                         maxSize && (
-                        <div style={{ color: theme.statusColors.red500 }}>
-                          <FormattedMessage id="FILE_SIZE_EXCEEDED" />
-                        </div>
-                      )}
+                          <div style={{ color: theme.statusColors.red500 }}>
+                            <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -281,6 +286,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
           store.imagePreview.length > 0 &&
           renderMode === "list" && (
             <List
+              id="image-preview-list"
               height={600}
               itemCount={store.imagePreview.length}
               itemSize={90}
@@ -300,9 +306,8 @@ export const BulkImportImageUpload = observer(({ store }) => {
                     <div
                       style={{
                         backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                        // padding: "12px 16px",
+                        borderRadius: "4px",
+                        boxShadow: "1px 2px 5px rgba(0,0,0,0.5)",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
@@ -313,7 +318,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          marginBottom: "8px",
+                          marginBottom: "2px",
                         }}
                       >
                         <div
@@ -323,6 +328,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
                             fontWeight: 500,
+                            height: "50px",
                           }}
                           title={preview.fileName}
                         >
