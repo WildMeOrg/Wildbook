@@ -12,8 +12,7 @@ import MainButton from "../../components/MainButton";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
-import { FixedSizeList as List } from 'react-window';
-
+import { FixedSizeList as List } from "react-window";
 
 const handleDragOver = (e) => {
   e.preventDefault();
@@ -44,12 +43,13 @@ export const BulkImportImageUpload = observer(({ store }) => {
     console.log("Files parsed++++++++++++++++:", store.filesParsed);
     if (store.filesParsed) {
       setIsProcessingDrop(false);
-      setRenderMode(store.imagePreview.length > THUMBNAIL_THRESHOLD ? "list" : "grid");
+      setRenderMode(
+        store.imagePreview.length > THUMBNAIL_THRESHOLD ? "list" : "grid",
+      );
       store.generateThumbnailsForFirst200();
     }
     store.setFilesParsed(false);
   }, [store.filesParsed]);
-
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -78,15 +78,13 @@ export const BulkImportImageUpload = observer(({ store }) => {
       store.setImageSectionFileNames(
         store.imagePreview.map((preview) => preview.fileName),
       );
-      if(store.filesParsed) {
-      store.uploadFilteredFiles(maxSize);
+      if (store.filesParsed) {
+        store.uploadFilteredFiles(maxSize);
       }
     }
-
   }, [store.imagePreview.length]);
 
   const handleDrop = (e) => {
-
     if (currentCount >= store.maxImageCount) {
       alert(`maximum image count: ${store.maxImageCount} exceeded`);
       return;
@@ -125,7 +123,6 @@ export const BulkImportImageUpload = observer(({ store }) => {
     }
 
     store.uploadFilteredFiles(maxSize);
-
   };
 
   return (
@@ -176,46 +173,93 @@ export const BulkImportImageUpload = observer(({ store }) => {
       <Row className="mt-4 w-100">
         {isProcessingDrop && (
           <div className="text-center p-4">
-            <FormattedMessage id="PROCESSING_IMAGES" defaultMessage="Processing images..." />
+            <FormattedMessage
+              id="PROCESSING_IMAGES"
+              defaultMessage="Processing images..."
+            />
           </div>
         )}
 
-        {!isProcessingDrop && renderMode === "grid" && (
-          <div className="d-flex flex-wrap gap-3 mb-4" style={{ maxHeight: 400, overflowY: "auto" }}>
-            {store.imagePreview.map((preview) => (
-              <div key={preview.fileName} style={{ width: 150, textAlign: "center", position: "relative" }}>
-                <BootstrapImage src={preview.src || "/img/placeholder.png"} thumbnail />
-                <ProgressBar now={preview.progress} style={{ height: 6, position: "absolute", left: 0, right: 0, bottom: 0 }} />
-                <small className="d-block text-truncate">{preview.fileName}</small>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!isProcessingDrop && renderMode === "list" && (
-          <List
-            height={400}
-            itemCount={store.imagePreview.length}
-            itemSize={60}
-            width="100%"
-            itemData={store.imagePreview.slice()}
-          >
-            {({ index, style }) => {
-              const preview = store.imagePreview[index];
-              return (
-                <div style={{ ...style, display: "flex", alignItems: "center", padding: "0 1rem" }}>
-                  <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {!isProcessingDrop &&
+          store.imagePreview.length > 0 &&
+          renderMode === "grid" && (
+            <div
+              className="d-flex flex-wrap gap-3 mb-4"
+              style={{ maxHeight: 400, overflowY: "auto" }}
+            >
+              {store.imagePreview.map((preview) => (
+                <div
+                  key={preview.fileName}
+                  style={{
+                    width: 150,
+                    textAlign: "center",
+                    position: "relative",
+                  }}
+                >
+                  <BootstrapImage
+                    src={preview.src || "/img/placeholder.png"}
+                    thumbnail
+                  />
+                  <ProgressBar
+                    now={preview.progress}
+                    style={{
+                      height: 6,
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    }}
+                  />
+                  <small className="d-block text-truncate">
                     {preview.fileName}
-                  </div>
-                  <div style={{ width: 150 }}>
-                    <ProgressBar now={preview.progress} label={`${Math.round(preview.progress)}%`} />
-                  </div>
+                  </small>
                 </div>
-              );
-            }}
-          </List>
-        )}
+              ))}
+            </div>
+          )}
 
+        {!isProcessingDrop &&
+          store.imagePreview.length > 0 &&
+          renderMode === "list" && (
+            <List
+              height={400}
+              itemCount={store.imagePreview.length}
+              itemSize={60}
+              width="100%"
+              itemData={store.imagePreview.slice()}
+            >
+              {({ index, style }) => {
+                const preview = store.imagePreview[index];
+                return (
+                  <div
+                    style={{
+                      ...style,
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "0 1rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        flex: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {preview.fileName}
+                    </div>
+                    <div style={{ width: 150 }}>
+                      <ProgressBar
+                        now={preview.progress}
+                        label={`${Math.round(preview.progress)}%`}
+                      />
+                    </div>
+                  </div>
+                );
+              }}
+            </List>
+          )}
 
         <Col
           md={8}
