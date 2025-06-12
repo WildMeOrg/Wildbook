@@ -15,6 +15,7 @@ export const BulkImportContinueModal = ({ store }) => {
   }, [store.submissionId]);
 
   const handleContinue = () => {
+    store.fetchAndApplyUploaded();
     setShow(false);     
   };
 

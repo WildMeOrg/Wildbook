@@ -12,8 +12,7 @@ import MainButton from "../../components/MainButton";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
-import { FixedSizeList as List } from 'react-window';
-
+import { FixedSizeList as List } from "react-window";
 
 const handleDragOver = (e) => {
   e.preventDefault();
@@ -44,11 +43,13 @@ export const BulkImportImageUpload = observer(({ store }) => {
     console.log("Files parsed++++++++++++++++:", store.filesParsed);
     if (store.filesParsed) {
       setIsProcessingDrop(false);
-      setRenderMode(store.imagePreview.length > THUMBNAIL_THRESHOLD ? "list" : "grid");
+      setRenderMode(
+        store.imagePreview.length > THUMBNAIL_THRESHOLD ? "list" : "grid",
+      );
       store.generateThumbnailsForFirst200();
     }
+    store.setFilesParsed(false);
   }, [store.filesParsed]);
-
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -61,6 +62,9 @@ export const BulkImportImageUpload = observer(({ store }) => {
 
     if (!store.flow) {
       store.initializeFlow(fileInputRef.current, maxSize);
+      fileInputRef.current?.addEventListener("change", () => {
+        store.triggerUploadAfterFileInput();
+      });
     } else {
       store.flow.assignBrowse(fileInputRef.current);
     }
@@ -77,21 +81,20 @@ export const BulkImportImageUpload = observer(({ store }) => {
       store.setImageSectionFileNames(
         store.imagePreview.map((preview) => preview.fileName),
       );
-      if(store.filesParsed) {
-      store.uploadFilteredFiles(maxSize);
+      if (store.filesParsed) {
+        store.uploadFilteredFiles(maxSize);
       }
     }
-
   }, [store.imagePreview.length]);
 
   const handleDrop = (e) => {
-
     if (currentCount >= store.maxImageCount) {
       alert(`maximum image count: ${store.maxImageCount} exceeded`);
       return;
     }
     e.preventDefault();
     setIsProcessingDrop(true);
+    store.setFilesParsed(false);
 
     const items1 = Array.from(e.dataTransfer.items);
     const newFilesCount = items1.filter((item) => {
@@ -123,9 +126,8 @@ export const BulkImportImageUpload = observer(({ store }) => {
     }
 
     store.uploadFilteredFiles(maxSize);
-
   };
-  
+
   return (
     <div className="mt-4">
       <Row>
@@ -171,50 +173,207 @@ export const BulkImportImageUpload = observer(({ store }) => {
         )}
       </Row>
 
-      <Row className="mt-4 w-100">
+      <Row className="mt-4 mb-4 w-100">
         {isProcessingDrop && (
           <div className="text-center p-4">
-            <FormattedMessage id="PROCESSING_IMAGES" defaultMessage="Processing images..." />
+            <FormattedMessage
+              id="PROCESSING_IMAGES"
+              defaultMessage="Processing images..."
+            />
           </div>
         )}
 
         {!isProcessingDrop && renderMode === "grid" && (
-          <div className="d-flex flex-wrap gap-3 mb-4" style={{ maxHeight: 400, overflowY: "auto" }}>
-            {store.imagePreview.map((preview) => (
-              <div key={preview.fileName} style={{ width: 150, textAlign: "center", position: "relative" }}>
-                <BootstrapImage src={preview.src || "/img/placeholder.png"} thumbnail />
-                <ProgressBar now={preview.progress} style={{ height: 6, position: "absolute", left: 0, right: 0, bottom: 0 }} />
-                <small className="d-block text-truncate">{preview.fileName}</small>
-              </div>
-            ))}
-          </div>
-        )}
+          <Row className="mb-4 ms-2" id="image-preview-grid">
+            {store.imagePreview.map((preview, index) => (
+              <Col
+                key={index}
+                className="mb-4 me-4 d-flex flex-column justify-content-between"
+                style={{ maxWidth: "200px", position: "relative" }}
+              >
+                <div style={{ position: "relative" }}>
+                  <i
+                    className="bi bi-x-circle-fill"
+                    style={{
+                      position: "absolute",
+                      top: "-10px",
+                      right: "-5px",
+                      cursor: "pointer",
+                      fontSize: "1.2rem",
+                      color: theme.primaryColors.primary500,
+                      zIndex: 10,
+                    }}
+                    title="Remove image"
+                    onClick={() => store.removePreview(preview.fileName)}
+                  ></i>
 
-        {!isProcessingDrop && renderMode === "list" && (
-          <List
-            height={400}
-            itemCount={store.imagePreview.length}
-            itemSize={60}
-            width="100%"
-            itemData={store.imagePreview.slice()}
-          >
-            {({ index, style }) => {
-              const preview = store.imagePreview[index];
-              return (
-                <div style={{ ...style, display: "flex", alignItems: "center", padding: "0 1rem" }}>
-                  <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {preview.fileName}
-                  </div>
-                  <div style={{ width: 150 }}>
-                    <ProgressBar now={preview.progress} label={`${Math.round(preview.progress)}%`} />
+                  {preview.showThumbnail && preview.src ? (
+                    <BootstrapImage
+                      src={preview.src}
+                      style={{
+                        width: "100%",
+                        height: "120px",
+                        objectFit: "fill",
+                      }}
+                      alt={`Preview ${index + 1}`}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        height: "120px",
+                        backgroundColor: "#f8f9fa",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <i
+                        className="bi bi-file-image"
+                        style={{
+                          fontSize: "2rem",
+                          color: theme.primaryColors.primary700,
+                        }}
+                      ></i>
+                    </div>
+                  )}
+
+                  <div
+                    className="mt-2"
+                    style={{
+                      width: "200px",
+                      wordWrap: "break-word",
+                      whiteSpace: "normal",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    <div className="text-truncate" title={preview.fileName}>
+                      {preview.fileName}
+                    </div>
+                    {preview.error && (
+                      <div style={{ color: theme.statusColors.red500 }}>
+                        <FormattedMessage id="UPLOAD_FAILED" />
+                      </div>
+                    )}
+                    <div>
+                      {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
+                      {(preview.fileSize / (1024 * 1024)).toFixed(2) >
+                        maxSize && (
+                        <div style={{ color: theme.statusColors.red500 }}>
+                          <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              );
-            }}
-          </List>
+
+                <ProgressBar
+                  now={preview.progress}
+                  label={`${Math.round(preview.progress)}%`}
+                  className="mt-2"
+                  style={{
+                    width: "100%",
+                    backgroundColor: theme.primaryColors.primary50,
+                  }}
+                />
+              </Col>
+            ))}
+          </Row>
         )}
 
+        {!isProcessingDrop &&
+          store.imagePreview.length > 0 &&
+          renderMode === "list" && (
+            <List
+              id="image-preview-list"
+              height={600}
+              itemCount={store.imagePreview.length}
+              itemSize={90}
+              itemData={store.imagePreview.slice()}
+              style={{
+                minWidth: "300px",
+                maxWidth: "600px",
+                width: "100%",
+              }}
+            >
+              {({ index, style }) => {
+                const preview = store.imagePreview[index];
+                return (
+                  <div
+                    style={{
+                      ...style,
+                      boxSizing: "border-box",
+                      paddingRight: "16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: "#fff",
+                        borderRadius: "4px",
+                        boxShadow: "1px 2px 5px rgba(0,0,0,0.5)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            flex: 1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            fontWeight: 500,
+                            height: "50px",
+                          }}
+                          title={preview.fileName}
+                        >
+                          {preview.fileName}
+                        </div>
+                        <div
+                          style={{
+                            marginLeft: "16px",
+                            minWidth: "60px",
+                            textAlign: "right",
+                          }}
+                        >
+                          {(preview.fileSize / (1024 * 1024)).toFixed(1)} MB
+                        </div>
+                        <div
+                          style={{ marginLeft: "16px", cursor: "pointer" }}
+                          onClick={() => store.removePreview(preview.fileName)}
+                        >
+                          <i
+                            className="bi bi-trash-fill"
+                            style={{ color: "#dc3545", fontSize: "1.2rem" }}
+                          ></i>
+                        </div>
+                      </div>
 
+                      <ProgressBar
+                        now={preview.progress}
+                        className="custom-progress"
+                        variant="info"
+                        style={{
+                          height: "8px",
+                          borderRadius: "4px",
+                          backgroundColor: theme.primaryColors.primary50,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              }}
+            </List>
+          )}
+      </Row>
+      <Row>
         <Col
           md={8}
           style={{ width: store.imagePreview.length ? "200px" : "100%" }}
