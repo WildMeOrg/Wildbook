@@ -49,6 +49,7 @@ services:
       - '$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/'
       - '$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/'
       - '/home/sufwan/Desktop/tech4/Wildbook/test2.xlsx:/tmp/test2.xlsx'
+      - '/data/upload:/data/upload'
     networks:
       - intranet
     ports:
@@ -66,7 +67,6 @@ services:
       JAVA_OPTS: '-Djava.awt.headless=true -Xms4096m -Xmx4096m'
       JPDA_ADDRESS: '8000'
       JPDA_TRANSPORT: 'dt_socket'
-      WILDBOOK_APP_URL: '${WILDBOOK_APP_URL}'
 
   # opensearch:
   #   image: opensearchproject/opensearch:latest
