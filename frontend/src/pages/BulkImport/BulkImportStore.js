@@ -70,7 +70,7 @@ export class BulkImportStore {
   _validBehavior = [];
   _labeledKeywordAllowedKeys = [];
   _labeledKeywordAllowedPairs = [];
-  _applyToAllRowModalShow = true;
+  _applyToAllRowModalShow = false;
 
   _validationRules = {
     "Encounter.mediaAsset0": {
