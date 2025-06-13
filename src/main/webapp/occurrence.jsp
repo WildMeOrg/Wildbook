@@ -9,6 +9,21 @@
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 
+<%!
+private static String niceNull(Double val) {
+    if (val == null) return "-";
+    return val.toString();
+}
+private static String niceNull(Integer val) {
+    if (val == null) return "-";
+    return val.toString();
+}
+private static String niceNull(String val) {
+    if (val == null) return "-";
+    return val;
+}
+%>
+
 <%
 
 boolean isLoggedIn=false;
@@ -438,6 +453,24 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 		
 		<p>
+			<%=props.getProperty("groupSizeLabel") %>: 
+                        <%=niceNull(occ.getGroupSize())%><br />
+			&nbsp; <%=props.getProperty("numAdults") %>: 
+                        <%=niceNull(occ.getNumAdults())%><br />
+			&nbsp; <%=props.getProperty("numAdultFemales") %>: 
+                        <%=niceNull(occ.getNumAdultFemales())%><br />
+			&nbsp; <%=props.getProperty("numAdultMales") %>: 
+                        <%=niceNull(occ.getNumAdultMales())%><br />
+			&nbsp; <%=props.getProperty("numSubAdults") %>: 
+                        <%=niceNull(occ.getNumSubAdults())%><br />
+			&nbsp; <%=props.getProperty("numSubFemales") %>: 
+                        <%=niceNull(occ.getNumSubFemales())%><br />
+			&nbsp; <%=props.getProperty("numSubMales") %>: 
+                        <%=niceNull(occ.getNumSubMales())%><br />
+			&nbsp; <%=props.getProperty("numCalves") %>: 
+                        <%=niceNull(occ.getNumCalves())%>
+
+		<p>
 			<%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
 			<%if(occ.getIndividualCount()!=null){%>
 				<%=occ.getIndividualCount() %>
@@ -483,7 +516,14 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
+		
+		<% if (occ.getObserver() != null) { %>
+		<p><%=props.getProperty("observer") %>: 
+                <%=occ.getObserver()%></p>
 <%
+	} 
+		
+
 if(visible){
 %>
 <p>
