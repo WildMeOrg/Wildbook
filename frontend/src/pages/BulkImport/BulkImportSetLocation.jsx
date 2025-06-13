@@ -54,6 +54,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
     );
 
     const handleStartImport = useCallback(async () => {
+        store.updateRawFromNormalizedRow(); 
         store.clearSubmissionErrors();
         try {
             const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName);
