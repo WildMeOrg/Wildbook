@@ -76,7 +76,9 @@
     	String locs = "";
     	List<String> lids = myShepherd.getAllLocationIDs();
     	for (String l : lids) {
-        	locs += "\t'" + l + "',\n";
+    		if(l!=null){
+        		locs += "\t'" + l.replaceAll("'"," ") + "',\n";
+    		}
     	}
 		%>
 
