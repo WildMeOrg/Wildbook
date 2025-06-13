@@ -387,7 +387,7 @@ export class BulkImportStore {
     return this._lastSavedAt;
   }
 
-  get applyToAllRowModalShow () {
+  get applyToAllRowModalShow() {
     return this._applyToAllRowModalShow;
   }
 
@@ -454,7 +454,7 @@ export class BulkImportStore {
   setSpreadsheetData(data) {
     this._spreadsheetData = [...data];
     this.invalidateValidation();
-    this.updateRawFromNormalizedRow();
+    // this.updateRawFromNormalizedRow();
   }
 
   setRawData(data) {
@@ -953,7 +953,7 @@ export class BulkImportStore {
   }
 
   updateRawFromNormalizedRow() {
-
+    console.log("Updating raw data from normalized rows");
     this._spreadsheetData.forEach((_, rowIndex) => {
 
       const norm = this._spreadsheetData[rowIndex];
@@ -1080,7 +1080,7 @@ export class BulkImportStore {
         console.warn(`Column ${col} does not exist in row ${rowIndex}`);
       }
     })
-    this.updateRawFromNormalizedRow();
+    // this.updateRawFromNormalizedRow();
     this.invalidateValidation();
   }
 
@@ -1154,8 +1154,9 @@ export class BulkImportStore {
       return typeof val === "string" || val instanceof String;
     };
 
-    const isInLabeledKeywordAllowedValues = (val) => {
-      return this._labeledKeywordAllowedValues.includes(val);
+    const isInLabeledKeywordAllowedValues = (col, val) => {
+      const allowedValues = this._labeledKeywordAllowedPairs[col];
+      return Array.isArray(allowedValues) && allowedValues.includes(val);
     };
 
     this._columnsDef.forEach((col) => {
@@ -1181,7 +1182,7 @@ export class BulkImportStore {
         if (field !== "keywords") {
           this._validationRules[col] = {
             required: false,
-            validate: isInLabeledKeywordAllowedValues,
+            validate: (val) => isInLabeledKeywordAllowedValues(col, val),
             message: "invalid value — must match an allowed label",
           };
         }
@@ -1207,10 +1208,50 @@ export class BulkImportStore {
     });
   }
 
+  updateCellValue(rowIndex, columnId, value) {
+    runInAction(() => {
+      if (this._spreadsheetData[rowIndex]) {
+        this._spreadsheetData[rowIndex][columnId] = value;
+      }
+      if (this._rawData[rowIndex]) {
+        this._rawData[rowIndex][columnId] = value;
+      }
+    });
+  }
+
+  validateRow(rowIndex) {
+    const row = this._spreadsheetData[rowIndex];
+    const errors = {};
+    const warnings = {};
+
+    this._columnsDef.forEach((col) => {
+      const value = String(row[col] ?? "");
+      const rules = this._validationRules[col];
+
+      if (!rules) return;
+
+      let error = "";
+      if (rules.required && !value.trim()) {
+        error = "This field is required";
+      } else if (rules.validate && !rules.validate(value)) {
+        error =
+          typeof rules.message === "function"
+            ? rules.message(value)
+            : rules.message || "Invalid format";
+      }
+
+      if (error) errors[col] = error;
+    });
+
+    return { errors, warnings };
+  }
+
   validateSpreadsheet() {
+    console.log("Validating spreadsheet data...");
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
+    console.log("No cached validation, performing fresh validation...");
     const errors = {};
     const warnings = {};
     const knownColumnCache = {};
@@ -1227,7 +1268,6 @@ export class BulkImportStore {
 
         if (col.startsWith("Encounter.mediaAsset") && this._labeledKeywordAllowedKeys.includes(col.split(".")[2])) {
           const columnName = col.split(".")[2];
-
           const value = row[col];
           if (value && !this._labeledKeywordAllowedPairs[columnName].includes(value)) {
             if (!errors[rowIndex]) errors[rowIndex] = {};
@@ -1290,7 +1330,6 @@ export class BulkImportStore {
           (n) => n !== fileName,
         );
       });
-
     }
   }
 

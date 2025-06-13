@@ -32,19 +32,12 @@ const EditableCell = observer(({
   }, [externalError]);
 
   const handleBlur = () => {
-    store.spreadsheetData[rowIndex][columnId] = value;
-    store.rawData[rowIndex][columnId] = value;
-    store.invalidateValidation();
-    store.updateRawFromNormalizedRow(rowIndex);
-    const { errors, warnings } = store.validateSpreadsheet();
-    setError(errors[rowIndex]?.[columnId] || "");
-    setWarning(warnings[rowIndex]?.[columnId] || "");
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.target.blur();
-    }
+    console.log("on blur 1")
+    store.updateCellValue(rowIndex, columnId, value);
+    // store.updateRawFromNormalizedRow(rowIndex);
+    const { errors, warnings } = store.validateRow(rowIndex);
+    setError(errors[columnId] || "");
+    setWarning(warnings[columnId] || "");
   };
 
   const useSelectCell = columnsUseSelectCell.includes(columnId);
@@ -63,23 +56,23 @@ const EditableCell = observer(({
           }
 
           onChange={(sel) => {
+            console.log("SelectCell onChange", sel);
             const newValue = sel ? sel.value : "";
             setValue(newValue);
-            store.spreadsheetData[rowIndex][columnId] = newValue;
-            store.rawData[rowIndex][columnId] = newValue;
-            store.invalidateValidation();
-            store.updateRawFromNormalizedRow(rowIndex);
-            const { errors, warnings } = store.validateSpreadsheet();
-            setError(errors[rowIndex]?.[columnId] || "");
-            setWarning(warnings[rowIndex]?.[columnId] || "");
+            store.updateCellValue(rowIndex, columnId, newValue);
+            // store.updateRawFromNormalizedRow(rowIndex);
+            const { errors, warnings } = store.validateRow(rowIndex);
+            setError(errors[columnId] || "");
+            setWarning(warnings[columnId] || "");
+            // const { errors, warnings } = store.validateSpreadsheet();
+            // setError(errors[rowIndex]?.[columnId] || "");
+            // setWarning(warnings[rowIndex]?.[columnId] || "");
             if (columnId === "Encounter.locationID") {
               setColId(columnId);
               setColValue(newValue);
               store.setApplyToAllRowModalShow(true);
             }
-
           }}
-          onBlur={handleBlur}
           error={error}
         />
       );
@@ -91,7 +84,7 @@ const EditableCell = observer(({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
+          // onKeyDown={handleKeyDown}
           style={{
             minWidth: "100px",
             maxWidth: "250px",
@@ -177,14 +170,19 @@ export const DataTable = observer(({ store }) => {
   store.setValidBehavior(validBehavior);
   store.setLabeledKeywordAllowedKeys(LabeledKeywordAllowedKeys);
   store.setLabeledKeywordAllowedPairs(LabeledKeywordAllowedPairs);
+
   useEffect(() => {
-    if (siteData) {
+    if (!siteData) return;
+    const timeout = setTimeout(() => {
+      console.log("use effect working",);
       store.invalidateValidation();
       const { errors, warnings } = store.validateSpreadsheet();
       setCellErrors(errors);
       setCellWarnings(warnings);
-    }
-  }, [store.spreadsheetData, siteData, store.imageSectionFileNames])
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [siteData, store.imageSectionFileNames]);
 
   const columns = columnsDef.map((col) => ({
     header: tableHeaderMapping[col] || col,
@@ -228,7 +226,7 @@ export const DataTable = observer(({ store }) => {
     initialState: {
       pagination: {
         pageIndex: 0,
-        pageSize: 20,
+        pageSize: 10,
       },
       columnPinning: columnPinning,
     },
@@ -240,7 +238,6 @@ export const DataTable = observer(({ store }) => {
   return (
     <div className="p-3 border rounded shadow-sm bg-white mt-4"
       style={{
-        // maxHeight: "500px",
         overflowY: "auto",
       }}
     >
@@ -248,6 +245,8 @@ export const DataTable = observer(({ store }) => {
         store={store}
         columnId={colId}
         newValue={colValue}
+        setCellErrors={setCellErrors}    
+        setCellWarnings={setCellWarnings}                 
       />
 
       <div className="table-responsive">

@@ -27,6 +27,7 @@ const removedColumns = [
   "Encounter.day",
   "Encounter.hour",
   "Encounter.minutes",
+  "Encounter.seconds",
   "Encounter.decimalLongitude",
   "Encounter.specificEpithet",
 ];
@@ -103,6 +104,7 @@ const extraStringCols = [
   "Encounter.researcherComments",
   "MarkedIndividual.individualID",
   "Encounter.occurrenceID",
+  "Encounter.location",
 ];
 
 const specializedColumns = [
@@ -120,7 +122,7 @@ const specializedColumns = [
   "Encounter.photographer0.emailAddress",
   "Encounter.informOther0.emailAddress",
   "Encounter.submitterID",
-  "Encounter.dateInMilliseconds",
+  "Encounter.dateInMilliseconds",  
 ];
 
 export {
