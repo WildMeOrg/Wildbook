@@ -66,6 +66,12 @@ java.util.Properties" %>
 		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
 	}
 
+	private String niceJson(JSONArray j) {
+		if (j == null) return format(null, "none");
+		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
+		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
+	}
+
 	private String showEncounter(Encounter enc, HttpServletRequest req) {
 		if (enc == null) return "<b>[none]</b>";
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
@@ -157,6 +163,9 @@ java.util.Properties" %>
             String h = "<div><b>" + itask.getId() + "</b> " + itask.toString() + "<ul>";
             h += "<li>" + format("creator", itask.getCreator()) + "</li>";
             h += "<li>" + format("created", itask.getCreated()) + "</li>";
+            h += "<li>" + format("status", itask.getStatus()) + "</li>";
+            h += "<li>" + format("sourceName", itask.getSourceName()) + "</li>";
+            h += "<li>processingProgress: " + itask.getProcessingProgress() + "</li>";
             h += "</ul>";
             if (Util.collectionIsEmptyOrNull(itask.getEncounters())) {
                 h += "<p><i>no Encounters</i></p>";
@@ -167,6 +176,7 @@ java.util.Properties" %>
                 }
                 h += "</ul></p>";
             }
+            h += "<p><b>errors:</b> " + niceJson(itask.getErrors()) + "</p>";
             h += "<p><b>parameters:</b> " + niceJson(itask.getParameters()) + "</p>";
             if (Util.collectionIsEmptyOrNull(itask.getLog())) {
                 h += "<p><i>empty log</i></p>";
