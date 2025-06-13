@@ -25,6 +25,7 @@ public class ImportTask implements java.io.Serializable {
     private List<Encounter> encounters;
     private String parameters;
     private List<String> log;
+    private String errors;
     private String status;
     private Task iaTask;
     private Double processingProgress;
@@ -182,6 +183,27 @@ public class ImportTask implements java.io.Serializable {
         if (p == null) p = new JSONObject();
         p.put("_passedParameters", passed);
         parameters = p.toString();
+    }
+
+    public JSONArray getErrors() {
+        return Util.stringToJSONArray(errors);
+    }
+
+    public void setErrors(JSONArray err) {
+        if (err == null) {
+            errors = null;
+        } else {
+            errors = err.toString();
+        }
+    }
+
+    public JSONArray addError(JSONObject err) {
+        JSONArray errs = this.getErrors();
+
+        if (err == null) return errs;
+        if (errs == null) errs = new JSONArray();
+        errs.put(err);
+        return errs;
     }
 
     // note: this auto-timestamps
