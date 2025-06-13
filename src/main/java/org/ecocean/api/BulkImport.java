@@ -375,65 +375,89 @@ public class BulkImport extends ApiBase {
                         public void run() {
                             // make our background thread safely use our own Shepherd
                             Shepherd bgShepherd = new Shepherd(myShepherd.getContext());
-                            User bgUser = bgShepherd.getUser(currentUser.getUsername());
-                            ImportTask bgTask = getOrCreateImportTask(bgShepherd, bgUser,
-                                bulkImportId, payload);
-                            bgTask.setStatus("processing-background");
-                            bgShepherd.storeNewImportTask(bgTask);
-                            bgShepherd.commitDBTransaction(); // get task in db, then open new transaction we can bail on if failure
+                            bgShepherd.setAction("api.Bulk.processBackground");
                             bgShepherd.beginDBTransaction();
-                            int numNewErrors = dataErrors.length();
-                            Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId,
-                                validFiles, dataErrors, bgShepherd);
-                            numNewErrors = dataErrors.length() - numNewErrors;
-                            boolean blockedByMAErrors = false;
-                            if (numNewErrors > 0) {
-                                System.out.println(bulkImportId +
-                                    " background createMediaAssets() failed: " + dataErrors);
-                                rtn.put("errors", dataErrors);
-                                if (bgToleranceFailImportOnError) blockedByMAErrors = true;
-                            }
-                            rtn.put("numberMediaAssetsCreated", maMap.size());
-                            BulkImporter importer = new BulkImporter(bulkImportId, validatedRows,
-                                maMap, bgUser, bgShepherd);
-                            JSONObject results = null;
+                            // task gets own shepherd as it needs to write even if we rollback bgShepherd
+                            Shepherd taskShepherd = new Shepherd(myShepherd.getContext());
+                            taskShepherd.setAction("api.Bulk.taskBackground");
+                            taskShepherd.beginDBTransaction();
+
                             boolean success = false;
-                            if (!blockedByMAErrors) {
-                                try {
-                                    results = importer.createImport();
-                                    success = true;
-                                } catch (ServletException ex) {
-                                    // this will overwrite existing errors, but likely we dont have any here?
-                                    rtn.put("errors", ex.toString());
-                                    System.out.println(
-                                        "ERROR: background importer on Import Task " +
-                                        bulkImportId + "failed with: " + ex);
-                                    ex.printStackTrace();
+                            try {
+                                User bgUser = bgShepherd.getUser(currentUser.getUsername());
+                                ImportTask bgTask = getOrCreateImportTask(taskShepherd, bgUser,
+                                    bulkImportId, payload);
+                                bgTask.setStatus("processing-background");
+                                taskShepherd.storeNewImportTask(bgTask);
+                                taskShepherd.commitDBTransaction();
+                                taskShepherd.beginDBTransaction();
+                                int numNewErrors = dataErrors.length();
+                                Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId,
+                                    validFiles, dataErrors, bgShepherd);
+                                numNewErrors = dataErrors.length() - numNewErrors;
+                                boolean blockedByMAErrors = false;
+                                if (numNewErrors > 0) {
+                                    System.out.println(bulkImportId +
+                                        " background createMediaAssets() failed: " + dataErrors);
+                                    rtn.put("errors", dataErrors);
+                                    bgTask.setErrors(dataErrors);
+                                    if (bgToleranceFailImportOnError) blockedByMAErrors = true;
                                 }
-                                System.out.println(bulkImportId + " IMPORTER RESULTS => " +
-                                    results);
-                            }
-                            if (results != null)
-                                for (String rkey : results.keySet()) {
-                                    rtn.put(rkey, results.get(rkey));
+                                rtn.put("numberMediaAssetsCreated", maMap.size());
+                                BulkImporter importer = new BulkImporter(bulkImportId,
+                                    validatedRows, maMap, bgUser, bgShepherd);
+                                JSONObject results = null;
+                                if (!blockedByMAErrors) {
+                                    try {
+                                        results = importer.createImport();
+                                        success = true;
+                                    } catch (ServletException ex) {
+                                        // this will overwrite existing errors, but likely we dont have any here?
+                                        rtn.put("errors", ex.toString());
+                                        System.out.println(
+                                            "ERROR: background importer on Import Task " +
+                                            bulkImportId + "failed with: " + ex);
+                                        ex.printStackTrace();
+                                    }
+                                    System.out.println(bulkImportId + " IMPORTER RESULTS => " +
+                                        results);
                                 }
-                            if (!verboseReturn) {
-                                rtn.remove("mediaAssets");
-                                rtn.remove("encounters");
-                                rtn.remove("sightings");
-                                rtn.remove("individuals");
+                                if (results != null)
+                                    for (String rkey : results.keySet()) {
+                                        rtn.put(rkey, results.get(rkey));
+                                    }
+                                if (!verboseReturn) {
+                                    rtn.remove("mediaAssets");
+                                    rtn.remove("encounters");
+                                    rtn.remove("sightings");
+                                    rtn.remove("individuals");
+                                }
+                                rtn.put("success", success);
+                                if (success) {
+                                    bgTask.setEncounters(importer.getEncounters());
+                                    bgTask.setStatus("imported");
+                                    bgTask.setProcessingProgress(1.0D);
+                                    bgTask.addLog("import complete");
+                                } else {
+                                    bgTask.setStatus("failed");
+                                    bgTask.addLog("errors: " + rtn.get("errors"));
+                                }
+                                taskShepherd.storeNewImportTask(bgTask);
+                                taskShepherd.commitDBTransaction();
+                                taskShepherd.closeDBTransaction();
+                            } catch (Exception ex) {
+                                System.out.println(
+                                    "ERROR: background importing process on Import Task " +
+                                    bulkImportId + "failed with: " + ex);
+                                ex.printStackTrace();
+                            } finally {
+                                if (success) {
+                                    bgShepherd.commitDBTransaction();
+                                } else {
+                                    bgShepherd.rollbackDBTransaction();
+                                }
+                                bgShepherd.closeDBTransaction();
                             }
-                            rtn.put("success", success);
-                            if (success) {
-                                bgTask.setEncounters(importer.getEncounters());
-                                bgTask.setStatus("imported");
-                                bgTask.setProcessingProgress(1.0D);
-                                bgTask.addLog("import complete");
-                            } else {
-                                bgTask.setStatus("failed");
-                                bgTask.addLog("errors: " + rtn.get("errors"));
-                            }
-                            bgShepherd.storeNewImportTask(bgTask);
                             rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                             archiveBulkJson(rtn,
                                 "backgroundComplete_" + (success ? "success" : "failed"));
@@ -447,13 +471,17 @@ public class BulkImport extends ApiBase {
                     statusCode = 200;
                 } else {
                     // foreground processing
-                    ImportTask itask = getOrCreateImportTask(myShepherd, currentUser, bulkImportId,
-                        payload);
-                    // we update task in db here just in case something is checking on it elsewhere  ???
+
+                    // we need to use our own shepherd here as we rollback the main one, sigh
+                    Shepherd taskShepherd = new Shepherd(myShepherd.getContext());
+                    taskShepherd.beginDBTransaction();
+                    ImportTask itask = getOrCreateImportTask(taskShepherd, currentUser,
+                        bulkImportId, payload);
                     itask.setStatus("processing-foreground");
-                    myShepherd.storeNewImportTask(itask);
-                    myShepherd.commitDBTransaction(); // get task in db, then open new transaction we can bail on if failure
-                    myShepherd.beginDBTransaction();
+                    taskShepherd.storeNewImportTask(itask);
+                    taskShepherd.commitDBTransaction();
+                    taskShepherd.beginDBTransaction();
+
                     int numNewErrors = dataErrors.length();
                     Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId, validFiles,
                         dataErrors, myShepherd);
@@ -468,7 +496,8 @@ public class BulkImport extends ApiBase {
                     rtn.put("numberMediaAssetsCreated", maMap.size());
                     if (blockedByMAErrors) {
                         itask.setStatus("failed");
-                        myShepherd.storeNewImportTask(itask);
+                        itask.setErrors(dataErrors);
+                        itask.addLog("errors: " + dataErrors);
                         rtn.put("success", false);
                         statusCode = 400;
                     } else {
@@ -488,10 +517,12 @@ public class BulkImport extends ApiBase {
                         itask.setStatus("imported");
                         itask.setProcessingProgress(1.0D);
                         itask.addLog("import complete");
-                        myShepherd.storeNewImportTask(itask);
                         rtn.put("success", true);
                         statusCode = 200;
                     }
+                    taskShepherd.storeNewImportTask(itask);
+                    taskShepherd.commitDBTransaction();
+                    taskShepherd.closeDBTransaction();
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     Util.mark("END [foreground] createImport() for " + bulkImportId, startProcess);
                 }
@@ -646,6 +677,7 @@ public class BulkImport extends ApiBase {
         jt.put("sourceName", task.getSourceName());
         jt.put("legacy", task.isLegacy());
         jt.put("status", task.getStatus());
+        jt.put("errors", task.getErrors());
         jt.put("processingProgress", task.getProcessingProgress());
         jt.put("numberEncounters", task.numberEncounters());
         if (detailed) jt.put("iaSummary", task.iaSummaryJson());
