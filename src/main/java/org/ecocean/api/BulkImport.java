@@ -443,14 +443,14 @@ public class BulkImport extends ApiBase {
                                     bgTask.addLog("errors: " + rtn.get("errors"));
                                 }
                                 taskShepherd.storeNewImportTask(bgTask);
-                                taskShepherd.commitDBTransaction();
-                                taskShepherd.closeDBTransaction();
                             } catch (Exception ex) {
                                 System.out.println(
                                     "ERROR: background importing process on Import Task " +
                                     bulkImportId + "failed with: " + ex);
                                 ex.printStackTrace();
                             } finally {
+                                taskShepherd.commitDBTransaction();
+                                taskShepherd.closeDBTransaction();
                                 if (success) {
                                     bgShepherd.commitDBTransaction();
                                 } else {
