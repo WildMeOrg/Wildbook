@@ -1,24 +1,25 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
-org.joda.time.DateTime,
-org.ecocean.servlet.importer.ImportTask,
-org.ecocean.media.MediaAsset,
-javax.jdo.Query,
-org.json.JSONArray,
-org.json.JSONObject,
-java.util.Set,
-java.util.HashSet,
-java.util.List,
-java.util.Collection,
-java.util.ArrayList,
-java.util.Iterator,
-org.ecocean.security.Collaboration,
-java.util.HashMap,
-org.ecocean.ia.Task,
-java.util.HashMap,
-java.util.LinkedHashSet,
-java.util.Collection,
-java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+         import="org.ecocean.servlet.ServletUtilities,
+                 org.ecocean.*,
+                 org.joda.time.DateTime,
+                 org.ecocean.servlet.importer.ImportTask,
+                 org.ecocean.media.MediaAsset,
+                 javax.jdo.Query,
+                 org.json.JSONArray,
+                 org.json.JSONObject,
+                 java.util.Set,
+                 java.util.HashSet,
+                 java.util.List,
+                 java.util.Collection,
+                 java.util.ArrayList,
+                 java.util.Iterator,
+                 org.ecocean.security.Collaboration,
+                 java.util.HashMap,
+                 java.util.LinkedHashSet,
+                 java.util.Properties,
+                 org.slf4j.Logger,
+                 org.slf4j.LoggerFactory,
+                 java.util.stream.Collectors" %>
 
 <%!
 
@@ -220,54 +221,131 @@ try{
     List<ImportTask> tasks = new ArrayList<ImportTask>(c);
     query.closeAll();
 
+	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+	Set<String> collaboratorUsernames = new HashSet<>();
+
+	for (Collaboration collab : collabs) {
+		String username1 = collab.getUsername1();
+		String username2 = collab.getUsername2();
+
+		if (username2 != null && username2.equals(user.getUsername()) && username1 != null) {
+			collaboratorUsernames.add(username1);
+		}
+	}
+
+	Set<String> collaboratorUUIDs = new HashSet<>();
+
+	if (!collaboratorUsernames.isEmpty()) {
+		StringBuilder jdoqlUser = new StringBuilder("SELECT FROM " + User.class.getName() + " WHERE ");
+		int count = 0;
+
+		for (String username : collaboratorUsernames) {
+			if (count > 0) jdoqlUser.append(" || ");
+			jdoqlUser.append("username == \"" + username + "\"");
+			count++;
+		}
+
+		Query userQuery = myShepherd.getPM().newQuery(jdoqlUser.toString());
+		Collection result = (Collection) userQuery.execute();
+		for (Object o : result) {
+			User u = (User) o;
+			if (u.getUUID() != null) {
+				collaboratorUUIDs.add(u.getUUID());
+			}
+		}
+		userQuery.closeAll();
+	}
+
+	List<ImportTask> collaboratorTasks = new ArrayList<>();
+
+	if (!collaboratorUUIDs.isEmpty()) {
+		String uuidFilter = collaboratorUUIDs.stream()
+			.map(uuid -> "creator.uuid == \"" + uuid + "\"")
+			.collect(Collectors.joining(" || "));
+
+		String jdoqlCollabTasks = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null && (" + uuidFilter + ")";
+		
+		Query collabTaskQuery = myShepherd.getPM().newQuery(jdoqlCollabTasks);
+		collabTaskQuery.setOrdering("created desc");
+
+		Collection collabResults = (Collection) collabTaskQuery.execute();
+		collaboratorTasks.addAll(collabResults);
+
+		collabTaskQuery.closeAll();
+	}
     
-    //set up the JSON object for our table
-    JSONArray jsonobj = new JSONArray();
-    
-    for (ImportTask task : tasks) {
-    	if(adminMode || ServletUtilities.isUserAuthorizedForImportTask(task,request,myShepherd)){
-	        //int iaStatus = getNumMediaAssetsForTaskDetectionComplete(task.getId(),myShepherd);
-	        int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
+    // Merge both task lists
+	Set<String> seenTaskIds = new HashSet<>();
+	List<ImportTask> combinedTasks = new ArrayList<>();
+
+	for (ImportTask t : tasks) {
+		if (seenTaskIds.add(t.getId())) {
+			combinedTasks.add(t);
+		}
+	}
+	for (ImportTask t : collaboratorTasks) {
+		if (seenTaskIds.add(t.getId())) {
+			combinedTasks.add(t);
+		}
+	}
+
+	// Sort combined list by created DESC
+	combinedTasks.sort((a, b) -> b.getCreated().compareTo(a.getCreated()));
+
+	// Apply pagination AFTER merging and sorting
+	int startIndex = pageIndex * pageSize;
+	int endIndex = Math.min(startIndex + pageSize, combinedTasks.size());
+	List<ImportTask> paginatedTasks = new ArrayList<>();
+
+	if (pageIndex != 1) {
+		paginatedTasks = combinedTasks.subList(startIndex, endIndex);
+	}
+
+	// Build the JSON object
+	JSONArray jsonobj = new JSONArray();
+
+	for (ImportTask task : paginatedTasks) {
+		if (adminMode || ServletUtilities.isUserAuthorizedForImportTask(task, request, myShepherd)) {
+			int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
 			String taskID = task.getId();
-	            User tu = task.getCreator();
-	            String uname = "(guest)";
-	            if (tu != null) {
-	                uname = tu.getFullName();
-	                if (uname == null) uname = tu.getUsername();
-	                if (uname == null) uname = tu.getUUID();
-	                if (uname == null) uname = Long.toString(tu.getUserID());
-	            }
+			User tu = task.getCreator();
+			String uname = "(guest)";
+			if (tu != null) {
+				uname = tu.getFullName();
+				if (uname == null) uname = tu.getUsername();
+				if (uname == null) uname = tu.getUUID();
+				if (uname == null) uname = Long.toString(tu.getUserID());
+			}
 
-	        int numEncs=getNumEncountersForTask(task.getId(),myShepherd);
-	        String created=task.getCreated().toString().substring(0,10);
-	      
-	        int numMediaAssets=getNumMediaAssetsForTask(task.getId(),myShepherd);
-	        String iaStatusString="";
+			int numEncs = getNumEncountersForTask(task.getId(), myShepherd);
+			String created = task.getCreated().toString().substring(0, 10);
 
-	        if (task.getIATask() !=null) {
-	            if(!task.iaTaskRequestedIdentification())iaStatusString="detection";
-	            else{iaStatusString="identification";}
-	        }
-	        String status=task.getStatus();
-	        
-	        //let's build this Task's JSON
-	        JSONObject jobj = new JSONObject();
-	        jobj.put("iaStatus", iaStatusString);
-	        jobj.put("numMediaAssets", numMediaAssets);
-	        jobj.put("numEncs", numEncs);
-	        jobj.put("created", created);
-	        jobj.put("uname", uname);
-	        jobj.put("taskID", taskID);
-	        jobj.put("indivCount", indivCount);
-	        jobj.put("status", status);
-		    if(task.getParameters()!=null){
-		    	jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-		    }	
-	        
-	        jsonobj.put(jobj);
+			int numMediaAssets = getNumMediaAssetsForTask(task.getId(), myShepherd);
+			String iaStatusString = "";
 
-    	}
-    } //end for loop of tasks
+			if (task.getIATask() != null) {
+				iaStatusString = task.iaTaskRequestedIdentification() ? "identification" : "detection";
+			}
+
+			String status = task.getStatus();
+
+			JSONObject jobj = new JSONObject();
+			jobj.put("iaStatus", iaStatusString);
+			jobj.put("numMediaAssets", numMediaAssets);
+			jobj.put("numEncs", numEncs);
+			jobj.put("created", created);
+			jobj.put("uname", uname);
+			jobj.put("taskID", taskID);
+			jobj.put("indivCount", indivCount);
+			jobj.put("status", status);
+			if (task.getParameters() != null) {
+				jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+			}
+
+			jsonobj.put(jobj);
+		}
+	}
+ 	//end for loop of tasks
     
     
     %>
@@ -652,6 +730,3 @@ finally{
 
 
 <jsp:include page="footer.jsp" flush="true"/>
-
-
-
