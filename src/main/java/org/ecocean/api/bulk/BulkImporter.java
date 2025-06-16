@@ -138,6 +138,7 @@ public class BulkImporter {
         for (MarkedIndividual indiv : individualCache.values()) {
             indiv.setSkipAutoIndexing(true);
             myShepherd.storeNewMarkedIndividual(indiv);
+            indiv.refreshNamesCache();
             System.out.println("IIII " + indiv);
             arr.put(indiv.getId());
             needIndexing.add(indiv);
@@ -718,15 +719,22 @@ public class BulkImporter {
         if (indiv == null)
             indiv = MarkedIndividual.withName(myShepherd, id, genus, specificEpithet);
         if (indiv == null) {
-            System.out.println(
-                "BulkImporter.getMarkedIndividual() creating new; could not find existing indiv based on id="
-                + id);
             indiv = new MarkedIndividual();
-            indiv.setId(id);
+            if (Util.isUUID(id)) {
+                indiv.setId(id);
+            } else {
+                indiv.addName(id);
+            }
             indiv.setGenus(genus);
             indiv.setSpecificEpithet(specificEpithet);
+            indiv.setVersion();
             // FIXME what else???
+            System.out.println(
+                "[INFO] BulkImporter.getOrCreateMarkedIndividual() creating new; could not find existing indiv based on id="
+                + id + " => " + indiv);
         }
+        // note: this is using "id" which may be a name, but we are banking on that *this import*
+        // will re-use the same thing (name or uuid) for us to key off of in cache
         individualCache.put(id, indiv);
         return indiv;
     }
@@ -769,7 +777,7 @@ public class BulkImporter {
             user = new User(email, Util.generateUUID());
             user.setFullName(fullname);
             user.setAffiliation(affiliation);
-            System.out.println("[INFO] BulkImporter.getOrCreateUser() created new " + user);
+            System.out.println("[INFO] BulkImporter.getOrCreateUser() creating new " + user);
         }
         userCache.put(email, user);
         return user;
