@@ -24,7 +24,7 @@ var keyToFilename = {}
 var pendingUpload = -1
 
 //TODO we should make this more generic wrt elements and events
-function uploaderInit(completionCallback, subdir) {
+function uploaderInit(completionCallback, subdir, isImportExport) {
   if (useS3Direct()) {
     $('#uptype').html('S3-direct')
     console.info(
@@ -86,9 +86,12 @@ function uploaderInit(completionCallback, subdir) {
     console.info('uploader is using uploading direct to host (not S3)')
     flow = new Flow({
       // target backs up a dir bc this is called from webapp/import/
-      target: '../ResumableUpload',
+      target: `../ResumableUpload?isImportExport=${isImportExport}`,
       forceChunkSize: true,
-      query: { subdir: subdir, mediaAssetSetId: mediaAssetSetId },
+      query: {
+        subdir: subdir,
+        mediaAssetSetId: mediaAssetSetId,
+      },
       testChunks: false,
     })
     document.getElementById('upload-button').addEventListener(

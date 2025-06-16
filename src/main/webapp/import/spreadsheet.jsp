@@ -20,6 +20,8 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
 String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
 UploadServlet.setSubdirForUpload(subdir, request);
+boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+
 
 // this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
 //   (this allows the session to be automatically consider non-bot, so the upload can happen)
@@ -47,15 +49,19 @@ if (!org.ecocean.servlet.ReCAPTCHA.sessionIsHuman(request)) {
 
 <script>
 function uploadFinished() {
-	console.log("uploadFinished! Callback executing");
-	document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
-	var filename = document.getElementById('hiddenFilename').innerHTML;
-	// forward user to the review page
-	window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
-	//window.location.replace('upload?filename='+filename+"&isUserUpload=true");
+    console.log("uploadFinished! Callback executing");
+    document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
+
+    var filename = document.getElementById('hiddenFilename').innerHTML;
+
+    // Resolve JSP variable server-side
+    var redirect = '<%= isImportExport ? "EncounterImportExcelServlet" : "standard-upload" %>';
+
+    // Perform client-side redirect with query params
+    window.location.replace(redirect + '?filename=' + encodeURIComponent(filename) + '&isUserUpload=true');
 }
 </script>
-<body onLoad="uploaderInit(uploadFinished)">
+<body onLoad="uploaderInit(uploadFinished,null,'<%=isImportExport%>')">
 <div class="container maincontent">
 <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.33.min.js"></script>
 <script src="../tools/flow.min.js"></script>
@@ -107,7 +113,13 @@ div.file-item div {
 
 </head>
 
-<h1 class="import-header">Bulk Import: Spreadsheet Upload</h1>
+
+<% if (isImportExport) { %>
+    <h1 class="import-header">Import Export: Spreadsheet Upload</h1>
+<% } else { %>
+    <h1 class="import-header">Bulk Import: Spreadsheet Upload</h1>
+<% } %>
+
 <p class="import-explanation">Upload your Excel sheet (.xlsx) in ArgusWild Standard Format.</p>
 
 <div id="file-activity"></div>
