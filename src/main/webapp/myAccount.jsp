@@ -79,7 +79,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	    String userProject="";
 	    String userStatement="";
 	    String userURL="";
-		String receiveEmails="";
+		String receiveEmails="checked=\"checked\"";
 		String defaultProjectId = "";
 	    boolean hasProfilePhoto=false;
 

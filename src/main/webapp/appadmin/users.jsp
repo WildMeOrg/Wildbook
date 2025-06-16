@@ -569,7 +569,7 @@ try {
     String userStatement="";
     String userURL="";
     String uuid="";
-    String receiveEmails="";
+    String receiveEmails="checked=\"checked\"";
     boolean hasProfilePhoto=false;
 
     if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)){
