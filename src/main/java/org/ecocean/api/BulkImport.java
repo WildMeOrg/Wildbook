@@ -329,28 +329,6 @@ public class BulkImport extends ApiBase {
                     }
                     validFiles.add(file);
                 }
-/*
-                for (File file : files) {
-                    String filename = file.getName();
-                    if (!filenamesNeeded.contains(filename)) continue; // uploaded, but not referenced :(
-                    try {
-                        MediaAsset ma = UploadedFiles.makeMediaAsset(bulkImportId, file,
-                            myShepherd);
-                        maMap.put(filename, ma);
-                    } catch (ApiException apiEx) {
-                        JSONObject err = new JSONObject();
-                        err.put("filename", filename);
-                        err.put("mediaAssetError", true);
-                        err.put("errors", apiEx.getErrors());
-                        err.put("details", apiEx.toString());
-                        dataErrors.put(err);
-                        System.out.println("[ERROR] " + filename + " MediaAsset creation: " +
-                            apiEx);
-                    }
-                }
-                System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " +
-                    files.size() + " files");
- */
             }
             rtn.put("numberFilenamesReferenced", filenamesNeeded.size());
             rtn.put("numberFilesUploaded", files.size());
@@ -377,20 +355,12 @@ public class BulkImport extends ApiBase {
                             Shepherd bgShepherd = new Shepherd(myShepherd.getContext());
                             bgShepherd.setAction("api.Bulk.processBackground");
                             bgShepherd.beginDBTransaction();
-                            // task gets own shepherd as it needs to write even if we rollback bgShepherd
-                            Shepherd taskShepherd = new Shepherd(myShepherd.getContext());
-                            taskShepherd.setAction("api.Bulk.taskBackground");
-                            taskShepherd.beginDBTransaction();
 
                             boolean success = false;
                             try {
                                 User bgUser = bgShepherd.getUser(currentUser.getUsername());
-                                ImportTask bgTask = getOrCreateImportTask(taskShepherd, bgUser,
-                                    bulkImportId, payload);
-                                bgTask.setStatus("processing-background");
-                                taskShepherd.storeNewImportTask(bgTask);
-                                taskShepherd.commitDBTransaction();
-                                taskShepherd.beginDBTransaction();
+                                initializeImportTask(bulkImportId, bgUser, payload,
+                                    "processing-background");
                                 int numNewErrors = dataErrors.length();
                                 Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId,
                                     validFiles, dataErrors, bgShepherd);
@@ -400,7 +370,7 @@ public class BulkImport extends ApiBase {
                                     System.out.println(bulkImportId +
                                         " background createMediaAssets() failed: " + dataErrors);
                                     rtn.put("errors", dataErrors);
-                                    bgTask.setErrors(dataErrors);
+                                    importTaskSet(bulkImportId, null, null, dataErrors);
                                     if (bgToleranceFailImportOnError) blockedByMAErrors = true;
                                 }
                                 rtn.put("numberMediaAssetsCreated", maMap.size());
@@ -434,23 +404,31 @@ public class BulkImport extends ApiBase {
                                 }
                                 rtn.put("success", success);
                                 if (success) {
-                                    bgTask.setEncounters(importer.getEncounters());
-                                    bgTask.setStatus("imported");
-                                    bgTask.setProcessingProgress(1.0D);
-                                    bgTask.addLog("import complete");
+                                    // we must use our shepherd, as encounters are associated with it
+                                    ImportTask itask = bgShepherd.getImportTask(bulkImportId);
+                                    if (itask == null) {
+                                        System.out.println(
+                                            "[ERROR] successful bg import could not load ImportTask for "
+                                            + bulkImportId);
+                                    } else {
+                                        Util.mark("success; writing final ImportTask update");
+                                        itask.setStatus("imported");
+                                        itask.setProcessingProgress(1.0D);
+                                        itask.setEncounters(importer.getEncounters());
+                                        itask.addLog("import complete");
+                                        bgShepherd.storeNewImportTask(itask);
+                                    }
                                 } else {
-                                    bgTask.setStatus("failed");
-                                    bgTask.addLog("errors: " + rtn.get("errors"));
+                                    // i think errors will be set on task at this point
+                                    importTaskSet(bulkImportId, "failed", null, null);
                                 }
-                                taskShepherd.storeNewImportTask(bgTask);
+                                // taskShepherd.storeNewImportTask(bgTask);
                             } catch (Exception ex) {
                                 System.out.println(
                                     "ERROR: background importing process on Import Task " +
                                     bulkImportId + "failed with: " + ex);
                                 ex.printStackTrace();
                             } finally {
-                                taskShepherd.commitDBTransaction();
-                                taskShepherd.closeDBTransaction();
                                 if (success) {
                                     bgShepherd.commitDBTransaction();
                                 } else {
@@ -471,17 +449,8 @@ public class BulkImport extends ApiBase {
                     statusCode = 200;
                 } else {
                     // foreground processing
-
-                    // we need to use our own shepherd here as we rollback the main one, sigh
-                    Shepherd taskShepherd = new Shepherd(myShepherd.getContext());
-                    taskShepherd.beginDBTransaction();
-                    ImportTask itask = getOrCreateImportTask(taskShepherd, currentUser,
-                        bulkImportId, payload);
-                    itask.setStatus("processing-foreground");
-                    taskShepherd.storeNewImportTask(itask);
-                    taskShepherd.commitDBTransaction();
-                    taskShepherd.beginDBTransaction();
-
+                    initializeImportTask(bulkImportId, currentUser, payload,
+                        "processing-foreground");
                     int numNewErrors = dataErrors.length();
                     Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId, validFiles,
                         dataErrors, myShepherd);
@@ -495,9 +464,7 @@ public class BulkImport extends ApiBase {
                     }
                     rtn.put("numberMediaAssetsCreated", maMap.size());
                     if (blockedByMAErrors) {
-                        itask.setStatus("failed");
-                        itask.setErrors(dataErrors);
-                        itask.addLog("errors: " + dataErrors);
+                        importTaskSet(bulkImportId, "failed", null, dataErrors);
                         rtn.put("success", false);
                         statusCode = 400;
                     } else {
@@ -513,16 +480,23 @@ public class BulkImport extends ApiBase {
                             rtn.remove("sightings");
                             rtn.remove("individuals");
                         }
-                        itask.setEncounters(importer.getEncounters());
-                        itask.setStatus("imported");
-                        itask.setProcessingProgress(1.0D);
-                        itask.addLog("import complete");
+                        // we must use our shepherd, as encounters are associated with it
+                        ImportTask itask = myShepherd.getImportTask(bulkImportId);
+                        if (itask == null) {
+                            System.out.println(
+                                "[ERROR] successful fg import could not load ImportTask for " +
+                                bulkImportId);
+                        } else {
+                            Util.mark("success; writing final ImportTask update");
+                            itask.setStatus("imported");
+                            itask.setProcessingProgress(1.0D);
+                            itask.setEncounters(importer.getEncounters());
+                            itask.addLog("import complete");
+                            myShepherd.storeNewImportTask(itask);
+                        }
                         rtn.put("success", true);
                         statusCode = 200;
                     }
-                    taskShepherd.storeNewImportTask(itask);
-                    taskShepherd.commitDBTransaction();
-                    taskShepherd.closeDBTransaction();
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     Util.mark("END [foreground] createImport() for " + bulkImportId, startProcess);
                 }
@@ -608,24 +582,9 @@ public class BulkImport extends ApiBase {
             }
             // just to save a little db overhead, we only do this every 10 files
             if (ct % 10 == 0) {
-                // we want this to be its own shepherd for the sake of committing without affecting main shepherd
-                Shepherd taskShepherd = new Shepherd(myShepherd.getContext());
-                taskShepherd.setAction("BulkImport.createMediaAssets");
-                taskShepherd.beginDBTransaction();
-                try {
-                    ImportTask itask = taskShepherd.getImportTask(bulkImportId);
-                    if (itask != null) {
-                        // this 20% has to be coordinated with BulkImporter values
-                        Double progress = 0.2D * new Double(ct) / new Double(files.size());
-                        itask.setProcessingProgress(progress);
-                        taskShepherd.storeNewImportTask(itask);
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                } finally {
-                    taskShepherd.commitDBTransaction();
-                    taskShepherd.closeDBTransaction();
-                }
+                // this 20% has to be coordinated with BulkImporter values
+                Double progress = 0.2D * new Double(ct) / new Double(files.size());
+                importTaskSet(bulkImportId, null, progress, null);
             }
         }
         System.out.println("[INFO] created " + maMap.size() + " MediaAssets from " + files.size() +
@@ -633,28 +592,66 @@ public class BulkImport extends ApiBase {
         return maMap;
     }
 
-    private ImportTask getOrCreateImportTask(Shepherd myShepherd, User user, String id,
-        JSONObject payload) {
-        ImportTask itask = myShepherd.getImportTask(id);
+    private void initializeImportTask(String id, User user, JSONObject payload, String status) {
+        Shepherd taskShepherd = new Shepherd("context0");
 
-        if (itask != null) {
-            itask.addLog(
-                "WARNING! BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask");
-            System.out.println(
-                "WARNING: BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask ***************** "
-                + itask);
-        } else {
-            itask = new ImportTask(user, id);
+        taskShepherd.setAction("BulkImport.initializeImportTask");
+        taskShepherd.beginDBTransaction();
+        try {
+            ImportTask itask = taskShepherd.getImportTask(id);
+            if (itask != null) {
+                itask.addLog(
+                    "WARNING! BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask");
+                System.out.println(
+                    "WARNING: BulkImport api POST passed EXISTING bulkImportId, reusing this ImportTask ***************** "
+                    + itask);
+            } else {
+                itask = new ImportTask(user, id);
+            }
+            itask.setProcessingProgress(0.0D);
+            itask.setEncounters(null);
+            itask.setErrors(null);
+            itask.setStatus(status);
+            JSONObject passedParams = new JSONObject();
+            for (String k : payload.keySet()) {
+                if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
+                passedParams.put(k, payload.get(k));
+            }
+            itask.setPassedParameters(passedParams);
+            taskShepherd.storeNewImportTask(itask);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            taskShepherd.commitDBTransaction();
+            taskShepherd.closeDBTransaction();
         }
-        itask.setProcessingProgress(0.0D);
-        itask.setEncounters(null);
-        JSONObject passedParams = new JSONObject();
-        for (String k : payload.keySet()) {
-            if (k.equals("rows") || k.equals("fieldNames")) continue; // skip the data, basically
-            passedParams.put(k, payload.get(k));
+        Util.mark("initializeImportTask(" + id + ", " + status + ")");
+    }
+
+    // this assumes task was created! and: we always ignore nulls
+    private void importTaskSet(String id, String status, Double progress, JSONArray errors) {
+        if (id == null) return;
+        Shepherd taskShepherd = new Shepherd("context0");
+        taskShepherd.setAction("BulkImport.importTaskSet");
+        taskShepherd.beginDBTransaction();
+        try {
+            ImportTask itask = taskShepherd.getImportTask(id);
+            if (itask == null) return;
+            if (status != null) {
+                itask.setStatus(status);
+                itask.addLog("status: " + status);
+            }
+            if (progress != null) itask.setProcessingProgress(progress);
+            if (errors != null) {
+                itask.setErrors(errors);
+                itask.addLog("errors: " + errors);
+            }
+            taskShepherd.storeNewImportTask(itask);
+        } finally {
+            taskShepherd.commitDBTransaction();
+            taskShepherd.closeDBTransaction();
         }
-        itask.setPassedParameters(passedParams);
-        return itask;
+        Util.mark("importTaskSet(" + id + ": " + status + ", " + progress + "% [etc] )");
     }
 
     private void archiveBulkJson(JSONObject payload, String suffix) {
