@@ -53,7 +53,6 @@ export class BulkImportStore {
   _collectedValidFiles = [];
   _MAX_DROP_FILE_COUNT = 1000;
 
-
   isValidISO(val) {
     const dt = new Date(val);
     return !isNaN(dt.getTime());
@@ -71,6 +70,8 @@ export class BulkImportStore {
   _labeledKeywordAllowedKeys = [];
   _labeledKeywordAllowedPairs = [];
   _applyToAllRowModalShow = false;
+  _validationErrors = {};
+  _validationWarnings = {};
 
   _validationRules = {
     "Encounter.mediaAsset0": {
@@ -391,6 +392,14 @@ export class BulkImportStore {
     return this._applyToAllRowModalShow;
   }
 
+  get validationErrors() {
+    return this._validationErrors;
+  }
+
+  get validationWarnings() {
+    return this._validationWarnings;
+  }
+
   get errorSummary() {
     let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
     const { errors = {} } = this.validateSpreadsheet() || {};
@@ -545,6 +554,42 @@ export class BulkImportStore {
     this._applyToAllRowModalShow = show;
   }
 
+  setValidationErrors(errors) {
+    this._validationErrors = errors;
+  }
+
+  setValidationWarnings(warnings) {
+    this._validationWarnings = warnings;
+  }
+
+  // validateMediaAsset0ColumnOnly() {
+  //   const errors = {};
+  //   const warnings = {};
+  //   const col = "Encounter.mediaAsset0";
+  //   const rule = this._validationRules[col];
+  //   if (!rule) return { errors, warnings };
+
+  //   this._spreadsheetData.forEach((row, rowIndex) => {
+  //     const value = String(row[col] ?? '').trim();
+  //     let error = "";
+
+  //     if (rule.required && !value) {
+  //       error = "This field is required";
+  //     } else if (rule.validate && !rule.validate.call(this, value)) {
+  //       error = typeof rule.message === "function"
+  //         ? rule.message.call(this, value)
+  //         : rule.message || "Invalid format";
+  //     }
+
+  //     if (error) {
+  //       errors[rowIndex] = { [col]: error };
+  //     }
+  //   });
+
+  //   return { errors, warnings };
+  // }
+
+
   setMinimalFields(minimalFields) {
     runInAction(() => {
       this._minimalFields = minimalFields;
@@ -568,6 +613,68 @@ export class BulkImportStore {
 
   setSpreadsheetFileName(fileName) {
     this._spreadsheetFileName = fileName;
+  }
+
+  mergeValidationError(rowIndex, columnId, errorMessage) {
+    if (!this._validationErrors[rowIndex]) {
+      this._validationErrors[rowIndex] = {};
+    }
+
+    if (errorMessage) {
+      this._validationErrors[rowIndex][columnId] = errorMessage;
+    } else {
+      delete this._validationErrors[rowIndex][columnId];
+      if (Object.keys(this._validationErrors[rowIndex]).length === 0) {
+        delete this._validationErrors[rowIndex];
+      }
+    }
+  }
+
+  mergeValidationWarning(rowIndex, columnId, warningMessage) {
+    if (!this._validationWarnings[rowIndex]) {
+      this._validationWarnings[rowIndex] = {};
+    }
+
+    if (warningMessage) {
+      this._validationWarnings[rowIndex][columnId] = warningMessage;
+    } else {
+      delete this._validationWarnings[rowIndex][columnId];
+      if (Object.keys(this._validationWarnings[rowIndex]).length === 0) {
+        delete this._validationWarnings[rowIndex];
+      }
+    }
+  }
+
+
+  validateMediaAsset0ColumnOnly() {
+    console.log("-------------------------------++++++++++++++++++++++++++++++++");
+    const errors = {};
+    const warnings = {};
+
+    const col = "Encounter.mediaAsset0";
+    const rule = this._validationRules[col];
+
+    if (!rule) return { errors, warnings };
+
+    this._spreadsheetData.forEach((row, rowIndex) => {
+      const value = String(row[col] ?? "").trim();
+      let error = "";
+
+      if (rule.required && !value) {
+        error = "This field is required";
+      } else if (rule.validate && !rule.validate.call(this, value)) {
+        error =
+          typeof rule.message === "function"
+            ? rule.message.call(this, value)
+            : rule.message || "Invalid format";
+      }
+
+      if (error) {
+        errors[rowIndex] = { [col]: error };
+      }
+    });
+
+    return { errors, warnings };
   }
 
   hydrate(state) {
@@ -1247,7 +1354,7 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
-    console.log("Validating spreadsheet data...");
+    console.log("Validating spreadsheet data +++...");
     if (this._cachedValidation) {
       return this._cachedValidation;
     }

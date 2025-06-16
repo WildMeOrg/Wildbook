@@ -151,9 +151,14 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             store.setSpreadsheetData(processedData);
           }
         }
+
+        const { errors, warnings } = store.validateSpreadsheet();
+        store.setValidationErrors(errors);
+        store.setValidationWarnings(warnings);
+
       };
       processChunk();
-      store.updateRawFromNormalizedRow();
+
     };
     reader.readAsArrayBuffer(file);
   };
@@ -178,7 +183,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   };
   const handleDrop = (event) => {
     event.preventDefault();
-    setIsDragging(false);    
+    setIsDragging(false);
     const file = event.dataTransfer.files[0];
     const filename = file?.name || "";
     store.setSpreadsheetFileName(filename);
@@ -265,6 +270,10 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               store.setRawColumns([]);
               store.setColumnsDef([]);
               store.setWorksheetInfo(0, [], 0, 0, "");
+              store.setValidationErrors({});
+              store.setValidationWarnings({});
+              console.log("Resetting spreadsheet upload state");
+              console.log(store.spreadsheetdata)
             }}
             style={{
               position: "absolute",

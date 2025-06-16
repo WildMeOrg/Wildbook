@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
+import { throttle } from "lodash";
 
 import {
   useReactTable,
@@ -17,27 +18,27 @@ const EditableCell = observer(({
   initialValue,
   rowIndex,
   columnId,
-  externalError,
-  externalWarning,
   setColId,
   setColValue,
 }) => {
-  const [value, setValue] = useState(initialValue ?? "");
-  const [error, setError] = useState(externalError ?? "");
-  const [warning, setWarning] = useState(externalWarning ?? "");
+  // const [value, setValue] = useState(initialValue ?? "");
 
-  useEffect(() => {
-    setError(externalError ?? "");
-    setWarning(externalWarning ?? "");
-  }, [externalError]);
+  const currentValue = store.spreadsheetData?.[rowIndex]?.[columnId] ?? "";
 
-  const handleBlur = () => {
-    console.log("on blur 1")
-    store.updateCellValue(rowIndex, columnId, value);
-    // store.updateRawFromNormalizedRow(rowIndex);
+
+  // const error = store.mediaAssetValidationErrors?.[rowIndex]?.[columnId] ?? "";
+  const error = store.validationErrors?.[rowIndex]?.[columnId] ?? "";
+  const warning = store.validationWarnings?.[rowIndex]?.[columnId] ?? "";
+  const handleBlur = (e) => {
+    const newValue = e.target.value;
+    store.updateCellValue(rowIndex, columnId, newValue);
+
     const { errors, warnings } = store.validateRow(rowIndex);
-    setError(errors[columnId] || "");
-    setWarning(warnings[columnId] || "");
+    const errorMsg = errors?.[columnId] || "";
+    const warningMsg = warnings?.[columnId] || "";
+
+    store.mergeValidationError(rowIndex, columnId, errorMsg);
+    store.mergeValidationWarning(rowIndex, columnId, warningMsg);
   };
 
   const useSelectCell = columnsUseSelectCell.includes(columnId);
@@ -46,33 +47,29 @@ const EditableCell = observer(({
     if (useSelectCell) {
       return (
         <SelectCell
-          options={
-            store.getOptionsForSelectCell(columnId)
-          }
-          value={
-            store.spreadsheetData[rowIndex][columnId]
-              ? { value: store.spreadsheetData[rowIndex][columnId], label: store.spreadsheetData[rowIndex][columnId] }
-              : null
-          }
-
+          options={store.getOptionsForSelectCell(columnId)}
+          // value={value ? { value, label: value } : null}
+          value={currentValue ? { value: currentValue, label: currentValue } : null}
           onChange={(sel) => {
-            console.log("SelectCell onChange", sel);
+            // const newValue = sel ? sel.value : "";
+            // setValue(newValue);
             const newValue = sel ? sel.value : "";
-            setValue(newValue);
             store.updateCellValue(rowIndex, columnId, newValue);
-            // store.updateRawFromNormalizedRow(rowIndex);
+
             const { errors, warnings } = store.validateRow(rowIndex);
-            setError(errors[columnId] || "");
-            setWarning(warnings[columnId] || "");
-            // const { errors, warnings } = store.validateSpreadsheet();
-            // setError(errors[rowIndex]?.[columnId] || "");
-            // setWarning(warnings[rowIndex]?.[columnId] || "");
+            const errorMsg = errors?.[columnId] || "";
+            const warningMsg = warnings?.[columnId] || "";
+
+            store.mergeValidationError(rowIndex, columnId, errorMsg);
+            store.mergeValidationWarning(rowIndex, columnId, warningMsg);
+
             if (columnId === "Encounter.locationID") {
               setColId(columnId);
               setColValue(newValue);
               store.setApplyToAllRowModalShow(true);
             }
           }}
+
           error={error}
         />
       );
@@ -80,16 +77,12 @@ const EditableCell = observer(({
       return (
         <input
           type="text"
-          className={`form-control form-control-sm rounded ${error ? "is-invalid" : warning ? "border-warning bg-warning-subtle" : ""}`}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
+          className={`form-control form-control-sm rounded ${error ? "is-invalid" : ""}`}
+          value={currentValue}
+          onChange={(e) => store.updateCellValue(rowIndex, columnId, e.target.value)}
           onBlur={handleBlur}
-          // onKeyDown={handleKeyDown}
-          style={{
-            minWidth: "100px",
-            maxWidth: "250px",
-          }}
-          title={value}
+          style={{ minWidth: "100px", maxWidth: "250px" }}
+          title={currentValue}
         />
       );
     }
@@ -98,30 +91,17 @@ const EditableCell = observer(({
   return (
     <div>
       {renderInput()}
-      {error && <div
-        className="invalid-feedback"
-        style={{
-          height: "auto",
-          whiteSpace: "normal",
-          overflowWrap: "break-word",
-        }}
-      >
-        {error}
-      </div>}
-      {warning && (
-        <div className="form-text text-warning" style={{ whiteSpace: "normal" }}>
-          ⚠ {warning}
+      {error && (
+        <div className="invalid-feedback" style={{ whiteSpace: "normal" }}>
+          {error}
         </div>
       )}
-
     </div>
   );
 });
 
 export const DataTable = observer(({ store }) => {
   const data = store.spreadsheetData || [];
-  const [cellErrors, setCellErrors] = useState({});
-  const [cellWarnings, setCellWarnings] = useState({});
   const columnsDef = store.columnsDef || [];
   const { data: siteData } = useGetSiteSettings();
   const minimalFields = siteData?.bulkImportMinimalFields || {};
@@ -174,15 +154,38 @@ export const DataTable = observer(({ store }) => {
   useEffect(() => {
     if (!siteData) return;
     const timeout = setTimeout(() => {
-      console.log("use effect working",);
       store.invalidateValidation();
       const { errors, warnings } = store.validateSpreadsheet();
-      setCellErrors(errors);
-      setCellWarnings(warnings);
+      store.setValidationErrors(errors);
+      store.setValidationWarnings(warnings);
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, [siteData, store.imageSectionFileNames]);
+  }, [siteData]);
+
+  const validateMediaAssets = useRef(
+    throttle(() => {
+      console.log("Throttled validation triggered");
+      const { errors, warnings } = store.validateMediaAsset0ColumnOnly();
+      store.setValidationErrors(errors);
+      store.setValidationWarnings(warnings);
+    }, 10000)
+  ).current;
+
+
+  useEffect(() => {
+    const isUploadDone = store.imageUploadProgress === 100;
+    if (store.uploadedImages.length === 0 && isUploadDone) {
+      console.log("No images uploaded, skipping media validation");
+      return;
+    }
+    if (isUploadDone) {
+      store.validateMediaAsset0ColumnOnly();
+      return;
+    }
+    validateMediaAssets();
+  }, [store.uploadedImages.length, store.imageUploadProgress]);
+
 
   const columns = columnsDef.map((col) => ({
     header: tableHeaderMapping[col] || col,
@@ -193,8 +196,6 @@ export const DataTable = observer(({ store }) => {
         initialValue={row.original[col]}
         rowIndex={row.index}
         columnId={col}
-        externalError={cellErrors[row.index]?.[col] || ""}
-        externalWarning={cellWarnings[row.index]?.[col] || ""}
         setColId={setColId}
         setColValue={setColValue}
       />
@@ -238,6 +239,7 @@ export const DataTable = observer(({ store }) => {
   return (
     <div className="p-3 border rounded shadow-sm bg-white mt-4"
       style={{
+        // maxHeight: "500px",
         overflowY: "auto",
       }}
     >
@@ -245,8 +247,6 @@ export const DataTable = observer(({ store }) => {
         store={store}
         columnId={colId}
         newValue={colValue}
-        setCellErrors={setCellErrors}    
-        setCellWarnings={setCellWarnings}                 
       />
 
       <div className="table-responsive">

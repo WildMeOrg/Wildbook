@@ -1,4 +1,4 @@
-// ErrorSummaryBar.tsx
+import React from "react";
 import { observer } from "mobx-react-lite";
 import Badge from "react-bootstrap/Badge";
 
