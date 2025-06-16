@@ -26,6 +26,8 @@ String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
 // stores subdir on session so it can go to the other import servlets
 UploadServlet.setSubdirForUpload(subdir, request);
 
+boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+
 String checkSubdir = ServletUtilities.getSessionAttribute("subdir", request);
 System.out.println("I'm double checking the 'subdir' attribute: "+checkSubdir);
 
@@ -51,10 +53,11 @@ function uploadFinished() {
 	console.log("uploadFinished! Callback executing");
 	document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
 	// forward user to the review page
-	window.location.replace('reviewDirectory.jsp');
+	redirect = 'reviewDirectory.jsp?isImportExport=<%=isImportExport%>';
+	window.location.replace(redirect);
 }
 </script>
-<body onLoad="uploaderInit(uploadFinished,'<%=subdir%>')">
+<body onLoad="uploaderInit(uploadFinished,'<%=subdir%>', '<%=isImportExport%>')">
 <div class="container maincontent">
 <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.33.min.js"></script>
 <script src="../tools/flow.min.js"></script>
@@ -106,8 +109,12 @@ div.file-item div {
 
 </head>
 
+<% if (isImportExport) { %>
+    <h1 class="import-header">Import Export: Photo Upload</h1>
+<% } else { %>
+    <h1 class="import-header">Bulk Import: Photo Upload</h1>
+<% } %>
 
-<h1 class="import-header">Bulk Import: Photo Upload</h1>
 <p class="import-explanation">On your computer, organize the photos you'd like to upload into a single folder. Remember, the image names must correspond exactly to the "Encounter.MediaAsset" entries in your Wildbook Standard Format spreadsheet.</p>
 
 <p class="import-explanation">Using the tool below, upload your image folder to our server.</p>

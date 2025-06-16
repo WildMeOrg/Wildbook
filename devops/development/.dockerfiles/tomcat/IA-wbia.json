@@ -2,20 +2,20 @@
   "_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
   "_global": {
     "_note": "according to drew, these are not used and should be set within _confs below!",
-    "add_images": "http://172.31.26.160:5000/api/image/json/",
-    "add_annotations": "http://172.31.26.160:5000/api/annot/json/",
-    "start_identify": "http://172.31.26.160:5000/api/engine/query/graph/",
-    "identify_review": "http://172.31.26.160:5000/api/review/query/graph/",
-    "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
-    "detect_review": "http://172.31.26.160:5000/api/review/detect/cnn/yolo/",
-    "get_job_status": "http://172.31.26.160:5000/api/engine/job/status/",
-    "get_job_result": "http://172.31.26.160:5000/api/engine/job/result/"
+    "add_images": "http://172.17.0.1:5000/api/image/json/",
+    "add_annotations": "http://172.17.0.1:5000/api/annot/json/",
+    "start_identify": "http://172.17.0.1:5000/api/engine/query/graph/",
+    "identify_review": "http://172.17.0.1:5000/api/review/query/graph/",
+    "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
+    "detect_review": "http://172.17.0.1:5000/api/review/detect/cnn/yolo/",
+    "get_job_status": "http://172.17.0.1:5000/api/engine/job/status/",
+    "get_job_result": "http://172.17.0.1:5000/api/engine/job/result/"
   },
   "Panthera": {
     "onca": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "jaguar_v3",
           "model_tag": "jaguar_v2",
           "labeler_algo": "densenet",
@@ -45,7 +45,7 @@
     "pardus": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "leopard_v0",
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
@@ -75,7 +75,7 @@
     "uncia": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "snow_leopard_v0",
           "model_tag": "snow_leopard_v0",
           "labeler_algo": "densenet",
@@ -105,7 +105,7 @@
     "leo": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "labeler_model_tag": "lions_v0",
           "model_tag": "lions_v0",
@@ -187,7 +187,7 @@
     "pardalis": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "leopard_v0",
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
@@ -221,7 +221,7 @@
     "guttulus": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "snow_leopard_v0",
           "model_tag": "snow_leopard_v0",
           "labeler_algo": "densenet",
@@ -255,7 +255,7 @@
     "wiedii": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "leopard_v0",
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
@@ -291,7 +291,7 @@
     "nebulosa": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "leopard_v0",
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
@@ -328,7 +328,7 @@
     "crocuta": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "hyaena_v0",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
@@ -364,7 +364,7 @@
     "hyaena": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "hyaena_v0",
           "model_tag": "hyaena_v0",
           "labeler_algo": "densenet",
@@ -396,7 +396,7 @@
     "brunnea": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
           "labeler_model_tag": "hyaena_v0",
@@ -433,7 +433,7 @@
     "concolor": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "lions_v0",
           "model_tag": "lions_v0",
           "labeler_algo": "densenet",
@@ -526,7 +526,7 @@
     "serval": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "cheetah_v2",
           "model_tag": "cheetah_v2",
           "labeler_algo": "densenet",
@@ -563,7 +563,7 @@
     "genetta": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "snow_leopard_v0",
           "model_tag": "cheetah_v2",
           "labeler_algo": "densenet",
@@ -597,7 +597,7 @@
     "tigrina": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_model_tag": "snow_leopard_v0",
           "model_tag": "cheetah_v2",
           "labeler_algo": "densenet",
@@ -634,7 +634,7 @@
     "jubatus": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "labeler_model_tag": "cheetah_v2",
           "model_tag": "cheetah_v2",
@@ -668,7 +668,7 @@
     "pictus": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "assigner_algo": "wd_v0",
           "labeler_algo": "densenet",
           "labeler_model_tag": "wilddog_v3+wilddog_v2+wilddog_v1",
@@ -765,7 +765,7 @@
     "canadensis": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "lynx",
           "nms_aware": null,
@@ -800,7 +800,7 @@
     "rufus": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "lynx",
           "nms_aware": null,
@@ -835,7 +835,7 @@
     "lynx": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "lynx",
           "nms_aware": null,
@@ -870,7 +870,7 @@
     "pardinus": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "lynx",
           "nms_aware": null,
