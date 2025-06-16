@@ -429,9 +429,9 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     }
                 }
                 // let's register acmIDs for MediaAssets
-                if (itask != null) sendforACMID(itask, myShepherd, context);
+                //if (itask != null) sendforACMID(itask, myShepherd, context);
                 // let's finish up and be done
-                if (itask != null) itask.setStatus("complete");
+                //if (itask != null) itask.setStatus("complete");
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
                 if (itask != null)
