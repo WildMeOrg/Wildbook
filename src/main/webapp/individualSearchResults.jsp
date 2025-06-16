@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils,
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.Collaboration, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, java.util.Set, java.util.HashSet, java.util.List,
          org.datanucleus.api.jdo.JDOPersistenceManager,org.datanucleus.FetchGroup,javax.jdo.*" %>
 
 
@@ -50,6 +50,34 @@
 		// viewOnly=true arg means this hiddenData relates to viewing the summary results
 		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true,myShepherd);
 		rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
+
+		String currentUsername = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+		Set<String> collaboratorUsernames = new HashSet<>();
+		
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+		for (Collaboration collab : collabs) {
+			String username1 = collab.getUsername1();
+			String username2 = collab.getUsername2();
+
+			if (username2 != null && username2.equals(currentUsername) && username1 != null) {
+				collaboratorUsernames.add(username1);
+			}
+		}
+
+		if (!collaboratorUsernames.isEmpty()) {
+			Query query = pm.newQuery(MarkedIndividual.class);
+			query.setFilter("this.encounters.contains(enc) && " +
+						"enc.submitters.contains(sub) && " +
+						"sub.username == :usernameParam");
+			
+			// Execute query for each collaborator and collect results
+			for (String username : collaboratorUsernames) {
+				Collection<MarkedIndividual> collabIndividuals = 
+					(Collection<MarkedIndividual>) query.execute(username);
+				rIndividuals.addAll(collabIndividuals);
+			}
+    	}
+
 
 	  %>
 
@@ -168,10 +196,6 @@
 	    int count = 0;
 	    int numNewlyMarked = 0;
 
-
-
-
-		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
 		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
 		JSONArray jsonobj = new JSONArray();
 		System.out.println("Starting to iterate over individuals");
