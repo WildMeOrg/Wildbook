@@ -35,129 +35,13 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
 
     private static final String SHEET_NAME = "Search Results";
-    private static final String DEVELOPMENT_FILE_PATH = "/tmp/test2.xlsx";
     final static String[] acceptedImageTypes = { "jpg", "jpeg", "png", "bmp", "gif" };
 
     
-
-
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         doPost(request, response);
     }
-
-    // public void doPost(HttpServletRequest request, HttpServletResponse response)
-    //         throws ServletException, IOException {
-
-    //     Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
-    //     myShepherd.beginDBTransaction();
-
-    //     try {
-    //         FileInputStream inputStream = new FileInputStream(new File(DEVELOPMENT_FILE_PATH));
-    //         Workbook workbook = new XSSFWorkbook(inputStream);
-    //         Sheet sheet = workbook.getSheet(SHEET_NAME);
-
-    //         Map<Integer, String> colIndexMap = new HashMap<>();
-    //         Map<String, Integer> colKeyMap = new HashMap<>();
-
-    //         Row headerRow = sheet.getRow(0);
-    //         int numCols = headerRow.getLastCellNum();
-    //         for (int i = 0; i < numCols; i++) {
-    //             String colName = headerRow.getCell(i).getStringCellValue();
-    //             if (colName != null && !colName.trim().isEmpty()) {
-    //                 colKeyMap.put(colName.trim(), i);
-    //                 colIndexMap.put(i, colName.trim());
-    //             }
-    //         }
-
-    //         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-    //             Row row = sheet.getRow(i);
-    //             if (row == null) continue;
-
-    //             Encounter enc;
-    //             String sourceUrl = row.getCell(colKeyMap.get("Encounter.sourceUrl")).getStringCellValue().trim();
-    //             if (sourceUrl != null && sourceUrl.contains("number=")) {
-    //                 String catalogNumber = sourceUrl.substring(sourceUrl.indexOf("number=") + 7);
-    //                 enc = myShepherd.getEncounter(catalogNumber);
-    //                 if (enc == null) {
-    //                     enc = new Encounter();
-    //                     enc.setCatalogNumber(catalogNumber);
-    //                 }
-    //             } else {
-    //                 enc = new Encounter();
-    //             }
-
-                
-
-
-    //             for (int j = 0; j < row.getLastCellNum(); j++) {
-    //                 String header = colIndexMap.get(j);
-    //                 String value = row.getCell(j).getStringCellValue().trim();
-    //                 if (header == null || value == null || value.isEmpty()) continue;
-
-    //                 switch (header) {
-    //                     case "Encounter.genus":
-    //                         enc.setGenus(value);
-    //                         break;
-    //                     case "Encounter.specificEpithet":
-    //                         enc.setSpecificEpithet(value);
-    //                         break;
-    //                     case "Encounter.verbatimLocality":
-    //                         enc.setVerbatimLocality(value);
-    //                         break;
-    //                     case "Encounter.decimalLatitude":
-    //                         //enc.setDecimalLatitude(value);
-    //                         break;
-    //                     case "Encounter.decimalLongitude":
-    //                         //enc.setDecimalLongitude(value);
-    //                         break;
-    //                     case "Encounter.country":
-    //                         enc.setCountry(value);
-    //                         break;
-    //                     case "Encounter.locationID":
-    //                         enc.setLocationID(value);
-    //                         break;
-    //                     case "Encounter.year":
-    //                         enc.setYear(parseInt(value));
-    //                         break;
-    //                     case "Encounter.month":
-    //                         enc.setMonth(parseInt(value));
-    //                         break;
-    //                     case "Encounter.day":
-    //                         enc.setDay(parseInt(value));
-    //                         break;
-    //                     case "Encounter.hour":
-    //                         enc.setHour(parseInt(value));
-    //                         break;
-    //                     case "Encounter.minutes":
-    //                         //enc.setMinutes(parseInt(value));
-    //                         break;
-    //                     case "Encounter.occurrenceRemarks":
-    //                         enc.setOccurrenceRemarks(value);
-    //                         break;
-    //                     case "Encounter.alternateID":
-    //                         enc.setAlternateID(value);
-    //                         break;
-    //                     case "Encounter.state":
-    //                         enc.setState(value);
-    //                         break;
-    //                 }
-    //             }
-
-    //         }
-
-    //         workbook.close();
-    //         myShepherd.commitDBTransaction();
-    //         response.getWriter().write("Import successful.");
-
-    //     } catch (Exception e) {
-    //         myShepherd.rollbackDBTransaction();
-    //         e.printStackTrace();
-    //         response.getWriter().write("Error during import: " + e.getMessage());
-    //     } finally {
-    //         myShepherd.closeDBTransaction();
-    //     }
-    // }
 
 
      public void doPost(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException {
@@ -174,7 +58,6 @@ public class EncounterImportExcelServlet extends HttpServlet {
         // verbose variable can be switched on/off throughout the import for debugging
         boolean verbose = false;
         String context = "";
-        String uploadDirectory = "/data/upload/";
 
         // HttpServletRequest request;
 
@@ -189,16 +72,9 @@ public class EncounterImportExcelServlet extends HttpServlet {
         HashMap<String, Integer> allColsMap = new HashMap<String, Integer>();
         Sheet sheet = null;
 
-        isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
 
         committing = true;
-        // WHY ISN"T THE URL MAKING IT AAUUUGHGHHHHH
-        if (isUserUpload) {
-            uploadDirectory = UploadServlet.getUploadDir(request);
-            System.out.println("IS USER UPLOAD! ---> uploadDirectory = " + uploadDirectory);
-        }
-        // this.request = request; // so we can access this elsewhere without passing it around
-        // String importId = Util.generateUUID();
+
         if (request.getCharacterEncoding() == null) {
             request.setCharacterEncoding("utf-8");
         }
@@ -220,19 +96,11 @@ public class EncounterImportExcelServlet extends HttpServlet {
         }
         // Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
 
-        FileInputStream inputStream = new FileInputStream(new File(DEVELOPMENT_FILE_PATH));
+        String fileName = request.getParameter("filename");
+        String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), true, fileName);
 
-        String filename = DEVELOPMENT_FILE_PATH;
-        
-        // if (Util.stringExists(filename)) {
-        //     System.out.println("Filename? = " + filename);
-        // }
-        // if (isUserUpload && filename != null && filename.length() > 0) {
-        //     filename = uploadDirectory + "/" + filename;
-        // }
-        // System.out.println("Filename NOW? = " + filename);
 
-        File dataFile = new File(DEVELOPMENT_FILE_PATH);
+        File dataFile = new File(fullDir+"/"+fileName);
         // if (filename == null) {
         //     System.out.println("Filename request parameter was not set in the URL.");
         //     out.println(
@@ -253,15 +121,15 @@ public class EncounterImportExcelServlet extends HttpServlet {
         String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
         myShepherd.rollbackDBTransaction();
 
-        String photoDirectory = UploadServlet.getUploadDir(request);
-        if (subdir != null) photoDirectory += subdir;
+        String photoDirectory = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), true);
+
 
         System.out.println("IS USER UPLOAD! ---> photoDirectory = " + photoDirectory);
 
 
         boolean dataFound = dataFile.exists();
         if (dataFound) {
-            doImport(filename, dataFile, request, response, numFolderRows, committing, out, sheet,
+            doImport(fileName, dataFile, request, response, numFolderRows, committing, out, sheet,
                 context, individualCache, verbose, isUserUpload, photoDirectory, individualScope,
                 allColsMap);
         } else {
@@ -561,13 +429,13 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     }
                 }
                 // let's register acmIDs for MediaAssets
-                //if (itask != null) sendforACMID(itask, myShepherd, context);
+                if (itask != null) sendforACMID(itask, myShepherd, context);
                 // let's finish up and be done
-                //if (itask != null) itask.setStatus("complete");
+                if (itask != null) itask.setStatus("complete");
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
                 if (itask != null)
-                    out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" +
+                    out.println("<li>ImportTask id = <b><a href=\"../import.jsp?taskId=" +
                         itask.getId() + "\">" + itask.getId() + "</a></b></li>");
             } catch (Exception e) {
                 myShepherd.rollbackDBTransaction();
@@ -1522,7 +1390,9 @@ public class EncounterImportExcelServlet extends HttpServlet {
             MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets, colIndexMap,
                 verbose, missingColumns, unusedColumns, feedback, isUserUpload, photoDirectory,
                 foundPhotos, committing, missingPhotos, context, allColsMap, skipCols);
-            if (ma == null) continue;
+            if (ma == null) {
+                continue;
+            }
             String species = getSpeciesString(row, colIndexMap, verbose, missingColumns,
                 unusedColumns, feedback);
 
@@ -1540,12 +1410,15 @@ public class EncounterImportExcelServlet extends HttpServlet {
                         bboxArray[j] = Integer.parseInt(parts[j].trim());
                     }
                 } else {
-                    // Handle unexpected size
-                    throw new IllegalArgumentException("bbox must have 4 elements");
+
+                    System.out.println("invalid bbox array");
+                    continue;
+
                 }
             } else {
                 // Handle null or improperly formatted string
-                throw new IllegalArgumentException("Invalid bbox format");
+                System.out.println("invalid bbox ");
+                continue;
             }
             
 
@@ -1561,7 +1434,6 @@ public class EncounterImportExcelServlet extends HttpServlet {
             obj.put("height", bboxArray[3]);
             FeatureType.initAll(myShepherd);
             Feature f = new Feature("org.ecocean.boundingBox",obj);
-            f.setParameters(obj);
 
             ArrayList<Feature> features = new  ArrayList<Feature> ();
             features.add(f);
@@ -1573,9 +1445,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
             ann.setIsExemplar(true);
             ann.setFeatures(features);
             ann.setViewpoint(viewPoint);
-
             String matchAgainst = getString(row,("Annotation"+i+".MatchAgainst"), colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
-            
+
             ann.setMatchAgainst(matchAgainst.toLowerCase().equals("true"));
             ann.setX(bboxArray[0]);
             ann.setY(bboxArray[1]);
@@ -1585,7 +1456,22 @@ public class EncounterImportExcelServlet extends HttpServlet {
             Double quality = getDouble(row, ("Encounter.quality" + i), colIndexMap, verbose,
                 missingColumns, unusedColumns, feedback);
             if (quality != null) ann.setQuality(quality);
-            //Annotation0.ViewPoint
+
+            String genus = getString(row, "Encounter.genus", colIndexMap, verbose, missingColumns,
+            unusedColumns, feedback);
+
+            String specificEpithet = getString(row, "Encounter.specificEpithet", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
+
+            String taxonomyString = genus + " " + specificEpithet;
+
+            Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
+
+            List<String> IAclasses =  ann.getValidIAClasses(taxy);
+
+            if (IAclasses.size()> 0){
+                ann.setIAClass(IAclasses.get(0));
+            }
 
             annots.add(ann);
         }
@@ -1675,6 +1561,10 @@ public class EncounterImportExcelServlet extends HttpServlet {
             missingColumns, unusedColumns, feedback);
         String userFilename = localPath;
         System.out.println("     localPath/userFilename: " + userFilename);
+        if (userFilename == null){
+            return null;
+        }
+        
         if (Util.stringExists(localPath)) {
             localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
         }
@@ -1702,6 +1592,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
             fullPath = photoDirectory + "/" + localPath;
             fullPath = fullPath.replace("//", "/");
             resolvedPath = resolveHumanEnteredFilename(fullPath);
+            System.out.println("Early exit: fullpath: " + fullPath);
+
             System.out.println("     resolvedPath: " + resolvedPath);
             if (resolvedPath != null) {
                 String[] arr = resolvedPath.split(".");
@@ -1720,6 +1612,12 @@ public class EncounterImportExcelServlet extends HttpServlet {
         }
         // System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
         if (resolvedPath == null || "null".equals(resolvedPath)) {
+
+            System.out.println("Early exit: Full path: " + fullPath);
+            File testFile = new File(fullPath);
+            System.out.println("Early exit: File exists? " + testFile.exists());
+
+            System.out.println("Early exit: resolvedPath is null for localPath = " + localPath);
             try {
                 // feedback.addMissingPhoto(localPath);
                 if (localPath != null && !"".equals(localPath) && !"null".equals(localPath)) {
@@ -2903,6 +2801,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 List<Encounter> allEncs = itask.getEncounters();
                 int numEncs = allEncs.size();
                 ArrayList<MediaAsset> assets = new ArrayList<MediaAsset>();
+                ArrayList<Annotation> annotations = new ArrayList<Annotation>();
+
                 for (Encounter enc : allEncs) {
                     count++;
 
@@ -2911,6 +2811,15 @@ public class EncounterImportExcelServlet extends HttpServlet {
                         if (!assy.hasAcmId()) {
                             assets.add(assy);
                         }
+
+                        ArrayList<Annotation> theseAnns =  assy.getAnnotations();
+
+                     for (Annotation ann : theseAnns){
+
+                        if (!ann.hasAcmId()){
+                            annotations.add(ann);
+                        }
+                     }
                     }
                     if (((assets.size() >= batchSize) && assets.size() > 0) || count == numEncs) {
                         System.out.println("About to send " + assets.size() + " assets to IA! On " +
@@ -2919,6 +2828,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                             " encounters.");
                         myShepherd.updateDBTransaction();
                         IBEISIA.sendMediaAssetsNew(assets, context);
+                        IBEISIA.sendAnnotationsAsNeeded(annotations, myShepherd);
                         assets = new ArrayList<MediaAsset>();
                     }
                 }

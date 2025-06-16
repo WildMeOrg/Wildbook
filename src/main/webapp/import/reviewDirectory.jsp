@@ -23,6 +23,8 @@ String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
 UploadServlet.setSubdirForUpload(subdir, request);
 
 String dirName = UploadServlet.getUploadDir(request);
+boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+
 
 
 
@@ -44,10 +46,17 @@ List<File> imageFiles = new ArrayList<File>();
 if (contents!=null) {
 	for (File f: contents) {
 		String name = f.getName().toLowerCase();
-		// I will never use regex. Never!!!! READABILITY SHALL REIGN ETERNAL
-		if (name.endsWith(".jpg")||name.endsWith(".png")||name.endsWith(".jpeg")) {
-			imageFiles.add(f);
-		}
+
+        // Check if it ends with a valid image extension
+        boolean isImage = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
+
+        // Check that it does NOT contain unwanted substrings
+        boolean isClean = !(name.contains("-mid") || name.contains("-watermark") || 
+                            name.contains("-master") || name.contains("-thumb"));
+
+        if (isImage && isClean) {
+            imageFiles.add(f);
+        }
 	}
 }
 nImages = imageFiles.size();
@@ -122,7 +131,7 @@ ol.filelist li {
 	</div>
   <div>
 		<input style="background-color: #CCC;" onClick="document.location='photos.jsp';" type="submit" value="Go back and try again">
-		<input onClick="document.location.href='spreadsheet.jsp';" type="submit" value="Accept and move on">
+		<input onClick="document.location.href='spreadsheet.jsp?isImportExport=<%=isImportExport%>';" type="submit" value="Accept and move on">
   </div>
 
           

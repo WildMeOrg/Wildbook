@@ -2254,7 +2254,7 @@
 
   <servlet-mapping>
       <servlet-name>EncounterImportExcelServlet</servlet-name>
-      <url-pattern>/EncounterImportExcelServlet</url-pattern>
+      <url-pattern>/import/EncounterImportExcelServlet</url-pattern>
   </servlet-mapping>
 
   
