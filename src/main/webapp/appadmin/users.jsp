@@ -569,7 +569,7 @@ try {
     String userStatement="";
     String userURL="";
     String uuid="";
-    String receiveEmails="checked=\"checked\"";
+    String receiveEmails="";
     boolean hasProfilePhoto=false;
 
     if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)){
@@ -583,7 +583,7 @@ try {
     	if(thisUser.getEmailAddress()!=null){
     		localEmail=thisUser.getEmailAddress();
     	}
-    	if(!thisUser.getReceiveEmails()){receiveEmails="";}
+    	if(thisUser.getReceiveEmails()){receiveEmails="checked=\"checked\"";}
     	if(thisUser.getFullName()!=null){
     		localFullName=thisUser.getFullName();
     	}
