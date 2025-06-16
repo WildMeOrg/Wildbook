@@ -51,7 +51,7 @@ export class BulkImportStore {
   _pendingDropFileCount = 0;
   _hasWarnedDropLimit = false;
   _collectedValidFiles = [];
-  _MAX_DROP_FILE_COUNT = 1000;
+  _MAX_DROP_FILE_COUNT = 10000;
 
   isValidISO(val) {
     const dt = new Date(val);
@@ -83,7 +83,7 @@ export class BulkImportStore {
         const images = val.split(",").map((img) => img.trim());
         let missing = false;
         images.forEach((img) => {
-          if (!this._imageSectionFileNames.includes(img)) {
+          if (!this._uploadedImages.includes(img)) {
             missing = true;
           }
         });
@@ -93,7 +93,7 @@ export class BulkImportStore {
       message: (val) => {
         const images = val.split(",").map((img) => img.trim());
         const missing = images.filter((img) =>
-          !this._imageSectionFileNames.includes(img)
+          !this._uploadedImages.includes(img)
         );
         return `missing images: ${missing.join(", ")}`;
       },
@@ -562,34 +562,6 @@ export class BulkImportStore {
     this._validationWarnings = warnings;
   }
 
-  // validateMediaAsset0ColumnOnly() {
-  //   const errors = {};
-  //   const warnings = {};
-  //   const col = "Encounter.mediaAsset0";
-  //   const rule = this._validationRules[col];
-  //   if (!rule) return { errors, warnings };
-
-  //   this._spreadsheetData.forEach((row, rowIndex) => {
-  //     const value = String(row[col] ?? '').trim();
-  //     let error = "";
-
-  //     if (rule.required && !value) {
-  //       error = "This field is required";
-  //     } else if (rule.validate && !rule.validate.call(this, value)) {
-  //       error = typeof rule.message === "function"
-  //         ? rule.message.call(this, value)
-  //         : rule.message || "Invalid format";
-  //     }
-
-  //     if (error) {
-  //       errors[rowIndex] = { [col]: error };
-  //     }
-  //   });
-
-  //   return { errors, warnings };
-  // }
-
-
   setMinimalFields(minimalFields) {
     runInAction(() => {
       this._minimalFields = minimalFields;
@@ -647,7 +619,6 @@ export class BulkImportStore {
 
 
   validateMediaAsset0ColumnOnly() {
-    console.log("-------------------------------++++++++++++++++++++++++++++++++");
     const errors = {};
     const warnings = {};
 
@@ -1354,7 +1325,7 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
-    console.log("Validating spreadsheet data +++...");
+    console.log("Validating spreadsheet data...");
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
