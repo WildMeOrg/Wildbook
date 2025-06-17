@@ -33,11 +33,13 @@ import org.ecocean.User;
 import org.ecocean.Util;
 
 public class BulkImporter {
-    public List<Map<String, Object> > dataRows = null;
-    public Map<String, MediaAsset> mediaAssetMap = null;
-    public User user = null;
-    public String importTaskId = null;
-    public Shepherd myShepherd = null;
+    private List<Map<String, Object> > dataRows = null;
+    private Map<String, MediaAsset> mediaAssetMap = null;
+    private User user = null;
+    private String importTaskId = null;
+    private Shepherd myShepherd = null;
+    // sighting/occurrence carries over from previous row (even if unset) it seems
+    private Occurrence previousOccurrence = null;
 
     // caching loaded and (more imporantly?) newly created objects, so they can be
     // used across all rows. StandardImport seemed to do some caching *based on user*
@@ -816,7 +818,19 @@ public class BulkImporter {
     private Occurrence getOrCreateOccurrence(Map<String, BulkValidator> fmap) {
         // accessed as Occurrence.occurrenceID or Encounter.occurrenceID in StandardImport
         // but we change to .sightingID
-        // FIXME  do the work
-        return null;
+        String id = null;
+
+        if (fmap.containsKey("Sighting.sightingID"))
+            id = fmap.get("Sighting.sightingID").getValueString();
+        if ((id == null) && fmap.containsKey("Encounter.sightingID"))
+            id = fmap.get("Encounter.sightingID").getValueString();
+        if (id == null) return this.previousOccurrence; // may be null if none ever used
+        // we dont need to set previousOccurrence if found in cache, cuz it would have been already
+        if (occurrenceCache.containsKey(id)) return occurrenceCache.get(id);
+        Occurrence occ = myShepherd.getOccurrence(id);
+        if (occ == null) occ = new Occurrence(id);
+        occurrenceCache.put(id, occ);
+        this.previousOccurrence = occ;
+        return occ;
     }
 }
