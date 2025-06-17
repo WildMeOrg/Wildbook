@@ -49,23 +49,8 @@ const EditableCell = observer(({
         setColId={setColId}
         setColValue={setColValue}
         store={store}
-        // onChange={(sel) => {
-        //   const newValue = sel ? sel.value : "";
-        //   store.updateCellValue(rowIndex, columnId, newValue);
-
-        //   const { errors, warnings } = store.validateRow(rowIndex);
-        //   const errorMsg = errors?.[columnId] || "";
-        //   const warningMsg = warnings?.[columnId] || "";
-
-        //   store.mergeValidationError(rowIndex, columnId, errorMsg);
-        //   store.mergeValidationWarning(rowIndex, columnId, warningMsg);
-
-        //   if (columnId === "Encounter.locationID") {
-        //     setColId(columnId);
-        //     setColValue(newValue);
-        //     store.setApplyToAllRowModalShow(true);
-        //   }
-        // }}
+        columnId={columnId}
+        rowIndex={rowIndex}
         error={!!store.validationErrors?.[rowIndex]?.[columnId]}
       />
       );

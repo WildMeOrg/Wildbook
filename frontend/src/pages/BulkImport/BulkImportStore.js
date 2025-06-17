@@ -722,6 +722,7 @@ export class BulkImportStore {
         .map(preview => ({
           ...preview,
           progress: 100,
+          src: null,
         }));
     });
   }

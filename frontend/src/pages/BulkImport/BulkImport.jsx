@@ -20,6 +20,7 @@ const BulkImport = observer(() => {
   const lastTask = localStorage.getItem("lastBulkImportTask") || null;
   const { task: unfinishedTask } = useGetBulkImportTask(lastTask);
   const [mountedSteps, setMountedSteps] = useState([0]);
+  const [ renderMode1, setRenderMode1 ] = useState();
 
   useEffect(() => {
     if (!mountedSteps.includes(store.activeStep)) {
@@ -31,6 +32,7 @@ const BulkImport = observer(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
     const submissionId = savedStore?.submissionId;
     if (submissionId) {
+      // setRenderMode1("list");
       setSavedSubmissionId(submissionId);
     }
   }, []);
@@ -38,12 +40,12 @@ const BulkImport = observer(() => {
   useEffect(() => {
     if (
       store.submissionId &&
-      (store.imagePreview.length > 0 || store.spreadsheetData.length > 0)
+      (store.uploadedImages.length > 0 || store.spreadsheetData.length > 0)
     ) {
       store.saveState();
     }
   }, [
-    store.imagePreview.length,
+    store.uploadedImages.length,
     store.spreadsheetData.length,
   ]);
 
@@ -60,7 +62,7 @@ const BulkImport = observer(() => {
 
       {mountedSteps.includes(0) && (
         <div style={{ display: store.activeStep === 0 ? "block" : "none" }}>
-          <BulkImportImageUpload store={store} />
+          <BulkImportImageUpload store={store} renderMode1={renderMode1}/>
         </div>
       )}
       {mountedSteps.includes(1) && (
@@ -79,7 +81,7 @@ const BulkImport = observer(() => {
         </div>
       )}
 
-      {savedSubmissionId && <BulkImportContinueModal store={store} />}
+      {savedSubmissionId && <BulkImportContinueModal store={store} setRenderMode1={setRenderMode1}/>}
       <BulkImportInstructionsModal store={store} />
 
       {unfinishedTask && unfinishedTask.status && unfinishedTask.status !== "completed" ? <BulkImportUnfinishedTaskModal
