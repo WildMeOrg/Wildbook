@@ -17,6 +17,7 @@ import javax.servlet.ServletException;
 import org.ecocean.api.bulk.*;
 
 import org.ecocean.Encounter;
+import org.ecocean.LocationID;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
@@ -117,6 +118,9 @@ public class BulkImport extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         int statusCode = 500;
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("success", false);
         boolean validateOnly = false;
         long startProcess = System.currentTimeMillis();
         Shepherd myShepherd = new Shepherd(context);
@@ -131,9 +135,6 @@ public class BulkImport extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
-            JSONObject rtn = new JSONObject();
-            rtn.put("success", false);
-
             JSONObject payload = ServletUtilities.jsonFromHttpServletRequest(request);
             if (payload == null) throw new ServletException("empty payload");
             JSONArray rows = payload.optJSONArray("rows");
@@ -185,7 +186,9 @@ public class BulkImport extends ApiBase {
                 for (int i = 0; i < mloc.length(); i++) {
                     String locId = mloc.optString(i, null);
                     if (locId == null) continue;
-                    // VALIDATE locId  FIXME
+                    if (!LocationID.isValidLocationID(locId))
+                        throw new ApiException("matchingLocations contains invalid id=" + locId,
+                                ApiException.ERROR_RETURN_CODE_INVALID);
                     matchingLocations.add(locId);
                 }
             }
@@ -501,14 +504,15 @@ public class BulkImport extends ApiBase {
                     Util.mark("END [foreground] createImport() for " + bulkImportId, startProcess);
                 }
             }
-            response.setStatus(statusCode);
-            response.setCharacterEncoding("UTF-8");
-            response.setHeader("Content-Type", "application/json");
-            response.getWriter().write(rtn.toString());
-            archiveBulkJson(rtn, "return" + statusCode);
         } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
+        } catch (ApiException apiEx) {
+            statusCode = 400;
+            System.out.println("BulkImport.doPost() returning 400 due to " + apiEx + " errors=" +
+                apiEx.getErrors());
+            rtn.put("errors", apiEx.getErrors());
         } catch (Exception ex) {
+            rtn.put("error", ex.toString());
             statusCode = 500;
             ex.printStackTrace();
         } finally {
@@ -519,6 +523,12 @@ public class BulkImport extends ApiBase {
             }
             myShepherd.closeDBTransaction();
         }
+        rtn.put("statusCode", statusCode);
+        response.setStatus(statusCode);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Type", "application/json");
+        response.getWriter().write(rtn.toString());
+        archiveBulkJson(rtn, "return" + statusCode);
     }
 
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
