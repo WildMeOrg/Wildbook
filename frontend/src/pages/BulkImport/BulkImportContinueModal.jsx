@@ -7,7 +7,7 @@ import {
 import { FormattedMessage } from "react-intl";
 import { FaDownload } from "react-icons/fa";
 
-export const BulkImportContinueModal = ({ store }) => {
+export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
 
   useEffect(() => {
@@ -21,6 +21,7 @@ export const BulkImportContinueModal = ({ store }) => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
     const submissionId = savedStore?.submissionId;
     if (submissionId) {
+      setRenderMode1("list");
       store.hydrate(savedStore);
       store.setActiveStep(0);
       store.fetchAndApplyUploaded();

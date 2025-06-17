@@ -24,7 +24,10 @@ const handleDragLeave = (e) => {
   e.currentTarget.style.border = "1px dashed #007BFF";
 };
 
-export const BulkImportImageUpload = observer(({ store }) => {
+export const BulkImportImageUpload = observer(({ 
+  store,
+  renderMode1
+ }) => {
   const fileInputRef = useRef(null);
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
@@ -32,7 +35,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
   const maxSize = data?.maximumMediaSizeMegabytes || 300000;
 
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
-  const [renderMode, setRenderMode] = useState("list");
+  const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 200;
 
   store.setMaxImageCount(data?.maximumMediaCount || 5000);
@@ -183,7 +186,7 @@ export const BulkImportImageUpload = observer(({ store }) => {
           </div>
         )}
 
-        {!isProcessingDrop && renderMode === "grid" && (
+        {!isProcessingDrop && renderMode === "grid" && !renderMode1 && (
           <Row className="mb-4 ms-2" id="image-preview-grid">
             {store.imagePreview.map((preview, index) => (
               <Col
@@ -280,9 +283,9 @@ export const BulkImportImageUpload = observer(({ store }) => {
           </Row>
         )}
 
-        {!isProcessingDrop &&
+        {((!isProcessingDrop &&
           store.imagePreview.length > 0 &&
-          renderMode === "list" && (
+          renderMode === "list") || renderMode1==="list") && (
             <List
               id="image-preview-list"
               height={600}
