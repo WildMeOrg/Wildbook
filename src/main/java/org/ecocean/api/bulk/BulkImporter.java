@@ -28,6 +28,8 @@ import org.ecocean.Project;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
+import org.ecocean.social.Membership;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -338,8 +340,9 @@ public class BulkImporter {
             System.out.println("[INFO] field " + measFN.get(i) + " [i=" + i + "] created " + meas);
             enc.setMeasurement(meas);
         }
+        handleSocialUnit(indiv, fmap.get("SocialUnit.socialUnitName"), fmap.get("Membership.role"));
 /*
-   core functionality: creating data.....
+   core functionality: altering main objects (Encounters, etc.)
 
    StandardImport seems to treat a lot of Sighting.fubar exactly as if it was Encounter.fubar, namely
    setting the value on the Encouner only. so we follow this as represented in that class, fbow.
@@ -373,7 +376,7 @@ public class BulkImporter {
                 break;
 
             // this will supercede year/month/date but that
-            // should be handled via validation step FIXME
+            // should be handled via validation step TODO
             case "Sighting.dateInMilliseconds":
             case "Sighting.millis":
             case "Encounter.dateInMilliseconds":
@@ -689,6 +692,27 @@ public class BulkImporter {
         }
     }
 
+    private void handleSocialUnit(MarkedIndividual indiv, BulkValidator suNameBV,
+        BulkValidator memRoleBV) {
+        if ((indiv == null) || (suNameBV == null)) return;
+        String suName = suNameBV.getValueString();
+        if (suName == null) return;
+        String memRole = null;
+        if (memRoleBV != null) memRole = memRoleBV.getValueString();
+        try {
+            SocialUnit su = myShepherd.getSocialUnit(suName);
+            if (su == null) su = new SocialUnit(suName);
+            if (su.hasMarkedIndividualAsMember(indiv)) return; // StandardImport bails in this case
+            Membership mem = new Membership(indiv);
+            if (memRole != null) mem.setRole(memRole);
+            su.addMember(mem);
+            myShepherd.getPM().makePersistent(su);
+            myShepherd.getPM().makePersistent(mem);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
 /* this sample stuff is over-the-top   FIXME
 
             case "MicrosatelliteMarkersAnalysis.alleleNames":
@@ -698,11 +722,6 @@ public class BulkImporter {
             case "SexAnalysis.sex":
             case "TissueSample.sampleID":
             case "TissueSample.tissueType":
- */
-
-/* FIXME do SocialUnit
-            SocialUnit.socialUnitName
-            Membership.role
  */
 
 /*
@@ -730,7 +749,7 @@ public class BulkImporter {
             indiv.setGenus(genus);
             indiv.setSpecificEpithet(specificEpithet);
             indiv.setVersion();
-            // FIXME what else???
+            // TODO what else???
             System.out.println(
                 "[INFO] BulkImporter.getOrCreateMarkedIndividual() creating new; could not find existing indiv based on id="
                 + id + " => " + indiv);
