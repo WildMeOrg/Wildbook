@@ -34,7 +34,7 @@ export default function usePostBulkImport() {
       setLoading(true);
       try {
         const resp = await client.post("/bulk-import", payload);
-        return resp.data;
+        return resp;
       } catch (err) {
         setError(err);
         throw err;

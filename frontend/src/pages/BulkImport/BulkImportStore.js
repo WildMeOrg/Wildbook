@@ -280,7 +280,7 @@ export class BulkImportStore {
 
       imagePreview: toJS(this._imagePreview),
       imageSectionFileNames: toJS(this._imageSectionFileNames),
-      imageUploadProgress: this._imageUploadProgress,
+      imageUploadProgress: "100%",
       uploadedImages: toJS(this._uploadedImages),
 
       spreadsheetData: toJS(this._spreadsheetData),
@@ -690,6 +690,7 @@ export class BulkImportStore {
   }
 
   saveState() {
+    console.log("Saving state as draft:", JSON.stringify(this.stateSnapshot));
     try {
       runInAction(() => {
         this._isSavingDraft = true;
@@ -709,20 +710,25 @@ export class BulkImportStore {
   }
 
   applyServerUploadStatus(uploaded = []) {
+    console.log("Applying server upload status:", uploaded);
     const uploadedFileNames = uploaded.map(p => p[0]);
+
     runInAction(() => {
-      this._uploadedImages = uploaded.map(([name]) => name);
-      this._imageSectionFileNames = this._imageSectionFileNames.filter(
-        name => uploadedFileNames.includes(name)
-      );
-      this._imagePreview = this._imagePreview.filter(
-        p => uploadedFileNames.includes(p.fileName)
-      );
+      this._uploadedImages = [...uploadedFileNames];
+      this._imageSectionFileNames = [...uploadedFileNames];
+
+      this._imagePreview = this._imagePreview
+        .filter(preview => uploadedFileNames.includes(preview.fileName.trim()))
+        .map(preview => ({
+          ...preview,
+          progress: 100,
+        }));
     });
   }
 
   async fetchAndApplyUploaded() {
     if (!this._submissionId) return;
+    console.log("Fetching uploaded files for submission ID:", this._submissionId);
     const resp = await fetch(
       `/api/v3/bulk-import/${this._submissionId}/files`
     );
@@ -733,6 +739,7 @@ export class BulkImportStore {
     }
 
     const data = await resp.json();
+    console.log("Fetched uploaded files:", data.files);
     this.applyServerUploadStatus(data.files);
   }
 
@@ -834,7 +841,7 @@ export class BulkImportStore {
       chunkRetryInterval: 2000,
       simultaneousUploads: 6,
       chunkSize: 5 * 1024 * 1024,
-      query: { submissionId: this._submissionId },
+      query: () => ({ submissionId: this._submissionId }),
     });
 
     flowInstance.opts.generateUniqueIdentifier = (file) =>
@@ -843,6 +850,13 @@ export class BulkImportStore {
     flowInstance.assignBrowse(fileInputRef);
 
     flowInstance.on("fileAdded", (file) => {
+      const fileName = file.name.trim();
+
+      if (this._imageSectionFileNames.includes(fileName)) {
+        console.warn("Duplicate file skipped:", fileName);
+        return false; 
+      }
+
       if (this._imageSectionFileNames.length >= this._maxImageCount) {
         console.warn(`maximum ${this._maxImageCount} discard`, file.name);
         return false;
@@ -1122,10 +1136,18 @@ export class BulkImportStore {
         const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
         const isValid = supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024;
 
-        if (isValid) {
+        // if (isValid) {
+        //   this._collectedValidFiles.push(file);
+        //   this._pendingDropFileCount++;
+        // }
+
+        if (isValid && !this._imageSectionFileNames.includes(file.name.trim())) {
           this._collectedValidFiles.push(file);
           this._pendingDropFileCount++;
+        } else {
+          console.warn("Skipped duplicate during folder scan:", file.name);
         }
+
 
         this._decrementPending();
       });

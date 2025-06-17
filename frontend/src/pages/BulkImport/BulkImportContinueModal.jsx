@@ -5,18 +5,27 @@ import {
   Button,
 } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-import { FaDownload  } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
 
 export const BulkImportContinueModal = ({ store }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
 
   useEffect(() => {
-    setShow(Boolean(store.submissionId));
-  }, [store.submissionId]);
+    const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
+    if (savedStore?.submissionId) {
+      setShow(true);
+    }
+  }, []);
 
   const handleContinue = () => {
-    store.fetchAndApplyUploaded();
-    setShow(false);     
+    const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
+    const submissionId = savedStore?.submissionId;
+    if (submissionId) {
+      store.hydrate(savedStore);
+      store.setActiveStep(0);
+      store.fetchAndApplyUploaded();
+    }
+    setShow(false);
   };
 
   const handleDelete = () => {

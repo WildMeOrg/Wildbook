@@ -1,4 +1,4 @@
-import { observer, useLocalObservable } from "mobx-react-lite";
+import { observer } from "mobx-react-lite";
 import React, { useEffect, useState } from "react";
 import BulkImportStore from "./BulkImportStore";
 import { BulkImportImageUpload } from "./BulkImportImageUpload";
@@ -32,19 +32,10 @@ const BulkImport = observer(() => {
     const submissionId = savedStore?.submissionId;
     if (submissionId) {
       setSavedSubmissionId(submissionId);
-      store.hydrate(savedStore);
-      store.setActiveStep(0);
-      store.fetchAndApplyUploaded();
     }
   }, []);
 
-  const firstRun = React.useRef(true);
-
   useEffect(() => {
-    if (firstRun.current) {
-      firstRun.current = false;
-      return;
-    }
     if (
       store.submissionId &&
       (store.imagePreview.length > 0 || store.spreadsheetData.length > 0)
@@ -52,8 +43,8 @@ const BulkImport = observer(() => {
       store.saveState();
     }
   }, [
-    JSON.stringify(store.imagePreview),
-    JSON.stringify(store.spreadsheetData),
+    store.imagePreview.length,
+    store.spreadsheetData.length,
   ]);
 
   return (
