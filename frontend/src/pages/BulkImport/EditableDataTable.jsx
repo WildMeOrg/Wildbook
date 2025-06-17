@@ -16,13 +16,12 @@ import BulkImportApplyToAllRowsModal from "./BulkImportApplyToAllRowsModal";
 const EditableCell = observer(({
   store,
   value,
-  error,
   rowIndex,
   columnId,
   setColId,
   setColValue,
-}) => {
-
+}) => {  
+ 
   const selectOptions = useMemo(() => {
     return store.getOptionsForSelectCell(columnId);
   }, [columnId, store]);
@@ -34,13 +33,10 @@ const EditableCell = observer(({
   const handleBlur = (e) => {
     const newValue = e.target.value;
     store.updateCellValue(rowIndex, columnId, newValue);
-
-    const { errors, warnings } = store.validateRow(rowIndex);
-    const errorMsg = errors?.[columnId] || "";
-    const warningMsg = warnings?.[columnId] || "";
-
-    store.mergeValidationError(rowIndex, columnId, errorMsg);
-    store.mergeValidationWarning(rowIndex, columnId, warningMsg);
+    store.invalidateValidation();
+    const { errors, warnings } = store.validateSpreadsheet();
+    store.setValidationErrors(errors);
+    store.setValidationWarnings(warnings);
   };
 
   const useSelectCell = columnsUseSelectCell.includes(columnId);
@@ -50,33 +46,35 @@ const EditableCell = observer(({
       return (<SelectCell
         options={selectOptions}
         value={selectValue}
-        onChange={(sel) => {
-          const newValue = sel ? sel.value : "";
-          store.updateCellValue(rowIndex, columnId, newValue);
+        setColId={setColId}
+        setColValue={setColValue}
+        store={store}
+        // onChange={(sel) => {
+        //   const newValue = sel ? sel.value : "";
+        //   store.updateCellValue(rowIndex, columnId, newValue);
 
-          const { errors, warnings } = store.validateRow(rowIndex);
-          const errorMsg = errors?.[columnId] || "";
-          const warningMsg = warnings?.[columnId] || "";
+        //   const { errors, warnings } = store.validateRow(rowIndex);
+        //   const errorMsg = errors?.[columnId] || "";
+        //   const warningMsg = warnings?.[columnId] || "";
 
-          store.mergeValidationError(rowIndex, columnId, errorMsg);
-          store.mergeValidationWarning(rowIndex, columnId, warningMsg);
+        //   store.mergeValidationError(rowIndex, columnId, errorMsg);
+        //   store.mergeValidationWarning(rowIndex, columnId, warningMsg);
 
-          if (columnId === "Encounter.locationID") {
-            setColId(columnId);
-            setColValue(newValue);
-            store.setApplyToAllRowModalShow(true);
-          }
-        }}
-
-        error={error}
+        //   if (columnId === "Encounter.locationID") {
+        //     setColId(columnId);
+        //     setColValue(newValue);
+        //     store.setApplyToAllRowModalShow(true);
+        //   }
+        // }}
+        error={!!store.validationErrors?.[rowIndex]?.[columnId]}
       />
       );
     } else {
       return (
         <input
           type="text"
-          className={`form-control form-control-sm rounded ${error ? "is-invalid" : ""}`}
-          value={value}
+          className={`form-control form-control-sm rounded ${!!store.validationErrors?.[rowIndex]?.[columnId] ? "is-invalid" : ""}`}
+          value={store.spreadsheetData?.[rowIndex]?.[columnId] || ""}
           title={value}
           onChange={(e) => store.updateCellValue(rowIndex, columnId, e.target.value)}
           onBlur={handleBlur}
@@ -89,9 +87,9 @@ const EditableCell = observer(({
   return (
     <div>
       {renderInput()}
-      {error && (
+      {!!store.validationErrors?.[rowIndex]?.[columnId] && (
         <div className="invalid-feedback" style={{ whiteSpace: "normal" }}>
-          {error}
+          {JSON.stringify(store.validationErrors?.[rowIndex]?.[columnId], null, 2)}
         </div>
       )}
     </div>
@@ -164,7 +162,13 @@ export const DataTable = observer(({ store }) => {
   const validateMediaAssets = useRef(
     throttle(() => {
       console.log("Throttled validation triggered");
+      const col = "Encounter.mediaAsset0";
       const { errors, warnings } = store.validateMediaAsset0ColumnOnly();
+
+      store.spreadsheetData.forEach((_, rowIndex) => {
+        store.mergeValidationError(rowIndex, col, "");
+        store.mergeValidationWarning(rowIndex, col, "");
+      });
 
       Object.entries(errors).forEach(([rowIndex, rowErrors]) => {
         Object.entries(rowErrors).forEach(([columnId, errorMessage]) => {
@@ -180,19 +184,9 @@ export const DataTable = observer(({ store }) => {
     }, 1000)
   ).current;
 
-
   useEffect(() => {
-    const isUploadDone = store.imageUploadProgress === 100;
-    if (store.uploadedImages.length === 0 && isUploadDone) {
-      console.log("No images uploaded, skipping media validation");
-      return;
-    }
-    if (isUploadDone) {
-      store.validateMediaAsset0ColumnOnly();
-      return;
-    }
     validateMediaAssets();
-  }, [store.uploadedImages.length, store.imageUploadProgress]);
+  }, [store.uploadedImages.length]);
 
   const columns = useMemo(() => {
     const colDefs = columnsDef.map((col) => ({

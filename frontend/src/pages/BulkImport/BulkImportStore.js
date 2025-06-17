@@ -588,19 +588,22 @@ export class BulkImportStore {
   }
 
   mergeValidationError(rowIndex, columnId, errorMessage) {
-    if (!this._validationErrors[rowIndex]) {
-      this._validationErrors[rowIndex] = {};
-    }
-
-    if (errorMessage) {
-      this._validationErrors[rowIndex][columnId] = errorMessage;
-    } else {
-      delete this._validationErrors[rowIndex][columnId];
-      if (Object.keys(this._validationErrors[rowIndex]).length === 0) {
-        delete this._validationErrors[rowIndex];
+    runInAction(() => {
+      if (!this._validationErrors[rowIndex]) {
+        this._validationErrors[rowIndex] = {};
       }
-    }
+
+      if (Object.keys(errorMessage).length > 0) {
+        this._validationErrors[rowIndex][columnId] = errorMessage;
+      } else {
+        delete this._validationErrors[rowIndex][columnId];
+        if (Object.keys(this._validationErrors[rowIndex]).length === 0) {
+          delete this._validationErrors[rowIndex];
+        }
+      }
+    });
   }
+
 
   mergeValidationWarning(rowIndex, columnId, warningMessage) {
     if (!this._validationWarnings[rowIndex]) {
@@ -644,7 +647,6 @@ export class BulkImportStore {
         errors[rowIndex] = { [col]: error };
       }
     });
-
     return { errors, warnings };
   }
 
@@ -709,7 +711,7 @@ export class BulkImportStore {
   applyServerUploadStatus(uploaded = []) {
     const uploadedFileNames = uploaded.map(p => p[0]);
     runInAction(() => {
-      this._uploadedImages = uploaded;
+      this._uploadedImages = uploaded.map(([name]) => name);
       this._imageSectionFileNames = this._imageSectionFileNames.filter(
         name => uploadedFileNames.includes(name)
       );
