@@ -52,6 +52,8 @@ export class BulkImportStore {
   _hasWarnedDropLimit = false;
   _collectedValidFiles = [];
   _MAX_DROP_FILE_COUNT = 10000;
+  _skipDetection = false;
+  _skipIdentification = false;
 
   isValidISO(val) {
     const dt = new Date(val);
@@ -452,6 +454,14 @@ export class BulkImportStore {
     return this._filesParsed;
   }
 
+  get skipDetection() {
+    return this._skipDetection;
+  }
+
+  get skipIdentification() {
+    return this._skipIdentification;
+  }
+
   setLabeledKeywordAllowedKeys(keys) {
     this._labeledKeywordAllowedKeys = keys;
   }
@@ -560,6 +570,14 @@ export class BulkImportStore {
 
   setValidationWarnings(warnings) {
     this._validationWarnings = warnings;
+  }
+
+  setSkipDetection(skip) {
+    this._skipDetection = skip;
+  }
+
+  setSkipIdentification(skip) {
+    this._skipIdentification = skip;
   }
 
   setMinimalFields(minimalFields) {

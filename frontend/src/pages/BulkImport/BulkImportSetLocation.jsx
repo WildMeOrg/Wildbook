@@ -54,15 +54,24 @@ export const BulkImportSetLocation = observer(({ store }) => {
     );
 
     const handleStartImport = useCallback(async () => {
-        store.updateRawFromNormalizedRow(); 
+        store.updateRawFromNormalizedRow();
         store.clearSubmissionErrors();
         try {
             const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName);
-            if (result?.success) {
+            if (result?.status === 200) {
+                console.log("Bulk import result:", JSON.stringify(result));
                 localStorage.removeItem("BulkImportStore");
                 localStorage.setItem("lastBulkImportTask", result.bulkImportId);
                 setLastEditedDate(dayjs().format("YYYY-MM-DD"));
                 setShowSuccessModal(true);
+            } else if (result?.status === 400) {
+                console.error("Bulk import failed with status 400:", result.data.errors);
+                store.setSubmissionErrors(result.data.errors || "Unknown error");
+                setShowFailureModal(true);
+            } else {
+                console.error("Bulk import failed with unexpected status:", result);
+                store.setSubmissionErrors("Unexpected error during import");
+                setShowFailureModal(true);
             }
         } catch (err) {
             const errors = err.response?.data?.errors;
@@ -79,14 +88,15 @@ export const BulkImportSetLocation = observer(({ store }) => {
 
     return (
         <div className="d-flex flex-column mt-4">
-            <h2>
-                <FormattedMessage id="BULK_IMPORT_SET_LOCATION" />
-            </h2>
+            <h5>
+                <FormattedMessage id="BULK_IMPORT_SET_PREFERENCE" />
+            </h5>
             <p>
                 <FormattedMessage id="BULK_IMPORT_SET_LOCATION_DESC" />
             </p>
             <div style={{
-                width: "500px"
+                width: "500px",
+                maxWidth: "100%",
             }}>
                 <Select
                     isMulti={true}
@@ -114,7 +124,35 @@ export const BulkImportSetLocation = observer(({ store }) => {
                 />
             </div>
 
-            <div className="d-flex flex-row justify-content-between mt-4">
+            <div className="d-flex flex-column mt-4 "
+                style={{width: "300px", marginLeft: "auto"}}
+            >
+                <div className="form-check mt-3">
+                    <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="skipDetection"
+                        checked={store.skipDetection}
+                        onChange={(e) => store.setSkipDetection(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="skipDetection">
+                        <FormattedMessage id="SKIP_DETECTION" defaultMessage="Skip Detection" />
+                    </label>
+                </div>
+
+                <div className="form-check mt-2">
+                    <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="skipDetectionAndID"
+                        checked={store.skipIdentification}
+                        onChange={(e) => store.setSkipIdentification(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="skipDetectionAndID">
+                        <FormattedMessage id="SKIP_DETECTION_AND_ID" defaultMessage="Skip Detection and Identification" />
+                    </label>
+                </div>
+
                 <MainButton
                     onClick={() => {
                         handleStartImport();
@@ -124,7 +162,9 @@ export const BulkImportSetLocation = observer(({ store }) => {
                     backgroundColor={theme.wildMeColors.cyan700}
                     color={theme.defaultColors.white}
                     noArrow={true}
-                    style={{ width: "auto", fontSize: "1rem", marginLeft: "auto" }}
+                    style={{ width: "auto", fontSize: "1rem", 
+                        marginRight: "auto"
+                    }}
                 >
                     {isLoading
                         ? <FormattedMessage id="LOADING" defaultMessage="Loading..." />
