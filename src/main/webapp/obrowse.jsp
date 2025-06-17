@@ -160,12 +160,14 @@ java.util.Properties" %>
 	}
 
         private String showImportTask(ImportTask itask) {
+            Task iaTask = itask.getIATask();
             String h = "<div><b>" + itask.getId() + "</b> " + itask.toString() + "<ul>";
             h += "<li>" + format("creator", itask.getCreator()) + "</li>";
             h += "<li>" + format("created", itask.getCreated()) + "</li>";
             h += "<li>" + format("status", itask.getStatus()) + "</li>";
             h += "<li>" + format("sourceName", itask.getSourceName()) + "</li>";
             h += "<li>processingProgress: " + itask.getProcessingProgress() + "</li>";
+            if (iaTask != null) h += "<li><a href=\"obrowse.jsp?type=Task&id=" + iaTask.getId() + "\">IATask " + iaTask.getId() + "</a></li>";
             h += "</ul>";
             if (Util.collectionIsEmptyOrNull(itask.getEncounters())) {
                 h += "<p><i>no Encounters</i></p>";
