@@ -19,7 +19,7 @@
         {"name": "Foxe Basin", "id": "Foxe Basin", "locationID":[]},
         {"name": "Hudson Bay", "id": "Hudson Bay", "locationID":[]},
         {"name": "James Bay", "id": "James Bay", "locationID":[]}
-      ], "id": "ArcticOcean", "defaultLatitude": 90.0, "defaultLongitude":0.0},
+      ], "id": "Arctic Ocean", "defaultLatitude": 90.0, "defaultLongitude":0.0},
       {"name": "Atlantic Ocean (North)", "locationID": [
         {"name":"Azores", "id":"5", "locationID":[] },
         {"name": "Archipelago Sea", "id": "Archipelago Sea", "locationID":[]},
@@ -76,12 +76,12 @@
           {"name": "Martinique", "id": "Martinique", "locationID": []},
           {"name": "Montserrat", "id": "Montserrat", "locationID": []},
           {"name": "Saba", "id": "Saba", "locationID": []},
-          {"name": "St. Barthélemy", "id": "St Barthelemy", "locationID": []},
-          {"name": "St. Eustatius", "id": "St Eustatius", "locationID": []},
-          {"name": "St. Kitts and Nevis", "id": "St Kitts and Nevis", "locationID": []},
-          { "name": "St. Lucia", "id": "StLuciaCaribbean", "locationID": []},
-          {"name": "St. Maarten", "id": "St Maarten", "locationID": []},
-          { "name": "St.Vincent", "id": "St.Vincent", "locationID":[]},
+          {"name": "St Barthélemy", "id": "St Barthélemy", "locationID": []},
+          {"name": "St Eustatius", "id": "St Eustatius", "locationID": []},
+          {"name": "St Kitts and Nevis", "id": "St Kitts and Nevis", "locationID": []},
+          { "name": "St Lucia - Caribbean", "id": "St Lucia - Caribbean", "locationID": []},
+          {"name": "St Maarten", "id": "St Maarten", "locationID": []},
+          { "name": "St Vincent", "id": "St Vincent", "locationID":[]},
           {"name": "The Grenadines", "id": "The Grenadines", "locationID": []}
         ]},
         {"name": "Celtic Sea", "id": "Celtic Sea", "locationID":[]},
@@ -101,7 +101,7 @@
         ]},
         {"name": "Gulf of St. Lawrence", "id": "Gulf of St. Lawrence", "locationID":[]},
         {"name": "Gulf of Venezuela", "id": "Gulf of Venezuela", "locationID":[]},
-        {"name":"Gully MPA", "id":"3", "locationID":[]},
+        {"name":"Gully MPA", "id":"Gully MPA", "locationID":[]},
         {"name": "Irish Sea", "id": "Irish Sea", "locationID":[
           {"name": "Cardigan Bay", "id": "Cardigan Bay", "locationID":[]}  
         ]},
@@ -121,11 +121,11 @@
         {"name": "Turks and Caicos", "id": "Turks and Caicos", "locationID":[]},
         {"name":"U.S. Eastern Seaboard","id":"U.S. Eastern Seaboard","locationID":[
           {"name": "NorfolkCanyon", "id": "NorfolkCanyon", "locationID":[]},
-          {"name": "NC-OUTERBANKS", "id": "NC-OUTERBANKS", "locationID":[]},
+          {"name": "NC-OUTERBANKS", "id": "NC - Outerbanks", "locationID":[]},
           {"name": "NC - Brunswick County", "id": "NC - Brunswick County", "locationID":[]},
-          {"name":"Cape May, NJ", "id":"CapeMay", "locationID":[]},
+          {"name":"Cape May, NJ", "id":"Cape May, NJ", "locationID":[]},
           {"name":"NY Bight", "id":"NY Bight", "locationID":[
-            {"name":"Montauk NY", "id":"Montauk NY", "locationID":[]}
+            {"name":"Montauk, NY", "id":"Montauk, NY", "locationID":[]}
           ]},
           {"name":"BOF-BOF","id":"BOF-BOF", "locationID":[]},
           {"name": "EAST-ESS" ,"id": "EAST-ESS", "locationID":[]},
@@ -167,32 +167,32 @@
       {"name":"South Georgia", "id":"South Georgia", "locationID":[]}
       ]},
       {"name":"Indian Ocean", "id":"IndianOcean","locationID":[
-        {"name":"BANGLADESH - West", "id":"BANGLADESH - West", "locationID":[] },
+        {"name":"Bangladesh - West", "id":"Bangladesh - West", "locationID":[] },
          {"name":"India","id":"India","locationID":[
-            { "name":"INDIA - Andaman Islands", "id":"INDIA - Andaman Islands", "locationID":[] },
-            { "name":"INDIA - Andhra Pradesh", "id":"INDIA - Andhra Pradesh", "locationID":[] },
-            { "name":"INDIA - Arabian Sea", "id":"INDIA - Arabian Sea", "locationID":[] },
-            { "name":"INDIA - Bay of Bengal", "id":"INDIA - Bay of Bengal", "locationID":[] },
-            { "name":"INDIA - Goa", "id":"INDIA - Goa", "locationID":[] },
-            { "name":"INDIA - Gujarat", "id":"INDIA - Gujarat", "locationID":[] },
-            { "name":"INDIA - Indian Ocean", "id":"INDIA - Indian Ocean", "locationID":[] },
-            { "name":"INDIA - Karnataka", "id":"INDIA - Karnataka", "locationID":[] },
-            { "name":"INDIA - Kerala", "id":"INDIA - Kerala", "locationID":[] },
-            { "name":"INDIA - Lakshadweep Islands", "id":"INDIA - Lakshadweep Islands", "locationID":[] },
-            { "name":"INDIA - Maharashtra", "id":"INDIA - Maharashtra", "locationID":[] },
-            { "name":"INDIA - Nicobar Islands", "id":"INDIA - Nicobar Islands", "locationID":[] },
-            { "name":"INDIA - Orissa", "id":"INDIA - Orissa", "locationID":[] },
-            { "name":"INDIA - Pondicherry", "id":"INDIA - Pondicherry", "locationID":[] },
-            { "name":"INDIA - Tamilnadu", "id":"INDIA - Tamilnadu", "locationID":[] },
-            { "name":"INDIA - West Bengal", "id":"INDIA - West Bengal", "locationID":[] }
+            { "name":"Andaman Islands", "id":"Andaman Islands", "locationID":[] },
+            { "name":"Andhra Pradesh", "id":"Andhra Pradesh", "locationID":[] },
+            { "name":"Arabian Sea", "id":"Arabian Sea", "locationID":[] },
+            { "name":"Bay of Bengal", "id":"Bay of Bengal", "locationID":[] },
+            { "name":"Goa", "id":"Goa", "locationID":[] },
+            { "name":"Gujarat", "id":"Gujarat", "locationID":[] },
+            { "name":"Indian Ocean", "id":"Indian Ocean", "locationID":[] },
+            { "name":"Karnataka", "id":"Karnataka", "locationID":[] },
+            { "name":"Kerala", "id":"Kerala", "locationID":[] },
+            { "name":"Lakshadweep Islands", "id":"Lakshadweep Islands", "locationID":[] },
+            { "name":"Maharashtra", "id":"Maharashtra", "locationID":[] },
+            { "name":"Nicobar Islands", "id":"Nicobar Islands", "locationID":[] },
+            { "name":"Orissa", "id":"Orissa", "locationID":[] },
+            { "name":"Pondicherry", "id":"Pondicherry", "locationID":[] },
+            { "name":"Tamilnadu", "id":"Tamilnadu", "locationID":[] },
+            { "name":"West Bengal", "id":"West Bengal", "locationID":[] }
          ]},
          {"name":"Pakistan","id":"Pakistan","locationID":[
-            { "name":"PAKISTAN - North", "id":"PAKISTAN - North", "locationID":[] }
+            { "name":"North Pakistan", "id":"North Pakistan", "locationID":[] }
          ]},
          {"name": "Andaman Sea", "id": "Andaman Sea" },
          {"name": "Arabian Sea", "id":"Arabian sea" },
          {"name": "Laccadive Sea", "id": "Laccadive Sea" },
-         {"name": "Mozambique Channel","id":"MozambiqueChannel","locationID":[
+         {"name": "Mozambique Channel","id":"Mozambique Channel","locationID":[
             { "name":"Mozambique", "id":"Mozambique", "locationID":[] }
           ]},
          {"name": "Persian Gulf", "id": "Persian Gulf" },
@@ -237,17 +237,17 @@
           {"name": "Moheli", "id": "Moheli", "locationID":[]},
           {"name": "Anjouan", "id": "Anjouan", "locationID":[]},
           {"name": "Tanzania", "id": "Tanzania", "locationID":[
-            {"name": "Tanzania mainland coast North", "id": "Tanzania mainland coast North", "locationID":[]},
-            {"name": "Pemba (Tanzania)", "id": "Pemba (Tanzania)", "locationID":[]}
+            {"name": "North Mainland Coast", "id": "North Mainland Coast", "locationID":[]},
+            {"name": "Pemba", "id": "Pemba", "locationID":[]}
           ]},
           {"name":"Sri Lanka","id":"Sri Lanka", "locationID":[
-            {"name":"SRI LANKA - East","id":"SRI LANKA - East", "locationID":[]},
-            {"name":"SRI LANKA - North","id":"SRI LANKA - North", "locationID":[]},
-            {"name":"SRI LANKA - South","id":"SRI LANKA - South", "locationID":[]},
-            {"name":"SRI LANKA - West","id":"SRI LANKA - West", "locationID":[]}
+            {"name":"East Sri Lanka","id":"East Sri Lanka", "locationID":[]},
+            {"name":"North Sri Lanka","id":"North Sri Lanka", "locationID":[]},
+            {"name":"South Sri Lanka","id":"South Sri Lanka", "locationID":[]},
+            {"name":"West Sri Lanka","id":"West Sri Lanka", "locationID":[]}
           ]},
           {"name":"Oman","id":"Oman", "locationID":[
-                {"name":"4h", "id":"4h", "locationID":[]},
+                {"name":"Arabian Peninsula", "id":"Arabian Peninsula", "locationID":[]},
                 {"name":"As Sifah", "id":"As Sifah", "locationID":[]},
                 {"name":"Ash Shuwayr", "id":"Ash Shuwayr", "locationID":[]},
                 {"name":"Ashkharah", "id":"Ashkharah", "locationID":[]},
@@ -406,18 +406,18 @@
         {"name":"Fiji", "id":"Fiji", "locationID":[]},
         {"name":"French Polynesia", "id":"French Polynesia", "locationID":[]},
         {"name":"Galapagos Islands", "id":"Galapagos Islands", "locationID":[]},
-        {"name": "Hawaiʻi Island", "id": "Hawaii", "locationID":[
+        {"name": "Hawai'i Island", "id": "Hawai'i Island", "locationID":[
           {"name": "Hilo", "id": "Hilo", "locationID":[]},
-          {"name": "Hoʻokena Bay", "id": "Hookena Bay", "locationID":[]},
+          {"name": "Ho'okena Bay", "id": "Ho'okena Bay", "locationID":[]},
           {"name": "Honaunau Bay", "id": "Honaunau Bay", "locationID":[]},
           {"name": "Kealakekua Bay", "id": "Kealakekua Bay", "locationID":[]}
         ]},
         {"name": "Maui", "id": "Maui", "locationID":[]},
-        {"name": "Oʻahu", "id": "Oahu", "locationID":[
-          {"name": "East Oʻahu", "id": "East Oahu", "locationID":[]},
-          {"name": "North Oʻahu", "id": "North Oahu", "locationID":[]},
-          {"name": "South Oʻahu", "id": "South Oahu", "locationID":[]},
-          {"name": "West Oʻahu", "id": "West Oahu", "locationID":[]}
+        {"name": "O'ahu", "id": "O'ahu", "locationID":[
+          {"name": "East O'ahu", "id": "East O'ahu", "locationID":[]},
+          {"name": "North O'ahu", "id": "North Oahu", "locationID":[]},
+          {"name": "South O'ahu", "id": "South Oahu", "locationID":[]},
+          {"name": "West O'ahu", "id": "West Oahu", "locationID":[]}
         ]},
         {"name": "Kauai", "id": "Kauai", "locationID":[]},
         {"name":"Kiribati", "id":"Kiribati", "locationID":[]},
@@ -437,6 +437,7 @@
         {"name":"New Caledonia", "id":"New Caledonia", "locationID":[]},
         {"name":"Niue", "id":"Niue", "locationID":[]},
         {"name":"Ogasawara Islands", "id":"Ogasawara Islands", "locationID":[]},
+        {"name":"Okinawa", "id": "Okinawa", "locationID":[]},
         {"name":"Palau", "id":"Palau", "locationID":[]},
         {"name":"Papua New Guinea", "id":"Papua New Guinea", "locationID":[]},
         {"name":"Samoa", "id":"Samoa", "locationID":[]},
@@ -460,6 +461,7 @@
         {"name": "Mar de Grau", "id": "Mar de Grau", "locationID":[]},
         {"name": "Molucca Sea", "id": "Molucca Sea", "locationID":[]},
         {"name": "Philippine Sea", "id": "Philippine Sea", "locationID":[]},
+        {"name": "Philippines", "id": "Philippines", "locationID":[]},
         {"name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
           {"name": "Gulf of Alaska", "id": "Gulf of Alaska", "locationID":[
             {"name": "Cook Inlet", "id": "Cook Inlet", "locationID":[] }
@@ -478,8 +480,6 @@
             {"name":"Northern California", "id":"Northern California", "locationID":[]},
             {"name":"Northern California/OR", "id":"Northern California/OR", "locationID":[]},
             {"name":"Northern Central California", "id":"Northern Central California", "locationID":[]},
-            {"name":"Northern-Central California", "id":"Northern-Central California", "locationID":[]},
-            {"name":"Northern_central California", "id":"Northern_central California", "locationID":[]},
             {"name":"Southern California", "id":"Southern California", "locationID":[] },
             {"name":"Southern Central California", "id":"Southern Central California", "locationID":[]}
           ]},
@@ -489,15 +489,15 @@
               { "name": "Knight Inlet", "id": "Knight Inlet", "locationID":[]} 
             ]}
           ]},
+          {"name": "Jervis Bay", "id": "Jervis Bay", "locationID": []},
           {"name":"Mexico","id":"Mexico","locationID":[
             {"name":"Bahia barra de Potosi", "id":"Bahia barra de Potosi", "locationID":[]},
-            {"name":"Bahía de Banderas", "id":"Bahia de Banderas", "locationID":[]},
+            {"name":"Bahía de Banderas", "id":"Bahía de Banderas", "locationID":[]},
             {"name":"Guamilule", "id":"Guamilule", "locationID":[]},
             {"name":"Ixtapa", "id":"Ixtapa", "locationID":[]},
             {"name":"Laguna San Ignacio", "id":"Laguna San Ignacio", "locationID":[]},
             {"name":"Laguna Valentin", "id":"Laguna Valentin", "locationID":[]},
             {"name":"Manzanillo", "id":"Manzanillo", "locationID":[]},
-            {"name":"Mexico (Pacific)-Unspecified", "id":"Mexico", "locationID":[]},
             {"name":"Morros", "id":"Morros", "locationID":[]},
             {"name":"PB", "id":"PB", "locationID":[]},
             {"name":"Playa Blanca", "id":"Playa Blanca", "locationID":[]},
@@ -505,13 +505,12 @@
             {"name":"Playa Tortuga", "id":"Playa Tortuga", "locationID":[]},
             {"name":"Playa Valentin", "id":"Playa Valentin", "locationID":[]},
             {"name":"Playa Viva", "id":"Playa Viva", "locationID":[]},
-            {"name":"Playa tortuga", "id":"Playa tortuga", "locationID":[]},
-            {"name": "Sea of Cortés", "id":"sea of cortes","locationID":[
-              {"name":"Bahía de la Paz", "id":"Bahia de la paz", "locationID":[]},
+            {"name": "Sea of Cortés", "id":"Sea of Cortés","locationID":[
+              {"name":"Bahía de la Paz", "id":"Bahía de la Paz", "locationID":[]},
               {"name": "Baja California", "id":"Baja California", "locationID":[
                 {"name":"Northern Baja California", "id":"Northern Baja California", "locationID":[]},
                 {"name":"Southern Baja California", "id":"Southern Baja California", "locationID":[
-                    {"name":"Bahía Almejas", "id":"Bahia Almejas", "locationID":[]}
+                    {"name":"Bahía Almejas", "id":"Bahía Almejas", "locationID":[]}
                 ]}
               ]}
             ]},
@@ -535,20 +534,11 @@
           {"name":"Southern Oregon", "id":"Southern Oregon", "locationID":[]},
           {"name":"Southern-Central California", "id":"Southern-Central California", "locationID":[]},
           {"name":"WA/BC", "id":"WA/BC", "locationID":[]},
-          {"name":"WA/BC Border Region", "id":"WA/BC Border Region", "locationID":[]},
-          {"name":"WA/BC Border region", "id":"WA/BC Border region", "locationID":[]},
-          {"name":"WaIn: Washington Inside Waters", "id":"WaIn: Washington Inside Waters", "locationID":[]},
-          {"name":"WaIn:WashingtonInsideWaters", "id":"WaIn:WashingtonInsideWaters", "locationID":[]},
           {"name":"Washington", "id":"Washington", "locationID":[]},
           {"name":"Washington Inside Waters", "id":"Washington Inside Waters", "locationID":[]},
           {"name":"Washington Outer Coast", "id":"Washington Outer Coast", "locationID":[]},
           {"name": "SPLASH", "id":"SPLASH", "locationID":[
-            {"name": "Asia-OG", "id": "Asia-OG", "locationID":[]},
-            {"name": "Asia-OK", "id": "Asia-OK", "locationID":[]},
-            {"name": "Asia-PHI", "id": "Asia-PHI", "locationID":[]},
             {"name": "Bering", "id": "Bering", "locationID":[]},
-            {"name": "CA-OR", "id": "CA-OR", "locationID":[]},
-            {"name": "Cent Am", "id": "Cent Am", "locationID":[]},
             {"name": "E Aleut.", "id": "E Aleut.", "locationID":[]},
             {"name": "MX-AR", "id": "MX-AR", "locationID":[]},
             {"name": "MX-BC", "id": "MX-BC", "locationID":[]},
@@ -573,16 +563,16 @@
         {"name":"South Pacific","id":"South Pacific","locationID":[
           {"name":"Cloudy Bay", "id":"Cloudy Bay", "locationID":[]},
           {"name": "Coral Sea", "id": "Coral Sea", "locationID":[
-            {"name": "Gold Coast", "id": "GC", "locationID":[]},
-            {"name": "Hervey Bay", "id": "HerveyBay", "locationID":[]}
+            {"name": "Gold Coast", "id": "Gold Coast", "locationID":[]},
+            {"name": "Hervey Bay", "id": "Hervey Bay", "locationID":[]}
           ]},
           {"name": "Tasman Sea", "id": "Tasman Sea" },
           {"name":"New Zealand", "id":"New Zealand", "locationID":[
-		  {"name": "Kaikoura", "id": "Kaikoura", "locationID":[]}
-	  ]}
+            {"name": "Kaikoura", "id": "Kaikoura", "locationID":[]}
+          ]}
         ]}
           ],
-          "id": "PacificOcean", "defaultLatitutde": 0.0, "defaultLongitude": -160.0},
+          "id": "Pacific Ocean", "defaultLatitutde": 0.0, "defaultLongitude": -160.0},
           {"name": "Russia", "id": "Russia", "locationID": [
             {"name": "Chukotka Peninsula", "id": "Chukotka Peninsula", "locationID": []},
             {"name": "Kamchatka Peninsula", "id": "Kamchatka Peninsula", "locationID":[]},
@@ -603,7 +593,7 @@
         {"name": "Davis Sea", "id": "Davis Sea", "locationID":[]},
         {"name": "D'Urville Sea", "id": "D'Urville Sea", "locationID":[]},
         {"name": "Drake Passage", "id": "Drake Passage", "locationID":[]},
-        {"name": "Gerlache Strait", "id": "Gerlache", "locationID":[]},
+        {"name": "Gerlache Strait", "id": "Gerlache Strait", "locationID":[]},
         {"name": "Great Australian Bight", "id": "Great Australian Bight", "locationID":[]},
         {"name": "Gulf St Vincent", "id": "Gulf St Vincent", "locationID":[]},
         {"name": "King Haakon VII Sea", "id": "King Haakon VII Sea", "locationID":[]},
@@ -616,22 +606,22 @@
         {"name": "Spencer Gulf", "id": "Spencer Gulf", "locationID":[]},
         {"name": "Weddell Sea", "id": "Weddell Sea", "locationID":[]},
         {"name":"Antarctica", "id":"Antarctica", "locationID":[]}
-      ], "id": "SouthernOcean", "defaultLatitude": -68.4380, "defaultLongitude": -160.2340},
+      ], "id": "Southern Ocean", "defaultLatitude": -68.4380, "defaultLongitude": -160.2340},
       {"name":"South Africa", "id":"South Africa", "locationID":[
-          {"name":"BAZARUTO", "id":"BAZARUTO", "locationID":[]},
-          {"name":"BLUFF", "id":"BLUFF", "locationID":[]},
-          {"name":"CAPEVIDAL", "id":"CAPEVIDAL", "locationID":[]},
-          {"name":"DURBAN", "id":"DURBAN", "locationID":[]},
-          {"name":"EAST LONDON", "id":"EASTLONDON", "locationID":[]},
-          {"name":"KNYSNA", "id":"KNYSNA", "locationID":[]},
-          {"name":"KNYSNAPLETT", "id":"KNYSNAPLETT", "locationID":[]},
-          {"name":"PLETT", "id":"PLETT", "locationID":[]},
-          {"name":"PONTAMAMOLI", "id":"PONTAMAMOLI", "locationID":[]},
-          {"name":"PORT ELIZABETH", "id":"PORTELIZABETH", "locationID":[]},
-          {"name":"PORT ST JOHNS", "id":"PORTSTJOHNS", "locationID":[]},
-          {"name":"RICHARDS BAY", "id":"RICHARDSBAY", "locationID":[]},
-          {"name":"ST. LUCIA (South Africa)", "id":"STLUCIA", "locationID":[]},
-          {"name":"TSITSIKAMA", "id":"TSITSIKAMA", "locationID":[]}
+          {"name":"Bazaruto", "id":"Bazaruto", "locationID":[]},
+          {"name":"Bluff", "id":"Bluff", "locationID":[]},
+          {"name":"Cape Vidal", "id":"Cape Vidal", "locationID":[]},
+          {"name":"Durban", "id":"Durban", "locationID":[]},
+          {"name":"East London", "id":"East London", "locationID":[]},
+          {"name":"Knysna", "id":"Knysna", "locationID":[]},
+          {"name":"Knysna Plett", "id":"Knysna Plett", "locationID":[]},
+          {"name":"Plett", "id":"Plett", "locationID":[]},
+          {"name":"Ponta Mamoli", "id":"Ponta Mamoli", "locationID":[]},
+          {"name":"Port Elizabeth", "id":"Port Elizabeth", "locationID":[]},
+          {"name":"Port St Johns", "id":"Port St Johns", "locationID":[]},
+          {"name":"Richards Bay", "id":"Richards Bay", "locationID":[]},
+          {"name":"St Lucia - South Africa", "id":"St Lucia - South Africa", "locationID":[]},
+          {"name":"Tsitsikamma", "id":"Tsitsikamma", "locationID":[]}
       ]},
       {"name":"Test Sets", "id":"TestSets", "locationID":[
                   { "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },
@@ -641,8 +631,6 @@
                   { "name":"__TEST__", "id":"__TEST__", "locationID":[] }
       ]},
       {"name":"Miscellaneous","id":"Miscellaneous","locationID":[
-          {"name":"", "id":"", "locationID":[]},
-          {"name":"None", "id":"None", "locationID":[]},
           {"name":"Other", "id":"Other", "locationID":[]}
       ]}
     ]
