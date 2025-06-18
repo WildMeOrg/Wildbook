@@ -338,6 +338,9 @@ public class ImportTask implements java.io.Serializable {
         int numAllowedIA = 0;
         int numAssets = 0;
         int numAnnotations = 0;
+        boolean pipelineStarted = false;
+        Map<String, Integer> statsMA = this.statsMediaAssets();
+        Map<String, Integer> statsAnn = this.statsAnnotations();
 
         if (this.getMediaAssets() != null)
             numAssets = this.getMediaAssets().size();
@@ -360,8 +363,8 @@ public class ImportTask implements java.io.Serializable {
                 ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
         }
         JSONObject pj = new JSONObject();
-        pj.put("statsMediaAssets", this.statsMediaAssets());
-        pj.put("statsAnnotations", this.statsAnnotations());
+        pj.put("statsMediaAssets", statsMA);
+        pj.put("statsAnnotations", statsAnn);
         pj.put("numberMediaAssets", numAssets);
         pj.put("numberAnnotations", numAnnotations);
         pj.put("numberMediaAssetACMIds", numAcmId);
@@ -369,6 +372,7 @@ public class ImportTask implements java.io.Serializable {
         pj.put("detectionNumberComplete", numDetectionComplete);
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
+            pipelineStarted = true;
             if (!this.iaTaskRequestedIdentification()) {
                 if (numDetectionComplete == numAllowedIA) {
                     pj.put("detectionPercent", 1.0);
@@ -383,49 +387,43 @@ public class ImportTask implements java.io.Serializable {
                 pj.put("detectionStatus", "complete");
                 int numIdentificationComplete = 0;
                 int numIdentificationTotal = 0;
-/*
-                //let's tabulate ID status map for complete
-                int numComplete = 0;
-                int numTotal = 0;
-                if (idStatusMap.get("completed")!=null){numComplete=idStatusMap.get("completed");}
-                for(Integer key:idStatusMap.values()){
-                        numTotal+=key;
-                }
-                String idStatusString="";
-                if(numTotal>0)idStatusString=numComplete+" individual computer vision tasks complete of "+numTotal+" total. ";
-
-                if(numComplete==numTotal)shouldRefresh=false;
-
-                iaStatusString="identification requests sent (see table below for links to each matching job). "+idStatusString+queueStatementID;
-                if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
- */
-                pj.put("identificationStatus", "not yet implemented");
+                // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
+                if (statsAnn.get("numTasks") != null)
+                    numIdentificationTotal = statsAnn.get("numTasks");
+                if (statsAnn.get("complete") != null)
+                    numIdentificationComplete = statsAnn.get("complete");
+                // TODO do we have to deal with errors as "complete" somehow?
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);
                 if (numIdentificationTotal > 0)
                     pj.put("identificationPercent",
-                        numIdentificationComplete / numIdentificationTotal);
+                        new Double(numIdentificationComplete) / new Double(numIdentificationTotal));
+                if (numIdentificationComplete == numIdentificationTotal) {
+                    pj.put("identificationPercent", 1.0);
+                    pj.put("identificationStatus", "complete");
+                } else {
+                    pj.put("identificationStatus", "sent");
+                }
             }
             // legacy flavor
         } else if ((this.getIATask() == null) && (numDetectionComplete > 0)) {
+            pipelineStarted = true;
             if (numDetectionComplete == numAssets) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
-                if (numAssets > 0) pj.put("detectionPercent", numDetectionComplete / numAssets);
+                if (numAssets > 0)
+                    pj.put("detectionPercent",
+                        new Double(numDetectionComplete) / new Double(numAssets));
                 pj.put("detectionStatus", "sent");
             }
-/*
-            if(numMatchTasks>0){
-                iaStatusString="identification requests sent (see below)";
-                if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
-            }
- */
+            pj.put("identificationStatus", "unknown");
         }
         if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
         if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
         String ds = pj.optString("detectionStatus");
         String is = pj.optString("identificationStatus");
+        pj.put("pipelineStarted", pipelineStarted);
         boolean pipelineComplete = ((ds.equals("complete") || ds.equals("skipped")) &&
             (is.equals("complete") || is.equals("skipped")));
         pj.put("pipelineComplete", pipelineComplete);

@@ -777,11 +777,19 @@ public class BulkImport extends ApiBase {
 
         // FIXME - this status may get tweaked below. hacky. we should figure out a way to
         // set it properly when IA pipeline is finished
-        jt.put("status", task.getStatus());
-        jt.put("_statusPersisted", task.getStatus());
+        String persistedStatus = task.getStatus();
+        jt.put("status", persistedStatus);
+        jt.put("_statusPersisted", persistedStatus);
         JSONObject iaSummary = task.iaSummaryJson();
         if (detailed) jt.put("iaSummary", iaSummary);
-        if (iaSummary.optBoolean("pipelineComplete", false)) jt.put("status", "complete");
+        if (iaSummary.optBoolean("pipelineStarted", false)) {
+            if (iaSummary.optBoolean("pipelineComplete", false)) {
+                jt.put("status", "complete");
+            } else if ("complete".equals(persistedStatus)) {
+                // i guess this means we dont trust this complete, so...
+                jt.put("status", "processing-pipeline");
+            }
+        }
         Set<String> indivIds = new HashSet<String>();
         if (task.numberEncounters() > 0) {
             JSONArray encArr = new JSONArray();
