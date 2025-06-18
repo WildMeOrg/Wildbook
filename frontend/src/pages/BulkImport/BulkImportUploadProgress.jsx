@@ -9,35 +9,39 @@ import "react-circular-progressbar/dist/styles.css";
 import { FaImage } from "react-icons/fa";
 import { MdTableChart } from "react-icons/md";
 import ThemeColorContext from "../../ThemeColorProvider";
+import { FinishedIcon } from "../../components/FinishedIcon";
 
 export const BulkImportUploadProgress = observer(({ store }) => {
     const theme = React.useContext(ThemeColorContext);
     return (
         <div className="d-flex flex-row mt-4 me-5">
-
             <div style={{ width: 40, height: 40, marginRight: "30px" }}
                 onClick={() => {
                     console.log("Image Upload Progress: ", store.imageUploadProgress);
                     store.setActiveStep(0);
-                }
-                }
+                }}
             >
-                <CircularProgressbarWithChildren
-                    value={store.imageUploadProgress}
-                    strokeWidth={6}
-                    background
-                    backgroundPadding={4}
-                    styles={buildStyles({
-                        trailColor: theme.primaryColors.primary50,
-                        backgroundColor: store.activeStep === 0 ? theme.primaryColors.primary500 : theme.primaryColors.primary50,
-                    })}
-
-                >
-                    <FaImage
-                        size={20}
-                        color={store.activeStep === 0 ? "#fff" : theme.primaryColors.primary500}
-                    />
-                </CircularProgressbarWithChildren>
+                {
+                    store.imageUploadProgress === 100
+                        && store.uploadedImages.length > 0 ?
+                        <FinishedIcon /> :
+                        <CircularProgressbarWithChildren
+                            value={store.imageUploadProgress}
+                            strokeWidth={6}
+                            background
+                            backgroundPadding={4}
+                            styles={buildStyles({
+                                trailColor: theme.primaryColors.primary50,
+                                backgroundColor: store.imageUploadProgress === 100 ? theme.primaryColors.primary50 : store.activeStep === 0 ? theme.primaryColors.primary500 : theme.primaryColors.primary50,
+                            })}
+                        >
+                            {
+                                <FaImage
+                                    size={20}
+                                    color={store.activeStep === 0 ? "#fff" : theme.primaryColors.primary500}
+                                />}
+                        </CircularProgressbarWithChildren>
+                }
             </div>
             <div style={{ width: 40, height: 40, marginRight: "30px" }}
                 onClick={() => {
@@ -45,22 +49,26 @@ export const BulkImportUploadProgress = observer(({ store }) => {
                     store.setActiveStep(1);
                 }}
             >
-                <CircularProgressbarWithChildren
-                    value={store.spreadsheetUploadProgress}
-                    strokeWidth={6}
-                    background
-                    backgroundPadding={4}
-                    styles={buildStyles({
-                        trailColor: theme.primaryColors.primary50,
-                        backgroundColor: store.activeStep === 1 ? theme.primaryColors.primary500 : theme.primaryColors.primary50,
-                    })}
-                    onClick={() => {
-                        store.setActiveStep(1);
-                    }
-                    }
-                >
-                    <MdTableChart size={20} color={store.activeStep === 1 ? "#fff" : theme.primaryColors.primary500} />
-                </CircularProgressbarWithChildren>
+                {
+                    store.spreadsheetUploadProgress === 100
+                        ? <FinishedIcon />
+                        : <CircularProgressbarWithChildren
+                            value={store.spreadsheetUploadProgress}
+                            strokeWidth={6}
+                            background
+                            backgroundPadding={4}
+                            styles={buildStyles({
+                                trailColor: theme.primaryColors.primary50,
+                                backgroundColor: store.spreadsheetUploadProgress === 100 ? theme.primaryColors.primary50 : store.activeStep === 1 ? theme.primaryColors.primary500 : theme.primaryColors.primary50,
+                            })}
+                            onClick={() => {
+                                store.setActiveStep(1);
+                            }
+                            }
+                        >
+                            <MdTableChart size={20} color={store.activeStep === 1 ? "#fff" : theme.primaryColors.primary500} />
+                        </CircularProgressbarWithChildren>
+                }
             </div>
             <div style={{
                 width: 38,
@@ -74,14 +82,19 @@ export const BulkImportUploadProgress = observer(({ store }) => {
                 color: store.activeStep === 2 ? "#fff" : theme.primaryColors.primary500,
                 fontSize: "20px",
             }}
-                onClick={() => {
+                onClick={() => {                     
                     if (store.spreadsheetUploadProgress === 100) {
                         store.setActiveStep(2);
                     }
                 }
                 }
             >
-                <i class="bi bi-eye"></i>
+                {
+                    Object.keys(store.validationErrors).length === 0 && store.spreadsheetUploadProgress === 100
+                        ? <FinishedIcon />
+                        : <i class="bi bi-eye"></i>
+                }
+
             </div>
             <div style={{
                 width: 38,
@@ -96,8 +109,10 @@ export const BulkImportUploadProgress = observer(({ store }) => {
                 fontSize: "20px",
             }}
                 onClick={() => {
-                    console.log("Review Progress: ", store.spreadsheetUploadProgress);
-                    store.setActiveStep(3);
+                    console.log("ALL ERRORS",JSON.stringify(store.validationErrors));
+                    if (store.spreadsheetUploadProgress === 100) {
+                        store.setActiveStep(3);
+                    }
                 }}
             >
                 <i class="bi bi-crosshair"></i>
