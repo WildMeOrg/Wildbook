@@ -17,10 +17,12 @@ import javax.servlet.ServletException;
 import org.ecocean.api.bulk.*;
 
 import org.ecocean.Encounter;
+import org.ecocean.ia.IA;
 import org.ecocean.LocationID;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.servlet.IAGateway;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
@@ -122,6 +124,11 @@ public class BulkImport extends ApiBase {
 
         rtn.put("success", false);
         boolean validateOnly = false;
+        boolean skipDetection = false;
+        boolean skipIdentification = false;
+        JSONObject matchingSetFilter = new JSONObject();
+        JSONObject encAssets = null;
+        String dupId = null; // gets set as bulkImporId to be used in finally block
         long startProcess = System.currentTimeMillis();
         Shepherd myShepherd = new Shepherd(context);
 
@@ -143,6 +150,7 @@ public class BulkImport extends ApiBase {
             if (bulkImportId == null) throw new ServletException("bulkImportId is required");
             rtn.put("bulkImportId", bulkImportId);
             archiveBulkJson(payload, "payload");
+            dupId = bulkImportId;
 
             JSONObject tolerance = payload.optJSONObject("tolerance");
             if (tolerance == null) tolerance = new JSONObject();
@@ -179,23 +187,23 @@ public class BulkImport extends ApiBase {
                     fieldNames.add(fn);
                 }
             }
-            // we might grow matching filter stuff later, but for now we only have locationIds from ui
-            Set<String> matchingLocations = new HashSet<String>();
+            // we might grow matchingSetFilter stuff later, but for now we only have locationIds from ui
             JSONArray mloc = payload.optJSONArray("matchingLocations");
             if (mloc != null) {
+                JSONArray locArr = new JSONArray();
                 for (int i = 0; i < mloc.length(); i++) {
                     String locId = mloc.optString(i, null);
                     if (locId == null) continue;
                     if (!LocationID.isValidLocationID(locId))
                         throw new ApiException("matchingLocations contains invalid id=" + locId,
                                 ApiException.ERROR_RETURN_CODE_INVALID);
-                    matchingLocations.add(locId);
+                    locArr.put(locId);
                 }
+                matchingSetFilter.put("locationIds", locArr);
             }
-            boolean skipDetection = payload.optBoolean("skipDetection", false);
+            skipDetection = payload.optBoolean("skipDetection", false);
             // if you skipDetection, you cant do identification, so:
-            boolean skipIdentification = skipDetection || payload.optBoolean("skipIdentification",
-                false);
+            skipIdentification = skipDetection || payload.optBoolean("skipIdentification", false);
             Set<String> filenamesNeeded = new HashSet<String>();
             final List<Map<String, Object> > validatedRows = new ArrayList<Map<String, Object> >();
             for (int i = 0; i < rows.length(); i++) {
@@ -351,7 +359,10 @@ public class BulkImport extends ApiBase {
 
                 rtn.put("processInBackground", processInBackground);
                 if (processInBackground) {
-                    final boolean bgToleranceFailImportOnError = toleranceFailImportOnError; // needs to be final
+                    // these need to be final
+                    final boolean bgToleranceFailImportOnError = toleranceFailImportOnError;
+                    final boolean bgSkipDetection = skipDetection;
+                    final boolean bgSkipIdentification = skipIdentification;
                     Runnable r = new Runnable() {
                         public void run() {
                             // make our background thread safely use our own Shepherd
@@ -359,6 +370,7 @@ public class BulkImport extends ApiBase {
                             bgShepherd.setAction("api.Bulk.processBackground");
                             bgShepherd.beginDBTransaction();
 
+                            JSONObject bgEncAssets = null;
                             boolean success = false;
                             try {
                                 User bgUser = bgShepherd.getUser(currentUser.getUsername());
@@ -388,7 +400,7 @@ public class BulkImport extends ApiBase {
                                         // this will overwrite existing errors, but likely we dont have any here?
                                         rtn.put("errors", ex.toString());
                                         System.out.println(
-                                            "ERROR: background importer on Import Task " +
+                                            "ERROR: background importer on ImportTask " +
                                             bulkImportId + "failed with: " + ex);
                                         ex.printStackTrace();
                                     }
@@ -415,10 +427,17 @@ public class BulkImport extends ApiBase {
                                             + bulkImportId);
                                     } else {
                                         Util.mark("success; writing final ImportTask update");
-                                        itask.setStatus("imported");
                                         itask.setProcessingProgress(1.0D);
                                         itask.setEncounters(importer.getEncounters());
                                         itask.addLog("import complete");
+                                        if (bgSkipDetection) {
+                                            itask.addLog("detection skipped; task complete");
+                                            itask.setStatus("complete");
+                                        } else {
+                                            itask.setStatus("imported");
+                                            bgEncAssets = generateEncAssets(
+                                                importer.getEncounters());
+                                        }
                                         bgShepherd.storeNewImportTask(itask);
                                     }
                                 } else {
@@ -428,7 +447,7 @@ public class BulkImport extends ApiBase {
                                 // taskShepherd.storeNewImportTask(bgTask);
                             } catch (Exception ex) {
                                 System.out.println(
-                                    "ERROR: background importing process on Import Task " +
+                                    "ERROR: background importing process on ImportTask " +
                                     bulkImportId + "failed with: " + ex);
                                 ex.printStackTrace();
                             } finally {
@@ -438,6 +457,9 @@ public class BulkImport extends ApiBase {
                                     bgShepherd.rollbackDBTransaction();
                                 }
                                 bgShepherd.closeDBTransaction();
+                                if (success && !bgSkipDetection)
+                                    initiateIA(bulkImportId, bgSkipIdentification, bgEncAssets,
+                                        matchingSetFilter);
                             }
                             rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                             archiveBulkJson(rtn,
@@ -491,10 +513,16 @@ public class BulkImport extends ApiBase {
                                 bulkImportId);
                         } else {
                             Util.mark("success; writing final ImportTask update");
-                            itask.setStatus("imported");
                             itask.setProcessingProgress(1.0D);
                             itask.setEncounters(importer.getEncounters());
                             itask.addLog("import complete");
+                            if (skipDetection) {
+                                itask.addLog("detection skipped; task complete");
+                                itask.setStatus("complete");
+                            } else {
+                                itask.setStatus("imported");
+                                encAssets = generateEncAssets(importer.getEncounters());
+                            }
                             myShepherd.storeNewImportTask(itask);
                         }
                         rtn.put("success", true);
@@ -522,6 +550,8 @@ public class BulkImport extends ApiBase {
                 myShepherd.rollbackDBTransaction();
             }
             myShepherd.closeDBTransaction();
+            if ((statusCode == 200) && !skipDetection)
+                initiateIA(dupId, skipIdentification, encAssets, matchingSetFilter);
         }
         rtn.put("statusCode", statusCode);
         response.setStatus(statusCode);
@@ -662,6 +692,62 @@ public class BulkImport extends ApiBase {
             taskShepherd.closeDBTransaction();
         }
         Util.mark("importTaskSet(" + id + ": " + status + ", " + progress + "% [etc] )");
+    }
+
+    // based on behavior in sendToIA() from import.jsp
+    private void initiateIA(String importId, boolean skipIdent, JSONObject encAssets,
+        JSONObject matchingSetFilter) {
+        Util.mark("[INFO] > > > > > > BulkImport.initiateIA(" + importId + ") with encAssets=" +
+            encAssets);
+        if ((importId == null) || (encAssets == null) || (encAssets.length() < 1)) return;
+        String context = "context0";
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("BulkImport.initiateIA()");
+        myShepherd.beginDBTransaction();
+        try {
+            ImportTask itask = myShepherd.getImportTask(importId);
+            if (itask == null) throw new IOException("could not load ImportTask " + importId);
+            itask.setStatus("processing-detection");
+            myShepherd.getPM().makePersistent(itask);
+            // build data to send to handleBulkImport()
+            JSONObject taskParams = new JSONObject();
+            taskParams.put("importTaskId", importId);
+            taskParams.put("skipIdent", skipIdent);
+            if (!skipIdent) taskParams.put("matchingSetFilter", matchingSetFilter);
+            JSONObject data = new JSONObject();
+            data.put("taskParameters", taskParams);
+            data.put("bulkImport", encAssets);
+            Util.mark("[INFO] > > > > > > data => " + data);
+            JSONObject res = new JSONObject();
+            res.put("success", false);
+            JSONObject rtn = IAGateway.handleBulkImport(data, res, myShepherd, context,
+                IA.getBaseURL(context));
+            Util.mark("[INFO] > > > > > > rtn => " + rtn);
+        } catch (Exception ex) {
+            System.out.println("[ERROR] BulkImport.initiateIA(" + importId + ") failed with " + ex);
+            ex.printStackTrace();
+        } finally {
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        }
+    }
+
+    private JSONObject generateEncAssets(List<Encounter> encs) {
+        if (Util.collectionIsEmptyOrNull(encs)) return null;
+        int numAssets = 0;
+        JSONObject ea = new JSONObject();
+        for (Encounter enc : encs) {
+            JSONArray maIds = new JSONArray();
+            for (MediaAsset ma : enc.getMedia()) {
+                if ((ma != null) && (ma.getIdInt() > 0)) {
+                    maIds.put(ma.getIdInt());
+                    numAssets++;
+                }
+            }
+            ea.put(enc.getId(), maIds);
+        }
+        if (numAssets < 1) return null;
+        return ea;
     }
 
     private void archiveBulkJson(JSONObject payload, String suffix) {
