@@ -305,12 +305,11 @@ public class ImportTask implements java.io.Serializable {
         return stats;
     }
 
-    // this doesnt seem to be used anywhere, but leaving it in here
     public Map<String, Integer> statsMediaAssets() {
         if (iaTask == null) return null;
         List<Task> tasks = iaTask.findNodesWithMediaAssets();
         Map<String, Integer> stats = new HashMap<String, Integer>();
-        stats.put("count", tasks.size());
+        stats.put("numTasks", tasks.size());
         for (Task task : tasks) {
             Map<String, Integer> tsum = task.detectionStatusSummary();
             stats = Util.mapAdd(stats, tsum);
@@ -318,12 +317,11 @@ public class ImportTask implements java.io.Serializable {
         return stats;
     }
 
-    // same as above comment
     public Map<String, Integer> statsAnnotations() {
         if (iaTask == null) return null;
         List<Task> tasks = iaTask.findNodesWithAnnotations();
         Map<String, Integer> stats = new HashMap<String, Integer>();
-        stats.put("count", tasks.size());
+        stats.put("numTasks", tasks.size());
         for (Task task : tasks) {
             Map<String, Integer> tsum = task.identificationStatusSummary();
             stats = Util.mapAdd(stats, tsum);
@@ -362,6 +360,8 @@ public class ImportTask implements java.io.Serializable {
                 ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
         }
         JSONObject pj = new JSONObject();
+        pj.put("statsMediaAssets", this.statsMediaAssets());
+        pj.put("statsAnnotations", this.statsAnnotations());
         pj.put("numberMediaAssets", numAssets);
         pj.put("numberAnnotations", numAnnotations);
         pj.put("numberMediaAssetACMIds", numAcmId);
@@ -424,6 +424,11 @@ public class ImportTask implements java.io.Serializable {
         }
         if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
         if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
+        String ds = pj.optString("detectionStatus");
+        String is = pj.optString("identificationStatus");
+        boolean pipelineComplete = ((ds.equals("complete") || ds.equals("skipped")) &&
+            (is.equals("complete") || is.equals("skipped")));
+        pj.put("pipelineComplete", pipelineComplete);
         return pj;
     }
 }
