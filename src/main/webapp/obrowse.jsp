@@ -180,6 +180,8 @@ java.util.Properties" %>
             }
             h += "<p><b>errors:</b> " + niceJson(itask.getErrors()) + "</p>";
             h += "<p><b>parameters:</b> " + niceJson(itask.getParameters()) + "</p>";
+            h += "<p><b>statsMediaAssets:</b> " + niceJson(new JSONObject(itask.statsMediaAssets())) + "</p>";
+            h += "<p><b>statsAnnotations:</b> " + niceJson(new JSONObject(itask.statsAnnotations())) + "</p>";
             if (Util.collectionIsEmptyOrNull(itask.getLog())) {
                 h += "<p><i>empty log</i></p>";
             } else {
@@ -203,8 +205,9 @@ java.util.Properties" %>
             return h;
         }
 
-        private String showTask(Task task) {
+        private String showTask(Task task, Shepherd myShepherd) {
             String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
+            h += "<li> status: <b>" + task.getStatus(myShepherd) + "</b></li>";
             Task parent = task.getParent();
             if (parent == null) {
                 h += "<li><i class=\"format-value format-none\">No parent</i></li>";
@@ -248,6 +251,8 @@ java.util.Properties" %>
         }
         h += "</li>";
         h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+        h += "<li>detectionStatusSummary: " + niceJson(new JSONObject(task.detectionStatusSummary())) + "</li>";
+        h += "<li>identificationStatusSummary: " + niceJson(new JSONObject(task.identificationStatusSummary())) + "</li>";
         h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
         h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
         h += "</ul>";
@@ -666,7 +671,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("Task")) {
 	try {
 		Task task = ((Task) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Task.class, id), true)));
-		out.println(showTask(task));
+		out.println(showTask(task, myShepherd));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		needForm = true;

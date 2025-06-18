@@ -770,30 +770,18 @@ public class BulkImport extends ApiBase {
         jt.put("dateCreated", task.getCreated());
         jt.put("sourceName", task.getSourceName());
         jt.put("legacy", task.isLegacy());
-        jt.put("status", task.getStatus());
         jt.put("errors", task.getErrors());
         // "importPercent" was deemed more consistent and useful
         jt.put("importPercent", task.getProcessingProgress());
         jt.put("numberEncounters", task.numberEncounters());
-        if (detailed) jt.put("iaSummary", task.iaSummaryJson());
-/*  THIS SHOULD BE REPLACED BY iaSummary ABOVE
-        List<MediaAsset> mas = task.getMediaAssets();
-        int numMA = 0;
-        int numAnn = 0;
-        int numAcm = 0;
-        if (mas != null)
-            for (MediaAsset ma : mas) {
-                numMA++;
-                numAnn += ma.numAnnotations();
-                if (ma.getAcmId() != null) numAcm++;
-            }
-        jt.put("numberMediaAssets", numMA);
-        jt.put("numberAnnotations", numAnn);
-        jt.put("numberMediaAssetACMIds", numAcm);
-        // not sure what "valid for image analysis" means FIXME
-        jt.put("numberMediaAssetValidIA", numMA);
- */
 
+        // FIXME - this status may get tweaked below. hacky. we should figure out a way to
+        // set it properly when IA pipeline is finished
+        jt.put("status", task.getStatus());
+        jt.put("_statusPersisted", task.getStatus());
+        JSONObject iaSummary = task.iaSummaryJson();
+        if (detailed) jt.put("iaSummary", iaSummary);
+        if (iaSummary.optBoolean("pipelineComplete", false)) jt.put("status", "complete");
         Set<String> indivIds = new HashSet<String>();
         if (task.numberEncounters() > 0) {
             JSONArray encArr = new JSONArray();
