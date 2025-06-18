@@ -1,11 +1,10 @@
 import React, { lazy, Suspense } from "react";
+
 import { Routes, Route } from "react-router-dom";
 import NotFound from "./pages/errorPages/NotFound";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import Footer from "./components/Footer";
 import useGetMe from "./models/auth/users/useGetMe";
-import BulkImport from "./pages/BulkImport/BulkImport";
-import { BulkImportTask } from "./pages/BulkImport/BulkImportTask";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -24,6 +23,9 @@ const ReportConfirm = lazy(
 );
 const ProjectList = lazy(() => import("./pages/ProjectList"));
 const ManualAnnotation = lazy(() => import("./pages/ManualAnnotation"));
+
+const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
+const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
