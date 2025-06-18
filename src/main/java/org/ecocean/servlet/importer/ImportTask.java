@@ -28,6 +28,7 @@ public class ImportTask implements java.io.Serializable {
     private String errors;
     private String status;
     private Task iaTask;
+    // processingProgress is really used for IMPORT progress only (0.0 thru 1.0)
     private Double processingProgress;
 
     public ImportTask() {
@@ -185,6 +186,11 @@ public class ImportTask implements java.io.Serializable {
         parameters = p.toString();
     }
 
+    public JSONObject getPassedParameters() {
+        if (this.getParameters() == null) return null;
+        return this.getParameters().optJSONObject("_passedParameters");
+    }
+
     public JSONArray getErrors() {
         return Util.stringToJSONArray(errors);
     }
@@ -280,6 +286,17 @@ public class ImportTask implements java.io.Serializable {
         return !iaTask.getParameters().optBoolean("skipIdent", false);
     }
 
+    // for sake of this value, skipping detection is also good enough
+    public boolean skippedIdentification() {
+        if (skippedDetection()) return true;
+        return !iaTaskRequestedIdentification();
+    }
+
+    public boolean skippedDetection() {
+        if (this.getPassedParameters() == null) return false;
+        return this.getPassedParameters().optBoolean("skipDetection", false);
+    }
+
     public Map<String, Integer> stats() {
         if (iaTask == null) return null;
         Map<String, Integer> stats = new HashMap<String, Integer>();
@@ -349,7 +366,7 @@ public class ImportTask implements java.io.Serializable {
         pj.put("numberAnnotations", numAnnotations);
         pj.put("numberMediaAssetACMIds", numAcmId);
         pj.put("numberMediaAssetValidIA", numAllowedIA);
-        pj.put("detectionNumComplete", numDetectionComplete);
+        pj.put("detectionNumberComplete", numDetectionComplete);
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             if (!this.iaTaskRequestedIdentification()) {
@@ -383,7 +400,7 @@ public class ImportTask implements java.io.Serializable {
                 if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
  */
                 pj.put("identificationStatus", "not yet implemented");
-                pj.put("identificationNumComplete", numIdentificationComplete);
+                pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);
                 if (numIdentificationTotal > 0)
                     pj.put("identificationPercent",
@@ -405,6 +422,8 @@ public class ImportTask implements java.io.Serializable {
             }
  */
         }
+        if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
+        if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
         return pj;
     }
 }

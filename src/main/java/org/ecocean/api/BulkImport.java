@@ -648,6 +648,7 @@ public class BulkImport extends ApiBase {
             } else {
                 itask = new ImportTask(user, id);
             }
+            itask.setIATask(null);
             itask.setProcessingProgress(0.0D);
             itask.setEncounters(null);
             itask.setErrors(null);
@@ -771,7 +772,8 @@ public class BulkImport extends ApiBase {
         jt.put("legacy", task.isLegacy());
         jt.put("status", task.getStatus());
         jt.put("errors", task.getErrors());
-        jt.put("processingProgress", task.getProcessingProgress());
+        // "importPercent" was deemed more consistent and useful
+        jt.put("importPercent", task.getProcessingProgress());
         jt.put("numberEncounters", task.numberEncounters());
         if (detailed) jt.put("iaSummary", task.iaSummaryJson());
 /*  THIS SHOULD BE REPLACED BY iaSummary ABOVE
