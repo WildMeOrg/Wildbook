@@ -137,8 +137,7 @@ public class StartupWildbook implements ServletContextListener {
         String dataUrl = urlLoc + "/wildbook_data_dir";
 
         myShepherd.beginDBTransaction();
-        LocalAssetStore as = new LocalAssetStore("Default Local AssetStore",
-            new File(dataDir).toPath(), dataUrl, true);
+        LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);
         myShepherd.getPM().makePersistent(as);
         myShepherd.commitDBTransaction();
     }

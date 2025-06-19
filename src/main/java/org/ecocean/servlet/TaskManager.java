@@ -53,6 +53,7 @@ public class TaskManager extends HttpServlet {
                 "    AND \"ea\".\"ID_EID\" IS NOT NULL " +
                 ") " +
                 "AND (t.\"QUEUERESUMEMESSAGE\" NOT LIKE '%\"retriedDetection\":%' OR t.\"QUEUERESUMEMESSAGE\" IS NULL) " +
+                "AND (t.\"QUEUERESUMEMESSAGE\" NOT LIKE '%\"videoMediaAssetsOnly\":%' OR t.\"QUEUERESUMEMESSAGE\" IS NULL) " +
                 "ORDER BY t.\"CREATED\" DESC " +
                 "LIMIT " + limit + " OFFSET " + offset;
     }
