@@ -6,13 +6,14 @@ import ThemeContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import usePostBulkImport from "../../models/bulkImport/usePostBulkImport";
 import { v4 as uuidv4 } from "uuid";
-import Select from "react-select";
 import { reaction } from "mobx";
 import SuccessModal from "./BulkImportSuccessModal";
 import { useState } from "react";
 import dayjs from "dayjs";
 import FailureModal from "./BulkImportFailureModal";
+import { Suspense, lazy } from "react";
 
+const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
 export const BulkImportSetLocation = observer(({ store }) => {
     const theme = useContext(ThemeContext);
@@ -22,15 +23,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showFailureModal, setShowFailureModal] = useState(false);
     const [lastEditedDate, setLastEditedDate] = useState(dayjs().format("YYYY-MM-DD"));
-    const options = React.useMemo(
-        () =>
-            store.validLocationIDs.map(id => ({
-                value: id,
-                label: id,
-            })),
-        [store.validLocationIDs]
-    );
-
+    
     useEffect(() => {
         const disposer = reaction(
             () => store.spreadsheetData.map(row => row["Encounter.locationID"]),
@@ -42,24 +35,15 @@ export const BulkImportSetLocation = observer(({ store }) => {
             },
             { fireImmediately: true }
         );
-
         return () => disposer();
     }, []);
-
-
-    const selectedOptions = React.useMemo(
-        () =>
-            options.filter(o => store.locationID?.includes(o.value)),
-        [options, store.locationID]
-    );
 
     const handleStartImport = useCallback(async () => {
         store.updateRawFromNormalizedRow();
         store.clearSubmissionErrors();
         try {
-            const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName);
+            const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName, store.locationID, store.skipDetection, store.skipIdentification);
             if (result?.status === 200) {
-                console.log("Bulk import result:", JSON.stringify(result));
                 localStorage.removeItem("BulkImportStore");
                 localStorage.setItem("lastBulkImportTask", result.bulkImportId);
                 setLastEditedDate(dayjs().format("YYYY-MM-DD"));
@@ -98,30 +82,28 @@ export const BulkImportSetLocation = observer(({ store }) => {
                 width: "500px",
                 maxWidth: "100%",
             }}>
-                <Select
-                    isMulti={true}
-                    options={options}
-                    placeholder={<FormattedMessage id="SELECT_LOCATION" defaultMessage="Select Location" />}
-                    noOptionsMessage={() => <FormattedMessage id="NO_LOCATIONS_FOUND" defaultMessage="No locations found" />}
-                    isClearable={true}
-                    isSearchable={true}
-                    className="basic-multi-select"
-                    classNamePrefix="select"
-                    menuPlacement="auto"
-                    menuPortalTarget={document.body}
-                    value={selectedOptions}
-                    onChange={(selectedOptions) => {
-                        store.setLocationID(selectedOptions ? selectedOptions.map(opt => opt.value) : []);
-                    }
-                    }
-                    styles={{
-                        menu: (base) => ({
-                            ...base,
+                <Suspense fallback={<div>Loading location picker...</div>}>
+
+                    <TreeSelect
+                        treeData={store.locationIDOptions}
+                        value={store.locationID}
+                        showCheckedStrategy="SHOW_ALL"
+                        treeCheckStrictly={false}
+                        treeNodeFilterProp="value"
+                        onChange={val => store.setLocationID(val)}
+                        showSearch
+                        style={{ width: "100%" }}
+                        placeholder="Select locations"
+                        allowClear
+                        treeCheckable={true}
+                        size="large"
+                        treeLine
+                        dropdownStyle={{
+                            maxHeight: "500px",
                             zIndex: 9999,
-                        }),
-                        menuPortal: base => ({ ...base, zIndex: 1060 }),
-                    }}
-                />
+                        }}
+                    />
+                </Suspense>
             </div>
 
             <div className="d-flex flex-row justify-content-between mt-4">
@@ -153,7 +135,8 @@ export const BulkImportSetLocation = observer(({ store }) => {
                             onChange={(e) => store.setSkipDetection(e.target.checked)}
                         />
                         <label className="form-check-label" htmlFor="skipDetection">
-                            <FormattedMessage id="SKIP_DETECTION" defaultMessage="Skip Detection" />
+                            <FormattedMessage id="SKIP_DETECTION_AND_ID" defaultMessage="Skip Detection and Identification" />
+                            
                         </label>
                     </div>
 
@@ -166,7 +149,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
                             onChange={(e) => store.setSkipIdentification(e.target.checked)}
                         />
                         <label className="form-check-label" htmlFor="skipDetectionAndID">
-                            <FormattedMessage id="SKIP_DETECTION_AND_ID" defaultMessage="Skip Detection and Identification" />
+                            <FormattedMessage id="SKIP_ONLY_IDENTIFICATION" defaultMessage="Skip only identification" />
                         </label>
                     </div>
 

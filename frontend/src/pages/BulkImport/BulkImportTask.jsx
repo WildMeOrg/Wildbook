@@ -16,11 +16,13 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import InfoAccordion from "../../components/InfoAccordion";
 import SimpleDataTable from "../../components/SimpleDataTable";
 
-export const BulkImportTask = () => {
+const BulkImportTask = () => {
   const intl = useIntl();
   const theme = React.useContext(ThemeColorContext);
 
   const taskId = new URLSearchParams(window.location.search).get("id");
+
+  console.log("Task ID:", taskId);
   const { task, isLoading } = useGetBulkImportTask(taskId);
 
   if (isLoading) {
@@ -76,7 +78,7 @@ export const BulkImportTask = () => {
     },
     {
       name: "Individual ID",
-      selector: row => row.encounterID,
+      selector: row => row.individualID,
       cell: (row) =>
         row.individualID !== "-" ? (
           <a
@@ -211,3 +213,5 @@ export const BulkImportTask = () => {
     </Container>
   );
 };
+
+export default BulkImportTask;
