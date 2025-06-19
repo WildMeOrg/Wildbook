@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useContext } from "react";
 import {
   Container,
   Row,
@@ -15,15 +15,20 @@ import { ProgressCard } from "../../components/ProgressCard";
 import ThemeColorContext from "../../ThemeColorProvider";
 import InfoAccordion from "../../components/InfoAccordion";
 import SimpleDataTable from "../../components/SimpleDataTable";
+import { Modal } from "react-bootstrap";
 
 const BulkImportTask = () => {
   const intl = useIntl();
-  const theme = React.useContext(ThemeColorContext);
+  const theme = useContext(ThemeColorContext);
+  const [showError, setShowError] = useState(false);
 
   const taskId = new URLSearchParams(window.location.search).get("id");
-
-  console.log("Task ID:", taskId);
-  const { task, isLoading } = useGetBulkImportTask(taskId);
+  const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
+  React.useEffect(() => {
+    if (error?.message) {
+      setShowError(true);
+    }
+  }, [error]);
 
   if (isLoading) {
     return (
@@ -50,7 +55,7 @@ const BulkImportTask = () => {
   const columns = [
     {
       name: "Encounter ID",
-      selector: row => row.encounterID,
+      selector: (row) => row.encounterID,
       cell: (row) =>
         row.encounterID ? (
           <a
@@ -66,19 +71,19 @@ const BulkImportTask = () => {
     },
     {
       name: "Encounter Date",
-      selector: row => row.encounterDate,
+      selector: (row) => row.encounterDate,
     },
     {
       name: "User",
-      selector: row => row.user,
+      selector: (row) => row.user,
     },
     {
       name: "Occurrence",
-      selector: row => row.occurrence,
+      selector: (row) => row.occurrence,
     },
     {
       name: "Individual ID",
-      selector: row => row.individualID,
+      selector: (row) => row.individualID,
       cell: (row) =>
         row.individualID !== "-" ? (
           <a
@@ -94,11 +99,11 @@ const BulkImportTask = () => {
     },
     {
       name: "Image Count",
-      selector: row => row.imageCount,
+      selector: (row) => row.imageCount,
     },
     {
       name: "Class",
-      selector: row => row.class,
+      selector: (row) => row.class,
     },
   ];
 
@@ -128,17 +133,34 @@ const BulkImportTask = () => {
       <Row className="g-2">
         <div className="d-flex flex-row gap-3">
           {[
-            { title: "Import", progress: task?.imageUploadProgress || 100 },
+            {
+              title: "Import",
+              progress: task?.importPercent || 0,
+              status: (() => {
+                if (task?.importPercent === 1) {
+                  return "Completed";
+                } else {
+                  return "In Progress";
+                }
+              })(),
+            },
             {
               title: "Detection",
-              progress: task?.spreadsheetUploadProgress || 10,
+              progress: task?.iaSummary?.detectionPercent || 0,
+              status: task?.iaSummary?.detectionStatus || "Not Started",
             },
             {
               title: "Identification",
-              progress: task?.dataProcessingProgress || 0,
+              progress: task?.iaSummary?.identificationPercent || 0,
+              status: task?.iaSummary?.identificationStatus || "Not Started",
             },
-          ].map(({ title, progress }) => (
-            <ProgressCard key={title} title={title} progress={progress} />
+          ].map(({ title, progress, status }) => (
+            <ProgressCard
+              key={title}
+              title={title}
+              progress={progress}
+              status={status}
+            />
           ))}
         </div>
       </Row>
@@ -210,6 +232,33 @@ const BulkImportTask = () => {
           </Button>
         </Col>
       </Row>
+      <Modal show={showError} onHide={() => setShowError(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FormattedMessage
+              id="BULK_IMPORT_TASK_ERROR"
+              defaultMessage="Error Loading Bulk Import Task"
+            />
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="text-danger">{error?.message || "Unknown error"}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowError(false)}>
+            <FormattedMessage id="CLOSE" defaultMessage="Close" />
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              refetch();
+              setShowError(false);
+            }}
+          >
+            <FormattedMessage id="RETRY" defaultMessage="Retry" />
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
