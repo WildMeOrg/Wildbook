@@ -2,15 +2,12 @@ import React from "react";
 import { Modal, Button, Card } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, Download } from "react-bootstrap-icons";
+import { FaDownload } from "react-icons/fa";
 
 const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
   const navigate = useNavigate();
-console.log("Submission ID:", submissionId);
   const goToTaskDetails = () => {
-    // navigate(`/bulk-import-task?id=${submissionId}`);
-                    window.location.href = `${process.env.PUBLIC_URL}/bulk-import-task?id=${submissionId}`;
-
+    window.location.href = `${process.env.PUBLIC_URL}/bulk-import-task?id=${submissionId}`;
   };
 
   const goToHome = () => {
@@ -32,15 +29,15 @@ console.log("Submission ID:", submissionId);
           />
         </p>
 
-        <Card className="mt-3 p-3 d-flex flex-row align-items-center justify-content-between">
-          <div className="d-flex align-items-center">
-            <ArrowLeft size={24} className="me-3" />
-            <Download size={24} className="me-2 text-primary" />
-            <div>
-              <div className="fw-bold">{fileName}</div>
-              {/* <div>Identification in Progress</div> */}
-              <div className="text-muted">Reported at: {lastEdited}</div>
-            </div>
+        <Card className="mt-3 p-3 d-flex flex-row align-items-center">
+          <div className="d-flex align-items-center justify-content-center rounded-circle bg-light me-3"
+            style={{ width: 42, height: 42 }}>
+            <FaDownload className="text-info" />
+          </div>
+          <div>
+            <div className="fw-bold">{fileName}</div>
+            {/* <div>Identification in Progress</div> */}
+            <div className="text-muted">Reported at: {lastEdited}</div>
           </div>
           {/* <Button variant="outline-primary" onClick={goToTaskDetails}>
             <FormattedMessage id="SEE_DETAILS" defaultMessage="See Details" />

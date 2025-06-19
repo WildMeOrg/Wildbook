@@ -122,6 +122,7 @@ export const DataTable = observer(({ store }) => {
   store.setValidLocationIDs(
     extractAllValues(store.convertToTreeData(validLocationIDs)),
   );
+  store.setLocationIDOptions(store.convertToTreeData(validLocationIDs));
   store.setValidSubmitterIDs(validSubmitterIDs);
   store.setValidSpecies(validSpecies.map((species) => species.scientificName));
   store.setValidCountryIDs(validCountryIDs);

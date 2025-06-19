@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { extraStringCols, intRule, doubleRule, stringRule, specializedColumns } from "./BulkImportConstants";
+import { TreeSelect } from "antd";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -30,6 +31,7 @@ export class BulkImportStore {
   _maxImageCount = 200;
   _missingImages = [];
   _locationID = [];
+  _locationIDOptions = [];
   _worksheetInfo = {
     fileName: "",
     sheetCount: 0,
@@ -291,6 +293,7 @@ export class BulkImportStore {
 
       worksheetInfo: toJS(this._worksheetInfo),
       lastSavedAt: this._lastSavedAt,
+      validationErrors: toJS(this._validationErrors),
     };
   }
 
@@ -462,6 +465,10 @@ export class BulkImportStore {
     return this._skipIdentification;
   }
 
+  get locationIDOptions() {
+    return this._locationIDOptions;   
+  }
+
   setLabeledKeywordAllowedKeys(keys) {
     this._labeledKeywordAllowedKeys = keys;
   }
@@ -529,6 +536,10 @@ export class BulkImportStore {
 
   setMaxImageCount(maxImageCount) {
     this._maxImageCount = maxImageCount;
+  }
+
+  setLocationIDOptions(options) {
+    this._locationIDOptions = options;  
   }
 
   setWorksheetInfo(sheetCount, sheetNames, columnCount, rowCount, fileName) {
@@ -806,9 +817,9 @@ export class BulkImportStore {
 
   convertToTreeData(locationData) {
     return locationData.map((location) => ({
-      title: location.name,
+      title: location.id,
       value: location.id,
-      geospatialInfo: location.geospatialInfo,
+      // geospatialInfo: location.geospatialInfo,
       children:
         location.locationID?.length > 0
           ? this.convertToTreeData(location.locationID)

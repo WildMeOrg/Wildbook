@@ -32,7 +32,7 @@ const BulkImport = observer(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
     const submissionId = savedStore?.submissionId;
     if (submissionId) {
-      // setRenderMode1("list");
+      setRenderMode1("list");
       setSavedSubmissionId(submissionId);
     }
   }, []);

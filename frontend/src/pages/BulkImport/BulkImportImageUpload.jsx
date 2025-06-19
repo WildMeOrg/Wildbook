@@ -24,10 +24,10 @@ const handleDragLeave = (e) => {
   e.currentTarget.style.border = "1px dashed #007BFF";
 };
 
-export const BulkImportImageUpload = observer(({ 
+export const BulkImportImageUpload = observer(({
   store,
   renderMode1
- }) => {
+}) => {
   const fileInputRef = useRef(null);
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
@@ -43,7 +43,6 @@ export const BulkImportImageUpload = observer(({
   const currentCount = store.imagePreview.length;
 
   useEffect(() => {
-    console.log("Files parsed++++++++++++++++:", store.filesParsed);
     if (store.filesParsed) {
       setIsProcessingDrop(false);
       setRenderMode(
@@ -186,7 +185,7 @@ export const BulkImportImageUpload = observer(({
           </div>
         )}
 
-        {!isProcessingDrop && renderMode === "grid" && !renderMode1 && (
+        {!isProcessingDrop && renderMode === "grid" && store.imagePreview.length > 0 && !renderMode1 && (
           <Row className="mb-4 ms-2" id="image-preview-grid">
             {store.imagePreview.map((preview, index) => (
               <Col
@@ -261,10 +260,10 @@ export const BulkImportImageUpload = observer(({
                       {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
                       {(preview.fileSize / (1024 * 1024)).toFixed(2) >
                         maxSize && (
-                        <div style={{ color: theme.statusColors.red500 }}>
-                          <FormattedMessage id="FILE_SIZE_EXCEEDED" />
-                        </div>
-                      )}
+                          <div style={{ color: theme.statusColors.red500 }}>
+                            <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -283,9 +282,11 @@ export const BulkImportImageUpload = observer(({
           </Row>
         )}
 
-        {((!isProcessingDrop &&
-          store.imagePreview.length > 0 &&
-          renderMode === "list") || renderMode1==="list") && (
+        {store.imagePreview.length > 0 &&
+          (
+            (!isProcessingDrop && renderMode === "list") ||
+            renderMode1 === "list"
+          ) && (
             <List
               id="image-preview-list"
               height={600}
