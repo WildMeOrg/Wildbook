@@ -254,7 +254,7 @@
 		{"name": "Argentina", "id": "Argentina", "locationID":[] },
 		{"name": "Brazil", "id": "Brazil", "locationID":[
 			{"name": "Pará", "id": "Pará", "locationID":[] },
-			{"name": "Rondônia", "id": "Rondonia", "locationID": []},
+			{"name": "Rondônia", "id": "Rondônia", "locationID": []},
 			{ "name":"CT01", "id":"CT01", "locationID":[] }
 		] },
 		{"name": "Bolivia", "id": "Bolivia", "locationID":[] },
@@ -281,6 +281,11 @@
 					"lat": -12.448667,
 					"long": -70.112140
 				},
+				"locationID": []
+			},
+			{
+				"name": "PNG-S",
+				"id": "PNG-S",
 				"locationID": []
 			},
 			{
