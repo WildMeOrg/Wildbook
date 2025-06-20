@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { extraStringCols, intRule, doubleRule, stringRule, specializedColumns } from "./BulkImportConstants";
-import { TreeSelect } from "antd";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -28,7 +27,7 @@ export class BulkImportStore {
   _uploadedImages = [];
   _columnsDef = [];
   _rawColumns = [];
-  _maxImageCount = 200;
+  _maxImageCount = 5000;
   _missingImages = [];
   _locationID = [];
   _locationIDOptions = [];
@@ -285,7 +284,7 @@ export class BulkImportStore {
       imagePreview: toJS(this._imagePreview),
       imageSectionFileNames: toJS(this._imageSectionFileNames),
       imageUploadProgress: "100%",
-      uploadedImages: toJS(this._uploadedImages),
+      uploadedImages: [],
 
       spreadsheetData: toJS(this._spreadsheetData),
       spreadsheetUploadProgress: this._spreadsheetUploadProgress,
@@ -466,7 +465,7 @@ export class BulkImportStore {
   }
 
   get locationIDOptions() {
-    return this._locationIDOptions;   
+    return this._locationIDOptions;
   }
 
   setLabeledKeywordAllowedKeys(keys) {
@@ -539,7 +538,7 @@ export class BulkImportStore {
   }
 
   setLocationIDOptions(options) {
-    this._locationIDOptions = options;  
+    this._locationIDOptions = options;
   }
 
   setWorksheetInfo(sheetCount, sheetNames, columnCount, rowCount, fileName) {
@@ -727,6 +726,7 @@ export class BulkImportStore {
       });
 
       const json = JSON.stringify(this.stateSnapshot);
+      console.log("simplified state:");
       window.localStorage.setItem('BulkImportStore', json);
     } catch (e) {
       console.error('saving as draft failed', e);
@@ -878,30 +878,32 @@ export class BulkImportStore {
       `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`;
 
     flowInstance.assignBrowse(fileInputRef);
-
+    let rejectedFiles = [];
+    let hasShownImageLimitAlert = false;
     flowInstance.on("fileAdded", (file) => {
-      const fileName = file.name.trim();
+      const currentCount = this._imagePreview.length;
+      const totalCount = currentCount + 1;
+      const isTooLarge = file.size > maxSize * 1024 * 1024;
 
-      if (this._imageSectionFileNames.includes(fileName)) {
-        console.warn("Duplicate file skipped:", fileName);
-        return false; 
-      }
+      console.log("isTooLarge", isTooLarge, "file size:", file.size, "maxSize:", maxSize);
 
-      if (this._imageSectionFileNames.length >= this._maxImageCount) {
-        console.warn(`maximum ${this._maxImageCount} discard`, file.name);
+      if (isTooLarge) {
+        console.log(`+++++++++++++++++File ${file.name} is too large: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+        const reason = "too large";
+        rejectedFiles.push(`${file.name} (${reason})`);
         return false;
       }
 
-      const supportedTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/bmp",
-      ];
-      if (
-        !supportedTypes.includes(file.file.type) ||
-        file.size > maxSize * 1024 * 1024
-      ) {
+      if (totalCount > this._maxImageCount) {
+        if (!hasShownImageLimitAlert) {
+          alert(`You can only upload up to ${this._maxImageCount} images.`);
+          hasShownImageLimitAlert = true;
+
+          setTimeout(() => {
+            hasShownImageLimitAlert = false;
+          }, 3000);
+        }
+
         return false;
       }
 
@@ -914,9 +916,9 @@ export class BulkImportStore {
         progress: 0,
         showThumbnail: false,
       });
-
       this._imageSectionFileNames.push(file.name);
     });
+
 
     flowInstance.opts.createXhr = () => {
       const xhr = new XMLHttpRequest();
@@ -1052,6 +1054,9 @@ export class BulkImportStore {
   }
 
   uploadFilteredFiles(maxSize) {
+
+    console.log("Uploading files with max size:", maxSize, "MB");
+
     if (!this._flow) {
       console.warn("Flow instance not initialized.");
       return;
@@ -1060,6 +1065,22 @@ export class BulkImportStore {
     const validFiles = this._flow.files.filter(
       (file) => file.size <= maxSize * 1024 * 1024,
     );
+
+    // print invalid files
+    const invalidFiles = this._flow.files.filter(
+      (file) => file.size > maxSize * 1024 * 1024
+    );
+
+    if (invalidFiles.length > 0) {
+      console.warn(
+        `The following files are too large (> ${maxSize} MB) and will not be uploaded:`,
+        invalidFiles.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
+      );
+      alert(
+        `The following files are too large (> ${maxSize} MB) and will not be uploaded:\n` +
+        invalidFiles.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`).join("\n")
+      );
+    }
 
     if (validFiles.length === 0) {
       return;
@@ -1165,19 +1186,15 @@ export class BulkImportStore {
       entry.file((file) => {
         const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
         const isValid = supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024;
+        console.log("isValid:", isValid, "file:", file.name, "size:", file.size);
 
-        // if (isValid) {
-        //   this._collectedValidFiles.push(file);
-        //   this._pendingDropFileCount++;
-        // }
-
-        if (isValid && !this._imageSectionFileNames.includes(file.name.trim())) {
+        // const fullPath = entry.fullPath || file.name;
+        if (isValid && !this._imageSectionFileNames.includes(file.name)) {
           this._collectedValidFiles.push(file);
           this._pendingDropFileCount++;
         } else {
           console.warn("Skipped duplicate during folder scan:", file.name);
         }
-
 
         this._decrementPending();
       });
@@ -1217,10 +1234,19 @@ export class BulkImportStore {
   }
 
   _onAllFilesParsed() {
+    console.log("All files parsed, pending count:");
     runInAction(() => {
-      if (this._pendingDropFileCount > this._MAX_DROP_FILE_COUNT) {
-        alert(`⚠️ You can only drop a maximum of ${this._MAX_DROP_FILE_COUNT} images at a time.`);
+      // if (this._pendingDropFileCount > this._MAX_DROP_FILE_COUNT) {
+      //   alert(`You can only drop a maximum of ${this._MAX_DROP_FILE_COUNT} images at a time.`);
 
+      //   this._collectedValidFiles = [];
+      //   this._pendingDropFileCount = 0;
+      //   this.setFilesParsed(true);
+      //   return;
+      // }
+
+      if (this._pendingDropFileCount > this._maxImageCount) {
+        alert(`You can only upload a maximum3 of ${this._maxImageCount} images.`);
         this._collectedValidFiles = [];
         this._pendingDropFileCount = 0;
         this.setFilesParsed(true);
@@ -1236,13 +1262,17 @@ export class BulkImportStore {
 
       this.setFilesParsed(true);
       this.flow.upload();
+      // this.uploadFilteredFiles();
 
       if (this._imagePreview.length <= 200) {
-        this.generateThumbnailsForFirst200().then(() => {
-          this.setFilesParsed(true);
-          this.flow.upload();
-        });
+        this.generateThumbnailsForFirst200()
+        // .then(() => {
+        // if (this._flow.files.some(f => f.isPaused())) {
+        //   this.flow.upload();
+        // }
+        // });
       }
+
     });
   }
 

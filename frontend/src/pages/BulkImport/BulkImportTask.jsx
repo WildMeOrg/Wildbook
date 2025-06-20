@@ -139,6 +139,8 @@ const BulkImportTask = () => {
               status: (() => {
                 if (task?.importPercent === 1) {
                   return "Completed";
+                } else if(task?.importPercent === 0) {
+                  return "Not Started";
                 } else {
                   return "In Progress";
                 }

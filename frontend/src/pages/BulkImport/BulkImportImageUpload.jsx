@@ -32,14 +32,14 @@ export const BulkImportImageUpload = observer(({
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
-  const maxSize = data?.maximumMediaSizeMegabytes || 300000;
+  // const maxSize = data?.maximumMediaSizeMegabytes || 1;
+  const maxSize = 1; // Default to 5MB if not set
 
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 200;
 
-  store.setMaxImageCount(data?.maximumMediaCount || 5000);
-  // const maxImageCount = data?.maximumMediaCount || 200;
+  store.setMaxImageCount(data?.maximumMediaCount || 1000);
   const currentCount = store.imagePreview.length;
 
   useEffect(() => {
@@ -60,23 +60,24 @@ export const BulkImportImageUpload = observer(({
   };
 
   useEffect(() => {
-    if (!fileInputRef.current) return;
+    const ref = fileInputRef.current;
+    if (!ref) return;
 
     if (!store.flow) {
-      store.initializeFlow(fileInputRef.current, maxSize);
-      fileInputRef.current?.addEventListener("change", () => {
-        store.triggerUploadAfterFileInput();
-      });
+      store.initializeFlow(ref, maxSize);
     } else {
-      store.flow.assignBrowse(fileInputRef.current);
+      store.flow.assignBrowse(ref);
     }
 
-    // return () => {
-    //   if (store.flow) {
-    //     store.flow.cancel();
-    //   }
-    // };
-  }, [store.flow, fileInputRef.current, maxSize]);
+    const handleChange = () => {
+      store.triggerUploadAfterFileInput();
+    };
+    ref.addEventListener("change", handleChange);
+
+    return () => {
+      ref.removeEventListener("change", handleChange);
+    };
+  }, [store, maxSize]);
 
   useEffect(() => {
     if (store.imagePreview.length > 0) {
@@ -87,7 +88,7 @@ export const BulkImportImageUpload = observer(({
         store.uploadFilteredFiles(maxSize);
       }
     }
-  }, [store.imagePreview.length]);
+  }, [store.imagePreview.length, store.filesParsed]);
 
   const handleDrop = (e) => {
     if (currentCount >= store.maxImageCount) {
@@ -108,6 +109,7 @@ export const BulkImportImageUpload = observer(({
       alert(
         `you are choosing ${newFilesCount} iamges, total count exceeding ${store.maxImageCount}`,
       );
+      store.setFilesParsed(true);
       return;
     }
     e.currentTarget.style.border = "1px dashed #007BFF";
@@ -255,7 +257,9 @@ export const BulkImportImageUpload = observer(({
                       <div style={{ color: theme.statusColors.red500 }}>
                         <FormattedMessage id="UPLOAD_FAILED" />
                       </div>
-                    )}
+                    )
+
+                    }
                     <div>
                       {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
                       {(preview.fileSize / (1024 * 1024)).toFixed(2) >

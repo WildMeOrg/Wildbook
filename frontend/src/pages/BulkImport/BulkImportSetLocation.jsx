@@ -45,7 +45,8 @@ export const BulkImportSetLocation = observer(({ store }) => {
             const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName, store.locationID, store.skipDetection, store.skipIdentification);
             if (result?.status === 200) {
                 localStorage.removeItem("BulkImportStore");
-                localStorage.setItem("lastBulkImportTask", result.bulkImportId);
+                console.log("Bulk import successful:", JSON.stringify(result));
+                localStorage.setItem("lastBulkImportTask", result?.data?.bulkImportId || submissionId);
                 setLastEditedDate(dayjs().format("YYYY-MM-DD"));
                 setShowSuccessModal(true);
             } else if (result?.status === 400) {

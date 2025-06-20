@@ -7,8 +7,10 @@ import {
 import { FaCheck } from "react-icons/fa";
 import "react-circular-progressbar/dist/styles.css";
 
-export const ProgressCard = ({ title, progress = 0 }) => {
-  const isComplete = progress >= 100;
+export const ProgressCard = ({ title, progress = 0, status= "not started" }) => {
+  const isComplete = progress === 1;
+
+  console.log("ProgressCard rendered", { title, progress, status }, "progress:", `${Math.floor(progress/100)}%`);
 
   return (
     <Card
@@ -43,7 +45,7 @@ export const ProgressCard = ({ title, progress = 0 }) => {
                 backgroundColor: "#FFFFFF",
               })}
             >
-              <span style={{ fontSize: 11 }}>{`${Math.round(progress)}%`}</span>
+              <span style={{ fontSize: 11 }}>{`${Math.floor(progress/100)}%`}</span>
             </CircularProgressbarWithChildren>
           )}
         </div>
@@ -51,7 +53,7 @@ export const ProgressCard = ({ title, progress = 0 }) => {
         <div>
           <div style={{ fontSize: 14, fontWeight: 500 }}>{title}</div>
           <div style={{ fontSize: 12, color: "#6B7280" }}>
-            {progress >= 100 ? "Complete" : progress <= 0 ? "Pending" : "In Progress"}
+            {status}
           </div>
         </div>
       </Card.Body>
