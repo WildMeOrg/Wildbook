@@ -3,713 +3,754 @@
 	"source": "http://en.wikipedia.org/wiki/List_of_seas",
 	"locationID": [
 		{
-			"name": "Aachen",
-			"id": "Aachen",
-			"locationID":[]
-		},
-		{
-			"name": "Alte Rinne",
-			"id": "Alte Rinne",
-			"locationID": []
-		},
-		{
-			"name": "Botanischer Garten Bielefeld",
-			"id": "BGBi",
-			"geospatialInfo": {
-				  "lat": 52.014671,
-				  "long": 8.510555
-			  },
-			"locationID": []
-		},
-		{
-			"name": "Chemnitz",
-			 "id": "Chemnitz",
-			 "locationID": [
-				  {
-					  "name": "Ebersdorfer Wald",
-					  "id": "Ebersdorfer Wald",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Hilbersdorf",
-					  "id": "Hilbersdorf",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Rabenstein",
-					  "id": "Rabenstein",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Zeisigwald",
-					  "id": "Zeisigwald",
-					  "locationID": []
-				  }
-			  ]
-		},
-		{
-			"name": "Eulenberger See",
-			"id": "Eulenberger See",
-			"locationID": []
-		},
-		{
-			"name": "Fambach",
-			"id": "FAM",
-			"locationID": []
-		},
-		{
-			"name": "Flöha",
-			"id": "08",
-			"locationID": []
-		},
-		{
-			"name": "Heßles",
-			"id": "HES",
-			"locationID": []
-		},
-		{
-			"name": "Hümpfershausen",
-			"id": "HUEM",
-			"locationID": []
-		},
-		{
-			"name": "Jachen",
-			"id": "Jachen",
-			"locationID": []
-		},
-		{
-			"name": "Kaolingrube Oedingen",
-			"id": "Kaolingrube Oedingen",
-			"locationID": []
-		},
-		{
-			"name": "KOBI",
-			"id": "KOBI",
-			"locationID": []
-		},
-		{
-			"name": "Koenigsdorf",
-			"id": "Koenigsdorf",
-			"locationID": []
-		},
-		{
-			"name": "Kriebethal/Ehrenberg",
-			"id": "03",
-			"locationID": []
-		},
-		{
-			"name": "Kruppwald Essen",
-			"id": "KE",
-			"geospatialInfo": {
-				  "lat": 51.4076079,
-				  "long": 7.0024334
-			},
-			"locationID": []
-		},
-		{
-			"name": "Nerenbos",
-			"id": "Nerenbos",
-			"locationID": [
+			"name": "Germany",
+			"id": "Germany",
+			"locationID":[
 				{
-					"name": "Makegemse Bossen",
-					"id": "Makegemse Bossen",
-					"locationID": []
-				}
-			]
-		},
-		{
-			"name": "Nüßleshof",
-			"id": "NUES",
-			"locationID": []
-		},
-		{
-			"name": "Reifenstein",
-			"id": "Reifenstein",
-			"locationID":[]
-		},
-		{
-			"name": "Rochlitzer Berg",
-			"id": "06",
-			"locationID": []
-		},
-		{
-			"name": "Römhild",
-			"id": "RH",
-			"locationID": []
-		},
-		{
-			"name": "Steinbachholz",
-			"id": "Steinbachholz",
-			"locationID": []
-		},
-		{
-			"name": "Steinbruch Dettlebach",
-			"id": "Steinbruch Dettlebach",
-			"locationID": []
-		},
-		{
-			"name": "Talsperre Kriebstein",
-			"id": "04",
-			"locationID": []
-		},
-		{
-			"name": "Waldheim",
-			"id": "09",
-			"locationID": []
-		},
-		{
-			"name": "Kottenforst",
-			"id": "KF",
-			"geospatialInfo": {
-				  "lat": 50.6593069,
-				  "long": 7.0555518
-			},
-			"locationID": [
-				  {
-					  "name": "Klufterbach",
-					  "id": "KB",
-					  "prefix": "KB",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo":{
-						  "lat":50.686688,
-						  "long":7.127002
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Venner Bach",
-					  "id": "VB",
-					  "prefix": "VB",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.670721,
-						  "long": 7.129955
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Katzenlochbach/Villiper Bach",
-					  "id": "KOB",
-					  "prefix": "KOB",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.667533,
-						  "long": 7.083178
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Kreistuempel",
-					  "id": "KT",
-					  "prefix": "KT",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.682613,
-						  "long": 7.121452
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Marienforster Bach/Keltersbaumbach",
-					  "id": "MB",
-					  "prefix": "MB",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.675925,
-						  "long": 7.136618
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Molchgraben",
-					  "id": "MG",
-					  "prefix": "MG",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.68057,
-						  "long": 7.11902
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Annaberger Bach",
-					  "id": "AB",
-					  "prefix": "AB",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.684203,
-						  "long": 7.116158
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Tümpel KoVK",
-					  "id": "KoVK",
-					  "prefix": "KoVK",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.660984,
-						  "long": 7.034919
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Tümpelgraben TG",
-					  "id": "TG",
-					  "prefix": "TG",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.681499,
-						  "long": 7.118652
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Seitengraben SG",
-					  "id": "SG",
-					  "prefix": "SG",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.682431,
-						  "long": 7.116877
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Tümpel TT",
-					  "id": "TT",
-					  "prefix": "TT",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.681057,
-						  "long": 7.121233
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Schutzhütte",
-					  "id": "hut",
-					  "prefix": "hut",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.682028,
-						  "long": 7.118937
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Wiesentuempel",
-					  "id": "WT",
-					  "prefix": "WT",
-					  "prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 50.682695,
-						  "long": 7.123525
-					  },
-					  "locationID": []
-				  }
-			  ]
-		},
-		{
-			"name": "Freilichtmuseum Detmold",
-			"id": "FrD",
-			"geospatialInfo": {
-				  "lat": 51.9234574,
-				  "long": 8.865981
-			  },
-			"locationID": [
-				  {
-					  "name": "Kernlebensraum",
-					  "id": "KLR",
-			"prefix": "KLR",
-					"prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 51.923413,
-						  "long": 8.872099
-					  },
-					  "locationID": []
-				  },
-				  {
-					  "name": "Paderborner Dorf",
-					  "id": "PD",
-			"prefix": "PD",
-					"prefixDigitPadding": 4,
-					  "geospatialInfo": {
-						  "lat": 51.917119,
-						  "long": 8.880677
-					  },
-					  "locationID": []
-				  }
-			  ]
-		},
-		  {
-			  "name": "Northern Weser Hills",
-			  "id": "Northern Weser Hills",
-			  "locationID": [
-				  {
-					  "name": "Bernsen",
-					  "id": "BNS",
-					  "locationID": []
-				  },
-				  {
-					"name": "Bokshorn",
-					"id": "BOK",
+					"name": "Aachen",
+					"id": "Aachen",
+					"locationID":[]
+				},
+				{
+					"name": "Alte Rinne",
+					"id": "Alte Rinne",
 					"locationID": []
 				},
-				  {
-					  "name": "Brinkmeier/Edler",
-					  "id": "BRM",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Bückeberg",
-					  "id": "BKB",
-					  "locationID": [
+				{
+					"name": "Botanischer Garten Bielefeld",
+					"id": "Botanischer Garten Bielefeld",
+					"geospatialInfo": {
+						"lat": 52.014671,
+						"long": 8.510555
+					},
+					"locationID": []
+				},
+				{
+					"name": "Chemnitz",
+					"id": "Chemnitz",
+					"locationID": [
 						{
-							"name": "Alter Steinbruch Liekwegen",
-							"id": "ASB",
-							"locationID":[]
-						},
-						{
-							"name": "Feuchte Waldwiese",
-							"id": "FWW",
+							"name": "Ebersdorfer Wald",
+							"id": "Ebersdorfer Wald",
 							"locationID": []
 						},
 						{
-							"name": "Höhenweg",
-							"id": "HOW",
+							"name": "Hilbersdorf",
+							"id": "Hilbersdorf",
 							"locationID": []
 						},
 						{
-							"name": "Holzlagerplatz",
-							"id": "HLP",
-							"locationID":[]
-						},
-						{
-							"name": "JBF-Wiese",
-							"id": "JBF",
+							"name": "Rabenstein",
+							"id": "Rabenstein",
 							"locationID": []
 						},
 						{
-							"name": "Liekwegen",
-							"id": "LIE",
-							"locationID": []
-						},
-						{
-							"name": "Nullfläche",
-							"id": "NFL",
-							"locationID": []
-						},
-						{
-							"name": "Nato-Station Reinsdorf",
-							"id": "NAT",
-							"locationID": []
-						},
-						{
-							"name": "Obernkirchener SSB",
-							"id": "OSB",
-							"locationID": []
-						},
-						{
-							"name": "Promilleweg",
-							"id": "PRW",
+							"name": "Zeisigwald",
+							"id": "Zeisigwald",
 							"locationID": []
 						}
 					]
 				},
 				{
-					"name": "Eisberger Werder",
-					"id": "EIW",
-					"locationID": []
-				  },
-				  {
-					"name": "Hehler Feld",
-					"id": "HEF",
-					"locationID": []
-				},
-				  {
-					"name": "Langenfeld",
-					"id": "LAN",
-					"locationID": []
-				},	
-				  {
-					  "name": "Holzhauser Mark",
-					  "id": "HHM",
-					  "locationID": []
-				  },	
-				  {
-					  "name": "Messingberg",
-					  "id": "MES",
-					  "locationID": []
-				  },
-				  {
-					"name": "Pötzen",
-					"id": "POT",
-					"locationID": []
-				},
-				  {
-					  "name": "Rohden",
-					  "id": "ROD",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Segelhorst",
-					  "id": "SGH",
-					  "locationID": []
-				  },
-				  {
-					"name": "Tongrube Borstel",
-					"id": "BSL",
-					"locationID": []
-				},
-				  {
-					  "name": "Wuelpker Egge",
-					  "id": "WLP",
-					  "locationID": []
-				  }
-			  ]
-		},
-		{
-			"name": "Central Weser Hills",
-			"id": "Central Weser Hills",
-			"locationID": [
-				{
-					"name": "Coppengrave",
-					"id": "COP",
+					"name": "Eulenberger See",
+					"id": "Eulenberger See",
 					"locationID": []
 				},
 				{
-					"name": "Doberg",
-					"id": "DOB",
+					"name": "Fambach",
+					"id": "Fambach",
 					"locationID": []
 				},
 				{
-					"name": "Himmelsthür",
-					"id": "HIM",
+					"name": "Flöha",
+					"id": "Flöha",
 					"locationID": []
 				},
 				{
-					"name": "Hils-Klinkerwerk",
-					"id": "HKW",
+					"name": "Heßles",
+					"id": "Heßles",
+					"locationID": []
+				},
+				{
+					"name": "Hümpfershausen",
+					"id": "Hümpfershausen",
+					"locationID": []
+				},
+				{
+					"name": "Jachen",
+					"id": "Jachen",
+					"locationID": []
+				},
+				{
+					"name": "Kaolingrube Oedingen",
+					"id": "Kaolingrube Oedingen",
+					"locationID": []
+				},
+				{
+					"name": "KOBI",
+					"id": "KOBI",
+					"locationID": []
+				},
+				{
+					"name": "Koenigsdorf",
+					"id": "Koenigsdorf",
+					"locationID": []
+				},
+				{
+					"name": "Kriebethal/Ehrenberg",
+					"id": "Kriebethal/Ehrenberg",
+					"locationID": []
+				},
+				{
+					"name": "Kruppwald Essen",
+					"id": "Kruppwald Essen",
+					"geospatialInfo": {
+						"lat": 51.4076079,
+						"long": 7.0024334
+					},
+					"locationID": []
+				},
+				{
+					"name": "Nerenbos",
+					"id": "Nerenbos",
+					"locationID": [
+						{
+							"name": "Makegemse Bossen",
+							"id": "Makegemse Bossen",
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Nüßleshof",
+					"id": "Nüßleshof",
+					"locationID": []
+				},
+				{
+					"name": "Reifenstein",
+					"id": "Reifenstein",
 					"locationID":[]
 				},
 				{
-					"name": "Hohenbüchen",
-					"id": "HOH",
+					"name": "Rochlitzer Berg",
+					"id": "Rochlitzer Berg",
 					"locationID": []
 				},
 				{
-					"name": "Ochtersum",
-					"id": "OCH",
+					"name": "Römhild",
+					"id": "Römhild",
 					"locationID": []
 				},
 				{
-					"name": "Weenzer Bruch",
-					"id": "WEE",
+					"name": "Steinbachholz",
+					"id": "Steinbachholz",
 					"locationID": []
 				},
 				{
-					"name": "Tongrube Otavi",
-					"id": "OTA",
+					"name": "Steinbruch Dettlebach",
+					"id": "Steinbruch Dettlebach",
 					"locationID": []
-				}
-			]
-		},
-		{
-			"name": "Nindorf",
-			"id": "Nindorf",
-			"locationID":[]
-		},
-		{
-			"name": "Southern Weser Hills and Harz",
-			"id": "Southern Weser Hills and Harz",
-			"locationID": [
-					{
-						"name": "Ballertasche",
-						"id": "BAL",
-						"locationID": []
+				},
+				{
+					"name": "Talsperre Kriebstein",
+					"id": "Talsperre Kriebstein",
+					"locationID": []
+				},
+				{
+					"name": "Waldheim",
+					"id": "Waldheim",
+					"locationID": []
+				},
+				{
+					"name": "Kottenforst",
+					"id": "Kottenforst",
+					"geospatialInfo": {
+						"lat": 50.6593069,
+						"long": 7.0555518
 					},
-					{
-						"name": "Lohoffscher Bruch",
-						"id": "LOH",
-						"locationID": []
-					},
-					{
-						"name": "Mehholz",
-						"id": "MEH",
-						"locationID": []
-					},
-					{
-						"name": "Pfaffenholz",
-						"id": "PFA",
-						"locationID": []
-					}
-				]
-		},
-		{
-			"name": "Remscheid",
-			"id": "Remscheid",
-			"locationID": [
-					{
-						"name": "Eschbach",
-						"id": "Eschbach",
-						"geospatialInfo": {
-							"lat": 51.160653,
-							"long": 7.211977
+					"locationID": [
+						{
+							"name": "Klufterbach",
+							"id": "Klufterbach",
+							"prefix": "KB",
+							"prefixDigitPadding": 4,
+							"geospatialInfo":{
+								"lat":50.686688,
+								"long":7.127002
+							},
+							"locationID": []
 						},
-						"locationID": []
-					}
-				]
-		},
-		{
-			"name": "Rheinland-Pfalz",
-			"id": "Rheinland-Pfalz",
-			"geospatialInfo": {
-					"lat": 50.137861,
-					"long": 7.167395
+						{
+							"name": "Venner Bach",
+							"id": "Venner Bach",
+							"prefix": "VB",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.670721,
+								"long": 7.129955
+							},
+							"locationID": []
+						},
+						{
+							"name": "Katzenlochbach/Villiper Bach",
+							"id": "Katzenlochbach/Villiper Bach",
+							"prefix": "KOB",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.667533,
+								"long": 7.083178
+							},
+							"locationID": []
+						},
+						{
+							"name": "Kreistuempel",
+							"id": "Kreistuempel",
+							"prefix": "KT",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.682613,
+								"long": 7.121452
+							},
+							"locationID": []
+						},
+						{
+							"name": "Marienforster Bach/Keltersbaumbach",
+							"id": "Marienforster Bach/Keltersbaumbach",
+							"prefix": "MB",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.675925,
+								"long": 7.136618
+							},
+							"locationID": []
+						},
+						{
+							"name": "Molchgraben",
+							"id": "Molchgraben",
+							"prefix": "MG",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.68057,
+								"long": 7.11902
+							},
+							"locationID": []
+						},
+						{
+							"name": "Annaberger Bach",
+							"id": "Annaberger Bach",
+							"prefix": "AB",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.684203,
+								"long": 7.116158
+							},
+							"locationID": []
+						},
+						{
+							"name": "Tümpel KoVK",
+							"id": "Tümpel KoVK",
+							"prefix": "KoVK",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.660984,
+								"long": 7.034919
+							},
+							"locationID": []
+						},
+						{
+							"name": "Tümpelgraben TG",
+							"id": "Tümpelgraben TG",
+							"prefix": "TG",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.681499,
+								"long": 7.118652
+							},
+							"locationID": []
+						},
+						{
+							"name": "Seitengraben SG",
+							"id": "Seitengraben SG",
+							"prefix": "SG",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.682431,
+								"long": 7.116877
+							},
+							"locationID": []
+						},
+						{
+							"name": "Tümpel TT",
+							"id": "Tümpel TT",
+							"prefix": "TT",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.681057,
+								"long": 7.121233
+							},
+							"locationID": []
+						},
+						{
+							"name": "Schutzhütte",
+							"id": "Schutzhütte",
+							"prefix": "hut",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.682028,
+								"long": 7.118937
+							},
+							"locationID": []
+						},
+						{
+							"name": "Wiesentuempel",
+							"id": "Wiesentuempel",
+							"prefix": "WT",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 50.682695,
+								"long": 7.123525
+							},
+							"locationID": []
+						}
+					]
 				},
-			"locationID": []
-		},
-		{
-			"name": "Wasserburgertal",
-			"id": "WBT",
-			"geospatialInfo": {
-				  "lat": 47.896,
-				  "long": 8.853
-			  },
-			"locationID": []
-		},
-		{
-			"name": "Wettenberg and Fohnbachtal",
-			"id": "Wettenberg and Fohnbachtal",
-			"locationID": []
-		},
-		{
-			"name": "Wolbecker Tiergarten",
-			"id": "Wolbecker Tiergarten",
-			"locationID": []
-		},
-		{
-			"name": "Wuppertal",
-			"id": "Wuppertal",
-			"locationID": [
 				{
-					"name": "Bendahler Bach",
-					"id": "Bendahler Bach",
+					"name": "Freilichtmuseum Detmold",
+					"id": "Freilichtmuseum Detmold",
 					"geospatialInfo": {
-						"lat": 51.248670,
-						"long": 7.164826
+						"lat": 51.9234574,
+						"long": 8.865981
 					},
-					"locationID": []
+					"locationID": [
+						{
+							"name": "Kernlebensraum",
+							"id": "Kernlebensraum",
+							"prefix": "KLR",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.923413,
+								"long": 8.872099
+							},
+							"locationID": []
+						},
+						{
+							"name": "Paderborner Dorf",
+							"id": "Paderborner Dorf",
+							"prefix": "PD",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.917119,
+								"long": 8.880677
+							},
+							"locationID": []
+						}
+					]
 				},
 				{
-					"name": "Burgholz",
-					"id": "Burgholz",
-					"geospatialInfo": {
-						"lat": 51.214565,
-						"long": 7.119249
-					},
-					"locationID": []
+					"name": "Northern Weser Hills",
+					"id": "Northern Weser Hills",
+					"locationID": [
+						{
+							"name": "Bernsen",
+							"id": "Bernsen",
+							"locationID": []
+						},
+						{
+							"name": "Bokshorn",
+							"id": "Bokshorn",
+							"locationID": []
+						},
+						{
+							"name": "Brinkmeier/Edler",
+							"id": "Brinkmeier/Edler",
+							"locationID": []
+						},
+						{
+							"name": "Bückeberg",
+							"id": "Bückeberg",
+							"locationID": [
+								{
+									"name": "Alter Steinbruch Liekwegen",
+									"id": "Alter Steinbruch Liekwegen",
+									"locationID":[]
+								},
+								{
+									"name": "Feuchte Waldwiese",
+									"id": "Feuchte Waldwiese",
+									"locationID": []
+								},
+								{
+									"name": "Höhenweg",
+									"id": "Höhenweg",
+									"locationID": []
+								},
+								{
+									"name": "Holzlagerplatz",
+									"id": "Holzlagerplatz",
+									"locationID":[]
+								},
+								{
+									"name": "JBF-Wiese",
+									"id": "JBF-Wiese",
+									"locationID": []
+								},
+								{
+									"name": "Liekwegen",
+									"id": "Liekwegen",
+									"locationID": []
+								},
+								{
+									"name": "Nullfläche",
+									"id": "Nullfläche",
+									"locationID": []
+								},
+								{
+									"name": "Nato-Station Reinsdorf",
+									"id": "Nato-Station Reinsdorf",
+									"locationID": []
+								},
+								{
+									"name": "Obernkirchener SSB",
+									"id": "Obernkirchener SSB",
+									"locationID": []
+								},
+								{
+									"name": "Promilleweg",
+									"id": "Promilleweg",
+									"locationID": []
+								}
+							]
+						},
+						{
+							"name": "Eisberger Werder",
+							"id": "Eisberger Werder",
+							"locationID": []
+						},
+						{
+							"name": "Hehler Feld",
+							"id": "Hehler Feld",
+							"locationID": []
+						},
+						{
+							"name": "Langenfeld",
+							"id": "Langenfeld",
+							"locationID": []
+						},	
+						{
+							"name": "Holzhauser Mark",
+							"id": "Holzhauser Mark",
+							"locationID": []
+						},	
+						{
+							"name": "Messingberg",
+							"id": "Messingberg",
+							"locationID": []
+						},
+						{
+							"name": "Pötzen",
+							"id": "Pötzen",
+							"locationID": []
+						},
+						{
+							"name": "Rohden",
+							"id": "Rohden",
+							"locationID": []
+						},
+						{
+							"name": "Segelhorst",
+							"id": "Segelhorst",
+							"locationID": []
+						},
+						{
+							"name": "Tongrube Borstel",
+							"id": "Tongrube Borstel",
+							"locationID": []
+						},
+						{
+							"name": "Wuelpker Egge",
+							"id": "Wuelpker Egge",
+							"locationID": []
+						}
+					]
 				},
 				{
-					"name": "Kothen",
-					"id": "Kothen",
-					"geospatialInfo": {
-						"lat": 51.257106,
-						"long": 7.187970
-					},
+					"name": "Central Weser Hills",
+					"id": "Central Weser Hills",
+					"locationID": [
+						{
+							"name": "Coppengrave",
+							"id": "Coppengrave",
+							"locationID": []
+						},
+						{
+							"name": "Doberg",
+							"id": "Doberg",
+							"locationID": []
+						},
+						{
+							"name": "Himmelsthür",
+							"id": "Himmelsthür",
+							"locationID": []
+						},
+						{
+							"name": "Hils-Klinkerwerk",
+							"id": "Hils-Klinkerwerk",
+							"locationID":[]
+						},
+						{
+							"name": "Hohenbüchen",
+							"id": "Hohenbüchen",
+							"locationID": []
+						},
+						{
+							"name": "Ochtersum",
+							"id": "Ochtersum",
+							"locationID": []
+						},
+						{
+							"name": "Weenzer Bruch",
+							"id": "Weenzer Bruch",
+							"locationID": []
+						},
+						{
+							"name": "Tongrube Otavi",
+							"id": "Tongrube Otavi",
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Nindorf",
+					"id": "Nindorf",
 					"locationID":[]
 				},
 				{
-					"name": "Kupferhammer",
-					"id": "Kupferhammer",
+					"name": "Southern Weser Hills and Harz",
+					"id": "Southern Weser Hills and Harz",
+					"locationID": [
+						{
+							"name": "Ballertasche",
+							"id": "Ballertasche",
+							"locationID": []
+						},
+						{
+							"name": "Lohoffscher Bruch",
+							"id": "Lohoffscher Bruch",
+							"locationID": []
+						},
+						{
+							"name": "Mehholz",
+							"id": "Mehholz",
+							"locationID": []
+						},
+						{
+							"name": "Pfaffenholz",
+							"id": "Pfaffenholz",
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Remscheid",
+					"id": "Remscheid",
+					"locationID": [
+						{
+							"name": "Eschbach",
+							"id": "Eschbach",
+							"geospatialInfo": {
+								"lat": 51.160653,
+								"long": 7.211977
+							},
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Rheinland-Pfalz",
+					"id": "Rheinland-Pfalz",
 					"geospatialInfo": {
-						"lat": 51.252608,
-						"long": 7.228016
+						"lat": 50.137861,
+						"long": 7.167395
 					},
 					"locationID": []
 				},
 				{
-					"name": "Murmelbach",
-					"id": "Murmelbach",
+					"name": "Wasserburgertal",
+					"id": "Wasserburgertal",
 					"geospatialInfo": {
-						"lat": 51.261847,
-						"long": 7.220412
+						"lat": 47.896,
+						"long": 8.853
 					},
 					"locationID": []
 				},
 				{
-					"name": "Rheinbach",
-					"id": "Rheinbach",
-					"geospatialInfo": {
-						"lat": 51.197139,
-						"long": 7.140769
-					},
+					"name": "Wettenberg and Fohnbachtal",
+					"id": "Wettenberg and Fohnbachtal",
 					"locationID": []
+				},
+				{
+					"name": "Wolbecker Tiergarten",
+					"id": "Wolbecker Tiergarten",
+					"locationID": []
+				},
+				{
+					"name": "Wuppertal",
+					"id": "Wuppertal",
+					"locationID": [
+						{
+							"name": "Bendahler Bach",
+							"id": "Bendahler Bach",
+							"geospatialInfo": {
+								"lat": 51.248670,
+								"long": 7.164826
+							},
+							"locationID": []
+						},
+						{
+							"name": "Burgholz",
+							"id": "Burgholz",
+							"geospatialInfo": {
+								"lat": 51.214565,
+								"long": 7.119249
+							},
+							"locationID": []
+						},
+						{
+							"name": "Kothen",
+							"id": "Kothen",
+							"geospatialInfo": {
+								"lat": 51.257106,
+								"long": 7.187970
+							},
+							"locationID":[]
+						},
+						{
+							"name": "Kupferhammer",
+							"id": "Kupferhammer",
+							"geospatialInfo": {
+								"lat": 51.252608,
+								"long": 7.228016
+							},
+							"locationID": []
+						},
+						{
+							"name": "Murmelbach",
+							"id": "Murmelbach",
+							"geospatialInfo": {
+								"lat": 51.261847,
+								"long": 7.220412
+							},
+							"locationID": []
+						},
+						{
+							"name": "Rheinbach",
+							"id": "Rheinbach",
+							"geospatialInfo": {
+								"lat": 51.197139,
+								"long": 7.140769
+							},
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Zwickau",
+					"id": "Zwickau",
+					"locationID": [
+						{
+							"name": "Hartenstein Eichleite",
+							"id": "Hartenstein Eichleite",
+							"locationID": []
+						},
+						{
+							"name": "Hartensteiner Wald",
+							"id": "Hartensteiner Wald",
+							"locationID": []
+						},
+						{
+							"name": "Hohenstein Ernstthal",
+							"id": "Hohenstein Ernstthal",
+							"locationID": []
+						},
+						{
+							"name": "Langenweißbach",
+							"id": "Langenweißbach",
+							"locationID": []
+						},
+						{
+							"name": "Lichtenstein",
+							"id": "Lichtenstein",
+							"locationID": []
+						},
+						{
+							"name": "Neuschönburg",
+							"id": "Neuschonburg",
+							"locationID": []
+						},
+						{
+							"name": "Stadt Hartenstein",
+							"id": "Stadt Hartenstein",
+							"locationID": []
+						},
+						{
+							"name": "Uhlsdorf",
+							"id": "Uhlsdorf",
+							"locationID": []
+						},
+						{
+							"name": "Waldenburg",
+							"id": "Waldenburg",
+							"locationID": []
+						},
+						{
+							"name": "Wiesenburg",
+							"id": "Wiesenburg",
+							"locationID": []
+						},
+						{
+							"name": "Weißbach",
+							"id": "Weisbach",
+							"locationID": []
+						}
+					]
 				}
 			]
 		},
 		{
-			"name": "Zwickau",
-			"id": "Zwickau",
+			"name": "United States",
+			"id": "United States",
 			"locationID": [
 				{
-					"name": "Hartenstein Eichleite",
-					"id": "Hartenstein Eichleite",
-					"locationID": []
-				},
-				{
-					"name": "Hartensteiner Wald",
-					"id": "Hartensteiner Wald",
-					"locationID": []
-				},
-				{
-					"name": "Hohenstein Ernstthal",
-					"id": "Hohenstein Ernstthal",
-					"locationID": []
-				},
-				{
-					"name": "Langenweißbach",
-					"id": "Langenweißbach",
-					"locationID": []
-				},
-				{
-					"name": "Lichtenstein",
-					"id": "Lichtenstein",
-					"locationID": []
-				},
-				{
-					"name": "Neuschönburg",
-					"id": "Neuschonburg",
-					"locationID": []
-				},
-				{
-					"name": "Stadt Hartenstein",
-					"id": "Stadt Hartenstein",
-					"locationID": []
-				},
-				{
-					"name": "Uhlsdorf",
-					"id": "Uhlsdorf",
-					"locationID": []
-				},
-				{
-					"name": "Waldenburg",
-					"id": "Waldenburg",
-					"locationID": []
-				},
-				{
-					"name": "Wiesenburg",
-					"id": "Wiesenburg",
-					"locationID": []
-				},
-				{
-					"name": "Weißbach",
-					"id": "Weisbach",
-					"locationID": []
+					"name": "Florida",
+					"id": "Florida",
+					"locationID":[
+						{
+							"name": "Everglades",
+							"id": "Everglades",
+							"locationID": [
+								{
+									"name": "Everglades - East Coast",
+									"id": "Everglades - East Coast",
+									"locationID": [
+										{
+											"name": "C-4",
+											"id": "C-4",
+											"locationID": []
+										},
+										{
+											"name": "Frog Pond/Rocky Glades",
+											"id": "Frog Pond/Rocky Glades",
+											"locationID": []
+										}
+									]
+								}
+							]
+						}
+					]
 				}
 			]
 		}
+
 		  
 	]
   }  
