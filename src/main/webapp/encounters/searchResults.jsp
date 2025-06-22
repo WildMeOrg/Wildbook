@@ -572,14 +572,11 @@ $(document).ready(function () {
             return;
           }
           // now fetch encounters of collaborators
-		  let conditions = collaboratorUsernames
-			.map(u => 'submitterID == "' + u + '"');
+		  let whereClause = "(" + collaboratorUsernames.map(u => 'submitterID == "' + u + '"').join(" || ") + ")";
 
 		  if (stateParam) {
-			conditions.push('state == "' + stateParam + '"');
+			whereClause += ' && state == "' + stateParam + '"';
 		  }
-
-		  const whereClause = conditions.join(" && ");
 
 		  const collabJdoql = "SELECT FROM org.ecocean.Encounter WHERE " + whereClause;
           const collabFetch = new wildbook.Collection.Encounters();

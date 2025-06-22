@@ -590,33 +590,33 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
     						<tr>
     							<td><a href="appadmin/users.jsp?isEdit=true&uuid=<%=member.getId() %>#editUser"><%=fullName %></a></td>
     							<td>
-	    						<%
-	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername()); 
+	    						<% 
+	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername());
 	        					if(memberCollabs!=null && memberCollabs.size()>0){
 	        						for(Collaboration collab:memberCollabs){
-										try {
-											String username = collab.getUsername1();
-											if (username == localUser.getUsername()) username = collab.getUsername2();
-											String type = collab.getState();
+                                        try {
+											String username=collab.getUsername1();
+											if(username.equals(member.getUsername()) || localUser.getUsername().equals(username))username=collab.getUsername2();
+											String type=collab.getState();
 											User collabUser = myShepherd.getUser(username);
-											String c_org = "";
-											if (collabUser.getOrganizations() != null && collabUser.getOrganizations().size() > 0) {
-												c_org += " (";
-												for (Organization theirOrg : collabUser.getOrganizations()) {
-													c_org += theirOrg.getName() + ";";
+											String c_org="";
+											if(collabUser.getOrganizations()!=null && collabUser.getOrganizations().size()>0){
+												c_org+=" (";
+												for(Organization theirOrg:collabUser.getOrganizations()){
+													c_org+=theirOrg.getName()+";";
 												}
-												if (c_org.endsWith(";")) c_org = c_org.substring(0, c_org.length() - 1);
-												c_org += ")";
+												if(c_org.endsWith(";"))c_org=c_org.substring(0,c_org.length()-1);
+												c_org+=")";
 											}
 
-											out.println(collabUser.getFullName() + " " + c_org + " (" + type + ") <br>");
-										} catch (Exception e) {
-											e.printStackTrace();
-										}
+                                            out.println(collabUser.getFullName() + " " + c_org + " (" + type + ") <br>");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
 	        						}
 	        					} else {
-									out.print(" ");
-								}
+                                    out.print(" ");
+	        					}
 	        					%>
 	        					</td>
         					</tr>
