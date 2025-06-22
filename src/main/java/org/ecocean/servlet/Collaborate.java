@@ -48,6 +48,8 @@ public class Collaborate extends HttpServlet {
 
                     if (username2 != null && username2.equals(currentUsername) && username1 != null) {
                         collaboratorUsernames.add(username1);
+                    } else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
+                        collaboratorUsernames.add(username2);
                     }
                 }
                 out.write(new Gson().toJson(new ArrayList<>(collaboratorUsernames)));

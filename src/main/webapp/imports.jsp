@@ -223,13 +223,16 @@ try{
 
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 	Set<String> collaboratorUsernames = new HashSet<>();
+	String currentUsername = user.getUsername();
 
 	for (Collaboration collab : collabs) {
 		String username1 = collab.getUsername1();
 		String username2 = collab.getUsername2();
 
-		if (username2 != null && username2.equals(user.getUsername()) && username1 != null) {
+		if (username2 != null && username2.equals(currentUsername) && username1 != null) {
 			collaboratorUsernames.add(username1);
+		} else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
+			collaboratorUsernames.add(username2);
 		}
 	}
 

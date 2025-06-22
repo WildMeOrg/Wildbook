@@ -591,11 +591,11 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
     							<td><a href="appadmin/users.jsp?isEdit=true&uuid=<%=member.getId() %>#editUser"><%=fullName %></a></td>
     							<td>
 	    						<% 
-	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername()); 
+	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername());
 	        					if(memberCollabs!=null && memberCollabs.size()>0){
 	        						for(Collaboration collab:memberCollabs){
 	        							String username=collab.getUsername1();
-	        							if(username==localUser.getUsername())username=collab.getUsername2();
+										if(username.equals(member.getUsername()) || localUser.getUsername().equals(username))username=collab.getUsername2();
 	        							String type=collab.getState();
 	        							User collabUser = myShepherd.getUser(username);
 	        							String c_org="";
