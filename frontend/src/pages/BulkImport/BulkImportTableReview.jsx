@@ -37,7 +37,7 @@ export const BulkImportTableReview = observer(({ store }) => {
         <BulkImportSpreadsheetUploadInfo store={store} />
       </div>
       <EditableDataTable store={store} />
-      {/* <ErrorSummaryBar store={store} /> */}
+      <ErrorSummaryBar store={store} />
       {hasSubmissionErrors && (
         <div className="alert alert-danger">
           Errors:

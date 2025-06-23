@@ -62,7 +62,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       store.applyDynamicValidationRules();
 
       const formatDate = (year, month, day, hour, minute) => {
-        console.log("working");
         const pad2 = (s) =>
           s != null && s !== "" ? String(s).padStart(2, "0") : "";
 
@@ -149,13 +148,11 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         } else {
           if (store && store.setSpreadsheetData) {
             store.setSpreadsheetData(processedData);
+            const { errors, warnings } = store.validateSpreadsheet();
+            store.setValidationErrors(errors);
+            store.setValidationWarnings(warnings);
           }
         }
-
-        const { errors, warnings } = store.validateSpreadsheet();
-        store.setValidationErrors(errors);
-        store.setValidationWarnings(warnings);
-
       };
       processChunk();
 
@@ -168,7 +165,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
     const filename = file?.name || "";
     store.setSpreadsheetFileName(filename);
     store.setSpreadsheetUploadProgress(0);
-    console.log("Processing file %:", store.spreadsheetUploadProgress);
     if (!file) return;
     processFile(file);
   };
@@ -272,8 +268,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               store.setWorksheetInfo(0, [], 0, 0, "");
               store.setValidationErrors({});
               store.setValidationWarnings({});
-              console.log("Resetting spreadsheet upload state");
-              console.log(store.spreadsheetdata)
             }}
             style={{
               position: "absolute",

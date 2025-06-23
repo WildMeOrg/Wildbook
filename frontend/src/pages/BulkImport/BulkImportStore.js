@@ -15,6 +15,7 @@ export class BulkImportStore {
   _imageSectionFileNames = [];
   _imageRequired = false;
   _imageSectionError = false;
+  _imageCountGenerateThumbnail = 50;
   _flow = null;
   _submissionId = null;
   _spreadsheetData = [];
@@ -75,6 +76,7 @@ export class BulkImportStore {
   _applyToAllRowModalShow = false;
   _validationErrors = {};
   _validationWarnings = {};
+  _emptyFieldCount = 0;
 
   _validationRules = {
     "Encounter.mediaAsset0": {
@@ -404,6 +406,18 @@ export class BulkImportStore {
     return this._validationWarnings;
   }
 
+  get emptyFieldCount() {
+    let count = 0;
+    this._spreadsheetData.forEach(row => {
+      Object.values(row).forEach(cell => {
+        if (String(cell ?? "").trim() === "") {
+          count++;
+        }
+      });
+    });
+    return count;
+  }
+
   get errorSummary() {
     let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
     const { errors = {} } = this.validateSpreadsheet() || {};
@@ -718,7 +732,6 @@ export class BulkImportStore {
   }
 
   saveState() {
-    console.log("Saving state as draft:", JSON.stringify(this.stateSnapshot));
     try {
       runInAction(() => {
         this._isSavingDraft = true;
@@ -726,7 +739,6 @@ export class BulkImportStore {
       });
 
       const json = JSON.stringify(this.stateSnapshot);
-      console.log("simplified state:");
       window.localStorage.setItem('BulkImportStore', json);
     } catch (e) {
       console.error('saving as draft failed', e);
@@ -885,10 +897,7 @@ export class BulkImportStore {
       const totalCount = currentCount + 1;
       const isTooLarge = file.size > maxSize * 1024 * 1024;
 
-      console.log("isTooLarge", isTooLarge, "file size:", file.size, "maxSize:", maxSize);
-
       if (isTooLarge) {
-        console.log(`+++++++++++++++++File ${file.name} is too large: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
         const reason = "too large";
         rejectedFiles.push(`${file.name} (${reason})`);
         return false;
@@ -942,11 +951,6 @@ export class BulkImportStore {
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, progress: percent } : f,
       );
-
-      const totalProgress = this._imagePreview.reduce(
-        (sum, f) => sum + (f.progress || 0),
-        0,
-      );
     });
 
     flowInstance.on("fileSuccess", (file) => {
@@ -987,7 +991,7 @@ export class BulkImportStore {
 
   generateThumbnailsForFirst200() {
     const previews = this._imagePreview;
-    if (previews.length > 200) return Promise.resolve();
+    if (previews.length > this._imageCountGenerateThumbnail) return Promise.resolve();
 
     return new Promise((resolve) => {
       let index = 0;
@@ -1185,7 +1189,8 @@ export class BulkImportStore {
     } else if (entry.isFile) {
       entry.file((file) => {
         const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
-        const isValid = supportedTypes.includes(file.type) && file.size <= maxSize * 1024 * 1024;
+        const isValid = supportedTypes.includes(file.type)
+        // && file.size <= maxSize * 1024 * 1024;
         console.log("isValid:", isValid, "file:", file.name, "size:", file.size);
 
         // const fullPath = entry.fullPath || file.name;
@@ -1264,7 +1269,7 @@ export class BulkImportStore {
       this.flow.upload();
       // this.uploadFilteredFiles();
 
-      if (this._imagePreview.length <= 200) {
+      if (this._imagePreview.length <= this._imageCountGenerateThumbnail) {
         this.generateThumbnailsForFirst200()
         // .then(() => {
         // if (this._flow.files.some(f => f.isPaused())) {
