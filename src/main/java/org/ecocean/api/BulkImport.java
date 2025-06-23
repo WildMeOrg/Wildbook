@@ -632,12 +632,19 @@ public class BulkImport extends ApiBase {
         return maMap;
     }
 
-    private void initializeImportTask(String id, User user, JSONObject payload, String status) {
+    private void initializeImportTask(String id, User passedUser, JSONObject payload,
+        String status) {
+        if ((passedUser == null) || (passedUser.getId() == null)) {
+            System.out.println("[WARNING] initializeImportTask(" + id + ") got null user: " +
+                passedUser);
+            return;
+        }
         Shepherd taskShepherd = new Shepherd("context0");
 
         taskShepherd.setAction("BulkImport.initializeImportTask");
         taskShepherd.beginDBTransaction();
         try {
+            User user = taskShepherd.getUser(passedUser.getId()); // needs to be on our shepherd
             ImportTask itask = taskShepherd.getImportTask(id);
             if (itask != null) {
                 itask.addLog(
