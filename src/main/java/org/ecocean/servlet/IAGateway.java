@@ -718,36 +718,38 @@ public class IAGateway extends HttpServlet {
         }
         if (jobj == null) return; // would this ever happen? #bsts
 
-        JSONArray mediaAssetIds = jobj.getJSONObject("detect").getJSONArray("mediaAssetIds");
-        JSONArray newMediaAssetIds = new JSONArray();
-        for (int i = 0; i < mediaAssetIds.length(); i++) {
-            Integer mediaAssetId = mediaAssetIds.getInt(i);
+        if (jobj.has("detect")) {
+            JSONArray mediaAssetIds = jobj.getJSONObject("detect").getJSONArray("mediaAssetIds");
+            JSONArray newMediaAssetIds = new JSONArray();
+            for (int i = 0; i < mediaAssetIds.length(); i++) {
+                Integer mediaAssetId = mediaAssetIds.getInt(i);
 
-            List<Object[]> results = SqlHelper.executeRawSql(
-                ShepherdPMF.getPMF("context0").getPersistenceManager(),
-                "select \"PARAMETERS\" from \"MEDIAASSET\" where \"ID\" = " + mediaAssetId
-            );
+                List<Object[]> results = SqlHelper.executeRawSql(
+                        ShepherdPMF.getPMF("context0").getPersistenceManager(),
+                        "select \"PARAMETERS\" from \"MEDIAASSET\" where \"ID\" = " + mediaAssetId
+                );
 
-            String path = new JSONObject((String)results.get(0)[0]).getString("path");
-            String regex = "(?i).*\\.(mp4|avi|mov|wmv|webm|flv|avchd|mkv)$";
-            if (!path.matches(regex)) {
-                newMediaAssetIds.put(mediaAssetId);
+                String path = new JSONObject((String) results.get(0)[0]).getString("path");
+                String regex = "(?i).*\\.(mp4|avi|mov|wmv|webm|flv|avchd|mkv)$";
+                if (!path.matches(regex)) {
+                    newMediaAssetIds.put(mediaAssetId);
+                }
             }
-        }
-        jobj.getJSONObject("detect").put("mediaAssetIds", newMediaAssetIds);
-        if (newMediaAssetIds.length() == 0) {
-            JSONObject queueResumeObj = new JSONObject();
-            queueResumeObj.put("videoMediaAssetsOnly", true);
-            PersistenceManager pm = ShepherdPMF.getPMF("context0").getPersistenceManager();
-            pm.currentTransaction().begin();
-            SqlHelper.executeRawSql(
-                    pm,
-                    "UPDATE \"TASK\" SET \"QUEUERESUMEMESSAGE\" = '" + queueResumeObj
-                            + "', \"MODIFIED\" = " + new java.util.Date().getTime()
-                            + " WHERE \"ID\" = '" + jobj.optString("taskId") + "'"
-            );
-            pm.currentTransaction().commit();
-            return;
+            jobj.getJSONObject("detect").put("mediaAssetIds", newMediaAssetIds);
+            if (newMediaAssetIds.length() == 0) {
+                JSONObject queueResumeObj = new JSONObject();
+                queueResumeObj.put("videoMediaAssetsOnly", true);
+                PersistenceManager pm = ShepherdPMF.getPMF("context0").getPersistenceManager();
+                pm.currentTransaction().begin();
+                SqlHelper.executeRawSql(
+                        pm,
+                        "UPDATE \"TASK\" SET \"QUEUERESUMEMESSAGE\" = '" + queueResumeObj
+                                + "', \"MODIFIED\" = " + new java.util.Date().getTime()
+                                + " WHERE \"ID\" = '" + jobj.optString("taskId") + "'"
+                );
+                pm.currentTransaction().commit();
+                return;
+            }
         }
 
         // this must have a taskId coming in, cuz otherwise how would (detached, async) caller know what it is!
