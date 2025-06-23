@@ -46,11 +46,13 @@ const BulkImportTask = () => {
     encounterID: item.id,
     encounterDate: item.date,
     user: item.submitter?.displayName || "-",
-    occurrence: "-",
-    individualID: "-",
+    occurrenceID: item.occurrenceId || "-",
+    individualID: item.individualId || "-",
     imageCount: item.numberMediaAssets,
-    class: "-",
+    class: item.class || "-",
   }));
+
+  console.log("tableData1", tableData);
 
   const columns = [
     {
@@ -71,15 +73,29 @@ const BulkImportTask = () => {
     },
     {
       name: "Encounter Date",
+      cell: (row) => new Date(row.encounterDate).toLocaleString(),
       selector: (row) => row.encounterDate,
     },
     {
       name: "User",
+      cell: (row) => row.user,
       selector: (row) => row.user,
     },
     {
       name: "Occurrence",
-      selector: (row) => row.occurrence,
+      cell: (row) =>
+        row.occurrenceID !== "-" ? (
+          <a
+            href={`/occurrence.jsp?number=${row.occurrenceID}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {row.occurrenceID}
+          </a>
+        ) : (
+          "-"
+        ),
+      selector: (row) => row.occurrenceID,
     },
     {
       name: "Individual ID",
@@ -99,10 +115,12 @@ const BulkImportTask = () => {
     },
     {
       name: "Image Count",
+      cell: (row) => row.imageCount,
       selector: (row) => row.imageCount,
     },
     {
       name: "Class",
+      cell: (row) => row.class,
       selector: (row) => row.class,
     },
   ];
@@ -138,7 +156,7 @@ const BulkImportTask = () => {
               progress: task?.importPercent || 0,
               status: (() => {
                 if (task?.importPercent === 1) {
-                  return "Completed";
+                  return "Complete";
                 } else if (task?.importPercent) {
                   return "In Progress";
                 } else {
@@ -211,7 +229,7 @@ const BulkImportTask = () => {
                   id: "TOTAL_MARKED_INDIVIDUALS",
                   defaultMessage: "Total Marked Individuals",
                 }),
-                value: task?.detectionSummary?.numberMediaAssets || 0,
+                value: task?.numberMarkedIndividuals || 0,
               },
             ]}
           />

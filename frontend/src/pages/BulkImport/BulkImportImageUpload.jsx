@@ -24,20 +24,17 @@ const handleDragLeave = (e) => {
   e.currentTarget.style.border = "1px dashed #007BFF";
 };
 
-export const BulkImportImageUpload = observer(({
-  store,
-  renderMode1
-}) => {
+export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const fileInputRef = useRef(null);
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
-  // const maxSize = data?.maximumMediaSizeMegabytes || 1;
-  const maxSize = 1; // Default to 5MB if not set
+  const maxSize = data?.maximumMediaSizeMegabytes || 10;
+  // const maxSize = 10; // Default to 10MB if not set
 
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
-  const THUMBNAIL_THRESHOLD = 200;
+  const THUMBNAIL_THRESHOLD = 50;
 
   store.setMaxImageCount(data?.maximumMediaCount || 1000);
   const currentCount = store.imagePreview.length;
@@ -187,110 +184,109 @@ export const BulkImportImageUpload = observer(({
           </div>
         )}
 
-        {!isProcessingDrop && renderMode === "grid" && store.imagePreview.length > 0 && !renderMode1 && (
-          <Row className="mb-4 ms-2" id="image-preview-grid">
-            {store.imagePreview.map((preview, index) => (
-              <Col
-                key={index}
-                className="mb-4 me-4 d-flex flex-column justify-content-between"
-                style={{ maxWidth: "200px", position: "relative" }}
-              >
-                <div style={{ position: "relative" }}>
-                  <i
-                    className="bi bi-x-circle-fill"
-                    style={{
-                      position: "absolute",
-                      top: "-10px",
-                      right: "-5px",
-                      cursor: "pointer",
-                      fontSize: "1.2rem",
-                      color: theme.primaryColors.primary500,
-                      zIndex: 10,
-                    }}
-                    title="Remove image"
-                    onClick={() => store.removePreview(preview.fileName)}
-                  ></i>
-
-                  {preview.showThumbnail && preview.src ? (
-                    <BootstrapImage
-                      src={preview.src}
+        {!isProcessingDrop &&
+          renderMode === "grid" &&
+          store.imagePreview.length > 0 &&
+          !renderMode1 && (
+            <Row className="mb-4 ms-2" id="image-preview-grid">
+              {store.imagePreview.map((preview, index) => (
+                <Col
+                  key={index}
+                  className="mb-4 me-4 d-flex flex-column justify-content-between"
+                  style={{ maxWidth: "200px", position: "relative" }}
+                >
+                  <div style={{ position: "relative" }}>
+                    <i
+                      className="bi bi-x-circle-fill"
                       style={{
-                        width: "100%",
-                        height: "120px",
-                        objectFit: "fill",
+                        position: "absolute",
+                        top: "-10px",
+                        right: "-5px",
+                        cursor: "pointer",
+                        fontSize: "1.2rem",
+                        color: theme.primaryColors.primary500,
+                        zIndex: 10,
                       }}
-                      alt={`Preview ${index + 1}`}
-                    />
-                  ) : (
+                      title="Remove image"
+                      onClick={() => store.removePreview(preview.fileName)}
+                    ></i>
+
+                    {preview.showThumbnail && preview.src ? (
+                      <BootstrapImage
+                        src={preview.src}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "fill",
+                        }}
+                        alt={`Preview ${index + 1}`}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          height: "120px",
+                          backgroundColor: "#f8f9fa",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <i
+                          className="bi bi-file-image"
+                          style={{
+                            fontSize: "2rem",
+                            color: theme.primaryColors.primary700,
+                          }}
+                        ></i>
+                      </div>
+                    )}
+
                     <div
+                      className="mt-2"
                       style={{
-                        height: "120px",
-                        backgroundColor: "#f8f9fa",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        width: "200px",
+                        wordWrap: "break-word",
+                        whiteSpace: "normal",
+                        fontSize: "0.9rem",
                       }}
                     >
-                      <i
-                        className="bi bi-file-image"
-                        style={{
-                          fontSize: "2rem",
-                          color: theme.primaryColors.primary700,
-                        }}
-                      ></i>
-                    </div>
-                  )}
-
-                  <div
-                    className="mt-2"
-                    style={{
-                      width: "200px",
-                      wordWrap: "break-word",
-                      whiteSpace: "normal",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    <div className="text-truncate" title={preview.fileName}>
-                      {preview.fileName}
-                    </div>
-                    {preview.error && (
-                      <div style={{ color: theme.statusColors.red500 }}>
-                        <FormattedMessage id="UPLOAD_FAILED" />
+                      <div className="text-truncate" title={preview.fileName}>
+                        {preview.fileName}
                       </div>
-                    )
-
-                    }
-                    <div>
-                      {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
-                      {(preview.fileSize / (1024 * 1024)).toFixed(2) >
-                        maxSize && (
+                      {preview.error && (
+                        <div style={{ color: theme.statusColors.red500 }}>
+                          <FormattedMessage id="UPLOAD_FAILED" />
+                        </div>
+                      )}
+                      <div>
+                        {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
+                        {(preview.fileSize / (1024 * 1024)).toFixed(2) >
+                          maxSize && (
                           <div style={{ color: theme.statusColors.red500 }}>
                             <FormattedMessage id="FILE_SIZE_EXCEEDED" />
                           </div>
                         )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <ProgressBar
-                  now={preview.progress}
-                  label={`${Math.round(preview.progress)}%`}
-                  className="mt-2"
-                  style={{
-                    width: "100%",
-                    backgroundColor: theme.primaryColors.primary50,
-                  }}
-                />
-              </Col>
-            ))}
-          </Row>
-        )}
+                  <ProgressBar
+                    now={preview.progress}
+                    label={`${Math.round(preview.progress)}%`}
+                    className="mt-2"
+                    style={{
+                      width: "100%",
+                      backgroundColor: theme.primaryColors.primary50,
+                    }}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
 
         {store.imagePreview.length > 0 &&
-          (
-            (!isProcessingDrop && renderMode === "list") ||
-            renderMode1 === "list"
-          ) && (
+          ((!isProcessingDrop && renderMode === "list") ||
+            renderMode1 === "list") && (
             <List
               id="image-preview-list"
               height={600}

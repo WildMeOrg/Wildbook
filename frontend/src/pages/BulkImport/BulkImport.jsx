@@ -20,11 +20,11 @@ const BulkImport = observer(() => {
   const lastTask = localStorage.getItem("lastBulkImportTask") || null;
   const { task: unfinishedTask } = useGetBulkImportTask(lastTask);
   const [mountedSteps, setMountedSteps] = useState([0]);
-  const [ renderMode1, setRenderMode1 ] = useState();
+  const [renderMode1, setRenderMode1] = useState();
 
   useEffect(() => {
     if (!mountedSteps.includes(store.activeStep)) {
-      setMountedSteps(prev => [...prev, store.activeStep]);
+      setMountedSteps((prev) => [...prev, store.activeStep]);
     }
   }, [store.activeStep]);
 
@@ -44,10 +44,7 @@ const BulkImport = observer(() => {
     ) {
       store.saveState();
     }
-  }, [
-    store.uploadedImages.length,
-    store.spreadsheetData.length,
-  ]);
+  }, [store.uploadedImages.length, store.spreadsheetData.length]);
 
   return (
     <Container>
@@ -62,7 +59,7 @@ const BulkImport = observer(() => {
 
       {mountedSteps.includes(0) && (
         <div style={{ display: store.activeStep === 0 ? "block" : "none" }}>
-          <BulkImportImageUpload store={store} renderMode1={renderMode1}/>
+          <BulkImportImageUpload store={store} renderMode1={renderMode1} />
         </div>
       )}
       {mountedSteps.includes(1) && (
@@ -81,16 +78,24 @@ const BulkImport = observer(() => {
         </div>
       )}
 
-      {savedSubmissionId && <BulkImportContinueModal store={store} setRenderMode1={setRenderMode1}/>}
+      {savedSubmissionId && (
+        <BulkImportContinueModal
+          store={store}
+          setRenderMode1={setRenderMode1}
+        />
+      )}
       <BulkImportInstructionsModal store={store} />
 
-      {unfinishedTask && unfinishedTask.status && unfinishedTask.status !== "completed" ? <BulkImportUnfinishedTaskModal
-        fileName={unfinishedTask?.sourceName || "file name"}
-        dateCreated={unfinishedTask?.dateCreated || "file last edited date"}
-        taskId={lastTask}
-        taskStatus={unfinishedTask?.status || "status not available"}
-      /> : null}
-
+      {unfinishedTask &&
+      unfinishedTask.status &&
+      unfinishedTask.status !== "complete" ? (
+        <BulkImportUnfinishedTaskModal
+          fileName={unfinishedTask?.sourceName || "file name"}
+          dateCreated={unfinishedTask?.dateCreated || "file last edited date"}
+          taskId={lastTask}
+          taskStatus={unfinishedTask?.status || "status not available"}
+        />
+      ) : null}
     </Container>
   );
 });
