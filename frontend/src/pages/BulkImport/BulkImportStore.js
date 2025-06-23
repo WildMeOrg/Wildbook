@@ -1,9 +1,15 @@
-import { makeAutoObservable, runInAction, toJS } from 'mobx';
+import { makeAutoObservable, runInAction, toJS } from "mobx";
 import Flow from "@flowjs/flow.js";
 import { v4 as uuidv4 } from "uuid";
-import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-import { extraStringCols, intRule, doubleRule, stringRule, specializedColumns } from "./BulkImportConstants";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import {
+  extraStringCols,
+  intRule,
+  doubleRule,
+  stringRule,
+  specializedColumns,
+} from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
 export class BulkImportStore {
@@ -39,7 +45,7 @@ export class BulkImportStore {
     columnCount: 0,
     rowCount: 0,
     uploadProgress: this._spreadsheetUploadProgress,
-  }
+  };
   _submissionErrors = {};
   _showInstructions = false;
   _isSavingDraft = false;
@@ -47,7 +53,7 @@ export class BulkImportStore {
   _errorSummary = {};
   _cachedValidation = null;
   _filesParsed = false;
-  _filesParsingCount = 0
+  _filesParsingCount = 0;
   _pendingReadCount = 0;
   _imageFileMap = new Map();
   _pendingDropFileCount = 0;
@@ -97,8 +103,8 @@ export class BulkImportStore {
       },
       message: (val) => {
         const images = val.split(",").map((img) => img.trim());
-        const missing = images.filter((img) =>
-          !this._uploadedImages.includes(img)
+        const missing = images.filter(
+          (img) => !this._uploadedImages.includes(img),
         );
         return `missing images: ${missing.join(", ")}`;
       },
@@ -106,12 +112,7 @@ export class BulkImportStore {
     "Encounter.year": {
       required: true,
       validate: (val) => {
-        const FORMATS = [
-          'YYYY',
-          'YYYY-MM',
-          'YYYY-MM-DD',
-          'YYYY-MM-DDTHH:mm',
-        ];
+        const FORMATS = ["YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm"];
         return dayjs(val, FORMATS, true).isValid();
       },
       message:
@@ -122,7 +123,7 @@ export class BulkImportStore {
       validate: (val) => {
         return this._validspecies.includes(val);
       },
-      message: "must enter a valid species",
+      message: "invalid species",
     },
     "Encounter.decimalLatitude": {
       required: false,
@@ -152,7 +153,7 @@ export class BulkImportStore {
 
         return true;
       },
-      message: "Must enter a valid latitude and longitude",
+      message: "invalid latitude and longitude",
     },
     "Encounter.locationID": {
       required: true,
@@ -228,7 +229,8 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        const re = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        const re =
+          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         return re.test(val);
       },
       message: "invalid email address",
@@ -253,8 +255,8 @@ export class BulkImportStore {
         const dt = new Date(val);
         return !isNaN(dt.getTime());
       },
-      message: "must be a valid date in milliseconds",
-    }
+      message: "invalid date in milliseconds",
+    },
   };
 
   constructor() {
@@ -262,20 +264,15 @@ export class BulkImportStore {
 
     this._validationRules = {
       ...this._validationRules,
+      ...Object.fromEntries(this._INT_COLS.map((col) => [col, intRule])),
+      ...Object.fromEntries(this._DOUBLE_COLS.map((col) => [col, doubleRule])),
       ...Object.fromEntries(
-        this._INT_COLS.map((col) => [col, intRule])
-      ),
-      ...Object.fromEntries(
-        this._DOUBLE_COLS.map((col) => [col, doubleRule])
-      ),
-      ...Object.fromEntries(
-        this._STRING_COLS.map((col) => [col, { stringRule }])
+        this._STRING_COLS.map((col) => [col, { stringRule }]),
       ),
     };
   }
 
   get stateSnapshot() {
-
     return {
       submissionId: this._submissionId,
 
@@ -286,7 +283,7 @@ export class BulkImportStore {
       imagePreview: toJS(this._imagePreview),
       imageSectionFileNames: toJS(this._imageSectionFileNames),
       imageUploadProgress: "100%",
-      uploadedImages: [],
+      uploadedImages: toJS(this._uploadedImages),
 
       spreadsheetData: toJS(this._spreadsheetData),
       spreadsheetUploadProgress: this._spreadsheetUploadProgress,
@@ -408,8 +405,8 @@ export class BulkImportStore {
 
   get emptyFieldCount() {
     let count = 0;
-    this._spreadsheetData.forEach(row => {
-      Object.values(row).forEach(cell => {
+    this._spreadsheetData.forEach((row) => {
+      Object.values(row).forEach((cell) => {
         if (String(cell ?? "").trim() === "") {
           count++;
         }
@@ -419,21 +416,25 @@ export class BulkImportStore {
   }
 
   get errorSummary() {
-    let error = 0, missingField = 0, emptyField = 0, imgVerifyPending = 0;
+    let error = 0,
+      missingField = 0,
+      emptyField = 0,
+      imgVerifyPending = 0;
     const { errors = {} } = this.validateSpreadsheet() || {};
 
     const uploadingSet = new Set(
       this._imagePreview
-        .filter(p => p.progress > 0 && p.progress < 100)
-        .map(p => p.fileName)
+        .filter((p) => p.progress > 0 && p.progress < 100)
+        .map((p) => p.fileName),
     );
 
     this._spreadsheetData.forEach((row, rowIdx) => {
       let rowHasPendingUpload = false;
-      this._columnsDef.forEach(col => {
+      this._columnsDef.forEach((col) => {
         const rules = this._validationRules[col] ?? {};
         const value = String(row[col] ?? "").trim();
-        const errMsg = this._submissionErrors[rowIdx]?.[col] ?? errors[rowIdx]?.[col];
+        const errMsg =
+          this._submissionErrors[rowIdx]?.[col] ?? errors[rowIdx]?.[col];
 
         if (errMsg) {
           error += 1;
@@ -446,9 +447,14 @@ export class BulkImportStore {
           else emptyField += 1;
         }
 
-        if (col.startsWith("Encounter.mediaAsset") && value && col.split(".").length === 2) {
+        if (
+          col.startsWith("Encounter.mediaAsset") &&
+          value &&
+          col.split(".").length === 2
+        ) {
           const imgs = value.split(/\s*,\s*/);
-          if (imgs.some(img => uploadingSet.has(img))) rowHasPendingUpload = true;
+          if (imgs.some((img) => uploadingSet.has(img)))
+            rowHasPendingUpload = true;
         }
       });
 
@@ -609,18 +615,20 @@ export class BulkImportStore {
       this._minimalFields = minimalFields;
 
       this._STRING_COLS = Object.keys(minimalFields)
-        .filter(k => minimalFields[k] === "string")
+        .filter((k) => minimalFields[k] === "string")
         .concat(extraStringCols);
-      this._INT_COLS = Object.keys(minimalFields)
-        .filter(k => minimalFields[k] === "int");
-      this._DOUBLE_COLS = Object.keys(minimalFields)
-        .filter(k => minimalFields[k] === "double");
+      this._INT_COLS = Object.keys(minimalFields).filter(
+        (k) => minimalFields[k] === "int",
+      );
+      this._DOUBLE_COLS = Object.keys(minimalFields).filter(
+        (k) => minimalFields[k] === "double",
+      );
 
       this._validationRules = {
         ...this._validationRules,
-        ...Object.fromEntries(this._INT_COLS.map(c => [c, intRule])),
-        ...Object.fromEntries(this._DOUBLE_COLS.map(c => [c, doubleRule])),
-        ...Object.fromEntries(this._STRING_COLS.map(c => [c, stringRule])),
+        ...Object.fromEntries(this._INT_COLS.map((c) => [c, intRule])),
+        ...Object.fromEntries(this._DOUBLE_COLS.map((c) => [c, doubleRule])),
+        ...Object.fromEntries(this._STRING_COLS.map((c) => [c, stringRule])),
       };
     });
   }
@@ -646,7 +654,6 @@ export class BulkImportStore {
     });
   }
 
-
   mergeValidationWarning(rowIndex, columnId, warningMessage) {
     if (!this._validationWarnings[rowIndex]) {
       this._validationWarnings[rowIndex] = {};
@@ -661,7 +668,6 @@ export class BulkImportStore {
       }
     }
   }
-
 
   validateMediaAsset0ColumnOnly() {
     const errors = {};
@@ -721,14 +727,14 @@ export class BulkImportStore {
       this._rawColumns = [];
       this._worksheetInfo = {
         sheetCount: 0,
-        sheetNames: '',
+        sheetNames: "",
         columnCount: 0,
         rowCount: 0,
         uploadProgress: 0,
       };
     });
 
-    window.localStorage.removeItem('BulkImportStore');
+    window.localStorage.removeItem("BulkImportStore");
   }
 
   saveState() {
@@ -739,28 +745,33 @@ export class BulkImportStore {
       });
 
       const json = JSON.stringify(this.stateSnapshot);
-      window.localStorage.setItem('BulkImportStore', json);
+      window.localStorage.setItem("BulkImportStore", json);
     } catch (e) {
-      console.error('saving as draft failed', e);
+      console.error("saving as draft failed", e);
     } finally {
       setTimeout(
-        () => runInAction(() => { this._isSavingDraft = false; }),
-        700
+        () =>
+          runInAction(() => {
+            this._isSavingDraft = false;
+          }),
+        700,
       );
     }
   }
 
   applyServerUploadStatus(uploaded = []) {
     console.log("Applying server upload status:", uploaded);
-    const uploadedFileNames = uploaded.map(p => p[0]);
+    const uploadedFileNames = uploaded.map((p) => p[0]);
 
     runInAction(() => {
       this._uploadedImages = [...uploadedFileNames];
       this._imageSectionFileNames = [...uploadedFileNames];
 
       this._imagePreview = this._imagePreview
-        .filter(preview => uploadedFileNames.includes(preview.fileName.trim()))
-        .map(preview => ({
+        .filter((preview) =>
+          uploadedFileNames.includes(preview.fileName.trim()),
+        )
+        .map((preview) => ({
           ...preview,
           progress: 100,
           src: null,
@@ -770,10 +781,11 @@ export class BulkImportStore {
 
   async fetchAndApplyUploaded() {
     if (!this._submissionId) return;
-    console.log("Fetching uploaded files for submission ID:", this._submissionId);
-    const resp = await fetch(
-      `/api/v3/bulk-import/${this._submissionId}/files`
+    console.log(
+      "Fetching uploaded files for submission ID:",
+      this._submissionId,
     );
+    const resp = await fetch(`/api/v3/bulk-import/${this._submissionId}/files`);
 
     if (!resp.ok) {
       console.error("Unexpected response", resp.status);
@@ -806,23 +818,18 @@ export class BulkImportStore {
         value: status,
         label: status,
       }));
-    }
-    else if (col === "Encounter.lifeStage") {
+    } else if (col === "Encounter.lifeStage") {
       return this._validLifeStages.map((stage) => ({
         value: stage,
         label: stage,
       }));
     } else if (col === "Encounter.sex") {
-      return this._validSex.map((data) => (
-        { value: data, label: data }
-      ))
+      return this._validSex.map((data) => ({ value: data, label: data }));
     } else if (col === "Encounter.behavior") {
-      return this._validBehavior.map((data) => (
-        {
-          value: data,
-          label: data
-        }
-      ))
+      return this._validBehavior.map((data) => ({
+        value: data,
+        label: data,
+      }));
     }
     return [];
   }
@@ -928,20 +935,19 @@ export class BulkImportStore {
       this._imageSectionFileNames.push(file.name);
     });
 
-
     flowInstance.opts.createXhr = () => {
       const xhr = new XMLHttpRequest();
       xhr.timeout = 30_000;
       xhr.ontimeout = () => {
-        console.warn('XHR timeout, retrying...');
+        console.warn("XHR timeout, retrying...");
         this._flow.retry();
       };
       return xhr;
     };
 
-    flowInstance.on('fileRetry', (file, chunk) => {
+    flowInstance.on("fileRetry", (file, chunk) => {
       console.log(
-        `file ${file.name} chunk #${chunk.offset} is retrying # ${chunk.retries} `
+        `file ${file.name} chunk #${chunk.offset} is retrying # ${chunk.retries} `,
       );
     });
 
@@ -955,20 +961,20 @@ export class BulkImportStore {
 
     flowInstance.on("fileSuccess", (file) => {
       runInAction(() => {
-        this._imagePreview = this._imagePreview.map(f =>
-          f.fileName === file.name ? { ...f, progress: 100 } : f
+        this._imagePreview = this._imagePreview.map((f) =>
+          f.fileName === file.name ? { ...f, progress: 100 } : f,
         );
         this._uploadedImages.push(file.name);
       });
     });
 
-    window.addEventListener('offline', () => {
-      console.warn('no internet connection, pausing upload');
+    window.addEventListener("offline", () => {
+      console.warn("no internet connection, pausing upload");
       flowInstance.pause();
     });
 
-    window.addEventListener('online', () => {
-      console.info('internet connection restored, resuming upload');
+    window.addEventListener("online", () => {
+      console.info("internet connection restored, resuming upload");
       flowInstance.resume();
       // flowInstance.upload()
     });
@@ -991,7 +997,8 @@ export class BulkImportStore {
 
   generateThumbnailsForFirst200() {
     const previews = this._imagePreview;
-    if (previews.length > this._imageCountGenerateThumbnail) return Promise.resolve();
+    if (previews.length > this._imageCountGenerateThumbnail)
+      return Promise.resolve();
 
     return new Promise((resolve) => {
       let index = 0;
@@ -1058,7 +1065,6 @@ export class BulkImportStore {
   }
 
   uploadFilteredFiles(maxSize) {
-
     console.log("Uploading files with max size:", maxSize, "MB");
 
     if (!this._flow) {
@@ -1072,17 +1078,21 @@ export class BulkImportStore {
 
     // print invalid files
     const invalidFiles = this._flow.files.filter(
-      (file) => file.size > maxSize * 1024 * 1024
+      (file) => file.size > maxSize * 1024 * 1024,
     );
 
     if (invalidFiles.length > 0) {
       console.warn(
         `The following files are too large (> ${maxSize} MB) and will not be uploaded:`,
-        invalidFiles.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
+        invalidFiles.map(
+          (f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`,
+        ),
       );
       alert(
         `The following files are too large (> ${maxSize} MB) and will not be uploaded:\n` +
-        invalidFiles.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`).join("\n")
+          invalidFiles
+            .map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
+            .join("\n"),
       );
     }
 
@@ -1104,7 +1114,6 @@ export class BulkImportStore {
   updateRawFromNormalizedRow() {
     console.log("Updating raw data from normalized rows");
     this._spreadsheetData.forEach((_, rowIndex) => {
-
       const norm = this._spreadsheetData[rowIndex];
       const raw = this._rawData[rowIndex];
       runInAction(() => {
@@ -1118,24 +1127,21 @@ export class BulkImportStore {
               raw["Encounter.day"] = "";
               raw["Encounter.hour"] = "";
               raw["Encounter.minutes"] = "";
-            }
-            else if (/^\d{4}-\d{2}$/.test(val)) {
+            } else if (/^\d{4}-\d{2}$/.test(val)) {
               const [y, m] = val.split("-").map(Number);
               raw["Encounter.year"] = y;
               raw["Encounter.month"] = m;
               raw["Encounter.day"] = "";
               raw["Encounter.hour"] = "";
               raw["Encounter.minutes"] = "";
-            }
-            else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
               const [y, m, d] = val.split("-").map(Number);
               raw["Encounter.year"] = y;
               raw["Encounter.month"] = m;
               raw["Encounter.day"] = d;
               raw["Encounter.hour"] = "";
               raw["Encounter.minutes"] = "";
-            }
-            else {
+            } else {
               const dt = new Date(val);
               raw["Encounter.year"] = dt.getFullYear();
               raw["Encounter.month"] = dt.getMonth() + 1;
@@ -1154,7 +1160,10 @@ export class BulkImportStore {
 
         if (norm["Encounter.mediaAsset0"] != null) {
           Object.keys(raw).forEach((key) => {
-            if (key.startsWith("Encounter.mediaAsset") && key.split(".").length === 2) {
+            if (
+              key.startsWith("Encounter.mediaAsset") &&
+              key.split(".").length === 2
+            ) {
               delete raw[key];
             }
           });
@@ -1168,7 +1177,7 @@ export class BulkImportStore {
 
         if (norm["Encounter.decimalLatitude"] != null) {
           const m = /^\s*([^,]+)\s*,\s*([^,]+)\s*$/.exec(
-            norm["Encounter.decimalLatitude"]
+            norm["Encounter.decimalLatitude"],
           );
           raw["Encounter.decimalLatitude"] = m ? m[1] : "";
           raw["Encounter.decimalLongitude"] = m ? m[2] : "";
@@ -1188,10 +1197,22 @@ export class BulkImportStore {
       });
     } else if (entry.isFile) {
       entry.file((file) => {
-        const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/bmp"];
-        const isValid = supportedTypes.includes(file.type)
+        const supportedTypes = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/bmp",
+        ];
+        const isValid = supportedTypes.includes(file.type);
         // && file.size <= maxSize * 1024 * 1024;
-        console.log("isValid:", isValid, "file:", file.name, "size:", file.size);
+        console.log(
+          "isValid:",
+          isValid,
+          "file:",
+          file.name,
+          "size:",
+          file.size,
+        );
 
         // const fullPath = entry.fullPath || file.name;
         if (isValid && !this._imageSectionFileNames.includes(file.name)) {
@@ -1233,7 +1254,7 @@ export class BulkImportStore {
       } else {
         console.warn(`Column ${col} does not exist in row ${rowIndex}`);
       }
-    })
+    });
     // this.updateRawFromNormalizedRow();
     this.invalidateValidation();
   }
@@ -1251,7 +1272,9 @@ export class BulkImportStore {
       // }
 
       if (this._pendingDropFileCount > this._maxImageCount) {
-        alert(`You can only upload a maximum3 of ${this._maxImageCount} images.`);
+        alert(
+          `You can only upload a maximum3 of ${this._maxImageCount} images.`,
+        );
         this._collectedValidFiles = [];
         this._pendingDropFileCount = 0;
         this.setFilesParsed(true);
@@ -1270,14 +1293,13 @@ export class BulkImportStore {
       // this.uploadFilteredFiles();
 
       if (this._imagePreview.length <= this._imageCountGenerateThumbnail) {
-        this.generateThumbnailsForFirst200()
+        this.generateThumbnailsForFirst200();
         // .then(() => {
         // if (this._flow.files.some(f => f.isPaused())) {
         //   this.flow.upload();
         // }
         // });
       }
-
     });
   }
 
@@ -1343,7 +1365,9 @@ export class BulkImportStore {
         };
       }
 
-      const mediaAssetLabeledMatch = col.match(/^Encounter\.mediaAsset\d+\.(\w+)$/);
+      const mediaAssetLabeledMatch = col.match(
+        /^Encounter\.mediaAsset\d+\.(\w+)$/,
+      );
       if (mediaAssetLabeledMatch) {
         const field = mediaAssetLabeledMatch[1];
         if (field !== "keywords") {
@@ -1355,7 +1379,9 @@ export class BulkImportStore {
         }
       }
 
-      const personFieldMatch = col.match(/^Encounter\.(photographer|submitter|informOther)\d+\.(emailAddress|fullName|affiliation)$/);
+      const personFieldMatch = col.match(
+        /^Encounter\.(photographer|submitter|informOther)\d+\.(emailAddress|fullName|affiliation)$/,
+      );
       if (personFieldMatch) {
         const fieldType = personFieldMatch[2];
         if (fieldType === "emailAddress") {
@@ -1424,7 +1450,6 @@ export class BulkImportStore {
     const knownColumnCache = {};
     this._spreadsheetData.forEach((row, rowIndex) => {
       this._columnsDef.forEach((col) => {
-
         if (!(col in knownColumnCache)) {
           knownColumnCache[col] =
             col in this._minimalFields ||
@@ -1433,12 +1458,19 @@ export class BulkImportStore {
             this.isDynamicKnownColumn(col);
         }
 
-        if (col.startsWith("Encounter.mediaAsset") && this._labeledKeywordAllowedKeys.includes(col.split(".")[2])) {
+        if (
+          col.startsWith("Encounter.mediaAsset") &&
+          this._labeledKeywordAllowedKeys.includes(col.split(".")[2])
+        ) {
           const columnName = col.split(".")[2];
           const value = row[col];
-          if (value && !this._labeledKeywordAllowedPairs[columnName].includes(value)) {
+          if (
+            value &&
+            !this._labeledKeywordAllowedPairs[columnName].includes(value)
+          ) {
             if (!errors[rowIndex]) errors[rowIndex] = {};
-            errors[rowIndex][col] = `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
+            errors[rowIndex][col] =
+              `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
           }
 
           return;
@@ -1499,8 +1531,6 @@ export class BulkImportStore {
       });
     }
   }
-
 }
 
 export default BulkImportStore;
-

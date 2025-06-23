@@ -1,14 +1,14 @@
-
 import React, { useEffect, useState } from "react";
-import {
-  Modal,
-  Button,
-} from "react-bootstrap";
+import { Modal, Button } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { FaDownload } from "react-icons/fa";
 
 export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
+
+  const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
+  const uploadedImageCount = savedStore.uploadedImages?.length || 0;
+  const lastSavedAt = savedStore.lastSavedAt || new Date.now();
 
   useEffect(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
@@ -65,18 +65,15 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
           <div className="flex-grow-1">
             <div className="fw-semibold">{store.worksheetInfo.fileName}</div>
             <div className="small text-muted">
-              {store.uploadedImages.length || 0}{" "}
+              {uploadedImageCount}{" "}
               <FormattedMessage
                 id="IMAGES_UPLOADED"
                 defaultMessage="Images uploaded"
               />
             </div>
             <div className="small text-muted">
-              <FormattedMessage
-                id="LAST_EDITED"
-                defaultMessage="Last Edited"
-              />
-              : {new Date(store.lastSavedAt).toLocaleString()}
+              <FormattedMessage id="LAST_EDITED" defaultMessage="Last Edited" />
+              : {new Date(lastSavedAt).toLocaleString()}
             </div>
           </div>
 
