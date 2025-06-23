@@ -3393,7 +3393,8 @@ public class Encounter extends Base implements java.io.Serializable {
         try {
             String queryString =
                 "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(feat) && mediaAsset.features.contains(feat) && mediaAsset.id =="
-                + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset mediaAsset; org.ecocean.Annotation ann; org.ecocean.media.Feature feat";
+                + ma.getId() +
+                " VARIABLES org.ecocean.media.MediaAsset mediaAsset; org.ecocean.Annotation ann; org.ecocean.media.Feature feat";
             Query query = myShepherd.getPM().newQuery(queryString);
             Collection results = (Collection)query.execute();
             returnEncs = new ArrayList<Encounter>(results);
@@ -3981,14 +3982,14 @@ public class Encounter extends Base implements java.io.Serializable {
                 encCount++;
                 if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
                 // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
-                
-                //this first part asks the question: who is the owner of the Encounter collaborating with?
-                //Let those people see the encounter
-                //This ignores the one-way visibility of admins and orgAdmins
-                //the question is backwards: it asks: who can the owning user see?
-                //better to ask: who can see this Encounter by collaborating with its owner?
+
+                // this first part asks the question: who is the owner of the Encounter collaborating with?
+                // Let those people see the encounter
+                // This ignores the one-way visibility of admins and orgAdmins
+                // the question is backwards: it asks: who can the owning user see?
+                // better to ask: who can see this Encounter by collaborating with its owner?
                 /*
-                if (collab.containsKey(uid)) {
+                   if (collab.containsKey(uid)) {
                     for (String colUsername : collab.get(uid)) {
                         String colId = usernameToId.get(colUsername);
                         if (colId == null) {
@@ -3999,27 +4000,24 @@ public class Encounter extends Base implements java.io.Serializable {
                         }
                         viewUsers.put(colId);
                     }
-                }*/
-                
-                //better: ask the question, who else can see this encounter via collaboration?
-                //get the entry set for all collaborations
-                Set<String> uids=collab.keySet();
-                //iterate over the key set
-                Iterator<String> uidsIter=uids.iterator();
-                while(uidsIter.hasNext()) {
-                	
-                	//get the uid for the user of this entry
-                	String localUid = uidsIter.next();
-                	//get the list of usernames in this entry
-                	Set<String> localCollabs = collab.get(localUid);
-                	//evaluate if the submitterId (a username) of this encounter is in this list
-                	if(localCollabs.contains(submitterId)) {
-                		//if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
-                		viewUsers.put(localUid);
-                	}
-                }
+                   }*/
 
-                
+                // better: ask the question, who else can see this encounter via collaboration?
+                // get the entry set for all collaborations
+                Set<String> uids = collab.keySet();
+                // iterate over the key set
+                Iterator<String> uidsIter = uids.iterator();
+                while (uidsIter.hasNext()) {
+                    // get the uid for the user of this entry
+                    String localUid = uidsIter.next();
+                    // get the list of usernames in this entry
+                    Set<String> localCollabs = collab.get(localUid);
+                    // evaluate if the submitterId (a username) of this encounter is in this list
+                    if (localCollabs.contains(submitterId)) {
+                        // if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
+                        viewUsers.put(localUid);
+                    }
+                }
                 if (viewUsers.length() > 0) {
                     updateData.put("viewUsers", viewUsers);
                     try {
@@ -4030,12 +4028,11 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                 }
             }
-            
         } catch (Exception ex) {
             System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
             ex.printStackTrace();
         } finally {
-        	if(q!=null)q.closeAll();
+            if (q != null) q.closeAll();
         }
         Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
@@ -4162,6 +4159,8 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         jgen.writeEndArray();
 
+        ImportTask itask = this.getImportTask(myShepherd);
+        if (itask != null) jgen.writeStringField("importTaskId", itask.getId());
         jgen.writeArrayFieldStart("annotationViewpoints");
         for (String vp : this.getAnnotationViewpoints()) {
             jgen.writeString(vp);
@@ -4500,6 +4499,7 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("submitterUserId", keywordType);
         map.put("individualTaxonomy", keywordType);
         map.put("individualId", keywordType);
+        map.put("importTaskId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
@@ -4576,7 +4576,8 @@ public class Encounter extends Base implements java.io.Serializable {
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
         if (CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()) != null) {
-            enc.setState(CommonConfiguration.getProperty("encounterState0", myShepherd.getContext()));
+            enc.setState(CommonConfiguration.getProperty("encounterState0",
+                myShepherd.getContext()));
         }
         enc.setComments(payload.optString("comments", null));
         if (user == null) {
