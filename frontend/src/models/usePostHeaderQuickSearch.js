@@ -35,6 +35,14 @@ export default function usePostHeaderQuickSearch(value) {
                     },
                   },
                 },
+                {
+                  wildcard: {
+                    encounterIds: {
+                      value: `*${value}*`,
+                      case_insensitive: true,
+                    },
+                  },
+                },
               ],
             },
           },

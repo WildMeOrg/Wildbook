@@ -294,7 +294,15 @@ if(request.getUserPrincipal()!=null){
                                             case_insensitive: true
                                         }
                                     }
-                                }
+                                },
+                                {
+                                  wildcard: {
+                                    encounterIds: {
+                                      value: '*' + query + '*',
+                                            case_insensitive: true
+                                    },
+                                  },
+                                },
                             ]
                         }
                     }
