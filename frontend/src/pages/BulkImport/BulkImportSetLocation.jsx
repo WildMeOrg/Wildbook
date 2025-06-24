@@ -23,7 +23,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showFailureModal, setShowFailureModal] = useState(false);
     const [lastEditedDate, setLastEditedDate] = useState(dayjs().format("YYYY-MM-DD"));
-    
+
     useEffect(() => {
         const disposer = reaction(
             () => store.spreadsheetData.map(row => row["Encounter.locationID"]),
@@ -42,7 +42,17 @@ export const BulkImportSetLocation = observer(({ store }) => {
         store.updateRawFromNormalizedRow();
         store.clearSubmissionErrors();
         try {
-            const result = await submit(submissionId, store.rawColumns, store.rawData, store.spreadsheetFileName, store.locationID, store.skipDetection, store.skipIdentification);
+            const updatedColumns = store.rawColumns.map(col => {
+                if (col.includes("occurrence") || col.includes("Occurrence")) {
+                    const updated = col
+                        .replace(/occurrence/g, "sighting")
+                        .replace(/Occurrence/g, "Sighting");
+                    return updated;
+                }
+                return col;
+            });
+
+            const result = await submit(submissionId, updatedColumns, store.rawData, store.spreadsheetFileName, store.locationID, store.skipDetection, store.skipIdentification);
             if (result?.status === 200) {
                 localStorage.removeItem("BulkImportStore");
                 console.log("Bulk import successful:", JSON.stringify(result));
@@ -137,7 +147,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
                         />
                         <label className="form-check-label" htmlFor="skipDetection">
                             <FormattedMessage id="SKIP_DETECTION_AND_ID" defaultMessage="Skip Detection and Identification" />
-                            
+
                         </label>
                     </div>
 

@@ -1091,9 +1091,9 @@ export class BulkImportStore {
       );
       alert(
         `The following files are too large (> ${maxSize} MB) and will not be uploaded:\n` +
-          invalidFiles
-            .map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
-            .join("\n"),
+        invalidFiles
+          .map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
+          .join("\n"),
       );
     }
 
@@ -1115,8 +1115,20 @@ export class BulkImportStore {
   updateRawFromNormalizedRow() {
     console.log("Updating raw data from normalized rows");
     this._spreadsheetData.forEach((_, rowIndex) => {
-      const norm = this._spreadsheetData[rowIndex];
       const raw = this._rawData[rowIndex];
+      const norm = this._spreadsheetData[rowIndex];
+
+      for (const key in norm) {
+        if (key.includes("Occurrence") || key.includes("occurrence")) {
+          const newKey = key
+            .replace(/Occurrence/g, "Sighting")
+            .replace(/occurrence/g, "sighting");
+
+          raw[newKey] = norm[key];  
+          delete raw[key];          
+        }
+      }
+
       runInAction(() => {
         if (norm["Encounter.year"]) {
           const val = norm["Encounter.year"];
