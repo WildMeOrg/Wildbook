@@ -32,11 +32,16 @@ export const BulkImportSpreadsheetUploadInfo = observer(({ store }) => {
   ];
   const theme = React.useContext(ThemeColorContext);
 
+  const title = intl.formatMessage(
+    { id: "EXCEL_SHEET_INFO_TITLE", defaultMessage: "Excel Sheet Info: {sheetCount}" },
+    { sheetCount: store.worksheetInfo.sheetCount }
+  );
+
   return (
     <div style={{ marginLeft: "2rem", marginTop: "2rem" }}>
       <InfoAccordion
         icon={<MdTableChart size={20} color={theme.primaryColors.primary500} />}
-        title="Spreadsheet Upload Info"
+        title={title}
         data={data}
       />
     </div>

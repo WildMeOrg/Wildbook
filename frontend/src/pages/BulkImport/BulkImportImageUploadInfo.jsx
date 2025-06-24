@@ -48,7 +48,10 @@ export const BulkImportImageUploadInfo = observer(({ store }) => {
     },
   ];
 
-  const title = `photos uploaded: ${store.uploadedImages.length} `;
+  const title = intl.formatMessage(
+    { id: "PHOTOS_UPLOADED_TITLE", defaultMessage: "photos uploaded: {count}" },
+    { count: store.uploadedImages.length }
+  );
 
   return (
     <div style={{ marginTop: "2rem" }}>

@@ -15,31 +15,21 @@ const BulkImportInstructionsModal = observer(({ store }) => (
   >
     <Modal.Header>
       <Modal.Title id="bulk-import-modal">
-        <FormattedMessage
-          id="bulkImport.instructions.title"
-          defaultMessage="Bulk Import Instructions"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_TITLE" />
       </Modal.Title>
     </Modal.Header>
 
     <Modal.Body>
       <p>
-        <FormattedMessage
-          id="bulkImport.instructions.description"
-          defaultMessage="Bulk Import helps you upload many records at once. You'll go through 4 upload steps, but there's one important step before you begin:"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_DESCRIPTION" />
       </p>
 
       <h5>
-        <FormattedMessage
-          id="bulkImport.instructions.step0.title"
-          defaultMessage="Step 0: Preparation"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP0_TITLE" />
       </h5>
       <p>
         <FormattedMessage
-          id="bulkImport.instructions.step0.content"
-          defaultMessage="Prepare your spreadsheet and images using the guidance in our {helpDocsLink}."
+          id="BULK_IMPORT_INSTRUCTIONS_STEP0_CONTENT"
           values={{
             helpDocsLink: (
               <a
@@ -47,10 +37,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <FormattedMessage
-                  id="bulkImport.instructions.helpDocs"
-                  defaultMessage="help docs"
-                />
+                <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_HELP_DOCS" />
               </a>
             ),
           }}
@@ -58,68 +45,40 @@ const BulkImportInstructionsModal = observer(({ store }) => (
       </p>
 
       <h5>
-        <FormattedMessage
-          id="bulkImport.instructions.step1.title"
-          defaultMessage="Step 1: Upload Images"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_TITLE" />
       </h5>
       <ul>
         <li>
-          <FormattedMessage
-            id="bulkImport.instructions.step1.placeImages"
-            defaultMessage="Place all your images in a single folder"
-          />
+          <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_PLACE_IMAGES" />
         </li>
         <li>
-          <FormattedMessage
-            id="bulkImport.instructions.step1.imageRequirements"
-            defaultMessage="Images must be:"
-          />
+          <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_IMAGE_REQUIREMENTS" />
           <ul>
             <li>
-              <FormattedMessage
-                id="bulkImport.instructions.step1.format"
-                defaultMessage="JPEG, JPG or PNG format"
-              />
+              <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT" />
             </li>
             <li>
-              <FormattedMessage
-                id="bulkImport.instructions.step1.maxSize"
-                defaultMessage="Under 3MB"
-              />
+              <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE" />
             </li>
             <li>
-              <FormattedMessage
-                id="bulkImport.instructions.step1.maxCount"
-                defaultMessage="Less than 200 per upload"
-              />
+              <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT" />
+            </li>
+          </ul>
+        </li>
+        <li>
+          <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_FILENAME_REQUIREMENTS" />
+          <ul>
+            <li>
+              <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_LETTERS_NUMBERS" />
+            </li>
+            <li>
+              <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_MATCH_ENTRIES" />
             </li>
           </ul>
         </li>
         <li>
           <FormattedMessage
-            id="bulkImport.instructions.step1.filenameRequirements"
-            defaultMessage="Filenames must"
-          />
-          <ul>
-            <li>
-              <FormattedMessage
-                id="bulkImport.instructions.step1.lettersNumbers"
-                defaultMessage="Use only English letters, numbers, periods and spaces"
-              />
-            </li>
-            <li>
-              <FormattedMessage
-                id="bulkImport.instructions.step1.matchEntries"
-                defaultMessage="Exactly match entries in Encounter.mediaAsset column of your spreadsheet"
-              />
-            </li>
-          </ul>
-        </li>
-        <li>
-          <FormattedMessage
-            id="bulkImport.instructions.step1.photographyGuidelines"
-            defaultMessage="View {link}"
+            id="BULK_IMPORT_INSTRUCTIONS_STEP1_PHOTOGRAPHY_GUIDELINES"
             values={{
               link: (
                 <a
@@ -127,10 +86,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <FormattedMessage
-                    id="bulkImport.instructions.photographyGuidelinesLink"
-                    defaultMessage="Photography Guidelines"
-                  />
+                  <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_PHOTOGRAPHY_GUIDELINES_LINK" />
                 </a>
               ),
             }}
@@ -139,16 +95,12 @@ const BulkImportInstructionsModal = observer(({ store }) => (
       </ul>
 
       <h5>
-        <FormattedMessage
-          id="bulkImport.instructions.step2.title"
-          defaultMessage="Step 2: Upload Spreadsheet"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP2_TITLE" />
       </h5>
       <ul>
         <li>
           <FormattedMessage
-            id="bulkImport.instructions.step2.useTemplate"
-            defaultMessage="Use {link}"
+            id="BULK_IMPORT_INSTRUCTIONS_STEP2_USE_TEMPLATE"
             values={{
               link: (
                 <a
@@ -156,10 +108,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <FormattedMessage
-                    id="bulkImport.instructions.step2.templateLink"
-                    defaultMessage="Wildbook Standard Format Spreadsheet"
-                  />
+                  <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP2_TEMPLATE_LINK" />
                 </a>
               ),
             }}
@@ -167,56 +116,34 @@ const BulkImportInstructionsModal = observer(({ store }) => (
         </li>
 
         <li>
-          <FormattedMessage
-            id="bulkImport.instructions.step2.mediaAssetMatch"
-            defaultMessage="Make sure Encounter.mediaAsset values match your filenames exactly."
-          />
+          <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP2_MEDIA_ASSET_MATCH" />
         </li>
         <li>
-          <FormattedMessage
-            id="bulkImport.instructions.step2.acceptedValues"
-            defaultMessage="Encounter.genus and Encounter.specificEpithet should use accepted values."
-          />
+          <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP2_ACCEPTED_VALUES" />
         </li>
       </ul>
 
       <h5>
-        <FormattedMessage
-          id="bulkImport.instructions.step3.title"
-          defaultMessage="Step 3: Review"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP3_TITLE" />
       </h5>
       <p>
-        <FormattedMessage
-          id="bulkImport.instructions.step3.content"
-          defaultMessage="Review Spreadsheets and fix errors directly on the site - no need to reupload for small changes."
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP3_CONTENT" />
       </p>
 
       <h5>
-        <FormattedMessage
-          id="bulkImport.instructions.step4.title"
-          defaultMessage="Step 4: Set Location ID for Identification"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP4_TITLE" />
       </h5>
       <p>
-        <FormattedMessage
-          id="bulkImport.instructions.step4.content"
-          defaultMessage="Select the Location ID during import. This triggers automatic detection and identification after import — no manual steps needed later."
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP4_CONTENT" />
       </p>
 
       <h5>
-        <FormattedMessage
-          id="bulkImport.instructions.needHelp.title"
-          defaultMessage="Need Help?"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_NEED_HELP_TITLE" />
       </h5>
       <ul>
         <li>
           <FormattedMessage
-            id="bulkImport.instructions.needHelp.videoTutorial"
-            defaultMessage="Watch our step by step {youtubeLink}"
+            id="BULK_IMPORT_INSTRUCTIONS_NEED_HELP_VIDEO_TUTORIAL"
             values={{
               youtubeLink: (
                 <a
@@ -224,10 +151,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <FormattedMessage
-                    id="bulkImport.instructions.youtubeLinkText"
-                    defaultMessage="video tutorial in YouTube"
-                  />
+                  <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_YOUTUBE_LINK_TEXT" />
                 </a>
               ),
             }}
@@ -235,8 +159,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
         </li>
         <li>
           <FormattedMessage
-            id="bulkImport.instructions.needHelp.docs"
-            defaultMessage="Check the {wildbookDocsLink} for troubleshooting or contact support"
+            id="BULK_IMPORT_INSTRUCTIONS_NEED_HELP_DOCS"
             values={{
               wildbookDocsLink: (
                 <a
@@ -244,10 +167,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <FormattedMessage
-                    id="bulkImport.instructions.wildbookDocs"
-                    defaultMessage="Wildbook Docs"
-                  />
+                  <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_WILDBOOK_DOCS" />
                 </a>
               ),
             }}
@@ -259,13 +179,9 @@ const BulkImportInstructionsModal = observer(({ store }) => (
     <Modal.Footer>
       <Button
         variant="secondary"
-        // onClick={onHide}
         onClick={() => store.setShowInstructions(false)}
       >
-        <FormattedMessage
-          id="bulkImport.instructions.closeButton"
-          defaultMessage="Close"
-        />
+        <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_CLOSE_BUTTON" />
       </Button>
     </Modal.Footer>
   </Modal>

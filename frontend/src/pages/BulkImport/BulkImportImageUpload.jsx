@@ -150,6 +150,9 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
           </div>
           <BulkImportSeeInstructionsButton store={store} />
         </div>
+        <div>
+          
+        </div>
       </Row>
 
       <Row>

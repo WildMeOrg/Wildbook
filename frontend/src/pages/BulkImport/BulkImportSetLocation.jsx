@@ -87,7 +87,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
                 <FormattedMessage id="BULK_IMPORT_SET_PREFERENCE" />
             </h5>
             <p>
-                <FormattedMessage id="BULK_IMPORT_SET_LOCATION_DESC" />
+                <FormattedMessage id="BULK_IMPORT_SET_PREFERENCE_DESC" />
             </p>
             <div style={{
                 width: "500px",
