@@ -103,9 +103,16 @@ export class BulkImportStore {
       },
       message: (val) => {
         const images = val.split(",").map((img) => img.trim());
-        const missing = images.filter(
-          (img) => !this._uploadedImages.includes(img),
+        // const missing = images.filter(
+        //   (img) => !this._uploadedImages.includes(img),
+        // );
+        const uploadedLower = this._uploadedImages.map((img) =>
+          img.toLowerCase(),
         );
+        const missing = images.filter(
+          (img) => !uploadedLower.includes(img.toLowerCase()),
+        );
+
         return `missing images: ${missing.join(", ")}`;
       },
     },
@@ -498,9 +505,12 @@ export class BulkImportStore {
   }
 
   setSpreadsheetData(data) {
-    this._spreadsheetData = [...data];
+    const filtered = data.filter((row) => {
+      return Object.values(row).some((val) => String(val ?? "").trim() !== "");
+    });
+
+    this._spreadsheetData = [...filtered];
     this.invalidateValidation();
-    // this.updateRawFromNormalizedRow();
   }
 
   setRawData(data) {
@@ -1091,9 +1101,9 @@ export class BulkImportStore {
       );
       alert(
         `The following files are too large (> ${maxSize} MB) and will not be uploaded:\n` +
-        invalidFiles
-          .map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
-          .join("\n"),
+          invalidFiles
+            .map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`)
+            .join("\n"),
       );
     }
 
@@ -1124,8 +1134,8 @@ export class BulkImportStore {
             .replace(/Occurrence/g, "Sighting")
             .replace(/occurrence/g, "sighting");
 
-          raw[newKey] = norm[key];  
-          delete raw[key];          
+          raw[newKey] = norm[key];
+          delete raw[key];
         }
       }
 
@@ -1214,18 +1224,10 @@ export class BulkImportStore {
           "image/jpeg",
           "image/jpg",
           "image/png",
-          "image/bmp",
+          // "image/bmp",
         ];
         const isValid = supportedTypes.includes(file.type);
         // && file.size <= maxSize * 1024 * 1024;
-        console.log(
-          "isValid:",
-          isValid,
-          "file:",
-          file.name,
-          "size:",
-          file.size,
-        );
 
         // const fullPath = entry.fullPath || file.name;
         if (isValid && !this._imageSectionFileNames.includes(file.name)) {

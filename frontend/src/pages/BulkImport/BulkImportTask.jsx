@@ -237,8 +237,21 @@ const BulkImportTask = () => {
             icon={
               <MdTableChart size={20} color={theme.primaryColors.primary500} />
             }
-            title={task?.sourceName || "Excel Sheets Uploaded"}
-            data={[{ label: "File Uploaded Successfully" }]}
+            title={intl.formatMessage(
+              {
+                id: "IMAGES_UPLOADED_TITLE",
+                defaultMessage: "Images Uploaded: {count}",
+              },
+              { count: task?.iaSummary?.numberMediaAssets || 0 },
+            )}
+            data={[
+              {
+                label: intl.formatMessage({
+                  id: "FILE_UPLOADED_SUCCESSFULLY",
+                  defaultMessage: "File Uploaded Successfully",
+                }),
+              },
+            ]}
           />
         </div>
 
