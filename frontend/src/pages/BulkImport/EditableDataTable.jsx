@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { tableHeaderMapping, columnsUseSelectCell } from "./BulkImportConstants";
+import {
+  tableHeaderMapping,
+  columnsUseSelectCell,
+} from "./BulkImportConstants";
 import { throttle } from "lodash";
 
 import {
@@ -13,73 +16,120 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import SelectCell from "../../components/SelectCell";
 import BulkImportApplyToAllRowsModal from "./BulkImportApplyToAllRowsModal";
 
-const EditableCell = observer(({
-  store,
-  value,
-  rowIndex,
-  columnId,
-  setColId,
-  setColValue,
-}) => {  
- 
-  const selectOptions = useMemo(() => {
-    return store.getOptionsForSelectCell(columnId);
-  }, [columnId, store]);
-  const selectValue = useMemo(() => {
-    return value ? { value, label: value } : null;
-  }, [value]);
+const EditableCell = observer(
+  ({ store, value, rowIndex, columnId, setColId, setColValue }) => {
+    const selectOptions = useMemo(() => {
+      return store.getOptionsForSelectCell(columnId);
+    }, [columnId, store]);
+    const selectValue = useMemo(() => {
+      return value ? { value, label: value } : null;
+    }, [value]);
 
+    const handleBlur = (e) => {
+      const newValue = e.target.value;
+      store.updateCellValue(rowIndex, columnId, newValue);
+      store.invalidateValidation();
+      const { errors, warnings } = store.validateSpreadsheet();
+      store.setValidationErrors(errors);
+      store.setValidationWarnings(warnings);
+    };
 
-  const handleBlur = (e) => {
-    const newValue = e.target.value;
-    store.updateCellValue(rowIndex, columnId, newValue);
-    store.invalidateValidation();
-    const { errors, warnings } = store.validateSpreadsheet();
-    store.setValidationErrors(errors);
-    store.setValidationWarnings(warnings);
-  };
+    const useSelectCell = columnsUseSelectCell.includes(columnId);
 
-  const useSelectCell = columnsUseSelectCell.includes(columnId);
+    const renderInput = () => {
+      if (useSelectCell) {
+        return (
+          <SelectCell
+            options={selectOptions}
+            value={selectValue}
+            setColId={setColId}
+            setColValue={setColValue}
+            store={store}
+            columnId={columnId}
+            rowIndex={rowIndex}
+            error={!!store.validationErrors?.[rowIndex]?.[columnId]}
+          />
+        );
+      } else {
+        return (
+          <input
+            type="text"
+            className={`form-control form-control-sm rounded ${store.validationErrors?.[rowIndex]?.[columnId] ? "is-invalid" : ""}`}
+            value={store.spreadsheetData?.[rowIndex]?.[columnId] || ""}
+            title={value}
+            onChange={(e) =>
+              store.updateCellValue(rowIndex, columnId, e.target.value)
+            }
+            onBlur={handleBlur}
+            style={{ minWidth: "100px", maxWidth: "250px" }}
+          />
+        );
+      }
+    };
 
-  const renderInput = () => {
-    if (useSelectCell) {
-      return (<SelectCell
-        options={selectOptions}
-        value={selectValue}
-        setColId={setColId}
-        setColValue={setColValue}
-        store={store}
-        columnId={columnId}
-        rowIndex={rowIndex}
-        error={!!store.validationErrors?.[rowIndex]?.[columnId]}
-      />
-      );
-    } else {
-      return (
-        <input
-          type="text"
-          className={`form-control form-control-sm rounded ${!!store.validationErrors?.[rowIndex]?.[columnId] ? "is-invalid" : ""}`}
-          value={store.spreadsheetData?.[rowIndex]?.[columnId] || ""}
-          title={value}
-          onChange={(e) => store.updateCellValue(rowIndex, columnId, e.target.value)}
-          onBlur={handleBlur}
-          style={{ minWidth: "100px", maxWidth: "250px" }}
-        />
-      );
-    }
-  };
-
-  return (
-    <div>
-      {renderInput()}
-      {!!store.validationErrors?.[rowIndex]?.[columnId] && (
+    return (
+      <div>
+        {renderInput()}
+        {/* {!!store.validationErrors?.[rowIndex]?.[columnId] && (
         <div className="invalid-feedback" style={{ whiteSpace: "normal" }}>
           {JSON.stringify(store.validationErrors?.[rowIndex]?.[columnId], null, 2)}
         </div>
-      )}
-    </div>
-  );
-});
+      )} */}
+        {!!store.validationErrors?.[rowIndex]?.[columnId] &&
+          (() => {
+            const rawError = store.validationErrors[rowIndex][columnId];
+            const isMediaAsset = columnId === "Encounter.mediaAsset0";
+            const [showDetail, setShowDetail] = useState(false);
+
+            if (!isMediaAsset) {
+              return (
+                <div
+                  className="invalid-feedback"
+                  style={{ whiteSpace: "normal" }}
+                >
+                  {rawError}
+                </div>
+              );
+            }
+
+            const matches = /missing images: (.+)/.exec(rawError);
+            const missingList = matches
+              ? matches[1].split(",").map((s) => s.trim())
+              : [];
+
+            return (
+              <div
+                className="invalid-feedback"
+                style={{ whiteSpace: "normal" }}
+              >
+                <div>
+                  Missing images: {missingList.length}
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm p-0 ms-2"
+                    onClick={() => setShowDetail(!showDetail)}
+                  >
+                    {showDetail ? (
+                      <i className="bi bi-chevron-up"></i>
+                    ) : (
+                      <i className="bi bi-chevron-down"></i>
+                    )}
+                  </button>
+                </div>
+                {showDetail && (
+                  <ul className="list-unstyled mb-0 ps-3 ">
+                    {missingList.map((img, idx) => (
+                      <li key={idx}>{img}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })()}
+      </div>
+    );
+  },
+);
 
 export const DataTable = observer(({ store }) => {
   const data = store.spreadsheetData || [];
@@ -94,7 +144,8 @@ export const DataTable = observer(({ store }) => {
   const validLifeStages = siteData?.lifeStage || [];
   const validLivingStatus = siteData?.livingStatus || [];
   const validBehavior = siteData?.behavior || [];
-  const LabeledKeywordAllowedKeys = Object.keys(siteData?.labeledKeywordAllowedValues || {}) || [];
+  const LabeledKeywordAllowedKeys =
+    Object.keys(siteData?.labeledKeywordAllowedValues || {}) || [];
   const LabeledKeywordAllowedPairs = siteData?.labeledKeywordAllowedValues;
   const [columnPinning, setColumnPinning] = useState({
     left: ["rowNumber", columnsDef[0] || ""],
@@ -164,10 +215,14 @@ export const DataTable = observer(({ store }) => {
 
       Object.entries(warnings).forEach(([rowIndex, rowWarnings]) => {
         Object.entries(rowWarnings).forEach(([columnId, warningMessage]) => {
-          store.mergeValidationWarning(Number(rowIndex), columnId, warningMessage);
+          store.mergeValidationWarning(
+            Number(rowIndex),
+            columnId,
+            warningMessage,
+          );
         });
       });
-    }, 1000)
+    }, 1000),
   ).current;
 
   useEffect(() => {
@@ -206,7 +261,6 @@ export const DataTable = observer(({ store }) => {
     return colDefs;
   }, [columnsDef, store.spreadsheetData, store.validationErrors]);
 
-
   const rowNumberColumn = {
     id: "rowNumber",
     header: "#",
@@ -217,8 +271,8 @@ export const DataTable = observer(({ store }) => {
   const table = useReactTable({
     data,
     columns,
-    columnResizeMode: 'onChange',
-    columnResizeDirection: 'ltr',
+    columnResizeMode: "onChange",
+    columnResizeDirection: "ltr",
     state: { columnPinning },
     onColumnPinningChange: setColumnPinning,
     defaultColumn: {
@@ -242,7 +296,8 @@ export const DataTable = observer(({ store }) => {
   const currentPage = table.getState().pagination.pageIndex;
 
   return (
-    <div className="p-3 border rounded shadow-sm bg-white mt-4"
+    <div
+      className="p-3 border rounded shadow-sm bg-white mt-4"
       style={{
         // maxHeight: "500px",
         overflowY: "auto",
@@ -258,18 +313,17 @@ export const DataTable = observer(({ store }) => {
         <table
           className="table table-bordered table-hover table-sm"
           style={{
-            // tableLayout: 'fixed' 
+            // tableLayout: 'fixed'
             maxHeight: "500px",
             overflowY: "auto",
             tableLayout: "auto",
-            width: "max-content"
+            width: "max-content",
           }}
         >
           <thead className="table-light">
-            {table.getHeaderGroups().map(headerGroup => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-
                   return (
                     <th
                       key={header.id}
@@ -278,7 +332,10 @@ export const DataTable = observer(({ store }) => {
                         width: header.getSize(),
                       }}
                     >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
 
                       {header.column.getCanResize() && (
                         <div
@@ -286,19 +343,20 @@ export const DataTable = observer(({ store }) => {
                           onTouchStart={header.getResizeHandler()}
                           className="resizer"
                           style={{
-                            position: 'absolute',
+                            position: "absolute",
                             right: 0,
                             top: 0,
-                            width: '6px',
-                            height: '100%',
-                            cursor: 'col-resize',
-                            userSelect: 'none',
-                            touchAction: 'none',
+                            width: "6px",
+                            height: "100%",
+                            cursor: "col-resize",
+                            userSelect: "none",
+                            touchAction: "none",
                             zIndex: 1,
                           }}
                         />
                       )}
-                    </th>)
+                    </th>
+                  );
                 })}
               </tr>
             ))}
@@ -324,12 +382,14 @@ export const DataTable = observer(({ store }) => {
           <strong>{pageCount}</strong>
         </div>
 
-        <ul className="pagination pagination-sm mb-0"
+        <ul
+          className="pagination pagination-sm mb-0"
           style={{
             flexWrap: "wrap",
             maxWidth: "100%",
             overflow: "auto",
-          }}>
+          }}
+        >
           <li
             className={`page-item ${!table.getCanPreviousPage() ? "disabled" : ""}`}
           >
