@@ -7,7 +7,7 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
 
   const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
-  const uploadedImageCount = savedStore.uploadedImages?.length || 0;
+  const uploadedImageCount = savedStore?.uploadedImages?.length || 0;
   const lastSavedAt = savedStore.lastSavedAt || new Date.now();
 
   useEffect(() => {

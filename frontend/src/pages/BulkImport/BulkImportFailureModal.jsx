@@ -2,13 +2,10 @@ import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { ExclamationTriangleFill } from "react-bootstrap-icons";
-import { useNavigate } from "react-router-dom";
 
 const FailureModal = ({ show, onHide, errorMessage }) => {
-  const navigate = useNavigate();
-
   const goToHome = () => {
-    navigate("/");
+    window.location.href = "/";
   };
 
   return (
@@ -16,25 +13,41 @@ const FailureModal = ({ show, onHide, errorMessage }) => {
       <Modal.Header closeButton>
         <Modal.Title className="text-danger d-flex align-items-center">
           <ExclamationTriangleFill className="me-2" />
-          <FormattedMessage id="BULK_IMPORT_FAILED" defaultMessage="Bulk Import Failed" />
+          <FormattedMessage
+            id="BULK_IMPORT_FAILED"
+            defaultMessage="Bulk Import Failed"
+          />
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
           <FormattedMessage
             id="BULK_IMPORT_FAILED_DESC"
-            defaultMessage="There was an error while processing your submission. Please try again later or contact support."
+            defaultMessage="There was an error while processing your submission."
           />
         </p>
-        {errorMessage && (
+        {typeof errorMessage === "string" && (
           <div className="alert alert-danger mt-3">
-            <strong>Error:</strong> {"error "}
+            <strong>Error:</strong> {errorMessage}
+          </div>
+        )}
+        {Array.isArray(errorMessage) && (
+          <div className="alert alert-danger mt-3">
+            <strong>Error:</strong> There are issues with your data. Please see
+            the error messages displayed below the table.
           </div>
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="outline-secondary" onClick={onHide}>
-          <FormattedMessage id="CLOSE" defaultMessage="Close" />
+        <Button
+          variant="outline-secondary"
+          onClick={() => {
+            onHide();
+            // store.setActiveStep(2);
+            // window.scrollTo(0, 0);
+          }}
+        >
+          <FormattedMessage id="REVIEW_DATA" defaultMessage="Review Data" />
         </Button>
         <Button variant="primary" onClick={goToHome}>
           <FormattedMessage id="GO_HOME" defaultMessage="Go to Home" />

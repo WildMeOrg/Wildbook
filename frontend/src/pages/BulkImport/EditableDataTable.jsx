@@ -25,6 +25,8 @@ const EditableCell = observer(
       return value ? { value, label: value } : null;
     }, [value]);
 
+    const [showDetail, setShowDetail] = useState(false);
+
     const handleBlur = (e) => {
       const newValue = e.target.value;
       store.updateCellValue(rowIndex, columnId, newValue);
@@ -79,7 +81,6 @@ const EditableCell = observer(
           (() => {
             const rawError = store.validationErrors[rowIndex][columnId];
             const isMediaAsset = columnId === "Encounter.mediaAsset0";
-            const [showDetail, setShowDetail] = useState(false);
 
             if (!isMediaAsset) {
               return (

@@ -140,19 +140,20 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
             </h5>
             <p>
               <FormattedMessage
-                id="BULK_IMPORT_UPLOAD_IMAGE_DESC"
+                id="BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1"
                 values={{
                   maxSize: maxSize,
                   maxImageCount: store.maxImageCount,
                 }}
               />
             </p>
+            <strong>
+              <FormattedMessage id="BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2" />
+            </strong>
           </div>
           <BulkImportSeeInstructionsButton store={store} />
         </div>
-        <div>
-          
-        </div>
+        <div></div>
       </Row>
 
       <Row>
