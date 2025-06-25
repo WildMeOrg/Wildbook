@@ -1093,6 +1093,26 @@ public class Shepherd {
         return project;
     }
 
+    // this is forgiving in that it only needs to match the start of the prefix and is case-insenstive
+    // is the case-insensitivity too much? time will tell! thus, a user passing 'FOO-'
+    // will match 'foo-#' or 'Foo-###'. it sorts by (lowercase) prefix value, to at least provide
+    // consistency; but this may give undesirable results in a crowded dataset
+    public Project getProjectByProjectIdPrefixPrefix(String projectIdPrefix) {
+        if (projectIdPrefix == null) return null;
+        Project project = null;
+        String filter =
+            "SELECT FROM org.ecocean.Project WHERE projectIdPrefix.toLowerCase().startsWith(\"" +
+            projectIdPrefix.trim().toLowerCase() + "\") ORDER BY projectIdPrefix.toLowerCase()";
+        Query query = getPM().newQuery(filter);
+        Collection c = (Collection)(query.execute());
+        Iterator it = c.iterator();
+        if (it.hasNext()) {
+            project = (Project)it.next();
+        }
+        query.closeAll();
+        return project;
+    }
+
     public Project getProjectByUuid(String id) {
         Project project = null;
         String filter = "SELECT FROM org.ecocean.Project WHERE id == \"" + id.trim() + "\"";

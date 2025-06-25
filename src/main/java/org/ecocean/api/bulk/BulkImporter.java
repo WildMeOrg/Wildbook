@@ -803,9 +803,22 @@ public class BulkImporter {
 
     private Project getOrCreateProject(String projectPrefix, String projectName,
         String projectOwnerUsername) {
-        if (projectPrefix == null) return null;
+        if (Util.stringIsEmptyOrNull(projectPrefix)) return null;
         Project proj = projectCache.get(projectPrefix);
         if (proj == null) proj = myShepherd.getProjectByProjectIdPrefix(projectPrefix);
+/*
+        if exact match fails, we get a little more lax and let user 'foo-' match things
+        like 'FOO-###'. note: this could be way too lax if the users passes no dash in there,
+        as 'foo' would match 'foobar-###' so we might want to make further restrictions on when
+        to do this fuzzy matching, depending on user behavior and how forgiving we are.
+ */
+        if (proj == null) {
+            proj = myShepherd.getProjectByProjectIdPrefixPrefix(projectPrefix);
+            if (proj != null)
+                System.out.println(
+                    "[INFO] BulkImporter.getOrCreateProject() fuzzy-matched projectPrefix '" +
+                    projectPrefix + "' to " + proj);
+        }
         if (proj == null) {
             // in StandardImport, both of these are required to create a new Project
             if ((projectName == null) || (projectOwnerUsername == null)) return null;
