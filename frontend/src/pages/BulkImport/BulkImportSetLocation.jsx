@@ -84,10 +84,10 @@ export const BulkImportSetLocation = observer(({ store }) => {
     return (
         <div className="d-flex flex-column mt-4">
             <h5>
-                <FormattedMessage id="BULK_IMPORT_SET_PREFERENCE" />
+                <FormattedMessage id="BULK_IMPORT_SET_LOCATION" />
             </h5>
             <p>
-                <FormattedMessage id="BULK_IMPORT_SET_PREFERENCE_DESC" />
+                <FormattedMessage id="BULK_IMPORT_SET_LOCATION_DESC" />
             </p>
             <div style={{
                 width: "500px",

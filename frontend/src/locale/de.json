@@ -435,5 +435,7 @@
   "VALID_FOR_IMAGE_ANALYSIS": "Für Bildanalyse geeignet",
   "TOTAL_MARKED_INDIVIDUALS": "Insgesamt markierte Individuen",
   "IMAGES_UPLOADED_TITLE": "Bilder hochgeladen: {count}",
-  "FILE_UPLOADED_SUCCESSFULLY": "Datei erfolgreich hochgeladen"
+  "FILE_UPLOADED_SUCCESSFULLY": "Datei erfolgreich hochgeladen",
+  "SKIP_DETECTION_AND_ID": "Erkennung und Identifikation überspringen",
+"SKIP_ONLY_IDENTIFICATION": "Nur Identifikation überspringen"
 }

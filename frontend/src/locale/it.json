@@ -434,5 +434,8 @@
   "VALID_FOR_IMAGE_ANALYSIS": "Valido per analisi immagine",
   "TOTAL_MARKED_INDIVIDUALS": "Totale individui marcati",
   "IMAGES_UPLOADED_TITLE": "Immagini caricate: {count}",
-  "FILE_UPLOADED_SUCCESSFULLY": "File caricato con successo"
+  "FILE_UPLOADED_SUCCESSFULLY": "File caricato con successo",
+  "SKIP_DETECTION_AND_ID": "Salta rilevamento e identificazione",
+"SKIP_ONLY_IDENTIFICATION": "Salta solo l’identificazione"
+
 }
