@@ -373,18 +373,14 @@ public class ImportTask implements java.io.Serializable {
         // non-legacy flavor
         if ((this.getIATask() != null) && this.iaTaskStarted()) {
             pipelineStarted = true;
-            if (!this.iaTaskRequestedIdentification()) {
-                if (numDetectionComplete == numAllowedIA) {
-                    pj.put("detectionPercent", 1.0);
-                    pj.put("detectionStatus", "complete");
-                } else {
-                    if (numAssets > 0) pj.put("detectionPercent", numDetectionComplete / numAssets);
-                    pj.put("detectionStatus", "sent");
-                }
-            } else {
-                // detection completion implied by ident running... i think?
+            if (numDetectionComplete == numAllowedIA) {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
+            } else {
+                if (numAssets > 0) pj.put("detectionPercent", numDetectionComplete / numAssets);
+                pj.put("detectionStatus", "sent");
+            }
+            if (this.iaTaskRequestedIdentification()) {
                 int numIdentificationComplete = 0;
                 int numIdentificationTotal = 0;
                 // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
@@ -395,14 +391,16 @@ public class ImportTask implements java.io.Serializable {
                 // TODO do we have to deal with errors as "complete" somehow?
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);
-                if (numIdentificationTotal > 0)
-                    pj.put("identificationPercent",
-                        new Double(numIdentificationComplete) / new Double(numIdentificationTotal));
-                if (numIdentificationComplete == numIdentificationTotal) {
-                    pj.put("identificationPercent", 1.0);
+                if (numIdentificationTotal == 0) {
+                    pj.put("identificationStatus", "waiting for detection");
+                    pj.put("identificationPercent", 0.0);
+                } else if (numIdentificationComplete == numIdentificationTotal) {
                     pj.put("identificationStatus", "complete");
+                    pj.put("identificationPercent", 1.0);
                 } else {
                     pj.put("identificationStatus", "sent");
+                    pj.put("identificationPercent",
+                        new Double(numIdentificationComplete) / new Double(numIdentificationTotal));
                 }
             }
             // legacy flavor

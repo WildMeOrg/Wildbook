@@ -40,8 +40,6 @@ public class BulkImporter {
     private User user = null;
     private String importTaskId = null;
     private Shepherd myShepherd = null;
-    // sighting/occurrence carries over from previous row (even if unset) it seems
-    private Occurrence previousOccurrence = null;
 
     // caching loaded and (more imporantly?) newly created objects, so they can be
     // used across all rows. StandardImport seemed to do some caching *based on user*
@@ -182,6 +180,7 @@ public class BulkImporter {
         if ((indivId == null) && fmap.containsKey("MarkedIndividual.individualID"))
             indivId = fmap.get("MarkedIndividual.individualID").getValueString();
         MarkedIndividual indiv = getOrCreateMarkedIndividual(indivId, fmap);
+        // we will *always* get some Occurrence
         Occurrence occ = getOrCreateOccurrence(fmap);
         Encounter enc = getOrCreateEncounter(fmap, indiv, occ);
         if (indiv != null) {
@@ -189,10 +188,8 @@ public class BulkImporter {
             enc.setIndividual(indiv);
             indiv.setTaxonomyFromEncounters(true);
         }
-        if (occ != null) {
-            occ.addEncounter(enc);
-            occ.setLatLonFromEncs(false);
-        }
+        occ.addEncounter(enc);
+        occ.setLatLonFromEncs(false);
         // this line can be uncommented to disable persisting for development purposes
         // TODO remove this when no longer useful
         // if (enc != null) return;
@@ -235,7 +232,7 @@ public class BulkImporter {
         // is, sadly, what public encounters seem to be assigned
         // not it is also required, so we should have *something*
         enc.setSubmitterID(fmap.get("Encounter.submitterID").getValueString());
-        if (occ != null) occ.setSubmitterIDFromEncs(false);
+        occ.setSubmitterIDFromEncs(false);
         // but we also have enc.submitters, whatever this is about (!?)
         // StandardImport actually *creates Users* based on these, so here we go....
         // NOTE: these are FIELDNAMES not actual values
@@ -368,7 +365,7 @@ public class BulkImporter {
 
             case "Encounter.behavior":
                 enc.setBehavior(bv.getValueString());
-                if ((occ != null) && !bv.valueIsNull()) occ.setGroupBehavior(bv.getValueString());
+                if (!bv.valueIsNull()) occ.setGroupBehavior(bv.getValueString());
                 break;
 
             case "Encounter.country":
@@ -488,101 +485,101 @@ public class BulkImporter {
                 break;
 
             case "Sighting.bearing":
-                if (occ != null) occ.setBearing(bv.getValueDouble());
+                occ.setBearing(bv.getValueDouble());
                 break;
 
             case "Sighting.bestGroupSizeEstimate":
-                if (occ != null) occ.setBestGroupSizeEstimate(bv.getValueDouble());
+                occ.setBestGroupSizeEstimate(bv.getValueDouble());
                 break;
 
             case "Sighting.comments":
-                if (occ != null) occ.setComments(bv.getValueString());
+                occ.setComments(bv.getValueString());
                 break;
 
             case "Sighting.distance":
-                if (occ != null) occ.setDistance(bv.getValueDouble());
+                occ.setDistance(bv.getValueDouble());
                 break;
 
             case "Sighting.effortCode":
-                if (occ != null) occ.setEffortCode(bv.getValueDouble());
+                occ.setEffortCode(bv.getValueDouble());
                 break;
 
             case "Sighting.fieldStudySite":
-                if (occ != null) occ.setFieldStudySite(bv.getValueString());
+                occ.setFieldStudySite(bv.getValueString());
                 break;
 
             case "Sighting.fieldSurveyCode":
             case "Survey.id":
-                if (occ != null) occ.setFieldSurveyCode(bv.getValueString());
+                occ.setFieldSurveyCode(bv.getValueString());
                 break;
 
             case "Sighting.groupBehavior":
-                if (occ != null) occ.setGroupBehavior(bv.getValueString());
+                occ.setGroupBehavior(bv.getValueString());
                 break;
 
             case "Sighting.groupComposition":
-                if (occ != null) occ.setGroupComposition(bv.getValueString());
+                occ.setGroupComposition(bv.getValueString());
                 break;
 
             case "Sighting.humanActivityNearby":
-                if (occ != null) occ.setHumanActivityNearby(bv.getValueString());
+                occ.setHumanActivityNearby(bv.getValueString());
                 break;
 
             case "Sighting.individualCount":
-                if (occ != null) occ.setIndividualCount(bv.getValueInteger());
+                occ.setIndividualCount(bv.getValueInteger());
                 break;
 
             case "Sighting.initialCue":
-                if (occ != null) occ.setInitialCue(bv.getValueString());
+                occ.setInitialCue(bv.getValueString());
                 break;
 
             case "Sighting.maxGroupSizeEstimate":
-                if (occ != null) occ.setMaxGroupSizeEstimate(bv.getValueInteger());
+                occ.setMaxGroupSizeEstimate(bv.getValueInteger());
                 break;
 
             case "Sighting.minGroupSizeEstimate":
-                if (occ != null) occ.setMinGroupSizeEstimate(bv.getValueInteger());
+                occ.setMinGroupSizeEstimate(bv.getValueInteger());
                 break;
 
             case "Sighting.numAdults":
-                if (occ != null) occ.setIndividualCount(bv.getValueInteger());
+                occ.setIndividualCount(bv.getValueInteger());
                 break;
 
             case "Sighting.numCalves":
-                if (occ != null) occ.setNumCalves(bv.getValueInteger());
+                occ.setNumCalves(bv.getValueInteger());
                 break;
 
             case "Sighting.numJuveniles":
-                if (occ != null) occ.setNumJuveniles(bv.getValueInteger());
+                occ.setNumJuveniles(bv.getValueInteger());
                 break;
 
             case "Sighting.observer":
-                if (occ != null) occ.setObserver(bv.getValueString());
+                occ.setObserver(bv.getValueString());
                 break;
 
             case "Sighting.seaState":
-                if (occ != null) occ.setObserver(bv.getValueString());
+                occ.setObserver(bv.getValueString());
                 break;
 
             case "Sighting.seaSurfaceTemp":
             case "Sighting.seaSurfaceTemperature":
-                if (occ != null) occ.setSeaSurfaceTemp(bv.getValueDouble());
+                occ.setSeaSurfaceTemp(bv.getValueDouble());
                 break;
 
             case "Sighting.swellHeight":
-                if (occ != null) occ.setSwellHeight(bv.getValueDouble());
+                occ.setSwellHeight(bv.getValueDouble());
                 break;
 
             case "Sighting.transectBearing":
-                if (occ != null) occ.setTransectBearing(bv.getValueDouble());
+                occ.setTransectBearing(bv.getValueDouble());
                 break;
 
             case "Sighting.transectName":
-                if (occ != null) occ.setTransectName(bv.getValueString());
+                occ.setTransectName(bv.getValueString());
                 break;
 
             case "Sighting.visibilityIndex":
-                if (occ != null) occ.setVisibilityIndex(bv.getValueDouble());
+                occ.setVisibilityIndex(bv.getValueDouble());
                 break;
 
             case "SatelliteTag.serialNumber":
@@ -600,7 +597,7 @@ public class BulkImporter {
 
             case "Survey.vessel":
             case "SurveyTrack.vesselID":
-                if (occ != null) occ.setSightingPlatform(bv.getValueString());
+                occ.setSightingPlatform(bv.getValueString());
                 break;
 
             // these add to Occurence.taxonomies, which i am not sure are supported any more
@@ -843,13 +840,10 @@ public class BulkImporter {
             id = fmap.get("Sighting.sightingID").getValueString();
         if ((id == null) && fmap.containsKey("Encounter.sightingID"))
             id = fmap.get("Encounter.sightingID").getValueString();
-        if (id == null) return this.previousOccurrence; // may be null if none ever used
-        // we dont need to set previousOccurrence if found in cache, cuz it would have been already
-        if (occurrenceCache.containsKey(id)) return occurrenceCache.get(id);
-        Occurrence occ = myShepherd.getOccurrence(id);
-        if (occ == null) occ = new Occurrence(id);
-        occurrenceCache.put(id, occ);
-        this.previousOccurrence = occ;
+        if ((id != null) && occurrenceCache.containsKey(id)) return occurrenceCache.get(id);
+        // this will create a new one *even if null id* (assigns random)
+        Occurrence occ = myShepherd.getOrCreateOccurrence(id);
+        occurrenceCache.put(occ.getId(), occ); // we use getId() in case of id==null
         return occ;
     }
 }

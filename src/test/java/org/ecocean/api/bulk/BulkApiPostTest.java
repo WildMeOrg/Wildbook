@@ -10,6 +10,7 @@ import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
@@ -270,6 +271,7 @@ class BulkApiPostTest {
     @Test void apiPostValidNonArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadNonArrays();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -279,6 +281,8 @@ class BulkApiPostTest {
                 (mock, context) -> {
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
                 mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
@@ -299,6 +303,7 @@ class BulkApiPostTest {
     @Test void apiPostValidArrays()
     throws ServletException, IOException {
         User user = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
@@ -308,6 +313,8 @@ class BulkApiPostTest {
                 (mock, context) -> {
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
                 mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
@@ -328,6 +335,7 @@ class BulkApiPostTest {
     @Test void apiPostValidArraysNullInt()
     throws ServletException, IOException {
         User user = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
         requestBody = addToRows(requestBody, "Encounter.month", null);
@@ -339,6 +347,8 @@ class BulkApiPostTest {
                 (mock, context) -> {
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
         })) {
             try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
                 mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
