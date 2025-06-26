@@ -44,8 +44,9 @@ public class OccurrenceCreate extends HttpServlet {
         if (request.getParameter("occurrence") != null) {
             myOccurrenceID = request.getParameter("occurrence");
 
-            // remove special characters
-            myOccurrenceID = ServletUtilities.cleanFileName(myOccurrenceID);
+            // this was disabled due to issue 1057, as bulk import lets *any*
+            // string be an occurrenceID, so we have to as well
+            // myOccurrenceID = ServletUtilities.cleanFileName(myOccurrenceID);
         }
         System.out.println("Here's a new Occurrence ID " + myOccurrenceID +
             " that I'm creating for " + request.getParameter("number") + ".");
