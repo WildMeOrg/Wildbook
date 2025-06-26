@@ -559,6 +559,7 @@ $(document).ready(function () {
       encs.fetch({
         useProjectContext: useProjectContext,
         fetch: "searchResults",
+        noDecorate: true,
         noSanitize: true,
         jdoql: jdoql, 
         success: function () {
@@ -582,6 +583,7 @@ $(document).ready(function () {
           collabFetch.fetch({
 			useProjectContext: useProjectContext,
             fetch: "searchResults",
+            noDecorate: true,
   			noSanitize: true,
   			jdoql: encodeURIComponent(collabJdoql),
             success: function () {

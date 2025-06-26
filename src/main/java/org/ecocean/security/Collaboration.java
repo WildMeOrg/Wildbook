@@ -463,8 +463,6 @@ public class Collaboration implements java.io.Serializable {
             return true;
         if (request.isUserInRole("admin"))
             return true; // TODO generalize and/or allow other roles all-access
-        if (request.isUserInRole("orgAdmin"))
-            return true;
         if (User.isUsernameAnonymous(ownerName))
             return true; // anon-owned is "fair game" to anyone
         if (request.getUserPrincipal() == null) {
