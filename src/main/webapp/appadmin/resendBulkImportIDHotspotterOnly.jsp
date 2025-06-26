@@ -3,7 +3,7 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
-org.ecocean.cache.*,org.ecocean.ia.*,
+org.ecocean.cache.*,org.ecocean.ia.*,org.ecocean.shepherd.core.*,
 org.json.*,org.ecocean.servlet.importer.ImportTask,org.ecocean.identity.IBEISIA,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
