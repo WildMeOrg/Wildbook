@@ -70,6 +70,7 @@
           ]},
           {"name": "Barbuda","id": "Barbuda", "locationID": []},
           {"name": "British Virgin Islands", "id": "British Virgin Islands", "locationID": []},
+          {"name": "Bocas del Toro", "id": "Bocas del Toro", "geospatialInfo": {"lat":  9.223864, "long": -82.239131}, "locationID":[]},
           {"name": "Dominica", "id": "Dominica", "locationID": []},
           {"name": "Grenada", "id": "Grenada", "locationID": []},
           {"name": "Guadeloupe", "id": "Guadeloupe", "locationID": []},
