@@ -564,6 +564,9 @@ public class BulkImport extends ApiBase {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         int statusCode = 500;
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("success", false);
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
 
@@ -577,14 +580,18 @@ public class BulkImport extends ApiBase {
                 response.getWriter().write("{\"success\": false}");
                 return;
             }
-            JSONObject rtn = new JSONObject();
             String uri = request.getRequestURI();
-            String[] args = uri.substring(22).split("/");
-            if (args.length < 2) throw new ServletException("Bad path");
-            response.setStatus(statusCode);
-            response.setCharacterEncoding("UTF-8");
-            response.setHeader("Content-Type", "application/json");
-            response.getWriter().write(rtn.toString());
+            String[] args = uri.substring(8).split("/");
+            if (args.length < 2) throw new ServletException("bad api path");
+            String bulkImportId = args[1];
+            ImportTask.deleteWithRelated(bulkImportId, currentUser, myShepherd);
+            // above may throw IOException
+            statusCode = 204;
+            rtn.put("success", true);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            statusCode = 400;
+            rtn.put("error", ex.toString());
         } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
         } catch (Exception ex) {
@@ -597,6 +604,10 @@ public class BulkImport extends ApiBase {
             }
             myShepherd.closeDBTransaction();
         }
+        response.setStatus(statusCode);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Type", "application/json");
+        response.getWriter().write(rtn.toString());
     }
 
     // files should already be validated and "needed"

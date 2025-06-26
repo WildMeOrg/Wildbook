@@ -1,17 +1,22 @@
 package org.ecocean.servlet.importer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
+import org.ecocean.Project;
+import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
@@ -327,6 +332,97 @@ public class ImportTask implements java.io.Serializable {
             stats = Util.mapAdd(stats, tsum);
         }
         return stats;
+    }
+
+/*
+    this is a slightly modified version of DeleteImportTask.java, but has all shepherd commits commented out,
+    with the idea that a single commit outside (in the caller) should do the job. note also that in the servlet version,
+    an exception does a rollback, but very likely many of the steps up until that point has been commited, so not sure
+    what state that leaves things in the actual db
+ */
+    public static void deleteWithRelated(String id, User user, Shepherd myShepherd)
+    throws IOException {
+        if ((id == null) || (user == null)) throw new IOException("must provide id and user");
+        ImportTask itask = myShepherd.getImportTask(id);
+        if (itask == null) throw new IOException("invalid ImportTask id=" + id);
+        if (!Collaboration.canUserAccessImportTask(itask, myShepherd.getContext(),
+            user.getUsername()))
+            throw new IOException("user does not have privileges to delete task");
+        Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
+        try {
+            List<Encounter> allEncs = new ArrayList<Encounter>(itask.getEncounters());
+            int total = allEncs.size();
+            for (int i = 0; i < allEncs.size(); i++) {
+                Encounter enc = allEncs.get(i);
+                Occurrence occ = myShepherd.getOccurrence(enc);
+                MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
+                List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                ArrayList<Annotation> anns = enc.getAnnotations();
+                for (Annotation ann : anns) {
+                    enc.removeAnnotation(ann);
+                    // myShepherd.updateDBTransaction();
+                    List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+                    if (iaTasks != null && !iaTasks.isEmpty()) {
+                        for (Task iaTask : iaTasks) {
+                            iaTask.removeObject(ann);
+                            // myShepherd.updateDBTransaction();
+                        }
+                    }
+                    myShepherd.throwAwayAnnotation(ann);
+                    // myShepherd.updateDBTransaction();
+                }
+                // handle occurrences
+                if (occ != null) {
+                    occ.removeEncounter(enc);
+                    // myShepherd.updateDBTransaction();
+                    if (occ.getEncounters().size() == 0) {
+                        myShepherd.throwAwayOccurrence(occ);
+                        // myShepherd.updateDBTransaction();
+                    }
+                }
+                // handle markedindividual
+                if (mark != null) {
+                    mark.removeEncounter(enc);
+                    // myShepherd.updateDBTransaction();
+                    if (mark.getEncounters().size() == 0) {
+                        // check for social unit membership and remove
+                        List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
+                            mark);
+                        if (units != null && units.size() > 0) {
+                            for (SocialUnit unit : units) {
+                                boolean worked = unit.removeMember(mark, myShepherd);
+                                // if (worked) myShepherd.updateDBTransaction();
+                            }
+                        }
+                        myShepherd.throwAwayMarkedIndividual(mark);
+                        // myShepherd.updateDBTransaction();
+                    }
+                }
+                // handle projects
+                if (projects != null && projects.size() > 0) {
+                    for (Project project : projects) {
+                        project.removeEncounter(enc);
+                        // myShepherd.updateDBTransaction();
+                    }
+                }
+                itask.removeEncounter(enc);
+                itask.addLog("Servlet DeleteImportTask removed Encounter: " +
+                    enc.getCatalogNumber());
+                // myShepherd.updateDBTransaction();
+                try {
+                    myShepherd.throwAwayEncounter(enc);
+                } catch (Exception e) {
+                    System.out.println("Exception on throwAwayEncounter!!");
+                    e.printStackTrace();
+                }
+                // myShepherd.updateDBTransaction();
+            }
+            myShepherd.getPM().deletePersistent(itask);
+            // myShepherd.commitDBTransaction();
+        } catch (Exception ex) {
+            throw new IOException("general exception on ImportTask delete: " + ex);
+        }
+        Util.mark("ImportTask.deleteWithRelated(" + id + ") completed");
     }
 
     // this is hobbled together from some complex code in import.jsp
