@@ -285,10 +285,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
                 Row row = sheet.getRow(0);
 
-                String submitterID = getString(row, "Encounter.submitter0.submitterID", colIndexMap, verbose,
-                missingColumns, unusedColumns, feedback);
-
-                creator = myShepherd.getUser(submitterID);
+                creator = getUserForRowOrCurrent(row, myShepherd, colIndexMap, verbose, missingColumns,
+                unusedColumns, feedback, request);
                 
                 itask = new ImportTask(creator);
                 itask.setPassedParameters(request);
