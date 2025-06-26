@@ -127,6 +127,14 @@ const EditableCell = observer(
               </div>
             );
           })()}
+        {!!store.validationWarnings?.[rowIndex]?.[columnId] && (
+          <div
+            className="text-warning small mt-1"
+            style={{ whiteSpace: "normal" }}
+          >
+            {store.validationWarnings[rowIndex][columnId]}
+          </div>
+        )}
       </div>
     );
   },

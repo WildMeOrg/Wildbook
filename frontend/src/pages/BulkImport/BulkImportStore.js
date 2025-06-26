@@ -8,7 +8,7 @@ import {
   intRule,
   doubleRule,
   stringRule,
-  specializedColumns,
+  allColumns,
 } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
@@ -264,6 +264,127 @@ export class BulkImportStore {
         return !isNaN(dt.getTime());
       },
       message: "invalid date in milliseconds",
+    },
+    "Occurrence.year": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "YYYY", true).isValid();
+      },
+      message: "Year must be in YYYY format",
+    },
+    "Sighting.year": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "YYYY", true).isValid();
+      },
+      message: "Invalid value. Year must be in YYYY format",
+    },
+    "Occurrence.month": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "MM", true).isValid();
+      },
+      message: "Invalid value. Month must be in MM format",
+    },
+    "Sighting.month": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "MM", true).isValid();
+      },
+      message: "Invalid value. Month must be in MM format",
+    },
+    "Occurrence.day": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "DD", true).isValid();
+      },
+      message: "Invalid value. Day must be in DD format",
+    },
+    "Sighting.day": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "DD", true).isValid();
+      },
+      message: "Invalid value. Day must be in DD format",
+    },
+    "Occurrence.hour": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "HH", true).isValid();
+      },
+      message: "Invalid value. Hours must be in HH format",
+    },
+    "Sighting.hour": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "HH", true).isValid();
+      },
+      message: "Invalid value. Hours must be in HH format",
+    },
+
+    "Occurrence.minutes": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "mm", true).isValid();
+      },
+      message: "Invalid value. Minutes must be in mm format",
+    },
+    "Sighting.minutes": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return dayjs(val, "mm", true).isValid();
+      },
+      message: "Invalid value. Minutes must be in mm format",
+    },
+    "Occurence.millis": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return this.isValidISO(val);
+      },
+      message: "Invalid value. Must be a valid ISO date",
+    },
+    "Sighting.millis": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return this.isValidISO(val);
+      },
+      message: "Invalid value. Must be a valid ISO date",
     },
   };
 
@@ -1470,7 +1591,7 @@ export class BulkImportStore {
           knownColumnCache[col] =
             col in this._minimalFields ||
             extraStringCols.includes(col) ||
-            specializedColumns.includes(col) ||
+            allColumns.includes(col) ||
             this.isDynamicKnownColumn(col);
         }
 

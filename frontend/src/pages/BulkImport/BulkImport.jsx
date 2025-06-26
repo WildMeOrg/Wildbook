@@ -44,7 +44,7 @@ const BulkImport = observer(() => {
     ) {
       store.saveState();
     }
-  }, [store.uploadedImages.length, store.spreadsheetData.length]);
+  }, [store.uploadedImages.length, JSON.stringify(store.spreadsheetData)]);
 
   return (
     <Container>

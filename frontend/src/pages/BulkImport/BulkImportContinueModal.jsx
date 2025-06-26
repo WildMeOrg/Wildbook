@@ -6,9 +6,9 @@ import { FaDownload } from "react-icons/fa";
 export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
 
-  const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
+  const savedStore = JSON.parse(localStorage.getItem("BulkImportStore")) || {};
   const uploadedImageCount = savedStore?.uploadedImages?.length || 0;
-  const lastSavedAt = savedStore.lastSavedAt || new Date.now();
+  const lastSavedAt = savedStore?.lastSavedAt || Date.now();
 
   useEffect(() => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
@@ -19,6 +19,7 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
 
   const handleContinue = () => {
     const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
+    console.log("Continuing with saved store:", savedStore);
     const submissionId = savedStore?.submissionId;
     if (submissionId) {
       setRenderMode1("list");
@@ -77,14 +78,14 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
             </div>
           </div>
 
-          <Button
+          {/* <Button
             variant="outline-info"
             size="sm"
             className="px-3"
             onClick={() => store.openDraftDetail?.()}
           >
             <FormattedMessage id="SEE_DETAILS" defaultMessage="See Details" />
-          </Button>
+          </Button> */}
         </div>
       </Modal.Body>
 

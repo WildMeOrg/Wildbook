@@ -58,7 +58,19 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         .filter((k) => !specifiedColumns.includes(k))
         .filter((k) => !removedColumns.includes(k))
         .filter((k) => !mediaAssetsCols.includes(k));
-      store.setColumnsDef([...specifiedColumns, ...remaining]);
+
+      console.log("Remaining columns:", remaining);
+
+      //update all occurrence columns to sighting
+      const updatedRemaining = remaining.map((col) => {
+        if (col.includes("occurrence") || col.includes("Occurrence")) {
+          return col
+            .replace(/occurrence/g, "sighting")
+            .replace(/Occurrence/g, "Sighting");
+        }
+        return col;
+      });
+      store.setColumnsDef([...specifiedColumns, ...updatedRemaining]);
       store.applyDynamicValidationRules();
 
       const formatDate = (year, month, day, hour, minute) => {
@@ -111,7 +123,10 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           const mediaAssets = mediaAssetsCols
             .filter((v) => row[v] != null && row[v] !== "")
             .map((col) => {
-              const mediaAsset = row[col].trim();
+              const mediaAsset =
+                typeof row[col] === "string"
+                  ? row[col].trim()
+                  : String(row[col] ?? "").trim();
               return mediaAsset;
             })
             .join(", ");
@@ -131,9 +146,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               row["Encounter.minutes"],
             ),
             "Encounter.genus":
-              row["Encounter.genus"].trim() +
+              String(row["Encounter.genus"] ?? "").trim() +
               " " +
-              row["Encounter.specificEpithet"].trim(),
+              String(row["Encounter.specificEpithet"] ?? "").trim(),
           };
         });
 
@@ -155,7 +170,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         }
       };
       processChunk();
-
     };
     reader.readAsArrayBuffer(file);
   };
