@@ -437,5 +437,21 @@
   "IMAGES_UPLOADED_TITLE": "Images téléchargées : {count}",
   "FILE_UPLOADED_SUCCESSFULLY": "Fichier téléchargé avec succès",
   "SKIP_DETECTION_AND_ID": "Ignorer la détection et l’identification",
-  "SKIP_ONLY_IDENTIFICATION": "Ignorer uniquement l’identification"
+  "SKIP_ONLY_IDENTIFICATION": "Ignorer uniquement l’identification",
+  "BULK_IMPORT_FAILED": "Échec de l'importation en masse",
+  "BULK_IMPORT_FAILED_DESC": "Une erreur s'est produite lors du traitement de votre soumission.",
+  "REVIEW_DATA": "Revoir les données",
+  "GO_HOME": "Aller à l'accueil",
+  "BULK_IMPORT_SUCCESS": "Importation en masse lancée avec succès",
+  "BULK_IMPORT_SUCCESS_DESC": "Votre soumission a été effectuée avec succès et est en cours de traitement en arrière-plan. Vous pouvez suivre la progression de cette tâche sur la page des détails d'importation.",
+  "SEE_DETAILS": "Voir les détails",
+   "BULK_IMPORT_CONTINUE_MODAL_TITLE": "Reprendre l'importation en masse",
+  "BULK_IMPORT_CONTINUE_MODAL_DESC": "Vous avez un rapport en masse inachevé enregistré comme brouillon. Souhaitez-vous continuer à travailler dessus ou créer un nouveau rapport ? Veuillez noter que commencer un nouveau rapport effacera toute votre progression actuelle ainsi que les données téléchargées pour cette importation.",
+  "IMAGES_UPLOADED": "Images téléchargées",
+  "LAST_EDITED": "Dernière modification",
+  "CONTINUE": "Reprendre",
+  "BULK_IMPORT_START_NEW_IMPORT": "Commencer une nouvelle importation",
+  "BULK_IMPORT_CONTINUE_TITLE": "Commencer une autre importation en masse ?",
+  "BULK_IMPORT_CONTINUE_DESC": "Votre dernière importation en masse est encore en cours de traitement en arrière-plan. Vous pouvez suivre sa progression sur la page de la tâche. Souhaitez-vous démarrer une autre importation ?",
+  "START_NEW_BULK_IMPORT": "Commencer une nouvelle importation en masse"
 }

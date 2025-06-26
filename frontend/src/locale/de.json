@@ -439,5 +439,21 @@
   "IMAGES_UPLOADED_TITLE": "Bilder hochgeladen: {count}",
   "FILE_UPLOADED_SUCCESSFULLY": "Datei erfolgreich hochgeladen",
   "SKIP_DETECTION_AND_ID": "Erkennung und Identifikation überspringen",
-  "SKIP_ONLY_IDENTIFICATION": "Nur Identifikation überspringen"
+  "SKIP_ONLY_IDENTIFICATION": "Nur Identifikation überspringen",
+  "BULK_IMPORT_FAILED": "Massenimport fehlgeschlagen",
+  "BULK_IMPORT_FAILED_DESC": "Beim Verarbeiten Ihrer Übermittlung ist ein Fehler aufgetreten.",
+  "REVIEW_DATA": "Daten überprüfen",
+  "GO_HOME": "Zur Startseite",
+  "BULK_IMPORT_SUCCESS": "Massenimport erfolgreich gestartet",
+  "BULK_IMPORT_SUCCESS_DESC": "Ihre Übermittlung war erfolgreich und wird nun im Hintergrund verarbeitet. Sie können den Fortschritt dieser Aufgabe auf der Detailseite für den Massenimport verfolgen.",
+  "SEE_DETAILS": "Details anzeigen",
+  "BULK_IMPORT_CONTINUE_MODAL_TITLE": "Massenimport fortsetzen",
+  "BULK_IMPORT_CONTINUE_MODAL_DESC": "Sie haben einen unvollständigen Massenbericht als Entwurf gespeichert. Möchten Sie daran weiterarbeiten oder einen neuen Bericht starten? Bitte beachten Sie, dass beim Start eines neuen Berichts Ihr aktueller Fortschritt und alle hochgeladenen Daten gelöscht werden.",
+  "IMAGES_UPLOADED": "Bilder hochgeladen",
+  "LAST_EDITED": "Zuletzt bearbeitet",
+  "CONTINUE": "Fortsetzen",
+  "BULK_IMPORT_START_NEW_IMPORT": "Neue Import starten",
+  "BULK_IMPORT_CONTINUE_TITLE": "Einen weiteren Massenimport starten?",
+  "BULK_IMPORT_CONTINUE_DESC": "Ihr letzter Massenimport wird noch im Hintergrund verarbeitet. Sie können den Fortschritt auf der Aufgabenübersichtsseite einsehen. Möchten Sie einen neuen Import starten?",
+  "START_NEW_BULK_IMPORT": "Neuen Massenimport starten"
 }

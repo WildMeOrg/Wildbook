@@ -437,5 +437,21 @@
   "IMAGES_UPLOADED_TITLE": "Imágenes subidas: {count}",
   "FILE_UPLOADED_SUCCESSFULLY": "Archivo subido exitosamente",
   "SKIP_DETECTION_AND_ID": "Omitir detección e identificación",
-  "SKIP_ONLY_IDENTIFICATION": "Omitir solo la identificación"
+  "SKIP_ONLY_IDENTIFICATION": "Omitir solo la identificación",
+  "BULK_IMPORT_FAILED": "Error en la importación masiva",
+  "BULK_IMPORT_FAILED_DESC": "Se produjo un error al procesar su envío.",
+  "REVIEW_DATA": "Revisar datos",
+  "GO_HOME": "Ir a la página principal",
+  "BULK_IMPORT_SUCCESS": "Importación masiva iniciada con éxito",
+  "BULK_IMPORT_SUCCESS_DESC": "Su envío fue exitoso y ahora se está procesando en segundo plano. Puede seguir el progreso de esta tarea en la página de detalles de la importación masiva.",
+  "SEE_DETAILS": "Ver detalles",
+  "BULK_IMPORT_CONTINUE_MODAL_TITLE": "Reanudar importación masiva",
+  "BULK_IMPORT_CONTINUE_MODAL_DESC": "Tiene un informe masivo sin terminar guardado como borrador. ¿Desea continuar trabajando en él o crear un nuevo informe masivo? Tenga en cuenta que iniciar un nuevo informe borrará todo su progreso actual y los datos cargados en esta importación.",
+  "IMAGES_UPLOADED": "Imágenes subidas",
+  "LAST_EDITED": "Última edición",
+  "CONTINUE": "Reanudar",
+  "BULK_IMPORT_START_NEW_IMPORT": "Iniciar nueva importación",
+  "BULK_IMPORT_CONTINUE_TITLE": "¿Iniciar otra importación masiva?",
+  "BULK_IMPORT_CONTINUE_DESC": "Su última importación masiva todavía se está procesando en segundo plano. Puede verificar su progreso en la página de tareas. ¿Desea iniciar otra importación?",
+  "START_NEW_BULK_IMPORT": "Iniciar nueva importación masiva"
 }

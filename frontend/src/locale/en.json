@@ -438,5 +438,21 @@
     "IMAGES_UPLOADED_TITLE": "Images Uploaded: {count}",
     "FILE_UPLOADED_SUCCESSFULLY": "File Uploaded Successfully",
     "SKIP_DETECTION_AND_ID": "Skip Detection and Identification",
-    "SKIP_ONLY_IDENTIFICATION" : "Skip Only Identification"
+    "SKIP_ONLY_IDENTIFICATION": "Skip Only Identification",
+    "BULK_IMPORT_FAILED": "Bulk Import Failed",
+    "BULK_IMPORT_FAILED_DESC": "There was an error while processing your submission.",
+    "REVIEW_DATA": "Review Data",
+    "BULK_IMPORT_SUCCESS": "Bulk Import Started Successfully",
+    "BULK_IMPORT_SUCCESS_DESC": "Your submission was successful and is now being processed in the background. You can track the progress of this task from the bulk import task details page.",
+    "SEE_DETAILS": "See Details",
+    "GO_HOME": "Go to Home",
+    "BULK_IMPORT_CONTINUE_MODAL_TITLE": "Resume Bulk Import",
+    "BULK_IMPORT_CONTINUE_MODAL_DESC": "You have an unfinished bulk report saved as a draft. Would you like to continue working on it or create a new bulk report? Please note that starting a new report will erase all your current progress and any data uploaded for this bulk import.",
+    "IMAGES_UPLOADED": "Images uploaded",
+    "LAST_EDITED": "Last Edited",
+    "CONTINUE": "Resume",
+    "BULK_IMPORT_START_NEW_IMPORT": "Start New Import",
+    "BULK_IMPORT_CONTINUE_TITLE": "Start another Bulk Import?",
+    "BULK_IMPORT_CONTINUE_DESC": "Your last bulk import is still being processed in the background. You can check its progress from the bulk import task page. Would you like to start another import?",
+    "START_NEW_BULK_IMPORT": "Start New Bulk Import"
 }

@@ -438,5 +438,21 @@
   "IMAGES_UPLOADED_TITLE": "Immagini caricate: {count}",
   "FILE_UPLOADED_SUCCESSFULLY": "File caricato con successo",
   "SKIP_DETECTION_AND_ID": "Salta rilevamento e identificazione",
-  "SKIP_ONLY_IDENTIFICATION": "Salta solo l’identificazione"
+  "SKIP_ONLY_IDENTIFICATION": "Salta solo l’identificazione",
+  "BULK_IMPORT_FAILED": "Importazione massiva fallita",
+  "BULK_IMPORT_FAILED_DESC": "Si è verificato un errore durante l'elaborazione dell'invio.",
+  "REVIEW_DATA": "Rivedi i dati",
+  "GO_HOME": "Torna alla home",
+  "BULK_IMPORT_SUCCESS": "Importazione massiva avviata con successo",
+  "BULK_IMPORT_SUCCESS_DESC": "Il tuo invio è andato a buon fine ed è ora in fase di elaborazione in background. Puoi monitorare l'avanzamento di questa attività nella pagina dei dettagli dell'importazione.",
+  "SEE_DETAILS": "Vedi dettagli",
+  "BULK_IMPORT_CONTINUE_MODAL_TITLE": "Riprendi importazione massiva",
+  "BULK_IMPORT_CONTINUE_MODAL_DESC": "Hai un report massivo incompleto salvato come bozza. Vuoi continuare a lavorarci o iniziare un nuovo report? Nota: iniziare un nuovo report cancellerà tutti i tuoi progressi attuali e i dati caricati.",
+  "IMAGES_UPLOADED": "Immagini caricate",
+  "LAST_EDITED": "Ultima modifica",
+  "CONTINUE": "Riprendi",
+  "BULK_IMPORT_START_NEW_IMPORT": "Inizia una nuova importazione",
+  "BULK_IMPORT_CONTINUE_TITLE": "Iniziare un'altra importazione massiva?",
+  "BULK_IMPORT_CONTINUE_DESC": "La tua ultima importazione massiva è ancora in fase di elaborazione in background. Puoi controllarne l'avanzamento nella pagina delle attività. Vuoi iniziarne una nuova?",
+  "START_NEW_BULK_IMPORT": "Inizia una nuova importazione massiva"
 }
