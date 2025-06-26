@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList, java.util.Map, java.util.HashMap, org.json.JSONObject, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.shepherd.core.*,org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList, java.util.Map, java.util.HashMap, org.json.JSONObject, java.util.concurrent.ThreadPoolExecutor" %>
 
 
 <%!
@@ -154,14 +154,14 @@ This policy defines who may be given access to GiraffeSpotter and how access may
 
 <p>
 <b>GiraffeSpotter - Wildbook for Giraffe</b> is privately funded and managed jointly by
-<a href="https://wildme.org/">Wild Me</a> (a 501c3 non-profit organization in the United States),
+<a href="https://wildme.org/">Wild Me Lab</a> of <a href="https://conservationxlabs.com">Conservation X Labs</a> (a 501c3 non-profit organization in the United States),
 <a href="https://giraffeconservation.org/">Giraffe Conservation Foundation</a>,
 and
-<a href="https://www.sandiegozooglobal.org/">San Diego Zoo Global</a>.
+<a href="https://www.sandiegozooglobal.org/">San Diego Zoo Wildlife Alliance</a>.
 </p>
 
 <p>
-This <a target="_new" href="http://wildbook.org">Wildbook</a> provides standardized research software and analytical techniques for the study of giraffe.
+This <a target="_new" href="https://www.wildme.org/wildbook.html">Wildbook</a> provides standardized research software and analytical techniques for the study of giraffe.
 Access to this resource is provided free of charge to individuals or organizations selected according to the criteria of this policy.
 The number of new accounts that can be provided each year is limited by:
 <ul>
@@ -175,7 +175,7 @@ The number of new accounts that can be provided each year is limited by:
 
 <p>
 To <b>request access to GiraffeSpotter</b>, please see the section
-<a target="_new" href="https://wildme.org/#/contact"><i>Request a Wildbook account</i> on this page</a>.
+<a target="_new" href="https://us7.list-manage.com/contact-form?u=c5af097df0ca8712f52ea1768&form_id=335cfeba915bbb2a6058d6ba705598ce"><i>Request a Wildbook account</i> on this page</a>.
 
 
 <div style="display: none;" id="request-access-div">

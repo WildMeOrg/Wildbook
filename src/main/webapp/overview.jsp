@@ -18,32 +18,15 @@ Help us conserve, study and monitor the world's tallest mammals!
 GiraffeSpotter uses photographs of the pattern of giraffe on both sides of their body and neck (with a focus on their right side) to distinguish between individual animals. Cutting-edge software supports rapid identification using pattern recognition and photo management tools. You too can assist with giraffe conservation research by submitting photos and sighting data. The information you submit will be used in mark-recapture studies to help with the Africa-wide conservation of these iconic animals.
 </p>
 
-<h2 title="logos still pending">Contributors</h2>
+<h2 title="logos still pending">Administrators and Developers</h2>
 
 <ul>
 	<li><a target="_new" href="https://giraffeconservation.org">Giraffe Conservation Foundation</a></li>
-	<li><a target="_new" href="http://www.sandiegozooglobal.org/">San Diego Zoo Global</a></li>
-	<li><a target="_new" href="http://wildme.org">Wild Me</a></li>
+	<li><a target="_new" href="https://www.sandiegozooglobal.org/">San Diego Zoo Wildlife Alliance</a></li>
+	<li><a target="_new" href="https://wildme.org">Wild Me Lab of Conservation X Labs</a></li>
 </ul>
 
-<h2>Sponsors &amp; Partners</h2>
-<ul>
-	<li>Born Free Foundation</li>
-	<li>Giraffe Conservation Foundation - USA</li>
-	<li>Global Conservation Force</li>
-	<li>Goethe University</li>
-	<li>Hogle Zoo</li>
-	<li>Kenya Wildlife Service</li>
-	<li>Leiden Conservation Foundation</li>
-	<li>Lewa Wildlife Conservancy</li>
-	<li>Loisaba Conservancy</li>
-	<li>Northern Rangelands Trust</li>
-	<li>Sacramento Zoo</li>
-	<li>Senckenberg BiK-F</li>
-	<li>Smithsonian Institution</li>
-	<li>The Nature Conservancy in Africa</li>
-	<li>Wildbook</li>
-</ul>
+
 
 
         </div>
