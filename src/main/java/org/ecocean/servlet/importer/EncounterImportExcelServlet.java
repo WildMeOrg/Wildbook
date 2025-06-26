@@ -283,7 +283,13 @@ public class EncounterImportExcelServlet extends HttpServlet {
             try {
                 myShepherd.beginDBTransaction();
 
-                creator = AccessControl.getUser(request, myShepherd);
+                Row row = sheet.getRow(0);
+
+                String submitterID = getString(row, "Encounter.submitter0.submitterID", colIndexMap, verbose,
+                missingColumns, unusedColumns, feedback);
+
+                creator = myShepherd.getUser(submitterID);
+                
                 itask = new ImportTask(creator);
                 itask.setPassedParameters(request);
                 itask.setStatus("started");
@@ -363,9 +369,10 @@ public class EncounterImportExcelServlet extends HttpServlet {
                         try {
                             MediaAsset ma = ann.getMediaAsset();
                             if (ma != null) {
-                                myShepherd.storeNewAnnotation(ann);
                                 ma.setMetadata();
                                 ma.updateStandardChildren(myShepherd);
+                                myShepherd.storeNewAnnotation(ann);
+                                
                             }
                         } catch (Exception e) {
                             System.out.println("EXCEPTION on annot/ma persisting!");
@@ -1508,7 +1515,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
         int numNameColumns = getNumNameColumns(colIndexMap);
         // import name columns
-        for (int t = 0; t < numNameColumns; t++) {
+        for (int t = 0; t <= numNameColumns; t++) {
             String nameLabel = "Name" + t + ".label";
             String nameValue = "Name" + t + ".value";
             System.out.println("in name column: " + nameLabel);
@@ -2005,7 +2012,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
         if (nickname != null) mark.setNickName(nickname);
         int numNameColumns = getNumNameColumns(colIndexMap);
         // import name columns
-        for (int t = 0; t < numNameColumns; t++) {
+        for (int t = 0; t <= numNameColumns; t++) {
             String nameLabel = "Name" + t + ".label";
             String nameValue = "Name" + t + ".value";
             System.out.println("in name column: " + nameLabel);
