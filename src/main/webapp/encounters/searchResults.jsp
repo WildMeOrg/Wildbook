@@ -559,6 +559,7 @@ $(document).ready(function () {
       encs.fetch({
         useProjectContext: useProjectContext,
         fetch: "searchResults",
+        noSanitize: true,
         jdoql: jdoql, 
         success: function () {
           let baseEncounters = encs.models;
@@ -581,6 +582,7 @@ $(document).ready(function () {
           collabFetch.fetch({
 			useProjectContext: useProjectContext,
             fetch: "searchResults",
+  			noSanitize: true,
   			jdoql: encodeURIComponent(collabJdoql),
             success: function () {
               const allEncounters = [...baseEncounters, ...collabFetch.models];
