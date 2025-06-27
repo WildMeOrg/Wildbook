@@ -237,10 +237,10 @@ export class BulkImportStore {
           return true;
         }
         const re =
-          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         return re.test(val);
       },
-      message: "invalid email address",
+      message: "invalid email address??",
     },
     "Encounter.informOther0.emailAddress": {
       required: false,
@@ -249,7 +249,7 @@ export class BulkImportStore {
           return true;
         }
         const re =
-          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         return re.test(val);
       },
       message: "invalid email address",
@@ -917,16 +917,22 @@ export class BulkImportStore {
       "Fetching uploaded files for submission ID:",
       this._submissionId,
     );
-    const resp = await fetch(`/api/v3/bulk-import/${this._submissionId}/files`);
+    try {
+      const resp = await fetch(
+        `/api/v3/bulk-import/${this._submissionId}/files`,
+      );
 
-    if (!resp.ok) {
-      console.error("Unexpected response", resp.status);
-      return;
+      if (!resp.ok) {
+        console.error("Unexpected response", resp.status);
+        return;
+      }
+
+      const data = await resp.json();
+      console.log("Fetched uploaded files:", data.files);
+      this.applyServerUploadStatus(data.files);
+    } catch (error) {
+      console.error("Error fetching uploaded files:", error);
     }
-
-    const data = await resp.json();
-    console.log("Fetched uploaded files:", data.files);
-    this.applyServerUploadStatus(data.files);
   }
 
   getOptionsForSelectCell(col) {
@@ -1472,7 +1478,7 @@ export class BulkImportStore {
     const isEmail = (val) => {
       if (!val) return true;
       const re =
-        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
       return re.test(val);
     };
 
@@ -1490,7 +1496,7 @@ export class BulkImportStore {
         this._validationRules[col] = {
           required: false,
           validate: isString,
-          message: "must be a string",
+          message: "invalid value. must be a string",
         };
       }
 
@@ -1498,7 +1504,7 @@ export class BulkImportStore {
         this._validationRules[col] = {
           required: false,
           validate: isString,
-          message: "must be a string",
+          message: "invalid value. must be a string",
         };
       }
 
@@ -1511,7 +1517,7 @@ export class BulkImportStore {
           this._validationRules[col] = {
             required: false,
             validate: (val) => isInLabeledKeywordAllowedValues(col, val),
-            message: "invalid value — must match an allowed label",
+            message: "invalid value. must match an allowed label",
           };
         }
       }
@@ -1525,13 +1531,13 @@ export class BulkImportStore {
           this._validationRules[col] = {
             required: false,
             validate: isEmail,
-            message: "invalid email address",
+            message: "invalid email address12",
           };
         } else {
           this._validationRules[col] = {
             required: false,
             validate: isString,
-            message: "must be a string",
+            message: "invalid value. must be a string",
           };
         }
       }
@@ -1582,6 +1588,7 @@ export class BulkImportStore {
       return this._cachedValidation;
     }
     console.log("No cached validation, performing fresh validation...");
+    this.applyDynamicValidationRules();
     const errors = {};
     const warnings = {};
     const knownColumnCache = {};
