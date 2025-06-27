@@ -5,7 +5,7 @@ import { FaImage } from "react-icons/fa";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { useIntl } from "react-intl";
 
-export const BulkImportImageUploadInfo = observer(({ store }) => {
+export const BulkImportImageUploadInfo = observer(({ store, expanded }) => {
   const intl = useIntl();
   const theme = React.useContext(ThemeColorContext);
   const missingPhotos = store.spreadsheetData.reduce((acc, row) => {
@@ -50,22 +50,16 @@ export const BulkImportImageUploadInfo = observer(({ store }) => {
 
   const title = intl.formatMessage(
     { id: "PHOTOS_UPLOADED_TITLE", defaultMessage: "photos uploaded: {count}" },
-    { count: store.uploadedImages.length }
+    { count: store.uploadedImages.length },
   );
 
   return (
     <div style={{ marginTop: "2rem" }}>
       <InfoAccordion
-        icon={
-          <FaImage
-            size={20}
-            color={
-              store.activeStep === 0 ? "#fff" : theme.primaryColors.primary500
-            }
-          />
-        }
+        icon={<FaImage size={20} color={theme.primaryColors.primary500} />}
         title={title}
         data={data}
+        expanded={expanded}
       />
     </div>
   );

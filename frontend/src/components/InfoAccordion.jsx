@@ -26,10 +26,16 @@ function ContextAwareToggle({ children, eventKey }) {
   );
 }
 
-export default function InfoAccordion({ icon, title, data = [] }) {
+export default function InfoAccordion({
+  icon,
+  title,
+  data = [],
+  expanded = false,
+}) {
   const theme = React.useContext(ThemeColorContext);
+  const defaultActiveKey = expanded ? "0" : "null";
   return (
-    <Accordion defaultActiveKey="null" style={{ maxWidth: 500 }}>
+    <Accordion defaultActiveKey={defaultActiveKey} style={{ maxWidth: 500 }}>
       <Card style={{ backgroundColor: theme.primaryColors.primary50 }}>
         <Card.Header style={{ backgroundColor: theme.primaryColors.primary50 }}>
           <ContextAwareToggle eventKey="0">

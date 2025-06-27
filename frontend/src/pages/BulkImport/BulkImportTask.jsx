@@ -58,7 +58,7 @@ const BulkImportTask = () => {
       }
 
       alert("Import task deleted successfully.");
-      window.location.href = "/#/bulk-import";
+      window.location.href = "/react/";
     } catch (err) {
       console.error("Failed to delete import task:", err);
       alert("Failed to delete import task. " + (err.message || ""));

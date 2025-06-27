@@ -13,6 +13,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import { FixedSizeList as List } from "react-window";
+import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
 
 const handleDragOver = (e) => {
   e.preventDefault();
@@ -154,6 +155,15 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
           <BulkImportSeeInstructionsButton store={store} />
         </div>
         <div></div>
+      </Row>
+      <Row>
+        <div
+          style={{
+            maxWidth: "350px",
+          }}
+        >
+          <BulkImportImageUploadInfo store={store} expanded={true} />
+        </div>
       </Row>
 
       <Row>
