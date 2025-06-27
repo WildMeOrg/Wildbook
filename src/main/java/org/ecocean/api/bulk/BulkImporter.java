@@ -18,6 +18,7 @@ import org.ecocean.api.bulk.*;
 import org.ecocean.Annotation;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
+import org.ecocean.genetics.*;
 import org.ecocean.Keyword;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
@@ -338,6 +339,7 @@ public class BulkImporter {
             enc.setMeasurement(meas);
         }
         handleSocialUnit(indiv, fmap.get("SocialUnit.socialUnitName"), fmap.get("Membership.role"));
+        handleSamples(enc, fmap);
 /*
    core functionality: altering main objects (Encounters, etc.)
 
@@ -710,16 +712,102 @@ public class BulkImporter {
         }
     }
 
-/* this sample stuff is over-the-top   FIXME
+    private void handleSamples(Encounter enc, Map<String, BulkValidator> fmap) {
+        String tsId = null;
 
-            case "MicrosatelliteMarkersAnalysis.alleleNames":
-            case "MicrosatelliteMarkersAnalysis.analysisID":
-            case "MitochondrialDNAAnalysis.haplotype":
-            case "SexAnalysis.processingLabTaskID":
-            case "SexAnalysis.sex":
-            case "TissueSample.sampleID":
-            case "TissueSample.tissueType":
- */
+        if (fmap.containsKey("TissueSample.sampleID"))
+            tsId = fmap.get("TissueSample.sampleID").getValueStringTrimmedNonEmpty();
+        if ((tsId == null) && fmap.containsKey("MicrosatelliteMarkersAnalysis.analysisID"))
+            tsId = fmap.get(
+                "MicrosatelliteMarkersAnalysis.analysisID").getValueStringTrimmedNonEmpty();
+        if ((tsId == null) && fmap.containsKey("SexAnalysis.processingLabTaskID"))
+            tsId = fmap.get("SexAnalysis.processingLabTaskID").getValueStringTrimmedNonEmpty();
+        if (tsId == null) return; // can neither find nor create a sample, so bye
+        // if this is a newly created encounter, i am fairly certain this will always return null
+        // TODO but maybe these samples will be on encounters *created in this import*, in which case,
+        // we may need to do some kind of caching like other objects
+        TissueSample sample = myShepherd.getTissueSample(tsId, enc.getId());
+        if (sample == null) sample = new TissueSample(enc.getId(), tsId);
+        if (fmap.containsKey("TissueSample.tissueType"))
+            sample.setTissueType(fmap.get(
+                "TissueSample.tissueType").getValueStringTrimmedNonEmpty());
+        // genotype
+        String alleleNames = null;
+        String alleleZeros = null;
+        String alleleOnes = null;
+        if (fmap.containsKey("MicrosatelliteMarkersAnalysis.alleleNames"))
+            alleleNames = fmap.get(
+                "MicrosatelliteMarkersAnalysis.alleleNames").getValueStringTrimmedNonEmpty();
+        if (fmap.containsKey("MicrosatelliteMarkersAnalysis.alleles0"))
+            alleleZeros = fmap.get(
+                "MicrosatelliteMarkersAnalysis.alleles0").getValueStringTrimmedNonEmpty();
+        if (fmap.containsKey("MicrosatelliteMarkersAnalysis.alleles1"))
+            alleleOnes = fmap.get(
+                "MicrosatelliteMarkersAnalysis.alleles0").getValueStringTrimmedNonEmpty();
+        if ((alleleNames != null) && (alleleZeros != null) && (alleleOnes != null)) {
+            ArrayList<Locus> loci = new ArrayList<Locus>();
+            String[] names = alleleNames.split(",");
+            String[] zeros = alleleZeros.split(",");
+            String[] ones = alleleOnes.split(",");
+            if ((names.length == zeros.length) && (zeros.length == ones.length)) {
+                for (int i = 0; i < names.length; i++) {
+                    Integer all0 = null;
+                    Integer all1 = null;
+                    try {
+                        all0 = Integer.parseInt(zeros[i]);
+                        all1 = Integer.parseInt(ones[i]);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    if ((all0 == null) || (all1 == null)) {
+                        System.out.println(
+                            "BulkImporter.handleSamples(): failed to get allele ints for " +
+                            zeros[i] + "; " + ones[i]);
+                    } else if (names[i].equals("")) {
+                        System.out.println("BulkImporter.handleSamples(): empty name for i=" + i +
+                            " in " + alleleNames);
+                    } else {
+                        Locus locus = new Locus(names[i], all0, all1);
+                        loci.add(locus);
+                    }
+                }
+            } else {
+                System.out.println("BulkImporter.handleSamples(): length mismatch for " +
+                    alleleNames + "; " + alleleZeros + "; " + alleleOnes);
+            }
+            if (loci.size() > 0) {
+                MicrosatelliteMarkersAnalysis markers = new MicrosatelliteMarkersAnalysis(
+                    Util.generateUUID(), tsId, enc.getId(), loci);
+                myShepherd.getPM().makePersistent(markers);
+                sample.addGeneticAnalysis(markers);
+                System.out.println("BulkImporter.handleSamples(): adding " + markers + " to " +
+                    sample);
+            }
+        }
+        // sex analysis
+        String sas = null;
+        if (fmap.containsKey("SexAnalysis.sex"))
+            sas = fmap.get("SexAnalysis.sex").getValueStringTrimmedNonEmpty();
+        if (sas != null) {
+            SexAnalysis sexAn = new SexAnalysis(Util.generateUUID(), sas, enc.getId(), tsId);
+            myShepherd.getPM().makePersistent(sexAn);
+            sample.addGeneticAnalysis(sexAn);
+            System.out.println("BulkImporter.handleSamples(): adding " + sexAn + " to " + sample);
+        }
+        // haplotype
+        String hap = null;
+        if (fmap.containsKey("MitochondrialDNAAnalysis.haplotype"))
+            hap = fmap.get("MitochondrialDNAAnalysis.haplotype").getValueStringTrimmedNonEmpty();
+        if (hap != null) {
+            MitochondrialDNAAnalysis mda = new MitochondrialDNAAnalysis(Util.generateUUID(), hap,
+                enc.getId(), tsId);
+            myShepherd.getPM().makePersistent(mda);
+            sample.addGeneticAnalysis(mda);
+            System.out.println("BulkImporter.handleSamples(): adding " + mda + " to " + sample);
+        }
+        // wrap it up, we are done!
+        enc.addTissueSample(sample);
+    }
 
 /*
     this will create an individual if none can be found

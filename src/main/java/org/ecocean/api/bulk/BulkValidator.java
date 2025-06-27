@@ -142,6 +142,13 @@ public class BulkValidator {
         return value.toString();
     }
 
+    // specialty, but handy/common
+    public String getValueStringTrimmedNonEmpty() {
+        if (value == null) return null;
+        if (value.toString().trim().equals("")) return null;
+        return value.toString().trim();
+    }
+
     public Double getValueDouble() {
         if (value == null) return null;
         if (value instanceof Double) return (Double)value;
