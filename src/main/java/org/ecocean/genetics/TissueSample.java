@@ -170,4 +170,8 @@ public class TissueSample extends DataCollectionEvent {
         }
         return null;
     }
+
+    public String toString() {
+        return super.toString() + " [sampleID:" + sampleID + "] tissueType:" + tissueType;
+    }
 }

@@ -952,4 +952,10 @@ public class BulkImporter {
         occurrenceCache.put(occ.getId(), occ); // we use getId() in case of id==null
         return occ;
     }
+
+    public String toString() {
+        return super.toString() + " [id:" + importTaskId + "] " + (dataRows ==
+                   null ? 0 : dataRows.size()) + " dataRows; " + this.encounterCache.size() +
+                   " encs";
+    }
 }
