@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import org.ecocean.api.bulk.*;
+import org.ecocean.genetics.*;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 
@@ -161,7 +162,49 @@ class BulkGeneralTest {
                 mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
                 // this should not throw any exception
                 Map<String, Object> res = testOneRow(row);
-                assertEquals(res.size(), row.size());
+                // res will have hacky extra key "_BulkImporter", so:
+                assertEquals(res.size(), row.size() + 1);
+            }
+        }
+    }
+
+    private Map<String, Object> baseRow() {
+        Map<String, Object> row = new HashMap<String, Object>();
+
+        row.put("Encounter.submitterID", "fakeSubmitterId");
+        return row;
+    }
+
+    @Test void geneticSamples()
+    throws ServletException {
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+        Map<String, Object> row = baseRow();
+        String tsType = "test-type";
+
+        row.put("TissueSample.sampleID", "tissue-sample-id");
+        row.put("TissueSample.tissueType", tsType);
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                // simplest TissueSample
+                Map<String, Object> res = testOneRow(row);
+                assertNotNull(res);
+                assertTrue(res.containsKey("_BulkImporter"));
+                BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
+                assertEquals(Util.collectionSize(bimp.getEncounters()), 1);
+                Encounter enc = bimp.getEncounters().get(0);
+                List<TissueSample> ts = enc.getTissueSamples();
+                assertEquals(Util.collectionSize(ts), 1);
+                assertEquals(ts.get(0).getTissueType(), tsType);
+                assertEquals(Util.collectionSize(ts.get(0).getGeneticAnalyses()), 0);
             }
         }
     }
@@ -195,6 +238,7 @@ class BulkGeneralTest {
         // Shepherd should be handled by caller via MockConstruction etc
         // see fieldNameCoverage() for example
         Shepherd myShepherd = new Shepherd("context0");
+        String impId = "test-one-row";
         List<Map<String, Object> > allRows = new ArrayList<Map<String, Object> >();
         Map<String, Object> row = new HashMap<String, Object>();
 
@@ -210,8 +254,9 @@ class BulkGeneralTest {
             }
         }
         allRows.add(row);
-        BulkImporter imp = new BulkImporter(null, allRows, null, null, myShepherd);
+        BulkImporter imp = new BulkImporter(impId, allRows, null, null, myShepherd);
         imp.createImport();
+        row.put("_BulkImporter", imp); // hacky but i am going to allow it for now
         return row;
     }
 }
