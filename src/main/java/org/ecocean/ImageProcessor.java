@@ -144,14 +144,10 @@ public final class ImageProcessor implements Runnable {
             // note this assumes comment stands alone. :/
             if (command[i].equals("%comment")) command[i] = comment;
             if (command[i].equals("%arg")) command[i] = this.arg;
-            System.out.println("COMMAND[" + i + "] = (" + command[i] + ")");
+            // System.out.println("COMMAND[" + i + "] = (" + command[i] + ")");
         }
-// System.out.println("done run()");
-// System.out.println("command = " + Arrays.asList(command).toString());
-
         ProcessBuilder pb = new ProcessBuilder();
         pb.command(command);
-// System.out.println("before!");
 
         try {
             Process proc = pb.start();
@@ -167,10 +163,8 @@ public final class ImageProcessor implements Runnable {
                 System.out.println("!!!! " + line);
             }
             proc.waitFor();
-            System.out.println("DONE?????");
         } catch (Exception ioe) {
             log.error("Trouble running processor [" + command + "]", ioe);
         }
-        System.out.println("RETURN");
     }
 }

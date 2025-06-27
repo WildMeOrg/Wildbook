@@ -19,13 +19,10 @@ public class AssetStoreFactory {
     // Does not make an attempt to put the "default" one first (or generally order it in a preferred way????) based on configuration
     // this is because AssetStore.getDefault() currently uses the 0th element as default
     public static List<AssetStore> getStores(final Shepherd myShepherd) {
-        System.out.println("ASF.getStores() is called for shepherd w context " +
-            myShepherd.getContext());
-        System.out.println("         and data directory name = " +
-            myShepherd.getDataDirectoryName());
         Collection c;
         Extent ext = myShepherd.getPM().getExtent(AssetStore.class, true);
         Query all = myShepherd.getPM().newQuery(ext);
+
         try {
             c = (Collection)(all.execute());
         } catch (Exception npe) {
@@ -37,17 +34,11 @@ public class AssetStoreFactory {
         for (Object obj : c) {
             s.add((AssetStore)obj);
         }
-        System.out.println("Found # asset stores = " + s.size());
         all.closeAll();
         return s;
     }
 
     public static List<AssetStore> getStores2(final Shepherd myShepherd) {
-        System.out.println("ASF.getStores() is called for shepherd w context " +
-            myShepherd.getContext());
-        System.out.println("         and data directory name = " +
-            myShepherd.getDataDirectoryName());
-
         PersistenceManager pm = myShepherd.getPM();
         String actualContext = myShepherd.getContext();
         // String filter = "this.context == '"+actualContext+"'";
@@ -56,10 +47,10 @@ public class AssetStoreFactory {
         Query acceptedAssetStores = pm.newQuery(assClass);
         Collection c = (Collection)(acceptedAssetStores.execute());
         List<AssetStore> s = new ArrayList<AssetStore>();
+
         for (Object obj : c) {
             s.add((AssetStore)obj);
         }
-        System.out.println("Found # asset stores = " + s.size());
         acceptedAssetStores.closeAll();
         return s;
     }
@@ -70,5 +61,4 @@ public class AssetStoreFactory {
     public static void delete(final AssetStore store) {
         AssetStore.remove(store);
     }
-
 }

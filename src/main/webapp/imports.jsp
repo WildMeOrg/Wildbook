@@ -242,13 +242,8 @@ try{
 	        jobj.put("taskID", taskID);
 	        jobj.put("indivCount", indivCount);
 	        jobj.put("status", status);
-		    if(task.getParameters()!=null){
-				JSONObject passedParams = task.getParameters().optJSONObject("_passedParameters");
-				String filenameParam = "originalFilename";
-				if(!passedParams.has(filenameParam)) filenameParam = "filename";
-				jobj.put("filename", passedParams.optString(filenameParam, ""));
-		    }	
-	        
+                String name = task.getSourceName();
+                jobj.put("filename", (name == null) ? "-" : name);
 	        jsonobj.put(jobj);
 
     	}

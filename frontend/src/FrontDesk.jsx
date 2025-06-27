@@ -29,15 +29,20 @@ export default function FrontDesk() {
   const showClassicEncounterSearch = data?.showClassicEncounters;
   const checkLoginStatus = () => {
     axios
-      .head("/api/v3/user")
+      .head("/api/v3/user", { timeout: 5000 })
       .then((response) => {
-        setIsLoggedIn(response.status === 200);
+        if (response.status === 200) {
+          setIsLoggedIn(true);
+        }
         setLoading(false);
       })
       .catch((error) => {
-        console.log("Error", error);
+        if (error.response?.status === 401) {
+          setIsLoggedIn(false);
+        } else {
+          console.warn("Login status check failed (non-401):", error.message);
+        }
         setLoading(false);
-        setIsLoggedIn(false);
       });
   };
 
@@ -59,6 +64,15 @@ export default function FrontDesk() {
     }, 60000);
 
     return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log("Network back online, rechecking login...");
+      checkLoginStatus();
+    };
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
   }, []);
 
   useEffect(() => {
@@ -95,18 +109,10 @@ export default function FrontDesk() {
     );
   }
 
-  if (!isLoggedIn) {
-    return (
-      <AuthContext.Provider
-        value={{
-          isLoggedIn,
-        }}
-      >
-        <GoogleTagManager />
-        <UnauthenticatedSwitch showclassicsubmit={showclassicsubmit} />
-      </AuthContext.Provider>
-    );
-  }
-
-  return <h1>Loading</h1>;
+  return (
+    <AuthContext.Provider value={{ isLoggedIn }}>
+      <GoogleTagManager />
+      <UnauthenticatedSwitch showclassicsubmit={showclassicsubmit} />
+    </AuthContext.Provider>
+  );
 }

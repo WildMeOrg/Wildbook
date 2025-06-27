@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
+import org.ecocean.api.bulk.BulkImportUtil;
+import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ContextConfiguration;
@@ -136,6 +138,8 @@ public class SiteSettings extends ApiBase {
                 lkeyword.getJSONArray(lkw.getLabel()).put(lkw.getValue());
             }
             settings.put("labeledKeyword", lkeyword);
+            // these are values which are allowed for a given labeledKeyword
+            settings.put("labeledKeywordAllowedValues", BulkImportUtil.getLabeledKeywordMap());
 
             JSONObject orgs = new JSONObject();
             for (Organization org : myShepherd.getAllOrganizations()) {
@@ -246,6 +250,7 @@ public class SiteSettings extends ApiBase {
                 }
                 settings.put(group, jg);
             }
+            settings.put("bulkImportMinimalFields", BulkValidator.minimalFieldsJson());
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {

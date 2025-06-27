@@ -30,7 +30,7 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
             try {
-                
+                if (base.getSkipAutoIndexing()) return;
             	base.opensearchUnindexDeep();
             	               
             } catch (Exception ex) {
@@ -59,7 +59,7 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener postStore() event on " + base);
             try {
-            	
+                if (base.getSkipAutoIndexing()) return;
                 //base.opensearchIndexDeep();
             	//new way - put indexing in managed queue
             	IndexingManager im=IndexingManagerFactory.getIndexingManager();

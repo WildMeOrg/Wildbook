@@ -1,4 +1,5 @@
 import React, { lazy, Suspense } from "react";
+
 import { Routes, Route } from "react-router-dom";
 import NotFound from "./pages/errorPages/NotFound";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
@@ -22,6 +23,9 @@ const ReportConfirm = lazy(
 );
 const ProjectList = lazy(() => import("./pages/ProjectList"));
 const ManualAnnotation = lazy(() => import("./pages/ManualAnnotation"));
+
+const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
+const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
@@ -74,6 +78,8 @@ export default function AuthenticatedSwitch({
             <Route path="/encounter-search" element={<EncounterSearch />} />
             <Route path="/admin/logs" element={<AdminLogs />} />
             <Route path="/manual-annotation" element={<ManualAnnotation />} />
+            <Route path="/bulk-import" element={<BulkImport />} />
+            <Route path="/bulk-import-task" element={<BulkImportTask />} />
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Home />} />
             <Route path="*" element={<NotFound setHeader={setHeader} />} />

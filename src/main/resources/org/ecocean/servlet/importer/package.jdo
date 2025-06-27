@@ -20,7 +20,9 @@
 	  
 	  <field name="status" persistence-modifier="persistent" />
 
-      <field name="parameters" persistence-modifier="persistent" />
+      <field name="parameters" persistence-modifier="persistent">
+          <column jdbc-type="LONGVARCHAR" name="parameters" />
+      </field>
 
       <field name="log" persistence-modifier="persistent" serialized-element="true" />
 
