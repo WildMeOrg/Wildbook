@@ -481,7 +481,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 				else if ("state_rejected".equals(msg)) {
 					click += "<span class=\"collab-button\"></span>"; //empty placeholder
 				}
-				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername1() + "</b> from <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 
 
 

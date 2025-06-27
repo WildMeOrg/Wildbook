@@ -658,8 +658,8 @@ public class Collaboration implements java.io.Serializable {
                             // have a default
                             // edit-level collaboration with
                             Collaboration tempCollab = new Collaboration(
-                                    user.getUsername(),
-                                    username);
+                                    username,
+                                    user.getUsername());
                             tempCollab.setState(STATE_EDIT_PRIV);
                             tempCollab.setEditInitiator(username);
                             returnMe.add(tempCollab);
