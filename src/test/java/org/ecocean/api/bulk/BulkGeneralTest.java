@@ -1,7 +1,12 @@
 package org.ecocean;
 
 import org.ecocean.api.bulk.*;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdPMF;
 
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +34,8 @@ import static org.mockito.Mockito.when;
 class BulkGeneralTest {
     static String fieldNameValidEncounterYear = "Encounter.year";
     static String fieldNameInvalid = "Fail.fubar";
+    PersistenceManagerFactory mockPMF;
+    PersistenceManager mockPM = mock(PersistenceManager.class);
 
     @Test void basicValidation()
     throws BulkValidatorException {
@@ -133,25 +140,30 @@ class BulkGeneralTest {
         }
     }
 
-    @Test void fieldNameCoverage() {
-        List<Map<String, Object> > rows = new ArrayList<Map<String, Object> >();
+    @Test void fieldNameCoverage()
+    throws ServletException {
         Map<String, Object> row = new HashMap<String, Object>();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
 
         for (String fn : BulkValidator.FIELD_NAMES) {
-            BulkValidator bv = null;
-            try {
-                bv = new BulkValidator(fn, "value-" + fn, null);
-            } catch (Exception ex) {}
-            if (bv != null) row.put(fn, bv);
+            row.put(fn, "value-" + fn);
         }
-        rows.add(row);
-        // exception here means we got far enough :)
-        Exception ex = assertThrows(ServletException.class, () -> {
-            BulkImporter imp = new BulkImporter(null, rows, null, null, null);
-            imp.createImport();
-        });
-        // on QA, ex.getMessage() returns null WTF!? so skipping this
-        // assertTrue(ex.getMessage().contains("mediaAssetMap"));
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                // this should not throw any exception
+                Map<String, Object> res = testOneRow(row);
+                assertEquals(res.size(), row.size());
+            }
+        }
     }
 
     @Test void measurement() {
@@ -176,5 +188,30 @@ class BulkGeneralTest {
                 ct++;
             }
         }
+    }
+
+    Map<String, Object> testOneRow(Map<String, Object> singleRowData)
+    throws ServletException {
+        // Shepherd should be handled by caller via MockConstruction etc
+        // see fieldNameCoverage() for example
+        Shepherd myShepherd = new Shepherd("context0");
+        List<Map<String, Object> > allRows = new ArrayList<Map<String, Object> >();
+        Map<String, Object> row = new HashMap<String, Object>();
+
+        for (String fieldName : singleRowData.keySet()) {
+            BulkValidator bv = null;
+            try {
+                bv = new BulkValidator(fieldName, singleRowData.get(fieldName), myShepherd);
+                // System.out.println("A A A A A A A A A A A A A A A " + fieldName + ": " + bv);
+                row.put(fieldName, bv);
+            } catch (Exception ex) {
+                row.put(fieldName, ex);
+                // System.out.println("B B B B B B B B B B B B B B B " + fieldName + ": " + ex);
+            }
+        }
+        allRows.add(row);
+        BulkImporter imp = new BulkImporter(null, allRows, null, null, myShepherd);
+        imp.createImport();
+        return row;
     }
 }
