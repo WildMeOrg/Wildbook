@@ -201,10 +201,39 @@ class BulkGeneralTest {
                 BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
                 assertEquals(Util.collectionSize(bimp.getEncounters()), 1);
                 Encounter enc = bimp.getEncounters().get(0);
-                List<TissueSample> ts = enc.getTissueSamples();
-                assertEquals(Util.collectionSize(ts), 1);
-                assertEquals(ts.get(0).getTissueType(), tsType);
-                assertEquals(Util.collectionSize(ts.get(0).getGeneticAnalyses()), 0);
+                List<TissueSample> tsamps = enc.getTissueSamples();
+                assertEquals(Util.collectionSize(tsamps), 1);
+                assertEquals(tsamps.get(0).getTissueType(), tsType);
+                assertEquals(Util.collectionSize(tsamps.get(0).getGeneticAnalyses()), 0);
+
+                // test with only 1 of 3 fields needed (no analyses made)
+                row.put("MicrosatelliteMarkersAnalysis.alleleNames", "foo,bar");
+                res = testOneRow(row);
+                bimp = (BulkImporter)res.get("_BulkImporter");
+                enc = bimp.getEncounters().get(0);
+                TissueSample ts = enc.getTissueSamples().get(0);
+                assertEquals(Util.collectionSize(ts.getGeneticAnalyses()), 0);
+
+                // test with only 3 of 3 fields needed; but wrong count (no analyses made)
+                row.put("MicrosatelliteMarkersAnalysis.alleleNames", "foo,bar");
+                row.put("MicrosatelliteMarkersAnalysis.alleles0", "a,b");
+                row.put("MicrosatelliteMarkersAnalysis.alleles1", "c,d,e");
+                res = testOneRow(row);
+                bimp = (BulkImporter)res.get("_BulkImporter");
+                enc = bimp.getEncounters().get(0);
+                ts = enc.getTissueSamples().get(0);
+                assertEquals(Util.collectionSize(ts.getGeneticAnalyses()), 0);
+
+                // should add markers for real
+                row.put("MicrosatelliteMarkersAnalysis.alleleNames", "foo,bar");
+                row.put("MicrosatelliteMarkersAnalysis.alleles0", "0,1");
+                row.put("MicrosatelliteMarkersAnalysis.alleles1", "2,3");
+                res = testOneRow(row);
+                bimp = (BulkImporter)res.get("_BulkImporter");
+                enc = bimp.getEncounters().get(0);
+                ts = enc.getTissueSamples().get(0);
+                assertEquals(Util.collectionSize(ts.getGeneticAnalyses()), 1);
+                // TODO FIXME SexAnalysis.sex and MitochondrialDNAAnalysis.haplotype
             }
         }
     }
