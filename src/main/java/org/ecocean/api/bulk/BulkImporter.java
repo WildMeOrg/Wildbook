@@ -748,7 +748,7 @@ public class BulkImporter {
                 "MicrosatelliteMarkersAnalysis.alleles0").getValueStringTrimmedNonEmpty();
         if (fmap.containsKey("MicrosatelliteMarkersAnalysis.alleles1"))
             alleleOnes = fmap.get(
-                "MicrosatelliteMarkersAnalysis.alleles0").getValueStringTrimmedNonEmpty();
+                "MicrosatelliteMarkersAnalysis.alleles1").getValueStringTrimmedNonEmpty();
         if ((alleleNames != null) && (alleleZeros != null) && (alleleOnes != null)) {
             ArrayList<Locus> loci = new ArrayList<Locus>();
             String[] names = alleleNames.split(",");
@@ -777,8 +777,8 @@ public class BulkImporter {
                     }
                 }
             } else {
-                System.out.println("BulkImporter.handleSamples(): length mismatch for " +
-                    alleleNames + "; " + alleleZeros + "; " + alleleOnes);
+                System.out.println("BulkImporter.handleSamples(): length mismatch for (" +
+                    alleleNames + "|" + alleleZeros + "|" + alleleOnes + ")");
             }
             if (loci.size() > 0) {
                 MicrosatelliteMarkersAnalysis markers = new MicrosatelliteMarkersAnalysis(
