@@ -38,8 +38,31 @@ const BulkImportTask = () => {
     );
   }
 
-  const deleteTask = () => {
-    console.warn("Delete task", task?.id);
+  const deleteTask = async () => {
+    console.log("Deleting task:", taskId);
+    if (!task?.id) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this import task?",
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/v3/bulk-import/${task.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+
+      alert("Import task deleted successfully.");
+      window.location.href = "/#/bulk-import";
+    } catch (err) {
+      console.error("Failed to delete import task:", err);
+      alert("Failed to delete import task. " + (err.message || ""));
+    }
   };
 
   const tableData = task?.encounters?.map((item) => ({
