@@ -70,7 +70,12 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         }
         return col;
       });
-      store.setColumnsDef([...specifiedColumns, ...updatedRemaining]);
+      const userUploadedCols = new Set(rowKeys);
+      const includedSpecified = specifiedColumns.filter((col) =>
+        userUploadedCols.has(col),
+      );
+
+      store.setColumnsDef([...includedSpecified, ...updatedRemaining]);
       store.applyDynamicValidationRules();
 
       const formatDate = (year, month, day, hour, minute) => {
