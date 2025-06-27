@@ -55,7 +55,11 @@ public class BulkImporter {
     public BulkImporter(String id, List<Map<String, Object> > rows, Map<String, MediaAsset> maMap,
         User user, Shepherd myShepherd) {
         this.dataRows = rows;
-        this.mediaAssetMap = maMap;
+        if (maMap == null) {
+            this.mediaAssetMap = new HashMap<String, MediaAsset>();
+        } else {
+            this.mediaAssetMap = maMap;
+        }
         this.user = user;
         this.importTaskId = id;
         this.myShepherd = myShepherd;
@@ -231,7 +235,7 @@ public class BulkImporter {
         // submitterID sets "owner", but it has already been validated, so we now it
         // is either a (valid) username [which might be this.user] or "public" which
         // is, sadly, what public encounters seem to be assigned
-        // not it is also required, so we should have *something*
+        // note: it is also required, so we should have *something*
         enc.setSubmitterID(fmap.get("Encounter.submitterID").getValueString());
         occ.setSubmitterIDFromEncs(false);
         // but we also have enc.submitters, whatever this is about (!?)
@@ -592,8 +596,9 @@ public class BulkImporter {
                 break;
 
             case "Survey.comments":
-                if ((occ != null) && !bv.valueIsNull() &&
-                    !occ.getComments().contains(bv.getValueString()))
+                if (!bv.valueIsNull() &&
+                    ((occ.getComments() == null) ||
+                    !occ.getComments().contains(bv.getValueString())))
                     occ.addComments(bv.getValueString());
                 break;
 
