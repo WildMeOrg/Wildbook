@@ -53,10 +53,22 @@ export const BulkImportSetLocation = observer(({ store }) => {
         return col;
       });
 
+      // Replace keys in rawData
+      const updatedRawData = store.rawData.map((row) => {
+        const updatedRow = {};
+        for (const key in row) {
+          const newKey = key
+            .replace(/occurrence/g, "sighting")
+            .replace(/Occurrence/g, "Sighting");
+          updatedRow[newKey] = row[key];
+        }
+        return updatedRow;
+      });
+
       const result = await submit(
         submissionId,
         updatedColumns,
-        store.rawData,
+        updatedRawData,
         store.spreadsheetFileName,
         store.locationID,
         store.skipDetection,
@@ -78,25 +90,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
         );
         store.setSubmissionErrors(result.data.errors || "Unknown error");
         console.log(1);
-        // store.setSubmissionErrors([
-        //     {
-        //         "filename": "jaguar-brazil-test.jpg",
-        //         "error": "jaguar-brazil-test.jpg is not a valid file"
-        //     },
-        //     {
-        //         "fieldName": "Encounter.mediaAsset0",
-        //         "details": "org.ecocean.api.bulk.BulkValidatorException: file 'harborseal03.jpeg' not found in uploaded files",
-        //         "rowNumber": 0,
-        //         "type": "INVALID_VALUE",
-        //         "errors": [
-        //             {
-        //                 "code": "REQUIRED",
-        //                 "details": "file 'harborseal03.jpeg' not found in uploaded files"
-        //             }
-        //         ]
 
-        //     }]
-        // );
         setShowFailureModal(true);
       } else {
         console.error("Bulk import failed with unexpected status:", result);
@@ -110,25 +104,6 @@ export const BulkImportSetLocation = observer(({ store }) => {
       if (errors) {
         console.log(3);
         store.setSubmissionErrors(errors);
-        // store.setSubmissionErrors([
-        //     {
-        //         "filename": "jaguar-brazil-test.jpg",
-        //         "error": "jaguar-brazil-test.jpg is not a valid file"
-        //     },
-        //     {
-        //         "fieldName": "Encounter.mediaAsset0",
-        //         "details": "org.ecocean.api.bulk.BulkValidatorException: file 'harborseal03.jpeg' not found in uploaded files",
-        //         "rowNumber": 0,
-        //         "type": "INVALID_VALUE",
-        //         "errors": [
-        //             {
-        //                 "code": "REQUIRED",
-        //                 "details": "file 'harborseal03.jpeg' not found in uploaded files"
-        //             }
-        //         ]
-
-        //     }]
-        // );
       } else {
         store.setSubmissionErrors("An unexpected error occurred during import");
       }

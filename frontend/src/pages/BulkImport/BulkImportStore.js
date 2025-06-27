@@ -265,16 +265,16 @@ export class BulkImportStore {
       },
       message: "invalid date in milliseconds",
     },
-    "Occurrence.year": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "YYYY", true).isValid();
-      },
-      message: "Year must be in YYYY format",
-    },
+    // "Occurrence.year": {
+    //   required: false,
+    //   validate: (val) => {
+    //     if (!val) {
+    //       return true;
+    //     }
+    //     return dayjs(val, "YYYY", true).isValid();
+    //   },
+    //   message: "Year must be in YYYY format",
+    // },
     "Sighting.year": {
       required: false,
       validate: (val) => {
@@ -285,16 +285,16 @@ export class BulkImportStore {
       },
       message: "Invalid value. Year must be in YYYY format",
     },
-    "Occurrence.month": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "MM", true).isValid();
-      },
-      message: "Invalid value. Month must be in MM format",
-    },
+    // "Occurrence.month": {
+    //   required: false,
+    //   validate: (val) => {
+    //     if (!val) {
+    //       return true;
+    //     }
+    //     return dayjs(val, "MM", true).isValid();
+    //   },
+    //   message: "Invalid value. Month must be in MM format",
+    // },
     "Sighting.month": {
       required: false,
       validate: (val) => {
@@ -305,16 +305,16 @@ export class BulkImportStore {
       },
       message: "Invalid value. Month must be in MM format",
     },
-    "Occurrence.day": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "DD", true).isValid();
-      },
-      message: "Invalid value. Day must be in DD format",
-    },
+    // "Occurrence.day": {
+    //   required: false,
+    //   validate: (val) => {
+    //     if (!val) {
+    //       return true;
+    //     }
+    //     return dayjs(val, "DD", true).isValid();
+    //   },
+    //   message: "Invalid value. Day must be in DD format",
+    // },
     "Sighting.day": {
       required: false,
       validate: (val) => {
@@ -325,16 +325,16 @@ export class BulkImportStore {
       },
       message: "Invalid value. Day must be in DD format",
     },
-    "Occurrence.hour": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "HH", true).isValid();
-      },
-      message: "Invalid value. Hours must be in HH format",
-    },
+    // "Occurrence.hour": {
+    //   required: false,
+    //   validate: (val) => {
+    //     if (!val) {
+    //       return true;
+    //     }
+    //     return dayjs(val, "HH", true).isValid();
+    //   },
+    //   message: "Invalid value. Hours must be in HH format",
+    // },
     "Sighting.hour": {
       required: false,
       validate: (val) => {
@@ -346,16 +346,16 @@ export class BulkImportStore {
       message: "Invalid value. Hours must be in HH format",
     },
 
-    "Occurrence.minutes": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "mm", true).isValid();
-      },
-      message: "Invalid value. Minutes must be in mm format",
-    },
+    // "Occurrence.minutes": {
+    //   required: false,
+    //   validate: (val) => {
+    //     if (!val) {
+    //       return true;
+    //     }
+    //     return dayjs(val, "mm", true).isValid();
+    //   },
+    //   message: "Invalid value. Minutes must be in mm format",
+    // },
     "Sighting.minutes": {
       required: false,
       validate: (val) => {
@@ -366,16 +366,16 @@ export class BulkImportStore {
       },
       message: "Invalid value. Minutes must be in mm format",
     },
-    "Occurence.millis": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return this.isValidISO(val);
-      },
-      message: "Invalid value. Must be a valid ISO date",
-    },
+    // "Occurence.millis": {
+    //   required: false,
+    //   validate: (val) => {
+    //     if (!val) {
+    //       return true;
+    //     }
+    //     return this.isValidISO(val);
+    //   },
+    //   message: "Invalid value. Must be a valid ISO date",
+    // },
     "Sighting.millis": {
       required: false,
       validate: (val) => {
@@ -625,17 +625,25 @@ export class BulkImportStore {
     this._labeledKeywordAllowedPairs = values;
   }
 
-  setSpreadsheetData(data) {
-    const filtered = data.filter((row) => {
-      return Object.values(row).some((val) => String(val ?? "").trim() !== "");
-    });
+  // setSpreadsheetData(data) {
+  //   const filtered = data.filter((row) => {
+  //     return Object.values(row).some((val) => String(val ?? "").trim() !== "");
+  //   });
 
-    this._spreadsheetData = [...filtered];
+  //   this._spreadsheetData = [...filtered];
+  //   this.invalidateValidation();
+  // }
+
+  setSpreadsheetData(data) {
+    const filtered = data.filter((row) =>
+      Object.values(row).some((val) => String(val ?? "").trim() !== ""),
+    );
+    this._spreadsheetData = this.replaceOccurrenceWithSightingInKeys(filtered);
     this.invalidateValidation();
   }
 
   setRawData(data) {
-    this._rawData = data;
+    this._rawData = this.replaceOccurrenceWithSightingInKeys(data);
   }
 
   setActiveStep(step) {
@@ -678,11 +686,15 @@ export class BulkImportStore {
   }
 
   setColumnsDef(columns) {
-    this._columnsDef = columns;
+    this._columnsDef = columns.map((col) =>
+      col.replace(/occurrence/g, "sighting").replace(/Occurrence/g, "Sighting"),
+    );
   }
 
   setRawColumns(columns) {
-    this._rawColumns = columns;
+    this._rawColumns = columns.map((col) =>
+      col.replace(/occurrence/g, "sighting").replace(/Occurrence/g, "Sighting"),
+    );
   }
 
   setMaxImageCount(maxImageCount) {
@@ -1255,16 +1267,16 @@ export class BulkImportStore {
       const raw = this._rawData[rowIndex];
       const norm = this._spreadsheetData[rowIndex];
 
-      for (const key in norm) {
-        if (key.includes("Occurrence") || key.includes("occurrence")) {
-          const newKey = key
-            .replace(/Occurrence/g, "Sighting")
-            .replace(/occurrence/g, "sighting");
+      // for (const key in norm) {
+      //   if (key.includes("Occurrence") || key.includes("occurrence")) {
+      //     const newKey = key
+      //       .replace(/Occurrence/g, "Sighting")
+      //       .replace(/occurrence/g, "sighting");
 
-          raw[newKey] = norm[key];
-          delete raw[key];
-        }
-      }
+      //     raw[newKey] = norm[key];
+      //     delete raw[key];
+      //   }
+      // }
 
       runInAction(() => {
         if (norm["Encounter.year"]) {
@@ -1333,6 +1345,19 @@ export class BulkImportStore {
           raw["Encounter.decimalLongitude"] = m ? m[2] : "";
         }
       });
+    });
+  }
+
+  replaceOccurrenceWithSightingInKeys(data) {
+    return data.map((row) => {
+      const newRow = {};
+      for (const key in row) {
+        const newKey = key
+          .replace(/occurrence/g, "sighting")
+          .replace(/Occurrence/g, "Sighting");
+        newRow[newKey] = row[key];
+      }
+      return newRow;
     });
   }
 
