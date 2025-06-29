@@ -1481,7 +1481,7 @@ public class IBEISIA {
                     ArrayList<Annotation> annots = needIdentifyingMap.get(encUUID);
                     JSONObject taskParameters = new JSONObject();
                     JSONObject mf = new JSONObject();
-                    Encounter enc = myShepherd.getEncounter(encUUID);
+                    Encounter enc = myShepherd2.getEncounter(encUUID);
                     if (enc != null && enc.getLocationID() != null) {
                         ArrayList<String> locationIDs = new ArrayList<String>();
                         List<String> matchTheseLocationIDs = LocationID.getIDForParentAndChildren(
@@ -1489,12 +1489,12 @@ public class IBEISIA {
                         mf.put("locationIds", matchTheseLocationIDs);
                     }
                     taskParameters.put("matchingSetFilter", mf);
-
                     Task subParentTask = new Task();
                     subParentTask.setParameters(taskParameters);
                     myShepherd2.storeNewTask(subParentTask);
                     myShepherd2.updateDBTransaction();
-
+                    
+                    
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
                     myShepherd2.storeNewTask(childTask);
