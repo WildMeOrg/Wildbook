@@ -675,7 +675,7 @@ if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadat
 
 
 function removeVideoHandler(videoElem, maId, encNum) {
-  if (confirm("Are you sure you want to remove this video? This will also remove all annotations associated with this video. The video will not be deleted from the database and can be recovered.")) {
+  if (confirm("Are you sure you want to remove this video? This will remove the video from the database permanently and it will not be recoverable.")) {
       $.ajax({
         url: '../MediaAssetAttach',
         type: 'POST',
