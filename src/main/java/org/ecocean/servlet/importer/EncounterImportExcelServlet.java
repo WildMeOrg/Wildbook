@@ -333,7 +333,11 @@ public class EncounterImportExcelServlet extends HttpServlet {
                         if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
 
                         if (itask != null) itask.addEncounter(enc);
+
+                        if (itask != null) itask.setStatus("complete");
+
                         myShepherd.commitDBTransaction();
+
                     } else {
                         myShepherd.rollbackDBTransaction();
                         if (verbose) fFeedback.printRow();
@@ -365,6 +369,9 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 } finally {
                     myShepherd.closeDBTransaction();
                 }
+
+                if (itask != null) sendforACMID(itask, myShepherd, context);
+
             }
         }).start();
 
