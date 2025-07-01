@@ -1152,6 +1152,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
                     ct++;
                     MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                     if (ma == null) continue;
+                    ma.setSkipAutoIndexing(true);
                     ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
                     System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid +
                         "] completed " + kids.size() + " children for id=" + id);
@@ -1707,7 +1708,11 @@ public class MediaAsset extends Base implements java.io.Serializable {
     public boolean getSkipAutoIndexing() {
         if (this.skipAutoIndexing) return true;
         if (this.parentId != null) return true;
-        return false;
+        // TODO making the bold decision to *always* let MediaAsset index in background
+        // as we currently arent even using this index. this is especially helpful as
+        // assets seem to trigger lifecycle postStore() **a lot**.   -jon
+        // return false;
+        return true;
     }
 
     // comment cruft only needed for Base class
