@@ -13,8 +13,6 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
     CreateLifecycleListener, LoadLifecycleListener {
     public void preDelete(InstanceLifecycleEvent event) {
         Persistable obj = (Persistable)event.getSource();
-
-
     }
 
     public void postDelete(InstanceLifecycleEvent event) {
@@ -26,18 +24,15 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             event.getEventType() + "; source id=" + obj.dnGetObjectId());
         // System.out.println("WildbookLifecycleListener postDelete() event type=" + event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() + "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" + event.getPersistentInstance());
  */
-        
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
             try {
                 if (base.getSkipAutoIndexing()) return;
-            	base.opensearchUnindexDeep();
-            	               
+                base.opensearchUnindexDeep();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
-        
     }
 
     public void preStore(InstanceLifecycleEvent event) {}
@@ -57,14 +52,13 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
  */
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
+            if (base.getSkipAutoIndexing()) return;
             System.out.println("WildbookLifecycleListener postStore() event on " + base);
             try {
-                if (base.getSkipAutoIndexing()) return;
-                //base.opensearchIndexDeep();
-            	//new way - put indexing in managed queue
-            	IndexingManager im=IndexingManagerFactory.getIndexingManager();
-            	im.addIndexingQueueEntry(base,false);
-                
+                // base.opensearchIndexDeep();
+                // new way - put indexing in managed queue
+                IndexingManager im = IndexingManagerFactory.getIndexingManager();
+                im.addIndexingQueueEntry(base, false);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
