@@ -526,39 +526,86 @@ function tableUp() {
 }
 
 
-
-////////
 var encs;
-$(document).ready( function() {
+$(document).ready(function () {
+  wildbook.init(function () {
+    const useProjectContext = "<%=useProjectContext%>";
+	const urlParams = new URLSearchParams(window.location.search);
+  	const stateParam = urlParams.get("state");
 
-	wildbook.init(function() {
-		let useProjectContext = "<%=useProjectContext%>";
-		encs = new wildbook.Collection.Encounters();
-		encs.fetch({
-/*
-			// h/t http://stackoverflow.com/questions/9797970/backbone-js-progress-bar-while-fetching-collection
-			xhr: function() {
-				var xhr = $.ajaxSettings.xhr();
-				xhr.onprogress = fetchProgress;
-				return xhr;
-			},
-*/
-			useProjectContext: useProjectContext,
-			fetch: "searchResults",
-			noDecorate: true,
-			noSanitize: true,
-			jdoql: jdoql,
-			success: function() {
-        searchResults = encs.models;
-		//populateWithProjectIds();
-		doTable();
-      },
-		});
+    // fetch collaborations of current user
+	$.ajax({
+		url: "../Collaborate",
+		method: "GET",
+		data: { action: "getCollaborators" },
+		dataType: "json",
+		success: function (collaboratorUsernames) {
+			if (!Array.isArray(collaboratorUsernames) || collaboratorUsernames.length === 0) {
+			console.log("No collaborations found. Loading personal encounters only.");
+			fetchEncounters([]);
+			return;
+			}
+
+			fetchEncounters(collaboratorUsernames);
+		},
+		error: function (xhr, status, err) {
+			console.error("Failed to fetch collaborations:", err);
+			fetchEncounters([]);
+		}
 	});
-  // $('#results-table').change(function(){
-  //   console.log("results table changed");
-  //   _projectId();
-  // });
+
+    function fetchEncounters(collaboratorUsernames) {
+      encs = new wildbook.Collection.Encounters();
+      encs.fetch({
+        useProjectContext: useProjectContext,
+        fetch: "searchResults",
+        noDecorate: true,
+        noSanitize: true,
+        jdoql: jdoql, 
+        success: function () {
+          let baseEncounters = encs.models;
+
+          // If no collaborators, just render user's results
+          if (collaboratorUsernames.length === 0) {
+            searchResults = baseEncounters;
+            doTable();
+            return;
+          }
+          // now fetch encounters of collaborators
+		  let whereClause = "(" + collaboratorUsernames.map(u => 'submitterID == "' + u + '"').join(" || ") + ")";
+
+		  if (stateParam) {
+			whereClause += ' && state == "' + stateParam + '"';
+		  }
+
+		  const collabJdoql = "SELECT FROM org.ecocean.Encounter WHERE " + whereClause;
+          const collabFetch = new wildbook.Collection.Encounters();
+          collabFetch.fetch({
+			useProjectContext: useProjectContext,
+            fetch: "searchResults",
+            noDecorate: true,
+  			noSanitize: true,
+  			jdoql: encodeURIComponent(collabJdoql),
+            success: function () {
+              const allEncounters = [...baseEncounters, ...collabFetch.models];
+              console.log("Merged encounters:", allEncounters.length);
+
+              searchResults = allEncounters;
+              doTable();
+            },
+            error: function () {
+              console.error("Failed to fetch collaborator encounters");
+              searchResults = baseEncounters;
+              doTable();
+            }
+          });
+        },
+        error: function () {
+          alert("Failed to fetch encounters");
+        }
+      });
+    }
+  });
 });
 
 

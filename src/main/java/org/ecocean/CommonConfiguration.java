@@ -427,17 +427,64 @@ public class CommonConfiguration {
     }
 
     // you probably want to use getUploadTmpDirForUser() below....
-    public static String getUploadTmpDir(String context) {
-        String dir = getProperty("uploadTmpDir", context);
+    public static String getUploadTmpDir(String context, boolean isImportExport) {
 
-        if (dir == null) {
-            dir = System.getProperty("java.io.tmpdir");
-            System.out.println(
-                "WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir +
-                " as default; this may introduce insecurities.");
+        if (isImportExport){
+
+            String dir = getProperty("importExportUploadDir", context);
+
+            return dir.trim();
         }
-        return dir.trim();
+        else {
+
+
+            String dir = getProperty("uploadTmpDir", context);
+
+            if (dir == null) {
+                dir = System.getProperty("java.io.tmpdir");
+                System.out.println(
+                    "WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir +
+                    " as default; this may introduce insecurities.");
+            }
+            return dir.trim();
+        }
+
     }
+
+
+    public static String getUploadTmpDir(String context, boolean isImportExport, String fileName) {
+
+        if (isImportExport){
+
+            if (fileName.contains(".xlsx")){
+
+                String dir = getProperty("importExportUploadSheetDir", context);
+                return dir.trim();
+            }
+            else {
+
+                String dir = getProperty("importExportUploadDir", context);
+                return dir.trim();
+            }
+
+
+        }
+        else {
+
+
+            String dir = getProperty("uploadTmpDir", context);
+
+            if (dir == null) {
+                dir = System.getProperty("java.io.tmpdir");
+                System.out.println(
+                    "WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir +
+                    " as default; this may introduce insecurities.");
+            }
+            return dir.trim();
+        }
+
+    }
+
 
     public static String getImportDir(String context) {
         String dir = getProperty("importDir", context);
