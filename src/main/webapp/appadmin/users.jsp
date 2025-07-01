@@ -668,7 +668,10 @@ try {
       <tr><td colspan="3"><%=props.getProperty("fullname")%> <input autocomplete="off" name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
 
 	<div class="form-group required">
-		<tr><td colspan="2"><%=props.getProperty("emailAddress")%> <input type="email" autocomplete="off" name="emailAddress" id="emailAddress_input" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+		<tr>
+			<td colspan="2"><%=props.getProperty("emailAddress")%> <input type="email" autocomplete="off" name="emailAddress" id="emailAddress_input" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td>
+			<td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td>
+		</tr>
 	</div>
 
 

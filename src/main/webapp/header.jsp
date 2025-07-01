@@ -444,6 +444,7 @@ if(request.getUserPrincipal()!=null){
                             -->
 
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -518,6 +519,8 @@ if(request.getUserPrincipal()!=null){
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                           <li><a href="<%=urlLoc %>/imports.jsp?showAll=true"><%=props.getProperty("standardImportListing")%></a></li>
+                          <li class="dropdown"><a href="<%=urlLoc %>/import/photos.jsp?isImportExport=true">Export Import</a></li>
+
                             <%
                             if(CommonConfiguration.useSpotPatternRecognition(context)){
                             %>

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, java.util.List, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.util.Set, java.util.HashSet" %>
 
 
 
@@ -51,26 +51,54 @@
 		rOccurrences = hiddenData.viewableResults(rOccurrences, true,myShepherd);
 
 
-	   Vector histories = new Vector();
+	    Vector histories = new Vector();
 	    int rOccurrencesSize=rOccurrences.size();
 
 	    int count = 0;
 	    int numNewlyMarked = 0;
+		String currentUsername = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+		Set<String> collaboratorUsernames = new HashSet<>();
 
+		
+			List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+			for (Collaboration collab : collabs) {
+				String username1 = collab.getUsername1();
+				String username2 = collab.getUsername2();
 
-		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
+				if (username2 != null && username2.equals(currentUsername) && username1 != null) {
+					collaboratorUsernames.add(username1);
+				} else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
+					collaboratorUsernames.add(username2);
+				}
+			}
+		
 
-		// this had none of the data. none of these columns were ever populated. come. on.
-		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rOccurrences, jdopm.getExecutionContext());
+		// Merge occurrences
+		JDOPersistenceManager jdopm = (JDOPersistenceManager) myShepherd.getPM();
+		Vector<Occurrence> allOccurrences = new Vector<>(rOccurrences);
 
-		JSONArray jsonobj = new JSONArray();
-		for (Occurrence occ : rOccurrences) {
-			JSONObject occObject = occ.getJSONSummary();
-      occObject.put("_sanitized", !occ.canUserAccess(request));
-      // jsonobj.put(occ.uiJson(request));
-      jsonobj.put(occObject);
+		for (String collaboratorUsername : collaboratorUsernames) {
+			String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE submitterID == \"" + collaboratorUsername + "\"";
+
+			javax.jdo.Query q = jdopm.newQuery(jdoql);
+			List<Occurrence> collaboratorOccurrences = (List<Occurrence>) q.execute();
+
+			if (collaboratorOccurrences != null) {
+				allOccurrences.addAll(collaboratorOccurrences);
+			}
 		}
 
+		// Apply permission filtering
+		hiddenData = new HiddenOccReporter(allOccurrences, request, true, myShepherd);
+		Vector<Occurrence> filteredOccurrences = hiddenData.viewableResults(allOccurrences, true, myShepherd);
+
+		// Convert to JSON
+		JSONArray jsonobj = new JSONArray();
+		for (Occurrence occ : filteredOccurrences) {
+			JSONObject occObject = occ.getJSONSummary();
+			occObject.put("_sanitized", !occ.canUserAccess(request));
+			jsonobj.put(occObject);
+		}
 		occsJson = jsonobj.toString();
 
     }

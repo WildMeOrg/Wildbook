@@ -481,7 +481,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 				else if ("state_rejected".equals(msg)) {
 					click += "<span class=\"collab-button\"></span>"; //empty placeholder
 				}
-				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername1() + "</b> from <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 
 
 
@@ -591,31 +591,31 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
     							<td><a href="appadmin/users.jsp?isEdit=true&uuid=<%=member.getId() %>#editUser"><%=fullName %></a></td>
     							<td>
 	    						<% 
-	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername()); 
+	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername());
 	        					if(memberCollabs!=null && memberCollabs.size()>0){
 	        						for(Collaboration collab:memberCollabs){
-	        							String username=collab.getUsername1();
-	        							if(username==localUser.getUsername())username=collab.getUsername2();
-	        							String type=collab.getState();
-	        							User collabUser = myShepherd.getUser(username);
-	        							String c_org="";
-	        							if(collabUser.getOrganizations()!=null && collabUser.getOrganizations().size()>0){
-	        								c_org+=" (";
-	        								for(Organization theirOrg:collabUser.getOrganizations()){
-	        									c_org+=theirOrg.getName()+";";
-	        								}
-	        								if(c_org.endsWith(";"))c_org=c_org.substring(0,c_org.length()-1);
-	        								c_org+=")";
-	        							}
-		        						%>
-		        						<%=collabUser.getFullName() %><%=c_org %>(<%=type %>)<br>
-		        						<%
+                                        try {
+											String username=collab.getUsername1();
+											if(username.equals(member.getUsername()) || localUser.getUsername().equals(username))username=collab.getUsername2();
+											String type=collab.getState();
+											User collabUser = myShepherd.getUser(username);
+											String c_org="";
+											if(collabUser.getOrganizations()!=null && collabUser.getOrganizations().size()>0){
+												c_org+=" (";
+												for(Organization theirOrg:collabUser.getOrganizations()){
+													c_org+=theirOrg.getName()+";";
+												}
+												if(c_org.endsWith(";"))c_org=c_org.substring(0,c_org.length()-1);
+												c_org+=")";
+											}
+
+                                            out.println(collabUser.getFullName() + " " + c_org + " (" + type + ") <br>");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
 	        						}
-	        					}
-	        					else{
-		    						%>
-		    						&nbsp;
-		    						<%
+	        					} else {
+                                    out.print(" ");
 	        					}
 	        					%>
 	        					</td>
@@ -628,9 +628,6 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
     			<%
     		}
     	}
-    	%>
-    	
-	<%
     }
 	%>
 

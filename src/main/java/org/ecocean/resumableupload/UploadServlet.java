@@ -233,8 +233,37 @@ public class UploadServlet extends HttpServlet {
             request);
         System.out.println("UploadServlet got subdir " + subDir);
         if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
-        String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request)) +
-            subDir;
+
+        boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+        
+        String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), isImportExport);
+
+        if (!isImportExport){
+            fullDir = fullDir + subDir;
+        }
+
+        System.out.println("UploadServlet got uploadDir = " + fullDir);
+        ensureDirectoryExists(fullDir);
+        return (fullDir);
+    }
+
+
+    public static String getUploadDir(HttpServletRequest request, String fileName) {
+        System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
+        ServletUtilities.printParams(request);
+        String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
+            request);
+        System.out.println("UploadServlet got subdir " + subDir);
+        if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
+
+        boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+        
+        String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), isImportExport, fileName);
+
+        if (!isImportExport){
+            fullDir = fullDir + subDir;
+        }
+
         System.out.println("UploadServlet got uploadDir = " + fullDir);
         ensureDirectoryExists(fullDir);
         return (fullDir);
@@ -275,7 +304,7 @@ public class UploadServlet extends HttpServlet {
                 break;
             }
         }
-        String base_dir = getUploadDir(request);
+        String base_dir = getUploadDir(request, FlowFilename);
         System.out.println("[INFO] UploadServlet got base_dir=" + base_dir);
 
         // Here we add a ".temp" to every upload file to indicate NON-FINISHED
