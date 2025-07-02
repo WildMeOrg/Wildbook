@@ -226,7 +226,7 @@ export const DataTable = observer(({ store }) => {
           );
         });
       });
-    }, 1000),
+    }, 2000),
   ).current;
 
   useEffect(() => {

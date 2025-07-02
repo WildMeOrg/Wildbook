@@ -38,43 +38,6 @@ export const BulkImportTableReview = observer(({ store }) => {
       </div>
       <EditableDataTable store={store} />
       <ErrorSummaryBar store={store} />
-      {/* {hasSubmissionErrors && (
-        <div className="alert alert-danger">
-          Errors:
-          <ul>
-            {store.submissionErrors.map((error, index) => (
-              <li key={index}>
-                {`field: ${error.fieldName}, row number: ${error.rowNumber}, error: ${error.type}`}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )} */}
-      {/* {hasSubmissionErrors && (
-        <div className="alert alert-danger">
-          <strong>There are some issues with your submission:</strong>
-          <ul className="list-unstyled mb-0 ps-3">
-            {store.submissionErrors.map((error, index) => {
-              const readableTypeMap = {
-                REQUIRED: "This field is required",
-                INVALID_VALUE: "The value is invalid",
-                UNKNOWN_FIELD: "Unknown field",
-                INVALID_FORMAT: "The format is incorrect",
-                MISSING_FILE: "File is missing",
-              };
-
-              const message =
-                readableTypeMap[error.type] || error.type || "Unknown error";
-
-              return (
-                <li key={index}>
-                  {`Row ${error.rowNumber + 1}: "${error.fieldName}" — ${message}`}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )} */}
 
       {hasSubmissionErrors && (
         <div className="alert alert-danger">
@@ -90,9 +53,7 @@ export const BulkImportTableReview = observer(({ store }) => {
                     : err.details || err.type || "Unknown error";
                 return <li key={idx}>{`${row}: ${field} — ${message}`}</li>;
               } else if ("filename" in err) {
-                return (
-                  <li key={idx}>{`Image "${err.filename}": ${err.error}`}</li>
-                );
+                return <li key={idx}>{`Image "${err.filename} invalid"`}</li>;
               } else {
                 return <li key={idx}>{JSON.stringify(err)}</li>;
               }

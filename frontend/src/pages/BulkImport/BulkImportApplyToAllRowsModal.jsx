@@ -6,7 +6,6 @@ const ApplyToAllRowsModal = observer(({ store, columnId, newValue }) => {
   const handleConfirm = () => {
     store.applyToAllRows(columnId, newValue);
     store.setApplyToAllRowModalShow(false);
-    console.log("store.imageSectionFileNames", store.imageSectionFileNames.length);
     store.invalidateValidation();
     const { errors, warnings } = store.validateSpreadsheet();
     store.setValidationErrors(errors);

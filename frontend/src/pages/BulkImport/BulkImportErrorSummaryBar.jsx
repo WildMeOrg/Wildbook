@@ -22,14 +22,14 @@ const ErrorSummaryBar = observer(({ store }) => {
     <div className="d-flex gap-2 py-2">
       <Badge bg="danger">Error: {error}</Badge>
 
-      <Badge bg="warning" text="dark">
+      <Badge
+        bg="danger"
+        // text="dark"
+      >
         Missing Field: {missingField}
       </Badge>
 
-      <Badge bg="primary">
-        Empty Field: {store.emptyFieldCount}
-      </Badge>
-
+      <Badge bg="primary">Empty Field: {store.emptyFieldCount}</Badge>
     </div>
   );
 });

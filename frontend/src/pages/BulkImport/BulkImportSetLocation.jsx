@@ -76,7 +76,6 @@ export const BulkImportSetLocation = observer(({ store }) => {
       );
       if (result?.status === 200) {
         localStorage.removeItem("BulkImportStore");
-        console.log("Bulk import successful:", JSON.stringify(result));
         localStorage.setItem(
           "lastBulkImportTask",
           result?.data?.bulkImportId || submissionId,
@@ -89,20 +88,16 @@ export const BulkImportSetLocation = observer(({ store }) => {
           result.data.errors,
         );
         store.setSubmissionErrors(result.data.errors || "Unknown error");
-        console.log(1);
 
         setShowFailureModal(true);
       } else {
         console.error("Bulk import failed with unexpected status:", result);
-        console.log(2);
         store.setSubmissionErrors("Unexpected error during import");
         setShowFailureModal(true);
       }
     } catch (err) {
       const errors = err.response?.data?.errors;
-      console.log("Error during import:", err);
       if (errors) {
-        console.log(3);
         store.setSubmissionErrors(errors);
       } else {
         store.setSubmissionErrors("An unexpected error occurred during import");
@@ -208,7 +203,11 @@ export const BulkImportSetLocation = observer(({ store }) => {
             onClick={() => {
               handleStartImport();
             }}
-            // disabled={store.isSubmitting || store.spreadsheetUploadProgress !== 100 || Object.keys(store.validateSpreadsheet()).length > 0}
+            disabled={
+              isLoading ||
+              store.spreadsheetUploadProgress !== 100 ||
+              store.validationErrors.length > 0
+            }
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
             noArrow={true}

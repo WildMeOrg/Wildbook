@@ -103,16 +103,12 @@ export class BulkImportStore {
       },
       message: (val) => {
         const images = val.split(",").map((img) => img.trim());
-        // const missing = images.filter(
-        //   (img) => !this._uploadedImages.includes(img),
-        // );
         const uploadedLower = this._uploadedImages.map((img) =>
           img.toLowerCase(),
         );
         const missing = images.filter(
           (img) => !uploadedLower.includes(img.toLowerCase()),
         );
-
         return `missing images: ${missing.join(", ")}`;
       },
     },
@@ -123,7 +119,7 @@ export class BulkImportStore {
         return dayjs(val, FORMATS, true).isValid();
       },
       message:
-        "Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
+        "Invalid data. date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
     },
     "Encounter.genus": {
       required: true,
@@ -1215,8 +1211,6 @@ export class BulkImportStore {
   }
 
   uploadFilteredFiles(maxSize) {
-    console.log("Uploading files with max size:", maxSize, "MB");
-
     if (!this._flow) {
       console.warn("Flow instance not initialized.");
       return;
@@ -1266,17 +1260,6 @@ export class BulkImportStore {
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
       const norm = this._spreadsheetData[rowIndex];
-
-      // for (const key in norm) {
-      //   if (key.includes("Occurrence") || key.includes("occurrence")) {
-      //     const newKey = key
-      //       .replace(/Occurrence/g, "Sighting")
-      //       .replace(/occurrence/g, "sighting");
-
-      //     raw[newKey] = norm[key];
-      //     delete raw[key];
-      //   }
-      // }
 
       runInAction(() => {
         if (norm["Encounter.year"]) {
@@ -1422,22 +1405,21 @@ export class BulkImportStore {
         console.warn(`Column ${col} does not exist in row ${rowIndex}`);
       }
     });
+    this._rawData.forEach((row, rowIndex) => {
+      if (col in row) {
+        row[col] = value;
+      } else {
+        console.warn(`Column ${col} does not exist in row ${rowIndex}`);
+      }
+    });
+    //update raw data too
+
     // this.updateRawFromNormalizedRow();
     this.invalidateValidation();
   }
 
   _onAllFilesParsed() {
-    console.log("All files parsed, pending count:");
     runInAction(() => {
-      // if (this._pendingDropFileCount > this._MAX_DROP_FILE_COUNT) {
-      //   alert(`You can only drop a maximum of ${this._MAX_DROP_FILE_COUNT} images at a time.`);
-
-      //   this._collectedValidFiles = [];
-      //   this._pendingDropFileCount = 0;
-      //   this.setFilesParsed(true);
-      //   return;
-      // }
-
       if (this._pendingDropFileCount > this._maxImageCount) {
         alert(
           `You can only upload a maximum3 of ${this._maxImageCount} images.`,
@@ -1457,15 +1439,9 @@ export class BulkImportStore {
 
       this.setFilesParsed(true);
       this.flow.upload();
-      // this.uploadFilteredFiles();
 
       if (this._imagePreview.length <= this._imageCountGenerateThumbnail) {
         this.generateThumbnailsForFirst200();
-        // .then(() => {
-        // if (this._flow.files.some(f => f.isPaused())) {
-        //   this.flow.upload();
-        // }
-        // });
       }
     });
   }

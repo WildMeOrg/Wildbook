@@ -39,7 +39,6 @@ const BulkImportTask = () => {
   }
 
   const deleteTask = async () => {
-    console.log("Deleting task:", taskId);
     if (!task?.id) return;
 
     const confirmed = window.confirm(
@@ -74,8 +73,6 @@ const BulkImportTask = () => {
     imageCount: item.numberMediaAssets,
     class: item.class || "-",
   }));
-
-  console.log("tableData1", tableData);
 
   const columns = [
     {

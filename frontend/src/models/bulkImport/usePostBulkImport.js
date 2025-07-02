@@ -6,7 +6,15 @@ export default function usePostBulkImport() {
   const [error, setError] = useState(null);
 
   const submit = useCallback(
-    async (bulkImportId, fieldNames, rows, fileName, locationID, skipDetection, skipIdentification) => {
+    async (
+      bulkImportId,
+      fieldNames,
+      rows,
+      fileName,
+      locationID,
+      skipDetection,
+      skipIdentification,
+    ) => {
       const rowsWithNulls = rows.map((row) => {
         const newRow = { ...row };
         Object.keys(newRow).forEach((key) => {
@@ -32,6 +40,7 @@ export default function usePostBulkImport() {
         matchingLocations: locationID,
         skipDetection: skipDetection,
         skipIdentification: skipIdentification,
+        processInBackground: true,
       };
 
       setLoading(true);
