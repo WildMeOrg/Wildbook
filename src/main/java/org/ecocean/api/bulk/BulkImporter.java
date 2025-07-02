@@ -202,7 +202,7 @@ public class BulkImporter {
             enc.setIndividual(indiv);
             indiv.setTaxonomyFromEncounters(true);
         }
-        occ.addEncounter(enc);
+        occ.addEncounterAndUpdateIt(enc);
         occ.setLatLonFromEncs(false);
         // this line can be uncommented to disable persisting for development purposes
         // TODO remove this when no longer useful
