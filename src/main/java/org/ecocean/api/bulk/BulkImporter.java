@@ -41,6 +41,7 @@ public class BulkImporter {
     private User user = null;
     private String importTaskId = null;
     private Shepherd myShepherd = null;
+    private long startTime = -1l;
 
     // caching loaded and (more imporantly?) newly created objects, so they can be
     // used across all rows. StandardImport seemed to do some caching *based on user*
@@ -63,6 +64,7 @@ public class BulkImporter {
         this.user = user;
         this.importTaskId = id;
         this.myShepherd = myShepherd;
+        this.startTime = System.currentTimeMillis();
     }
 
     public JSONObject createImport()
@@ -70,7 +72,9 @@ public class BulkImporter {
         JSONObject rtn = new JSONObject();
         List<Base> needIndexing = new ArrayList<Base>();
 
+        logProgress("begin processRows");
         for (int rowNum = 0; rowNum < dataRows.size(); rowNum++) {
+            if (rowNum % 100 == 0) logProgress("processRow=" + rowNum);
             List<BulkValidator> fields = new ArrayList<BulkValidator>();
             Map<String, Object> rowResult = dataRows.get(rowNum);
             for (String rowFieldName : rowResult.keySet()) {
@@ -94,6 +98,7 @@ public class BulkImporter {
             // with persisting making up the remaining 30%  #progressBarKludge
             markProgress(rowNum, dataRows.size(), 0.2d, 0.5d);
         }
+        logProgress("end processRows");
         System.out.println(
             "------------ all rows processed; beginning persistence -------------\n");
         int persistenceTicksTotal = mediaAssetMap.values().size() + userCache.values().size() +
@@ -108,10 +113,12 @@ public class BulkImporter {
             System.out.println("MMMM " + ma);
             arr.put(ma.getIdInt());
             maIds.add(ma.getIdInt());
-            needIndexing.add(ma);
+            // see note on MediaAsset.getSkipAutoIndexing()
+            // needIndexing.add(ma);
             persistenceTicks++;
             markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
+        logProgress("end persist MediaAsset");
         rtn.put("mediaAssets", arr);
         for (User u : userCache.values()) {
             myShepherd.getPM().makePersistent(u);
@@ -120,7 +127,6 @@ public class BulkImporter {
         }
         arr = new JSONArray();
         for (Encounter enc : encounterCache.values()) {
-            enc.setSkipAutoIndexing(true);
             // it is a certain kind of painful that if you do not pass id here it assigns a new random one
             myShepherd.storeNewEncounter(enc, enc.getId());
             System.out.println("EEEE " + enc);
@@ -129,10 +135,10 @@ public class BulkImporter {
             persistenceTicks++;
             markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
+        logProgress("end persist Encounter");
         rtn.put("encounters", arr);
         arr = new JSONArray();
         for (Occurrence occ : occurrenceCache.values()) {
-            occ.setSkipAutoIndexing(true);
             myShepherd.storeNewOccurrence(occ);
             System.out.println("OOOO " + occ);
             arr.put(occ.getId());
@@ -140,10 +146,10 @@ public class BulkImporter {
             persistenceTicks++;
             markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
+        logProgress("end persist Occurrence");
         rtn.put("sightings", arr);
         arr = new JSONArray();
         for (MarkedIndividual indiv : individualCache.values()) {
-            indiv.setSkipAutoIndexing(true);
             myShepherd.storeNewMarkedIndividual(indiv);
             indiv.refreshNamesCache();
             System.out.println("IIII " + indiv);
@@ -152,6 +158,7 @@ public class BulkImporter {
             persistenceTicks++;
             markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
+        logProgress("end persist MarkedIndividual");
         rtn.put("individuals", arr);
         for (Project proj : projectCache.values()) {
             myShepherd.storeNewProject(proj);
@@ -159,12 +166,14 @@ public class BulkImporter {
             persistenceTicks++;
             markProgress(persistenceTicks, persistenceTicksTotal, 0.7d, 0.3d);
         }
+        logProgress("persist COMPLETE");
         System.out.println(
             "------------ persistence complete; background indexing and MA children -------------\n");
         // clears shepherd/pmf cache, which we seem to do when we create encounters (?)
         myShepherd.cacheEvictAll();
         BulkImportUtil.bulkOpensearchIndex(needIndexing);
         MediaAsset.updateStandardChildrenBackground(myShepherd.getContext(), maIds);
+        logProgress("end createImport()");
         return rtn;
     }
 
@@ -844,6 +853,7 @@ public class BulkImporter {
                 "[INFO] BulkImporter.getOrCreateMarkedIndividual() creating new; could not find existing indiv based on id="
                 + id + " => " + indiv);
         }
+        indiv.setSkipAutoIndexing(true);
         // note: this is using "id" which may be a name, but we are banking on that *this import*
         // will re-use the same thing (name or uuid) for us to key off of in cache
         individualCache.put(id, indiv);
@@ -876,6 +886,7 @@ public class BulkImporter {
             enc.setDWCDateAdded();
             enc.setDWCDateLastModified();
         }
+        enc.setSkipAutoIndexing(true);
         if (encId != null) encounterCache.put(encId, enc);
         return enc;
     }
@@ -949,8 +960,17 @@ public class BulkImporter {
         if ((id != null) && occurrenceCache.containsKey(id)) return occurrenceCache.get(id);
         // this will create a new one *even if null id* (assigns random)
         Occurrence occ = myShepherd.getOrCreateOccurrence(id);
+        occ.setSkipAutoIndexing(true);
         occurrenceCache.put(occ.getId(), occ); // we use getId() in case of id==null
         return occ;
+    }
+
+    public static void logProgress(String id, String msg, Long startTime) {
+        Util.mark("BulkImporter.logProgress[" + id + "]: " + msg, startTime);
+    }
+
+    public void logProgress(String msg) {
+        logProgress(this.importTaskId, msg, this.startTime);
     }
 
     public String toString() {

@@ -134,6 +134,7 @@ public class BulkImport extends ApiBase {
 
         myShepherd.setAction("api.Bulk.doPost");
         myShepherd.beginDBTransaction();
+        long startTime = System.currentTimeMillis();
         try {
             User currentUser = myShepherd.getUser(request);
             if (currentUser == null) {
@@ -206,7 +207,10 @@ public class BulkImport extends ApiBase {
             skipIdentification = skipDetection || payload.optBoolean("skipIdentification", false);
             Set<String> filenamesNeeded = new HashSet<String>();
             final List<Map<String, Object> > validatedRows = new ArrayList<Map<String, Object> >();
+            BulkImporter.logProgress(bulkImportId, "doPost: pre-validated", startTime);
             for (int i = 0; i < rows.length(); i++) {
+                if (i % 200 == 1)
+                    BulkImporter.logProgress(bulkImportId, "doPost: validating=" + i, startTime);
                 Map<String, Object> vrow = null;
                 if (fieldNames == null) {
                     JSONObject rowData = rows.optJSONObject(i);
@@ -244,6 +248,7 @@ public class BulkImport extends ApiBase {
                     }
                 }
             }
+            BulkImporter.logProgress(bulkImportId, "doPost: post-validated", startTime);
             // related to how to set owner when none given in row
             boolean nullSubmitterIsPublic = payload.optBoolean("nullSubmitterIsPublic", false);
             String submitterIDFieldName = "Encounter.submitterID";
@@ -357,6 +362,7 @@ public class BulkImport extends ApiBase {
                 // (we may have some errors in rows depending on tolerance)
                 Util.mark("BEGIN createImport() for " + bulkImportId, startProcess);
 
+                BulkImporter.logProgress(bulkImportId, "doPost: fg/bg split", startTime);
                 rtn.put("processInBackground", processInBackground);
                 if (processInBackground) {
                     // these need to be final
@@ -377,8 +383,12 @@ public class BulkImport extends ApiBase {
                                 initializeImportTask(bulkImportId, bgUser, payload,
                                     "processing-background");
                                 int numNewErrors = dataErrors.length();
+                                BulkImporter.logProgress(bulkImportId,
+                                    "doPost: bg pre-createMediaAssets()", startTime);
                                 Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId,
-                                    validFiles, dataErrors, bgShepherd);
+                                    validFiles, dataErrors, bgShepherd, startTime);
+                                BulkImporter.logProgress(bulkImportId,
+                                    "doPost: bg post-createMediaAssets()", startTime);
                                 numNewErrors = dataErrors.length() - numNewErrors;
                                 boolean blockedByMAErrors = false;
                                 if (numNewErrors > 0) {
@@ -394,7 +404,11 @@ public class BulkImport extends ApiBase {
                                 JSONObject results = null;
                                 if (!blockedByMAErrors) {
                                     try {
+                                        BulkImporter.logProgress(bulkImportId,
+                                            "doPost: bg pre-createImport()", startTime);
                                         results = importer.createImport();
+                                        BulkImporter.logProgress(bulkImportId,
+                                            "doPost: bg post-createImport()", startTime);
                                         success = true;
                                     } catch (ServletException ex) {
                                         // this will overwrite existing errors, but likely we dont have any here?
@@ -466,9 +480,11 @@ public class BulkImport extends ApiBase {
                                 "backgroundComplete_" + (success ? "success" : "failed"));
                             Util.mark("END [background] createImport() for " + bulkImportId,
                                 startProcess);
+                            BulkImporter.logProgress(bulkImportId, "doPost: bg DONE", startTime);
                         }
                     };
                     new Thread(r).start();
+                    rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     rtn.put("backgrounded", true);
                     rtn.put("success", true);
                     statusCode = 200;
@@ -477,8 +493,12 @@ public class BulkImport extends ApiBase {
                     initializeImportTask(bulkImportId, currentUser, payload,
                         "processing-foreground");
                     int numNewErrors = dataErrors.length();
+                    BulkImporter.logProgress(bulkImportId, "doPost: fg pre-createMediaAssets()",
+                        startTime);
                     Map<String, MediaAsset> maMap = createMediaAssets(bulkImportId, validFiles,
-                        dataErrors, myShepherd);
+                        dataErrors, myShepherd, startTime);
+                    BulkImporter.logProgress(bulkImportId, "doPost: fg post-createMediaAssets()",
+                        startTime);
                     numNewErrors = dataErrors.length() - numNewErrors;
                     boolean blockedByMAErrors = false;
                     if (numNewErrors > 0) {
@@ -495,7 +515,11 @@ public class BulkImport extends ApiBase {
                     } else {
                         BulkImporter importer = new BulkImporter(bulkImportId, validatedRows, maMap,
                             currentUser, myShepherd);
+                        BulkImporter.logProgress(bulkImportId, "doPost: fg pre-createImport()",
+                            startTime);
                         JSONObject results = importer.createImport();
+                        BulkImporter.logProgress(bulkImportId, "doPost: fg post-createImport()",
+                            startTime);
                         for (String rkey : results.keySet()) {
                             rtn.put(rkey, results.get(rkey));
                         }
@@ -530,6 +554,7 @@ public class BulkImport extends ApiBase {
                     }
                     rtn.put("processingTime", System.currentTimeMillis() - startProcess);
                     Util.mark("END [foreground] createImport() for " + bulkImportId, startProcess);
+                    BulkImporter.logProgress(bulkImportId, "doPost: fg DONE", startTime);
                 }
             }
         } catch (ServletException ex) { // should just be thrown, not caught (below)
@@ -559,6 +584,8 @@ public class BulkImport extends ApiBase {
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(rtn.toString());
         archiveBulkJson(rtn, "return" + statusCode);
+        BulkImporter.logProgress(rtn.optString("bulkImportId", "(unknown)"), "doPost: fg EXIT",
+            startTime);
     }
 
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
@@ -612,7 +639,7 @@ public class BulkImport extends ApiBase {
 
     // files should already be validated and "needed"
     private Map<String, MediaAsset> createMediaAssets(String bulkImportId, List<File> files,
-        JSONArray dataErrors, Shepherd myShepherd) {
+        JSONArray dataErrors, Shepherd myShepherd, long startTime) {
         Map<String, MediaAsset> maMap = new HashMap<String, MediaAsset>();
         int ct = 0;
 
@@ -631,6 +658,9 @@ public class BulkImport extends ApiBase {
                 dataErrors.put(err);
                 System.out.println("[ERROR] " + filename + " MediaAsset creation: " + apiEx);
             }
+            if (ct % 100 == 1)
+                BulkImporter.logProgress(bulkImportId, "doPost: createMediaAssets() ct=" + ct,
+                    startTime);
             // just to save a little db overhead, we only do this every 10 files
             if (ct % 10 == 0) {
                 // this 20% has to be coordinated with BulkImporter values
