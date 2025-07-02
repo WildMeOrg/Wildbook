@@ -184,6 +184,8 @@ public class SiteSettings extends ApiBase {
             settings.put("showMeasurements", CommonConfiguration.showMeasurements(context));
             settings.put("maximumMediaSizeMegabytes",
                 CommonConfiguration.getMaxMediaSizeInMegabytes(context));
+            settings.put("maximumMediaCountEncounter",
+                CommonConfiguration.getMaxMediaCountEncounter(context));
 
             JSONArray loci = new JSONArray();
             for (String locus : myShepherd.getAllLoci()) {
