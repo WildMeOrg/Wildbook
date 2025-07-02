@@ -299,20 +299,6 @@ export const DataTable = observer(({ store }) => {
   const pageCount = table.getPageCount();
   const currentPage = table.getState().pagination.pageIndex;
 
-  const errorPages = useMemo(() => {
-    const errors = store.validationErrors || {};
-    const pageSize = table.getState().pagination.pageSize;
-    const pagesWithErrors = new Set();
-
-    Object.keys(errors).forEach((rowIdxStr) => {
-      const rowIdx = parseInt(rowIdxStr, 10);
-      const pageNum = Math.floor(rowIdx / pageSize);
-      pagesWithErrors.add(pageNum);
-    });
-
-    return pagesWithErrors;
-  }, [store.validationErrors, table.getState().pagination.pageSize]);
-
   return (
     <div
       className="p-3 border rounded shadow-sm bg-white mt-4"
@@ -423,7 +409,8 @@ export const DataTable = observer(({ store }) => {
               className={`page-item ${i === currentPage ? "active" : ""}`}
             >
               <button
-                className={`page-link ${errorPages.has(i) ? "bg-danger text-white" : ""}`}
+                // className={`page-link ${store.errorPages.has(i) ? "bg-danger text-white" : ""}`}
+                className={`page-link`}
                 onClick={() => table.setPageIndex(i)}
               >
                 {i + 1}

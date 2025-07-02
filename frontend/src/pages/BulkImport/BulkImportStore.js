@@ -51,6 +51,7 @@ export class BulkImportStore {
   _isSavingDraft = false;
   _lastSavedAt = null;
   _errorSummary = {};
+  // _errorPages = new Set();
   _cachedValidation = null;
   _filesParsed = false;
   _filesParsingCount = 0;
@@ -528,6 +529,10 @@ export class BulkImportStore {
     return this._validationWarnings;
   }
 
+  // get errorPages() {
+  //   return this._errorPages;
+  // }
+
   get emptyFieldCount() {
     let count = 0;
     this._spreadsheetData.forEach((row) => {
@@ -734,9 +739,30 @@ export class BulkImportStore {
     this._applyToAllRowModalShow = show;
   }
 
+  // setValidationErrors(errors) {
+  //   this._validationErrors = errors;
+  // }
+
   setValidationErrors(errors) {
     this._validationErrors = errors;
+    // this._updateErrorPages();
   }
+
+  // _updateErrorPages() {
+  //   const errors = this._validationErrors || {};
+  //   const pageSize = 10;
+  //   const pagesWithErrors = new Set();
+
+  //   Object.keys(errors).forEach((rowIdxStr) => {
+  //     const rowIdx = parseInt(rowIdxStr, 10);
+  //     const pageNum = Math.floor(rowIdx / pageSize);
+  //     pagesWithErrors.add(pageNum);
+  //   });
+
+  //   runInAction(() => {
+  //     this._errorPages = pagesWithErrors;
+  //   });
+  // }
 
   setValidationWarnings(warnings) {
     this._validationWarnings = warnings;
@@ -792,6 +818,7 @@ export class BulkImportStore {
         }
       }
     });
+    // this._updateErrorPages();
   }
 
   mergeValidationWarning(rowIndex, columnId, warningMessage) {

@@ -15,6 +15,28 @@ import { Suspense, lazy } from "react";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
+function findNodeByValue(treeData, value) {
+  for (const node of treeData) {
+    if (node.value === value) return node;
+    if (node.children) {
+      const found = findNodeByValue(node.children, value);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function getAllDescendantValues(node) {
+  let res = [];
+  if (node.children) {
+    for (const child of node.children) {
+      res.push(child.value);
+      res = res.concat(getAllDescendantValues(child));
+    }
+  }
+  return res;
+}
+
 export const BulkImportSetLocation = observer(({ store }) => {
   const theme = useContext(ThemeContext);
   const { submit, isLoading } = usePostBulkImport();
@@ -38,6 +60,26 @@ export const BulkImportSetLocation = observer(({ store }) => {
     );
     return () => disposer();
   }, []);
+
+  const handleChange = (checkedValues, _labelList, extra) => {
+    const newSet = new Set(store.locationID);
+    const { triggerValue, checked } = extra;
+
+    const node = findNodeByValue(store.locationIDOptions, triggerValue);
+
+    if (checked) {
+      newSet.add(triggerValue);
+      if (node?.children) {
+        getAllDescendantValues(node).forEach((v) => newSet.add(v));
+      }
+    } else {
+      newSet.delete(triggerValue);
+      if (node?.children) {
+        getAllDescendantValues(node).forEach((v) => newSet.delete(v));
+      }
+    }
+    store.setLocationID(Array.from(newSet));
+  };
 
   const handleStartImport = useCallback(async () => {
     store.updateRawFromNormalizedRow();
@@ -124,21 +166,18 @@ export const BulkImportSetLocation = observer(({ store }) => {
           <TreeSelect
             treeData={store.locationIDOptions}
             value={store.locationID}
+            treeCheckable
+            treeCheckStrictly
             showCheckedStrategy="SHOW_ALL"
-            treeCheckStrictly={false}
             treeNodeFilterProp="value"
-            onChange={(val) => store.setLocationID(val)}
+            treeLine
             showSearch
+            size="large"
+            allowClear
             style={{ width: "100%" }}
             placeholder="Select locations"
-            allowClear
-            treeCheckable={true}
-            size="large"
-            treeLine
-            dropdownStyle={{
-              maxHeight: "500px",
-              zIndex: 9999,
-            }}
+            dropdownStyle={{ maxHeight: "500px", zIndex: 9999 }}
+            onChange={handleChange}
           />
         </Suspense>
       </div>

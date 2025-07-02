@@ -36,14 +36,9 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 50;
 
-  store.setMaxImageCount(data?.maximumMediaCountEncounter || 10000);
+  store.setMaxImageCount(10000);
+  // store.setMaxImageCount(data?.maximumMediaCountEncounter || 10000);
   const currentCount = store.imagePreview.length;
-
-  console.log(
-    "size and count1",
-    data?.maximumMediaSizeMegabytes,
-    data?.maximumMediaCountEncounter,
-  );
 
   useEffect(() => {
     if (store.filesParsed) {
