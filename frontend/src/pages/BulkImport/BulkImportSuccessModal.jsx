@@ -15,10 +15,13 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered id="bulk-import-success-modal">
       <Modal.Header closeButton>
         <Modal.Title>
-          <FormattedMessage id="BULK_IMPORT_SUCCESS" defaultMessage="Bulk Import Started Successfully" />
+          <FormattedMessage
+            id="BULK_IMPORT_SUCCESS"
+            defaultMessage="Bulk Import Started Successfully"
+          />
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -30,8 +33,10 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
         </p>
 
         <Card className="mt-3 p-3 d-flex flex-row align-items-center">
-          <div className="d-flex align-items-center justify-content-center rounded-circle bg-light me-3"
-            style={{ width: 42, height: 42 }}>
+          <div
+            className="d-flex align-items-center justify-content-center rounded-circle bg-light me-3"
+            style={{ width: 42, height: 42 }}
+          >
             <FaDownload className="text-info" />
           </div>
           <div>

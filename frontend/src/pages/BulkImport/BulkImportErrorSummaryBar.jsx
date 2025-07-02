@@ -19,7 +19,7 @@ const ErrorSummaryBar = observer(({ store }) => {
   });
 
   return (
-    <div className="d-flex gap-2 py-2">
+    <div className="d-flex gap-2 py-2" id="bulk-import-error-summary-bar">
       <Badge bg="danger">Error: {error}</Badge>
 
       <Badge

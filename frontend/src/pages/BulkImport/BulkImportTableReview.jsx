@@ -16,7 +16,7 @@ export const BulkImportTableReview = observer(({ store }) => {
     store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" id="bulk-import-table-review">
       <div>
         <div>
           <div className="d-flex flex-row justify-content-between">

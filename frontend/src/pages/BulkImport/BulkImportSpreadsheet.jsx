@@ -212,7 +212,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" id="bulk-import-spreadsheet">
       <div className="d-flex flex-row justify-content-between">
         <div>
           <h5 style={{ fontWeight: "600" }}>

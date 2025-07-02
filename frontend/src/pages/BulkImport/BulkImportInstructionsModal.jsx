@@ -12,6 +12,7 @@ const BulkImportInstructionsModal = observer(({ store }) => (
     aria-labelledby="bulk-import-modal"
     centered
     scrollable
+    id="bulk-import-instructions-modal"
   >
     <Modal.Header>
       <Modal.Title id="bulk-import-modal">

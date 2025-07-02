@@ -107,7 +107,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
   });
 
   return (
-    <div className="d-flex flex-column mt-4">
+    <div className="d-flex flex-column mt-4" id="bulk-import-set-location">
       <h5>
         <FormattedMessage id="BULK_IMPORT_SET_LOCATION" />
       </h5>

@@ -37,7 +37,13 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
   };
 
   return (
-    <Modal size="lg" show={show} onHide={() => setShow(false)} centered>
+    <Modal
+      size="lg"
+      show={show}
+      onHide={() => setShow(false)}
+      centered
+      id="bulk-import-continue-modal"
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           <FormattedMessage

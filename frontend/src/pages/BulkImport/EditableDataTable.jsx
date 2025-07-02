@@ -320,6 +320,7 @@ export const DataTable = observer(({ store }) => {
         // maxHeight: "500px",
         overflowY: "auto",
       }}
+      id="editable-data-table"
     >
       <BulkImportApplyToAllRowsModal
         store={store}

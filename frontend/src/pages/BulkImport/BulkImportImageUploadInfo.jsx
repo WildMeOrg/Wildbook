@@ -54,7 +54,7 @@ export const BulkImportImageUploadInfo = observer(({ store, expanded }) => {
   );
 
   return (
-    <div style={{ marginTop: "2rem" }}>
+    <div style={{ marginTop: "2rem" }} id="bulk-import-image-upload-info">
       <InfoAccordion
         icon={<FaImage size={20} color={theme.primaryColors.primary500} />}
         title={title}

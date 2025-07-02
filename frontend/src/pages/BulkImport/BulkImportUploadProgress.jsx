@@ -13,7 +13,7 @@ import { FinishedIcon } from "../../components/FinishedIcon";
 export const BulkImportUploadProgress = observer(({ store }) => {
   const theme = React.useContext(ThemeColorContext);
   return (
-    <div className="d-flex flex-row mt-4 me-5">
+    <div className="d-flex flex-row mt-4 me-5" id="bulk-import-progress-bar">
       <div
         style={{ width: 40, height: 40, marginRight: "30px" }}
         onClick={() => {

@@ -21,14 +21,19 @@ const BulkImportTask = () => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
   const [showError, setShowError] = useState(false);
+  const [hasShownError, setHasShownError] = useState(false);
 
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
   React.useEffect(() => {
-    if (error?.message) {
+    console.log("BulkImportTask taskId:", taskId);
+    console.log("BulkImportTask task:", task);
+    console.log("BulkImportTask error:", error);
+    if (error?.message || task?.status === "failed") {
       setShowError(true);
+      setHasShownError(true);
     }
-  }, [error]);
+  }, [error, task, hasShownError]);
 
   if (isLoading) {
     return (
@@ -146,7 +151,7 @@ const BulkImportTask = () => {
   ];
 
   return (
-    <Container className="mt-3 d-flex flex-column gap-3">
+    <Container className="mt-3 d-flex flex-column gap-3" id="bulk-import-task">
       <div>
         <h2 className="mb-0">
           <FormattedMessage
@@ -259,10 +264,10 @@ const BulkImportTask = () => {
             }
             title={intl.formatMessage(
               {
-                id: "IMAGES_UPLOADED_TITLE",
-                defaultMessage: "Images Uploaded: {count}",
+                id: "SPREADSHEET_UPLOADED_TITLE",
+                defaultMessage: "Spreadsheet Uploaded: {fileName}",
               },
-              { count: task?.iaSummary?.numberMediaAssets || 0 },
+              { fileName: task?.sourceName || "N/A" },
             )}
             data={[
               {
@@ -295,7 +300,9 @@ const BulkImportTask = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p className="text-danger">{error?.message || "Unknown error"}</p>
+          <p className="text-danger">
+            {error?.message || "your task failed with error"}
+          </p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowError(false)}>
@@ -306,6 +313,7 @@ const BulkImportTask = () => {
             onClick={() => {
               refetch();
               setShowError(false);
+              setHasShownError(false);
             }}
           >
             <FormattedMessage id="RETRY" defaultMessage="Retry" />

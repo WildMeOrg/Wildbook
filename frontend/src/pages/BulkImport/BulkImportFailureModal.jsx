@@ -9,7 +9,7 @@ const FailureModal = ({ show, onHide, errorMessage }) => {
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered id="bulk-import-failure-modal">
       <Modal.Header closeButton>
         <Modal.Title className="text-danger d-flex align-items-center">
           <ExclamationTriangleFill className="me-2" />

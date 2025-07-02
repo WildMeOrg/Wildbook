@@ -32,13 +32,18 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const { data } = useGetSiteSettings();
   const maxSize = data?.maximumMediaSizeMegabytes || 10;
   // const maxSize = 10; // Default to 10MB if not set
-
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 50;
 
-  store.setMaxImageCount(data?.maximumMediaCount || 10000);
+  store.setMaxImageCount(data?.maximumMediaCountEncounter || 10000);
   const currentCount = store.imagePreview.length;
+
+  console.log(
+    "size and count1",
+    data?.maximumMediaSizeMegabytes,
+    data?.maximumMediaCountEncounter,
+  );
 
   useEffect(() => {
     if (store.filesParsed) {
@@ -131,7 +136,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" id="bulk-import-image-upload">
       <Row>
         <div className="d-flex flex-row justify-content-between">
           <div>
