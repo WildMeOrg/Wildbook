@@ -369,6 +369,7 @@ public class BulkImport extends ApiBase {
                     final boolean bgToleranceFailImportOnError = toleranceFailImportOnError;
                     final boolean bgSkipDetection = skipDetection;
                     final boolean bgSkipIdentification = skipIdentification;
+                    final String currentUsername = currentUser.getUsername();
                     Runnable r = new Runnable() {
                         public void run() {
                             // make our background thread safely use our own Shepherd
@@ -379,7 +380,7 @@ public class BulkImport extends ApiBase {
                             JSONObject bgEncAssets = null;
                             boolean success = false;
                             try {
-                                User bgUser = bgShepherd.getUser(currentUser.getUsername());
+                                User bgUser = bgShepherd.getUser(currentUsername);
                                 initializeImportTask(bulkImportId, bgUser, payload,
                                     "processing-background");
                                 int numNewErrors = dataErrors.length();
@@ -558,6 +559,8 @@ public class BulkImport extends ApiBase {
                 }
             }
         } catch (ServletException ex) { // should just be thrown, not caught (below)
+            System.out.println("BulkImport.doPost() threw " + ex);
+            ex.printStackTrace();
             throw ex;
         } catch (ApiException apiEx) {
             statusCode = 400;
