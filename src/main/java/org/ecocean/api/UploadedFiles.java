@@ -114,6 +114,7 @@ public class UploadedFiles {
         return makeMediaAsset(Util.generateUUID(), file, myShepherd);
     }
 
+    // note: this sets auto-indexing false on the MediaAsset, so alter after if desired
     public static MediaAsset makeMediaAsset(String dirId, File file, Shepherd myShepherd)
     throws ApiException {
         JSONObject error = new JSONObject();
@@ -131,6 +132,7 @@ public class UploadedFiles {
         sp.put("userFilename", file.getName());
         System.out.println("UploadedFiles.makeMediaAsset(): file=" + file + " => " + sp);
         MediaAsset ma = new MediaAsset(astore, sp);
+        ma.setSkipAutoIndexing(true);
         ma.addLabel("_original");
         boolean valid = false;
         try {
