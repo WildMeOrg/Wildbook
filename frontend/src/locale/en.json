@@ -454,5 +454,8 @@
     "BULK_IMPORT_START_NEW_IMPORT": "Start New Import",
     "BULK_IMPORT_CONTINUE_TITLE": "Start another Bulk Import?",
     "BULK_IMPORT_CONTINUE_DESC": "Your last bulk import is still being processed in the background. You can check its progress from the bulk import task page. Would you like to start another import?",
-    "START_NEW_BULK_IMPORT": "Start New Bulk Import"
+    "START_NEW_BULK_IMPORT": "Start New Bulk Import",
+    "BULK_IMPORT_ERROR": "Error",
+    "BULK_IMPORT_MISSING_FIELD": "Missing Field",
+    "BULK_IMPORT_EMPTY_FIELD": "Empty Field"
 }

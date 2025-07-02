@@ -455,5 +455,8 @@
   "BULK_IMPORT_START_NEW_IMPORT": "Neue Import starten",
   "BULK_IMPORT_CONTINUE_TITLE": "Einen weiteren Massenimport starten?",
   "BULK_IMPORT_CONTINUE_DESC": "Ihr letzter Massenimport wird noch im Hintergrund verarbeitet. Sie können den Fortschritt auf der Aufgabenübersichtsseite einsehen. Möchten Sie einen neuen Import starten?",
-  "START_NEW_BULK_IMPORT": "Neuen Massenimport starten"
+  "START_NEW_BULK_IMPORT": "Neuen Massenimport starten",
+  "BULK_IMPORT_ERROR": "Fehler",
+  "BULK_IMPORT_MISSING_FIELD": "Fehlendes Feld",
+  "BULK_IMPORT_EMPTY_FIELD": "Leeres Feld"
 }

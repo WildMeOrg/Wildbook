@@ -454,5 +454,8 @@
   "BULK_IMPORT_START_NEW_IMPORT": "Inizia una nuova importazione",
   "BULK_IMPORT_CONTINUE_TITLE": "Iniziare un'altra importazione massiva?",
   "BULK_IMPORT_CONTINUE_DESC": "La tua ultima importazione massiva è ancora in fase di elaborazione in background. Puoi controllarne l'avanzamento nella pagina delle attività. Vuoi iniziarne una nuova?",
-  "START_NEW_BULK_IMPORT": "Inizia una nuova importazione massiva"
+  "START_NEW_BULK_IMPORT": "Inizia una nuova importazione massiva",
+   "BULK_IMPORT_ERROR": "Errore",
+  "BULK_IMPORT_MISSING_FIELD": "Campo mancante",
+  "BULK_IMPORT_EMPTY_FIELD": "Campo vuoto"
 }

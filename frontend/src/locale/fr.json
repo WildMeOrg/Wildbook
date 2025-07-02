@@ -453,5 +453,8 @@
   "BULK_IMPORT_START_NEW_IMPORT": "Commencer une nouvelle importation",
   "BULK_IMPORT_CONTINUE_TITLE": "Commencer une autre importation en masse ?",
   "BULK_IMPORT_CONTINUE_DESC": "Votre dernière importation en masse est encore en cours de traitement en arrière-plan. Vous pouvez suivre sa progression sur la page de la tâche. Souhaitez-vous démarrer une autre importation ?",
-  "START_NEW_BULK_IMPORT": "Commencer une nouvelle importation en masse"
+  "START_NEW_BULK_IMPORT": "Commencer une nouvelle importation en masse",
+  "BULK_IMPORT_ERROR": "Erreur",
+  "BULK_IMPORT_MISSING_FIELD": "Champ manquant",
+  "BULK_IMPORT_EMPTY_FIELD": "Champ vide"
 }
