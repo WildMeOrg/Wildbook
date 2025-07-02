@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.Collaboration, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, java.util.Set, java.util.HashSet, java.util.List,
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.Collaboration, org.ecocean.security.HiddenIndividualReporter, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils,
          org.datanucleus.api.jdo.JDOPersistenceManager,org.datanucleus.FetchGroup,javax.jdo.*" %>
+<%@ page import="java.util.*" %>
 
 
-
-  <%
+<%
 
   String context="context0";
   context=ServletUtilities.getContext(request);
@@ -51,34 +51,40 @@
 		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true,myShepherd);
 		rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
 
-		String currentUsername = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-		Set<String> collaboratorUsernames = new HashSet<>();
-		
-		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
-		for (Collaboration collab : collabs) {
-			String username1 = collab.getUsername1();
-			String username2 = collab.getUsername2();
+		if (request.getParameterMap().size() == 1 && request.getParameterMap().containsKey("username")) {
+			String currentUsername = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+			Set<String> collaboratorUsernames = new HashSet<>();
 
-			if (username2 != null && username2.equals(currentUsername) && username1 != null) {
-				collaboratorUsernames.add(username1);
-			} else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
-				collaboratorUsernames.add(username2);
+			List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+			for (Collaboration collab : collabs) {
+				String username1 = collab.getUsername1();
+				String username2 = collab.getUsername2();
+
+				if (username2 != null && username2.equals(currentUsername) && username1 != null) {
+					collaboratorUsernames.add(username1);
+				} else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
+					collaboratorUsernames.add(username2);
+				}
 			}
-		}
 
-		if (!collaboratorUsernames.isEmpty()) {
-			Query query = pm.newQuery(MarkedIndividual.class);
-			query.setFilter("this.encounters.contains(enc) && " +
+			if (!collaboratorUsernames.isEmpty()) {
+				Query query = pm.newQuery(MarkedIndividual.class);
+				query.setFilter("this.encounters.contains(enc) && " +
 						"enc.submitters.contains(sub) && " +
 						"sub.username == :usernameParam");
-			
-			// Execute query for each collaborator and collect results
-			for (String username : collaboratorUsernames) {
-				Collection<MarkedIndividual> collabIndividuals = 
-					(Collection<MarkedIndividual>) query.execute(username);
-				rIndividuals.addAll(collabIndividuals);
+
+				// Execute query for each collaborator and collect results
+				for (String username : collaboratorUsernames) {
+					Collection<MarkedIndividual> collabIndividuals =
+							(Collection<MarkedIndividual>) query.execute(username);
+					rIndividuals.addAll(collabIndividuals);
+				}
+
+				Set<MarkedIndividual> set = new LinkedHashSet<>(rIndividuals); // removes duplicates, keeps order
+				rIndividuals.clear();
+				rIndividuals.addAll(set);
 			}
-    	}
+		}
 
 
 	  %>

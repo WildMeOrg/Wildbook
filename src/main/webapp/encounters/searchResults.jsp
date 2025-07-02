@@ -578,6 +578,14 @@ $(document).ready(function () {
 			whereClause += ' && state == "' + stateParam + '"';
 		  }
 
+          const params = new URLSearchParams(window.location.search);
+          if (params.size > 2) {
+            let filter = `<%= filter%>`;
+            const match = filter.match(new RegExp(`where`, 'i'));
+            filter = match ? filter.slice(match.index + match[0].length) : "";
+            whereClause += ` && ${filter}`;
+          }
+
 		  const collabJdoql = "SELECT FROM org.ecocean.Encounter WHERE " + whereClause;
           const collabFetch = new wildbook.Collection.Encounters();
           collabFetch.fetch({
@@ -587,7 +595,7 @@ $(document).ready(function () {
   			noSanitize: true,
   			jdoql: encodeURIComponent(collabJdoql),
             success: function () {
-              const allEncounters = [...baseEncounters, ...collabFetch.models];
+              const allEncounters = [...new Set([...baseEncounters, ...collabFetch.models])];
               console.log("Merged encounters:", allEncounters.length);
 
               searchResults = allEncounters;
