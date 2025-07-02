@@ -125,6 +125,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           currentIndex + CHUNK_SIZE,
         );
         const normalizedChunk = chunk.map((row) => {
+          const normalizedRow = { ...row };
           const mediaAssets = mediaAssetsCols
             .filter((v) => row[v] != null && row[v] !== "")
             .map((col) => {
@@ -135,26 +136,39 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               return mediaAsset;
             })
             .join(", ");
+          if (mediaAssets) {
+            normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
+          }
 
-          return {
-            ...row,
-            "Encounter.mediaAsset0": mediaAssets,
-            "Encounter.decimalLatitude": getLatLong(
-              row["Encounter.decimalLatitude"],
-              row["Encounter.decimalLongitude"],
-            ),
-            "Encounter.year": formatDate(
-              row["Encounter.year"],
-              row["Encounter.month"],
-              row["Encounter.day"],
-              row["Encounter.hour"],
-              row["Encounter.minutes"],
-            ),
-            "Encounter.genus":
-              String(row["Encounter.genus"] ?? "").trim() +
-              " " +
-              String(row["Encounter.specificEpithet"] ?? "").trim(),
-          };
+          const latLong = getLatLong(
+            row["Encounter.decimalLatitude"],
+            row["Encounter.decimalLongitude"],
+          );
+          if (latLong) {
+            normalizedRow["Encounter.decimalLatitude"] = latLong;
+          }
+
+          const formattedDate = formatDate(
+            row["Encounter.year"],
+            row["Encounter.month"],
+            row["Encounter.day"],
+            row["Encounter.hour"],
+            row["Encounter.minutes"],
+          );
+          if (formattedDate && formattedDate !== "undefined") {
+            normalizedRow["Encounter.year"] = formattedDate;
+          }
+
+          const genus = String(row["Encounter.genus"] ?? "").trim();
+          const specific = String(
+            row["Encounter.specificEpithet"] ?? "",
+          ).trim();
+          const genusCombined = [genus, specific].filter(Boolean).join(" ");
+          if (genusCombined) {
+            normalizedRow["Encounter.genus"] = genusCombined;
+          }
+
+          return normalizedRow;
         });
 
         processedData.push(...normalizedChunk);

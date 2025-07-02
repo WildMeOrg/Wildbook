@@ -40,7 +40,7 @@ export default function usePostBulkImport() {
         matchingLocations: locationID,
         skipDetection: skipDetection,
         skipIdentification: skipIdentification,
-        processInBackground: false,
+        processInBackground: true,
       };
 
       setLoading(true);
