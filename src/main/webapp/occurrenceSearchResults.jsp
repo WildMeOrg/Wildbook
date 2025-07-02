@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, java.util.List, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.util.Set, java.util.HashSet" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, org.ecocean.*, org.ecocean.security.HiddenOccReporter, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+<%@ page import="java.util.*" %>
 
 
-
-  <%
+<%
 
   String context="context0";
   context=ServletUtilities.getContext(request);
@@ -77,20 +77,25 @@
 		JDOPersistenceManager jdopm = (JDOPersistenceManager) myShepherd.getPM();
 		Vector<Occurrence> allOccurrences = new Vector<>(rOccurrences);
 
-		for (String collaboratorUsername : collaboratorUsernames) {
-			String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE submitterID == \"" + collaboratorUsername + "\"";
+        if (request.getParameterMap().size() == 1 && request.getParameterMap().containsKey("submitterID")) {
+            for (String collaboratorUsername : collaboratorUsernames) {
+                String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE submitterID == \"" + collaboratorUsername + "\"";
 
-			javax.jdo.Query q = jdopm.newQuery(jdoql);
-			List<Occurrence> collaboratorOccurrences = (List<Occurrence>) q.execute();
+                javax.jdo.Query q = jdopm.newQuery(jdoql);
+                List<Occurrence> collaboratorOccurrences = (List<Occurrence>) q.execute();
 
-			if (collaboratorOccurrences != null) {
-				allOccurrences.addAll(collaboratorOccurrences);
-			}
-		}
+                if (collaboratorOccurrences != null) {
+                    allOccurrences.addAll(collaboratorOccurrences);
+                }
+            }
+        }
 
 		// Apply permission filtering
 		hiddenData = new HiddenOccReporter(allOccurrences, request, true, myShepherd);
 		Vector<Occurrence> filteredOccurrences = hiddenData.viewableResults(allOccurrences, true, myShepherd);
+        Set<Occurrence> set = new LinkedHashSet<>(filteredOccurrences); // removes duplicates, keeps order
+        filteredOccurrences.clear();
+        filteredOccurrences.addAll(set);
 
 		// Convert to JSON
 		JSONArray jsonobj = new JSONArray();
