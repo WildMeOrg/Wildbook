@@ -175,6 +175,38 @@ class BulkGeneralTest {
         return row;
     }
 
+    @Test void locationIdTest()
+    throws ServletException {
+        Map<String, Object> row = baseRow();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+        JSONObject locJson = new JSONObject();
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<LocationID> mockLocClass = mockStatic(LocationID.class)) {
+                    // here we mock the locationID validator mechanism
+                    mockLocClass.when(() -> LocationID.isValidLocationID("fail")).thenReturn(false);
+                    mockLocClass.when(() -> LocationID.isValidLocationID("pass")).thenReturn(true);
+                    row.put("Encounter.locationID", "fail");
+                    Map<String, Object> res = testOneRow(row);
+                    assertTrue(res.get("Encounter.locationID") instanceof BulkValidatorException);
+                    row.put("Encounter.locationID", "pass");
+                    res = testOneRow(row);
+                    assertTrue(res.get("Encounter.locationID") instanceof BulkValidator);
+                }
+            }
+        }
+    }
+
     @Test void geneticSamples()
     throws ServletException {
         Occurrence occ = mock(Occurrence.class);
