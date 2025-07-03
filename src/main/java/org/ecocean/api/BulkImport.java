@@ -207,7 +207,8 @@ public class BulkImport extends ApiBase {
             skipIdentification = skipDetection || payload.optBoolean("skipIdentification", false);
             Set<String> filenamesNeeded = new HashSet<String>();
             final List<Map<String, Object> > validatedRows = new ArrayList<Map<String, Object> >();
-            BulkImporter.logProgress(bulkImportId, "doPost: pre-validated", startTime);
+            BulkImporter.logProgress(bulkImportId,
+                "doPost: pre-validated [" + rows.length() + " rows]", startTime);
             for (int i = 0; i < rows.length(); i++) {
                 if (i % 200 == 1)
                     BulkImporter.logProgress(bulkImportId, "doPost: validating=" + i, startTime);

@@ -181,8 +181,9 @@ class BulkGeneralTest {
         User user = mock(User.class);
         Map<String, Object> row = baseRow();
         String tsType = "test-type";
+        String tsId = "tissue-sample-id";
 
-        row.put("TissueSample.sampleID", "tissue-sample-id");
+        row.put("TissueSample.sampleID", tsId);
         row.put("TissueSample.tissueType", tsType);
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
@@ -204,14 +205,19 @@ class BulkGeneralTest {
                 List<TissueSample> tsamps = enc.getTissueSamples();
                 assertEquals(Util.collectionSize(tsamps), 1);
                 assertEquals(tsamps.get(0).getTissueType(), tsType);
+                assertEquals(tsamps.get(0).getSampleID(), tsId);
                 assertEquals(Util.collectionSize(tsamps.get(0).getGeneticAnalyses()), 0);
 
                 // test with only 1 of 3 fields needed (no analyses made)
+                String tsId2 = "microsatellite-id";
+                row.remove("TissueSample.sampleID");
+                row.put("MicrosatelliteMarkersAnalysis.analysisID", tsId2);
                 row.put("MicrosatelliteMarkersAnalysis.alleleNames", "foo,bar");
                 res = testOneRow(row);
                 bimp = (BulkImporter)res.get("_BulkImporter");
                 enc = bimp.getEncounters().get(0);
                 TissueSample ts = enc.getTissueSamples().get(0);
+                assertEquals(ts.getSampleID(), tsId2);
                 assertEquals(Util.collectionSize(ts.getGeneticAnalyses()), 0);
 
                 // test with only 3 of 3 fields needed; but wrong count (no analyses made)
@@ -233,7 +239,39 @@ class BulkGeneralTest {
                 enc = bimp.getEncounters().get(0);
                 ts = enc.getTissueSamples().get(0);
                 assertEquals(Util.collectionSize(ts.getGeneticAnalyses()), 1);
-                // TODO FIXME SexAnalysis.sex and MitochondrialDNAAnalysis.haplotype
+                assertEquals(ts.getGeneticAnalyses().get(0).getAnalysisType(),
+                    "MicrosatelliteMarkers");
+                assertEquals(ts.getSampleID(), tsId2);
+
+                // SexAnalysis
+                row.remove("MicrosatelliteMarkersAnalysis.alleleNames");
+                row.remove("MicrosatelliteMarkersAnalysis.alleles0");
+                row.remove("MicrosatelliteMarkersAnalysis.alleles1");
+                row.remove("MicrosatelliteMarkersAnalysis.analysisID");
+                String tsId3 = "sexanalysis-id";
+                row.put("SexAnalysis.processingLabTaskID", tsId3);
+                row.put("SexAnalysis.sex", "sex-value");
+                res = testOneRow(row);
+                bimp = (BulkImporter)res.get("_BulkImporter");
+                enc = bimp.getEncounters().get(0);
+                ts = enc.getTissueSamples().get(0);
+                assertEquals(Util.collectionSize(ts.getGeneticAnalyses()), 1);
+                assertEquals(ts.getGeneticAnalyses().get(0).getAnalysisType(), "SexAnalysis");
+                assertEquals(ts.getSampleID(), tsId3);
+
+                // haplotype
+                row.remove("SexAnalysis.processingLabTaskID");
+                row.remove("SexAnalysis.sex");
+                String tsId4 = "haplotype-id";
+                row.put("TissueSample.sampleID", tsId4);
+                row.put("MitochondrialDNAAnalysis.haplotype", "hap-type");
+                res = testOneRow(row);
+                bimp = (BulkImporter)res.get("_BulkImporter");
+                enc = bimp.getEncounters().get(0);
+                ts = enc.getTissueSamples().get(0);
+                assertEquals(Util.collectionSize(ts.getGeneticAnalyses()), 1);
+                assertEquals(ts.getGeneticAnalyses().get(0).getAnalysisType(), "MitochondrialDNA");
+                assertEquals(ts.getSampleID(), tsId4);
             }
         }
     }
