@@ -367,7 +367,7 @@
     "SEARCH_RESULT_DISPLAY" : "Ihre Suchergebnisse werden hier angezeigt.",
     "UNKNOWN" : "Unbekannt",
     "NO_TAXONOMY" : "Legen Sie auf der Encounter-Seite eine Taxonomie fest, um die IA-Klasse anzuzeigen.",
-    "NO_IA_CLASS": "Keine IA-Klasse konfiguriert"，
+    "NO_IA_CLASS": "Keine IA-Klasse konfiguriert",
  "BULK_IMPORT": "Massenupload",
   "BULK_IMPORT_UPLOAD_IMAGE": "Bilder hochladen",
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "Die Dateinamen der Bilder müssen genau mit den Namen in der Spalte “Encounter.MediaAsset” Ihrer Tabelle im Wildbook-Standardformat übereinstimmen. Bilder dürfen nicht größer als 3 MB sein. Es können nur 200 Bilder gleichzeitig hochgeladen werden.",

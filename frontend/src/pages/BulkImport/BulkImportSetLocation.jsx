@@ -47,6 +47,8 @@ export const BulkImportSetLocation = observer(({ store }) => {
     dayjs().format("YYYY-MM-DD"),
   );
 
+  console.log("Missing required columns:", store.missingRequiredColumns);
+
   useEffect(() => {
     const disposer = reaction(
       () => store.spreadsheetData.map((row) => row["Encounter.locationID"]),
@@ -54,12 +56,24 @@ export const BulkImportSetLocation = observer(({ store }) => {
         const uniqueIDs = Array.from(
           new Set(locationIDs.filter((id) => id && id.length > 0)),
         );
-        store.setLocationID(uniqueIDs);
+
+        const allIDs = new Set();
+        uniqueIDs.forEach((id) => {
+          allIDs.add(id);
+          const node = findNodeByValue(store.locationIDOptions, id);
+          if (node) {
+            getAllDescendantValues(node).forEach((childId) =>
+              allIDs.add(childId),
+            );
+          }
+        });
+
+        store.setLocationID(Array.from(allIDs));
       },
       { fireImmediately: true },
     );
     return () => disposer();
-  }, []);
+  }, [store.locationIDOptions]);
 
   const handleChange = (checkedValues, _labelList, extra) => {
     const newSet = new Set(store.locationID);
@@ -245,7 +259,8 @@ export const BulkImportSetLocation = observer(({ store }) => {
             disabled={
               isLoading ||
               store.spreadsheetUploadProgress !== 100 ||
-              store.validationErrors.length > 0
+              store.validationErrors.length > 0 ||
+              store.missingRequiredColumns.length > 0
             }
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}

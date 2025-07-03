@@ -366,7 +366,7 @@
     "SEARCH_RESULT_DISPLAY": "Vos résultats de recherche apparaîtront ici",
     "UNKNOWN" : "Inconnu",
     "NO_TAXONOMY" : "Définissez une taxonomie sur la page des rencontres pour afficher la classe IA.",
-    "NO_IA_CLASS": "Aucune classe IA configurée"，
+    "NO_IA_CLASS": "Aucune classe IA configurée",
   "BULK_IMPORT": "Importation en masse",
   "BULK_IMPORT_UPLOAD_IMAGE": "Téléverser des images",
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "Les noms des fichiers image doivent correspondre exactement aux noms figurant dans la colonne “Encounter.MediaAsset” de votre feuille de calcul au format standard Wildbook. Les images doivent faire moins de 3 Mo. Vous pouvez téléverser jusqu’à 200 images à la fois.",

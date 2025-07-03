@@ -1,3 +1,10 @@
+const allRequiredColumns = [
+  "Encounter.year",
+  "Encounter.genus",
+  "Encounter.specificEpithet",
+  "Encounter.locationID",
+];
+
 const specifiedColumns = [
   "Encounter.mediaAsset0",
   "Encounter.year",
@@ -235,6 +242,7 @@ const allColumns_occurrence = allColumns_sighting
 const allColumns = allColumns_occurrence.concat(allColumns_sighting);
 
 export {
+  allRequiredColumns,
   specifiedColumns,
   removedColumns,
   tableHeaderMapping,

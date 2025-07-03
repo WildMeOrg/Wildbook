@@ -366,7 +366,7 @@
     "SEARCH_RESULT_DISPLAY": "I tuoi risultati di ricerca appariranno qui",
     "UNKNOWN" : "Sconosciuto",
     "NO_TAXONOMY" : "Imposta una tassonomia nella pagina degli incontri per visualizzare la classe IA.",
-    "NO_IA_CLASS": "Nessuna classe IA configurata"，  
+    "NO_IA_CLASS": "Nessuna classe IA configurata",
   "BULK_IMPORT": "Importazione multipla",
   "BULK_IMPORT_UPLOAD_IMAGE": "Carica immagini",
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "I nomi dei file delle immagini devono corrispondere esattamente ai nomi nella colonna “Encounter.MediaAsset” del foglio di calcolo in formato standard Wildbook. Le immagini devono essere inferiori a 3 MB. È possibile caricare solo 200 immagini alla volta.",

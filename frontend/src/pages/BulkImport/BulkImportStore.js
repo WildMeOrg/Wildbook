@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import {
+  allRequiredColumns,
   extraStringCols,
   intRule,
   doubleRule,
@@ -529,6 +530,10 @@ export class BulkImportStore {
     return this._validationWarnings;
   }
 
+  get missingRequiredColumns() {
+    return allRequiredColumns.filter((col) => !this._columnsDef.includes(col));
+  }
+
   // get errorPages() {
   //   return this._errorPages;
   // }
@@ -625,15 +630,6 @@ export class BulkImportStore {
   setLabeledKeywordAllowedPairs(values) {
     this._labeledKeywordAllowedPairs = values;
   }
-
-  // setSpreadsheetData(data) {
-  //   const filtered = data.filter((row) => {
-  //     return Object.values(row).some((val) => String(val ?? "").trim() !== "");
-  //   });
-
-  //   this._spreadsheetData = [...filtered];
-  //   this.invalidateValidation();
-  // }
 
   setSpreadsheetData(data) {
     const filtered = data.filter((row) =>
