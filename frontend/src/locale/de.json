@@ -458,5 +458,9 @@
   "START_NEW_BULK_IMPORT": "Neuen Massenimport starten",
   "BULK_IMPORT_ERROR": "Fehler",
   "BULK_IMPORT_MISSING_FIELD": "Fehlendes Feld",
-  "BULK_IMPORT_EMPTY_FIELD": "Leeres Feld"
+  "BULK_IMPORT_EMPTY_FIELD": "Leeres Feld",
+   "BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE": "Auf alle Zeilen anwenden",
+  "BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY": "Möchten Sie diesen Wert für {columnId} ({newValue}) auf alle Zeilen anwenden?",
+  "BULK_IMPORT_CLOSE": "Schließen",
+  "BULK_IMPORT_APPLY_TO_ALL": "Auf alle anwenden"
 }

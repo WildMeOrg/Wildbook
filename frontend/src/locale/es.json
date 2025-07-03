@@ -456,5 +456,9 @@
   "START_NEW_BULK_IMPORT": "Iniciar nueva importación masiva",
    "BULK_IMPORT_ERROR": "Error",
   "BULK_IMPORT_MISSING_FIELD": "Campo faltante",
-  "BULK_IMPORT_EMPTY_FIELD": "Campo vacío"
+  "BULK_IMPORT_EMPTY_FIELD": "Campo vacío",
+  "BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE": "Aplicar a todas las filas",
+  "BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY": "¿Desea aplicar este valor de {columnId} ({newValue}) a todas las filas?",
+  "BULK_IMPORT_CLOSE": "Cerrar",
+  "BULK_IMPORT_APPLY_TO_ALL": "Aplicar a todas"
 }

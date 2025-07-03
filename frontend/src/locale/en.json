@@ -457,5 +457,9 @@
     "START_NEW_BULK_IMPORT": "Start New Bulk Import",
     "BULK_IMPORT_ERROR": "Error",
     "BULK_IMPORT_MISSING_FIELD": "Missing Field",
-    "BULK_IMPORT_EMPTY_FIELD": "Empty Field"
+    "BULK_IMPORT_EMPTY_FIELD": "Empty Field",
+    "BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE": "Apply to All Rows",
+    "BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY": "Do you want to apply this {columnId} value ({newValue}) to all rows?",
+    "BULK_IMPORT_CLOSE": "Close",
+    "BULK_IMPORT_APPLY_TO_ALL": "Apply to All"
 }

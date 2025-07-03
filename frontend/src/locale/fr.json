@@ -456,5 +456,9 @@
   "START_NEW_BULK_IMPORT": "Commencer une nouvelle importation en masse",
   "BULK_IMPORT_ERROR": "Erreur",
   "BULK_IMPORT_MISSING_FIELD": "Champ manquant",
-  "BULK_IMPORT_EMPTY_FIELD": "Champ vide"
+  "BULK_IMPORT_EMPTY_FIELD": "Champ vide",
+  "BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE": "Appliquer à toutes les lignes",
+  "BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY": "Voulez-vous appliquer cette valeur de {columnId} ({newValue}) à toutes les lignes ?",
+  "BULK_IMPORT_CLOSE": "Fermer",
+  "BULK_IMPORT_APPLY_TO_ALL": "Appliquer à toutes"
 }

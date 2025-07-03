@@ -1,6 +1,7 @@
+import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import { observer } from "mobx-react-lite";
-import React from "react";
+import { FormattedMessage } from "react-intl";
 
 const ApplyToAllRowsModal = observer(({ store, columnId, newValue }) => {
   const handleConfirm = () => {
@@ -19,18 +20,25 @@ const ApplyToAllRowsModal = observer(({ store, columnId, newValue }) => {
   return (
     <Modal show={store.applyToAllRowModalShow} onHide={handleCancel} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Apply to All Rows</Modal.Title>
+        <Modal.Title>
+          <FormattedMessage id="BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE" />
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        Do you want to apply this <strong>{columnId}</strong> value (
-        <strong>{newValue}</strong>) to all rows?
+        <FormattedMessage
+          id="BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY"
+          values={{
+            columnId: <strong>{columnId}</strong>,
+            newValue: <strong>{newValue}</strong>,
+          }}
+        />
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={handleCancel}>
-          Close
+          <FormattedMessage id="BULK_IMPORT_CLOSE" />
         </Button>
         <Button variant="primary" onClick={handleConfirm}>
-          Apply to All
+          <FormattedMessage id="BULK_IMPORT_APPLY_TO_ALL" />
         </Button>
       </Modal.Footer>
     </Modal>
