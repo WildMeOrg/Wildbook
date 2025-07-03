@@ -158,6 +158,7 @@ class BulkApiPostTest {
             row.put("Encounter.year", 2000 + i);
             row.put("Encounter.genus", "Genus" + i);
             row.put("Encounter.specificEpithet", "specificEpithet" + i);
+            row.put("Encounter.submitterID", "non-array-fake-username");
             rows.put(row);
         }
         rtn.put("rows", rows);
@@ -171,6 +172,7 @@ class BulkApiPostTest {
         fieldNames.put("Encounter.year");
         fieldNames.put("Encounter.genus");
         fieldNames.put("Encounter.specificEpithet");
+        fieldNames.put("Encounter.submitterID");
         rtn.put("fieldNames", fieldNames);
 
         JSONArray rows = new JSONArray();
@@ -179,6 +181,7 @@ class BulkApiPostTest {
             row.put(2000 + i);
             row.put("Genus" + i);
             row.put("specificEpithet" + i);
+            row.put("fake-username");
             rows.put(row);
         }
         rtn.put("rows", rows);
@@ -280,6 +283,7 @@ class BulkApiPostTest {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
             when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
             when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
@@ -312,6 +316,7 @@ class BulkApiPostTest {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
             when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
             when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
@@ -346,6 +351,7 @@ class BulkApiPostTest {
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
             when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
             when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
