@@ -120,9 +120,10 @@ public class BulkImportUtil {
     }
 
     private static void checkLatLon(Map<String, Object> map, String latKey, String lonKey) {
+        // exceptions for one of this is fine; use that
+        if (isException(map, latKey) || isException(map, lonKey)) return;
         Object dlat = getValue(map, latKey);
         Object dlon = getValue(map, lonKey);
-
         if ((dlat == null) && (dlon != null))
             map.put(latKey,
                 new BulkValidatorException("must supply both latitude and longitude",
@@ -139,6 +140,11 @@ public class BulkImportUtil {
         if (map.get(fieldName) instanceof Exception) return null;
         BulkValidator bv = (BulkValidator)map.get(fieldName);
         return bv.getValue();
+    }
+
+    private static boolean isException(Map<String, Object> map, String fieldName) {
+        if (!map.containsKey(fieldName)) return false;
+        return (map.get(fieldName) instanceof Exception);
     }
 
     // pass a list of fieldnames and something a prefix for an indexed filename (e.g. "Encounter.mediaAsset"
