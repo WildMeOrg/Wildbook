@@ -36,6 +36,19 @@ export const BulkImportTableReview = observer(({ store }) => {
         <BulkImportImageUploadInfo store={store} />
         <BulkImportSpreadsheetUploadInfo store={store} />
       </div>
+
+      {store.missingRequiredColumns.length > 0 && (
+        <div className="text-danger mt-3">
+          <strong>
+            <FormattedMessage
+              id="BULK_IMPORT_MISSING_REQUIRED_COLUMNS"
+              defaultMessage="Required fields missing: "
+            />
+          </strong>
+          {store.missingRequiredColumns.join(",")}
+        </div>
+      )}
+
       <EditableDataTable store={store} />
       <ErrorSummaryBar store={store} />
 

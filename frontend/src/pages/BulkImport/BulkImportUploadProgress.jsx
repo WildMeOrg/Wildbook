@@ -122,7 +122,8 @@ export const BulkImportUploadProgress = observer(({ store }) => {
         }}
       >
         {Object.keys(store.validationErrors).length === 0 &&
-        store.spreadsheetUploadProgress === 100 ? (
+        store.spreadsheetUploadProgress === 100 &&
+        store.missingRequiredColumns.length === 0 ? (
           <FinishedIcon />
         ) : (
           <i className="bi bi-eye"></i>

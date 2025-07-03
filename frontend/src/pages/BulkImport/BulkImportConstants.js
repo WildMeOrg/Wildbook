@@ -1,7 +1,7 @@
 const allRequiredColumns = [
   "Encounter.year",
   "Encounter.genus",
-  "Encounter.specificEpithet",
+  // "Encounter.specificEpithet",
   "Encounter.locationID",
 ];
 
