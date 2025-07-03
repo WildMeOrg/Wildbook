@@ -833,7 +833,12 @@ public class BulkImporter {
         if (id == null) return null;
         if (individualCache.containsKey(id)) return individualCache.get(id);
         MarkedIndividual indiv = myShepherd.getMarkedIndividual(id);
-        // these "should always exists" as they are required; how much fate am i tempting here by not checking?
+        if (!(fmap.containsKey("Encounter.genus") &&
+            fmap.containsKey("Encounter.specificEpithet"))) {
+            System.out.println("[WARNING] BulkImporter.getOrCreateMarkedIndividual(" + id +
+                ") is missing genus and/or specificEpithet values");
+            return null;
+        }
         String genus = fmap.get("Encounter.genus").getValueString();
         String specificEpithet = fmap.get("Encounter.specificEpithet").getValueString();
         if (indiv == null)
