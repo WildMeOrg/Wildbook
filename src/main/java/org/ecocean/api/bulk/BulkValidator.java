@@ -406,7 +406,7 @@ public class BulkValidator {
 
             case "Sighting.taxonomy":
                 if (value == null) return null;
-                throw new BulkValidatorException("net yet supporting validating Sighting.taxonomy",
+                throw new BulkValidatorException("not yet supporting validating Sighting.taxonomy",
                         ApiException.ERROR_RETURN_CODE_INVALID);
             case "Encounter.quality":
                 return tryDouble(value);

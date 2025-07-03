@@ -244,7 +244,10 @@ public class BulkImporter {
         // submitterID sets "owner", but it has already been validated, so we now it
         // is either a (valid) username [which might be this.user] or "public" which
         // is, sadly, what public encounters seem to be assigned
-        // note: it is also required, so we should have *something*
+        // note: it is also required, so we should have *something* (but we check anyway)
+        if (!fmap.containsKey("Encounter.submitterID") ||
+            fmap.get("Encounter.submitterID").valueIsNull())
+            throw new RuntimeException("no value for Encounter.submitterID");
         enc.setSubmitterID(fmap.get("Encounter.submitterID").getValueString());
         occ.setSubmitterIDFromEncs(false);
         // but we also have enc.submitters, whatever this is about (!?)
