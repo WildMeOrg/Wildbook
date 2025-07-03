@@ -1,4 +1,3 @@
-// __tests__/BulkImport.test.jsx
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -6,7 +5,6 @@ import BulkImport from "../../../pages/BulkImport/BulkImport";
 import BulkImportStore from "../../../pages/BulkImport/BulkImportStore";
 import useGetBulkImportTask from "../../../models/bulkImport/useGetBulkImportTask";
 
-// Named‐export mocks
 jest.mock("../../../pages/BulkImport/BulkImportImageUpload", () => ({
   BulkImportImageUpload: () => <div data-testid="image-upload" />,
 }));
@@ -29,7 +27,6 @@ jest.mock("../../../pages/BulkImport/BulkImportUnfinishedTaskModal", () => ({
   BulkImportUnfinishedTaskModal: () => <div data-testid="unfinished-modal" />,
 }));
 
-// Default‐export mocks
 jest.mock("../../../pages/BulkImport/BulkImportInstructionsModal", () => {
   const MockInstructionsModal = () => <div data-testid="instructions-modal" />;
   MockInstructionsModal.displayName = "BulkImportInstructionsModal";
@@ -41,7 +38,6 @@ jest.mock("../../../pages/BulkImport/BulkImportDraftSavedIndicator", () => {
   return MockDraftIndicator;
 });
 
-// Mock store constructor and hook
 jest.mock("../../../pages/BulkImport/BulkImportStore");
 jest.mock("../../../models/bulkImport/useGetBulkImportTask");
 
