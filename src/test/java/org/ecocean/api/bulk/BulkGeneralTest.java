@@ -160,10 +160,9 @@ class BulkGeneralTest {
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                 mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                // this should not throw any exception
                 Map<String, Object> res = testOneRow(row);
-                // res will have hacky extra key "_BulkImporter", so:
-                assertEquals(res.size(), row.size() + 1);
+                // res will have hacky extra meta values, we need to add:
+                assertEquals(res.size(), row.size() + 3);
             }
         }
     }
@@ -172,6 +171,9 @@ class BulkGeneralTest {
         Map<String, Object> row = new HashMap<String, Object>();
 
         row.put("Encounter.submitterID", "fakeSubmitterId");
+        // note, you should mock Shepherd.isValidTaxonomyName() to allow these
+        row.put("Encounter.genus", "genus");
+        row.put("Encounter.specificEpithet", "specificEpithet");
         return row;
     }
 
@@ -203,6 +205,92 @@ class BulkGeneralTest {
                     res = testOneRow(row);
                     assertTrue(res.get("Encounter.locationID") instanceof BulkValidator);
                 }
+            }
+        }
+    }
+
+    @Test void dateTimeTest()
+    throws ServletException {
+        Map<String, Object> row = baseRow();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                row.put("Encounter.year", 1);
+                Map<String, Object> res = testOneRow(row);
+                // year
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.year") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.year").toString().contains("too small"));
+                row.put("Encounter.year", 999999); // TODO adjust higher when we hit the year 999999
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.year") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.year").toString().contains("future"));
+                // month
+                row.put("Encounter.year", 2000);
+                row.put("Encounter.month", 0);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.month") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.month").toString().contains("too small"));
+                row.put("Encounter.month", 99);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.month") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.month").toString().contains("too large"));
+                // day
+                row.put("Encounter.month", 2);
+                row.put("Encounter.day", 0);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.day") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.day").toString().contains("too small"));
+                row.put("Encounter.day", 99);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.day") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.day").toString().contains("too large"));
+                // humans and their calendars, amirite?
+                row.put("Encounter.day", 30);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.day") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.day").toString().contains("out of range for month"));
+                // hour
+                row.put("Encounter.day", 1);
+                row.put("Encounter.hour", -3);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.hour") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.hour").toString().contains("too small"));
+                row.put("Encounter.hour", 99);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.hour") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.hour").toString().contains("too large"));
+                // minutes
+                row.put("Encounter.hour", 13);
+                row.put("Encounter.minutes", -3);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.minutes") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.minutes").toString().contains("too small"));
+                row.put("Encounter.minutes", 99);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.minutes") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.minutes").toString().contains("too large"));
             }
         }
     }
@@ -341,21 +429,18 @@ class BulkGeneralTest {
         List<Map<String, Object> > allRows = new ArrayList<Map<String, Object> >();
         Map<String, Object> row = new HashMap<String, Object>();
 
-        for (String fieldName : singleRowData.keySet()) {
-            BulkValidator bv = null;
-            try {
-                bv = new BulkValidator(fieldName, singleRowData.get(fieldName), myShepherd);
-                // System.out.println("A A A A A A A A A A A A A A A " + fieldName + ": " + bv);
-                row.put(fieldName, bv);
-            } catch (Exception ex) {
-                row.put(fieldName, ex);
-                // System.out.println("B B B B B B B B B B B B B B B " + fieldName + ": " + ex);
-            }
+        row = BulkImportUtil.validateRow(new JSONObject(singleRowData), myShepherd);
+        int numInvalid = 0;
+        for (Object r : row.values()) {
+            if (r instanceof Exception) numInvalid++;
         }
         allRows.add(row);
         BulkImporter imp = new BulkImporter(impId, allRows, null, null, myShepherd);
         imp.createImport();
-        row.put("_BulkImporter", imp); // hacky but i am going to allow it for now
+        // some hacky meta-stuff
+        row.put("_BulkImporter", imp);
+        row.put("_numValid", singleRowData.size() - numInvalid);
+        row.put("_numInvalid", numInvalid);
         return row;
     }
 }
