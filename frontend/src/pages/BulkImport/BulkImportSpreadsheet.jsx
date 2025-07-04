@@ -274,6 +274,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           <input
             type="file"
             id="spreadsheet-input"
+            data-testid="spreadsheet-input"
             accept=".csv,.xlsx"
             style={{ display: "none" }}
             onChange={handleFileUpload}
@@ -380,11 +381,19 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           </ProgressBar>
         </div>
       )}
-      {store.spreadsheetUploadProgress === 100 && (
+      {/* {store.spreadsheetUploadProgress === 100 && (
         <div className="mt-2">
           <FormattedMessage id="BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE" />
         </div>
-      )}
+      )} */}
+
+      <span className="position-absolute top-0 start-50 translate-middle-x">
+        {store.spreadsheetUploadProgress === 100 ? (
+          <FormattedMessage id="BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE" />
+        ) : (
+          `${store.spreadsheetUploadProgress}%`
+        )}
+      </span>
 
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton

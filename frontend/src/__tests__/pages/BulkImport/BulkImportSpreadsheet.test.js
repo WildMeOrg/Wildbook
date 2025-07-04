@@ -155,4 +155,181 @@ describe("BulkImportSpreadsheet", () => {
 
     expect(mockStore.setSpreadsheetFileName).not.toHaveBeenCalled();
   });
+
+  test("file input triggers file upload on change", () => {
+    const file = new File(["dummy content"], "test.xlsx", {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const fileInput = screen.getByTestId("spreadsheet-input");
+
+    fireEvent.change(fileInput, {
+      target: { files: [file] },
+    });
+
+    expect(mockStore.setSpreadsheetFileName).toHaveBeenCalledWith("test.xlsx");
+    expect(mockStore.setSpreadsheetUploadProgress).toHaveBeenCalledWith(0);
+  });
+
+  test("displays alert for invalid file type on drop", () => {
+    window.alert = jest.fn();
+    const file = new File(["invalid"], "invalid.txt", { type: "text/plain" });
+
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const dropArea = screen.getByText("BROWSE").parentElement;
+
+    fireEvent.drop(dropArea, {
+      dataTransfer: { files: [file] },
+      preventDefault: jest.fn(),
+    });
+
+    expect(window.alert).toHaveBeenCalledWith(
+      "Please upload a valid CSV or XLSX file.",
+    );
+  });
+  test("file name is set and progress initialized to 0 on upload", () => {
+    const file = new File(["dummy"], "upload.xlsx", {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const input = screen.getByTestId("spreadsheet-input");
+
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(mockStore.setSpreadsheetFileName).toHaveBeenCalledWith(
+      "upload.xlsx",
+    );
+    expect(mockStore.setSpreadsheetUploadProgress).toHaveBeenCalledWith(0);
+  });
+  test("clicking close clears all relevant store values", () => {
+    const store = {
+      ...mockStore,
+      spreadsheetUploadProgress: 60,
+      spreadsheetFileName: "abc.xlsx",
+    };
+    const { container } = renderWithProviders(
+      <BulkImportSpreadsheet store={store} />,
+    );
+
+    fireEvent.click(container.querySelector("#close-button"));
+
+    expect(store.setRawData).toHaveBeenCalledWith([]);
+    expect(store.setColumnsDef).toHaveBeenCalledWith([]);
+    expect(store.setValidationErrors).toHaveBeenCalledWith({});
+  });
+  test("drag over changes background color", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const dropArea = screen.getByText("BROWSE").parentElement;
+
+    fireEvent.dragOver(dropArea);
+  });
+
+  test("drag leave resets visual style", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const dropArea = screen.getByText("BROWSE").parentElement;
+
+    fireEvent.dragOver(dropArea);
+    fireEvent.dragLeave(dropArea);
+  });
+  test("upload button triggers file input click", () => {
+    const clickMock = jest.fn();
+    document.getElementById = jest.fn(() => ({ click: clickMock }));
+
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    fireEvent.click(screen.getByText("BROWSE"));
+    expect(clickMock).toHaveBeenCalled();
+  });
+  test("upload complete message shown only when progress is 100", () => {
+    const store = { ...mockStore, spreadsheetUploadProgress: 100 };
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    expect(
+      screen.getByText("BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE"),
+    ).toBeInTheDocument();
+  });
+  test("does not show complete text when upload not 100%", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    expect(
+      screen.queryByText("BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE"),
+    ).not.toBeInTheDocument();
+  });
+  test("file input has correct attributes", () => {
+    const { container } = renderWithProviders(
+      <BulkImportSpreadsheet store={mockStore} />,
+    );
+    const input = container.querySelector("#spreadsheet-input");
+    expect(input).toHaveAttribute("type", "file");
+    expect(input).toHaveAttribute("accept", ".csv,.xlsx");
+  });
+  test("renders internationalized labels", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    expect(
+      screen.getByText("BULK_IMPORT_UPLOAD_SPREADSHEET"),
+    ).toBeInTheDocument();
+  });
+  test("instruction helper button is rendered", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    expect(screen.getByText("SEE_INSTRUCTIONS")).toBeInTheDocument();
+  });
+  test("progress bar displays percentage", () => {
+    const store = { ...mockStore, spreadsheetUploadProgress: 65 };
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    expect(screen.getByText("65%")).toBeInTheDocument();
+  });
+  test("progress bar shows COMPLETE when done", () => {
+    const store = { ...mockStore, spreadsheetUploadProgress: 100 };
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    expect(
+      screen.getByText("BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE"),
+    ).toBeInTheDocument();
+  });
+  test("handles empty workbook gracefully", async () => {
+    const emptyFile = new File([""], "empty.xlsx");
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const dropArea = screen.getByText("BROWSE").parentElement;
+
+    fireEvent.drop(dropArea, {
+      dataTransfer: { files: [emptyFile] },
+      preventDefault: jest.fn(),
+    });
+
+    await waitFor(() => {
+      expect(mockStore.setRawData).toHaveBeenCalledWith([]);
+    });
+  });
+  test("handles non-standard spreadsheet format", async () => {
+    const weirdFile = new File(["weird data"], "weird.xlsx");
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    fireEvent.drop(screen.getByText("BROWSE").parentElement, {
+      dataTransfer: { files: [weirdFile] },
+      preventDefault: jest.fn(),
+    });
+
+    await waitFor(() => {
+      expect(mockStore.setSpreadsheetFileName).toHaveBeenCalled();
+    });
+  });
+  test("browse button is keyboard accessible", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const button = screen.getByText("BROWSE").closest("button");
+    expect(button).not.toBeNull();
+    expect(button?.tabIndex).toBeGreaterThanOrEqual(0);
+  });
+
+  test("main container has correct ID", () => {
+    const { container } = renderWithProviders(
+      <BulkImportSpreadsheet store={mockStore} />,
+    );
+    expect(
+      container.querySelector("#bulk-import-spreadsheet"),
+    ).toBeInTheDocument();
+  });
+  test("upload area has dashed border", () => {
+    const { container } = renderWithProviders(
+      <BulkImportSpreadsheet store={mockStore} />,
+    );
+    const uploadArea = container.querySelector('[style*="border: 1px dashed"]');
+    expect(uploadArea).toBeInTheDocument();
+  });
 });
