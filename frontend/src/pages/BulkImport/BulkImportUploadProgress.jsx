@@ -15,6 +15,8 @@ export const BulkImportUploadProgress = observer(({ store }) => {
   return (
     <div className="d-flex flex-row mt-4 me-5" id="bulk-import-progress-bar">
       <div
+        id="step-image"
+        data-testid="step-image"
         style={{ width: 40, height: 40, marginRight: "30px" }}
         onClick={() => {
           store.setActiveStep(0);
@@ -41,6 +43,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
           >
             {
               <FaImage
+                role="img"
                 size={20}
                 color={
                   store.activeStep === 0
@@ -53,6 +56,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
         )}
       </div>
       <div
+        data-testid="step-spreadsheet"
         style={{ width: 40, height: 40, marginRight: "30px" }}
         onClick={() => {
           store.setActiveStep(1);
