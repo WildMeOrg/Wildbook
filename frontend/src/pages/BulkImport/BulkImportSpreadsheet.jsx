@@ -214,20 +214,30 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
     event.preventDefault();
     setIsDragging(false);
     const file = event.dataTransfer.files[0];
-    const filename = file?.name || "";
-    store.setSpreadsheetFileName(filename);
-    store.setSpreadsheetUploadProgress(0);
-    if (file) {
-      processFile(file);
+    if (!file) return;
+
+    const validExtensions = [".csv", ".xlsx"];
+    const lowerName = file.name.toLowerCase();
+    if (!validExtensions.some((ext) => lowerName.endsWith(ext))) {
+      alert("Please upload a valid CSV or XLSX file.");
+      return;
     }
+
+    store.setSpreadsheetFileName(file.name);
+    store.setSpreadsheetUploadProgress(0);
+    processFile(file);
   };
+
   const handleUploadClick = () => {
     document.getElementById("spreadsheet-input").click();
   };
 
   return (
     <div className="mt-4" id="bulk-import-spreadsheet">
-      <div className="d-flex flex-row justify-content-between">
+      <div
+        className="d-flex flex-row justify-content-between"
+        id="bulk-import-spreadsheet"
+      >
         <div>
           <h5 style={{ fontWeight: "600" }}>
             <FormattedMessage id="BULK_IMPORT_UPLOAD_SPREADSHEET" />
