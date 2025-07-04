@@ -171,6 +171,7 @@ class BulkGeneralTest {
         Map<String, Object> row = new HashMap<String, Object>();
 
         row.put("Encounter.submitterID", "fakeSubmitterId");
+        row.put("Encounter.year", 2000);
         // note, you should mock Shepherd.isValidTaxonomyName() to allow these
         row.put("Encounter.genus", "genus");
         row.put("Encounter.specificEpithet", "specificEpithet");
@@ -291,6 +292,143 @@ class BulkGeneralTest {
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.minutes") instanceof BulkValidatorException);
                 assertTrue(res.get("Encounter.minutes").toString().contains("too large"));
+            }
+        }
+    }
+
+    @Test void miscFieldValidationTest()
+    throws ServletException {
+        Map<String, Object> row = baseRow();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            // the default (from baseRow) submitter id will work, username 'fail' will not
+            when(mock.getUser("fakeSubmitterId")).thenReturn(user);
+            when(mock.getUser("fail")).thenReturn(null);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                row.put("Encounter.id", "not-a-uuid");
+                Map<String, Object> res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.id") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.id").toString().contains("proper UUID"));
+                row.remove("Encounter.id");
+                // cannot have just one (lat)
+                row.put("Encounter.decimalLatitude", 50.0);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.decimalLongitude") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.decimalLongitude").toString().contains(
+                    "must supply both"));
+                // cannot have just one (lon)
+                row.remove("Encounter.decimalLatitude");
+                row.put("Encounter.decimalLongitude", 50.0);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.decimalLatitude") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.decimalLatitude").toString().contains(
+                    "must supply both"));
+                // invalid latitude
+                row.put("Encounter.decimalLatitude", 666.0);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.decimalLatitude") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.decimalLatitude").toString().contains("invalid"));
+                // invalid longitude
+                row.put("Encounter.decimalLatitude", -10.0);
+                row.put("Encounter.decimalLongitude", 666.0);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.decimalLongitude") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.decimalLongitude").toString().contains("invalid"));
+                // valid lat/lon!
+                row.put("Encounter.decimalLongitude", -6.66);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 0);
+                // sex
+                row.put("Encounter.sex", "fail");
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.sex") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.sex").toString().contains("invalid sex value"));
+                row.remove("Encounter.sex");
+                // state
+                row.put("Encounter.state", "fail");
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.state") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.state").toString().contains("invalid state value"));
+                row.remove("Encounter.state");
+                // user
+                row.put("Encounter.submitterID", "fail");
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Encounter.submitterID") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.submitterID").toString().contains(
+                    "invalid username"));
+                // we have effectively been testing fakeSubmitterID successfully, so lets toggle to public
+                row.put("Encounter.submitterID", "public");
+                // positive int check
+                row.put("Sighting.individualCount", -3);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get("Sighting.individualCount") instanceof BulkValidatorException);
+                assertTrue(res.get("Sighting.individualCount").toString().contains("0 or larger"));
+                row.remove("Sighting.individualCount");
+                // email flavors
+                row.put("Encounter.informOther0.emailAddress", "fubar");
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 1);
+                assertTrue(res.get(
+                    "Encounter.informOther0.emailAddress") instanceof BulkValidatorException);
+                assertTrue(res.get("Encounter.informOther0.emailAddress").toString().contains(
+                    "invalid email address"));
+                row.put("Encounter.informOther0.emailAddress", "pass@example.com");
+                // setup some fake CommonConfiguration returns
+                List<String> fakeList = new ArrayList<String>();
+                fakeList.add("pass"); // a value of 'pass' will be valid, otherwise not
+                try (MockedStatic<CommonConfiguration> mockCCClass = mockStatic(
+                    CommonConfiguration.class)) {
+                    mockCCClass.when(() -> CommonConfiguration.getIndexedPropertyValues(any(
+                        String.class), any(String.class))).thenReturn(fakeList);
+                    // lifeStage
+                    row.put("Encounter.lifeStage", "fail");
+                    res = testOneRow(row);
+                    assertEquals(res.get("_numInvalid"), 1);
+                    assertTrue(res.get("Encounter.lifeStage") instanceof BulkValidatorException);
+                    assertTrue(res.get("Encounter.lifeStage").toString().contains(
+                        "invalid lifeStage value"));
+                    row.put("Encounter.lifeStage", "pass");
+                    res = testOneRow(row);
+                    assertEquals(res.get("_numInvalid"), 0);
+                    // livingStatus
+                    row.put("Encounter.livingStatus", "fail");
+                    res = testOneRow(row);
+                    assertEquals(res.get("_numInvalid"), 1);
+                    assertTrue(res.get("Encounter.livingStatus") instanceof BulkValidatorException);
+                    assertTrue(res.get("Encounter.livingStatus").toString().contains(
+                        "invalid livingStatus value"));
+                    row.put("Encounter.livingStatus", "pass");
+                    res = testOneRow(row);
+                    assertEquals(res.get("_numInvalid"), 0);
+                    // country
+                    row.put("Encounter.country", "fail");
+                    res = testOneRow(row);
+                    assertEquals(res.get("_numInvalid"), 1);
+                    assertTrue(res.get("Encounter.country") instanceof BulkValidatorException);
+                    assertTrue(res.get("Encounter.country").toString().contains(
+                        "invalid country value"));
+                    row.put("Encounter.country", "pass");
+                    res = testOneRow(row);
+                }
             }
         }
     }
@@ -434,13 +572,18 @@ class BulkGeneralTest {
         for (Object r : row.values()) {
             if (r instanceof Exception) numInvalid++;
         }
+        // some hacky meta-stuff
+        row.put("_numValid", singleRowData.size() - numInvalid);
+        row.put("_numInvalid", numInvalid);
+        // normally BulkImporter() would not be called if we had invalid rows, but we let it process
+        // here, except in the case of an invalid users (as that blows up BulkImporter() in a bad way)
+        if (row.containsKey("Encounter.submitterID") &&
+            (row.get("Encounter.submitterID") instanceof Exception))
+            return row;
         allRows.add(row);
         BulkImporter imp = new BulkImporter(impId, allRows, null, null, myShepherd);
         imp.createImport();
-        // some hacky meta-stuff
         row.put("_BulkImporter", imp);
-        row.put("_numValid", singleRowData.size() - numInvalid);
-        row.put("_numInvalid", numInvalid);
         return row;
     }
 }
