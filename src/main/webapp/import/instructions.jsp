@@ -75,25 +75,6 @@ String wbName = ContextConfiguration.getNameForContext(context);
 
   <p>If you do not have a value for something, please leave it blank or remove the column. Values like "N/A" added to a number field will be rejected.</p>
 
-  <p>
-
-<%
-String rootDir = getServletContext().getRealPath("/");
-File xlsFile = org.ecocean.servlet.importer.StandardImport.importXlsFile(rootDir);
-if (xlsFile == null) {
-%>
-    <b class="error">There was an error finding the latest <b>ArgusWild Standard Format XLS</b> file.  Please contact your admin.</b>
-    </p><p>
-<% } else {
-        DateTime dt = new DateTime(xlsFile.lastModified());
-%>
-  	<a href="<%=xlsFile.getName()%>">Download the <b>ArgusWild Standard Format XLS template</b> here.</a>
-        <i>("<%=xlsFile.getName()%>", updated <%=dt.toString().substring(0,10)%>)</i>
-<% } %>
-
-Descriptions of each class field are included. You can use this file for your upload after filling it out.
-  </p>
-
   <p>When your data is prepared, get started on the Photo Upload page:</p>
 
   <div>
