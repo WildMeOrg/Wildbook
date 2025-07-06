@@ -8,6 +8,8 @@ java.net.URL,
 org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat, org.apache.commons.lang3.StringUtils" %>
+<%@ page import="javax.jdo.PersistenceManager" %>
+<%@ page import="javax.jdo.PersistenceManagerFactory" %>
 
 <%!
   public static ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesFast(MarkedIndividual thisIndiv, Shepherd myShepherd, HttpServletRequest req, int numResults, String imageSize) throws JSONException {
@@ -1128,6 +1130,29 @@ if (sharky.getNames() != null) {
           <a name="alternateid"></a>
           <%
             String altID="";
+
+            try {
+                PersistenceManager pm = myShepherd.getPM();
+                PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+
+                Query query = pm.newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == :idParam");
+
+                String individualID = request.getParameter("id"); // e.g. ?id=xyz
+                List<MarkedIndividual> results = (List<MarkedIndividual>) query.execute(individualID);
+
+                List<String> altIDs = new ArrayList<>();
+
+                for (Encounter encounter : results.get(0).getEncounters()) {
+                    String othercnum = encounter.getOtherCatalogNumbers();
+                    if (othercnum != null && !othercnum.trim().equalsIgnoreCase("")) {
+                        altIDs.add(othercnum);
+                    }
+                }
+
+                altID = String.join(", ", altIDs);
+            } catch (Exception e) {
+                // do nothing
+            }
 /*
             if(sharky.getAlternateID()!=null){
             altID=sharky.getAlternateID();
