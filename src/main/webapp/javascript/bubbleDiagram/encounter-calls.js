@@ -485,90 +485,105 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
     
 };
 
-var getEncounterTableData = function(occurrenceObjectArray, individualID) {
-    var encounterData = [];
-    var occurringWith = "";
-    d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == \"" + individualID + "\"" ), function(error, json) {
-	if(error) {
-            console.log("error")
-	}
-	jsonData = json[0];
-	for(var i=0; i < jsonData.encounters.length; i++) {
-    	    var occurringWith = "";
-            for(var j = 0; j < occurrenceObjectArray.length; j++) {
+var getEncounterTableData = function (occurrenceObjectArray, individualID) {
+	var encounterData = [];
+	var occurringWith = "";
+	d3.json(wildbookGlobals.baseUrl + "/api/jdoql?" + encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == \"" + individualID + "\""), function (error, json) {
+		if (error) {
+			console.log("error")
+		}
+		jsonData = json[0];
+		for (var i = 0; i < jsonData.encounters.length; i++) {
+			var occurringWith = "";
+			for (var j = 0; j < occurrenceObjectArray.length; j++) {
 				if (typeof occurrenceObjectArray[j].occurrenceID !== 'undefined' && typeof jsonData.encounters[i].occurrenceID !== 'undefined' && occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
-			    	if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
-						
-			    	} 
-					else {
-						var occurringWith = occurrenceObjectArray[j].occurringWith;
-						console.log("occurringWith: "+occurringWith+" in "+jsonData.encounters[i].occurrenceID+" and "+occurrenceObjectArray[j].occurrenceID);
-			    	}
-				}
-            }
-            var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
-            if(dateInMilliseconds > 0) {
-		//console.log("Trying millis...");
-		date = dateInMilliseconds.toISOString().substring(0, 10);
-		if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
-		if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
-            } else if (jsonData.encounters[i].year) {
-		//console.log("Tryin plaintext...");
-		date = jsonData.encounters[i].year;
-		if (jsonData.encounters[i].month) { date+= "-"+jsonData.encounters[i].month;}
-		if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;} 
-            } else {  
-		date = dict['unknown'];
-            }
+					if (encounterData.includes(jsonData.encounters[i].occurrenceID)) {
 
-            if(jsonData.encounters[i].locationID) {
+					} else {
+						var occurringWith = occurrenceObjectArray[j].occurringWith;
+						console.log("occurringWith: " + occurringWith + " in " + jsonData.encounters[i].occurrenceID + " and " + occurrenceObjectArray[j].occurrenceID);
+					}
+				}
+			}
+			var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
+			if (dateInMilliseconds > 0) {
+				//console.log("Trying millis...");
+				date = dateInMilliseconds.toISOString().substring(0, 10);
+				if (jsonData.encounters[i].day < 1) {
+					date = date.substring(0, 7);
+				}
+				if (jsonData.encounters[i].month < 0) {
+					date = date.substring(0, 4);
+				}
+			} else if (jsonData.encounters[i].year) {
+				//console.log("Tryin plaintext...");
+				date = jsonData.encounters[i].year;
+				if (jsonData.encounters[i].month) {
+					date += "-" + jsonData.encounters[i].month;
+				}
+				if (jsonData.encounters[i].day) {
+					date += "-" + jsonData.encounters[i].day;
+				}
+			} else {
+				date = dict['unknown'];
+			}
+
+			if (jsonData.encounters[i].locationID) {
 				var location = jsonData.encounters[i].locationID;
 			} else {
 				var location = "";
 			}
-            var catalogNumber = jsonData.encounters[i].catalogNumber;
-            console.log("Here's what we are working with : "+jsonData.encounters[i]);
-            if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
-		if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
-                    var dataTypes = "both"
-		} 
-		else if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
-		    var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
-		} 
-		else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
-		    
-        	    if((jsonData.encounters[i].eventID)&&(jsonData.encounters[i].eventID.indexOf("youtube") > -1)){
-        		var dataTypes = "youtube-image";
-        	    }
-        	    //otherwise it's just a plain old image
-        	    else{
-        		var dataTypes = "image";
-        	    }
-        	    
-		}
-		else {
-		    var dataTypes = "";
-		}
-            }
-            var sex = jsonData.encounters[i].sex;
-            var behavior = jsonData.encounters[i].behavior;
-            var alternateID = jsonData.encounters[i].alternateid;
-            var encounter = new Object();
-            if(occurringWith === undefined) {
-				var occurringWith = "";
-            }
+			var catalogNumber = jsonData.encounters[i].catalogNumber;
+			console.log("Here's what we are working with : " + jsonData.encounters[i]);
+			if (jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
+				if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0) {
+					var dataTypes = "both"
+				} else if ((jsonData.encounters[i].tissueSamples) && (jsonData.encounters[i].tissueSamples.length > 0)) {
+					var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
+				} else if ((jsonData.encounters[i].annotations) && (jsonData.encounters[i].annotations.length > 0)) {
 
-            encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
-            encounterData.push(encounter);
-	}
-	makeTable(encounterData, "#encountHead", "#encountBody", "date", null);
-	$('#encountTable tr').attr("onClick", "return encountTableAuxClick(this);")
-						 .attr("onAuxClick", "return encountTableAuxClick(this);")
-						 .each(function() {
-							encountUrl = "encounters/encounter.jsp?number=" + ($(this).attr("class"));
-							$(this).find("td").first().wrapInner("<a href=\""+encountUrl+"\"></a>");
-						 });
-    });
+					if ((jsonData.encounters[i].eventID) && (jsonData.encounters[i].eventID.indexOf("youtube") > -1)) {
+						var dataTypes = "youtube-image";
+					}
+					//otherwise it's just a plain old image
+					else {
+						var dataTypes = "image";
+					}
+
+				} else {
+					var dataTypes = "";
+				}
+			}
+			var sex = jsonData.encounters[i].sex;
+			var behavior = jsonData.encounters[i].behavior;
+			var alternateID = jsonData.encounters[i].otherCatalogNumbers;
+			var encounter = new Object();
+			if (occurringWith === undefined) {
+				var occurringWith = "";
+			}
+
+			encounter = {
+				catalogNumber: catalogNumber,
+				date: date,
+				location: location,
+				dataTypes: dataTypes,
+				alternateID: alternateID,
+				sex: sex,
+				occurringWith: occurringWith,
+				behavior: behavior
+			};
+			encounterData.push(encounter);
+		}
+
+		makeTable(encounterData, "#encountHead", "#encountBody", "date", null);
+
+		$('#encountTable tr').attr("onClick", "return encountTableAuxClick(this);")
+			.attr("onAuxClick", "return encountTableAuxClick(this);")
+			.each(function () {
+				encountUrl = "encounters/encounter.jsp?number=" + ($(this).attr("class"));
+				$(this).find("td").first().wrapInner("<a href=\"" + encountUrl + "\"></a>");
+			});
+	});
 }
 
 var goToEncounterURL = function(selectedWhale) {
