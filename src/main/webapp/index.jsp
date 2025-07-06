@@ -246,7 +246,6 @@ h2.vidcap {
                             </p>
                             <p><%=featuredUser.getUserStatement() %></p>
                         </div>
-                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
                     </div>
                 </section>
             <%
@@ -362,9 +361,6 @@ h2.vidcap {
                    %>
 
                     </ul>
-                    <!--
-                    <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
-                    -->
                 </div>
             </section>
         </div>
