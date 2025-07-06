@@ -1140,7 +1140,7 @@ if (sharky.getNames() != null) {
                 String individualID = request.getParameter("id"); // e.g. ?id=xyz
                 List<MarkedIndividual> results = (List<MarkedIndividual>) query.execute(individualID);
 
-                List<String> altIDs = new ArrayList<>();
+                Set<String> altIDs = new LinkedHashSet<>();
 
                 for (Encounter encounter : results.get(0).getEncounters()) {
                     String othercnum = encounter.getOtherCatalogNumbers();
