@@ -15,6 +15,7 @@ import org.ecocean.genetics.MitochondrialDNAAnalysis;
 import org.ecocean.genetics.SexAnalysis;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.importutils.TabularFeedback;
 import org.ecocean.media.AssetStore;
@@ -28,6 +29,7 @@ import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.SatelliteTag;
 import org.joda.time.DateTime;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import edu.stanford.nlp.io.EncodingPrintWriter.out;
 
@@ -208,58 +210,55 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
         // Ensure AssetStore exists
         if (committing) {
-            Shepherd checkShepherd = new Shepherd(context);
-            checkShepherd.setAction("StandardImport.java_checkAssetStore");
-            AssetStore astore = getAssetStore(checkShepherd);
+            Shepherd assetShepherd = new Shepherd(context);
+            assetShepherd.setAction("StandardImport.java_checkAssetStore");
+            AssetStore astore = getAssetStore(assetShepherd);
+            assetShepherd.closeDBTransaction();
             if (astore == null) {
                 out.println("<p>Could not find AssetStore. Aborting import.</p>");
-                checkShepherd.closeDBTransaction();
                 return;
             }
-            checkShepherd.closeDBTransaction();
         }
 
-        // Prepare ImportTask
-        final String taskID;
-        final ImportTask itask;
-        if (committing) {
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("StandardImport.java_iTaskCommit1");
-            try {
-                myShepherd.beginDBTransaction();
-                Row row = sheet.getRow(0);
-                User creator = getUserForRowOrCurrent(row, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback, request);
-                itask = new ImportTask(creator);
-                itask.setPassedParameters(request);
-                itask.setStatus("started");
-                if (request.getParameter("taskID") != null) {
-                    itask.setId(request.getParameter("taskID"));
+
+            // Create ImportTask in main thread
+            final String taskID;
+            if (committing) {
+                Shepherd taskShepherd = new Shepherd(context);
+                taskShepherd.setAction("StandardImport.java_iTaskCommit1");
+                try {
+                    taskShepherd.beginDBTransaction();
+                    User creator = getUserForRowOrCurrent(firstRow, taskShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback, request);
+                    ImportTask itask = new ImportTask(creator);
+                    itask.setPassedParameters(request);
+                    itask.setStatus("in-progress");
+                    if (request.getParameter("taskID") != null) {
+                        itask.setId(request.getParameter("taskID"));
+                    }
+                    taskShepherd.getPM().makePersistent(itask);
+                    taskShepherd.commitDBTransaction();
+                    taskID = itask.getId();
+                } catch (Exception e) {
+                    taskShepherd.rollbackDBTransaction();
+                    out.println("<p>Failed to create ImportTask: " + e.getMessage() + "</p>");
+                    return;
+                } finally {
+                    taskShepherd.closeDBTransaction();
                 }
-                myShepherd.getPM().makePersistent(itask);
-                myShepherd.commitDBTransaction();
-                taskID = itask.getId();
-            } catch (Exception e) {
-                myShepherd.rollbackDBTransaction();
-                myShepherd.closeDBTransaction();
-                out.println("<p>Failed to create ImportTask: " + e.getMessage() + "</p>");
-                return;
-            } finally {
-                myShepherd.closeDBTransaction();
+            } else {
+                taskID = null;
             }
-        } else {
-            itask = null;
-            taskID = null;
-        }
+
+   
 
         // Print immediate HTML response
         out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">");
         out.println("<h2>Import Overview</h2>");
-
-        if (itask != null){
-
+        if (taskID != null) {
             out.println("<li>ImportTask id = <b><a href=\"../import.jsp?taskId=" +
-            itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+                    taskID + "\">" + taskID + "</a></b></li>");
         }
+    
   
         out.println("<li>Excel File Name: " + filename + "</li>");
         out.println("<li>Excel File Successfully Found = " + dataFound + "</li>");
@@ -279,107 +278,170 @@ public class EncounterImportExcelServlet extends HttpServlet {
         final Sheet fSheet = sheet;
         final TabularFeedback fFeedback = feedback;
 
-        // Launch background thread
-        new Thread(() -> {
-            List<String> encsCreated = new ArrayList<>();
-            for (int i = 1; i < rows && i < 50000; i++) {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("StandardImport.row_" + i);
-                myShepherd.beginDBTransaction();
-                try {
-                    if (taskID != null) {
-                        ImportTask t = myShepherd.getImportTask(taskID);
+
+        Runnable rn = new Runnable() {
+            public void run() {
+                List<String> encsCreated = new ArrayList<>();
+                for (int i = 1; i < rows && i < 50000; i++) {
+                    Shepherd rowShepherd = new Shepherd(context);
+                    rowShepherd.setAction("StandardImport.row_" + i);
+                    rowShepherd.beginDBTransaction();
+                    try {
+        
+                        ImportTask t = (taskID != null) ? rowShepherd.getImportTask(taskID) : null;
                         if (t != null) t.setStatus("Importing row " + i);
+        
+                        Row row = fSheet.getRow(i);
+                        if (isRowEmpty(row)) continue;
+        
+                        if (!committing) fFeedback.startRow(row, i);
+        
+                        Map<String, MediaAsset> myAssets = new HashMap<>();
+                        ArrayList<Annotation> annotations = loadAnnotations(row, rowShepherd, myAssets,
+                                fColIndexMap, verbose, missingColumns, unusedColumns, foundPhotos,
+                                photoDirectory, fFeedback, isUserUpload, committing, missingPhotos, context,
+                                allColsMap, skipCols);
+        
+                        Encounter enc = loadEncounter(row, annotations, context, rowShepherd, fColIndexMap,
+                                verbose, missingColumns, unusedColumns, defaultSubmitterID, committing, fFeedback);
+        
+                        Occurrence occ = loadOccurrence(row, null, enc, rowShepherd, fColIndexMap,
+                                verbose, missingColumns, unusedColumns, fFeedback);
+        
+                        MarkedIndividual mark = loadIndividual(row, enc, rowShepherd, committing, individualCache,
+                                fColIndexMap, unusedColumns, verbose, missingColumns, userIndividualCache,
+                                individualScope, null, fFeedback, request);
+        
+                        loadSocialUnit(row, mark, rowShepherd, committing, fColIndexMap, verbose,
+                                missingColumns, unusedColumns, fFeedback);
+        
+                        if (committing) {
+                            for (Annotation ann : annotations) {
+                                MediaAsset ma = ann.getMediaAsset();
+                                if (ma != null) {
+                                    ma.setMetadata();
+                                    ma.updateStandardChildren(rowShepherd);
+                                    rowShepherd.storeNewAnnotation(ann);
+                                }
+                            }
+        
+                            rowShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+                            rowShepherd.beginDBTransaction();
+                            encsCreated.add(enc.getCatalogNumber());
+        
+                            if (occ != null && !rowShepherd.isOccurrence(occ)) {
+                                rowShepherd.storeNewOccurrence(occ);
+                                rowShepherd.beginDBTransaction();
+        
+                            }
+                            if (!rowShepherd.isMarkedIndividual(mark)) {
+                                rowShepherd.storeNewMarkedIndividual(mark);
+                                rowShepherd.beginDBTransaction();
+                            }
+        
+                            if (t != null) t.addEncounter(enc);
+        
+                            rowShepherd.commitDBTransaction();
+        
+                        } else {
+                            rowShepherd.rollbackDBTransaction();
+                            if (verbose) fFeedback.printRow();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        rowShepherd.rollbackDBTransaction();
+                    } finally {
+                        rowShepherd.closeDBTransaction();
                     }
-
-                    Row row = fSheet.getRow(i);
-                    if (isRowEmpty(row)) continue;
-
-                    if (!committing) fFeedback.startRow(row, i);
-
-                    Map<String, MediaAsset> myAssets = new HashMap<>();
-                    ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets,
-                            fColIndexMap, verbose, missingColumns, unusedColumns, foundPhotos,
-                            photoDirectory, fFeedback, isUserUpload, committing, missingPhotos, context,
-                            allColsMap, skipCols);
-
-                    Encounter enc = loadEncounter(row, annotations, context, myShepherd, fColIndexMap,
-                            verbose, missingColumns, unusedColumns, defaultSubmitterID, committing, fFeedback);
-
-                    Occurrence occ = loadOccurrence(row, null, enc, myShepherd, fColIndexMap,
-                            verbose, missingColumns, unusedColumns, fFeedback);
-
-                    MarkedIndividual mark = loadIndividual(row, enc, myShepherd, committing, individualCache,
-                            fColIndexMap, unusedColumns, verbose, missingColumns, userIndividualCache,
-                            individualScope, null, fFeedback, request);
-
-                    loadSocialUnit(row, mark, myShepherd, committing, fColIndexMap, verbose,
-                            missingColumns, unusedColumns, fFeedback);
-
-                    if (committing) {
-                        for (Annotation ann : annotations) {
-                            MediaAsset ma = ann.getMediaAsset();
-                            if (ma != null) {
-                                ma.setMetadata();
-                                ma.updateStandardChildren(myShepherd);
-                                myShepherd.storeNewAnnotation(ann);
+                }
+        
+                if (committing) {
+        
+                    String baseUrl = null;
+                    try {
+                    String containerName = IA.getProperty("context0", "containerName");
+                    baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+                    if (containerName != null && containerName != "") {
+                        baseUrl = baseUrl.replace("localhost", containerName);
+                    }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+        
+                    Shepherd finalShepherd = new Shepherd(context);
+                    finalShepherd.setAction("StandardImport.finalize");
+                    try {
+                        finalShepherd.beginDBTransaction();
+                        ImportTask t = finalShepherd.getImportTask(taskID);
+                        for (String encid : encsCreated) {
+                            Encounter e = finalShepherd.getEncounter(encid);
+                            if (e != null && t != null) {
+                                t.addEncounter(e);
                             }
                         }
-
-                        myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-                        encsCreated.add(enc.getCatalogNumber());
-
-                        if (occ != null && !myShepherd.isOccurrence(occ)) myShepherd.storeNewOccurrence(occ);
-                        if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
-
-                        if (itask != null) itask.addEncounter(enc);
-
-                        if (itask != null) itask.setStatus("complete");
-
-                        myShepherd.commitDBTransaction();
-
-                    } else {
-                        myShepherd.rollbackDBTransaction();
-                        if (verbose) fFeedback.printRow();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    myShepherd.rollbackDBTransaction();
-                } finally {
-                    myShepherd.closeDBTransaction();
-                }
-            }
-
-            if (committing) {
-                Shepherd myShepherd = new Shepherd(context);
-                myShepherd.setAction("StandardImport.finalize");
-                try {
-                    myShepherd.beginDBTransaction();
-                    ImportTask t = myShepherd.getImportTask(taskID);
-                    for (String encid : encsCreated) {
-                        Encounter e = myShepherd.getEncounter(encid);
-                        if (e != null && t != null) {
-                            t.addEncounter(e);
+        
+                        Task parentTask = null;
+                        if (t != null) {
+                            t.setStatus("complete");
+                            JSONArray maIds = new JSONArray();
+                            for (MediaAsset asset : t.getMediaAssets()) {
+                                maIds.put(asset.getId());
+                            }
+        
+                            JSONObject taskParameters = new JSONObject();
+                            taskParameters.put("taskID", t.getId());
+                            taskParameters.put("skipIdent", true);
+                            parentTask = new Task();
+                            parentTask.setParameters(taskParameters);
+                            finalShepherd.storeNewTask(parentTask);
+                            finalShepherd.beginDBTransaction();
+                            t.setIATask(parentTask);
+        
+        
+                            Task task = new Task();
+                            task.setParameters(taskParameters);
+                            finalShepherd.storeNewTask(task);
+                            finalShepherd.beginDBTransaction();
+        
+                            if (parentTask != null) parentTask.addChild(task);
+        
+                            System.out.println("created parentTask " + parentTask +" to link to " + t.getId());
+        
+        
+                            // System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
+                            JSONObject qjob = new JSONObject(taskParameters.toString()); // clone it to start with so we get all same content
+                            qjob.remove("bulkImport"); // ... but then lose this
+                            qjob.put("taskId", task.getId());
+                            qjob.put("mediaAssetIds", maIds);
+                            qjob.put("v2", true);
+                            qjob.put("__context", context);
+                            qjob.put("__baseUrl", baseUrl);
+                            qjob.put("__handleBulkImport", System.currentTimeMillis());
+                            task.setQueueResumeMessage(qjob.toString());
+                            task.setStatus("complete");
+                            finalShepherd.commitDBTransaction();
                         }
+                        
+        
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        finalShepherd.rollbackDBTransaction();
+                    } finally {
+                        finalShepherd.closeDBTransaction();
                     }
-                    myShepherd.commitDBTransaction();
+        
+                }
+        
+        
+                try {
+                    wb.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    myShepherd.rollbackDBTransaction();
-                } finally {
-                    myShepherd.closeDBTransaction();
                 }
-
-                if (itask != null) sendforACMID(itask, myShepherd, context);
-
             }
-        }).start();
+        };
+        new Thread(rn).start();
 
-        try {
-            wb.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context,
@@ -1838,10 +1900,10 @@ public class EncounterImportExcelServlet extends HttpServlet {
             } else {
                 enc.setIndividual(mark);
             }
-            if (committing) {
-                myShepherd.commitDBTransaction();
-                myShepherd.beginDBTransaction();
-            }
+            // if (committing) {
+            //     myShepherd.commitDBTransaction();
+            //     myShepherd.beginDBTransaction();
+            // }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -2674,8 +2736,6 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     if (((assets.size() >= batchSize) && assets.size() > 0) || count == numEncs) {
                         System.out.println("About to send " + assets.size() + " assets to IA! On " +
                             count + "/" + numEncs);
-                        itask.setStatus("Registering image assets for " + count + "/" + numEncs +
-                            " encounters.");
                         myShepherd.updateDBTransaction();
                         IBEISIA.sendMediaAssetsNew(assets, context);
                         IBEISIA.sendAnnotationsAsNeeded(annotations, myShepherd);
@@ -2683,8 +2743,6 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     }
                 }
                 if (assets.size() > 0) {
-                    itask.setStatus("Registering image assets for " + count + "/" + numEncs +
-                        " encounters.");
                     myShepherd.updateDBTransaction();
                     IBEISIA.sendMediaAssetsNew(assets, context);
                 }
