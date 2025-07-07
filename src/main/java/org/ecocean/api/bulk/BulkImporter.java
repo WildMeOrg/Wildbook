@@ -453,10 +453,6 @@ public class BulkImporter {
                 enc.setState(bv.getValueString());
                 break;
 
-            case "Encounter.submitterID":
-                enc.setSubmitterID(bv.getValueString());
-                break;
-
             case "Encounter.submitterName":
                 enc.setSubmitterName(bv.getValueString());
                 break;
