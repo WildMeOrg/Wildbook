@@ -60,7 +60,6 @@
 				{ "name":"Northern California", "id":"Northern California", "locationID":[] },
 				{ "name":"Northern Central California", "id":"Northern Central California", "locationID":[] },
                 {"name": "Salish Sea", "id": "Salish Sea" },
-				{"name": "San Gabriel River", "id": "San Gabriel River" },
 				{ "name":"Santa Barbara Channel", "id":"Santa Barbara Channel", "locationID":[] },
 				{ "name":"Southern Baja California", "id":"Southern Baja California", "locationID":[] },
 				{ "name":"Southern California", "id":"Southern California", "locationID":[
