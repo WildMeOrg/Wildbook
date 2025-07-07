@@ -86,6 +86,17 @@
 			"long": 150.898
 		}
 	},
+	{
+		"name": "NSW-Sydney-Avalon",
+		"id": "NSW-Sydney-Avalon",
+		"locationID": [],
+		"prefix": "NSW-",
+		"prefixDigitPadding": 4,
+		"geospatialInfo":{
+			"lat": -33.6382,
+			"long": 151.3406
+		}
+	},
 	{ 
 		"name": "NSW-Sydney-Bare Island", 
 		"id":"NSW-Sydney-Bare Island", 
