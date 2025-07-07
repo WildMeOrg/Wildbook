@@ -558,6 +558,27 @@ class BulkGeneralTest {
         }
     }
 
+    @Test void synonymFieldNames() {
+        List<List<String> > res = BulkValidator.findSynonyms(null);
+
+        assertNull(res);
+        Set<String> fieldNames = new HashSet<String>();
+        fieldNames.add("Fake.field");
+        // these are in syn list, but no doubles of anything = null
+        fieldNames.add("Encounter.id");
+        fieldNames.add("Encounter.individualID");
+        fieldNames.add("Encounter.year");
+        res = BulkValidator.findSynonyms(fieldNames);
+        assertNull(res);
+        // now we add names to create 2 out of 3 of these have duplicates
+        fieldNames.add("Encounter.catalogNumber");
+        fieldNames.add("Sighting.year");
+        res = BulkValidator.findSynonyms(fieldNames);
+        assertEquals(res.size(), 2);
+        assertEquals(res.get(0).size(), 2);
+        assertEquals(res.get(1).size(), 2);
+    }
+
     Map<String, Object> testOneRow(Map<String, Object> singleRowData)
     throws ServletException {
         // Shepherd should be handled by caller via MockConstruction etc
