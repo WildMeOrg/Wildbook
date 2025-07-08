@@ -213,6 +213,23 @@ class BulkApiPostTest {
         return rtn.toString();
     }
 
+    private String getInvalidPayloadNonArraysSynonyms() {
+        JSONObject rtn = basePayload();
+        JSONArray rows = new JSONArray();
+
+        for (int i = 0; i < 3; i++) {
+            JSONObject row = new JSONObject();
+            row.put("Encounter.year", 2000 + i);
+            row.put("Sighting.year", 2000 + i);
+            row.put("Encounter.genus", "Genus" + i);
+            row.put("Encounter.specificEpithet", "specificEpithet" + i);
+            row.put("Encounter.submitterID", "non-array-fake-username");
+            rows.put(row);
+        }
+        rtn.put("rows", rows);
+        return rtn.toString();
+    }
+
     // adds values to only first row of data
     // adds values to only first row of data
     private String addToRows(String jsonString, String fieldName, Object value) {
@@ -291,6 +308,44 @@ class BulkApiPostTest {
                     assertEquals(jout.getJSONArray("errors").length(), 1);
                     assertTrue(jout.getJSONArray("errors").getJSONObject(0).getString(
                         "details").startsWith("synonym columns: "));
+                }
+            }
+        }
+    }
+
+    @Test void apiPostDuplicateSynonymsNonArrays()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
+        String requestBody = getInvalidPayloadNonArraysSynonyms();
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertEquals(jout.getInt("statusCode"), 400);
+                    assertEquals(jout.getJSONArray("errors").length(), 6); // 2 errors per 3 rows
+                    assertTrue(jout.getJSONArray("errors").getJSONObject(0).getString(
+                        "details").startsWith(
+                        "org.ecocean.api.bulk.BulkValidatorException: synonym columns: "));
                 }
             }
         }
