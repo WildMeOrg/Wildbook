@@ -127,6 +127,18 @@ export class BulkImportStore {
       message:
         "Invalid data. date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
     },
+    "Sighting.year": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        const FORMATS = ["YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm"];
+        return dayjs(val, FORMATS, true).isValid();
+      },
+      message:
+        "Invalid data. date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
+    },
     "Encounter.genus": {
       required: true,
       validate: (val) => {
@@ -144,7 +156,9 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        const dt = new Date(val);
+        const num = Number(val);
+        if (isNaN(num)) return false;
+        const dt = new Date(num);
         return !isNaN(dt.getTime());
       },
       message: "invalid date in milliseconds",
@@ -257,21 +271,12 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        const dt = new Date(val);
+        const num = Number(val);
+        if (isNaN(num)) return false;
+        const dt = new Date(num);
         return !isNaN(dt.getTime());
       },
       message: "invalid date in milliseconds",
-    },
-    "Sighting.year": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "YYYY", true).isValid();
-      },
-      message:
-        "Invalid data. date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
     },
 
     "Sighting.millis": {
@@ -280,9 +285,12 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        return this.isValidISO(val);
+        const num = Number(val);
+        if (isNaN(num)) return false;
+        const dt = new Date(num);
+        return !isNaN(dt.getTime());
       },
-      message: "Invalid value. Must be a valid ISO date",
+      message: "Invalid value. Must be a valid ISO date++++++++",
     },
   };
 
