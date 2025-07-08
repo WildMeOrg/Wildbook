@@ -47,7 +47,20 @@ public class BulkImportUtil {
         Map<String, Object> rtn = new HashMap<String, Object>();
 
         if (row == null) return rtn;
-        for (String fieldName : row.keySet()) {
+        Set<String> fieldNames = row.keySet();
+        List<List<String> > syn = BulkValidator.findSynonyms(fieldNames);
+        // we set errors for fields which are duplicates, and remove from fieldNames (for below)
+        if (syn != null) {
+            for (List<String> syns : syn) {
+                BulkValidatorException bv = new BulkValidatorException("synonym columns: " +
+                    String.join(", ", syns), ApiException.ERROR_RETURN_CODE_INVALID);
+                for (String dup : syns) {
+                    rtn.put(dup, bv);
+                    fieldNames.remove(dup);
+                }
+            }
+        }
+        for (String fieldName : fieldNames) {
             try {
                 // FIXME -- how do we handle get() and type returned? TBD
                 if (row.isNull(fieldName)) { // want to pass java null here instead of org.json.NULL

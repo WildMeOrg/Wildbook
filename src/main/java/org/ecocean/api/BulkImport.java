@@ -187,6 +187,19 @@ public class BulkImport extends ApiBase {
                         throw new ServletException("could not find field name at i=" + i);
                     fieldNames.add(fn);
                 }
+                List<List<String> > syn = BulkValidator.findSynonyms(fieldNames);
+                if (syn != null) {
+                    JSONArray synErrs = new JSONArray();
+                    for (List<String> syns : syn) {
+                        JSONObject err = new JSONObject();
+                        err.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                        err.put("details", "synonym columns: " + String.join(", ", syns));
+                        err.put("fieldNames", syns);
+                        synErrs.put(err);
+                    }
+                    throw new ApiException("duplicate columns due to synonyms in field names",
+                            synErrs);
+                }
             }
             // we might grow matchingSetFilter stuff later, but for now we only have locationIds from ui
             JSONArray mloc = payload.optJSONArray("matchingLocations");

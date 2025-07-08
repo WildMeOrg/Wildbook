@@ -2,11 +2,14 @@
 package org.ecocean.api.bulk;
 
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.ecocean.api.ApiException;
@@ -69,17 +72,16 @@ public class BulkValidator {
         "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupRole",
         "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.sightingID",
         "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers", "Encounter.patterningCode",
-        "Encounter.state", "Encounter.submitterName", "Encounter.submitterOrganization",
-        "MarkedIndividual.name", "MarkedIndividual.nickname", "MarkedIndividual.nickName",
-        "Membership.role", "MicrosatelliteMarkersAnalysis.alleleNames",
-        "MicrosatelliteMarkersAnalysis.analysisID", "MitochondrialDNAAnalysis.haplotype",
-        "Sighting.comments", "Sighting.fieldStudySite", "Sighting.groupBehavior",
-        "Sighting.groupComposition", "Sighting.humanActivityNearby", "Sighting.initialCue",
-        "Sighting.observer", "Sighting.sightingID", "Sighting.terrain", "Sighting.transectName",
-        "Sighting.vegetation", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
-        "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type",
-        "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName", "Taxonomy.scientificName",
-        "TissueSample.tissueType"));
+        "Encounter.submitterName", "Encounter.submitterOrganization", "MarkedIndividual.name",
+        "MarkedIndividual.nickname", "MarkedIndividual.nickName", "Membership.role",
+        "MicrosatelliteMarkersAnalysis.alleleNames", "MicrosatelliteMarkersAnalysis.analysisID",
+        "MitochondrialDNAAnalysis.haplotype", "Sighting.comments", "Sighting.fieldStudySite",
+        "Sighting.groupBehavior", "Sighting.groupComposition", "Sighting.humanActivityNearby",
+        "Sighting.initialCue", "Sighting.observer", "Sighting.sightingID", "Sighting.terrain",
+        "Sighting.transectName", "Sighting.vegetation", "SatelliteTag.serialNumber",
+        "SexAnalysis.processingLabTaskID", "SocialUnit.socialUnitName", "Survey.comments",
+        "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName",
+        "Taxonomy.scientificName", "TissueSample.tissueType"));
     public static final Set<String> MINIMAL_FIELD_NAMES_INT = new HashSet<>(Arrays.asList(
         "Sighting.fieldSurveyCode", "Sighting.groupSize", "Sighting.individualCount",
         "Sighting.maxGroupSizeEstimate", "Sighting.minGroupSizeEstimate",
@@ -90,7 +92,27 @@ public class BulkValidator {
     public static final Set<String> MINIMAL_FIELD_NAMES_DOUBLE = new HashSet<>(Arrays.asList(
         "Encounter.depth", "Encounter.elevation", "Sighting.bearing",
         "Sighting.bestGroupSizeEstimate", "Sighting.distance", "Sighting.effortCode",
-        "Sighting.seaSurfaceTemperature", "Sighting.swellHeight", "Sighting.transectBearing"));
+        "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature", "Sighting.swellHeight",
+        "Sighting.transectBearing"));
+
+    public static final String[][] FIELD_NAME_SYNONYMS = {
+        { "Encounter.id", "Encounter.catalogNumber" }, {
+            "Encounter.sightingID", "Sighting.sightingID"
+        }, { "Encounter.individualID", "MarkedIndividual.individualID" }, {
+            "Encounter.latitude", "Encounter.decimalLatitude", "Sighting.decimalLatitude"
+        }, { "Encounter.longitude", "Encounter.decimalLongitude", "Sighting.decimalLongitude" }, {
+            "Sighting.dateInMilliseconds", "Sighting.millis", "Encounter.dateInMilliseconds"
+        }, { "Sighting.year", "Encounter.year" }, { "Sighting.month", "Encounter.month" }, {
+            "Sighting.day", "Encounter.day"
+        }, { "Sighting.hour", "Encounter.hour" }, { "Sighting.minutes", "Encounter.minutes" }, {
+            "MarkedIndividual.nickName", "MarkedIndividual.nickname"
+        }, { "Sighting.fieldSurveyCode", "Survey.id" }, {
+            "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature"
+        }, { "Survey.vessel", "SurveyTrack.vesselID" }, {
+            "TissueSample.sampleID", "MicrosatelliteMarkersAnalysis.analysisID",
+                "SexAnalysis.processingLabTaskID"
+        }
+    };
 
     private String fieldName = null;
     private Object value = null;
@@ -488,6 +510,29 @@ public class BulkValidator {
             i++;
         }
         return mf;
+    }
+
+    // null returned means no synonyms
+    public static List<List<String> > findSynonyms(Set<String> fieldNames) {
+        if ((fieldNames == null) || (fieldNames.size() < 1)) return null;
+        List<List<String> > found = new ArrayList<List<String> >();
+        for (int i = 0; i < FIELD_NAME_SYNONYMS.length; i++) {
+            found.add(new ArrayList<String>());
+            for (int j = 0; j < FIELD_NAME_SYNONYMS[i].length; j++) {
+                if (fieldNames.contains(FIELD_NAME_SYNONYMS[i][j]))
+                    found.get(i).add(FIELD_NAME_SYNONYMS[i][j]);
+            }
+        }
+        for (int i = FIELD_NAME_SYNONYMS.length - 1; i >= 0; i--) {
+            // 1 or 0 matches means we dont complain
+            if (found.get(i).size() < 2) found.remove(i);
+        }
+        if (found.size() < 1) return null;
+        return found;
+    }
+
+    public static JSONArray fieldNameSynonymsJson() {
+        return new JSONArray(FIELD_NAME_SYNONYMS);
     }
 
     // apparently measurements can be any of the following. :|  sigh

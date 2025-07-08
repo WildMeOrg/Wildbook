@@ -123,6 +123,8 @@ public class SiteSettings extends ApiBase {
             Arrays.sort(barr);
             settings.put("behavior", behavs);
 
+            settings.put("bulkImportFieldNameSynonyms", BulkValidator.fieldNameSynonymsJson());
+
             List<String> kws = new ArrayList<String>();
             // this seems like less desirable method: getAllKeywordsNoLabeledKeywords()
             for (Keyword kw : myShepherd.getSortedKeywordList()) {
