@@ -122,10 +122,11 @@ export class BulkImportStore {
       required: true,
       validate: (val) => {
         const FORMATS = ["YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm"];
-        return dayjs(val, FORMATS, true).isValid();
+        const parsed = dayjs(val, FORMATS, true);
+        return parsed.isValid() && !parsed.isAfter(dayjs());
       },
       message:
-        "Invalid data. date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
+        "Invalid data. Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm” and cannot be in the future.",
     },
     "Sighting.year": {
       required: false,
@@ -134,10 +135,11 @@ export class BulkImportStore {
           return true;
         }
         const FORMATS = ["YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm"];
-        return dayjs(val, FORMATS, true).isValid();
+        const parsed = dayjs(val, FORMATS, true);
+        return parsed.isValid() && !parsed.isAfter(dayjs());
       },
       message:
-        "Invalid data. date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
+        "Invalid data. Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm” and cannot be in the future.",
     },
     "Encounter.genus": {
       required: true,
