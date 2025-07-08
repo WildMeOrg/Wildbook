@@ -288,44 +288,44 @@ const latlongRule = {
     "Invalid latitude, longitude format. Use 'lat, long' (e.g., '34.05, -118.25')",
 };
 
-const parseEncounterDateString = (val) => {
-  const result = {
-    year: "",
-    month: "",
-    day: "",
-    hour: "",
-    minutes: "",
+const parseEncounterDateString = (field, val, raw) => {
+  if (!val) return;
+
+  const set = (suffix, value) => {
+    raw[`${field}.${suffix}`] = value;
   };
 
-  if (!val) return result;
-
   if (/^\d{4}$/.test(val)) {
-    // "2024"
-    result.year = Number(val);
+    const y = Number(val);
+    set("year", y);
+    set("month", "");
+    set("day", "");
+    set("hour", "");
+    set("minutes", "");
   } else if (/^\d{4}-\d{2}$/.test(val)) {
-    // "2024-07"
     const [y, m] = val.split("-").map(Number);
-    result.year = y;
-    result.month = m;
+    set("year", y);
+    set("month", m);
+    set("day", "");
+    set("hour", "");
+    set("minutes", "");
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-    // "2024-07-07"
     const [y, m, d] = val.split("-").map(Number);
-    result.year = y;
-    result.month = m;
-    result.day = d;
+    set("year", y);
+    set("month", m);
+    set("day", d);
+    set("hour", "");
+    set("minutes", "");
   } else {
-    // Assume ISO string or Date-parsable string
     const dt = new Date(val);
     if (!isNaN(dt)) {
-      result.year = dt.getFullYear();
-      result.month = dt.getMonth() + 1;
-      result.day = dt.getDate();
-      result.hour = dt.getHours();
-      result.minutes = dt.getMinutes();
+      set("year", dt.getFullYear());
+      set("month", dt.getMonth() + 1);
+      set("day", dt.getDate());
+      set("hour", dt.getHours());
+      set("minutes", dt.getMinutes());
     }
   }
-
-  return result;
 };
 
 export {

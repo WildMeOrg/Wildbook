@@ -11,6 +11,7 @@ import {
   stringRule,
   allColumns,
   latlongRule,
+  parseEncounterDateString,
 } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
@@ -81,6 +82,7 @@ export class BulkImportStore {
   _validSex = [];
   _validBehavior = [];
   _validState = [];
+  _synonymFields = [];
   _labeledKeywordAllowedKeys = [];
   _labeledKeywordAllowedPairs = [];
   _applyToAllRowModalShow = false;
@@ -432,6 +434,10 @@ export class BulkImportStore {
     return allRequiredColumns.filter((col) => !this._columnsDef.includes(col));
   }
 
+  get synonymFields() {
+    return this._synonymFields;
+  }
+
   // get errorPages() {
   //   return this._errorPages;
   // }
@@ -602,6 +608,10 @@ export class BulkImportStore {
 
   setLocationIDOptions(options) {
     this._locationIDOptions = options;
+  }
+
+  setSynonymFields(synonymFields) {
+    this._synonymFields = synonymFields;
   }
 
   setWorksheetInfo(sheetCount, sheetNames, columnCount, rowCount, fileName) {
@@ -1194,37 +1204,12 @@ export class BulkImportStore {
       runInAction(() => {
         if (norm["Encounter.year"]) {
           const val = norm["Encounter.year"];
-          if (val) {
-            if (/^\d{4}$/.test(val)) {
-              const y = Number(val);
-              raw["Encounter.year"] = y;
-              raw["Encounter.month"] = "";
-              raw["Encounter.day"] = "";
-              raw["Encounter.hour"] = "";
-              raw["Encounter.minutes"] = "";
-            } else if (/^\d{4}-\d{2}$/.test(val)) {
-              const [y, m] = val.split("-").map(Number);
-              raw["Encounter.year"] = y;
-              raw["Encounter.month"] = m;
-              raw["Encounter.day"] = "";
-              raw["Encounter.hour"] = "";
-              raw["Encounter.minutes"] = "";
-            } else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-              const [y, m, d] = val.split("-").map(Number);
-              raw["Encounter.year"] = y;
-              raw["Encounter.month"] = m;
-              raw["Encounter.day"] = d;
-              raw["Encounter.hour"] = "";
-              raw["Encounter.minutes"] = "";
-            } else {
-              const dt = new Date(val);
-              raw["Encounter.year"] = dt.getFullYear();
-              raw["Encounter.month"] = dt.getMonth() + 1;
-              raw["Encounter.day"] = dt.getDate();
-              raw["Encounter.hour"] = dt.getHours();
-              raw["Encounter.minutes"] = dt.getMinutes();
-            }
-          }
+          parseEncounterDateString("Encounter", val, raw);
+        }
+
+        if (norm["Sighting.year"]) {
+          const val = norm["Sighting.year"];
+          parseEncounterDateString("Sighting", val, raw);
         }
 
         if (norm["Encounter.genus"] != null) {
@@ -1565,23 +1550,28 @@ export class BulkImportStore {
           return;
         }
 
+        this._synonymFields.forEach((group) => {
+          const filled = group.filter((col) => {
+            const val = row[col];
+            return val !== undefined && String(val).trim() !== "";
+          });
+
+          if (filled.length > 1) {
+            if (!errors[rowIndex]) errors[rowIndex] = {};
+            filled.forEach((col) => {
+              errors[rowIndex][col] =
+                `Duplicate data found in related fields: ${group.join(", ")}`;
+            });
+          }
+        });
+
         const isKnown = knownColumnCache[col];
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
 
-        const duplicate = this._spreadsheetData.some(
-          (r, idx) => idx !== rowIndex && r[col] === value,
-        );
-
         if (!isKnown) {
           if (!warnings[rowIndex]) warnings[rowIndex] = {};
           warnings[rowIndex][col] = "Unknown column — may not be processed";
-          return;
-        }
-
-        if (duplicate) {
-          if (!warnings[rowIndex]) warnings[rowIndex] = {};
-          warnings[rowIndex][col] = "Duplicate column — may not be processed";
           return;
         }
 

@@ -26,7 +26,6 @@ const EditableCell = observer(
     }, [value]);
 
     const [showDetail, setShowDetail] = useState(false);
-
     const handleBlur = (e) => {
       const newValue = e.target.value;
       store.updateCellValue(rowIndex, columnId, newValue);
@@ -144,6 +143,8 @@ export const DataTable = observer(({ store }) => {
   const validSubmitterIDs = siteData?.users?.map((user) => user.username) || [];
   const validSpecies = siteData?.siteTaxonomies || [];
   const validCountryIDs = siteData?.country || [];
+  const validStates = siteData?.encounterState || [];
+  const synonymFields = siteData?.bulkImportFieldNameSynonyms || [];
   const validSex = siteData?.sex || ["male", "female"];
   const validLifeStages = siteData?.lifeStage || [];
   const validLivingStatus = siteData?.livingStatus || [];
@@ -181,6 +182,8 @@ export const DataTable = observer(({ store }) => {
   store.setValidSubmitterIDs(validSubmitterIDs);
   store.setValidSpecies(validSpecies.map((species) => species.scientificName));
   store.setValidCountryIDs(validCountryIDs);
+  store.setValidStates(validStates);
+  store.setSynonymFields(synonymFields);
   store.setValidSex(validSex);
   store.setValidLifeStages(validLifeStages);
   store.setValidLivingStatus(validLivingStatus);
