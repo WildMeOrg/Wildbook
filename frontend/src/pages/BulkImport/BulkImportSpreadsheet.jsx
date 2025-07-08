@@ -43,7 +43,23 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const allJsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      // const allJsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      const allJsonDataRaw = XLSX.utils.sheet_to_json(worksheet, {
+        defval: "",
+      });
+      const allJsonData = allJsonDataRaw.map((row) => {
+        const normalizedRow = {};
+        for (const key in row) {
+          const newKey = key
+            .replace(/Occurrence/g, "Sighting")
+            .replace(/occurrence/g, "sighting");
+          normalizedRow[newKey] = row[key];
+        }
+        return normalizedRow;
+      });
+
+      console.log("All JSON Data:", JSON.stringify(allJsonData));
+
       store.setRawData(allJsonData || []);
       const processedData = [];
       let currentIndex = 0;
@@ -61,21 +77,12 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
       console.log("Remaining columns:", remaining);
 
-      //update all occurrence columns to sighting
-      const updatedRemaining = remaining.map((col) => {
-        if (col.includes("occurrence") || col.includes("Occurrence")) {
-          return col
-            .replace(/occurrence/g, "sighting")
-            .replace(/Occurrence/g, "Sighting");
-        }
-        return col;
-      });
       const userUploadedCols = new Set(rowKeys);
       const includedSpecified = specifiedColumns.filter((col) =>
         userUploadedCols.has(col),
       );
 
-      store.setColumnsDef([...includedSpecified, ...updatedRemaining]);
+      store.setColumnsDef([...includedSpecified, ...remaining]);
       store.applyDynamicValidationRules();
 
       const formatDate = (year, month, day, hour, minute) => {
@@ -106,6 +113,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       };
 
       const getLatLong = (lat, lon) => {
+        console.log(`getLatLong called with lat: ${lat}, lon: ${lon}`);
         const hasLat = lat !== undefined && lat !== null && lat !== "";
         const hasLon = lon !== undefined && lon !== null && lon !== "";
 
@@ -140,23 +148,58 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
           }
 
-          const latLong = getLatLong(
+          const Encounter_decimalLatitude = getLatLong(
             row["Encounter.decimalLatitude"],
             row["Encounter.decimalLongitude"],
           );
-          if (latLong) {
-            normalizedRow["Encounter.decimalLatitude"] = latLong;
+          if (Encounter_decimalLatitude) {
+            normalizedRow["Encounter.decimalLatitude"] =
+              Encounter_decimalLatitude;
           }
 
-          const formattedDate = formatDate(
+          const Encounter_latitude = getLatLong(
+            row["Encounter.latitude"],
+            row["Encounter.longitude"],
+          );
+          if (Encounter_latitude) {
+            normalizedRow["Encounter.latitude"] = Encounter_latitude;
+          }
+
+          const Sighting_decimalLatitude = getLatLong(
+            row["Sighting.decimalLatitude"],
+            row["Sighting.decimalLongitude"],
+          );
+
+          console.log(`Sighting_decimalLatitude:`, Sighting_decimalLatitude);
+          if (Sighting_decimalLatitude) {
+            normalizedRow["Sighting.decimalLatitude"] =
+              Sighting_decimalLatitude;
+            console.log(`Normalized Row:`, normalizedRow);
+          }
+
+          const formattedEncounterDate = formatDate(
             row["Encounter.year"],
             row["Encounter.month"],
             row["Encounter.day"],
             row["Encounter.hour"],
             row["Encounter.minutes"],
           );
-          if (formattedDate && formattedDate !== "undefined") {
-            normalizedRow["Encounter.year"] = formattedDate;
+          if (
+            formattedEncounterDate &&
+            formattedEncounterDate !== "undefined"
+          ) {
+            normalizedRow["Encounter.year"] = formattedEncounterDate;
+          }
+
+          const formattedSightingDate = formatDate(
+            row["Sighting.year"],
+            row["Sighting.month"],
+            row["Sighting.day"],
+            row["Sighting.hour"],
+            row["Sighting.minutes"],
+          );
+          if (formattedSightingDate && formattedSightingDate !== "undefined") {
+            normalizedRow["Sighting.year"] = formattedSightingDate;
           }
 
           const genus = String(row["Encounter.genus"] ?? "").trim();
@@ -171,7 +214,10 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           return normalizedRow;
         });
 
+        console.log("Normalized Chunk:", normalizedChunk);
+
         processedData.push(...normalizedChunk);
+        console.log("Processed Data Length:", processedData);
         currentIndex += CHUNK_SIZE;
 
         store.setSpreadsheetUploadProgress(
@@ -181,6 +227,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           setTimeout(processChunk, 0);
         } else {
           if (store && store.setSpreadsheetData) {
+            console.log("Final Processed Data:", processedData);
             store.setSpreadsheetData(processedData);
             const { errors, warnings } = store.validateSpreadsheet();
             store.setValidationErrors(errors);
@@ -381,11 +428,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           </ProgressBar>
         </div>
       )}
-      {/* {store.spreadsheetUploadProgress === 100 && (
-        <div className="mt-2">
-          <FormattedMessage id="BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE" />
-        </div>
-      )} */}
 
       <span className="position-absolute top-0 start-50 translate-middle-x">
         {store.spreadsheetUploadProgress === 100 ? (

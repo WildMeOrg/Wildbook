@@ -8,8 +8,11 @@ const allRequiredColumns = [
 const specifiedColumns = [
   "Encounter.mediaAsset0",
   "Encounter.year",
+  "Sighting.year",
   "Encounter.genus",
   "Encounter.decimalLatitude",
+  "Encounter.latitude",
+  "Sighting.decimalLatitude",
   "Encounter.locationID",
   "Encounter.country",
   "Encounter.sightingID",
@@ -37,6 +40,14 @@ const removedColumns = [
   "Encounter.seconds",
   "Encounter.decimalLongitude",
   "Encounter.specificEpithet",
+  "Sighting.decimalLongitude",
+  "Occurrence.decimalLongitude",
+  "Encounter.longitude",
+  "Sighting.month",
+  "Sighting.day",
+  "Sighting.hour",
+  "Sighting.minutes",
+  "Sighting.seconds",
 ];
 
 const tableHeaderMapping = {
@@ -47,8 +58,11 @@ const tableHeaderMapping = {
   // "Encounter.sightingRemarks": "sighting Remarks",
   // "Encounter.locationID": "locationID",
   // "Encounter.country": "country",
-  "Encounter.decimalLatitude": "Lat, long (DD)",
-  "Encounter.year": "date",
+  "Encounter.decimalLatitude": "Encounter.decimalLatitude Lat, long (DD)",
+  "Encounter.latitude": "Encounter.latitude Lat, long (DD)",
+  "Sighting.decimalLatitude": "Sighting.decimalLatitude Lat, long (DD)",
+  "Encounter.year": "Encounter date",
+  "Sighting.year": "Sighting date",
   // "Encounter.sex": "sex",
   // "Encounter.lifeStage": "life Stage",
   // "Encounter.livingStatus": "living Status",
@@ -68,6 +82,7 @@ const columnsUseSelectCell = [
   "Encounter.livingStatus",
   "Encounter.sex",
   "Encounter.behavior",
+  "Encounter.state",
 ];
 
 const stringRule = {
@@ -77,7 +92,7 @@ const stringRule = {
     // return /^[a-zA-Z0-9\s.,-]+$/.test(val);
     return typeof val === "string" || val instanceof String;
   },
-  message: "Must be a string",
+  message: "invalida data. must be a string",
 };
 
 const intRule = {
@@ -86,7 +101,7 @@ const intRule = {
     if (!val) return true;
     return /^-?\d+$/.test(val);
   },
-  message: "Must be an integer",
+  message: "invalida data. must be an integer",
 };
 
 const doubleRule = {
@@ -95,7 +110,7 @@ const doubleRule = {
     if (!val) return true;
     return /^-?\d+(\.\d+)?$/.test(val);
   },
-  message: "Must be a double",
+  message: "Invalid data. must be a double",
 };
 
 const extraStringCols = [
@@ -241,6 +256,78 @@ const allColumns_occurrence = allColumns_sighting
 
 const allColumns = allColumns_occurrence.concat(allColumns_sighting);
 
+const latlongRule = {
+  required: false,
+  validate: (val) => {
+    if (!val) {
+      return true;
+    }
+
+    const re = /^\s*([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)\s*$/;
+    const m = re.exec(val);
+    if (!m) {
+      return false;
+    }
+
+    const lat = parseFloat(m[1]);
+    const lon = parseFloat(m[3]);
+
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      return false;
+    }
+    if (lat < -90 || lat > 90) {
+      return false;
+    }
+    if (lon < -180 || lon > 180) {
+      return false;
+    }
+
+    return true;
+  },
+  message:
+    "Invalid latitude, longitude format. Use 'lat, long' (e.g., '34.05, -118.25')",
+};
+
+const parseEncounterDateString = (val) => {
+  const result = {
+    year: "",
+    month: "",
+    day: "",
+    hour: "",
+    minutes: "",
+  };
+
+  if (!val) return result;
+
+  if (/^\d{4}$/.test(val)) {
+    // "2024"
+    result.year = Number(val);
+  } else if (/^\d{4}-\d{2}$/.test(val)) {
+    // "2024-07"
+    const [y, m] = val.split("-").map(Number);
+    result.year = y;
+    result.month = m;
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+    // "2024-07-07"
+    const [y, m, d] = val.split("-").map(Number);
+    result.year = y;
+    result.month = m;
+    result.day = d;
+  } else {
+    // Assume ISO string or Date-parsable string
+    const dt = new Date(val);
+    if (!isNaN(dt)) {
+      result.year = dt.getFullYear();
+      result.month = dt.getMonth() + 1;
+      result.day = dt.getDate();
+      result.hour = dt.getHours();
+      result.minutes = dt.getMinutes();
+    }
+  }
+
+  return result;
+};
+
 export {
   allRequiredColumns,
   specifiedColumns,
@@ -252,4 +339,6 @@ export {
   stringRule,
   extraStringCols,
   allColumns,
+  latlongRule,
+  parseEncounterDateString,
 };

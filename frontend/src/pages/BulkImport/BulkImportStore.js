@@ -10,6 +10,7 @@ import {
   doubleRule,
   stringRule,
   allColumns,
+  latlongRule,
 } from "./BulkImportConstants";
 
 dayjs.extend(customParseFormat);
@@ -79,6 +80,7 @@ export class BulkImportStore {
   _validLifeStages = [];
   _validSex = [];
   _validBehavior = [];
+  _validState = [];
   _labeledKeywordAllowedKeys = [];
   _labeledKeywordAllowedPairs = [];
   _applyToAllRowModalShow = false;
@@ -130,35 +132,20 @@ export class BulkImportStore {
       },
       message: "invalid species",
     },
-    "Encounter.decimalLatitude": {
+    "Encounter.decimalLatitude": latlongRule,
+    "Encounter.latitude": latlongRule,
+    "Sighting.decimalLatitude": latlongRule,
+
+    "Sighting.dateInMilliseconds": {
       required: false,
       validate: (val) => {
         if (!val) {
           return true;
         }
-
-        const re = /^\s*([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)\s*$/;
-        const m = re.exec(val);
-        if (!m) {
-          return false;
-        }
-
-        const lat = parseFloat(m[1]);
-        const lon = parseFloat(m[3]);
-
-        if (Number.isNaN(lat) || Number.isNaN(lon)) {
-          return false;
-        }
-        if (lat < -90 || lat > 90) {
-          return false;
-        }
-        if (lon < -180 || lon > 180) {
-          return false;
-        }
-
-        return true;
+        const dt = new Date(val);
+        return !isNaN(dt.getTime());
       },
-      message: "invalid latitude and longitude",
+      message: "invalid date in milliseconds",
     },
     "Encounter.locationID": {
       required: true,
@@ -189,6 +176,16 @@ export class BulkImportStore {
         return this._validCountryIDs.includes(val);
       },
       message: "invalid country ID",
+    },
+    "Encounter.state": {
+      required: false,
+      validate: (val) => {
+        if (!val) {
+          return true;
+        }
+        return this._validState.includes(val);
+      },
+      message: "invalid state",
     },
     "Encounter.livingStatus": {
       required: false,
@@ -263,16 +260,6 @@ export class BulkImportStore {
       },
       message: "invalid date in milliseconds",
     },
-    // "Occurrence.year": {
-    //   required: false,
-    //   validate: (val) => {
-    //     if (!val) {
-    //       return true;
-    //     }
-    //     return dayjs(val, "YYYY", true).isValid();
-    //   },
-    //   message: "Year must be in YYYY format",
-    // },
     "Sighting.year": {
       required: false,
       validate: (val) => {
@@ -281,99 +268,10 @@ export class BulkImportStore {
         }
         return dayjs(val, "YYYY", true).isValid();
       },
-      message: "Invalid value. Year must be in YYYY format",
-    },
-    // "Occurrence.month": {
-    //   required: false,
-    //   validate: (val) => {
-    //     if (!val) {
-    //       return true;
-    //     }
-    //     return dayjs(val, "MM", true).isValid();
-    //   },
-    //   message: "Invalid value. Month must be in MM format",
-    // },
-    "Sighting.month": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "MM", true).isValid();
-      },
-      message: "Invalid value. Month must be in MM format",
-    },
-    // "Occurrence.day": {
-    //   required: false,
-    //   validate: (val) => {
-    //     if (!val) {
-    //       return true;
-    //     }
-    //     return dayjs(val, "DD", true).isValid();
-    //   },
-    //   message: "Invalid value. Day must be in DD format",
-    // },
-    "Sighting.day": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "DD", true).isValid();
-      },
-      message: "Invalid value. Day must be in DD format",
-    },
-    // "Occurrence.hour": {
-    //   required: false,
-    //   validate: (val) => {
-    //     if (!val) {
-    //       return true;
-    //     }
-    //     return dayjs(val, "HH", true).isValid();
-    //   },
-    //   message: "Invalid value. Hours must be in HH format",
-    // },
-    "Sighting.hour": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "HH", true).isValid();
-      },
-      message: "Invalid value. Hours must be in HH format",
+      message:
+        "Invalid data. date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm”",
     },
 
-    // "Occurrence.minutes": {
-    //   required: false,
-    //   validate: (val) => {
-    //     if (!val) {
-    //       return true;
-    //     }
-    //     return dayjs(val, "mm", true).isValid();
-    //   },
-    //   message: "Invalid value. Minutes must be in mm format",
-    // },
-    "Sighting.minutes": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return dayjs(val, "mm", true).isValid();
-      },
-      message: "Invalid value. Minutes must be in mm format",
-    },
-    // "Occurence.millis": {
-    //   required: false,
-    //   validate: (val) => {
-    //     if (!val) {
-    //       return true;
-    //     }
-    //     return this.isValidISO(val);
-    //   },
-    //   message: "Invalid value. Must be a valid ISO date",
-    // },
     "Sighting.millis": {
       required: false,
       validate: (val) => {
@@ -664,6 +562,10 @@ export class BulkImportStore {
 
   setValidCountryIDs(countryIDs) {
     this._validCountryIDs = countryIDs;
+  }
+
+  setValidStates(states) {
+    this._validState = states;
   }
 
   setValidLivingStatus(livingStatus) {
@@ -998,6 +900,11 @@ export class BulkImportStore {
       return this._validBehavior.map((data) => ({
         value: data,
         label: data,
+      }));
+    } else if (col === "Encounter.state") {
+      return this._validState.map((state) => ({
+        value: state,
+        label: state,
       }));
     }
     return [];
@@ -1350,6 +1257,20 @@ export class BulkImportStore {
           raw["Encounter.decimalLatitude"] = m ? m[1] : "";
           raw["Encounter.decimalLongitude"] = m ? m[2] : "";
         }
+        if (norm["Encounter.latitude"] != null) {
+          const m = /^\s*([^,]+)\s*,\s*([^,]+)\s*$/.exec(
+            norm["Encounter.latitude"],
+          );
+          raw["Encounter.latitude"] = m ? m[1] : "";
+          raw["Encounter.longitude"] = m ? m[2] : "";
+        }
+        if (norm["Sighting.decimalLatitude"] != null) {
+          const m = /^\s*([^,]+)\s*,\s*([^,]+)\s*$/.exec(
+            norm["Sighting.decimalLatitude"],
+          );
+          raw["Sighting.decimalLatitude"] = m ? m[1] : "";
+          raw["Sighting.decimalLongitude"] = m ? m[2] : "";
+        }
       });
     });
   }
@@ -1555,7 +1476,7 @@ export class BulkImportStore {
           this._validationRules[col] = {
             required: false,
             validate: isEmail,
-            message: "invalid email address12",
+            message: "invalid email address",
           };
         } else {
           this._validationRules[col] = {
@@ -1648,9 +1569,19 @@ export class BulkImportStore {
         const value = String(row[col] ?? "");
         const rules = this._validationRules[col];
 
+        const duplicate = this._spreadsheetData.some(
+          (r, idx) => idx !== rowIndex && r[col] === value,
+        );
+
         if (!isKnown) {
           if (!warnings[rowIndex]) warnings[rowIndex] = {};
           warnings[rowIndex][col] = "Unknown column — may not be processed";
+          return;
+        }
+
+        if (duplicate) {
+          if (!warnings[rowIndex]) warnings[rowIndex] = {};
+          warnings[rowIndex][col] = "Duplicate column — may not be processed";
           return;
         }
 
