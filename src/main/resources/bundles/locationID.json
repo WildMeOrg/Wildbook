@@ -805,6 +805,18 @@
 					"description": "Tsavo National Park",
 					"locationID": [
 						{
+						"name": "Chyulu Hills National Park",
+						"id": "Chyulu Hills National Park",
+						"prefix": "TSAVO",
+						"prefixDigitPadding": 3,
+						"description": "Chyulu Hills National Park",
+						"geospatialInfo":{
+							"lat": -2.50121,
+							"long": 37.75412
+						},
+							"locationID":[]
+						},
+						{
 						"name": "Tsavo East National Park",
 						"id": "Tsavo East National Park",
 						"prefix": "TSAVO",
