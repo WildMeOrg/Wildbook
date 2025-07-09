@@ -51,8 +51,7 @@ public class BulkValidator {
         "Sighting.transectName", "Sighting.vegetation", "Sighting.visibilityIndex", "Sighting.year",
         "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID", "SexAnalysis.sex",
         "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type", "Survey.vessel",
-        "SurveyTrack.vesselID", "Taxonomy.commonName", "Taxonomy.scientificName",
-        "TissueSample.sampleID", "TissueSample.tissueType"));
+        "SurveyTrack.vesselID", "TissueSample.sampleID", "TissueSample.tissueType"));
 
     public static final Set<String> FIELD_NAMES_INDEXABLE = new HashSet<>(Arrays.asList(
         "Encounter.keyword#", "Encounter.mediaAsset#", "Encounter.mediaAsset#.keywords",
@@ -61,10 +60,10 @@ public class BulkValidator {
         "Encounter.submitter#.affiliation", "Encounter.submitter#.emailAddress",
         "Encounter.submitter#.fullName", "Encounter.informOther#.emailAddress",
         "Encounter.photographer#.emailAddress", "MicrosatelliteMarkersAnalysis.alleles#",
-        "MarkedIndividual.name#.label", "MarkedIndividual.name#.value", "Sighting.taxonomy#"));
+        "MarkedIndividual.name#.label", "MarkedIndividual.name#.value"));
 
     public static final Set<String> FIELD_NAMES_REQUIRED = new HashSet<>(Arrays.asList(
-        "Encounter.genus", "Encounter.specificEpithet", "Encounter.year"));
+        "Encounter.genus", "Encounter.specificEpithet"));
 
     // this is for frontend, and it contains "minimally supported" fields: those which will NOT be
     // validated, but just accepted as-is and set on appropriate object
@@ -80,8 +79,8 @@ public class BulkValidator {
         "Sighting.initialCue", "Sighting.observer", "Sighting.sightingID", "Sighting.terrain",
         "Sighting.transectName", "Sighting.vegetation", "SatelliteTag.serialNumber",
         "SexAnalysis.processingLabTaskID", "SocialUnit.socialUnitName", "Survey.comments",
-        "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel", "Taxonomy.commonName",
-        "Taxonomy.scientificName", "TissueSample.tissueType"));
+        "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel",
+        "TissueSample.tissueType"));
     public static final Set<String> MINIMAL_FIELD_NAMES_INT = new HashSet<>(Arrays.asList(
         "Sighting.fieldSurveyCode", "Sighting.groupSize", "Sighting.individualCount",
         "Sighting.maxGroupSizeEstimate", "Sighting.minGroupSizeEstimate",
@@ -101,7 +100,8 @@ public class BulkValidator {
         }, { "Encounter.individualID", "MarkedIndividual.individualID" }, {
             "Encounter.latitude", "Encounter.decimalLatitude", "Sighting.decimalLatitude"
         }, { "Encounter.longitude", "Encounter.decimalLongitude", "Sighting.decimalLongitude" }, {
-            "Sighting.dateInMilliseconds", "Sighting.millis", "Encounter.dateInMilliseconds"
+            "Sighting.dateInMilliseconds", "Sighting.millis", "Encounter.dateInMilliseconds",
+                "Encounter.year", "Sighting.year"
         }, { "Sighting.year", "Encounter.year" }, { "Sighting.month", "Encounter.month" }, {
             "Sighting.day", "Encounter.day"
         }, { "Sighting.hour", "Encounter.hour" }, { "Sighting.minutes", "Encounter.minutes" }, {
@@ -123,7 +123,7 @@ public class BulkValidator {
 
     public BulkValidator(String fieldNamePassed, Object valuePassed, Shepherd myShepherd)
     throws BulkValidatorException {
-        indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if valid fieldName
+        indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if invalid fieldName
         if (indexInt >= 0) indexPrefix = indexPrefixValue(fieldNamePassed);
         fieldName = fieldNamePassed;
         value = validateValue(fieldNamePassed,
@@ -324,6 +324,16 @@ public class BulkValidator {
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return intVal;
 
+        case "Sighting.dateInMilliseconds":
+        case "Sighting.millis":
+        case "Encounter.dateInMilliseconds":
+            Long longVal = tryLong(value);
+            if (longVal == null) return null;
+            if (longVal > System.currentTimeMillis())
+                throw new BulkValidatorException("date cannot be in the future",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+            return longVal;
+
         case "Encounter.decimalLatitude":
         case "Encounter.latitude":
         case "Sighting.decimalLatitude":
@@ -426,10 +436,12 @@ public class BulkValidator {
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 return value;
 
+/* no longer supported
             case "Sighting.taxonomy":
                 if (value == null) return null;
                 throw new BulkValidatorException("not yet supporting validating Sighting.taxonomy",
                         ApiException.ERROR_RETURN_CODE_INVALID);
+ */
             case "Encounter.quality":
                 return tryDouble(value);
             }
@@ -460,6 +472,18 @@ public class BulkValidator {
             return Integer.valueOf(value.toString());
         } catch (Exception ex) {
             throw new BulkValidatorException("error parsing integer: " + ex,
+                    ApiException.ERROR_RETURN_CODE_INVALID);
+        }
+    }
+
+    private static Long tryLong(Object value)
+    throws BulkValidatorException {
+        if (value == null) return null;
+        if (value instanceof Long) return (Long)value;
+        try {
+            return Long.valueOf(value.toString());
+        } catch (Exception ex) {
+            throw new BulkValidatorException("error parsing long: " + ex,
                     ApiException.ERROR_RETURN_CODE_INVALID);
         }
     }

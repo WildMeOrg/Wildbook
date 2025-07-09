@@ -60,6 +60,9 @@ public class BulkImportUtil {
                 }
             }
         }
+        // try to make sure we set date *somehow*
+        String hasDateMillis = null;
+        String hasDateYear = null;
         for (String fieldName : fieldNames) {
             try {
                 // FIXME -- how do we handle get() and type returned? TBD
@@ -74,10 +77,29 @@ public class BulkImportUtil {
             } catch (Exception ex) {
                 rtn.put(fieldName, ex);
             }
+            if (fieldName.toLowerCase().contains("millis") && (getValue(rtn, fieldName) != null))
+                hasDateMillis = fieldName;
+            if (fieldName.endsWith(".year") && (getValue(rtn, fieldName) != null))
+                hasDateYear = fieldName;
         }
         // now we do inter-dependent validations
         checkYMD(rtn, "Encounter.year", "Encounter.month", "Encounter.day");
         checkYMD(rtn, "Sighting.year", "Sighting.month", "Sighting.day");
+        // (only) one of these is required, so cannot add both to FIELD_NAMES_REQUIRED
+        // we set Encounter.year as the field we complain about
+        if ((hasDateMillis == null) && (hasDateYear == null))
+            rtn.put("Encounter.year",
+                new BulkValidatorException("required value (year or millis)",
+                ApiException.ERROR_RETURN_CODE_REQUIRED));
+        // case where we have both, we complain about the fields we actually had set
+        if ((hasDateMillis != null) && (hasDateYear != null)) {
+            rtn.put(hasDateMillis,
+                new BulkValidatorException("cannot have both date year and millis",
+                ApiException.ERROR_RETURN_CODE_INVALID));
+            rtn.put(hasDateYear,
+                new BulkValidatorException("cannot have both date year and millis",
+                ApiException.ERROR_RETURN_CODE_INVALID));
+        }
         for (String reqFieldName : BulkValidator.FIELD_NAMES_REQUIRED) {
             if (!rtn.containsKey(reqFieldName)) {
                 rtn.put(reqFieldName,

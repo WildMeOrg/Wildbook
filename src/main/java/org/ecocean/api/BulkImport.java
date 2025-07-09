@@ -185,6 +185,13 @@ public class BulkImport extends ApiBase {
                     String fn = fieldNamesArr.optString(i, null);
                     if (fn == null)
                         throw new ServletException("could not find field name at i=" + i);
+                    if (fieldNames.contains(fn)) { // yes this happens :(
+                        JSONObject dupErr = new JSONObject();
+                        dupErr.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                        dupErr.put("details", "> 1 column named " + fn);
+                        dupErr.put("fieldName", fn);
+                        throw new ApiException("duplicate columns: " + fn, dupErr);
+                    }
                     fieldNames.add(fn);
                 }
                 List<List<String> > syn = BulkValidator.findSynonyms(fieldNames);
