@@ -390,14 +390,14 @@ public class BulkImporter {
                 enc.setCountry(bv.getValueString());
                 break;
 
-            // this will supercede year/month/date but that
-            // should be handled via validation step TODO
+            // validation step should only be allowing millis OR year/month/day/etc; not both
             case "Sighting.dateInMilliseconds":
             case "Sighting.millis":
             case "Encounter.dateInMilliseconds":
                 Long val = bv.getValueLong();
                 if (val != null) enc.setDateInMilliseconds(val);
                 break;
+
             case "Sighting.year":
             case "Encounter.year":
                 enc.setYear(bv.getValueInteger());
