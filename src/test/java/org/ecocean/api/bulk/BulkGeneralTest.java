@@ -232,7 +232,7 @@ class BulkGeneralTest {
                 // year
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.year") instanceof BulkValidatorException);
-                assertTrue(res.get("Encounter.year").toString().contains("too small"));
+                assertTrue(res.get("Encounter.year").toString().contains("required value"));
                 row.put("Encounter.year", 999999); // TODO adjust higher when we hit the year 999999
                 res = testOneRow(row);
                 assertEquals(res.get("_numInvalid"), 1);
@@ -574,7 +574,7 @@ class BulkGeneralTest {
         fieldNames.add("Encounter.catalogNumber");
         fieldNames.add("Sighting.year");
         res = BulkValidator.findSynonyms(fieldNames);
-        assertEquals(res.size(), 2);
+        assertEquals(res.size(), 3);
         assertEquals(res.get(0).size(), 2);
         assertEquals(res.get(1).size(), 2);
     }

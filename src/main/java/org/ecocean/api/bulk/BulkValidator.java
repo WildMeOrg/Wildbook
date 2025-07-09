@@ -270,9 +270,6 @@ public class BulkValidator {
             if (intVal < 1000)
                 throw new BulkValidatorException("year value too small",
                         ApiException.ERROR_RETURN_CODE_INVALID);
-            if (intVal > Year.now().getValue())
-                throw new BulkValidatorException("year cannot be in future",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
             return intVal;
 
         case "Encounter.month":

@@ -152,6 +152,10 @@ public class BulkImportUtil {
             map.put(mkey,
                 new BulkValidatorException("must supply a valid month along with day",
                 ApiException.ERROR_RETURN_CODE_REQUIRED));
+        if (Util.dateIsInFuture((Integer)dateY, (Integer)dateM, (Integer)dateD))
+            map.put(ykey,
+                new BulkValidatorException("date is in the future",
+                ApiException.ERROR_RETURN_CODE_INVALID));
     }
 
     private static void checkLatLon(Map<String, Object> map, String latKey, String lonKey) {
