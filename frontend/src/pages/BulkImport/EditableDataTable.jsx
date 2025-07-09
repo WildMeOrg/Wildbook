@@ -4,6 +4,7 @@ import {
   columnsUseSelectCell,
 } from "./BulkImportConstants";
 import { throttle } from "lodash";
+import { FormattedMessage } from "react-intl";
 
 import {
   useReactTable,
@@ -382,12 +383,24 @@ export const DataTable = observer(({ store }) => {
             ))}
           </tbody>
         </table>
+        <p className="text-muted small ms-2">
+          <FormattedMessage
+            id="REQUIRED_FIELD_NOTE"
+            defaultMessage="* denotes required fields"
+          />
+        </p>
       </div>
 
       <nav className="d-flex justify-content-between align-items-center mt-3">
         <div>
-          Showing page <strong>{currentPage + 1}</strong> of{" "}
-          <strong>{pageCount}</strong>
+          <FormattedMessage
+            id="SHOWING_PAGE_INFO"
+            defaultMessage="Showing page {current} of {total}"
+            values={{
+              current: <strong>{currentPage + 1}</strong>,
+              total: <strong>{pageCount}</strong>,
+            }}
+          />
         </div>
 
         <ul

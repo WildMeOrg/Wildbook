@@ -113,7 +113,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       };
 
       const getLatLong = (lat, lon) => {
-        console.log(`getLatLong called with lat: ${lat}, lon: ${lon}`);
         const hasLat = lat !== undefined && lat !== null && lat !== "";
         const hasLon = lon !== undefined && lon !== null && lon !== "";
 

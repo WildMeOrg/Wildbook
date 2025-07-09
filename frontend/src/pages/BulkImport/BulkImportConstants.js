@@ -52,16 +52,16 @@ const removedColumns = [
 
 const tableHeaderMapping = {
   "Encounter.mediaAsset0": "Media Assets",
-  "Encounter.genus": "Species",
+  "Encounter.genus": "Species*",
   // "MarkedIndividual.individualID": "Individual name",
   // "Encounter.sightingID": "sighting ID",
   // "Encounter.sightingRemarks": "sighting Remarks",
-  // "Encounter.locationID": "locationID",
+  "Encounter.locationID": "locationID*",
   // "Encounter.country": "country",
   "Encounter.decimalLatitude": "Encounter.decimalLatitude Lat, long (DD)",
   "Encounter.latitude": "Encounter.latitude Lat, long (DD)",
   "Sighting.decimalLatitude": "Sighting.decimalLatitude Lat, long (DD)",
-  "Encounter.year": "Encounter date",
+  "Encounter.year": "Encounter date*",
   "Sighting.year": "Sighting date",
   // "Encounter.sex": "sex",
   // "Encounter.lifeStage": "life Stage",
@@ -81,7 +81,7 @@ const columnsUseSelectCell = [
   "Encounter.lifeStage",
   "Encounter.livingStatus",
   "Encounter.sex",
-  "Encounter.behavior",
+  // "Encounter.behavior",
   "Encounter.state",
 ];
 
