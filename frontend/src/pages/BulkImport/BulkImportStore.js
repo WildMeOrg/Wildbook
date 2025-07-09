@@ -292,7 +292,7 @@ export class BulkImportStore {
         const dt = new Date(num);
         return !isNaN(dt.getTime());
       },
-      message: "Invalid value. Must be a valid ISO date++++++++",
+      message: "Invalid value. Must be a valid ISO date",
     },
   };
 
@@ -549,12 +549,12 @@ export class BulkImportStore {
     const filtered = data.filter((row) =>
       Object.values(row).some((val) => String(val ?? "").trim() !== ""),
     );
-    this._spreadsheetData = this.replaceOccurrenceWithSightingInKeys(filtered);
+    this._spreadsheetData = filtered;
     this.invalidateValidation();
   }
 
   setRawData(data) {
-    this._rawData = this.replaceOccurrenceWithSightingInKeys(data);
+    this._rawData = data;
   }
 
   setActiveStep(step) {
@@ -601,15 +601,11 @@ export class BulkImportStore {
   }
 
   setColumnsDef(columns) {
-    this._columnsDef = columns.map((col) =>
-      col.replace(/occurrence/g, "sighting").replace(/Occurrence/g, "Sighting"),
-    );
+    this._columnsDef = columns;
   }
 
   setRawColumns(columns) {
-    this._rawColumns = columns.map((col) =>
-      col.replace(/occurrence/g, "sighting").replace(/Occurrence/g, "Sighting"),
-    );
+    this._rawColumns = columns;
   }
 
   setMaxImageCount(maxImageCount) {
@@ -1048,7 +1044,8 @@ export class BulkImportStore {
     });
 
     flowInstance.on("fileProgress", (file) => {
-      const percent = (file._prevUploadedSize / file.size) * 100;
+      // const percent = (file._prevUploadedSize / file.size) * 100;
+      const percent = Math.floor(file.progress() * 100);
 
       this._imagePreview = this._imagePreview.map((f) =>
         f.fileName === file.name ? { ...f, progress: percent } : f,
@@ -1069,10 +1066,62 @@ export class BulkImportStore {
       flowInstance.pause();
     });
 
-    window.addEventListener("online", () => {
-      console.info("internet connection restored, resuming upload");
-      flowInstance.resume();
-      // flowInstance.upload()
+    // window.addEventListener("online", () => {
+    //   console.info("internet connection restored, resuming upload");
+    //   flowInstance.resume();
+    //   if (flowInstance.files.length > 0 && !flowInstance.isUploading()) {
+    //     flowInstance.upload();
+    //   }
+    // });
+
+    // window.addEventListener("online", async () => {
+    //   alert("Internet connection restored");
+
+    //   await this.fetchAndApplyUploaded();
+
+    //   const flowInstance = this._flow;
+    //   if (!flowInstance) return;
+
+    //   flowInstance.resume();
+
+    //   const alreadyUploaded = new Set(this._uploadedImages.map(f => f.trim().toLowerCase()));
+
+    //   flowInstance.files.forEach((file) => {
+    //     if (!alreadyUploaded.has(file.name.trim().toLowerCase())) {
+    //       flowInstance.upload(file);
+    //     } else {
+    //       file.cancel();
+    //     }
+    //   });
+    // });
+
+    window.addEventListener("online", async () => {
+      alert("Internet restored, checking upload status...");
+
+      this._flow?.resume();
+
+      const resp = await fetch(
+        `/api/v3/bulk-import/${this._submissionId}/files`,
+      );
+      if (!resp.ok) return;
+
+      const serverFiles = await resp.json();
+
+      const uploadedMap = new Map(
+        serverFiles.files.map(([name, size]) => [name.toLowerCase(), size]),
+      );
+
+      this._flow.files.forEach((file) => {
+        const uploadedSize = uploadedMap.get(file.name.toLowerCase());
+
+        if (uploadedSize === file.size) {
+          console.info(`Skipping already-uploaded file: ${file.name}`);
+          file.cancel();
+        } else {
+          console.info(`Uploading remaining file: ${file.name}`);
+          this._flow.upload(file);
+        }
+      });
     });
 
     flowInstance.on("fileError", (file, chunk) => {
@@ -1170,7 +1219,6 @@ export class BulkImportStore {
       (file) => file.size <= maxSize * 1024 * 1024,
     );
 
-    // print invalid files
     const invalidFiles = this._flow.files.filter(
       (file) => file.size > maxSize * 1024 * 1024,
     );
@@ -1267,19 +1315,6 @@ export class BulkImportStore {
           raw["Sighting.decimalLongitude"] = m ? m[2] : "";
         }
       });
-    });
-  }
-
-  replaceOccurrenceWithSightingInKeys(data) {
-    return data.map((row) => {
-      const newRow = {};
-      for (const key in row) {
-        const newKey = key
-          .replace(/occurrence/g, "sighting")
-          .replace(/Occurrence/g, "Sighting");
-        newRow[newKey] = row[key];
-      }
-      return newRow;
     });
   }
 
@@ -1561,16 +1596,13 @@ export class BulkImportStore {
         }
 
         this._synonymFields.forEach((group) => {
-          const filled = group.filter((col) => {
-            const val = row[col];
-            return val !== undefined && String(val).trim() !== "";
-          });
+          const present = group.filter((col) => col in row);
 
-          if (filled.length > 1) {
+          if (present.length > 1) {
             if (!errors[rowIndex]) errors[rowIndex] = {};
-            filled.forEach((col) => {
+            present.forEach((col) => {
               errors[rowIndex][col] =
-                `Duplicate data found in related fields: ${group.join(", ")}`;
+                `invalid data. duplicate data found in related fields: ${group.join(", ")}`;
             });
           }
         });

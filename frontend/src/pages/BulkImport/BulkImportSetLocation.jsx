@@ -99,32 +99,10 @@ export const BulkImportSetLocation = observer(({ store }) => {
     store.updateRawFromNormalizedRow();
     store.clearSubmissionErrors();
     try {
-      const updatedColumns = store.rawColumns.map((col) => {
-        if (col.includes("occurrence") || col.includes("Occurrence")) {
-          const updated = col
-            .replace(/occurrence/g, "sighting")
-            .replace(/Occurrence/g, "Sighting");
-          return updated;
-        }
-        return col;
-      });
-
-      // Replace keys in rawData
-      const updatedRawData = store.rawData.map((row) => {
-        const updatedRow = {};
-        for (const key in row) {
-          const newKey = key
-            .replace(/occurrence/g, "sighting")
-            .replace(/Occurrence/g, "Sighting");
-          updatedRow[newKey] = row[key];
-        }
-        return updatedRow;
-      });
-
       const result = await submit(
         submissionId,
-        updatedColumns,
-        updatedRawData,
+        store.rawColumns,
+        store.rawData,
         store.spreadsheetFileName,
         store.locationID,
         store.skipDetection,
