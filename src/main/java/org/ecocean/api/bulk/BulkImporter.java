@@ -616,11 +616,14 @@ public class BulkImporter {
                 break;
 
             // these add to Occurence.taxonomies, which i am not sure are supported any more
+/*
+            it was decided we disallow setting of the Occurrence.taxonomies values via bulk import
             case "Sighting.taxonomy0":
             case "Taxonomy.commonName":
             case "Taxonomy.scientificName":
                 System.out.println("[INFO] " + fieldName + " currently not implemented");
                 break;
+ */
 
 /*
             unsure where these came from; possibly specific wildbooks?
@@ -878,10 +881,14 @@ public class BulkImporter {
             } else {
                 enc = myShepherd.getEncounter(encId);
             }
+/*
+   i have removed this block because it is giving bizarre behavior, especially with test data where we
+   often have occ id and indiv id set to recycled values, causing this to be activated
         } else if ((indiv != null) && (occ != null)) {
             // apparently this is a thing?
             enc = myShepherd.getEncounterByIndividualAndOccurrence(indiv.getId(), occ.getId());
             // this doesnt read from cache - not sure how much of a problem that will be, but likely some
+ */
         }
         if (enc == null) {
             enc = new Encounter();
