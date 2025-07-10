@@ -14,6 +14,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   const CHUNK_SIZE = 5;
   const [isDragging, setIsDragging] = React.useState(false);
 
+  console.log("columnsDef:", JSON.stringify(store.columnsDef));
+  console.log("data", JSON.stringify(store.spreadsheetData));
+
   const processFile = (file) => {
     if (!file) return;
     const reader = new FileReader();
@@ -83,6 +86,21 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
       );
 
       store.setColumnsDef([...includedSpecified, ...remaining]);
+      console.log("11", !store.columnsDef.includes("Encounter.mediaAsset0"));
+      console.log("22", mediaAssetsCols.length > 0);
+      console.log("33", mediaAssetsCols);
+      console.log("Columns Def:", JSON.stringify(store.columnsDef));
+      if (
+        !store.columnsDef.includes("Encounter.mediaAsset0") &&
+        mediaAssetsCols.length > 0
+      ) {
+        console.log("adding Encounter.mediaAsset0 to columnsDef");
+        store.columnsDef.unshift("Encounter.mediaAsset0");
+      }
+
+      console.log("44", JSON.stringify(store.columnsDef));
+      console.log("55", JSON.stringify(store.spreadsheetData));
+
       store.applyDynamicValidationRules();
 
       const formatDate = (year, month, day, hour, minute) => {
