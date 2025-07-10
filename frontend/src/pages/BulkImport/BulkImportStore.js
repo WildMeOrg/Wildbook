@@ -63,7 +63,7 @@ export class BulkImportStore {
   _pendingDropFileCount = 0;
   _hasWarnedDropLimit = false;
   _collectedValidFiles = [];
-  _MAX_DROP_FILE_COUNT = 10000;
+  _MAX_DROP_FILE_COUNT = 1000;
   _skipDetection = false;
   _skipIdentification = false;
 
@@ -121,13 +121,20 @@ export class BulkImportStore {
     "Encounter.year": {
       required: true,
       validate: (val) => {
-        const FORMATS = ["YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm"];
+        const FORMATS = [
+          "YYYY",
+          "YYYY-MM",
+          "YYYY-MM-DD",
+          "YYYY-MM-DDTHH",
+          "YYYY-MM-DDTHH:mm",
+        ];
         const parsed = dayjs(val, FORMATS, true);
         return parsed.isValid() && !parsed.isAfter(dayjs());
       },
       message:
-        "Invalid data. Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm” and cannot be in the future.",
+        'Invalid data. Date must be "YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH", or "YYYY-MM-DDTHH:mm" and cannot be in the future.',
     },
+
     "Sighting.year": {
       required: false,
       validate: (val) => {
@@ -232,16 +239,6 @@ export class BulkImportStore {
         return this._validSex.includes(val);
       },
       message: "invalid sex",
-    },
-    "Encounter.behavior": {
-      required: false,
-      validate: (val) => {
-        if (!val) {
-          return true;
-        }
-        return this._validBehavior.includes(val);
-      },
-      message: "invalid behavior",
     },
     "Encounter.photographer0.emailAddress": {
       required: false,
@@ -1066,35 +1063,6 @@ export class BulkImportStore {
       flowInstance.pause();
     });
 
-    // window.addEventListener("online", () => {
-    //   console.info("internet connection restored, resuming upload");
-    //   flowInstance.resume();
-    //   if (flowInstance.files.length > 0 && !flowInstance.isUploading()) {
-    //     flowInstance.upload();
-    //   }
-    // });
-
-    // window.addEventListener("online", async () => {
-    //   alert("Internet connection restored");
-
-    //   await this.fetchAndApplyUploaded();
-
-    //   const flowInstance = this._flow;
-    //   if (!flowInstance) return;
-
-    //   flowInstance.resume();
-
-    //   const alreadyUploaded = new Set(this._uploadedImages.map(f => f.trim().toLowerCase()));
-
-    //   flowInstance.files.forEach((file) => {
-    //     if (!alreadyUploaded.has(file.name.trim().toLowerCase())) {
-    //       flowInstance.upload(file);
-    //     } else {
-    //       file.cancel();
-    //     }
-    //   });
-    // });
-
     window.addEventListener("online", async () => {
       alert("Internet restored, checking upload status...");
 
@@ -1396,7 +1364,7 @@ export class BulkImportStore {
     runInAction(() => {
       if (this._pendingDropFileCount > this._maxImageCount) {
         alert(
-          `You can only upload a maximum3 of ${this._maxImageCount} images.`,
+          `You can only upload a maximum of ${this._maxImageCount} images.`,
         );
         this._collectedValidFiles = [];
         this._pendingDropFileCount = 0;

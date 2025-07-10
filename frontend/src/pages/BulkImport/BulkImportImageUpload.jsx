@@ -31,13 +31,10 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
   const maxSize = data?.maximumMediaSizeMegabytes || 10;
-  // const maxSize = 10; // Default to 10MB if not set
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 50;
-
-  store.setMaxImageCount(10000);
-  // store.setMaxImageCount(data?.maximumMediaCountEncounter || 10000);
+  store.setMaxImageCount(data?.maximumMediaCountEncounter || 250);
   const currentCount = store.imagePreview.length;
 
   useEffect(() => {
