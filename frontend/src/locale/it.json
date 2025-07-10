@@ -461,5 +461,8 @@
   "BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE": "Applica a tutte le righe",
   "BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY": "Vuoi applicare questo valore di {columnId} ({newValue}) a tutte le righe?",
   "BULK_IMPORT_CLOSE": "Chiudi",
-  "BULK_IMPORT_APPLY_TO_ALL": "Applica a tutte"
+  "BULK_IMPORT_APPLY_TO_ALL": "Applica a tutte",
+  "REQUIRED_FIELD_NOTE": "* indica i campi obbligatori",
+  "SHOWING_PAGE_INFO": "Visualizzazione della pagina {current} di {total}",
+  "SUBMISSION_ISSUE_HEADER": "Ci sono alcuni problemi con la tua presentazione:"
 }

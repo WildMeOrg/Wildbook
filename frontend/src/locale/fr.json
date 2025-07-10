@@ -460,6 +460,8 @@
   "BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE": "Appliquer à toutes les lignes",
   "BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY": "Voulez-vous appliquer cette valeur de {columnId} ({newValue}) à toutes les lignes ?",
   "BULK_IMPORT_CLOSE": "Fermer",
-  "BULK_IMPORT_APPLY_TO_ALL": "Appliquer à toutes"
-
+  "BULK_IMPORT_APPLY_TO_ALL": "Appliquer à toutes",
+  "REQUIRED_FIELD_NOTE": "* indique les champs obligatoires",
+  "SHOWING_PAGE_INFO": "Affichage de la page {current} sur {total}",
+  "SUBMISSION_ISSUE_HEADER": "Il y a des problèmes avec votre soumission :"
 }
