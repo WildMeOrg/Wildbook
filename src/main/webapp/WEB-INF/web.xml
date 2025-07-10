@@ -621,15 +621,6 @@
 		<url-pattern>/api/v3/bulk-import/*</url-pattern>
 	</servlet-mapping>
 
-	<servlet>
-		<servlet-name>BulkValidate</servlet-name>
-		<servlet-class>org.ecocean.api.BulkValidate</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>BulkValidate</servlet-name>
-		<url-pattern>/api/v3/bulk-validate</url-pattern>
-	</servlet-mapping>
-
   <servlet>
     <servlet-name>ReactAppServlet</servlet-name>
     <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
