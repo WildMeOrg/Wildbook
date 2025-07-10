@@ -14,9 +14,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   const CHUNK_SIZE = 5;
   const [isDragging, setIsDragging] = React.useState(false);
 
-  console.log("columnsDef:", JSON.stringify(store.columnsDef));
-  console.log("data", JSON.stringify(store.spreadsheetData));
-
   const processFile = (file) => {
     if (!file) return;
     const reader = new FileReader();
@@ -61,8 +58,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         return normalizedRow;
       });
 
-      console.log("All JSON Data:", JSON.stringify(allJsonData));
-
       store.setRawData(allJsonData || []);
       const processedData = [];
       let currentIndex = 0;
@@ -78,28 +73,18 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         .filter((k) => !removedColumns.includes(k))
         .filter((k) => !mediaAssetsCols.includes(k));
 
-      console.log("Remaining columns:", remaining);
-
       const userUploadedCols = new Set(rowKeys);
       const includedSpecified = specifiedColumns.filter((col) =>
         userUploadedCols.has(col),
       );
 
       store.setColumnsDef([...includedSpecified, ...remaining]);
-      console.log("11", !store.columnsDef.includes("Encounter.mediaAsset0"));
-      console.log("22", mediaAssetsCols.length > 0);
-      console.log("33", mediaAssetsCols);
-      console.log("Columns Def:", JSON.stringify(store.columnsDef));
       if (
         !store.columnsDef.includes("Encounter.mediaAsset0") &&
         mediaAssetsCols.length > 0
       ) {
-        console.log("adding Encounter.mediaAsset0 to columnsDef");
         store.columnsDef.unshift("Encounter.mediaAsset0");
       }
-
-      console.log("44", JSON.stringify(store.columnsDef));
-      console.log("55", JSON.stringify(store.spreadsheetData));
 
       store.applyDynamicValidationRules();
 
@@ -187,11 +172,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             row["Sighting.decimalLongitude"],
           );
 
-          console.log(`Sighting_decimalLatitude:`, Sighting_decimalLatitude);
           if (Sighting_decimalLatitude) {
             normalizedRow["Sighting.decimalLatitude"] =
               Sighting_decimalLatitude;
-            console.log(`Normalized Row:`, normalizedRow);
           }
 
           const formattedEncounterDate = formatDate(
@@ -231,10 +214,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           return normalizedRow;
         });
 
-        console.log("Normalized Chunk:", normalizedChunk);
-
         processedData.push(...normalizedChunk);
-        console.log("Processed Data Length:", processedData);
         currentIndex += CHUNK_SIZE;
 
         store.setSpreadsheetUploadProgress(
@@ -244,7 +224,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           setTimeout(processChunk, 0);
         } else {
           if (store && store.setSpreadsheetData) {
-            console.log("Final Processed Data:", processedData);
             store.setSpreadsheetData(processedData);
             const { errors, warnings } = store.validateSpreadsheet();
             store.setValidationErrors(errors);
