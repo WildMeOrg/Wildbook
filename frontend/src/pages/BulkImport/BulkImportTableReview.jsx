@@ -54,7 +54,13 @@ export const BulkImportTableReview = observer(({ store }) => {
 
       {hasSubmissionErrors && (
         <div className="alert alert-danger">
-          <strong>There are some issues with your submission:</strong>
+          <strong>
+            <FormattedMessage
+              id="SUBMISSION_ISSUE_HEADER"
+              defaultMessage="There are some issues with your submission:"
+            />
+          </strong>
+
           <ul className="list-unstyled mb-0 ps-3">
             {store.submissionErrors.map((err, idx) => {
               if ("rowNumber" in err && "fieldName" in err) {

@@ -58,8 +58,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         return normalizedRow;
       });
 
-      console.log("All JSON Data:", JSON.stringify(allJsonData));
-
       store.setRawData(allJsonData || []);
       const processedData = [];
       let currentIndex = 0;
@@ -75,14 +73,19 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         .filter((k) => !removedColumns.includes(k))
         .filter((k) => !mediaAssetsCols.includes(k));
 
-      console.log("Remaining columns:", remaining);
-
       const userUploadedCols = new Set(rowKeys);
       const includedSpecified = specifiedColumns.filter((col) =>
         userUploadedCols.has(col),
       );
 
       store.setColumnsDef([...includedSpecified, ...remaining]);
+      if (
+        !store.columnsDef.includes("Encounter.mediaAsset0") &&
+        mediaAssetsCols.length > 0
+      ) {
+        store.columnsDef.unshift("Encounter.mediaAsset0");
+      }
+
       store.applyDynamicValidationRules();
 
       const formatDate = (year, month, day, hour, minute) => {
@@ -169,11 +172,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             row["Sighting.decimalLongitude"],
           );
 
-          console.log(`Sighting_decimalLatitude:`, Sighting_decimalLatitude);
           if (Sighting_decimalLatitude) {
             normalizedRow["Sighting.decimalLatitude"] =
               Sighting_decimalLatitude;
-            console.log(`Normalized Row:`, normalizedRow);
           }
 
           const formattedEncounterDate = formatDate(
@@ -213,10 +214,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           return normalizedRow;
         });
 
-        console.log("Normalized Chunk:", normalizedChunk);
-
         processedData.push(...normalizedChunk);
-        console.log("Processed Data Length:", processedData);
         currentIndex += CHUNK_SIZE;
 
         store.setSpreadsheetUploadProgress(
@@ -226,7 +224,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           setTimeout(processChunk, 0);
         } else {
           if (store && store.setSpreadsheetData) {
-            console.log("Final Processed Data:", processedData);
             store.setSpreadsheetData(processedData);
             const { errors, warnings } = store.validateSpreadsheet();
             store.setValidationErrors(errors);

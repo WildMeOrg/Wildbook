@@ -461,5 +461,8 @@
     "BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE": "Apply to All Rows",
     "BULK_IMPORT_APPLY_TO_ALL_ROWS_BODY": "Do you want to apply this {columnId} value ({newValue}) to all rows?",
     "BULK_IMPORT_CLOSE": "Close",
-    "BULK_IMPORT_APPLY_TO_ALL": "Apply to All"
+    "BULK_IMPORT_APPLY_TO_ALL": "Apply to All",
+    "REQUIRED_FIELD_NOTE": "* denotes required fields",
+    "SHOWING_PAGE_INFO": "Showing page {current} of {total}",
+    "SUBMISSION_ISSUE_HEADER": "There are some issues with your submission:"
 }
