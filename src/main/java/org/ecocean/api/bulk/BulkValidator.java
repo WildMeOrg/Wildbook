@@ -270,9 +270,6 @@ public class BulkValidator {
             if (intVal < 1000)
                 throw new BulkValidatorException("year value too small",
                         ApiException.ERROR_RETURN_CODE_INVALID);
-            if (intVal > Year.now().getValue())
-                throw new BulkValidatorException("year cannot be in future",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
             return intVal;
 
         case "Encounter.month":
@@ -401,10 +398,20 @@ public class BulkValidator {
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return value;
 
-        // just generic (positive) ints
+        // generic (positive) ints
+        case "Sighting.fieldSurveyCode":
+        case "Sighting.groupSize":
         case "Sighting.individualCount":
         case "Sighting.maxGroupSizeEstimate":
         case "Sighting.minGroupSizeEstimate":
+        case "Sighting.numAdultFemales":
+        case "Sighting.numAdultMales":
+        case "Sighting.numAdults":
+        case "Sighting.numCalves":
+        case "Sighting.numJuveniles":
+        case "Sighting.numSubAdults":
+        case "Sighting.numSubFemales":
+        case "Sighting.numSubMales":
             if (value == null) return null;
             intVal = tryInteger(value);
             if (intVal < 0)
@@ -412,6 +419,15 @@ public class BulkValidator {
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return intVal;
 
+        // generic (can be negative) ints
+        case "Sighting.seaState":
+        case "Sighting.visibilityIndex":
+            return tryInteger(value);
+
+        // generic doubles
+        case "Encounter.depth":
+        case "Encounter.elevation":
+        case "Sighting.effortCode":
         case "Sighting.seaSurfaceTemp":
         case "Sighting.seaSurfaceTemperature":
         case "Sighting.swellHeight":
@@ -419,8 +435,6 @@ public class BulkValidator {
         case "Sighting.bearing":
         case "Sighting.bestGroupSizeEstimate":
         case "Sighting.distance":
-        case "Encounter.depth":
-        case "Encounter.elevation":
             return tryDouble(value);
         }
         // now we validate prefixed ones

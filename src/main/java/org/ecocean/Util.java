@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -719,6 +720,20 @@ public class Util {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static boolean dateIsInFuture(Integer year, Integer month, Integer day) {
+        if (year == null) return false;
+        Calendar cal = Calendar.getInstance();
+        int nowY = cal.get(Calendar.YEAR);
+        int nowM = cal.get(Calendar.MONTH) + 1; // frikken zero-based months!
+        int nowD = cal.get(Calendar.DAY_OF_MONTH);
+        if (year > nowY) return true;
+        if (month == null) return false; // only have year
+        if ((year == nowY) && (month > nowM)) return true;
+        if (day == null) return false; // only have year/month
+        if ((year == nowY) && (month == nowM) && (day > nowD)) return true;
+        return false;
     }
 
     public static String capitolizeFirstLetter(String str) {

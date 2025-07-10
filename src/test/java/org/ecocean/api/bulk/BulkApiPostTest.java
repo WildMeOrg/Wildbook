@@ -305,7 +305,7 @@ class BulkApiPostTest {
                     verify(mockResponse).setStatus(400);
                     assertFalse(jout.getBoolean("success"));
                     assertEquals(jout.getInt("statusCode"), 400);
-                    assertEquals(jout.getJSONArray("errors").length(), 1);
+                    assertEquals(jout.getJSONArray("errors").length(), 2);
                     assertTrue(jout.getJSONArray("errors").getJSONObject(0).getString(
                         "details").startsWith("synonym columns: "));
                 }
