@@ -10,6 +10,7 @@ import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.Shepherd;
@@ -50,11 +51,15 @@ import static org.mockito.Mockito.when;
 
 class BulkImagesTest {
     PersistenceManagerFactory mockPMF;
+    PersistenceManager mockPM = mock(PersistenceManager.class);
     HttpServletRequest mockRequest;
     HttpServletResponse mockResponse;
     BulkImport apiServlet;
     StringWriter responseOut;
     List<File> emptyFiles = new ArrayList<File>();
+    // this seems to be based on repo root, but TODO is to verify in all situations
+    File mockUploadDir = new File("src/test/bulk-images");
+    MediaAsset mockMediaAsset;
 
     @BeforeEach void setUp()
     throws IOException {
@@ -62,6 +67,7 @@ class BulkImagesTest {
         mockResponse = mock(HttpServletResponse.class);
         mockPMF = mock(PersistenceManagerFactory.class);
         apiServlet = new BulkImport();
+        mockMediaAsset = mock(MediaAsset.class);
 
         responseOut = new StringWriter();
         PrintWriter writer = new PrintWriter(responseOut);
@@ -80,6 +86,7 @@ class BulkImagesTest {
         JSONObject rtn = basePayload();
         JSONArray fieldNames = new JSONArray();
 
+        fieldNames.put("Encounter.mediaAsset0");
         fieldNames.put("Encounter.year");
         fieldNames.put("Encounter.genus");
         fieldNames.put("Encounter.specificEpithet");
@@ -87,8 +94,11 @@ class BulkImagesTest {
         rtn.put("fieldNames", fieldNames);
 
         JSONArray rows = new JSONArray();
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 5; i++) {
             JSONArray row = new JSONArray();
+            // we only have image-ok-0.jpg to test on, so recycle here
+            // row.put("image-ok-" + i + ".jpg");
+            row.put("image-ok-0.jpg");
             row.put(2000 + i);
             row.put("Genus" + i);
             row.put("specificEpithet" + i);
@@ -97,6 +107,15 @@ class BulkImagesTest {
         }
         rtn.put("rows", rows);
         rtn.put("verbose", true);
+        return rtn.toString();
+    }
+
+    private String getPayloadBadImageFilenames() {
+        JSONObject rtn = new JSONObject(getValidPayloadArrays());
+
+        for (int i = 0; i < 5; i++) {
+            rtn.getJSONArray("rows").getJSONArray(i).put(0, "image-missing-" + i + ".jpg");
+        }
         return rtn.toString();
     }
 
@@ -123,7 +142,7 @@ class BulkImagesTest {
         return false;
     }
 
-    @Test void apiPostValid()
+    @Test void apiPostMissingFiles()
     throws ServletException, IOException {
         User user = mock(User.class);
         Occurrence occ = mock(Occurrence.class);
@@ -149,12 +168,93 @@ class BulkImagesTest {
                     apiServlet.doPost(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertEquals(jout.getJSONArray("errors").length(), 5);
+                    assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString(
+                        "fieldName"), "Encounter.mediaAsset0");
+                    assertTrue(jout.getJSONArray("errors").getJSONObject(0).getString(
+                        "details").contains("not found in uploaded files"));
+                }
+            }
+        }
+    }
+
+    @Test void apiFilesFoundButInvalid()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
+        String requestBody = getPayloadBadImageFilenames();
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+        })) {
+            // re: CALLS_REAL_METHODS, h/t to https://stackoverflow.com/a/63841319
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class,
+                    org.mockito.Answers.CALLS_REAL_METHODS)) {
+                mockUF.when(() -> UploadedFiles.getUploadDir(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(mockUploadDir);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertEquals(jout.getJSONArray("errors").length(), 5);
+                    assertTrue(jout.getJSONArray("errors").getJSONObject(0).getString(
+                        "details").contains("not found in uploaded files"));
+                }
+            }
+        }
+    }
+
+    @Test void apiPostValid()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
+        String requestBody = getValidPayloadArrays();
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.getPM()).thenReturn(mockPM);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class,
+                    org.mockito.Answers.CALLS_REAL_METHODS)) {
+                mockUF.when(() -> UploadedFiles.getUploadDir(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(mockUploadDir);
+                mockUF.when(() -> UploadedFiles.makeMediaAsset(any(String.class), any(File.class),
+                    any(Shepherd.class))).thenReturn(mockMediaAsset);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+// System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(10));
                     verify(mockResponse).setStatus(200);
                     assertTrue(jout.getBoolean("success"));
-                    assertEquals(jout.getJSONArray("encounters").length(), 20);
-                    // our mocked Occurrence is the only one created (for all encs) so
-                    // we only get 1 id here (which also happens to be null)
-                    assertEquals(jout.getJSONArray("sightings").length(), 1);
+                    assertEquals(jout.getJSONArray("encounters").length(), 5);
+                    // our mocked MediaAsset is the only one created, so
+                    // we only get 1 id here (which is 0)
+                    assertEquals(jout.getJSONArray("mediaAssets").length(), 1);
                 }
             }
         }
