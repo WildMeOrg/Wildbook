@@ -369,7 +369,7 @@
     "NO_IA_CLASS": "Nessuna classe IA configurata",
   "BULK_IMPORT": "Importazione multipla",
   "BULK_IMPORT_UPLOAD_IMAGE": "Carica immagini",
-  "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "I nomi dei file delle immagini devono corrispondere esattamente ai nomi nella colonna “Encounter.MediaAsset” del foglio di calcolo in formato standard Wildbook. Le immagini devono essere inferiori a 3 MB. È possibile caricare solo 200 immagini alla volta.",
+"BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "I nomi dei file immagine devono corrispondere esattamente a quelli presenti nella colonna “Encounter.MediaAsset” del foglio di calcolo nel formato standard Wildbook. Le immagini devono essere inferiori a {maxSize} MB. È possibile caricare solo {maxImageCount} immagini alla volta.",
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2": "Sono supportati solo i formati JPEG, JPG e PNG. I file in altri formati verranno ignorati.",
   "BULK_IMPORT_PHOTO_INSTRUCTION": "Trascina qui la cartella o i file oppure sfoglia per selezionare i file da caricare",
   "SEE_INSTRUCTIONS": "Vedi istruzioni",

@@ -369,7 +369,7 @@
     "NO_IA_CLASS": "Aucune classe IA configurée",
   "BULK_IMPORT": "Importation en masse",
   "BULK_IMPORT_UPLOAD_IMAGE": "Téléverser des images",
-  "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "Les noms des fichiers image doivent correspondre exactement aux noms figurant dans la colonne “Encounter.MediaAsset” de votre feuille de calcul au format standard Wildbook. Les images doivent faire moins de 3 Mo. Vous pouvez téléverser jusqu’à 200 images à la fois.",
+  "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "Les noms des fichiers image doivent correspondre exactement aux noms dans la colonne “Encounter.MediaAsset” de votre feuille de calcul au format standard Wildbook. Les images doivent faire moins de {maxSize} Mo. Vous pouvez télécharger seulement {maxImageCount} images à la fois.",
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2": "Seuls les formats JPEG, JPG et PNG sont pris en charge. Les fichiers dans d'autres formats seront ignorés.",
   "BULK_IMPORT_PHOTO_INSTRUCTION": "Faites glisser votre dossier ou vos fichiers ici ou parcourez les fichiers à télécharger",
   "SEE_INSTRUCTIONS": "Voir les instructions",

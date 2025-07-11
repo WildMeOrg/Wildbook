@@ -369,7 +369,7 @@
     "NO_TAXONOMY": "No se ha configurado la clase IA",
    "BULK_IMPORT": "Importación masiva",
   "BULK_IMPORT_UPLOAD_IMAGE": "Subir imágenes",
-  "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "Los nombres de los archivos de imagen deben coincidir exactamente con los nombres en la columna “Encounter.MediaAsset” de su hoja de cálculo en formato estándar de Wildbook. Las imágenes deben ser de menos de 3 MB. Solo puede subir 200 imágenes a la vez.",
+  "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1": "Los nombres de los archivos de imagen deben coincidir exactamente con los nombres en la columna “Encounter.MediaAsset” de su hoja de cálculo en formato estándar de Wildbook. Las imágenes deben ser menores de {maxSize} MB. Solo puede subir {maxImageCount} imágenes a la vez.",
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2": "Solo se admiten los formatos JPEG, JPG y PNG. Los archivos en otros formatos serán ignorados.",
   "BULK_IMPORT_PHOTO_INSTRUCTION": "Arrastra tu carpeta o archivos aquí o selecciona los archivos que deseas subir",
   "SEE_INSTRUCTIONS": "Ver instrucciones",
