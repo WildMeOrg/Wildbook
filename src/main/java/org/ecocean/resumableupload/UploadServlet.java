@@ -265,7 +265,7 @@ public class UploadServlet extends HttpServlet {
     }
 
     private FlowInfo getFlowInfo(List<FileItem> parts, HttpServletRequest request)
-    throws ServletException {
+    throws ServletException, IOException {
         int FlowChunkSize = -1;
         long FlowTotalSize = -1;
         String FlowIdentifier = null;
@@ -286,13 +286,13 @@ public class UploadServlet extends HttpServlet {
                 FlowTotalSize = HttpUtils.toLong(item.getString(), -1);
                 break;
             case "flowIdentifier":
-                FlowIdentifier = item.getString();
+                FlowIdentifier = item.getString("UTF-8");
                 break;
             case "flowFilename":
-                FlowFilename = item.getString();
+                FlowFilename = item.getString("UTF-8");
                 break;
             case "flowRelativePath":
-                FlowRelativePath = item.getString();
+                FlowRelativePath = item.getString("UTF-8");
                 break;
             }
         }
