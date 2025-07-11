@@ -18,6 +18,7 @@ const mockStore = {
   setValidationWarnings: jest.fn(),
   convertToTreeData: jest.fn((data) => data),
   uploadedImages: [],
+  errorPages: new Set(),
   setMinimalFields: jest.fn(),
   setValidLocationIDs: jest.fn(),
   setLocationIDOptions: jest.fn(),
@@ -28,6 +29,8 @@ const mockStore = {
   setValidLifeStages: jest.fn(),
   setValidLivingStatus: jest.fn(),
   setValidBehavior: jest.fn(),
+  setValidStates: jest.fn(),
+  setSynonymFields: jest.fn(),
   setLabeledKeywordAllowedKeys: jest.fn(),
   setLabeledKeywordAllowedPairs: jest.fn(),
   mergeValidationError: jest.fn(),
@@ -113,6 +116,7 @@ describe("EditableDataTable", () => {
     const errorStore = {
       ...mockStore,
       validationErrors: { 0: { name: "Required field" } },
+      errorPages: new Set(["name"]),
     };
     renderWithProviders(<DataTable store={errorStore} />);
     expect(screen.getByText("Required field")).toBeInTheDocument();
@@ -132,6 +136,7 @@ describe("EditableDataTable", () => {
       ...mockStore,
       spreadsheetData: [],
       columnsDef: ["name"],
+      setSynonymFields: jest.fn(),
     };
     renderWithProviders(<DataTable store={emptyStore} />);
     expect(screen.getByText("#")).toBeInTheDocument();

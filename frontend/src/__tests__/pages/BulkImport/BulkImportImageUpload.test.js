@@ -84,7 +84,7 @@ describe("BulkImportImageUpload", () => {
 
   test("sets max image count on render", () => {
     expect(store.setMaxImageCount).toHaveBeenCalledTimes(1);
-    expect(store.setMaxImageCount).toHaveBeenCalledWith(10000);
+    expect(store.setMaxImageCount).toHaveBeenCalledWith(200);
   });
 
   test("assigns browse handler to file input", () => {

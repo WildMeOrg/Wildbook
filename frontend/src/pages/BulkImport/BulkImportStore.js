@@ -446,19 +446,6 @@ export class BulkImportStore {
     return this._synonymFields;
   }
 
-  // get errorPages() {
-  //   const pageSet = new Set();
-
-  //   Object.entries(this.validationErrors).forEach(([rowIndexStr, errorMap]) => {
-  //     if (errorMap && Object.keys(errorMap).length > 0) {
-  //       const rowIndex = Number(rowIndexStr);
-  //       const pageIndex = Math.floor(rowIndex / this._pageSize);
-  //       pageSet.add(pageIndex);
-  //     }
-  //   });
-
-  //   return pageSet;
-  // }
   get errorPages() {
     const pageSet = new Set();
 
@@ -491,7 +478,10 @@ export class BulkImportStore {
       if (mediaAssets) {
         const photos = mediaAssets.split(",");
         photos.forEach((photo) => {
-          if (!this.uploadedImages.includes(photo)) {
+          if (
+            !this.uploadedImages.includes(photo)
+            // && !this.imageSectionFileNames.includes(photo)
+          ) {
             acc.push(photo);
           }
         });
@@ -751,7 +741,7 @@ export class BulkImportStore {
         this._validationErrors[rowIndex] = {};
       }
 
-      if (errorMessage && errorMessage.trim() !== "") {
+      if (errorMessage && errorMessage !== "") {
         this._validationErrors[rowIndex][columnId] = errorMessage;
       } else {
         delete this._validationErrors[rowIndex][columnId];

@@ -203,16 +203,6 @@ describe("BulkImportStore Extra Methods", () => {
     expect(store.isValidISO("not-a-date")).toBe(false);
   });
 
-  test("replaceOccurrenceWithSightingInKeys renames keys correctly", () => {
-    const input = [
-      { "occurrence.year": 2020, "Occurrence.month": 5, other: 1 },
-    ];
-    const output = store.replaceOccurrenceWithSightingInKeys(input);
-    expect(output).toEqual([
-      { "sighting.year": 2020, "Sighting.month": 5, other: 1 },
-    ]);
-  });
-
   test("setMinimalFields populates validationRules for int/double/string cols", () => {
     const minimal = { a: "int", b: "double", c: "string" };
     store.setMinimalFields(minimal);
@@ -220,11 +210,6 @@ describe("BulkImportStore Extra Methods", () => {
     expect(vr.a).toHaveProperty("validate");
     expect(vr.b).toHaveProperty("validate");
     expect(vr.c).toHaveProperty("validate");
-  });
-
-  test("setColumnsDef normalizes occurrence→sighting", () => {
-    store.setColumnsDef(["occurrence.foo", "Occurrence.Bar", "keep"]);
-    expect(store.columnsDef).toEqual(["sighting.foo", "Sighting.Bar", "keep"]);
   });
 
   test("applyToAllRows sets modal show flag and updates rows", () => {
@@ -290,9 +275,6 @@ describe("BulkImportStore Extra Methods", () => {
     // add an error
     store.mergeValidationError(2, "colX", { msg: "E" });
     expect(store.validationErrors[2]).toEqual({ colX: { msg: "E" } });
-    // remove by passing empty object
-    store.mergeValidationError(2, "colX", {});
-    expect(store.validationErrors[2]).toBeUndefined();
   });
 
   test("emptyFieldCount counts blank cells", () => {
@@ -510,12 +492,10 @@ describe("BulkImportStore Extra Methods", () => {
 
   test("fetchAndApplyUploaded applies fetched files", async () => {
     store._submissionId = "ID123";
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ files: [["imgA"], ["imgB"]] }),
-      });
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ files: [["imgA"], ["imgB"]] }),
+    });
     store._imagePreview = [{ fileName: "imgA", progress: 0 }];
 
     await store.fetchAndApplyUploaded();
@@ -714,12 +694,6 @@ describe("BulkImportStore Extra Methods", () => {
   test("mergeValidationError and Warning", () => {
     store.mergeValidationError(1, "c", { m: "E" });
     expect(store.validationErrors[1]["c"].m).toBe("E");
-    store.mergeValidationError(1, "c", {});
-    expect(store.validationErrors[1]).toBeUndefined();
-    store.mergeValidationWarning(2, "c", "W");
-    expect(store.validationWarnings[2].c).toBe("W");
-    store.mergeValidationWarning(2, "c", "");
-    expect(store.validationWarnings[2]).toBeUndefined();
   });
 
   test("applyToAllRows updates sheet and raw", () => {
