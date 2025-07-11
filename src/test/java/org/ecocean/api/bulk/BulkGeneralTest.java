@@ -538,6 +538,8 @@ class BulkGeneralTest {
     throws ServletException {
         Occurrence occ = mock(Occurrence.class);
         User user = mock(User.class);
+        User user0 = mock(User.class);
+        User user1 = mock(User.class);
         Map<String, Object> row = baseRow();
 
         row.put("MarkedIndividual.individualID", "test-indiv-id");
@@ -545,11 +547,16 @@ class BulkGeneralTest {
         row.put("MarkedIndividual.name0.value", "test-name-value-0");
         row.put("MarkedIndividual.name1.label", "test-name-label-1");
         row.put("MarkedIndividual.name1.value", "test-name-value-1");
+        row.put("Encounter.informOther0.emailAddress", "inform0@example.com");
+        row.put("Encounter.informOther1.emailAddress", "inform1@example.com");
+        row.put("Encounter.photographer0.emailAddress", "inform0@example.com");
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
             when(mock.getContext()).thenReturn("context0");
             when(mock.getPM()).thenReturn(mockPM);
             when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getUserByEmailAddress("inform0@example.com")).thenReturn(user0);
+            when(mock.getUserByEmailAddress("inform1@example.com")).thenReturn(user1);
             when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
             when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
             when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
@@ -563,6 +570,12 @@ class BulkGeneralTest {
                 BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
                 assertEquals(Util.collectionSize(bimp.getEncounters()), 1);
                 Encounter enc = bimp.getEncounters().get(0);
+                assertEquals(enc.getInformOthers().size(), 2);
+                assertEquals(enc.getInformOthers().get(0), user0);
+                assertEquals(enc.getInformOthers().get(1), user1);
+                assertEquals(enc.getPhotographers().size(), 1);
+                assertEquals(enc.getInformOthers().get(0), user0);
+// System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + enc);
                 MarkedIndividual indiv = enc.getIndividual();
                 assertNotNull(indiv);
                 Set<String> nameTest = indiv.getNames().getKeys();
