@@ -162,6 +162,7 @@ class BulkApiPostTest {
             rows.put(row);
         }
         rtn.put("rows", rows);
+        rtn.put("verbose", true);
         return rtn.toString();
     }
 
@@ -185,6 +186,7 @@ class BulkApiPostTest {
             rows.put(row);
         }
         rtn.put("rows", rows);
+        rtn.put("verbose", true);
         return rtn.toString();
     }
 
@@ -230,7 +232,6 @@ class BulkApiPostTest {
         return rtn.toString();
     }
 
-    // adds values to only first row of data
     // adds values to only first row of data
     private String addToRows(String jsonString, String fieldName, Object value) {
         JSONObject json = new JSONObject(jsonString);
@@ -445,6 +446,10 @@ class BulkApiPostTest {
                     JSONObject jout = new JSONObject(responseOut.toString());
                     verify(mockResponse).setStatus(200);
                     assertTrue(jout.getBoolean("success"));
+                    assertEquals(jout.getJSONArray("encounters").length(), 20);
+                    // our mocked Occurrence is the only one created (for all encs) so
+                    // we only get 1 id here (which also happens to be null)
+                    assertEquals(jout.getJSONArray("sightings").length(), 1);
                 }
             }
         }

@@ -41,7 +41,8 @@ public class UploadedFiles {
         File uploadDir = getUploadDir(request, submissionId);
         System.out.println("findFiles() uploadDir=" + uploadDir);
         if (!uploadDir.exists())
-            throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
+            throw new IOException("uploadDir [" + uploadDir + "] for submissionId=" + submissionId +
+                    " does not exist");
         if (filenames == null) {
             filenames = new HashSet<String>();
             for (File f : uploadDir.listFiles()) {
