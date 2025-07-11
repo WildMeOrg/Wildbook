@@ -6988,6 +6988,13 @@ $(".search-collapse-header").click(function(){
     $(this).children(".rotate-chevron").toggleClass("down");
     $(this).next().slideToggle();
 });
+$(function() {
+			$('input[type="checkbox"][name="match-filter-owner"]').on('change', function() {
+				if (this.checked) {
+				$('input[type="checkbox"][name="match-filter-owner"]').not(this).prop('checked', false);
+				}
+			});
+		});
 </script>
 
 </div>
@@ -6997,6 +7004,10 @@ $(".search-collapse-header").click(function(){
     <div class="item">
         <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
         <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
+    </div>
+     <div class="item">
+        <input type="checkbox" id="match-filter-owner-org" name="match-filter-owner" value="org" />
+        <label for="match-filter-owner-org"><%=encprops.getProperty("matchFilterOwnershipOrg")%></label>
     </div>
 <!--  not yet implemented!
     <div class="item">

@@ -26,9 +26,14 @@ JSONObject res = new JSONObject();
 //String queryEncounterId = null;
 String importIdTask = request.getParameter("importIdTask");
 List<String> locationIDs = new ArrayList<String>(); 
+String ownerFilter = ""; 
 if(request.getParameterValues("locationID")!=null) {
   String[] vals=request.getParameterValues("locationID");
   locationIDs = Arrays.asList(vals);
+}
+
+if(request.getParameter("owner")!=null) {
+    ownerFilter=request.getParameter("owner");
 }
 
 try {
@@ -55,6 +60,9 @@ try {
             //matchingSetFilter = { locationIds: locationIds }
             if(locationIDs!=null && locationIDs.size()>0)mf.put("locationIds",locationIDs);
             //mf.put("projectId", project.getId());
+            if (!ownerFilter.isEmpty()) {
+                mf.put("owner", ownerFilter);
+            }
             taskParameters.put("matchingSetFilter", mf);
 
       	  	
