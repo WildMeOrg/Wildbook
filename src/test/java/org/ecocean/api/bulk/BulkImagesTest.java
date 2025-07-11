@@ -10,6 +10,7 @@ import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.Keyword;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -91,6 +93,9 @@ class BulkImagesTest {
         fieldNames.put("Encounter.genus");
         fieldNames.put("Encounter.specificEpithet");
         fieldNames.put("Encounter.submitterID");
+        // may as well test these too since we have some MediaAssets
+        fieldNames.put("Encounter.keyword0");
+        fieldNames.put("Encounter.mediaAsset0.keywords");
         rtn.put("fieldNames", fieldNames);
 
         JSONArray rows = new JSONArray();
@@ -103,6 +108,8 @@ class BulkImagesTest {
             row.put("Genus" + i);
             row.put("specificEpithet" + i);
             row.put("fake-username");
+            row.put("keywordA");
+            row.put("keywordB_keywordC");
             rows.put(row);
         }
         rtn.put("rows", rows);
@@ -248,13 +255,15 @@ class BulkImagesTest {
                     apiServlet.doPost(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
-// System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(10));
                     verify(mockResponse).setStatus(200);
                     assertTrue(jout.getBoolean("success"));
                     assertEquals(jout.getJSONArray("encounters").length(), 5);
                     // our mocked MediaAsset is the only one created, so
                     // we only get 1 id here (which is 0)
                     assertEquals(jout.getJSONArray("mediaAssets").length(), 1);
+                    // this is called 3 keywords on 5 assets = 15 times
+                    verify(mockMediaAsset, times(15)).addKeyword(any(Keyword.class));
+                    // TODO kinda wish i could figure out that the keywords are correct
                 }
             }
         }
