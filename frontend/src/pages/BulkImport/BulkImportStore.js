@@ -38,7 +38,7 @@ export class BulkImportStore {
   _columnsDef = [];
   _rawColumns = [];
   _maxImageCount = 200;
-  _missingImages = [];
+  // _missingImages = [];
   _pageSize = 10;
   _locationID = [];
   _locationIDOptions = [];
@@ -446,18 +446,58 @@ export class BulkImportStore {
     return this._synonymFields;
   }
 
+  // get errorPages() {
+  //   const pageSet = new Set();
+
+  //   Object.entries(this.validationErrors).forEach(([rowIndexStr, errorMap]) => {
+  //     if (errorMap && Object.keys(errorMap).length > 0) {
+  //       const rowIndex = Number(rowIndexStr);
+  //       const pageIndex = Math.floor(rowIndex / this._pageSize);
+  //       pageSet.add(pageIndex);
+  //     }
+  //   });
+
+  //   return pageSet;
+  // }
   get errorPages() {
     const pageSet = new Set();
 
     Object.entries(this.validationErrors).forEach(([rowIndexStr, errorMap]) => {
       if (errorMap && Object.keys(errorMap).length > 0) {
-        const rowIndex = Number(rowIndexStr);
-        const pageIndex = Math.floor(rowIndex / this._pageSize);
-        pageSet.add(pageIndex);
+        const allErrorsAreMissingImages = Object.entries(errorMap).every(
+          ([fieldName, errorMessage]) => {
+            const isMissingImageError =
+              fieldName.startsWith("Encounter.mediaAsset") &&
+              typeof errorMessage === "string" &&
+              errorMessage.toLowerCase().includes("missing");
+            return isMissingImageError;
+          },
+        );
+
+        if (!allErrorsAreMissingImages) {
+          const rowIndex = Number(rowIndexStr);
+          const pageIndex = Math.floor(rowIndex / this._pageSize);
+          pageSet.add(pageIndex);
+        }
       }
     });
 
     return pageSet;
+  }
+
+  get missingPhotos() {
+    return this.spreadsheetData.reduce((acc, row) => {
+      const mediaAssets = row["Encounter.mediaAsset0"];
+      if (mediaAssets) {
+        const photos = mediaAssets.split(",");
+        photos.forEach((photo) => {
+          if (!this.uploadedImages.includes(photo)) {
+            acc.push(photo);
+          }
+        });
+      }
+      return acc;
+    }, []);
   }
 
   get emptyFieldCount() {

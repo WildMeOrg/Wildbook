@@ -8,21 +8,6 @@ import { useIntl } from "react-intl";
 export const BulkImportImageUploadInfo = observer(({ store, expanded }) => {
   const intl = useIntl();
   const theme = React.useContext(ThemeColorContext);
-  const missingPhotos = store.spreadsheetData.reduce((acc, row) => {
-    const mediaAssets = row["Encounter.mediaAsset0"];
-    if (mediaAssets) {
-      const photos = mediaAssets.split(",");
-      photos.forEach((photo) => {
-        if (
-          !store.uploadedImages.includes(photo) &&
-          !store.imageSectionFileNames.includes(photo)
-        ) {
-          acc.push(photo);
-        }
-      });
-    }
-    return acc;
-  }, []);
 
   const data = [
     {
@@ -30,7 +15,7 @@ export const BulkImportImageUploadInfo = observer(({ store, expanded }) => {
         id: "PHOTOS_MISSING",
         defaultMessage: "photos missing",
       }),
-      value: missingPhotos.length,
+      value: store.missingPhotos.length,
     },
     {
       label: intl.formatMessage({

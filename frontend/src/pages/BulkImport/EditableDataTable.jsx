@@ -207,28 +207,29 @@ export const DataTable = observer(({ store }) => {
   const validateMediaAssets = useRef(
     throttle(() => {
       console.log("Throttled validation triggered");
+
       const col = "Encounter.mediaAsset0";
-      const { errors, warnings } = store.validateMediaAsset0ColumnOnly();
+      const { errors } = store.validateMediaAsset0ColumnOnly();
+
+      const currentErrors = store.validationErrors || {};
 
       store.spreadsheetData.forEach((_, rowIndex) => {
-        store.mergeValidationError(rowIndex, col, "");
-        store.mergeValidationWarning(rowIndex, col, "");
+        const prevError = currentErrors?.[rowIndex]?.[col];
+        const nextError = errors?.[rowIndex]?.[col];
+
+        if (prevError && !nextError) {
+          store.mergeValidationError(rowIndex, col, "");
+        }
       });
 
-      Object.entries(errors).forEach(([rowIndex, rowErrors]) => {
-        Object.entries(rowErrors).forEach(([columnId, errorMessage]) => {
-          store.mergeValidationError(Number(rowIndex), columnId, errorMessage);
-        });
-      });
+      Object.entries(errors).forEach(([rowIndexStr, rowErrors]) => {
+        const rowIndex = Number(rowIndexStr);
+        const newError = rowErrors?.[col];
+        const currentError = currentErrors?.[rowIndex]?.[col];
 
-      Object.entries(warnings).forEach(([rowIndex, rowWarnings]) => {
-        Object.entries(rowWarnings).forEach(([columnId, warningMessage]) => {
-          store.mergeValidationWarning(
-            Number(rowIndex),
-            columnId,
-            warningMessage,
-          );
-        });
+        if (newError && newError !== currentError) {
+          store.mergeValidationError(rowIndex, col, newError);
+        }
       });
     }, 2000),
   ).current;
@@ -425,8 +426,8 @@ export const DataTable = observer(({ store }) => {
               className={`page-item ${i === currentPage ? "active" : ""}`}
             >
               <button
-                // className={`page-link ${store.errorPages.has(i) ? "bg-danger text-white" : ""}`}
-                className={`page-link`}
+                className={`page-link ${store.errorPages.has(i) ? "bg-danger text-white" : ""}`}
+                // className={`page-link`}
                 onClick={() => table.setPageIndex(i)}
               >
                 {i + 1}
