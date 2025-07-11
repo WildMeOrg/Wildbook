@@ -534,6 +534,51 @@ class BulkGeneralTest {
         }
     }
 
+    @Test void indexedFields()
+    throws ServletException {
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+        Map<String, Object> row = baseRow();
+
+        row.put("MarkedIndividual.individualID", "test-indiv-id");
+        row.put("MarkedIndividual.name0.label", "test-name-label-0");
+        row.put("MarkedIndividual.name0.value", "test-name-value-0");
+        row.put("MarkedIndividual.name1.label", "test-name-label-1");
+        row.put("MarkedIndividual.name1.value", "test-name-value-1");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                // also tests individual
+                Map<String, Object> res = testOneRow(row);
+                assertNotNull(res);
+                assertTrue(res.containsKey("_BulkImporter"));
+                BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
+                assertEquals(Util.collectionSize(bimp.getEncounters()), 1);
+                Encounter enc = bimp.getEncounters().get(0);
+                MarkedIndividual indiv = enc.getIndividual();
+                assertNotNull(indiv);
+                Set<String> nameTest = indiv.getNames().getKeys();
+                assertEquals(nameTest.size(), 3);
+                assertTrue(nameTest.contains("*"));
+                assertTrue(nameTest.contains("test-name-label-0"));
+                assertTrue(nameTest.contains("test-name-label-1"));
+                nameTest = indiv.getNames().getAllValues();
+                assertEquals(nameTest.size(), 3);
+                assertTrue(nameTest.contains("test-indiv-id"));
+                assertTrue(nameTest.contains("test-name-value-0"));
+                assertTrue(nameTest.contains("test-name-value-1"));
+            }
+        }
+    }
+
     @Test void measurement() {
         List<String> mockMeasValues = new ArrayList<String>();
 
