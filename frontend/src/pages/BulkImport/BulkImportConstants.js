@@ -296,8 +296,7 @@ const parseEncounterDateString = (field, val, raw) => {
   };
 
   if (/^\d{4}$/.test(val)) {
-    const y = Number(val);
-    set("year", y);
+    set("year", Number(val));
     set("month", "");
     set("day", "");
     set("hour", "");
@@ -315,6 +314,14 @@ const parseEncounterDateString = (field, val, raw) => {
     set("month", m);
     set("day", d);
     set("hour", "");
+    set("minutes", "");
+  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}$/.test(val)) {
+    const [datePart, hour] = val.split("T");
+    const [y, m, d] = datePart.split("-").map(Number);
+    set("year", y);
+    set("month", m);
+    set("day", d);
+    set("hour", Number(hour));
     set("minutes", "");
   } else {
     const dt = new Date(val);

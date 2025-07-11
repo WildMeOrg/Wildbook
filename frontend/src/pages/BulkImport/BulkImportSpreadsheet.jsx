@@ -43,7 +43,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      // const allJsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
       const allJsonDataRaw = XLSX.utils.sheet_to_json(worksheet, {
         defval: "",
       });
@@ -84,6 +83,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         mediaAssetsCols.length > 0
       ) {
         store.columnsDef.unshift("Encounter.mediaAsset0");
+        store.rawColumns.unshift("Encounter.mediaAsset0");
       }
 
       store.applyDynamicValidationRules();

@@ -37,8 +37,9 @@ export class BulkImportStore {
   _uploadedImages = [];
   _columnsDef = [];
   _rawColumns = [];
-  _maxImageCount = 5000;
+  _maxImageCount = 200;
   _missingImages = [];
+  _pageSize = 10;
   _locationID = [];
   _locationIDOptions = [];
   _worksheetInfo = {
@@ -445,9 +446,19 @@ export class BulkImportStore {
     return this._synonymFields;
   }
 
-  // get errorPages() {
-  //   return this._errorPages;
-  // }
+  get errorPages() {
+    const pageSet = new Set();
+
+    Object.entries(this.validationErrors).forEach(([rowIndexStr, errorMap]) => {
+      if (errorMap && Object.keys(errorMap).length > 0) {
+        const rowIndex = Number(rowIndexStr);
+        const pageIndex = Math.floor(rowIndex / this._pageSize);
+        pageSet.add(pageIndex);
+      }
+    });
+
+    return pageSet;
+  }
 
   get emptyFieldCount() {
     let count = 0;
@@ -650,30 +661,10 @@ export class BulkImportStore {
     this._applyToAllRowModalShow = show;
   }
 
-  // setValidationErrors(errors) {
-  //   this._validationErrors = errors;
-  // }
-
   setValidationErrors(errors) {
     this._validationErrors = errors;
-    // this._updateErrorPages();
+    console.log("Setting validation errors:", errors);
   }
-
-  // _updateErrorPages() {
-  //   const errors = this._validationErrors || {};
-  //   const pageSize = 10;
-  //   const pagesWithErrors = new Set();
-
-  //   Object.keys(errors).forEach((rowIdxStr) => {
-  //     const rowIdx = parseInt(rowIdxStr, 10);
-  //     const pageNum = Math.floor(rowIdx / pageSize);
-  //     pagesWithErrors.add(pageNum);
-  //   });
-
-  //   runInAction(() => {
-  //     this._errorPages = pagesWithErrors;
-  //   });
-  // }
 
   setValidationWarnings(warnings) {
     this._validationWarnings = warnings;
@@ -720,7 +711,7 @@ export class BulkImportStore {
         this._validationErrors[rowIndex] = {};
       }
 
-      if (Object.keys(errorMessage).length > 0) {
+      if (errorMessage && errorMessage.trim() !== "") {
         this._validationErrors[rowIndex][columnId] = errorMessage;
       } else {
         delete this._validationErrors[rowIndex][columnId];
@@ -729,7 +720,6 @@ export class BulkImportStore {
         }
       }
     });
-    // this._updateErrorPages();
   }
 
   mergeValidationWarning(rowIndex, columnId, warningMessage) {
