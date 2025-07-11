@@ -53,7 +53,8 @@ public class BulkImportUtil {
         if (syn != null) {
             for (List<String> syns : syn) {
                 BulkValidatorException bv = new BulkValidatorException("synonym columns: " +
-                    String.join(", ", syns), ApiException.ERROR_RETURN_CODE_INVALID);
+                    String.join(", ", syns), ApiException.ERROR_RETURN_CODE_INVALID,
+                    BulkValidatorException.TYPE_INVALID_SYNONYM);
                 for (String dup : syns) {
                     rtn.put(dup, bv);
                     fieldNames.remove(dup);
@@ -90,7 +91,8 @@ public class BulkImportUtil {
         if ((hasDateMillis == null) && (hasDateYear == null))
             rtn.put("Encounter.year",
                 new BulkValidatorException("required value (year or millis)",
-                ApiException.ERROR_RETURN_CODE_REQUIRED));
+                ApiException.ERROR_RETURN_CODE_REQUIRED,
+                BulkValidatorException.TYPE_REQUIRED_VALUE));
         // case where we have both, we complain about the fields we actually had set
         if ((hasDateMillis != null) && (hasDateYear != null)) {
             rtn.put(hasDateMillis,
@@ -104,14 +106,16 @@ public class BulkImportUtil {
             if (!rtn.containsKey(reqFieldName)) {
                 rtn.put(reqFieldName,
                     new BulkValidatorException("required value",
-                    ApiException.ERROR_RETURN_CODE_REQUIRED));
+                    ApiException.ERROR_RETURN_CODE_REQUIRED,
+                    BulkValidatorException.TYPE_REQUIRED_VALUE));
             } else if (rtn.get(reqFieldName) instanceof BulkValidator) {
                 BulkValidator bv = (BulkValidator)rtn.get(reqFieldName);
                 // has a bv, but value cannot be null
                 if (bv.getValue() == null) {
                     rtn.put(reqFieldName,
                         new BulkValidatorException("required value",
-                        ApiException.ERROR_RETURN_CODE_REQUIRED));
+                        ApiException.ERROR_RETURN_CODE_REQUIRED,
+                        BulkValidatorException.TYPE_REQUIRED_VALUE));
                 }
             }
         }
@@ -151,7 +155,8 @@ public class BulkImportUtil {
         if ((dateM == null) && (dateD != null))
             map.put(mkey,
                 new BulkValidatorException("must supply a valid month along with day",
-                ApiException.ERROR_RETURN_CODE_REQUIRED));
+                ApiException.ERROR_RETURN_CODE_REQUIRED,
+                BulkValidatorException.TYPE_REQUIRED_VALUE));
         if (Util.dateIsInFuture((Integer)dateY, (Integer)dateM, (Integer)dateD))
             map.put(ykey,
                 new BulkValidatorException("date is in the future",
@@ -166,11 +171,13 @@ public class BulkImportUtil {
         if ((dlat == null) && (dlon != null))
             map.put(latKey,
                 new BulkValidatorException("must supply both latitude and longitude",
-                ApiException.ERROR_RETURN_CODE_REQUIRED));
+                ApiException.ERROR_RETURN_CODE_REQUIRED,
+                BulkValidatorException.TYPE_REQUIRED_VALUE));
         if ((dlat != null) && (dlon == null))
             map.put(lonKey,
                 new BulkValidatorException("must supply both latitude and longitude",
-                ApiException.ERROR_RETURN_CODE_REQUIRED));
+                ApiException.ERROR_RETURN_CODE_REQUIRED,
+                BulkValidatorException.TYPE_REQUIRED_VALUE));
     }
 
     // this is just a helper function for validateRow

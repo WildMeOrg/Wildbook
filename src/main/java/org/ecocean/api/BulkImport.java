@@ -188,6 +188,7 @@ public class BulkImport extends ApiBase {
                     if (fieldNames.contains(fn)) { // yes this happens :(
                         JSONObject dupErr = new JSONObject();
                         dupErr.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                        dupErr.put("type", BulkValidatorException.TYPE_INVALID_DUPLICATE);
                         dupErr.put("details", "> 1 column named " + fn);
                         dupErr.put("fieldName", fn);
                         throw new ApiException("duplicate columns: " + fn, dupErr);
@@ -200,6 +201,7 @@ public class BulkImport extends ApiBase {
                     for (List<String> syns : syn) {
                         JSONObject err = new JSONObject();
                         err.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                        err.put("type", BulkValidatorException.TYPE_INVALID_SYNONYM);
                         err.put("details", "synonym columns: " + String.join(", ", syns));
                         err.put("fieldNames", syns);
                         synErrs.put(err);
@@ -265,7 +267,8 @@ public class BulkImport extends ApiBase {
                         vrow.put(fieldName,
                             new BulkValidatorException("file '" + bv.getValue().toString() +
                             "' not found in uploaded files",
-                            ApiException.ERROR_RETURN_CODE_REQUIRED));
+                            ApiException.ERROR_RETURN_CODE_REQUIRED,
+                            BulkValidatorException.TYPE_REQUIRED_VALUE));
                     }
                 }
             }
