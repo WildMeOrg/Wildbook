@@ -429,6 +429,22 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     } finally {
                         finalShepherd.closeDBTransaction();
                     }
+
+
+                    Shepherd acmidShepherd = new Shepherd(context);
+                    acmidShepherd.setAction("StandardImport.acmid");
+                    try {
+                        acmidShepherd.beginDBTransaction();
+                        ImportTask t = acmidShepherd.getImportTask(taskID);
+                        sendforACMID(t,acmidShepherd,context);
+                      
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        acmidShepherd.rollbackDBTransaction();
+                    } finally {
+                        acmidShepherd.closeDBTransaction();
+                    }
+
         
                 }
         
@@ -2740,6 +2756,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                         IBEISIA.sendMediaAssetsNew(assets, context);
                         IBEISIA.sendAnnotationsAsNeeded(annotations, myShepherd);
                         assets = new ArrayList<MediaAsset>();
+                        myShepherd.updateDBTransaction();
                     }
                 }
                 if (assets.size() > 0) {
