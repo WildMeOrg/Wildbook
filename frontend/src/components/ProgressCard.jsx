@@ -48,7 +48,7 @@ export const ProgressCard = ({
               })}
             >
               <span style={{ fontSize: 11 }}>
-                {`${Number(progress.toFixed(2)) * 100}%`}
+                {`${(progress * 100).toFixed(2)}%`}
               </span>
             </CircularProgressbarWithChildren>
           )}

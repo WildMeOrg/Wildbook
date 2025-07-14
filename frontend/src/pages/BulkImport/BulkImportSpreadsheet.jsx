@@ -237,6 +237,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   };
 
   const handleFileUpload = (event) => {
+    store.clearSubmissionErrors();
     const file = event.target.files[0];
     const filename = file?.name || "";
     store.setSpreadsheetFileName(filename);
