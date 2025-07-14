@@ -215,14 +215,18 @@ URLCodec urlCodec = new URLCodec();
 }
 
 .ia-match-filter-dialog {
-    display: none;
-    z-index: 3000;
-    position: fixed;
-    top: 10%;
-    width: 80%;
-    padding: 15px;
-    border: solid 5px #888;
-    background-color: #CCC;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  padding: 20px;
+  border: 3px solid #888;
+  background-color: #fff;
+  z-index: 3000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
 }
 
 /* may the css gods help us.   h/t https://stackoverflow.com/a/7785711 */
@@ -278,7 +282,7 @@ label.item-checked {
 .ia-match-filter-title {
     margin: 20px 0 5px 0;
     padding: 1px 0 1px 20px;
-    background-color: #AAB;
+    background-color: #CCC;
     color: #555;
     font-weight: bold;
 }
