@@ -7044,7 +7044,7 @@ for (JSONObject algConfig : identConfigsValues) {
     forClasses += " mfalgo-iaclass-" + algConfig.getJSONArray("_iaClasses").optString(i, "__FAIL__").replaceAll("\\+", "-");
   }
 
-  out.println("<div class=\"mfalgo-item " + forClasses + " item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " data-default-checked=\"" + enabled + "\" /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  out.println("<div class=\"mfalgo-item " + forClasses + " item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " data-default-checked=\"" + enabled + "\" /><label style=\"margin-left: 3px;\" for=\"mfa-" + algNum + "\">" + description + " </label></div>");
   algNum++;
 }
 
