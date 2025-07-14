@@ -863,8 +863,8 @@ public class Annotation implements java.io.Serializable {
         }
         if (filter.matches(".*\\buser\\b.*"))
             filter += "; org.ecocean.User user";
-        if (filter.matches(".*\\borg\\b.*"))
-            filter += "; org.ecocean.Organization org";
+        if (filter.matches(".*\\borgs\\b.*"))
+            filter += "; org.ecocean.Organization orgs";
         if (filter.matches(".*\\bproject\\b.*"))
             filter += "; org.ecocean.Project project";
         return getMatchingSetForFilter(myShepherd, filter);
@@ -1081,7 +1081,7 @@ public class Annotation implements java.io.Serializable {
                     f += " && user.uuid == '" + userId +
                             "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
                 if (opt.equals("org")) {
-                    f += " && (user.organizations.contains(org) && org.name == enc.submitterOrganization) ";
+                    f += " && (user.organizations.contains(orgs) && orgs.name == enc.submitterOrganization) ";
                 }
 
                 /// TODO also handle "collab" (users you collab with) :/
