@@ -9,11 +9,29 @@ import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
 import { BulkImportSpreadsheetUploadInfo } from "./BulkImportSpreadsheetUploadInfo";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import ErrorSummaryBar from "./BulkImportErrorSummaryBar";
+import { useIntl } from "react-intl";
 
 export const BulkImportTableReview = observer(({ store }) => {
+  const intl = useIntl();
   const theme = useContext(ThemeContext);
   const hasSubmissionErrors =
     store.submissionErrors && Object.keys(store.submissionErrors).length > 0;
+  let tableErrors = [];
+  let rowErrors = [];
+  const renderErrorCode = (code) =>
+    intl.formatMessage({
+      id: `BULK_IMPORT_ERROR_${code}`,
+      defaultMessage: code,
+    });
+
+  if (hasSubmissionErrors) {
+    tableErrors = store.submissionErrors.filter(
+      (e) => !e.rowNumber && e.fieldNames,
+    );
+    rowErrors = store.submissionErrors.filter(
+      (e) => typeof e.rowNumber === "number",
+    );
+  }
 
   return (
     <div className="mt-4" id="bulk-import-table-review">
@@ -61,23 +79,34 @@ export const BulkImportTableReview = observer(({ store }) => {
             />
           </strong>
 
-          <ul className="list-unstyled mb-0 ps-3">
-            {store.submissionErrors.map((err, idx) => {
-              if ("rowNumber" in err && "fieldName" in err) {
-                const row = `Row ${err.rowNumber + 1}`;
-                const field = `"${err.fieldName}"`;
-                const message =
-                  Array.isArray(err.errors) && err.errors.length > 0
-                    ? err.errors.map((e) => e.details).join("; ")
-                    : err.details || err.type || "Unknown error";
-                return <li key={idx}>{`${row}: ${field} — ${message}`}</li>;
-              } else if ("filename" in err) {
-                return <li key={idx}>{`Image "${err.filename} invalid"`}</li>;
-              } else {
-                return <li key={idx}>{JSON.stringify(err)}</li>;
-              }
-            })}
-          </ul>
+          {store.submissionErrors.length > 0 && (
+            <ul>
+              {tableErrors.map((error, index) => {
+                const name =
+                  error.fieldNames?.length > 0
+                    ? error.fieldNames?.join(", ")
+                    : error.fieldName;
+                return (
+                  <li key={index}>
+                    {renderErrorCode(error.type)}: {name}
+                  </li>
+                );
+              })}
+              {rowErrors.map((error, index) => {
+                const name =
+                  error?.fieldNames?.length > 0
+                    ? error?.fieldNames?.join(", ")
+                    : error.fieldName;
+                return (
+                  <li key={index}>
+                    <FormattedMessage id="ROW" /> {Number(error.rowNumber) + 1}:{" "}
+                    {renderErrorCode(error.type)} {": "}
+                    {name}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       )}
 
