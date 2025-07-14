@@ -294,6 +294,9 @@ class BulkGeneralTest {
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.minutes") instanceof BulkValidatorException);
                 assertTrue(res.get("Encounter.minutes").toString().contains("too large"));
+                row.put("Encounter.minutes", 21);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 0);
             }
         }
     }
@@ -361,14 +364,14 @@ class BulkGeneralTest {
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.sex") instanceof BulkValidatorException);
                 assertTrue(res.get("Encounter.sex").toString().contains("invalid sex value"));
-                row.remove("Encounter.sex");
+                row.put("Encounter.sex", "male");
                 // state
                 row.put("Encounter.state", "fail");
                 res = testOneRow(row);
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.state") instanceof BulkValidatorException);
                 assertTrue(res.get("Encounter.state").toString().contains("invalid state value"));
-                row.remove("Encounter.state");
+                row.put("Encounter.state", "approved");
                 // user
                 row.put("Encounter.submitterID", "fail");
                 res = testOneRow(row);
@@ -429,6 +432,10 @@ class BulkGeneralTest {
                     assertTrue(res.get("Encounter.country").toString().contains(
                         "invalid country value"));
                     row.put("Encounter.country", "pass");
+                    row.put("Survey.id", "survey-id");
+                    row.put("Survey.vessel", "survey-vessel");
+                    row.remove("Encounter.year");
+                    row.put("Encounter.dateInMilliseconds", 1752533676000L);
                     res = testOneRow(row);
                 }
             }
