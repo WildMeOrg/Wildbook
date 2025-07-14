@@ -149,7 +149,7 @@ class BulkGeneralTest {
         User user = mock(User.class);
 
         for (String fn : BulkValidator.FIELD_NAMES) {
-            row.put(fn, "value-" + fn);
+            row.put(fn, "123");
         }
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
