@@ -30,6 +30,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BulkGeneralTest {
@@ -433,6 +434,43 @@ class BulkGeneralTest {
         }
     }
 
+    @Test void projectsTest()
+    throws ServletException {
+        Map<String, Object> row = baseRow();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            // the default (from baseRow) submitter id will work, username 'fail' will not
+            when(mock.getUser("fakeSubmitterId")).thenReturn(user);
+            when(mock.getUser("fail")).thenReturn(null);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                row.put("Encounter.project0.projectIdPrefix", "proj0");
+                // this project will not exist, but since we have no name/email, it will not get created
+                Shepherd myShepherd = new Shepherd("context0");
+                Map<String, Object> res = testOneRow(row);
+                BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
+                Encounter enc = bimp.getEncounters().get(0);
+                assertEquals(Util.collectionSize(enc.getProjects(myShepherd)), 0);
+                // now we give a name and email, which should create
+                row.put("Encounter.project0.researchProjectName", "Proj0 Name");
+                row.put("Encounter.project0.ownerUsername", "fakeSubmitterId");
+                res = testOneRow(row);
+                bimp = (BulkImporter)res.get("_BulkImporter");
+                enc = bimp.getEncounters().get(0);
+                // TODO actually verify project
+            }
+        }
+    }
+
     @Test void geneticSamples()
     throws ServletException {
         Occurrence occ = mock(Occurrence.class);
@@ -612,6 +650,44 @@ class BulkGeneralTest {
                 assertEquals(mf.getString("Encounter.measurement." + key + ".samplingProtocol"),
                     "string");
                 ct++;
+            }
+        }
+    }
+
+    @Test void measurementRow()
+    throws ServletException {
+        Map<String, Object> row = baseRow();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+        List<String> mockMeasValues = new ArrayList<String>();
+
+        mockMeasValues.add("Measurement0");
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<BulkImportUtil> mockUtil = mockStatic(BulkImportUtil.class,
+                        org.mockito.Answers.CALLS_REAL_METHODS)) {
+                    // allows us to skip commonConfig to get list of values
+                    mockUtil.when(() -> BulkImportUtil.getMeasurementValues()).thenReturn(
+                        mockMeasValues);
+                    row.put("Encounter.measurement0", 99.9);
+                    row.put("Encounter.measurement0.samplingProtocol", "sampProt");
+                    Map<String, Object> res = testOneRow(row);
+                    BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
+                    Encounter enc = bimp.getEncounters().get(0);
+                    assertEquals(Util.collectionSize(enc.getMeasurements()), 1);
+                    Measurement meas = enc.getMeasurements().get(0);
+                    assertEquals(meas.getValue(), (Double)99.9);
+                }
             }
         }
     }
