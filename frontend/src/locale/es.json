@@ -463,5 +463,10 @@
   "BULK_IMPORT_APPLY_TO_ALL": "Aplicar a todas",
   "REQUIRED_FIELD_NOTE": "* indica campos obligatorios",
   "SHOWING_PAGE_INFO": "Mostrando la página {current} de {total}",
-  "SUBMISSION_ISSUE_HEADER": "Hay algunos problemas con tu envío:"
+  "SUBMISSION_ISSUE_HEADER": "Hay algunos problemas con su envío:",
+  "BULK_IMPORT_ERROR_INVALID_VALUE": "El valor ingresado no es válido",
+  "BULK_IMPORT_ERROR_REQUIRED_VALUE": "Este campo es obligatorio",
+  "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Se detectaron campos sinónimos",
+  "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Se detectaron campos duplicados",
+  "ROW": "Fila"
 }

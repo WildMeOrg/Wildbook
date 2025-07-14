@@ -38,7 +38,6 @@ export class BulkImportStore {
   _columnsDef = [];
   _rawColumns = [];
   _maxImageCount = 200;
-  // _missingImages = [];
   _pageSize = 10;
   _locationID = [];
   _locationIDOptions = [];
@@ -55,7 +54,6 @@ export class BulkImportStore {
   _isSavingDraft = false;
   _lastSavedAt = null;
   _errorSummary = {};
-  // _errorPages = new Set();
   _cachedValidation = null;
   _filesParsed = false;
   _filesParsingCount = 0;
@@ -451,21 +449,9 @@ export class BulkImportStore {
 
     Object.entries(this.validationErrors).forEach(([rowIndexStr, errorMap]) => {
       if (errorMap && Object.keys(errorMap).length > 0) {
-        const allErrorsAreMissingImages = Object.entries(errorMap).every(
-          ([fieldName, errorMessage]) => {
-            const isMissingImageError =
-              fieldName.startsWith("Encounter.mediaAsset") &&
-              typeof errorMessage === "string" &&
-              errorMessage.toLowerCase().includes("missing");
-            return isMissingImageError;
-          },
-        );
-
-        if (!allErrorsAreMissingImages) {
-          const rowIndex = Number(rowIndexStr);
-          const pageIndex = Math.floor(rowIndex / this._pageSize);
-          pageSet.add(pageIndex);
-        }
+        const rowIndex = Number(rowIndexStr);
+        const pageIndex = Math.floor(rowIndex / this._pageSize);
+        pageSet.add(pageIndex);
       }
     });
 
@@ -473,21 +459,26 @@ export class BulkImportStore {
   }
 
   get missingPhotos() {
-    return this.spreadsheetData.reduce((acc, row) => {
+    const uploadedSet = new Set(
+      this._uploadedImages.map((f) => f.trim().toLowerCase()),
+    );
+
+    const missing = new Set();
+
+    this._spreadsheetData.forEach((row) => {
       const mediaAssets = row["Encounter.mediaAsset0"];
-      if (mediaAssets) {
-        const photos = mediaAssets.split(",");
-        photos.forEach((photo) => {
-          if (
-            !this.uploadedImages.includes(photo)
-            // && !this.imageSectionFileNames.includes(photo)
-          ) {
-            acc.push(photo);
-          }
-        });
-      }
-      return acc;
-    }, []);
+      if (!mediaAssets) return;
+
+      mediaAssets.split(",").forEach((raw) => {
+        const name = raw.trim();
+        const key = name.toLowerCase();
+        if (!uploadedSet.has(key)) {
+          missing.add(name);
+        }
+      });
+    });
+
+    return Array.from(missing);
   }
 
   get emptyFieldCount() {
@@ -947,7 +938,6 @@ export class BulkImportStore {
     return locationData.map((location) => ({
       title: location.id,
       value: location.id,
-      // geospatialInfo: location.geospatialInfo,
       children:
         location.locationID?.length > 0
           ? this.convertToTreeData(location.locationID)
@@ -1061,7 +1051,6 @@ export class BulkImportStore {
     });
 
     flowInstance.on("fileProgress", (file) => {
-      // const percent = (file._prevUploadedSize / file.size) * 100;
       const percent = Math.floor(file.progress() * 100);
 
       this._imagePreview = this._imagePreview.map((f) =>
@@ -1326,7 +1315,6 @@ export class BulkImportStore {
         const isValid = supportedTypes.includes(file.type);
         // && file.size <= maxSize * 1024 * 1024;
 
-        // const fullPath = entry.fullPath || file.name;
         if (isValid && !this._imageSectionFileNames.includes(file.name)) {
           this._collectedValidFiles.push(file);
           this._pendingDropFileCount++;
@@ -1374,9 +1362,7 @@ export class BulkImportStore {
         console.warn(`Column ${col} does not exist in row ${rowIndex}`);
       }
     });
-    //update raw data too
 
-    // this.updateRawFromNormalizedRow();
     this.invalidateValidation();
   }
 
