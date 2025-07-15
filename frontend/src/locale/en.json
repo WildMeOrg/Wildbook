@@ -469,5 +469,6 @@
     "BULK_IMPORT_ERROR_REQUIRED_VALUE": "This field is required",
     "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Synonym fields detected",
     "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Duplicate fields detected",
-    "ROW": "Row"   
+    "ROW": "Row",
+    "APPLY_TO_ALL_ROWS_NOTE": "+ denotes change can apply to all rows for this column"
 }
