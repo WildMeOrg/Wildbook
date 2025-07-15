@@ -10,6 +10,7 @@ import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.LocationID;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.Shepherd;
@@ -383,6 +384,45 @@ class BulkApiPostTest {
                     assertEquals(jout.getJSONArray("errors").length(), 1);
                     assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("details"),
                         "> 1 column named Encounter.year");
+                }
+            }
+        }
+    }
+
+    @Test void apiPostBadMatchingLocations()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        String requestBody = getValidPayloadArrays();
+        JSONObject tmp = new JSONObject(requestBody);
+
+        tmp.put("matchingLocations", new JSONArray("[\"fail\"]"));
+        requestBody = tmp.toString();
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<LocationID> mockLocClass = mockStatic(LocationID.class)) {
+                    mockLocClass.when(() -> LocationID.isValidLocationID("fail")).thenReturn(false);
+                    try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                        mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                            mockPMF);
+                        apiServlet.doPost(mockRequest, mockResponse);
+                        responseOut.flush();
+                        JSONObject jout = new JSONObject(responseOut.toString());
+                        verify(mockResponse).setStatus(400);
+                        assertFalse(jout.getBoolean("success"));
+                        assertEquals(jout.getInt("statusCode"), 400);
+                        assertEquals(jout.getJSONArray("errors").length(), 1);
+                        assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString(
+                            "details"), "matchingLocations contains invalid id=fail");
+                    }
                 }
             }
         }
