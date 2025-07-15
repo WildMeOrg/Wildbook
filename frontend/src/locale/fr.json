@@ -468,5 +468,6 @@
   "BULK_IMPORT_ERROR_REQUIRED_VALUE": "Ce champ est requis",
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Champs synonymes détectés",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Champs en double détectés",
-  "ROW": "Ligne"
+  "ROW": "Ligne",
+  "APPLY_TO_ALL_ROWS_NOTE": "+ indique que la modification peut s'appliquer à toutes les lignes de cette colonne"
 }

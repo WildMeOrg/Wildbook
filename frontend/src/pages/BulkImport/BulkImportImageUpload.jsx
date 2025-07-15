@@ -30,11 +30,12 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
-  const maxSize = data?.maximumMediaSizeMegabytes || 10;
+  const maxSize = data?.maximumMediaSizeMegabytes || 40;
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 50;
-  store.setMaxImageCount(data?.maximumMediaCountEncounter || 200);
+  // store.setMaxImageCount(data?.maximumMediaCountEncounter || 200);
+  store.setMaxImageCount(5000);
   const currentCount = store.imagePreview.length;
 
   useEffect(() => {
@@ -158,9 +159,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
           style={{
             maxWidth: "350px",
           }}
-        >
-          <BulkImportImageUploadInfo store={store} expanded={true} />
-        </div>
+        ></div>
       </Row>
 
       <Row>
@@ -471,18 +470,24 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
           </div>
         </Col>
       </Row>
-      <Row className="mt-4 justify-content-end">
-        <MainButton
-          onClick={() => {
-            store.setActiveStep(1);
-          }}
-          backgroundColor={theme.wildMeColors.cyan700}
-          color={theme.defaultColors.white}
-          noArrow={true}
-          style={{ width: "auto", fontSize: "1rem" }}
-        >
-          <FormattedMessage id="NEXT" />
-        </MainButton>
+
+      <Row className="mt-4 justify-content-between d-flex align-items-center">
+        <Col xs="auto">
+          <BulkImportImageUploadInfo store={store} />
+        </Col>
+        <Col xs="auto">
+          <MainButton
+            onClick={() => {
+              store.setActiveStep(2);
+            }}
+            backgroundColor={theme.wildMeColors.cyan700}
+            color={theme.defaultColors.white}
+            noArrow={true}
+            style={{ width: "auto", fontSize: "1rem" }}
+          >
+            <FormattedMessage id="NEXT" />
+          </MainButton>
+        </Col>
       </Row>
     </div>
   );

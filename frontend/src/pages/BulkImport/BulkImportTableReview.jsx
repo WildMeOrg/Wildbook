@@ -70,6 +70,38 @@ export const BulkImportTableReview = observer(({ store }) => {
       <EditableDataTable store={store} />
       <ErrorSummaryBar store={store} />
 
+      <div
+        id="buttons"
+        className="d-flex flex-row justify-content-between mt-4"
+      >
+        <MainButton
+          onClick={() => {
+            store.setActiveStep(1);
+          }}
+          backgroundColor={theme.wildMeColors.cyan700}
+          color={theme.defaultColors.white}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem" }}
+        >
+          <FormattedMessage id="PREVIOUS" />
+        </MainButton>
+        <MainButton
+          onClick={() => {
+            store.setActiveStep(3);
+          }}
+          disabled={
+            store.spreadsheetUploadProgress !== 100 ||
+            Object.keys(store.validationErrors).length > 0 ||
+            store.missingRequiredColumns.length > 0
+          }
+          backgroundColor={theme.wildMeColors.cyan700}
+          color={theme.defaultColors.white}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem", marginLeft: "auto" }}
+        >
+          <FormattedMessage id="NEXT" />
+        </MainButton>
+      </div>
       {hasSubmissionErrors && (
         <div className="alert alert-danger">
           <strong>
@@ -109,20 +141,6 @@ export const BulkImportTableReview = observer(({ store }) => {
           )}
         </div>
       )}
-
-      <div className="d-flex flex-row justify-content-between mt-4">
-        <MainButton
-          onClick={() => {
-            store.setActiveStep(3);
-          }}
-          backgroundColor={theme.wildMeColors.cyan700}
-          color={theme.defaultColors.white}
-          noArrow={true}
-          style={{ width: "auto", fontSize: "1rem", marginLeft: "auto" }}
-        >
-          <FormattedMessage id="SET_LOCATION" />
-        </MainButton>
-      </div>
     </div>
   );
 });

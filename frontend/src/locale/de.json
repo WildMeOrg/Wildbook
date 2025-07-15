@@ -470,6 +470,7 @@
   "BULK_IMPORT_ERROR_REQUIRED_VALUE": "Dieses Feld ist erforderlich",
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Synonymfelder erkannt",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Doppelte Felder erkannt",
-  "ROW": "Zeile"
+  "ROW": "Zeile",
+  "APPLY_TO_ALL_ROWS_NOTE": "+ kennzeichnet, dass die Änderung auf alle Zeilen dieser Spalte angewendet werden kann"
 }
 

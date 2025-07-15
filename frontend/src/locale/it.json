@@ -469,5 +469,6 @@
   "BULK_IMPORT_ERROR_REQUIRED_VALUE": "Questo campo è obbligatorio",
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Campi sinonimi rilevati",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Campi duplicati rilevati",
-  "ROW": "Riga"
+  "ROW": "Riga",
+  "APPLY_TO_ALL_ROWS_NOTE": "+ indica che la modifica può essere applicata a tutte le righe di questa colonna"
 }
