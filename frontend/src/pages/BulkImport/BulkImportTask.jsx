@@ -107,7 +107,7 @@ const BulkImportTask = () => {
       selector: (row) => row.user,
     },
     {
-      name: "Occurrence",
+      name: "Sighting",
       cell: (row) =>
         row.occurrenceID !== "-" ? (
           <a
