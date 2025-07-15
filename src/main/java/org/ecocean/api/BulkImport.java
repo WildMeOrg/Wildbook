@@ -110,6 +110,7 @@ public class BulkImport extends ApiBase {
         } finally {
             myShepherd.rollbackAndClose();
         }
+        rtn.put("statusCode", statusCode);
         response.setStatus(statusCode);
         response.setHeader("Content-Type", "application/json");
         response.setCharacterEncoding("UTF-8");
