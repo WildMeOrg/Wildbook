@@ -235,7 +235,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
             disabled={
               isLoading ||
               store.spreadsheetUploadProgress !== 100 ||
-              store.validationErrors.length > 0 ||
+              Object.keys(store.validationErrors).length > 0 ||
               store.missingRequiredColumns.length > 0
             }
             backgroundColor={theme.wildMeColors.cyan700}

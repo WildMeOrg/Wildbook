@@ -151,7 +151,11 @@ export const BulkImportUploadProgress = observer(({ store }) => {
           fontSize: "20px",
         }}
         onClick={() => {
-          if (store.spreadsheetUploadProgress === 100) {
+          if (
+            store.spreadsheetUploadProgress === 100 &&
+            store.validationErrors.length === 0 &&
+            store.missingRequiredColumns.length === 0
+          ) {
             store.setActiveStep(3);
           }
         }}
