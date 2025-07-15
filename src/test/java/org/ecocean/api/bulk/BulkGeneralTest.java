@@ -4,6 +4,7 @@ import org.ecocean.api.bulk.*;
 import org.ecocean.genetics.*;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
+import org.ecocean.social.*;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BulkGeneralTest {
@@ -148,7 +150,7 @@ class BulkGeneralTest {
         User user = mock(User.class);
 
         for (String fn : BulkValidator.FIELD_NAMES) {
-            row.put(fn, "value-" + fn);
+            row.put(fn, "123");
         }
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
@@ -292,6 +294,9 @@ class BulkGeneralTest {
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.minutes") instanceof BulkValidatorException);
                 assertTrue(res.get("Encounter.minutes").toString().contains("too large"));
+                row.put("Encounter.minutes", 21);
+                res = testOneRow(row);
+                assertEquals(res.get("_numInvalid"), 0);
             }
         }
     }
@@ -359,14 +364,14 @@ class BulkGeneralTest {
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.sex") instanceof BulkValidatorException);
                 assertTrue(res.get("Encounter.sex").toString().contains("invalid sex value"));
-                row.remove("Encounter.sex");
+                row.put("Encounter.sex", "male");
                 // state
                 row.put("Encounter.state", "fail");
                 res = testOneRow(row);
                 assertEquals(res.get("_numInvalid"), 1);
                 assertTrue(res.get("Encounter.state") instanceof BulkValidatorException);
                 assertTrue(res.get("Encounter.state").toString().contains("invalid state value"));
-                row.remove("Encounter.state");
+                row.put("Encounter.state", "approved");
                 // user
                 row.put("Encounter.submitterID", "fail");
                 res = testOneRow(row);
@@ -427,8 +432,49 @@ class BulkGeneralTest {
                     assertTrue(res.get("Encounter.country").toString().contains(
                         "invalid country value"));
                     row.put("Encounter.country", "pass");
+                    row.put("Survey.id", "survey-id");
+                    row.put("Survey.vessel", "survey-vessel");
+                    row.remove("Encounter.year");
+                    row.put("Encounter.dateInMilliseconds", 1752533676000L);
                     res = testOneRow(row);
                 }
+            }
+        }
+    }
+
+    @Test void projectsTest()
+    throws ServletException {
+        Map<String, Object> row = baseRow();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            // the default (from baseRow) submitter id will work, username 'fail' will not
+            when(mock.getUser("fakeSubmitterId")).thenReturn(user);
+            when(mock.getUser("fail")).thenReturn(null);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                row.put("Encounter.project0.projectIdPrefix", "proj0");
+                // this project will not exist, but since we have no name/email, it will not get created
+                Shepherd myShepherd = new Shepherd("context0");
+                Map<String, Object> res = testOneRow(row);
+                BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
+                Encounter enc = bimp.getEncounters().get(0);
+                assertEquals(Util.collectionSize(enc.getProjects(myShepherd)), 0);
+                // now we give a name and email, which should create
+                row.put("Encounter.project0.researchProjectName", "Proj0 Name");
+                row.put("Encounter.project0.ownerUsername", "fakeSubmitterId");
+                res = testOneRow(row);
+                bimp = (BulkImporter)res.get("_BulkImporter");
+                enc = bimp.getEncounters().get(0);
+                // TODO actually verify project
             }
         }
     }
@@ -592,6 +638,40 @@ class BulkGeneralTest {
         }
     }
 
+    @Test void socialUnitTest()
+    throws ServletException {
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+        Map<String, Object> row = baseRow();
+
+        row.put("MarkedIndividual.individualID", "test-indiv-id");
+        row.put("SocialUnit.socialUnitName", "social-unit-name");
+        row.put("Membership.role", "membership-role");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                Map<String, Object> res = testOneRow(row);
+                assertNotNull(res);
+                assertTrue(res.containsKey("_BulkImporter"));
+                BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
+                assertEquals(Util.collectionSize(bimp.getEncounters()), 1);
+                Encounter enc = bimp.getEncounters().get(0);
+                MarkedIndividual indiv = enc.getIndividual();
+                assertNotNull(indiv);
+                verify(mockPM).makePersistent(any(SocialUnit.class));
+                verify(mockPM).makePersistent(any(Membership.class));
+            }
+        }
+    }
+
     @Test void measurement() {
         List<String> mockMeasValues = new ArrayList<String>();
 
@@ -612,6 +692,44 @@ class BulkGeneralTest {
                 assertEquals(mf.getString("Encounter.measurement." + key + ".samplingProtocol"),
                     "string");
                 ct++;
+            }
+        }
+    }
+
+    @Test void measurementRow()
+    throws ServletException {
+        Map<String, Object> row = baseRow();
+        Occurrence occ = mock(Occurrence.class);
+        User user = mock(User.class);
+        List<String> mockMeasValues = new ArrayList<String>();
+
+        mockMeasValues.add("Measurement0");
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getContext()).thenReturn("context0");
+            when(mock.getPM()).thenReturn(mockPM);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<BulkImportUtil> mockUtil = mockStatic(BulkImportUtil.class,
+                        org.mockito.Answers.CALLS_REAL_METHODS)) {
+                    // allows us to skip commonConfig to get list of values
+                    mockUtil.when(() -> BulkImportUtil.getMeasurementValues()).thenReturn(
+                        mockMeasValues);
+                    row.put("Encounter.measurement0", 99.9);
+                    row.put("Encounter.measurement0.samplingProtocol", "sampProt");
+                    Map<String, Object> res = testOneRow(row);
+                    BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
+                    Encounter enc = bimp.getEncounters().get(0);
+                    assertEquals(Util.collectionSize(enc.getMeasurements()), 1);
+                    Measurement meas = enc.getMeasurements().get(0);
+                    assertEquals(meas.getValue(), (Double)99.9);
+                }
             }
         }
     }
