@@ -352,6 +352,42 @@ class BulkApiPostTest {
         }
     }
 
+    @Test void apiPostDuplicateActualDuplicates()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        String requestBody = getInvalidPayloadArraysSynonyms();
+        JSONObject tmp = new JSONObject(requestBody);
+
+        tmp.getJSONArray("fieldNames").put(1, "Encounter.year");
+        requestBody = tmp.toString();
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertEquals(jout.getInt("statusCode"), 400);
+                    assertEquals(jout.getJSONArray("errors").length(), 1);
+                    assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("details"),
+                        "> 1 column named Encounter.year");
+                }
+            }
+        }
+    }
+
     @Test void apiPostRowsBadFieldNames()
     throws ServletException, IOException {
         User user = mock(User.class);
