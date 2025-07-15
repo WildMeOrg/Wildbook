@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
+import org.ecocean.api.ApiException;
 import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
@@ -271,6 +272,49 @@ class BulkImagesTest {
                     assertEquals(jout.getJSONArray("errors").length(), 1);
                     assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("error"),
                         "image-invalid-mime-type.jpg is not a valid file");
+                }
+            }
+        }
+    }
+
+    @Test void apiPostMediaAssetCreationFail()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
+        String requestBody = getValidPayloadArrays();
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getUser(any(String.class))).thenReturn(user);
+            when(mock.isValidTaxonomyName(any(String.class))).thenReturn(true);
+            when(mock.getOrCreateOccurrence(any(String.class))).thenReturn(occ);
+            when(mock.getOrCreateOccurrence(null)).thenReturn(occ);
+            when(mock.getPM()).thenReturn(mockPM);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class,
+                    org.mockito.Answers.CALLS_REAL_METHODS)) {
+                mockUF.when(() -> UploadedFiles.getUploadDir(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(mockUploadDir);
+                mockUF.when(() -> UploadedFiles.makeMediaAsset(any(String.class), any(File.class),
+                    any(Shepherd.class))).thenThrow(new ApiException(
+                    "fake asset creation failure"));
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertEquals(jout.getInt("numberFilesUploaded"), 2);
+                    assertEquals(jout.getInt("numberFilesValid"), 1);
+                    assertEquals(jout.getJSONArray("errors").length(), 1);
+                    assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("details"),
+                        "org.ecocean.api.ApiException: fake asset creation failure");
                 }
             }
         }
