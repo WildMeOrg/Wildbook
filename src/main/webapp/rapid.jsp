@@ -15,7 +15,7 @@ java.util.Map,
 java.util.HashMap,
 java.util.List,
 java.util.Collection,
-java.util.ArrayList,
+java.util.ArrayList,org.ecocean.shepherd.core.*,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%!
 private static String encDiv(Annotation ann, Encounter enc) {
