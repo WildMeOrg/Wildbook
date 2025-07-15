@@ -34,6 +34,11 @@ const EditableCell = observer(
       const { errors, warnings } = store.validateSpreadsheet();
       store.setValidationErrors(errors);
       store.setValidationWarnings(warnings);
+      if (columnId === "Encounter.submitterID") {
+        setColId(columnId);
+        setColValue(newValue);
+        store.setApplyToAllRowModalShow(true);
+      }
     };
 
     const useSelectCell = columnsUseSelectCell.includes(columnId);
@@ -59,6 +64,13 @@ const EditableCell = observer(
             className={`form-control form-control-sm rounded ${store.validationErrors?.[rowIndex]?.[columnId] ? "is-invalid" : ""}`}
             value={store.spreadsheetData?.[rowIndex]?.[columnId] || ""}
             title={value}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                console.log("Enter key pressed in EditableCell");
+                e.preventDefault();
+                handleBlur(e);
+              }
+            }}
             onChange={(e) =>
               store.updateCellValue(rowIndex, columnId, e.target.value)
             }
@@ -384,10 +396,15 @@ export const DataTable = observer(({ store }) => {
             ))}
           </tbody>
         </table>
-        <p className="text-muted small ms-2">
+        <p className="text-muted small mb-4">
           <FormattedMessage
             id="REQUIRED_FIELD_NOTE"
             defaultMessage="* denotes required fields"
+          />
+          <br />
+          <FormattedMessage
+            id="APPLY_TO_ALL_ROWS_NOTE"
+            defaultMessage="+ denotes change can apply to all rows for this column"
           />
         </p>
       </div>

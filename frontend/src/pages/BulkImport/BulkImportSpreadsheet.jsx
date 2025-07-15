@@ -17,221 +17,252 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
   const processFile = (file) => {
     if (!file) return;
     const reader = new FileReader();
+
+    reader.onerror = (error) => {
+      alert(`Error reading file: ${error.message}`);
+      store.setSpreadsheetUploadProgress(0);
+      store.setSpreadsheetFileName("");
+      store.setRawData([]);
+      store.setRawColumns([]);
+      store.setColumnsDef([]);
+      store.setWorksheetInfo(0, [], 0, 0, "");
+      store.setValidationErrors({});
+      store.setValidationWarnings({});
+      store.clearSubmissionErrors();
+    };
+
     reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetNames = workbook.SheetNames;
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetNames = workbook.SheetNames;
 
-      const sheetStats = sheetNames.map((name) => {
-        const ws = workbook.Sheets[name];
-        const arr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
-        const colCount = arr[0]?.length || 0;
-        const rowCount = arr.length - 1;
-        return { name, rowCount, colCount };
-      });
+        const sheetStats = sheetNames.map((name) => {
+          const ws = workbook.Sheets[name];
+          const arr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+          const colCount = arr[0]?.length || 0;
+          const rowCount = arr.length - 1;
+          return { name, rowCount, colCount };
+        });
 
-      const totalRows = sheetStats.reduce((sum, s) => sum + s.rowCount, 0);
-      const maxCols = Math.max(...sheetStats.map((s) => s.colCount), 0);
+        const totalRows = sheetStats.reduce((sum, s) => sum + s.rowCount, 0);
+        const maxCols = Math.max(...sheetStats.map((s) => s.colCount), 0);
 
-      store.setWorksheetInfo(
-        sheetNames.length,
-        sheetNames,
-        maxCols,
-        totalRows,
-        file.name,
-      );
-
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const allJsonDataRaw = XLSX.utils.sheet_to_json(worksheet, {
-        defval: "",
-      });
-      const allJsonData = allJsonDataRaw.map((row) => {
-        const normalizedRow = {};
-        for (const key in row) {
-          const newKey = key
-            .replace(/Occurrence/g, "Sighting")
-            .replace(/occurrence/g, "sighting");
-          normalizedRow[newKey] = row[key];
-        }
-        return normalizedRow;
-      });
-
-      store.setRawData(allJsonData || []);
-      const processedData = [];
-      let currentIndex = 0;
-
-      const rowKeys = Object.keys(allJsonData[0] || {});
-      store.setRawColumns(rowKeys);
-      const mediaAssetsCols = rowKeys.filter(
-        (k) =>
-          k.startsWith("Encounter.mediaAsset") && k.split(".").length === 2,
-      );
-      const remaining = rowKeys
-        .filter((k) => !specifiedColumns.includes(k))
-        .filter((k) => !removedColumns.includes(k))
-        .filter((k) => !mediaAssetsCols.includes(k));
-
-      const userUploadedCols = new Set(rowKeys);
-      const includedSpecified = specifiedColumns.filter((col) =>
-        userUploadedCols.has(col),
-      );
-
-      store.setColumnsDef([...includedSpecified, ...remaining]);
-      if (
-        !store.columnsDef.includes("Encounter.mediaAsset0") &&
-        mediaAssetsCols.length > 0
-      ) {
-        store.columnsDef.unshift("Encounter.mediaAsset0");
-        store.rawColumns.unshift("Encounter.mediaAsset0");
-      }
-
-      store.applyDynamicValidationRules();
-
-      const formatDate = (year, month, day, hour, minute) => {
-        const pad2 = (s) =>
-          s != null && s !== "" ? String(s).padStart(2, "0") : "";
-
-        const y = String(year);
-        const m = pad2(month);
-        const d = pad2(day);
-        const hh = pad2(hour);
-        const mm = pad2(minute);
-
-        let result = y;
-        if (month || day) {
-          result += "-" + m;
-          if (day) {
-            result += "-" + d;
-          }
-        }
-        if (hour || minute) {
-          result += "T" + hh;
-          if (minute) {
-            result += ":" + mm;
-          }
-        }
-
-        return result;
-      };
-
-      const getLatLong = (lat, lon) => {
-        const hasLat = lat !== undefined && lat !== null && lat !== "";
-        const hasLon = lon !== undefined && lon !== null && lon !== "";
-
-        if (hasLat && hasLon) {
-          return `${lat}, ${lon}`;
-        } else if (hasLat) {
-          return `${lat}, `;
-        } else if (hasLon) {
-          return `, ${lon}`;
-        } else {
-          return "";
-        }
-      };
-      const processChunk = () => {
-        const chunk = allJsonData.slice(
-          currentIndex,
-          currentIndex + CHUNK_SIZE,
+        store.setWorksheetInfo(
+          sheetNames.length,
+          sheetNames,
+          maxCols,
+          totalRows,
+          file.name,
         );
-        const normalizedChunk = chunk.map((row) => {
-          const normalizedRow = { ...row };
-          const mediaAssets = mediaAssetsCols
-            .filter((v) => row[v] != null && row[v] !== "")
-            .map((col) => {
-              const mediaAsset =
-                typeof row[col] === "string"
-                  ? row[col].trim()
-                  : String(row[col] ?? "").trim();
-              return mediaAsset;
-            })
-            .join(", ");
-          if (mediaAssets) {
-            normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
+
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const allJsonDataRaw = XLSX.utils.sheet_to_json(worksheet, {
+          defval: "",
+        });
+        const allJsonData = allJsonDataRaw.map((row) => {
+          const normalizedRow = {};
+          for (const key in row) {
+            const newKey = key
+              .replace(/Occurrence/g, "Sighting")
+              .replace(/occurrence/g, "sighting");
+            normalizedRow[newKey] = row[key];
           }
-
-          const Encounter_decimalLatitude = getLatLong(
-            row["Encounter.decimalLatitude"],
-            row["Encounter.decimalLongitude"],
-          );
-          if (Encounter_decimalLatitude) {
-            normalizedRow["Encounter.decimalLatitude"] =
-              Encounter_decimalLatitude;
-          }
-
-          const Encounter_latitude = getLatLong(
-            row["Encounter.latitude"],
-            row["Encounter.longitude"],
-          );
-          if (Encounter_latitude) {
-            normalizedRow["Encounter.latitude"] = Encounter_latitude;
-          }
-
-          const Sighting_decimalLatitude = getLatLong(
-            row["Sighting.decimalLatitude"],
-            row["Sighting.decimalLongitude"],
-          );
-
-          if (Sighting_decimalLatitude) {
-            normalizedRow["Sighting.decimalLatitude"] =
-              Sighting_decimalLatitude;
-          }
-
-          const formattedEncounterDate = formatDate(
-            row["Encounter.year"],
-            row["Encounter.month"],
-            row["Encounter.day"],
-            row["Encounter.hour"],
-            row["Encounter.minutes"],
-          );
-          if (
-            formattedEncounterDate &&
-            formattedEncounterDate !== "undefined"
-          ) {
-            normalizedRow["Encounter.year"] = formattedEncounterDate;
-          }
-
-          const formattedSightingDate = formatDate(
-            row["Sighting.year"],
-            row["Sighting.month"],
-            row["Sighting.day"],
-            row["Sighting.hour"],
-            row["Sighting.minutes"],
-          );
-          if (formattedSightingDate && formattedSightingDate !== "undefined") {
-            normalizedRow["Sighting.year"] = formattedSightingDate;
-          }
-
-          const genus = String(row["Encounter.genus"] ?? "").trim();
-          const specific = String(
-            row["Encounter.specificEpithet"] ?? "",
-          ).trim();
-          const genusCombined = [genus, specific].filter(Boolean).join(" ");
-          if (genusCombined) {
-            normalizedRow["Encounter.genus"] = genusCombined;
-          }
-
           return normalizedRow;
         });
 
-        processedData.push(...normalizedChunk);
-        currentIndex += CHUNK_SIZE;
+        store.setRawData(allJsonData || []);
+        const processedData = [];
+        let currentIndex = 0;
 
-        store.setSpreadsheetUploadProgress(
-          Math.min(100, Math.round((currentIndex / totalRows) * 100)),
+        const rowKeys = Object.keys(allJsonData[0] || {});
+        store.setRawColumns(rowKeys);
+        const mediaAssetsCols = rowKeys.filter(
+          (k) =>
+            k.startsWith("Encounter.mediaAsset") && k.split(".").length === 2,
         );
-        if (currentIndex < totalRows) {
-          setTimeout(processChunk, 0);
-        } else {
-          if (store && store.setSpreadsheetData) {
-            store.setSpreadsheetData(processedData);
-            const { errors, warnings } = store.validateSpreadsheet();
-            store.setValidationErrors(errors);
-            store.setValidationWarnings(warnings);
-          }
+        const remaining = rowKeys
+          .filter((k) => !specifiedColumns.includes(k))
+          .filter((k) => !removedColumns.includes(k))
+          .filter((k) => !mediaAssetsCols.includes(k));
+
+        const userUploadedCols = new Set(rowKeys);
+        const includedSpecified = specifiedColumns.filter((col) =>
+          userUploadedCols.has(col),
+        );
+
+        store.setColumnsDef([...includedSpecified, ...remaining]);
+        if (
+          !store.columnsDef.includes("Encounter.mediaAsset0") &&
+          mediaAssetsCols.length > 0
+        ) {
+          store.columnsDef.unshift("Encounter.mediaAsset0");
+          store.rawColumns.unshift("Encounter.mediaAsset0");
         }
-      };
-      processChunk();
+
+        store.applyDynamicValidationRules();
+
+        const formatDate = (year, month, day, hour, minute) => {
+          const pad2 = (s) =>
+            s != null && s !== "" ? String(s).padStart(2, "0") : "";
+
+          const y = String(year);
+          const m = pad2(month);
+          const d = pad2(day);
+          const hh = pad2(hour);
+          const mm = pad2(minute);
+
+          let result = y;
+          if (month || day) {
+            result += "-" + m;
+            if (day) {
+              result += "-" + d;
+            }
+          }
+          if (hour || minute) {
+            result += "T" + hh;
+            if (minute) {
+              result += ":" + mm;
+            }
+          }
+
+          return result;
+        };
+
+        const getLatLong = (lat, lon) => {
+          const hasLat = lat !== undefined && lat !== null && lat !== "";
+          const hasLon = lon !== undefined && lon !== null && lon !== "";
+
+          if (hasLat && hasLon) {
+            return `${lat}, ${lon}`;
+          } else if (hasLat) {
+            return `${lat}, `;
+          } else if (hasLon) {
+            return `, ${lon}`;
+          } else {
+            return "";
+          }
+        };
+        const processChunk = () => {
+          const chunk = allJsonData.slice(
+            currentIndex,
+            currentIndex + CHUNK_SIZE,
+          );
+          const normalizedChunk = chunk.map((row) => {
+            const normalizedRow = { ...row };
+            const mediaAssets = mediaAssetsCols
+              .filter((v) => row[v] != null && row[v] !== "")
+              .map((col) => {
+                const mediaAsset =
+                  typeof row[col] === "string"
+                    ? row[col].trim()
+                    : String(row[col] ?? "").trim();
+                return mediaAsset;
+              })
+              .join(", ");
+            if (mediaAssets) {
+              normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
+            }
+
+            const Encounter_decimalLatitude = getLatLong(
+              row["Encounter.decimalLatitude"],
+              row["Encounter.decimalLongitude"],
+            );
+            if (Encounter_decimalLatitude) {
+              normalizedRow["Encounter.decimalLatitude"] =
+                Encounter_decimalLatitude;
+            }
+
+            const Encounter_latitude = getLatLong(
+              row["Encounter.latitude"],
+              row["Encounter.longitude"],
+            );
+            if (Encounter_latitude) {
+              normalizedRow["Encounter.latitude"] = Encounter_latitude;
+            }
+
+            const Sighting_decimalLatitude = getLatLong(
+              row["Sighting.decimalLatitude"],
+              row["Sighting.decimalLongitude"],
+            );
+
+            if (Sighting_decimalLatitude) {
+              normalizedRow["Sighting.decimalLatitude"] =
+                Sighting_decimalLatitude;
+            }
+
+            const formattedEncounterDate = formatDate(
+              row["Encounter.year"],
+              row["Encounter.month"],
+              row["Encounter.day"],
+              row["Encounter.hour"],
+              row["Encounter.minutes"],
+            );
+            if (
+              formattedEncounterDate &&
+              formattedEncounterDate !== "undefined"
+            ) {
+              normalizedRow["Encounter.year"] = formattedEncounterDate;
+            }
+
+            const formattedSightingDate = formatDate(
+              row["Sighting.year"],
+              row["Sighting.month"],
+              row["Sighting.day"],
+              row["Sighting.hour"],
+              row["Sighting.minutes"],
+            );
+            if (
+              formattedSightingDate &&
+              formattedSightingDate !== "undefined"
+            ) {
+              normalizedRow["Sighting.year"] = formattedSightingDate;
+            }
+
+            const genus = String(row["Encounter.genus"] ?? "").trim();
+            const specific = String(
+              row["Encounter.specificEpithet"] ?? "",
+            ).trim();
+            const genusCombined = [genus, specific].filter(Boolean).join(" ");
+            if (genusCombined) {
+              normalizedRow["Encounter.genus"] = genusCombined;
+            }
+
+            return normalizedRow;
+          });
+
+          processedData.push(...normalizedChunk);
+          currentIndex += CHUNK_SIZE;
+
+          store.setSpreadsheetUploadProgress(
+            Math.min(100, Math.round((currentIndex / totalRows) * 100)),
+          );
+          if (currentIndex < totalRows) {
+            setTimeout(processChunk, 0);
+          } else {
+            if (store && store.setSpreadsheetData) {
+              store.setSpreadsheetData(processedData);
+              const { errors, warnings } = store.validateSpreadsheet();
+              store.setValidationErrors(errors);
+              store.setValidationWarnings(warnings);
+              store.setActiveStep(2);
+            }
+          }
+        };
+        processChunk();
+      } catch (error) {
+        alert(`Error processing file: ${error.message}`);
+        store.setSpreadsheetUploadProgress(0);
+        store.setSpreadsheetFileName("");
+        store.setRawData([]);
+        store.setRawColumns([]);
+        store.setColumnsDef([]);
+        store.setWorksheetInfo(0, [], 0, 0, "");
+        store.setValidationErrors({});
+        store.setValidationWarnings({});
+        store.clearSubmissionErrors();
+      }
     };
     reader.readAsArrayBuffer(file);
   };
@@ -356,6 +387,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               store.setWorksheetInfo(0, [], 0, 0, "");
               store.setValidationErrors({});
               store.setValidationWarnings({});
+              store.clearSubmissionErrors();
             }}
             style={{
               position: "absolute",
@@ -426,13 +458,13 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         </div>
       )}
 
-      <span className="position-absolute top-0 start-50 translate-middle-x">
+      <div className="mt-3">
         {store.spreadsheetUploadProgress === 100 ? (
           <FormattedMessage id="BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE" />
-        ) : (
+        ) : store.spreadsheetUploadProgress !== 0 ? (
           `${store.spreadsheetUploadProgress}%`
-        )}
-      </span>
+        ) : null}
+      </div>
 
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton
