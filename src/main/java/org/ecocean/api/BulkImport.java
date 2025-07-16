@@ -713,7 +713,7 @@ public class BulkImport extends ApiBase {
         taskShepherd.setAction("BulkImport.initializeImportTask");
         taskShepherd.beginDBTransaction();
         try {
-            User user = taskShepherd.getUser(passedUser.getId()); // needs to be on our shepherd
+            User user = taskShepherd.getUserByUUID(passedUser.getId()); // needs to be on our shepherd
             ImportTask itask = taskShepherd.getImportTask(id);
             if (itask != null) {
                 itask.addLog(
