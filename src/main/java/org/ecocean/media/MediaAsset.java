@@ -268,6 +268,12 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return store;
     }
 
+/*
+    // use caution: AssetStore and MediaAsset must use same Shepherd
+    public void setStore(AssetStore astore) {
+        store = astore;
+    }
+ */
     public Integer getParentId() {
         return parentId;
     }
@@ -521,7 +527,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     /**
-       this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or human-input 
+       this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or human-input
        FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string), then (b) crawl metadata.exif for something date-y
      */
     public DateTime getDateTime() {
@@ -620,6 +626,10 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return (getAnnotations().size() > 0);
     }
 
+    public int numAnnotations() {
+        return getAnnotations().size();
+    }
+
     public List<Taxonomy> getTaxonomies(Shepherd myShepherd) {
         Set<Taxonomy> taxis = new HashSet<Taxonomy>();
 
@@ -651,7 +661,6 @@ public class MediaAsset extends Base implements java.io.Serializable {
             return annA.comparePositional(annB);
         }
     }
-
 
     /**
      * Return a full web-accessible url to the asset, or null if the asset is not web-accessible. NOTE: now you should *almost always* use .safeURL()
@@ -1098,7 +1107,6 @@ public class MediaAsset extends Base implements java.io.Serializable {
         if ((types == null) || (types.size() < 1)) return null;
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (String type : types) {
-            System.out.println(">> updateStandardChildren(): type = " + type);
             MediaAsset c = null;
             try {
                 c = this.updateChild(type);
@@ -1144,6 +1152,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
                     ct++;
                     MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                     if (ma == null) continue;
+                    ma.setSkipAutoIndexing(true);
                     ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
                     System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid +
                         "] completed " + kids.size() + " children for id=" + id);
@@ -1353,7 +1362,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     public MediaAssetMetadata updateMetadata()
-    throws IOException { 
+    throws IOException {
         if (store == null) return null;
         metadata = store.extractMetadata(this);
         return metadata;
@@ -1451,7 +1460,12 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return validImageForIA;
     }
 
-    public Boolean validateSourceImage() {
+    public boolean isValidImageForIAForced() {
+        if (validImageForIA == null) return false;
+        return validImageForIA;
+    }
+
+    public boolean validateSourceImage() {
         if ("LOCAL".equals(this.getStore().getType().toString())) {
             Path lPath = this.localPath();
             String typeString = null;
@@ -1472,7 +1486,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
                 this.validImageForIA = false;
             }
         }
-        return isValidImageForIA();
+        return isValidImageForIAForced();
     }
 
 /*
@@ -1682,11 +1696,23 @@ public class MediaAsset extends Base implements java.io.Serializable {
     }
 
     @Override public String getAllVersionsSql() {
-        return "SELECT CAST(\"ID\" AS text), \"REVISION\" AS version FROM \"MEDIAASSET\" WHERE \"PARENTID\" IS NULL ORDER BY version";
+        return
+                "SELECT CAST(\"ID\" AS text), \"REVISION\" AS version FROM \"MEDIAASSET\" WHERE \"PARENTID\" IS NULL ORDER BY version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
         return myShepherd.getMediaAsset(id);
+    }
+
+    // we override Base version, as we want to (dont we?) always skip auto-indexing children assets
+    public boolean getSkipAutoIndexing() {
+        if (this.skipAutoIndexing) return true;
+        if (this.parentId != null) return true;
+        // TODO making the bold decision to *always* let MediaAsset index in background
+        // as we currently arent even using this index. this is especially helpful as
+        // assets seem to trigger lifecycle postStore() **a lot**.   -jon
+        // return false;
+        return true;
     }
 
     // comment cruft only needed for Base class

@@ -2428,6 +2428,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             + String.join(" || names.id == ", nameIds) + ")" + taxonomyStringFilter;
         System.out.println("findByNames jdoql: " + jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
+        if (query == null) return rtn; // this is really only to save us while testing snh irl
         Collection c = (Collection)(query.execute());
         for (Object m : c) {
             MarkedIndividual ind = (MarkedIndividual)m;
@@ -2602,7 +2603,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             other.getIndividualID() + "'";
         Query q = myShepherd.getPM().newQuery(filter);
         Collection cTemp = (Collection)q.execute();
-        ArrayList<ScheduledIndividualMerge> c = new ArrayList<ScheduledIndividualMerge>(cTemp); 
+        ArrayList<ScheduledIndividualMerge> c = new ArrayList<ScheduledIndividualMerge>(cTemp);
         q.closeAll();
         ArrayList<ScheduledIndividualMerge> merges = new ArrayList<ScheduledIndividualMerge>(c);
         // throw out any scheduled merge related to this individual as it is now being merged.

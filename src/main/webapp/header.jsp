@@ -590,7 +590,7 @@ if(request.getUserPrincipal()!=null){
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
 
-                            <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            <li class="dropdown"><a href="<%=urlLoc %>/react/bulk-import"><%=props.getProperty("bulkImport")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">

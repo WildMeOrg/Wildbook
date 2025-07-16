@@ -608,6 +608,19 @@
 		<url-pattern>/api/v3/site-settings/*</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>BulkImport</servlet-name>
+		<servlet-class>org.ecocean.api.BulkImport</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>BulkImport</servlet-name>
+		<url-pattern>/api/v3/bulk-import</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>BulkImport</servlet-name>
+		<url-pattern>/api/v3/bulk-import/*</url-pattern>
+	</servlet-mapping>
+
   <servlet>
     <servlet-name>ReactAppServlet</servlet-name>
     <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>

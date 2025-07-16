@@ -29,6 +29,6 @@ describe("Report Component", () => {
     const buttons = screen.getAllByTestId("brutalism-button");
     expect(buttons).toHaveLength(2);
     expect(buttons[0]).toHaveAttribute("href", "/submit.jsp");
-    expect(buttons[1]).toHaveAttribute("href", "/import/instructions.jsp");
+    expect(buttons[1]).toHaveAttribute("href", "/react/bulk-import");
   });
 });
