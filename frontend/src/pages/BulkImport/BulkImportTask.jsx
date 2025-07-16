@@ -235,10 +235,13 @@ const BulkImportTask = () => {
         >
           <InfoAccordion
             icon={<FaImage size={20} color={theme.primaryColors.primary500} />}
-            title={
-              intl.formatMessage({ id: "BULK_IMPORT_IMAGE_UPLOADED" }) +
-              (task?.iaSummary?.numberMediaAssets || 0)
-            }
+            title={intl.formatMessage(
+              {
+                id: "PHOTOS_UPLOADED_TITLE",
+                defaultMessage: "Images uploaded: {count}",
+              },
+              { count: task?.iaSummary?.numberMediaAssets || 0 },
+            )}
             data={[
               {
                 label: intl.formatMessage({

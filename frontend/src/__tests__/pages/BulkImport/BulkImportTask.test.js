@@ -4,13 +4,17 @@ import { renderWithProviders } from "../../../utils/utils";
 import BulkImportTask from "../../../pages/BulkImport/BulkImportTask";
 
 jest.mock("../../../models/bulkImport/useGetBulkImportTask", () => jest.fn());
-jest.mock("../../../components/ProgressCard", () => ({
-  ProgressCard: ({ title, progress, status }) => (
-    <div data-testid="progress-card">
-      {title}: {progress} ({status})
-    </div>
-  ),
+jest.mock("../../../components/InfoAccordion", () => ({
+  __esModule: true,
+  default: ({ title, data }) => {
+    const renderedTitle =
+      typeof title === "string"
+        ? title.replace("{count}", data?.[0]?.value ?? "0")
+        : title;
+    return <div>{renderedTitle}</div>;
+  },
 }));
+
 jest.mock("../../../components/InfoAccordion", () => ({
   __esModule: true,
   default: ({ title }) => <div>{title}</div>,
@@ -102,12 +106,8 @@ describe("BulkImportTask", () => {
     renderWithProviders(<BulkImportTask />);
 
     expect(screen.getByText("BULK_IMPORT_TASK")).toBeInTheDocument();
-    expect(screen.getByText("Import: 1 (Complete)")).toBeInTheDocument();
-    expect(screen.getByText("Detection: 1 (Complete)")).toBeInTheDocument();
-    expect(
-      screen.getByText("Identification: 0.5 (In Progress)"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Images Uploaded: 10")).toBeInTheDocument();
+    expect(screen.getAllByText("Complete")).toHaveLength(2);
+    expect(screen.getByText("In Progress")).toBeInTheDocument();
     expect(screen.getByTestId("simple-table")).toBeInTheDocument();
     expect(screen.getByText("E123")).toBeInTheDocument();
   });
@@ -150,7 +150,7 @@ describe("BulkImportTask", () => {
     });
 
     renderWithProviders(<BulkImportTask />);
-    fireEvent.click(screen.getByText("Delete Import Task"));
+    fireEvent.click(screen.getByText("BULK_IMPORT_DELETE_TASK"));
     expect(window.confirm).toHaveBeenCalled();
   });
 
@@ -175,7 +175,7 @@ describe("BulkImportTask", () => {
     });
 
     renderWithProviders(<BulkImportTask />);
-    fireEvent.click(screen.getByText("Delete Import Task"));
+    fireEvent.click(screen.getByText("BULK_IMPORT_DELETE_TASK"));
 
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith(
@@ -204,7 +204,7 @@ describe("BulkImportTask", () => {
     });
 
     renderWithProviders(<BulkImportTask />);
-    fireEvent.click(screen.getByText("Delete Import Task"));
+    fireEvent.click(screen.getByText("BULK_IMPORT_DELETE_TASK"));
 
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith(
@@ -223,7 +223,7 @@ describe("BulkImportTask", () => {
     renderWithProviders(<BulkImportTask />);
     expect(screen.getByText("Encounter ID")).toBeInTheDocument();
     expect(screen.getByText("Encounter Date")).toBeInTheDocument();
-    expect(screen.getByText("Occurrence")).toBeInTheDocument();
+    expect(screen.getByText("Sighting")).toBeInTheDocument();
   });
 
   test("renders encounter ID as link", () => {
