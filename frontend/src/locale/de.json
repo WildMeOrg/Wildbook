@@ -478,6 +478,8 @@
   "SPREADSHEET_UPLOADED_TITLE": "Tabellen-Datei hochgeladen: {fileName}",
   "IMPORT": "Importieren",
   "DETECTION": "Erkennung",
-  "IDENTIFICATION": "Identifikation"
+  "IDENTIFICATION": "Identifikation",
+  "BULK_IMPORT_SAVED_AS_DRAFT": "Als Entwurf gespeichert",
+  "BULK_IMPORT_SAVING_AS_DRAFT": "Speichern als Entwurf"
 }
 

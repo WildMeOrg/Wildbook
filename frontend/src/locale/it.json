@@ -477,5 +477,7 @@
   "SPREADSHEET_UPLOADED_TITLE": "Foglio di calcolo caricato: {fileName}",
   "IMPORT": "Importa",
   "DETECTION": "Rilevamento",
-  "IDENTIFICATION": "Identificazione"
+  "IDENTIFICATION": "Identificazione",
+  "BULK_IMPORT_SAVED_AS_DRAFT": "Salvato come bozza",
+  "BULK_IMPORT_SAVING_AS_DRAFT": "Salvataggio come bozza in corso..."
 }

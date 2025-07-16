@@ -477,5 +477,7 @@
     "SPREADSHEET_UPLOADED_TITLE": "Spreadsheet Uploaded: {fileName}",
     "IMPORT": "Import",
     "DETECTION": "Detection",
-    "IDENTIFICATION": "Identification"
+    "IDENTIFICATION": "Identification",
+    "BULK_IMPORT_SAVED_AS_DRAFT": "Saved as Draft",
+    "BULK_IMPORT_SAVING_AS_DRAFT": "Saving as Draft"
 }
