@@ -469,5 +469,12 @@
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Se detectaron campos sinónimos",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Se detectaron campos duplicados",
   "ROW": "Fila",
-  "APPLY_TO_ALL_ROWS_NOTE": "+ denota que el cambio se puede aplicar a todas las filas de esta columna"
+  "APPLY_TO_ALL_ROWS_NOTE": "+ denota que el cambio se puede aplicar a todas las filas de esta columna",
+   "BULK_IMPORT_DELETE_TASK" : "Eliminar tarea de importación masiva",
+   "BULK_IMPORT_DATA_UPLOADED" : "Datos subidos",
+   "BULK_IMPORT_IMAGE_UPLOADED": "Imagen subida",
+   "SPREADSHEET_UPLOADED_TITLE": "Hoja de cálculo subida: {fileName}",
+   "IMPORT": "Importar",
+   "DETECTION": "Detección",
+   "IDENTIFICATION": "Identificación"
 }

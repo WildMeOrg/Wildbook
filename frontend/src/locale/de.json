@@ -471,6 +471,13 @@
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Synonymfelder erkannt",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Doppelte Felder erkannt",
   "ROW": "Zeile",
-  "APPLY_TO_ALL_ROWS_NOTE": "+ kennzeichnet, dass die Änderung auf alle Zeilen dieser Spalte angewendet werden kann"
+  "APPLY_TO_ALL_ROWS_NOTE": "+ kennzeichnet, dass die Änderung auf alle Zeilen dieser Spalte angewendet werden kann",
+  "BULK_IMPORT_DELETE_TASK": "Massenimport-Aufgabe löschen",
+  "BULK_IMPORT_DATA_UPLOADED": "Daten hochgeladen",
+  "BULK_IMPORT_IMAGE_UPLOADED": "Bild hochgeladen",
+  "SPREADSHEET_UPLOADED_TITLE": "Tabellen-Datei hochgeladen: {fileName}",
+  "IMPORT": "Importieren",
+  "DETECTION": "Erkennung",
+  "IDENTIFICATION": "Identifikation"
 }
 

@@ -177,7 +177,9 @@ const BulkImportTask = () => {
         <div className="d-flex flex-row gap-3">
           {[
             {
-              title: "Import",
+              title: intl.formatMessage({
+                id: "IMPORT",
+              }),
               progress: task?.importPercent || 0,
               status: (() => {
                 if (task?.importPercent === 1) {
@@ -190,12 +192,16 @@ const BulkImportTask = () => {
               })(),
             },
             {
-              title: "Detection",
+              title: intl.formatMessage({
+                id: "DETECTION",
+              }),
               progress: task?.iaSummary?.detectionPercent || 0,
               status: task?.iaSummary?.detectionStatus || "Not Started",
             },
             {
-              title: "Identification",
+              title: intl.formatMessage({
+                id: "IDENTIFICATION",
+              }),
               progress: task?.iaSummary?.identificationPercent || 0,
               status: task?.iaSummary?.identificationStatus || "Not Started",
             },
@@ -211,7 +217,12 @@ const BulkImportTask = () => {
       </Row>
 
       <section>
-        <h5 className="fw-semibold mb-2">Data Uploaded</h5>
+        <h5 className="fw-semibold mb-2">
+          <FormattedMessage
+            id="BULK_IMPORT_DATA_UPLOADED"
+            defaultMessage="Data Uploaded"
+          />
+        </h5>
 
         <div
           style={{
@@ -225,7 +236,8 @@ const BulkImportTask = () => {
           <InfoAccordion
             icon={<FaImage size={20} color={theme.primaryColors.primary500} />}
             title={
-              "Images Uploaded: " + (task?.iaSummary?.numberMediaAssets || 0)
+              intl.formatMessage({ id: "BULK_IMPORT_IMAGE_UPLOADED" }) +
+              (task?.iaSummary?.numberMediaAssets || 0)
             }
             data={[
               {
@@ -286,7 +298,7 @@ const BulkImportTask = () => {
       <Row className="g-2 mb-4">
         <Col xs="auto">
           <Button variant="outline-danger" onClick={deleteTask}>
-            Delete Import Task
+            <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
           </Button>
         </Col>
       </Row>
