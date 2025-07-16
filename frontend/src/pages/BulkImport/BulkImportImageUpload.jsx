@@ -478,7 +478,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
         <Col xs="auto">
           <MainButton
             onClick={() => {
-              store.setActiveStep(2);
+              store.setActiveStep(1);
             }}
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
