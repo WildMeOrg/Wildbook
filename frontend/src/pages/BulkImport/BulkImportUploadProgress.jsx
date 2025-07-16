@@ -153,7 +153,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
         onClick={() => {
           if (
             store.spreadsheetUploadProgress === 100 &&
-            store.validationErrors.length === 0 &&
+            Object.keys(store.validationErrors).length === 0 &&
             store.missingRequiredColumns.length === 0
           ) {
             store.setActiveStep(3);
