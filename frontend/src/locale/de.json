@@ -480,6 +480,7 @@
   "DETECTION": "Erkennung",
   "IDENTIFICATION": "Identifikation",
   "BULK_IMPORT_SAVED_AS_DRAFT": "Als Entwurf gespeichert",
-  "BULK_IMPORT_SAVING_AS_DRAFT": "Speichern als Entwurf"
+  "BULK_IMPORT_SAVING_AS_DRAFT": "Speichern als Entwurf",
+  "BULK_IMPORT_STARTED_AT": "Massenimport gestartet um"
 }
 

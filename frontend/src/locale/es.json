@@ -478,5 +478,6 @@
    "DETECTION": "Detección",
    "IDENTIFICATION": "Identificación",
    "BULK_IMPORT_SAVED_AS_DRAFT": "Guardado como borrador",
-   "BULK_IMPORT_SAVING_AS_DRAFT": "Guardando como borrador..."
+   "BULK_IMPORT_SAVING_AS_DRAFT": "Guardando como borrador...",
+   "BULK_IMPORT_STARTED_AT": "Importación iniciada en"
 }

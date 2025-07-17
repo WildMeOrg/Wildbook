@@ -1,25 +1,27 @@
-import React, { useEffect, useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+import React, { useEffect, useState, useContext } from "react";
+import { Modal } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-import { FaDownload } from "react-icons/fa";
+import MainButton from "../../components/MainButton";
+import ThemeContext from "../../ThemeColorProvider";
 
 export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
   const [show, setShow] = useState(Boolean(store.submissionId));
+  const theme = useContext(ThemeContext);
 
-  const savedStore = JSON.parse(localStorage.getItem("BulkImportStore")) || {};
+  const savedStore = React.useMemo(() => {
+    return JSON.parse(localStorage.getItem("BulkImportStore") || "{}");
+  }, []);
+
   const uploadedImageCount = savedStore?.uploadedImages?.length || 0;
   const lastSavedAt = savedStore?.lastSavedAt || Date.now();
 
   useEffect(() => {
-    const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
     if (savedStore?.submissionId) {
       setShow(true);
     }
   }, []);
 
   const handleContinue = () => {
-    const savedStore = JSON.parse(localStorage.getItem("BulkImportStore"));
-    console.log("Continuing with saved store:", savedStore);
     const submissionId = savedStore?.submissionId;
     if (submissionId) {
       setRenderMode1("list");
@@ -63,14 +65,28 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
 
         <div className="d-flex align-items-center p-3 border rounded">
           <div
-            className="d-flex align-items-center justify-content-center rounded-circle bg-light me-3"
-            style={{ width: 42, height: 42 }}
+            className="d-flex align-items-center justify-content-center rounded-circle me-3"
+            style={{
+              width: 42,
+              height: 42,
+              backgroundColor: theme.primaryColors.primary100,
+            }}
           >
-            <FaDownload className="text-info" />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 9.5H15V3.5H9V9.5H5L12 16.5L19 9.5ZM5 18.5V20.5H19V18.5H5Z"
+                fill={theme.primaryColors.primary500}
+              />
+            </svg>
           </div>
-
           <div className="flex-grow-1">
-            <div className="fw-semibold">{store.worksheetInfo.fileName}</div>
+            <div className="fw-semibold">{savedStore.spreadsheetFileName}</div>
             <div className="small text-muted">
               {uploadedImageCount}{" "}
               <FormattedMessage
@@ -96,15 +112,27 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="primary" onClick={handleContinue}>
+        <MainButton
+          onClick={handleContinue}
+          backgroundColor={theme.wildMeColors.cyan700}
+          color={theme.defaultColors.white}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem" }}
+        >
           <FormattedMessage id="CONTINUE" defaultMessage="Resume" />
-        </Button>
-        <Button variant="secondary" onClick={handleDelete}>
+        </MainButton>
+        <MainButton
+          onClick={handleDelete}
+          borderColor={theme.primaryColors.primary500}
+          color={theme.primaryColors.primary500}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem" }}
+        >
           <FormattedMessage
             id="BULK_IMPORT_START_NEW_IMPORT"
             defaultMessage="Start New Import"
           />
-        </Button>
+        </MainButton>
       </Modal.Footer>
     </Modal>
   );

@@ -478,5 +478,6 @@
   "DETECTION": "Détection",
   "IDENTIFICATION": "Identification",
   "BULK_IMPORT_SAVED_AS_DRAFT": "Enregistré comme brouillon",
-  "BULK_IMPORT_SAVING_AS_DRAFT": "Enregistrement en tant que brouillon..."
+  "BULK_IMPORT_SAVING_AS_DRAFT": "Enregistrement en tant que brouillon...",
+  "BULK_IMPORT_STARTED_AT": "Démarré à"
 }

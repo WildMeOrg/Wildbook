@@ -479,5 +479,6 @@
   "DETECTION": "Rilevamento",
   "IDENTIFICATION": "Identificazione",
   "BULK_IMPORT_SAVED_AS_DRAFT": "Salvato come bozza",
-  "BULK_IMPORT_SAVING_AS_DRAFT": "Salvataggio come bozza in corso..."
+  "BULK_IMPORT_SAVING_AS_DRAFT": "Salvataggio come bozza in corso...",
+  "BULK_IMPORT_STARTED_AT": "Avviato il"
 }

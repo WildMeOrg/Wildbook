@@ -88,7 +88,9 @@ const BulkImport = observer(() => {
 
       {unfinishedTask &&
       unfinishedTask.status &&
-      unfinishedTask.status !== "complete" ? (
+      unfinishedTask.status !== "complete" &&
+      unfinishedTask.status !== "failed" &&
+      unfinishedTask.status !== "error" ? (
         <BulkImportUnfinishedTaskModal
           fileName={unfinishedTask?.sourceName || "file name"}
           dateCreated={unfinishedTask?.dateCreated || "file last edited date"}
