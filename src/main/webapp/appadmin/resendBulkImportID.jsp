@@ -36,6 +36,8 @@ if(request.getParameterValues("owner") != null) {
     String[] owners = request.getParameterValues("owner");
     ownerFilter = Arrays.asList(owners);
 }
+User user = AccessControl.getUser(request, myShepherd);
+
 
 try {
     res.put("success","false");
@@ -65,6 +67,9 @@ try {
                 mf.put("owner", ownerFilter);
             }
             taskParameters.put("matchingSetFilter", mf);
+            if (user != null) {
+                taskParameters.put("userId", user.getUUID());
+            }
 
       	  	
       	  	Task parentTask = new Task();  // root task to hold all others, to connect to ImportTask
