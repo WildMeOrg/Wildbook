@@ -26,14 +26,15 @@ JSONObject res = new JSONObject();
 //String queryEncounterId = null;
 String importIdTask = request.getParameter("importIdTask");
 List<String> locationIDs = new ArrayList<String>(); 
-String ownerFilter = ""; 
+List<String> ownerFilter = new ArrayList<String>(); 
 if(request.getParameterValues("locationID")!=null) {
   String[] vals=request.getParameterValues("locationID");
   locationIDs = Arrays.asList(vals);
 }
 
-if(request.getParameter("owner")!=null) {
-    ownerFilter=request.getParameter("owner");
+if(request.getParameterValues("owner") != null) {
+    String[] owners = request.getParameterValues("owner");
+    ownerFilter = Arrays.asList(owners);
 }
 
 try {

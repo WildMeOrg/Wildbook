@@ -981,12 +981,9 @@ try{
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
-	    if ($('#match-filter-owner-me').is(':checked')){
-			owner = "&owner=" + encodeURIComponent(JSON.stringify(["me"]));
-		}
-		else if ($('#match-filter-owner-org').is(':checked')){
-			owner = "&owner=" + encodeURIComponent(JSON.stringify(["org"]));
-		}
+	    $('input[name="match-filter-owner"]:checked').each(function() {
+			owner += '&owner=' + encodeURIComponent(this.value);
+		});
 	    $.ajax({
 	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds+owner,
 	        dataType: 'json',
