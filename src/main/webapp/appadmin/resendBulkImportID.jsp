@@ -69,6 +69,7 @@ try {
             taskParameters.put("matchingSetFilter", mf);
             if (user != null) {
                 taskParameters.put("userId", user.getUUID());
+                taskParameters.put("username", user.getUsername());
             }
 
       	  	
