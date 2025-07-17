@@ -480,5 +480,6 @@
     "IDENTIFICATION": "Identification",
     "BULK_IMPORT_SAVED_AS_DRAFT": "Saved as Draft",
     "BULK_IMPORT_SAVING_AS_DRAFT": "Saving as Draft",
-    "BULK_IMPORT_STARTED_AT": "Started at"
+    "BULK_IMPORT_STARTED_AT": "Started at",
+    "BULK_IMPORT_ERROR_MESSAGE": "There are issues with your data. Please see the error messages displayed below the table."
 }

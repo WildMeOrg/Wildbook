@@ -21,7 +21,6 @@ const BulkImportTask = () => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
   const [showError, setShowError] = useState(false);
-  const [hasShownError, setHasShownError] = useState(false);
 
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
@@ -31,9 +30,8 @@ const BulkImportTask = () => {
     console.log("BulkImportTask error:", error);
     if (error?.message || task?.status === "failed") {
       setShowError(true);
-      setHasShownError(true);
     }
-  }, [error, task, hasShownError]);
+  }, [error, task?.status]);
 
   if (isLoading) {
     return (
@@ -328,7 +326,6 @@ const BulkImportTask = () => {
             onClick={() => {
               refetch();
               setShowError(false);
-              setHasShownError(false);
             }}
           >
             <FormattedMessage id="RETRY" defaultMessage="Retry" />

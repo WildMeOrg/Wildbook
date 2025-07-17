@@ -481,6 +481,7 @@
   "IDENTIFICATION": "Identifikation",
   "BULK_IMPORT_SAVED_AS_DRAFT": "Als Entwurf gespeichert",
   "BULK_IMPORT_SAVING_AS_DRAFT": "Speichern als Entwurf",
-  "BULK_IMPORT_STARTED_AT": "Massenimport gestartet um"
+  "BULK_IMPORT_STARTED_AT": "Massenimport gestartet um",
+  "BULK_IMPORT_ERROR_MESSAGE": "Es gibt Probleme mit Ihren Daten. Bitte sehen Sie sich die Fehlermeldungen an, die unterhalb der Tabelle angezeigt werden."
 }
 

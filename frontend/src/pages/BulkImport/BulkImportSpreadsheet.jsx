@@ -466,7 +466,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         ) : null}
       </div>
 
-      <div className="d-flex flex-row justify-content-between mt-4">
+      <div className="d-flex flex-row justify-content-between mt-4 mb-4">
         <MainButton
           onClick={() => store.setActiveStep(0)}
           backgroundColor={theme.wildMeColors.cyan700}

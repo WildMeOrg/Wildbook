@@ -48,7 +48,7 @@ const BulkImport = observer(() => {
 
   return (
     <Container>
-      <div className="d-flex flex-row justify-content-between align-items-center">
+      <div className="d-flex flex-row justify-content-between align-items-center mb-3">
         <h1 className="mt-3">
           <FormattedMessage id="BULK_IMPORT" />
         </h1>

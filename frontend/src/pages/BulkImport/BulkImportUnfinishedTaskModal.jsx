@@ -63,7 +63,9 @@ export const BulkImportUnfinishedTaskModal = ({
           <div>
             <div className="fw-bold">{fileName}</div>
             <div className="text-muted small">{taskStatus}</div>
-            <div className="text-muted small">{dateCreated}</div>
+            <div className="text-muted small">
+              {new Date(dateCreated).toLocaleString()}
+            </div>
           </div>
         </div>
 
