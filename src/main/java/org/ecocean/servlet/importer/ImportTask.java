@@ -527,15 +527,17 @@ public class ImportTask implements java.io.Serializable {
                 // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
                 if (statsAnn.get("numTasks") != null)
                     numIdentificationTotal = statsAnn.get("numTasks");
-                if (statsAnn.get("complete") != null)
-                    numIdentificationComplete = statsAnn.get("complete");
-                // TODO do we have to deal with errors as "complete" somehow?
+                // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
+                // (it may well have been me)
+                if (statsAnn.get("completed") != null)
+                    numIdentificationComplete = statsAnn.get("completed");
+                // TODO do we have to deal with errors as "completed" somehow?
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);
                 if (numIdentificationTotal == 0) {
                     pj.put("identificationStatus", "identification not started");
                     pj.put("identificationPercent", 0.0);
-                } else if (numIdentificationComplete == numIdentificationTotal) {
+                } else if (numIdentificationComplete >= numIdentificationTotal) {
                     pj.put("identificationStatus", "complete");
                     pj.put("identificationPercent", 1.0);
                 } else {
