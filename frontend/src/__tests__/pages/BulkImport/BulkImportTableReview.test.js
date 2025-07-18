@@ -13,26 +13,6 @@ jest.mock("react-intl", () => {
   };
 });
 
-// jest.mock('../../../pages/BulkImport/BulkImportImageUploadInfo', () => ({
-//   BulkImportImageUploadInfo: () => <div data-testid="image-upload-info" />,
-// }));
-// jest.mock('../../../pages/BulkImport/BulkImportSpreadsheetUploadInfo', () => ({
-//   BulkImportSpreadsheetUploadInfo: () => <div data-testid="spreadsheet-upload-info" />,
-// }));
-// jest.mock('../../../pages/BulkImport/BulkImportSeeInstructionsButton', () => () =>
-//   <button data-testid="see-instructions">Instructions</button>
-// );
-// jest.mock('../../../components/MainButton', () => (props) => (
-//   <button {...props} data-testid={props['data-testid'] || 'main-button'}>
-//     {props.children}
-//   </button>
-// ));
-// jest.mock('../../../pages/BulkImport/EditableDataTable', () => () => (
-//   <div data-testid="editable-table" />
-// ));
-// jest.mock('../../../pages/BulkImport/BulkImportErrorSummaryBar', () => () => (
-//   <div data-testid="error-summary" />
-// ));
 jest.mock("../../../pages/BulkImport/BulkImportImageUploadInfo", () => {
   const BulkImportImageUploadInfo = () => (
     <div data-testid="image-upload-info" />
