@@ -852,7 +852,7 @@ public class BulkImport extends ApiBase {
         String persistedStatus = task.getStatus();
         jt.put("status", persistedStatus);
         jt.put("_statusPersisted", persistedStatus);
-        JSONObject iaSummary = task.iaSummaryJson();
+        JSONObject iaSummary = task.iaSummaryJson(myShepherd);
         if (detailed) jt.put("iaSummary", iaSummary);
         if (iaSummary.optBoolean("pipelineStarted", false)) {
             if (iaSummary.optBoolean("pipelineComplete", false)) {

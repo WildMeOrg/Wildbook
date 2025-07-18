@@ -3,6 +3,7 @@ package org.ecocean;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.shepherd.core.Shepherd;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -10,9 +11,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 /*
-   import static org.mockito.Mockito.any;
    import static org.mockito.Mockito.doNothing;
    import static org.mockito.Mockito.doThrow;
    import static org.mockito.Mockito.mock;
@@ -68,7 +69,7 @@ class ImportTaskTest {
 
         // this lets us use the real thing to test it
         // (which calls many of the things we mock here)
-        when(itask.iaSummaryJson()).thenCallRealMethod();
+        when(itask.iaSummaryJson(any(Shepherd.class))).thenCallRealMethod();
 
         MediaAsset mockMA = mock(MediaAsset.class);
         when(mockMA.numAnnotations()).thenReturn(9);
@@ -80,7 +81,7 @@ class ImportTaskTest {
         Task iaTask = mock(Task.class);
         when(itask.getIATask()).thenReturn(iaTask);
 
-        JSONObject sum = itask.iaSummaryJson();
+        JSONObject sum = itask.iaSummaryJson(mock(Shepherd.class));
         // System.out.println("################################ " + sum.toString(10));
         assertEquals(sum.optInt("numberAnnotations"), 9);
         assertEquals(sum.optInt("numberMediaAssets"), 1);
