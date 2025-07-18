@@ -72,7 +72,7 @@ export const BulkImportTableReview = observer(({ store }) => {
 
       <div
         id="buttons"
-        className="d-flex flex-row justify-content-between mt-4"
+        className="d-flex flex-row justify-content-between mt-4 mb-4"
       >
         <MainButton
           onClick={() => {

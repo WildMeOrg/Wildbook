@@ -470,7 +470,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
         </Col>
       </Row>
 
-      <Row className="mt-4 justify-content-between d-flex align-items-center">
+      <Row className="mt-4 mb-4 justify-content-between d-flex align-items-center">
         <Col xs="auto">
           <BulkImportImageUploadInfo store={store} />
         </Col>

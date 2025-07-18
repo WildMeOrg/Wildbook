@@ -479,5 +479,6 @@
   "IDENTIFICATION": "Identification",
   "BULK_IMPORT_SAVED_AS_DRAFT": "Enregistré comme brouillon",
   "BULK_IMPORT_SAVING_AS_DRAFT": "Enregistrement en tant que brouillon...",
-  "BULK_IMPORT_STARTED_AT": "Démarré à"
+  "BULK_IMPORT_STARTED_AT": "Démarré à",
+  "BULK_IMPORT_ERROR_MESSAGE": "Il y a des problèmes avec vos données. Veuillez consulter les messages d’erreur affichés sous le tableau."
 }
