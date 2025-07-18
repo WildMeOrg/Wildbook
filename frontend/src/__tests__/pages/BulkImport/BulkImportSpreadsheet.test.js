@@ -18,6 +18,8 @@ const mockStore = {
   setValidationWarnings: jest.fn(),
   applyDynamicValidationRules: jest.fn(),
   setActiveStep: jest.fn(),
+  clearSubmissionErrors: jest.fn(),
+  setSpreadsheetError: jest.fn(),
 };
 
 describe("BulkImportSpreadsheet", () => {
@@ -63,13 +65,6 @@ describe("BulkImportSpreadsheet", () => {
     renderWithProviders(<BulkImportSpreadsheet store={store} />);
     fireEvent.click(screen.getByText("NEXT"));
     expect(store.setActiveStep).toHaveBeenCalledWith(2);
-  });
-
-  test("drag over and leave updates dragging state visually", () => {
-    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
-    const dropArea = screen.getByText("BROWSE").parentElement;
-    fireEvent.dragOver(dropArea);
-    fireEvent.dragLeave(dropArea);
   });
 
   test("drop event triggers file processing", async () => {
@@ -219,20 +214,7 @@ describe("BulkImportSpreadsheet", () => {
     expect(store.setColumnsDef).toHaveBeenCalledWith([]);
     expect(store.setValidationErrors).toHaveBeenCalledWith({});
   });
-  test("drag over changes background color", () => {
-    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
-    const dropArea = screen.getByText("BROWSE").parentElement;
 
-    fireEvent.dragOver(dropArea);
-  });
-
-  test("drag leave resets visual style", () => {
-    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
-    const dropArea = screen.getByText("BROWSE").parentElement;
-
-    fireEvent.dragOver(dropArea);
-    fireEvent.dragLeave(dropArea);
-  });
   test("upload button triggers file input click", () => {
     const clickMock = jest.fn();
     document.getElementById = jest.fn(() => ({ click: clickMock }));
@@ -331,5 +313,121 @@ describe("BulkImportSpreadsheet", () => {
     );
     const uploadArea = container.querySelector('[style*="border: 1px dashed"]');
     expect(uploadArea).toBeInTheDocument();
+  });
+  test("clearSubmissionErrors is called on file input change", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const file = new File(["dummy"], "file.xlsx", {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const input = screen.getByTestId("spreadsheet-input");
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(mockStore.clearSubmissionErrors).toHaveBeenCalled();
+  });
+
+  test("empty file change still resets filename and progress to 0", () => {
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const input = screen.getByTestId("spreadsheet-input");
+    fireEvent.change(input, { target: { files: [] } });
+    expect(mockStore.clearSubmissionErrors).toHaveBeenCalled();
+    expect(mockStore.setSpreadsheetFileName).toHaveBeenCalledWith("");
+    expect(mockStore.setSpreadsheetUploadProgress).toHaveBeenCalledWith(0);
+  });
+
+  test("dropping a CSV file sets filename and initializes progress", () => {
+    window.alert = jest.fn();
+    const csv = new File(["a,b,c"], "test.csv", { type: "text/csv" });
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const dropArea = screen.getByText("BROWSE").parentElement;
+    fireEvent.drop(dropArea, {
+      dataTransfer: { files: [csv] },
+      preventDefault: jest.fn(),
+    });
+    expect(mockStore.setSpreadsheetFileName).toHaveBeenCalledWith("test.csv");
+    expect(mockStore.setSpreadsheetUploadProgress).toHaveBeenCalledWith(0);
+    expect(window.alert).not.toHaveBeenCalled();
+  });
+
+  test("does not call progress setter when dropping invalid file type", () => {
+    window.alert = jest.fn();
+    const bad = new File(["x"], "bad.txt", { type: "text/plain" });
+    renderWithProviders(<BulkImportSpreadsheet store={mockStore} />);
+    const dropArea = screen.getByText("BROWSE").parentElement;
+    fireEvent.drop(dropArea, {
+      dataTransfer: { files: [bad] },
+      preventDefault: jest.fn(),
+    });
+    expect(window.alert).toHaveBeenCalledWith(
+      "Please upload a valid CSV or XLSX file.",
+    );
+    expect(mockStore.setSpreadsheetUploadProgress).not.toHaveBeenCalled();
+  });
+
+  test("when progress > 0, the uploaded filename is displayed", () => {
+    const store = {
+      ...mockStore,
+      spreadsheetUploadProgress: 50,
+      spreadsheetFileName: "abc.xlsx",
+    };
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    expect(screen.getByText("abc.xlsx")).toBeInTheDocument();
+  });
+
+  test("when progress > 0, the initial drop area (BROWSE) is hidden", () => {
+    const store = {
+      ...mockStore,
+      spreadsheetUploadProgress: 50,
+      spreadsheetFileName: "abc.xlsx",
+    };
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    expect(screen.queryByText("BROWSE")).not.toBeInTheDocument();
+  });
+
+  test("renders a progressbar element with role progressbar when uploading", () => {
+    const store = {
+      ...mockStore,
+      spreadsheetUploadProgress: 65,
+      spreadsheetFileName: "upload.xlsx",
+    };
+    renderWithProviders(<BulkImportSpreadsheet store={store} />);
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+  });
+
+  test("clicking close resets rawColumns to an empty array", () => {
+    const store = {
+      ...mockStore,
+      spreadsheetUploadProgress: 50,
+      spreadsheetFileName: "file.xlsx",
+    };
+    const { container } = renderWithProviders(
+      <BulkImportSpreadsheet store={store} />,
+    );
+    fireEvent.click(container.querySelector("#close-button"));
+    expect(store.setRawColumns).toHaveBeenCalledWith([]);
+  });
+
+  test("clicking close also clears validation warnings", () => {
+    const store = {
+      ...mockStore,
+      spreadsheetUploadProgress: 80,
+      spreadsheetFileName: "warn.xlsx",
+    };
+    const { container } = renderWithProviders(
+      <BulkImportSpreadsheet store={store} />,
+    );
+    fireEvent.click(container.querySelector("#close-button"));
+    expect(store.setValidationWarnings).toHaveBeenCalledWith({});
+  });
+
+  test("clicking close resets worksheet info to its initial state", () => {
+    const store = {
+      ...mockStore,
+      spreadsheetUploadProgress: 75,
+      spreadsheetFileName: "sheet.xlsx",
+    };
+    const { container } = renderWithProviders(
+      <BulkImportSpreadsheet store={store} />,
+    );
+    fireEvent.click(container.querySelector("#close-button"));
+    expect(store.setWorksheetInfo).toHaveBeenCalledWith(0, [], 0, 0, "");
   });
 });
