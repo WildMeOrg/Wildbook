@@ -24,6 +24,10 @@
           <column jdbc-type="LONGVARCHAR" name="parameters" />
       </field>
 
+      <field name="errors" persistence-modifier="persistent">
+          <column jdbc-type="LONGVARCHAR" name="errors" />
+      </field>
+
       <field name="log" persistence-modifier="persistent" serialized-element="true" />
 
       <field name="iaTask" persistence-modifier="persistent" element-type="org.ecocean.ia.Task" />

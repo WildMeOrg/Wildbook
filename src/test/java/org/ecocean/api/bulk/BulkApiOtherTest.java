@@ -168,7 +168,7 @@ class BulkApiOtherTest {
         List<ImportTask> fakeTaskList = new ArrayList<ImportTask>();
         ImportTask fakeTask = mock(ImportTask.class);
         fakeTaskList.add(fakeTask);
-        when(fakeTask.iaSummaryJson()).thenReturn(new JSONObject());
+        when(fakeTask.iaSummaryJson(any(Shepherd.class))).thenReturn(new JSONObject());
 
         // non-admin get-list
         setUp(); // reset
