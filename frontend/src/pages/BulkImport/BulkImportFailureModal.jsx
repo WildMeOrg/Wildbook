@@ -33,8 +33,7 @@ const FailureModal = ({ show, onHide, errorMessage }) => {
         )}
         {Array.isArray(errorMessage) && (
           <div className="alert alert-danger mt-3">
-            <strong>Error:</strong> There are issues with your data. Please see
-            the error messages displayed below the table.
+            <FormattedMessage id="BULK_IMPORT_ERROR_MESSAGE" />
           </div>
         )}
       </Modal.Body>

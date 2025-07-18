@@ -48,7 +48,7 @@ const BulkImport = observer(() => {
 
   return (
     <Container>
-      <div className="d-flex flex-row justify-content-between align-items-center">
+      <div className="d-flex flex-row justify-content-between align-items-center mb-3">
         <h1 className="mt-3">
           <FormattedMessage id="BULK_IMPORT" />
         </h1>
@@ -88,7 +88,9 @@ const BulkImport = observer(() => {
 
       {unfinishedTask &&
       unfinishedTask.status &&
-      unfinishedTask.status !== "complete" ? (
+      unfinishedTask.status !== "complete" &&
+      unfinishedTask.status !== "failed" &&
+      unfinishedTask.status !== "error" ? (
         <BulkImportUnfinishedTaskModal
           fileName={unfinishedTask?.sourceName || "file name"}
           dateCreated={unfinishedTask?.dateCreated || "file last edited date"}

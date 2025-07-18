@@ -383,7 +383,7 @@
     "BULK_IMPORT_TABLE_REVIEW_DESC": "When you are satisfied with the data in this page, start the bulk import. It might take a long time for the process to complete the bulk import, please do not close the window until it is done.",
     "START_BULK_IMPORT": "Start Import",
     "SET_LOCATION": "Set Location",
-    "BULK_IMPORT_SET_LOCATION": "Set Location ID",
+    "BULK_IMPORT_SET_LOCATION": "Set Location",
     "BULK_IMPORT_SET_LOCATION_DESC": "Set Location ID to be applied for Identification.",
     "BULK_IMPORT_SPREADSHEET_UPLOAD_COMPLETE": "Spreadsheet upload complete",
     "BULK_IMPORT_SET_PREFERENCE_DESC": "Set your preferences for the bulk import. You can choose to set a location ID for identification, skip the identification step, or skip the detection.",
@@ -477,5 +477,9 @@
     "SPREADSHEET_UPLOADED_TITLE": "Spreadsheet Uploaded: {fileName}",
     "IMPORT": "Import",
     "DETECTION": "Detection",
-    "IDENTIFICATION": "Identification"
+    "IDENTIFICATION": "Identification",
+    "BULK_IMPORT_SAVED_AS_DRAFT": "Saved as Draft",
+    "BULK_IMPORT_SAVING_AS_DRAFT": "Saving as Draft",
+    "BULK_IMPORT_STARTED_AT": "Started at",
+    "BULK_IMPORT_ERROR_MESSAGE": "There are issues with your data. Please see the error messages displayed below the table."
 }

@@ -476,5 +476,9 @@
    "SPREADSHEET_UPLOADED_TITLE": "Hoja de cálculo subida: {fileName}",
    "IMPORT": "Importar",
    "DETECTION": "Detección",
-   "IDENTIFICATION": "Identificación"
+   "IDENTIFICATION": "Identificación",
+   "BULK_IMPORT_SAVED_AS_DRAFT": "Guardado como borrador",
+   "BULK_IMPORT_SAVING_AS_DRAFT": "Guardando como borrador...",
+   "BULK_IMPORT_STARTED_AT": "Importación iniciada en",
+   "BULK_IMPORT_ERROR_MESSAGE": "Hay problemas con sus datos. Por favor, consulte los mensajes de error que se muestran debajo de la tabla."   
 }

@@ -1,11 +1,13 @@
 import React from "react";
-import { Modal, Button, Card } from "react-bootstrap";
+import { Modal, Card } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { useNavigate } from "react-router-dom";
-import { FaDownload } from "react-icons/fa";
+import MainButton from "../../components/MainButton";
+import ThemeContext from "../../ThemeColorProvider";
 
 const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
   const navigate = useNavigate();
+  const theme = React.useContext(ThemeContext);
   const goToTaskDetails = () => {
     window.location.href = `${process.env.PUBLIC_URL}/bulk-import-task?id=${submissionId}`;
   };
@@ -16,7 +18,7 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
 
   return (
     <Modal show={show} onHide={onHide} centered id="bulk-import-success-modal">
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>
           <FormattedMessage
             id="BULK_IMPORT_SUCCESS"
@@ -34,15 +36,31 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
 
         <Card className="mt-3 p-3 d-flex flex-row align-items-center">
           <div
-            className="d-flex align-items-center justify-content-center rounded-circle bg-light me-3"
-            style={{ width: 42, height: 42 }}
+            className="d-flex align-items-center justify-content-center rounded-circle me-3"
+            style={{
+              width: 42,
+              height: 42,
+              backgroundColor: theme.primaryColors.primary100,
+            }}
           >
-            <FaDownload className="text-info" />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 9.5H15V3.5H9V9.5H5L12 16.5L19 9.5ZM5 18.5V20.5H19V18.5H5Z"
+                fill={theme.primaryColors.primary500}
+              />
+            </svg>
           </div>
           <div>
             <div className="fw-bold">{fileName}</div>
-            {/* <div>Identification in Progress</div> */}
-            <div className="text-muted">Reported at: {lastEdited}</div>
+            <div className="text-muted">
+              <FormattedMessage id="BULK_IMPORT_STARTED_AT" /> {lastEdited}
+            </div>
           </div>
           {/* <Button variant="outline-primary" onClick={goToTaskDetails}>
             <FormattedMessage id="SEE_DETAILS" defaultMessage="See Details" />
@@ -51,12 +69,24 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
         </Card>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={goToTaskDetails}>
+        <MainButton
+          onClick={goToTaskDetails}
+          backgroundColor={theme.wildMeColors.cyan700}
+          color={theme.defaultColors.white}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem" }}
+        >
           <FormattedMessage id="SEE_DETAILS" defaultMessage="See Details" />
-        </Button>
-        <Button variant="outline-primary" onClick={goToHome}>
+        </MainButton>
+        <MainButton
+          onClick={goToHome}
+          borderColor={theme.primaryColors.primary500}
+          color={theme.primaryColors.primary500}
+          noArrow={true}
+          style={{ width: "auto", fontSize: "1rem" }}
+        >
           <FormattedMessage id="GO_HOME" defaultMessage="Go to Home" />
-        </Button>
+        </MainButton>
       </Modal.Footer>
     </Modal>
   );

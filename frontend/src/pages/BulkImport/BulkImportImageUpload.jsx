@@ -34,8 +34,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 50;
-  // store.setMaxImageCount(data?.maximumMediaCountEncounter || 200);
-  store.setMaxImageCount(5000);
+  store.setMaxImageCount(data?.maximumMediaCountEncounter || 200);
   const currentCount = store.imagePreview.length;
 
   useEffect(() => {
@@ -471,7 +470,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
         </Col>
       </Row>
 
-      <Row className="mt-4 justify-content-between d-flex align-items-center">
+      <Row className="mt-4 mb-4 justify-content-between d-flex align-items-center">
         <Col xs="auto">
           <BulkImportImageUploadInfo store={store} />
         </Col>

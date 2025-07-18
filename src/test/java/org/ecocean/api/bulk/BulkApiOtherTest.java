@@ -10,6 +10,7 @@ import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ReCAPTCHA;
@@ -51,6 +52,7 @@ import static org.mockito.Mockito.when;
 
 class BulkApiOtherTest {
     PersistenceManagerFactory mockPMF;
+    PersistenceManager mockPM = mock(PersistenceManager.class);
     HttpServletRequest mockRequest;
     HttpServletResponse mockResponse;
     BulkImport apiServlet;
@@ -166,7 +168,7 @@ class BulkApiOtherTest {
         List<ImportTask> fakeTaskList = new ArrayList<ImportTask>();
         ImportTask fakeTask = mock(ImportTask.class);
         fakeTaskList.add(fakeTask);
-        when(fakeTask.iaSummaryJson()).thenReturn(new JSONObject());
+        when(fakeTask.iaSummaryJson(any(Shepherd.class))).thenReturn(new JSONObject());
 
         // non-admin get-list
         setUp(); // reset
@@ -261,202 +263,96 @@ class BulkApiOtherTest {
         }
     }
 
-/*
-   System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(10));
-    @Test void apiPostSuccess() throws ServletException, IOException {
+    @Test void apiDeleteSuccess()
+    throws ServletException, IOException {
         User user = mock(User.class);
+        Encounter testEnc = mock(Encounter.class);
+        List<Encounter> testEncounters = new ArrayList<Encounter>();
+
+        testEncounters.add(testEnc);
+
         when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
+        ImportTask fakeTask = mock(ImportTask.class);
+        when(fakeTask.getEncounters()).thenReturn(testEncounters);
 
-        String requestBody = "{\"value\": [\"xx\"]}";
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/site");
-        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
-
-        List langList = new ArrayList<String>();
-        langList.add("ok");
-        langList.add("yes");
-        List testLangs = new ArrayList<String>();
-        testLangs.add("xy");
-        // FIXME test is broken because i think update to setting tries to write to db
-        if (requestBody != null) return;
-
+        setUp(); // reset
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/bulk-import/00000000-0000-0000-0000-000000000000");
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                when(mock.getSettingValue("language", "available")).thenReturn("xxxxxxx");
-                //when(mock.storeSetting(any(Setting.class))).doNothing();
-                doNothing().when(mock).storeSetting(any(Setting.class));
-                doNothing().when(mock).beginDBTransaction();
-                Setting st = new Setting("language", "site", testLangs);
-                when(mock.getOrCreateSetting(any(String.class), any(String.class))).thenReturn(st);
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doPost(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-   System.out.println(">>> " + jout.toString(4));
-                verify(mockResponse).setStatus(400);
-                assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
-            }
-        }
-    }
-
-    // this will dump an exception about IA.json missing, but still pass; yeah, messy.
-    @Test void apiGetUser() throws ServletException, IOException {
-        User user = mock(User.class);
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
-            try (MockedStatic<CommonConfiguration> mockService = mockStatic(CommonConfiguration.class)) {
-                mockService.when(() -> CommonConfiguration.getProperty(any(String.class), any(String.class))).thenReturn("test-value");
-                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
-                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(HttpServletRequest.class))).thenReturn(true);
-                    apiServlet.doGet(mockRequest, mockResponse);
-                    responseOut.flush();
-                    JSONObject jout = new JSONObject(responseOut.toString());
-                    // kinda meek test of results, but a decent start?
-                    assertTrue(jout.has("users"));  // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 39);
-                }
-            }
-        }
-    }
-
-    @Test void apiGetAnon() throws ServletException, IOException {
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(null);
-            })) {
-            try (MockedStatic<CommonConfiguration> mockService = mockStatic(CommonConfiguration.class)) {
-                mockService.when(() -> CommonConfiguration.getProperty(any(String.class), any(String.class))).thenReturn("test-value");
-                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
-                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(HttpServletRequest.class))).thenReturn(false);
-                    apiServlet.doGet(mockRequest, mockResponse);
-                    responseOut.flush();
-                    JSONObject jout = new JSONObject(responseOut.toString());
-                    // kinda meek test of results, but a decent start?
-                    assertFalse(jout.has("users"));  // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 37);
-                }
-            }
-        }
-    }
-
-    @Test void apiDelete401() throws ServletException, IOException {
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                doNothing().when(mock).beginDBTransaction();
-            })) {
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getImportTask(any(String.class))).thenReturn(fakeTask);
+            when(mock.getPM()).thenReturn(mockPM);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                 mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
                 apiServlet.doDelete(mockRequest, mockResponse);
                 responseOut.flush();
                 JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(401);
-                assertFalse(jout.getBoolean("success"));
-            }
-        }
-    }
-
-    @Test void apiDeleteNonAdmin401() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(false);
-
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doDelete(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(401);
-                assertFalse(jout.getBoolean("success"));
-            }
-        }
-    }
-
-    @Test void apiDeleteBadPath() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
-
-        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-uri");
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                Exception ex = assertThrows(ServletException.class, () -> {
-                    apiServlet.doDelete(mockRequest, mockResponse);
-                });
-                assertTrue(ex.getMessage().contains("Bad path"));
-            }
-        }
-    }
-
-    @Test void apiDeleteInvalidIdGroup() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
-
-        // this prefix is pretty much guaranteed from web.xml, so we need it here before /bad-uri
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/bad-group/bad-id");
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doDelete(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(400);
-                assertEquals(jout.getString("debug"), "invalid group [bad-group] or id [bad-id]");
-            }
-        }
-    }
-
-    @Test void apiDelete404() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
-
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/site");
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                when(mock.getSetting(any(String.class), any(String.class))).thenReturn(null);
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doDelete(mockRequest, mockResponse);
-                verify(mockResponse).setStatus(404);
-            }
-        }
-    }
-
-    @Test void apiDeleteSuccess() throws ServletException, IOException {
-        User user = mock(User.class);
-        when(user.isAdmin(any(Shepherd.class))).thenReturn(true);
-        Setting fakeSetting = new Setting("language", "available");
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/site-settings/language/available");
-        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
-            (mock, context) -> {
-                when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
-                when(mock.getSetting(any(String.class), any(String.class))).thenReturn(fakeSetting);
-                doNothing().when(mock).beginDBTransaction();
-                doNothing().when(mock).deleteSetting(any(Setting.class));
-            })) {
-            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
-                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doDelete(mockRequest, mockResponse);
-                responseOut.flush();
                 verify(mockResponse).setStatus(204);
+                assertTrue(jout.getBoolean("success"));
+                verify(mockPM).deletePersistent(any(ImportTask.class));
+                verify(fakeTask).removeEncounter(testEnc);
             }
         }
     }
 
- */
+    @Test void apiDeleteFailNoUser()
+    throws ServletException, IOException {
+        setUp(); // reset
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/bulk-import/00000000-0000-0000-0000-000000000000");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(null);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doDelete(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(400);
+                assertFalse(jout.getBoolean("success"));
+                assertEquals(jout.getString("error"),
+                    "java.io.IOException: must provide id and user");
+            }
+        }
+    }
+
+    @Test void apiDeleteFailNoAccess()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("it-is-me");
+        Encounter testEnc = mock(Encounter.class);
+        when(testEnc.getAssignedUsername()).thenReturn("not-me");
+        List<Encounter> testEncounters = new ArrayList<Encounter>();
+        testEncounters.add(testEnc);
+
+        when(user.isAdmin(any(Shepherd.class))).thenReturn(false);
+        ImportTask fakeTask = mock(ImportTask.class);
+        when(fakeTask.getEncounters()).thenReturn(testEncounters);
+
+        setUp(); // reset
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/bulk-import/00000000-0000-0000-0000-000000000000");
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getImportTask(any(String.class))).thenReturn(fakeTask);
+            when(mock.getPM()).thenReturn(mockPM);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                apiServlet.doDelete(mockRequest, mockResponse);
+                responseOut.flush();
+                JSONObject jout = new JSONObject(responseOut.toString());
+                verify(mockResponse).setStatus(403);
+                assertFalse(jout.getBoolean("success"));
+            }
+        }
+    }
 }

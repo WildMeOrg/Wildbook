@@ -3,8 +3,10 @@ package org.ecocean.servlet.importer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
@@ -86,6 +88,28 @@ public class ImportTask implements java.io.Serializable {
         if (enc == null) return;
         if (encounters == null) encounters = new ArrayList<Encounter>();
         if (!encounters.contains(enc)) encounters.add(enc);
+    }
+
+    public Set<Annotation> getAnnotations() {
+        Set<Annotation> anns = new HashSet<Annotation>();
+
+        if (encounters != null)
+            for (Encounter enc : encounters) {
+                if (enc.getAnnotations() != null)
+                    for (Annotation ann : enc.getAnnotations()) {
+                        anns.add(ann);
+                    }
+            }
+        return anns;
+    }
+
+    public Map<Annotation, List<Task> > getAnnotationTaskMap(Shepherd myShepherd) {
+        Map<Annotation, List<Task> > atm = new HashMap<Annotation, List<Task> >();
+
+        for (Annotation ann : this.getAnnotations()) {
+            atm.put(ann, Task.getTasksFor(ann, myShepherd));
+        }
+        return atm;
     }
 
     public void setCreator(User u) {
@@ -322,7 +346,28 @@ public class ImportTask implements java.io.Serializable {
         return stats;
     }
 
-    public Map<String, Integer> statsAnnotations() {
+    public Map<String, Integer> statsAnnotations(Shepherd myShepherd) {
+        Map<String, Integer> sa = new HashMap<String, Integer>();
+        Map<Annotation, List<Task> > atm = this.getAnnotationTaskMap(myShepherd);
+        int numTasks = 0;
+
+        for (Annotation ann : atm.keySet()) {
+            sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            for (Task atask : atm.get(ann)) {
+                String status = atask.getStatus(myShepherd);
+                if (sa.containsKey(status)) {
+                    sa.put(status, sa.get(status) + 1);
+                } else {
+                    sa.put(status, 1);
+                }
+                numTasks++;
+            }
+        }
+        sa.put("numTasks", numTasks);
+        return sa;
+    }
+
+    public Map<String, Integer> statsAnnotationsBROKEN() {
         if (iaTask == null) return null;
         List<Task> tasks = iaTask.findNodesWithAnnotations();
         Map<String, Integer> stats = new HashMap<String, Integer>();
@@ -428,7 +473,7 @@ public class ImportTask implements java.io.Serializable {
     // this is hobbled together from some complex code in import.jsp
     // some of this is only necessary to handle legacy (non-api) uploads
     // may the gods have mercy on our soul
-    public JSONObject iaSummaryJson() {
+    public JSONObject iaSummaryJson(Shepherd myShepherd) {
         int numDetectionComplete = 0;
         int numAcmId = 0;
         int numAllowedIA = 0;
@@ -436,7 +481,7 @@ public class ImportTask implements java.io.Serializable {
         int numAnnotations = 0;
         boolean pipelineStarted = false;
         Map<String, Integer> statsMA = this.statsMediaAssets();
-        Map<String, Integer> statsAnn = this.statsAnnotations();
+        Map<String, Integer> statsAnn = this.statsAnnotations(myShepherd);
 
         if (this.getMediaAssets() != null)
             numAssets = this.getMediaAssets().size();
@@ -482,15 +527,17 @@ public class ImportTask implements java.io.Serializable {
                 // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
                 if (statsAnn.get("numTasks") != null)
                     numIdentificationTotal = statsAnn.get("numTasks");
-                if (statsAnn.get("complete") != null)
-                    numIdentificationComplete = statsAnn.get("complete");
-                // TODO do we have to deal with errors as "complete" somehow?
+                // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
+                // (it may well have been me)
+                if (statsAnn.get("completed") != null)
+                    numIdentificationComplete = statsAnn.get("completed");
+                // TODO do we have to deal with errors as "completed" somehow?
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);
                 if (numIdentificationTotal == 0) {
-                    pj.put("identificationStatus", "waiting for detection");
+                    pj.put("identificationStatus", "identification not started");
                     pj.put("identificationPercent", 0.0);
-                } else if (numIdentificationComplete == numIdentificationTotal) {
+                } else if (numIdentificationComplete >= numIdentificationTotal) {
                     pj.put("identificationStatus", "complete");
                     pj.put("identificationPercent", 1.0);
                 } else {

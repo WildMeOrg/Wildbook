@@ -629,23 +629,19 @@ public class BulkImport extends ApiBase {
         myShepherd.beginDBTransaction();
         try {
             User currentUser = myShepherd.getUser(request);
-            if ((currentUser == null) || !currentUser.isAdmin(myShepherd)) {
-                response.setStatus(401);
-                response.setHeader("Content-Type", "application/json");
-                response.getWriter().write("{\"success\": false}");
-                return;
-            }
             String uri = request.getRequestURI();
             String[] args = uri.substring(8).split("/");
             if (args.length < 2) throw new ServletException("bad api path");
             String bulkImportId = args[1];
+            // this may throw IOException (and will if currentUser is null or cannot delete)
             ImportTask.deleteWithRelated(bulkImportId, currentUser, myShepherd);
-            // above may throw IOException
             statusCode = 204;
             rtn.put("success", true);
         } catch (IOException ex) {
             ex.printStackTrace();
             statusCode = 400;
+            // mildly hacky:
+            if (ex.getMessage().contains("does not have privileges")) statusCode = 403;
             rtn.put("error", ex.toString());
         } catch (ServletException ex) { // should just be thrown, not caught (below)
             throw ex;
@@ -713,7 +709,7 @@ public class BulkImport extends ApiBase {
         taskShepherd.setAction("BulkImport.initializeImportTask");
         taskShepherd.beginDBTransaction();
         try {
-            User user = taskShepherd.getUser(passedUser.getId()); // needs to be on our shepherd
+            User user = taskShepherd.getUserByUUID(passedUser.getId()); // needs to be on our shepherd
             ImportTask itask = taskShepherd.getImportTask(id);
             if (itask != null) {
                 itask.addLog(
@@ -856,7 +852,7 @@ public class BulkImport extends ApiBase {
         String persistedStatus = task.getStatus();
         jt.put("status", persistedStatus);
         jt.put("_statusPersisted", persistedStatus);
-        JSONObject iaSummary = task.iaSummaryJson();
+        JSONObject iaSummary = task.iaSummaryJson(myShepherd);
         if (detailed) jt.put("iaSummary", iaSummary);
         if (iaSummary.optBoolean("pipelineStarted", false)) {
             if (iaSummary.optBoolean("pipelineComplete", false)) {
