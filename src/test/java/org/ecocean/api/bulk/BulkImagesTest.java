@@ -271,7 +271,7 @@ class BulkImagesTest {
                     assertEquals(jout.getInt("numberFilesUploaded"), 2);
                     assertEquals(jout.getInt("numberFilesValid"), 0);
                     assertEquals(jout.getJSONArray("errors").length(), 1);
-                    assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("error"),
+                    assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("details"),
                         "image-invalid-mime-type.jpg is not a valid file");
                 }
             }
