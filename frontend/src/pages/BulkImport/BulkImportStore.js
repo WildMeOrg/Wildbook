@@ -1117,7 +1117,7 @@ export class BulkImportStore {
     this._flow = flowInstance;
   }
 
-  generateThumbnailsForFirst200() {
+  generateThumbnailsForFirst50() {
     const previews = this._imagePreview;
     if (previews.length > this._imageCountGenerateThumbnail)
       return Promise.resolve();
@@ -1389,7 +1389,7 @@ export class BulkImportStore {
       this.flow.upload();
 
       if (this._imagePreview.length <= this._imageCountGenerateThumbnail) {
-        this.generateThumbnailsForFirst200();
+        this.generateThumbnailsForFirst50();
       }
     });
   }
@@ -1576,7 +1576,7 @@ export class BulkImportStore {
             if (!errors[rowIndex]) errors[rowIndex] = {};
             present.forEach((col) => {
               errors[rowIndex][col] =
-                `invalid data. duplicate data found in related fields: ${group.join(", ")}`;
+                `Invalid data: you can only use one of the following synonymous fields: ${group.join(", ")}. Please delete all but one of these fields before proceeding.`;
             });
           }
         });

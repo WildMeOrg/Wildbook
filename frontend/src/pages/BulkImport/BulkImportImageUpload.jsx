@@ -43,7 +43,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
       setRenderMode(
         store.imagePreview.length > THUMBNAIL_THRESHOLD ? "list" : "grid",
       );
-      store.generateThumbnailsForFirst200();
+      store.generateThumbnailsForFirst50();
     }
     store.setFilesParsed(false);
   }, [store.filesParsed]);
