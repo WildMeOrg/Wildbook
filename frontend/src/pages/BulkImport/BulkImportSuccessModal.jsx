@@ -9,10 +9,12 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
   const navigate = useNavigate();
   const theme = React.useContext(ThemeContext);
   const goToTaskDetails = () => {
+    onHide();
     window.location.href = `${process.env.PUBLIC_URL}/bulk-import-task?id=${submissionId}`;
   };
 
   const goToHome = () => {
+    onHide();
     navigate("/");
   };
 
