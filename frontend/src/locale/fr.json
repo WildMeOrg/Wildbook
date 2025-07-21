@@ -502,5 +502,22 @@
   "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS": "Données invalides : vous ne pouvez utiliser qu’un des champs synonymes suivants : {list}. Veuillez supprimer tous les champs sauf un avant de continuer.",
   "BULKIMPORT_ERROR_INVALID_LABELEDKEYWORDINVALIDVALUE": "Valeur invalide pour ${col} — doit être l’un des suivants : {allowedValues}.",
   "BULKIMPORT_ERROR_INVALID_UNKNOWNCOLUMN": "Colonne inconnue — peut ne pas être traitée",
-  "PREV": "Précédent"
+  "PREV": "Précédent",
+  "BULK_IMPORT_TASK_ERROR_complete": "terminé",
+  "BULK_IMPORT_TASK_ERROR_imported": "importé",
+  "BULK_IMPORT_TASK_ERROR_processing-background": "traitement en arrière‑plan",
+  "BULK_IMPORT_TASK_ERROR_processing-foreground": "traitement au premier plan",
+  "BULK_IMPORT_TASK_ERROR_processing-detection": "traitement de détection",
+  "BULK_IMPORT_TASK_ERROR_processing-pipeline": "pipeline de traitement",
+  "BULK_IMPORT_TASK_ERROR_error": "erreur",
+  "BULK_IMPORT_TASK_ERROR_sent": "envoyé",
+  "BULK_IMPORT_TASK_ERROR_identification_not_started": "identification non démarrée",
+  "BULK_IMPORT_TASK_ERROR_not_started": "non démarré",
+  "BULK_IMPORT_TASK_ERROR_waiting_for_detections": "en attente de détections",
+  "BULK_IMPORT_TASK_ERROR_in_progress": "en cours",
+  "BULK_IMPORT_TASK_ERROR_skipped": "ignoré",
+   "BULK_IMPORT_DELETE_TASK_CONFIRM": "Êtes-vous sûr de vouloir supprimer cette tâche d'importation ?",
+  "BULK_IMPORT_TASK_DELETED": "Tâche d'importation supprimée avec succès.",
+  "BULK_IMPORT_TASK_DELETE_ERROR": "Échec de la suppression de la tâche d'importation : {error}",
+  "BULK_IMPORT_TASK_ERROR_DEFAULT": "Votre tâche n'a pas pu être traitée en raison d'une erreur."
 }

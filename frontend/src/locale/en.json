@@ -503,5 +503,22 @@
     "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS":         "Invalid data: you can only use one of the following synonymous fields: {list}. Please delete all but one of these fields before proceeding.",
     "BULKIMPORT_ERROR_INVALID_LABELEDKEYWORDINVALIDVALUE" : "Invalid value for ${col} — must be one of: {allowedValues}.",
     "BULKIMPORT_ERROR_INVALID_UNKNOWNCOLUMN" : "Unknown column — may not be processed",
-    "PREV": "Prev"    
+    "PREV": "Prev",
+    "BULK_IMPORT_TASK_ERROR_complete": "complete",
+    "BULK_IMPORT_TASK_ERROR_imported": "imported",    
+    "BULK_IMPORT_TASK_ERROR_processing-background": "processing in background",
+    "BULK_IMPORT_TASK_ERROR_processing-foreground": "processing in foreground",
+    "BULK_IMPORT_TASK_ERROR_processing-detection": "processing detection",
+    "BULK_IMPORT_TASK_ERROR_processing-pipeline": "processing pipeline",
+    "BULK_IMPORT_TASK_ERROR_error": "error",
+    "BULK_IMPORT_TASK_ERROR_sent": "sent",
+    "BULK_IMPORT_TASK_ERROR_identification_not_started": "identification not started",
+    "BULK_IMPORT_TASK_ERROR_not_started": "not started",
+    "BULK_IMPORT_TASK_ERROR_waiting_for_detections": "waiting for detections",
+    "BULK_IMPORT_TASK_ERROR_in_progress": "in progress",
+    "BULK_IMPORT_TASK_ERROR_skipped": "skipped",
+    "BULK_IMPORT_DELETE_TASK_CONFIRM": "Are you sure you want to delete this import task?",
+    "BULK_IMPORT_TASK_DELETED": "Bulk import task deleted successfully.",
+    "BULK_IMPORT_TASK_DELETE_ERROR": "Failed to delete import task: {error}",
+    "BULK_IMPORT_TASK_ERROR_DEFAULT": "You task failed to process due to an error."
 }

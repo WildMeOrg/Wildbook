@@ -6,11 +6,12 @@ import {
 } from "react-circular-progressbar";
 import { FaCheck } from "react-icons/fa";
 import "react-circular-progressbar/dist/styles.css";
+import { FormattedMessage } from "react-intl";
 
 export const ProgressCard = ({
   title,
   progress = 0,
-  status = "not started",
+  status = "not_started",
 }) => {
   const isComplete = progress === 1;
 
@@ -56,7 +57,12 @@ export const ProgressCard = ({
 
         <div>
           <div style={{ fontSize: 14, fontWeight: 500 }}>{title}</div>
-          <div style={{ fontSize: 12, color: "#6B7280" }}>{status}</div>
+          <div style={{ fontSize: 12, color: "#6B7280" }}>
+            <FormattedMessage
+              id={`BULK_IMPORT_TASK_ERROR_${status.split(" ").join("_").toLowerCase()}`}
+              defaultMessage={status}
+            />
+          </div>
         </div>
       </Card.Body>
     </Card>
