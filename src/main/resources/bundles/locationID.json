@@ -493,6 +493,13 @@
 			"long": 145.027772
 		}
 	},
+	{
+		"name": "VIC-Point Leo",
+		"id": "VIC-Point Leo",
+		"locationID": [],
+		"prefix": "VIC-",
+		"prefixDigitPadding": 4
+	},
 	{ 
 	    "name": "VIC-Portland", 
 	    "id": "VIC-Portland", 
