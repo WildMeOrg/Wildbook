@@ -26,15 +26,18 @@ JSONObject res = new JSONObject();
 //String queryEncounterId = null;
 String importIdTask = request.getParameter("importIdTask");
 List<String> locationIDs = new ArrayList<String>(); 
-String ownerFilter = ""; 
+List<String> ownerFilter = new ArrayList<String>(); 
 if(request.getParameterValues("locationID")!=null) {
   String[] vals=request.getParameterValues("locationID");
   locationIDs = Arrays.asList(vals);
 }
 
-if(request.getParameter("owner")!=null) {
-    ownerFilter=request.getParameter("owner");
+if(request.getParameterValues("owner") != null) {
+    String[] owners = request.getParameterValues("owner");
+    ownerFilter = Arrays.asList(owners);
 }
+User user = AccessControl.getUser(request, myShepherd);
+
 
 try {
     res.put("success","false");
@@ -64,6 +67,10 @@ try {
                 mf.put("owner", ownerFilter);
             }
             taskParameters.put("matchingSetFilter", mf);
+            if (user != null) {
+                taskParameters.put("userId", user.getUUID());
+                taskParameters.put("username", user.getUsername());
+            }
 
       	  	
       	  	Task parentTask = new Task();  // root task to hold all others, to connect to ImportTask

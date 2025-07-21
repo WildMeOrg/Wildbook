@@ -150,6 +150,14 @@ if (request.isUserInRole("admin")) adminMode = true;
 	<br>
 	<p><b>If you have selected a large number of photos they may take a while to load in the interface.<b> Once you have clicked the 'Begin Upload' button the images will be sent, and you will automatically
 	be taken to the next page when they are finished.</p>
+
+	<% if (isImportExport) { %>
+		<button id="skip-photos" onClick="document.location.href='spreadsheet.jsp?isImportExport=<%=isImportExport%>';">Skip Photos</button>
+	
+	<% } %>
+
+
+
 <% System.out.println("Done with photos.jsp. About to print footer."); %>
 </div>
 

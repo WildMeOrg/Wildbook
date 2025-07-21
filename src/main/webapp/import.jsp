@@ -386,7 +386,7 @@ a.button:hover {
 .ia-match-filter-title {
 	margin: 20px 0 5px 0;
 	padding: 1px 0 1px 20px;
-	background-color: #AAB;
+	background-color: #CCC;
 	color: #555;
 	font-weight: bold;
 }
@@ -981,12 +981,9 @@ try{
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
-	    if ($('#match-filter-owner-me').is(':checked')){
-			owner = "&owner=" + encodeURIComponent(JSON.stringify(["me"]));
-		}
-		else if ($('#match-filter-owner-org').is(':checked')){
-			owner = "&owner=" + encodeURIComponent(JSON.stringify(["org"]));
-		}
+	    $('input[name="match-filter-owner"]:checked').each(function() {
+			owner += '&owner=' + encodeURIComponent(this.value);
+		});
 	    $.ajax({
 	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds+owner,
 	        dataType: 'json',

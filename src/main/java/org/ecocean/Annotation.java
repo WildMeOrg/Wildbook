@@ -863,8 +863,8 @@ public class Annotation implements java.io.Serializable {
         }
         if (filter.matches(".*\\buser\\b.*"))
             filter += "; org.ecocean.User user";
-        // if (filter.matches(".*\\borg\\b.*"))
-        // filter += "; org.ecocean.Organization org";
+        if (filter.matches(".*\\borgs\\b.*"))
+            filter += "; org.ecocean.Organization orgs";
         if (filter.matches(".*\\bproject\\b.*"))
             filter += "; org.ecocean.Project project";
         return getMatchingSetForFilter(myShepherd, filter);
@@ -1072,18 +1072,18 @@ public class Annotation implements java.io.Serializable {
             f += " && (" + locFilter + ") ";
         // "owner" ... which requires we have userId in the taskParams
         JSONArray owner = j.optJSONArray("owner");
-        if ((owner != null) && (userId != null)) {
+        System.out.println("INFO: matching filter owner " + owner + " for " + userId);
+        if ((owner != null)) {
             for (int i = 0; i < owner.length(); i++) {
                 String opt = owner.optString(i, null);
                 if (!Util.stringExists(opt))
                     continue;
-                if (opt.equals("me"))
+                if (opt.equals("me") && (userId != null))
                     f += " && user.uuid == '" + userId +
                             "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
-                // if (opt.equals("org")) {
-                // f += " && (user.organizations.contains(org) && org.name ==
-                // enc.submitterOrganization) ";
-                // }
+                if (opt.equals("org")) {
+                    f += " && (user.organizations.contains(orgs) && orgs.name == enc.submitterOrganization) ";
+                }
 
                 /// TODO also handle "collab" (users you collab with) :/
             }
