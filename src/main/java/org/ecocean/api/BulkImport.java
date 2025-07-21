@@ -361,9 +361,17 @@ public class BulkImport extends ApiBase {
                     // if (!AssetStore.isValidImage(file))
                     // ... but this new method is less than 1 sec :)
                     if (!Util.fastFileValidation(file)) {
+                        // we mimic the ApiException type errors here
                         JSONObject err = new JSONObject();
+                        err.put("type", "INVALID_VALUE");
+                        err.put("details", filename + " is not a valid file");
+                        JSONArray errArr = new JSONArray();
+                        // this internal one is nearly a duplicate of the outside json
+                        JSONObject singleErr = new JSONObject(err.toString());
+                        singleErr.put("code", "INVALID");
+                        errArr.put(singleErr);
+                        err.put("errors", errArr);
                         err.put("filename", filename);
-                        err.put("error", filename + " is not a valid file");
                         dataErrors.put(err);
                         System.out.println("[ERROR] image validation failed on " + filename);
                         continue;
