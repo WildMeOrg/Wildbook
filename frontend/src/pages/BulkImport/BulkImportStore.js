@@ -114,7 +114,7 @@ export class BulkImportStore {
         const missing = images.filter(
           (img) => !uploadedLower.includes(img.toLowerCase()),
         );
-        return `missing images: ${missing.join(", ")}`;
+        return `MISSING_${missing.join(", ")}`;
       },
     },
     "Encounter.year": {
@@ -130,8 +130,7 @@ export class BulkImportStore {
         const parsed = dayjs(val, FORMATS, true);
         return parsed.isValid() && !parsed.isAfter(dayjs());
       },
-      message:
-        'Invalid data. Date must be "YYYY", "YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH", or "YYYY-MM-DDTHH:mm" and cannot be in the future.',
+      message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
     },
 
     "Sighting.year": {
@@ -144,15 +143,14 @@ export class BulkImportStore {
         const parsed = dayjs(val, FORMATS, true);
         return parsed.isValid() && !parsed.isAfter(dayjs());
       },
-      message:
-        "Invalid data. Date must be “YYYY”、“YYYY-MM”、“YYYY-MM-DD” or “YYYY-MM-DDThh:mm” and cannot be in the future.",
+      message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",
     },
     "Encounter.genus": {
       required: true,
       validate: (val) => {
         return this._validspecies.includes(val);
       },
-      message: "invalid species",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDSPECIES",
     },
     "Encounter.decimalLatitude": latlongRule,
     "Encounter.latitude": latlongRule,
@@ -169,7 +167,7 @@ export class BulkImportStore {
         const dt = new Date(num);
         return !isNaN(dt.getTime());
       },
-      message: "invalid date in milliseconds",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
     },
     "Encounter.locationID": {
       required: true,
@@ -179,7 +177,7 @@ export class BulkImportStore {
         }
         return this._validLocationIDs.includes(value);
       },
-      message: "invalid location ID",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDLOCATIONID",
     },
     "Encounter.submitterID": {
       required: false,
@@ -189,7 +187,7 @@ export class BulkImportStore {
         }
         return this._validSubmitterIDs.includes(value);
       },
-      message: "invalid submitter ID",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDSUBMITTERID",
     },
     "Encounter.country": {
       required: false,
@@ -199,7 +197,7 @@ export class BulkImportStore {
         }
         return this._validCountryIDs.includes(val);
       },
-      message: "invalid country ID",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDCOUNTRYID",
     },
     "Encounter.state": {
       required: false,
@@ -209,7 +207,7 @@ export class BulkImportStore {
         }
         return this._validState.includes(val);
       },
-      message: "invalid state",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDSTATE",
     },
     "Encounter.livingStatus": {
       required: false,
@@ -219,7 +217,7 @@ export class BulkImportStore {
         }
         return this._validLivingStatus.includes(val);
       },
-      message: "invalid living status",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDLIVINGSTATUS",
     },
     "Encounter.lifeStage": {
       required: false,
@@ -229,7 +227,7 @@ export class BulkImportStore {
         }
         return this._validLifeStages.includes(val);
       },
-      message: "invalid life stage",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDLIFESTAGE",
     },
     "Encounter.sex": {
       required: false,
@@ -237,7 +235,7 @@ export class BulkImportStore {
         if (!val) return true;
         return this._validSex.includes(val);
       },
-      message: "invalid sex",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDSEX",
     },
     "Encounter.photographer0.emailAddress": {
       required: false,
@@ -249,7 +247,7 @@ export class BulkImportStore {
           /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         return re.test(val);
       },
-      message: "invalid email address??",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDEAMILADDRESS",
     },
     "Encounter.informOther0.emailAddress": {
       required: false,
@@ -261,7 +259,7 @@ export class BulkImportStore {
           /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         return re.test(val);
       },
-      message: "invalid email address",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDEAMILADDRESS",
     },
     "Encounter.dateInMilliseconds": {
       required: false,
@@ -274,7 +272,7 @@ export class BulkImportStore {
         const dt = new Date(num);
         return !isNaN(dt.getTime());
       },
-      message: "invalid date in milliseconds",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
     },
 
     "Sighting.millis": {
@@ -288,7 +286,7 @@ export class BulkImportStore {
         const dt = new Date(num);
         return !isNaN(dt.getTime());
       },
-      message: "Invalid value. Must be a valid ISO date",
+      message: "BULKIMPORT_ERROR_INVALID_INVALIDDATEMILLISECONDS",
     },
   };
 
@@ -772,7 +770,7 @@ export class BulkImportStore {
       let error = "";
 
       if (rule.required && !value) {
-        error = "This field is required";
+        error = "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD";
       } else if (rule.validate && !rule.validate.call(this, value)) {
         error =
           typeof rule.message === "function"
@@ -1517,7 +1515,7 @@ export class BulkImportStore {
 
       let error = "";
       if (rules.required && !value.trim()) {
-        error = "This field is required";
+        error = "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD";
       } else if (rules.validate && !rules.validate(value)) {
         error =
           typeof rules.message === "function"
@@ -1562,8 +1560,15 @@ export class BulkImportStore {
             !this._labeledKeywordAllowedPairs[columnName].includes(value)
           ) {
             if (!errors[rowIndex]) errors[rowIndex] = {};
-            errors[rowIndex][col] =
-              `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
+            errors[rowIndex][col] = {
+              id: "BULKIMPORT_ERROR_INVALID_LABELEDKEYWORDINVALIDVALUE",
+              values: {
+                col: col,
+                allowedValues:
+                  this._labeledKeywordAllowedPairs[columnName].join(", "),
+              },
+            };
+            // `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
           }
 
           return;
@@ -1575,8 +1580,12 @@ export class BulkImportStore {
           if (present.length > 1) {
             if (!errors[rowIndex]) errors[rowIndex] = {};
             present.forEach((col) => {
-              errors[rowIndex][col] =
-                `Invalid data: you can only use one of the following synonymous fields: ${group.join(", ")}. Please delete all but one of these fields before proceeding.`;
+              errors[rowIndex][col] = {
+                id: "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS",
+                values: {
+                  list: group.join(", "),
+                },
+              };
             });
           }
         });
@@ -1587,7 +1596,7 @@ export class BulkImportStore {
 
         if (!isKnown) {
           if (!warnings[rowIndex]) warnings[rowIndex] = {};
-          warnings[rowIndex][col] = "Unknown column — may not be processed";
+          warnings[rowIndex][col] = "BULKIMPORT_ERROR_INVALID_UNKNOWNCOLUMN";
           return;
         }
 
@@ -1595,7 +1604,7 @@ export class BulkImportStore {
 
         let error = "";
         if (rules.required && !value.trim()) {
-          error = "This field is required";
+          error = "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD";
         } else if (rules.validate && !rules.validate(value)) {
           error =
             typeof rules.message === "function"
