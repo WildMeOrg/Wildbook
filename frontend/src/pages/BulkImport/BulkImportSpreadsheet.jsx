@@ -78,9 +78,12 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         const rowKeys = Object.keys(allJsonData[0] || {});
         store.setRawColumns(rowKeys);
-        const mediaAssetsCols = rowKeys.filter(
+        const rawMediaAssetsCols = rowKeys.filter(
           (k) =>
             k.startsWith("Encounter.mediaAsset") && k.split(".").length === 2,
+        );
+        const mediaAssetsCols = rawMediaAssetsCols.map((col) =>
+          col.toLowerCase(),
         );
         const remaining = rowKeys
           .filter((k) => !specifiedColumns.includes(k))

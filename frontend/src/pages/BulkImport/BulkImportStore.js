@@ -96,10 +96,11 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        const images = val.split(",").map((img) => img.trim());
+        const rawimages = val.split(",").map((img) => img.trim());
+        const images = rawimages.map((img) => img.toLowerCase());
         let missing = false;
         images.forEach((img) => {
-          if (!this._uploadedImages.includes(img)) {
+          if (!this._uploadedImages.includes(img.toLowerCase())) {
             missing = true;
           }
         });
