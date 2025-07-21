@@ -66,7 +66,6 @@ const EditableCell = observer(
             title={value}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                console.log("Enter key pressed in EditableCell");
                 e.preventDefault();
                 handleBlur(e);
               }
@@ -90,28 +89,42 @@ const EditableCell = observer(
             const isMediaAsset = columnId === "Encounter.mediaAsset0";
 
             if (!isMediaAsset) {
+              if (typeof rawError === "object" && rawError.id) {
+                return (
+                  <div
+                    className="invalid-feedback"
+                    style={{ whiteSpace: "normal" }}
+                  >
+                    <FormattedMessage
+                      id={rawError.id}
+                      defaultMessage={rawError.id}
+                      values={rawError.values}
+                    />
+                  </div>
+                );
+              }
               return (
                 <div
                   className="invalid-feedback"
                   style={{ whiteSpace: "normal" }}
                 >
-                  {rawError}
+                  <FormattedMessage id={rawError} defaultMessage={rawError} />
                 </div>
               );
             }
-
-            const matches = /missing images: (.+)/.exec(rawError);
-            const missingList = matches
-              ? matches[1].split(",").map((s) => s.trim())
-              : [];
-
+            const missingList =
+              rawError
+                ?.split("_")[1]
+                ?.split(",")
+                .map((img) => img.trim()) || [];
             return (
               <div
                 className="invalid-feedback"
                 style={{ whiteSpace: "normal" }}
               >
                 <div>
-                  Missing images: {missingList.length}
+                  <FormattedMessage id="BULKIMPORT_ERROR_INVALID_MISSINGIMAGES" />{" "}
+                  {missingList.length}
                   <button
                     type="button"
                     className="btn btn-link btn-sm p-0 ms-2"
@@ -139,7 +152,11 @@ const EditableCell = observer(
             className="text-warning small mt-1"
             style={{ whiteSpace: "normal" }}
           >
-            {store.validationWarnings[rowIndex][columnId]}
+            {
+              <FormattedMessage
+                id={store.validationWarnings[rowIndex][columnId]}
+              />
+            }
           </div>
         )}
       </div>
@@ -320,7 +337,6 @@ export const DataTable = observer(({ store }) => {
     <div
       className="p-3 border rounded shadow-sm bg-white mt-4"
       style={{
-        // maxHeight: "500px",
         overflowY: "auto",
       }}
       id="editable-data-table"
@@ -335,7 +351,6 @@ export const DataTable = observer(({ store }) => {
         <table
           className="table table-bordered table-hover table-sm"
           style={{
-            // tableLayout: 'fixed'
             maxHeight: "500px",
             overflowY: "auto",
             tableLayout: "auto",
@@ -433,7 +448,7 @@ export const DataTable = observer(({ store }) => {
             className={`page-item ${!table.getCanPreviousPage() ? "disabled" : ""}`}
           >
             <button className="page-link" onClick={() => table.previousPage()}>
-              Prev
+              <FormattedMessage id="PREV" />
             </button>
           </li>
 
@@ -444,7 +459,6 @@ export const DataTable = observer(({ store }) => {
             >
               <button
                 className={`page-link ${store.errorPages.has(i) ? "bg-danger text-white" : ""}`}
-                // className={`page-link`}
                 onClick={() => table.setPageIndex(i)}
               >
                 {i + 1}
@@ -456,7 +470,7 @@ export const DataTable = observer(({ store }) => {
             className={`page-item ${!table.getCanNextPage() ? "disabled" : ""}`}
           >
             <button className="page-link" onClick={() => table.nextPage()}>
-              Next
+              <FormattedMessage id="NEXT" />
             </button>
           </li>
         </ul>

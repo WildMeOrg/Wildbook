@@ -12,6 +12,7 @@ import org.ecocean.api.BulkImport;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Keyword;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
@@ -270,7 +271,7 @@ class BulkImagesTest {
                     assertEquals(jout.getInt("numberFilesUploaded"), 2);
                     assertEquals(jout.getInt("numberFilesValid"), 0);
                     assertEquals(jout.getJSONArray("errors").length(), 1);
-                    assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("error"),
+                    assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("details"),
                         "image-invalid-mime-type.jpg is not a valid file");
                 }
             }
@@ -316,6 +317,77 @@ class BulkImagesTest {
                     assertEquals(jout.getJSONArray("errors").getJSONObject(0).getString("details"),
                         "org.ecocean.api.ApiException: fake asset creation failure");
                 }
+            }
+        }
+    }
+
+    @Test void makeMediaAssetTest()
+    throws ApiException {
+        Shepherd mockShepherd = mock(Shepherd.class);
+        AssetStore astore = mock(AssetStore.class);
+
+        when(astore.createParameters(any(File.class))).thenReturn(new JSONObject());
+        File testFile = mock(File.class);
+        when(testFile.getName()).thenReturn("test-file.jpg");
+
+        // working
+        try (MockedStatic<AssetStore> mockAS = mockStatic(AssetStore.class)) {
+            mockAS.when(() -> AssetStore.getDefault(any(Shepherd.class))).thenReturn(astore);
+            mockAS.when(() -> AssetStore.isValidImage(testFile)).thenReturn(true);
+            try (MockedConstruction<MediaAsset> mockMA = mockConstruction(MediaAsset.class,
+                    (mock, context) -> {
+                when(mock.validateSourceImage()).thenReturn(true);
+            })) {
+                MediaAsset ma = UploadedFiles.makeMediaAsset("00000000-0000-0000-0000-000000000000",
+                    testFile, mockShepherd);
+            }
+        }
+
+        // isValidImage() failing
+        try (MockedStatic<AssetStore> mockAS = mockStatic(AssetStore.class)) {
+            mockAS.when(() -> AssetStore.getDefault(any(Shepherd.class))).thenReturn(astore);
+            mockAS.when(() -> AssetStore.isValidImage(testFile)).thenReturn(false);
+            try (MockedConstruction<MediaAsset> mockMA = mockConstruction(MediaAsset.class,
+                    (mock, context) -> {
+                when(mock.validateSourceImage()).thenReturn(true);
+            })) {
+                Exception ex = assertThrows(ApiException.class, () -> {
+                    MediaAsset ma = UploadedFiles.makeMediaAsset(
+                    "00000000-0000-0000-0000-000000000000", testFile, mockShepherd);
+                });
+                assertEquals(ex.getMessage(), "test-file.jpg is not a valid image file");
+            }
+        }
+
+        // validSourceImage() failing
+        try (MockedStatic<AssetStore> mockAS = mockStatic(AssetStore.class)) {
+            mockAS.when(() -> AssetStore.getDefault(any(Shepherd.class))).thenReturn(astore);
+            mockAS.when(() -> AssetStore.isValidImage(testFile)).thenReturn(true);
+            try (MockedConstruction<MediaAsset> mockMA = mockConstruction(MediaAsset.class,
+                    (mock, context) -> {
+                when(mock.validateSourceImage()).thenReturn(false);
+            })) {
+                Exception ex = assertThrows(ApiException.class, () -> {
+                    MediaAsset ma = UploadedFiles.makeMediaAsset(
+                    "00000000-0000-0000-0000-000000000000", testFile, mockShepherd);
+                });
+                assertTrue(ex.getMessage().contains("failed validateSourceImage()"));
+            }
+        }
+
+        // copyIn() blows up with IOException
+        try (MockedStatic<AssetStore> mockAS = mockStatic(AssetStore.class)) {
+            mockAS.when(() -> AssetStore.getDefault(any(Shepherd.class))).thenReturn(astore);
+            mockAS.when(() -> AssetStore.isValidImage(testFile)).thenReturn(true);
+            try (MockedConstruction<MediaAsset> mockMA = mockConstruction(MediaAsset.class,
+                    (mock, context) -> {
+                doThrow(new IOException("absurd IO failure")).when(mock).copyIn(any(File.class));
+            })) {
+                Exception ex = assertThrows(ApiException.class, () -> {
+                    MediaAsset ma = UploadedFiles.makeMediaAsset(
+                    "00000000-0000-0000-0000-000000000000", testFile, mockShepherd);
+                });
+                assertTrue(ex.getMessage().contains("absurd IO failure"));
             }
         }
     }

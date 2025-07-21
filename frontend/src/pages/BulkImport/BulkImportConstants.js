@@ -89,10 +89,9 @@ const stringRule = {
   required: false,
   validate: (val) => {
     if (!val) return true;
-    // return /^[a-zA-Z0-9\s.,-]+$/.test(val);
     return typeof val === "string" || val instanceof String;
   },
-  message: "invalida data. must be a string",
+  message: "BULKIMPORT_ERROR_INVALID_INVALIDSTRING",
 };
 
 const intRule = {
@@ -101,7 +100,7 @@ const intRule = {
     if (!val) return true;
     return /^-?\d+$/.test(val);
   },
-  message: "invalida data. must be an integer",
+  message: "BULKIMPORT_ERROR_INVALID_INVALIDINTEGER",
 };
 
 const doubleRule = {
@@ -110,7 +109,7 @@ const doubleRule = {
     if (!val) return true;
     return /^-?\d+(\.\d+)?$/.test(val);
   },
-  message: "Invalid data. must be a double",
+  message: "BULKIMPORT_ERROR_INVALID_INVALIDNUMBER",
 };
 
 const extraStringCols = [
@@ -284,8 +283,7 @@ const latlongRule = {
 
     return true;
   },
-  message:
-    "Invalid latitude, longitude format. Use 'lat, long' (e.g., '34.05, -118.25')",
+  message: "BULKIMPORT_ERROR_INVALID_INVALIDLATLONG",
 };
 
 const parseEncounterDateString = (field, val, raw) => {

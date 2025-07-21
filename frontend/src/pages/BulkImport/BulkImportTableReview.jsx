@@ -25,13 +25,19 @@ export const BulkImportTableReview = observer(({ store }) => {
     });
 
   if (hasSubmissionErrors) {
-    tableErrors = store.submissionErrors.filter(
-      (e) => !e.rowNumber && e.fieldNames,
-    );
     rowErrors = store.submissionErrors.filter(
       (e) => typeof e.rowNumber === "number",
     );
+
+    tableErrors = store.submissionErrors.filter(
+      (e) => typeof e.rowNumber !== "number",
+    );
   }
+
+  console.log(
+    "BulkImportTableReview - tableErrors:",
+    JSON.stringify(tableErrors),
+  );
 
   return (
     <div className="mt-4" id="bulk-import-table-review">
@@ -117,10 +123,12 @@ export const BulkImportTableReview = observer(({ store }) => {
                 const name =
                   error.fieldNames?.length > 0
                     ? error.fieldNames?.join(", ")
-                    : error.fieldName;
+                    : error.fieldName
+                      ? error.fieldName
+                      : error?.filename || "Unknown";
                 return (
                   <li key={index}>
-                    {renderErrorCode(error.type)}: {name}
+                    {renderErrorCode(error?.type)}: {name}
                   </li>
                 );
               })}

@@ -11,9 +11,12 @@ const ErrorSummaryBar = observer(({ store }) => {
 
   Object.values(errors).forEach((rowErrors) => {
     Object.values(rowErrors).forEach((errMsg) => {
-      if (/required/i.test(errMsg)) {
+      if (/required/i.test(JSON.stringify(errMsg))) {
         missingField += 1;
-      } else if (/invalid/i.test(errMsg) || /missing/i.test(errMsg)) {
+      } else if (
+        /invalid/i.test(JSON.stringify(errMsg)) ||
+        /missing/i.test(JSON.stringify(errMsg))
+      ) {
         error += 1;
       }
     });
@@ -25,10 +28,7 @@ const ErrorSummaryBar = observer(({ store }) => {
         <FormattedMessage id="BULK_IMPORT_ERROR" /> {": "} {error}
       </Badge>
 
-      <Badge
-        bg="danger"
-        // text="dark"
-      >
+      <Badge bg="danger">
         <FormattedMessage id="BULK_IMPORT_MISSING_FIELD" /> {": "}{" "}
         {missingField}
       </Badge>

@@ -159,7 +159,7 @@ java.util.Properties" %>
 		return h + "</ul></div>";
 	}
 
-        private String showImportTask(ImportTask itask) {
+        private String showImportTask(ImportTask itask, Shepherd myShepherd) {
             Task iaTask = itask.getIATask();
             String h = "<div><b>" + itask.getId() + "</b> " + itask.toString() + "<ul>";
             h += "<li>" + format("creator", itask.getCreator()) + "</li>";
@@ -181,7 +181,7 @@ java.util.Properties" %>
             h += "<p><b>errors:</b> " + niceJson(itask.getErrors()) + "</p>";
             h += "<p><b>parameters:</b> " + niceJson(itask.getParameters()) + "</p>";
             h += "<p><b>statsMediaAssets:</b> " + niceJson(new JSONObject(itask.statsMediaAssets())) + "</p>";
-            h += "<p><b>statsAnnotations:</b> " + niceJson(new JSONObject(itask.statsAnnotations())) + "</p>";
+            h += "<p><b>statsAnnotations:</b> " + niceJson(new JSONObject(itask.statsAnnotations(myShepherd))) + "</p>";
             if (Util.collectionIsEmptyOrNull(itask.getLog())) {
                 h += "<p><i>empty log</i></p>";
             } else {
@@ -680,7 +680,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("ImportTask")) {
 	try {
 		ImportTask task = ((ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, id), true)));
-		out.println(showImportTask(task));
+		out.println(showImportTask(task, myShepherd));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		needForm = true;

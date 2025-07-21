@@ -37,7 +37,7 @@ export const ProgressCard = ({
             </div>
           ) : (
             <CircularProgressbarWithChildren
-              value={progress}
+              value={progress * 100}
               strokeWidth={6}
               background
               backgroundPadding={4}
