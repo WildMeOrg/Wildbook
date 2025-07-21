@@ -112,7 +112,6 @@ const EditableCell = observer(
                 </div>
               );
             }
-
             const missingList =
               rawError
                 ?.split("_")[1]

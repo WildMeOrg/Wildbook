@@ -99,8 +99,11 @@ export class BulkImportStore {
         const rawimages = val.split(",").map((img) => img.trim());
         const images = rawimages.map((img) => img.toLowerCase());
         let missing = false;
+        const uploadedLower = this._uploadedImages.map((img) =>
+          img.toLowerCase(),
+        );
         images.forEach((img) => {
-          if (!this._uploadedImages.includes(img.toLowerCase())) {
+          if (!uploadedLower.includes(img.toLowerCase())) {
             missing = true;
           }
         });
@@ -112,9 +115,11 @@ export class BulkImportStore {
         const uploadedLower = this._uploadedImages.map((img) =>
           img.toLowerCase(),
         );
+
         const missing = images.filter(
           (img) => !uploadedLower.includes(img.toLowerCase()),
         );
+
         return `MISSING_${missing.join(", ")}`;
       },
     },
@@ -371,7 +376,7 @@ export class BulkImportStore {
   }
 
   get uploadedImages() {
-    return this._uploadedImages;
+    return this._uploadedImages.map((img) => img.toLowerCase());
   }
 
   get columnsDef() {
@@ -850,10 +855,18 @@ export class BulkImportStore {
   applyServerUploadStatus(uploaded = []) {
     console.log("Applying server upload status:", uploaded);
     const uploadedFileNames = uploaded.map((p) => p[0]);
+    const lowercaseuploadedFileNames = uploaded.map((p) =>
+      p[0].toLowerCase().trim(),
+    );
 
     runInAction(() => {
-      this._uploadedImages = [...uploadedFileNames];
-      this._imageSectionFileNames = [...uploadedFileNames];
+      this._uploadedImages = this._uploadedImages.filter((img) =>
+        lowercaseuploadedFileNames.includes(img.toLowerCase().trim()),
+      );
+
+      this._imageSectionFileNames = this._imageSectionFileNames.filter((name) =>
+        uploadedFileNames.includes(name.trim()),
+      );
 
       this._imagePreview = this._imagePreview
         .filter((preview) =>
@@ -1635,13 +1648,16 @@ export class BulkImportStore {
       (n) => n !== fileName,
     );
     const file = this._flow.files.find((f) => f.name === fileName);
-    if (file) {
+    const savedFile = this._uploadedImages.find(
+      (f) => f.toLowerCase().trim() === fileName.toLowerCase().trim(),
+    );
+    if (file || savedFile) {
       this._flow.removeFile(file);
       this.setImagePreview(fileName, "remove");
       this.setImageSectionFileNames(fileName, "remove");
       runInAction(() => {
         this._uploadedImages = this._uploadedImages.filter(
-          (n) => n !== fileName,
+          (n) => n.toLowerCase().trim() !== fileName.toLowerCase().trim(),
         );
       });
     }
