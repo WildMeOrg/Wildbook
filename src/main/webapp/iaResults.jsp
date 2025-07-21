@@ -149,13 +149,7 @@ String taskId = request.getParameter("taskId");
 
 <div id="encid" style="">
 
-<!-- overwrites ia.IBEIS.js for testing -->
-
-<%
-%>
-
-
-<div class="container maincontent">
+<div class="container maincontent" id="container-maincontent" style="padding-top: 0 !important;">
 
 	<div class="instructions-container">
     <h4 class="intro accordion" style="margin-bottom:0"><a
@@ -193,11 +187,6 @@ h4.intro.accordion .rotate-chevron.down {
     -moz-transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
-}
-
-#projectDropdownSpan {
-	position: absolute;
-	padding-top: 25px;
 }
 
 </style>
@@ -250,33 +239,23 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
-	</div>
-		<div id="projectDropdownDiv" style="padding: 0px 0px 0px 50px;">
-			<span hidden class="control-label" id="projectDropdownSpan">
-				<label>Project Selection</label>
-				<select name="projectDropdown" id="projectDropdown">
-				</select>
-			</span>
-		</div>
+	  </div>
 
-
-
-		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
-		<!-- need to add javascript to update the link href on  -->
-		<div id="scoreNumSettings">
-				<span id="scoreNumInput">
-					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
-				</span>
-				<button class="nResults" onclick="nResultsClicker()">set</button>
-		</div>
-
+	  <!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+	  <!-- need to add javascript to update the link href on  -->
+	  <div id="scoreNumSettings">
+	  		<span id="scoreNumInput">
+	  			Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
+	  		</span>
+	  		<button class="nResults" onclick="nResultsClicker()">set</button>
+	  </div>
 	</div>
 
 	<style>
-		div#result_settings, div#projectDropdownDiv {
+		div#result_settings {
 
 		}
-		div#result_settings button:last-child, div#projectDropdownDiv {
+		div#result_settings button:last-child {
 			margin-right: 15px 15px 15px 15px;
 		}
 		div#result_settings span#scoreTypeSettings {
@@ -300,17 +279,9 @@ h4.intro.accordion .rotate-chevron.down {
 			}
 		</script>
 
-
-
 	<div id="initial-waiter" class="waiting throbbing">
 		<p>Waiting for results. <%=queueStatementID %></p>
 	</div>
-
-
-	<div id = "confirm-negative-dialog" style="display: none" title = "Confirm no match?" >
-	</div>
-
-
 </div>
 
 
@@ -417,7 +388,7 @@ var headerDefault = 'Select <b>correct match</b> from results below by <i>clicki
 // we use the same space as
 
 function init2() {   //called from wildbook.init() when finished
-	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div></div>');
+	$('#container-maincontent').prepend('<div id="encounter-info"><div class="enc-title" /></div></div>');
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
 		var tid = taskIds[i];
@@ -1233,13 +1204,6 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				}
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
-                <%
-                if(user != null){
-                %>
-                if (isQueryAnnot && !indivId) addNegativeButton(encId, displayName);
-                <%
-                }
-                %>
 
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
@@ -1879,39 +1843,6 @@ function encDisplayString(encId) {
 	return encId;
 }
 
-
-function negativeButtonClick(encId, oldDisplayName) {
-
-	var confirmMsg = 'Confirm no match?\n\n';
-	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
-	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
-	}
-	confirmMsg+= 'Click \'OK\' to record your decision.';
-
-	let paramStr = 'encId='+encId+'&noMatch=true';
-	let projectId = '<%=projectIdPrefix%>';
-	if (projectId&&projectId.length) {
-		paramStr += '&useNextProjectId=true&projectIdPrefix='+encodeURIComponent(projectId);
-	}
-
-	console.log("paramStr for 'negativeButtonClick' : "+paramStr);
-
-	if (confirm(confirmMsg)) {
-		$.ajax({
-			url: 'iaResultsNoMatch.jsp?' + paramStr,  //hacktacular!
-			type: 'GET',
-			dataType: 'json',
-			complete: function(d) {
-				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName, encId);
-			}
-		})
-	}
-}
-
 function updateNameCallback(d, oldDisplayName, encId) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
   let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
@@ -1925,25 +1856,6 @@ function updateNameCallback(d, oldDisplayName, encId) {
   }
 	alert(alertMsg);
   location.reload(); // there was an issue where the new individual name was not appearing until the iaResults pages was reloaded. I don't know why, but this solves the problem.
-}
-
-function addNegativeButton(encId, oldDisplayName) {
-        /*
-            FIXME: issue 432 uncovered some mysterious tie to org/names for the display of this button.
-            this needs further investigation to remove this for real and/or figure out why this was like this
-        */
-	//if (<%=usesAutoNames%>) {
-        if (true) {
-		console.log("Adding auto name/confirm negative button!");
-		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
-		console.log("negativeButton = "+negativeButton);
-		//var negativeButton = '<input onclick="negativeButtonClick();" type="button" value="Confirm No Match" />';
-		headerDefault = negativeButton;
-		//console.log("NEGATIVE BUTTON: About to attach "+negativeButton+" to "+JSON.stringify($('div#enc-action')));
-		$('div#enc-action').html(negativeButton);
-	} else {
-		console.log("No name scheme, baby!");
-	}
 }
 
 function getProjectData(currentUsername, selectedProject) {
@@ -2015,18 +1927,6 @@ function isProjectSelected() {
 	}
 	%>
 }
-
-$('#projectDropdown').on('change', function() {
-	let taskId = '<%=taskId%>';
-	let reloadURL = "../iaResults.jsp?taskId="+taskId;
-	let selectedProject = $("#projectDropdown").val();
-	// replace reserved pound sign in incremental ID's
-	selectedProject = selectedProject.replaceAll("#", "%23");
-	if (selectedProject&&selectedProject.length) {
-		reloadURL += "&projectIdPrefix="+selectedProject;
-	}
-	window.location.href = reloadURL;
-});
 
 // this is messy, but i'm avoiding another database hit
 var projectForEncCache = {};
