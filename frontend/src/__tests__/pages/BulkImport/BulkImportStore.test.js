@@ -91,7 +91,7 @@ describe("BulkImportStore Extra Methods", () => {
     };
     const { errors, warnings } = store.validateRow(0);
     expect(warnings).toEqual({});
-    expect(errors).toEqual({ a: "This field is required" });
+    expect(errors).toEqual({ a: "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD" });
   });
 
   test("validateSpreadsheet uses dynamic rules and caches result", () => {
@@ -100,7 +100,7 @@ describe("BulkImportStore Extra Methods", () => {
     store._spreadsheetData = [{ a: "" }, { a: "val" }];
     const first = store.validateSpreadsheet();
     const second = store.validateSpreadsheet();
-    expect(first).toBe(second); // same cached object
+    expect(first).toBe(second);
     expect(first).toHaveProperty("errors");
     expect(first).toHaveProperty("warnings");
   });
@@ -189,13 +189,17 @@ describe("BulkImportStore Extra Methods", () => {
     store._imagePreview = [
       { fileName: "f1", progress: 10 },
       { fileName: "f2", progress: 50 },
+      { fileName: "f3", progress: 30 },
     ];
-    store._uploadedImages = [];
-    store._imageSectionFileNames = [];
+    store._uploadedImages = ["f1", "f2", "f3"];
+    store._imageSectionFileNames = ["f1", "f2", "f3"];
     store.applyServerUploadStatus([["f1"], ["f2"]]);
     expect(store.uploadedImages).toEqual(["f1", "f2"]);
     expect(store.imageSectionFileNames).toEqual(["f1", "f2"]);
-    expect(store.imagePreview.every((p) => p.progress === 100)).toBe(true);
+    expect(store.imagePreview).toEqual([
+      { fileName: "f1", progress: 100, src: null },
+      { fileName: "f2", progress: 100, src: null },
+    ]);
   });
 
   test("isValidISO detects valid and invalid ISO strings", () => {
@@ -272,7 +276,6 @@ describe("BulkImportStore Extra Methods", () => {
 
   test("mergeValidationError adds then removes correctly", () => {
     expect(store._validationErrors).toEqual({});
-    // add an error
     store.mergeValidationError(2, "colX", { msg: "E" });
     expect(store.validationErrors[2]).toEqual({ colX: { msg: "E" } });
   });
@@ -286,7 +289,6 @@ describe("BulkImportStore Extra Methods", () => {
   });
 
   test("validateMediaAsset0ColumnOnly flags missing when required", () => {
-    // Setup rule
     store._validationRules["Encounter.mediaAsset0"] = {
       required: true,
       validate: () => false,
@@ -297,7 +299,6 @@ describe("BulkImportStore Extra Methods", () => {
       { "Encounter.mediaAsset0": "f1,f2" },
     ];
     const { errors } = store.validateMediaAsset0ColumnOnly();
-    // only row 1 (index 1) gets an error
     expect(errors).toHaveProperty("1");
     expect(errors[1]["Encounter.mediaAsset0"]).toBe("bad");
   });
@@ -309,20 +310,6 @@ describe("BulkImportStore Extra Methods", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  test("fetchAndApplyUploaded calls API and applies results", async () => {
-    store._submissionId = "ABC";
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ files: [["f1"], ["f2"]] }),
-    });
-    store._imagePreview = [{ fileName: "f1", progress: 0 }];
-    await store.fetchAndApplyUploaded();
-    expect(global.fetch).toHaveBeenCalledWith("/api/v3/bulk-import/ABC/files");
-    expect(store.uploadedImages).toEqual(["f1", "f2"]);
-    expect(store.imageSectionFileNames).toEqual(["f1", "f2"]);
-    expect(store.imagePreview.every((p) => p.progress === 100)).toBe(true);
-  });
-
   test("uploadFilteredFiles alerts on invalid file", () => {
     const flow = {
       files: [{ name: "big", size: 10 * 1024 * 1024 }],
@@ -331,25 +318,21 @@ describe("BulkImportStore Extra Methods", () => {
     };
     store._flow = flow;
     window.alert = jest.fn();
-    store.uploadFilteredFiles(5); // 5 MB max
+    store.uploadFilteredFiles(5);
     expect(window.alert).toHaveBeenCalled();
     expect(flow.upload).not.toHaveBeenCalled();
   });
 
-  test("generateThumbnailsForFirst200 resolves immediately when no previews", async () => {
+  test("generateThumbnailsForFirst50 resolves immediately when no previews", async () => {
     store._imagePreview = [];
-    await expect(
-      store.generateThumbnailsForFirst200(),
-    ).resolves.toBeUndefined();
+    await expect(store.generateThumbnailsForFirst50()).resolves.toBeUndefined();
   });
 
-  test("generateThumbnailsForFirst200 resolves when too many previews", async () => {
+  test("generateThumbnailsForFirst50 resolves when too many previews", async () => {
     store._imagePreview = Array(store._imageCountGenerateThumbnail + 1).fill(
       {},
     );
-    await expect(
-      store.generateThumbnailsForFirst200(),
-    ).resolves.toBeUndefined();
+    await expect(store.generateThumbnailsForFirst50()).resolves.toBeUndefined();
   });
 
   test("updateRawFromNormalizedRow handles date year only", () => {
@@ -492,11 +475,17 @@ describe("BulkImportStore Extra Methods", () => {
 
   test("fetchAndApplyUploaded applies fetched files", async () => {
     store._submissionId = "ID123";
+    store._uploadedImages = ["imgA", "imgB", "imgC"];
+    store._imageSectionFileNames = ["imgA", "imgB", "imgC"];
     global.fetch = jest.fn().mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ files: [["imgA"], ["imgB"]] }),
     });
-    store._imagePreview = [{ fileName: "imgA", progress: 0 }];
+    store._imagePreview = [
+      { fileName: "imgA", progress: 0 },
+      { fileName: "imgB", progress: 20 },
+      { fileName: "imgC", progress: 50 },
+    ];
 
     await store.fetchAndApplyUploaded();
     expect(global.fetch).toHaveBeenCalledWith(
@@ -535,17 +524,13 @@ describe("BulkImportStore Extra Methods", () => {
     expect(flow.upload).toHaveBeenCalledTimes(1);
   });
 
-  test("generateThumbnailsForFirst200 resolves immediately on empty or too many previews", async () => {
+  test("generateThumbnailsForFirst50 resolves immediately on empty or too many previews", async () => {
     store._imagePreview = [];
-    await expect(
-      store.generateThumbnailsForFirst200(),
-    ).resolves.toBeUndefined();
+    await expect(store.generateThumbnailsForFirst50()).resolves.toBeUndefined();
     store._imagePreview = Array(store._imageCountGenerateThumbnail + 1).fill(
       {},
     );
-    await expect(
-      store.generateThumbnailsForFirst200(),
-    ).resolves.toBeUndefined();
+    await expect(store.generateThumbnailsForFirst50()).resolves.toBeUndefined();
   });
 
   test("updateRawFromNormalizedRow handles year, genus, mediaAsset0, decimalLatitude", () => {
@@ -588,6 +573,27 @@ describe("BulkImportStore Extra Methods", () => {
     expect(store._rawData[0]["Encounter.decimalLongitude"]).toBe("8.2");
   });
 
+  test("handles Sighting.year with full datetime down to seconds", () => {
+    store._spreadsheetData = [{ "Sighting.year": "2022-05-10T14:30" }];
+    store._rawData = [
+      {
+        "Sighting.year": 0,
+        "Sighting.month": 1,
+        "Sighting.day": 2,
+        "Sighting.hour": 3,
+        "Sighting.minutes": 4,
+        "Sighting.seconds": 5,
+      },
+    ];
+    store.updateRawFromNormalizedRow();
+    const raw = store._rawData[0];
+    expect(raw["Sighting.year"]).toBe(2022);
+    expect(raw["Sighting.month"]).toBe(5);
+    expect(raw["Sighting.day"]).toBe(10);
+    expect(raw["Sighting.hour"]).toBe(14);
+    expect(raw["Sighting.minutes"]).toBe(30);
+  });
+
   test("stateSnapshot returns deep copy", () => {
     store._rawData = [{ x: 1 }];
     const snap = store.stateSnapshot;
@@ -608,22 +614,18 @@ describe("BulkImportStore Extra Methods", () => {
     expect(global.alert).toHaveBeenCalled();
     expect(flow.upload).not.toHaveBeenCalled();
 
-    flow.files = [{ name: "small", size: 500 * 1024 }]; // 0.5MB
+    flow.files = [{ name: "small", size: 500 * 1024 }];
     global.alert.mockClear();
     store.uploadFilteredFiles(1);
   });
 
-  test("generateThumbnailsForFirst200 resolves edge cases", async () => {
+  test("generateThumbnailsForFirst50 resolves edge cases", async () => {
     store._imagePreview = [];
-    await expect(
-      store.generateThumbnailsForFirst200(),
-    ).resolves.toBeUndefined();
+    await expect(store.generateThumbnailsForFirst50()).resolves.toBeUndefined();
     store._imagePreview = Array(store._imageCountGenerateThumbnail + 5).fill(
       {},
     );
-    await expect(
-      store.generateThumbnailsForFirst200(),
-    ).resolves.toBeUndefined();
+    await expect(store.generateThumbnailsForFirst50()).resolves.toBeUndefined();
   });
 
   test("updateRawFromNormalizedRow various transforms", () => {
@@ -669,7 +671,9 @@ describe("BulkImportStore Extra Methods", () => {
     ];
     const { errors, warnings } = store.validateMediaAsset0ColumnOnly();
     expect(warnings).toEqual({});
-    expect(errors["0"]["Encounter.mediaAsset0"]).toBe("This field is required");
+    expect(errors["0"]["Encounter.mediaAsset0"]).toBe(
+      "BULKIMPORT_ERROR_INVALID_REQUIREDFIELD",
+    );
     expect(errors["1"]["Encounter.mediaAsset0"]).toBe("msg");
   });
 
@@ -680,7 +684,7 @@ describe("BulkImportStore Extra Methods", () => {
       a: { required: true, validate: () => true, message: "m" },
     };
     const vr = store.validateRow(0);
-    expect(vr.errors.a).toBe("This field is required");
+    expect(vr.errors.a).toBe("BULKIMPORT_ERROR_INVALID_REQUIREDFIELD");
     store._minimalFields = { a: "string" };
     store._columnsDef = ["a"];
     store._spreadsheetData = [{ a: "" }];

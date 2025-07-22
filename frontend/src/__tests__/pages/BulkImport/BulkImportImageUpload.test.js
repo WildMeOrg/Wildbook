@@ -59,7 +59,7 @@ describe("BulkImportImageUpload", () => {
       setMaxImageCount: jest.fn(),
       initializeFlow: jest.fn(() => {}),
       triggerUploadAfterFileInput: jest.fn(),
-      generateThumbnailsForFirst200: jest.fn(),
+      generateThumbnailsForFirst50: jest.fn(),
       setFilesParsed: jest.fn(),
       setImageSectionFileNames: jest.fn(),
       uploadFilteredFiles: jest.fn(),
