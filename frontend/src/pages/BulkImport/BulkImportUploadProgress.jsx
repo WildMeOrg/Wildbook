@@ -24,7 +24,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
           store.setActiveStep(0);
         }}
       >
-        <div style={{ width: 40, height: 40 }}>
+        <div style={{ width: 40, height: 40 }} id="image-upload-progress">
           {store.imageUploadProgress === 100 &&
           store.uploadedImages.length > 0 ? (
             <FinishedIcon />
@@ -69,6 +69,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
         onClick={() => {
           store.setActiveStep(1);
         }}
+        id="step-spreadsheet"
       >
         <div style={{ width: 40, height: 40 }}>
           {store.spreadsheetUploadProgress === 100 ? (
@@ -117,7 +118,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
         </div>
       </div>
       <div
-        data-testid="step-set-location"
+        data-testid="step-review-data"
         style={{ minWidth: 150 }}
         className="d-flex flex-column align-items-center"
         onClick={() => {
@@ -125,6 +126,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
             store.setActiveStep(2);
           }
         }}
+        id="step-review-data"
       >
         <div
           style={{
@@ -156,6 +158,7 @@ export const BulkImportUploadProgress = observer(({ store }) => {
         </div>
       </div>
       <div
+        id="step-set-location"
         data-testid="step-set-location"
         style={{ minWidth: 150 }}
         className="d-flex flex-column align-items-center"

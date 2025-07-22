@@ -409,7 +409,10 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
             onDrop={(e) => handleDrop(e)}
           >
             {store.imagePreview.length ? (
-              <div onClick={() => fileInputRef.current.click()}>
+              <div
+                id="add-more-files"
+                onClick={() => fileInputRef.current.click()}
+              >
                 <i
                   className="bi bi-images"
                   style={{
@@ -422,7 +425,10 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                 </p>
               </div>
             ) : (
-              <div className="mb-3 d-flex flex-column justify-content-center">
+              <div
+                className="mb-3 d-flex flex-column justify-content-center"
+                id="drop-area-content"
+              >
                 <i
                   className="bi bi-images"
                   style={{
@@ -434,13 +440,13 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                   <FormattedMessage id="BULK_IMPORT_PHOTO_INSTRUCTION" />
                 </p>
                 <MainButton
+                  id="browse-button"
                   onClick={() => {
                     if (currentCount >= store.maxImageCount) {
                       alert(`exceeding ${store.maxImageCount}`);
                     } else {
                       fileInputRef.current.click();
                     }
-                    // fileInputRef.current.click()
                   }}
                   backgroundColor={theme.wildMeColors.cyan700}
                   color={theme.defaultColors.white}
@@ -476,6 +482,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
         </Col>
         <Col xs="auto">
           <MainButton
+            id="next-button"
             onClick={() => {
               store.setActiveStep(1);
             }}

@@ -10,8 +10,9 @@ export default function BulkImportSeeInstructionsButton({ store }) {
   };
 
   return (
-    <div id="bulk-import-see-instructions-button">
+    <div>
       <MainButton
+        id="bulk-import-see-instructions-button"
         className="mt-3"
         color={theme?.wildMeColors?.cyan500}
         // backgroundColor={theme?.wildMeColors?.cyan700}
