@@ -1229,7 +1229,21 @@ export class BulkImportStore {
   }
 
   updateRawFromNormalizedRow() {
-    console.log("Updating raw data from normalized rows");
+    runInAction(() => {
+      [
+        "Encounter.year",
+        "Encounter.month",
+        "Encounter.day",
+        "Encounter.hour",
+        "Encounter.minutes",
+        "Encounter.seconds",
+      ].forEach((col) => {
+        if (!this._rawColumns.includes(col)) {
+          this._rawColumns.push(col);
+        }
+      });
+    });
+
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
       const norm = this._spreadsheetData[rowIndex];
