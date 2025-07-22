@@ -91,7 +91,6 @@ describe("SuccessModal", () => {
         <SuccessModal {...defaultProps} />
       </ThemeContext.Provider>,
     );
-    // fireEvent.click(screen.getByRole('button', { hidden: true }));
     const buttons = screen.getAllByRole("button");
     fireEvent.click(buttons[0]);
     expect(defaultProps.onHide).toHaveBeenCalled();
