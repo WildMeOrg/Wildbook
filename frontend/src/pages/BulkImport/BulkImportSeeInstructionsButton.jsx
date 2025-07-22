@@ -15,7 +15,6 @@ export default function BulkImportSeeInstructionsButton({ store }) {
         id="bulk-import-see-instructions-button"
         className="mt-3"
         color={theme?.wildMeColors?.cyan500}
-        // backgroundColor={theme?.wildMeColors?.cyan700}
         borderColor={theme?.wildMeColors?.cyan500}
         shadowColor={theme?.wildMeColors?.cyan500}
         noArrow={true}

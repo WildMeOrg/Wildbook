@@ -68,7 +68,6 @@ export default function FrontDesk() {
 
   useEffect(() => {
     const handleOnline = () => {
-      console.log("Network back online, rechecking login...");
       checkLoginStatus();
     };
     window.addEventListener("online", handleOnline);
