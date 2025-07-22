@@ -59,7 +59,7 @@ export const ProgressCard = ({
           <div style={{ fontSize: 14, fontWeight: 500 }}>{title}</div>
           <div style={{ fontSize: 12, color: "#6B7280" }}>
             <FormattedMessage
-              id={`BULK_IMPORT_TASK_ERROR_${status.split(" ").join("_").toLowerCase()}`}
+              id={`BULK_IMPORT_TASK_STATUS_${status.split(" ").join("_").toLowerCase()}`}
               defaultMessage={status}
             />
           </div>
