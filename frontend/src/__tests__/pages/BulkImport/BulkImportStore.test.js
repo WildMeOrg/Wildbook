@@ -904,14 +904,14 @@ describe("BulkImportStore file-tree and triggerUpload branches", () => {
     expect(store._collectedValidFiles).toEqual([]);
   });
 
-  test("triggerUploadAfterFileInput calls onAll when imagePreview 非空", () => {
+  test("triggerUploadAfterFileInput calls onAll when imagePreview is not empty", () => {
     store._imagePreview = [{ foo: "bar" }];
     store._onAllFilesParsed = jest.fn();
     store.triggerUploadAfterFileInput();
     expect(store._onAllFilesParsed).toHaveBeenCalledTimes(1);
   });
 
-  test("triggerUploadAfterFileInput does nothing when imagePreview 为空", () => {
+  test("triggerUploadAfterFileInput does nothing when imagePreview is empty", () => {
     store._imagePreview = [];
     store._onAllFilesParsed = jest.fn();
     store.triggerUploadAfterFileInput();
