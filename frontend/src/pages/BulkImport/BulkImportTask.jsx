@@ -69,15 +69,21 @@ const BulkImportTask = () => {
     }
   };
 
-  const tableData = task?.encounters?.map((item) => ({
-    encounterID: item.id,
-    encounterDate: item.date,
-    user: item.submitter?.displayName || "-",
-    occurrenceID: item.occurrenceId || "-",
-    individualID: item.individualId || "-",
-    imageCount: item.numberMediaAssets,
-    class: item.class || "-",
-  }));
+  const tableData = task?.encounters?.map((item) => {
+    const classArray =
+      task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[
+        "da7bf13f-d48e-4eaf-b1ee-b5bcfdef455a"
+      ] || [];
+    return {
+      encounterID: item.id,
+      encounterDate: item.date,
+      user: item.submitter?.displayName || "-",
+      occurrenceID: item.occurrenceId || "-",
+      individualID: item.individualId || "-",
+      imageCount: item.numberMediaAssets,
+      class: classArray,
+    };
+  });
 
   const columns = [
     {
@@ -145,8 +151,19 @@ const BulkImportTask = () => {
     },
     {
       name: "Class",
-      cell: (row) => row.class,
       selector: (row) => row.class,
+      cell: (row) => {
+        const arr = row.class;
+        if (Array.isArray(arr) && arr.length === 3) {
+          return (
+            <a href={arr[0]} target="_blank" rel="noreferrer">
+              {arr[2]} {": "}
+              {arr[1]}
+            </a>
+          );
+        }
+        return "-";
+      },
     },
   ];
 
