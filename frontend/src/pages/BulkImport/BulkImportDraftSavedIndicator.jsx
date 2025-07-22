@@ -35,6 +35,7 @@ const Box = ({ children }) => (
       display: "flex",
       alignItems: "center",
     }}
+    id="draft-save-indicator"
   >
     {children}
   </div>

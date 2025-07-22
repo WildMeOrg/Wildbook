@@ -23,6 +23,7 @@ const ApplyToAllRowsModal = observer(({ store, columnId, newValue }) => {
       show={store.applyToAllRowModalShow}
       onHide={handleCancel}
       centered
+      id="bulk-import-apply-to-all-rows-modal"
     >
       <Modal.Header closeButton>
         <Modal.Title>
