@@ -21,7 +21,7 @@ export const BulkImportUnfinishedTaskModal = ({
   };
 
   return (
-    <Modal show={show} onHide={() => setShow(false)} centered>
+    <Modal show={show} size="lg" onHide={() => setShow(false)} centered>
       <Modal.Header closeButton>
         <Modal.Title>
           <FormattedMessage

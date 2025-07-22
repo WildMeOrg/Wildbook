@@ -18,7 +18,12 @@ const ApplyToAllRowsModal = observer(({ store, columnId, newValue }) => {
   };
 
   return (
-    <Modal show={store.applyToAllRowModalShow} onHide={handleCancel} centered>
+    <Modal
+      size="lg"
+      show={store.applyToAllRowModalShow}
+      onHide={handleCancel}
+      centered
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           <FormattedMessage id="BULK_IMPORT_APPLY_TO_ALL_ROWS_TITLE" />

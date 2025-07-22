@@ -19,7 +19,13 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered id="bulk-import-success-modal">
+    <Modal
+      size="lg"
+      show={show}
+      onHide={onHide}
+      centered
+      id="bulk-import-success-modal"
+    >
       <Modal.Header>
         <Modal.Title>
           <FormattedMessage
