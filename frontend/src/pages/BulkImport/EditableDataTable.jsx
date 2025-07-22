@@ -235,8 +235,6 @@ export const DataTable = observer(({ store }) => {
 
   const validateMediaAssets = useRef(
     throttle(() => {
-      console.log("Throttled validation triggered");
-
       const col = "Encounter.mediaAsset0";
       const { errors } = store.validateMediaAsset0ColumnOnly();
 

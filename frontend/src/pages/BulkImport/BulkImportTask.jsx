@@ -25,9 +25,6 @@ const BulkImportTask = () => {
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
   React.useEffect(() => {
-    console.log("BulkImportTask taskId:", taskId);
-    console.log("BulkImportTask task:", task);
-    console.log("BulkImportTask error:", error);
     if (error?.message || task?.status === "failed") {
       setShowError(true);
     }

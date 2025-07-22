@@ -33,12 +33,6 @@ export const BulkImportTableReview = observer(({ store }) => {
       (e) => typeof e.rowNumber !== "number",
     );
   }
-
-  console.log(
-    "BulkImportTableReview - tableErrors:",
-    JSON.stringify(tableErrors),
-  );
-
   return (
     <div className="mt-4" id="bulk-import-table-review">
       <div>

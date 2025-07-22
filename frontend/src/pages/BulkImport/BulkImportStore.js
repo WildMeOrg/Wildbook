@@ -677,7 +677,6 @@ export class BulkImportStore {
 
   setValidationErrors(errors) {
     this._validationErrors = errors;
-    console.log("Setting validation errors:", errors);
   }
 
   setValidationWarnings(warnings) {
@@ -842,7 +841,6 @@ export class BulkImportStore {
   }
 
   applyServerUploadStatus(uploaded = []) {
-    console.log("Applying server upload status:", uploaded);
     const uploadedFileNames = uploaded.map((p) => p[0]);
 
     runInAction(() => {
@@ -868,10 +866,6 @@ export class BulkImportStore {
 
   async fetchAndApplyUploaded() {
     if (!this._submissionId) return;
-    console.log(
-      "Fetching uploaded files for submission ID:",
-      this._submissionId,
-    );
     try {
       const resp = await fetch(
         `/api/v3/bulk-import/${this._submissionId}/files`,
@@ -883,10 +877,9 @@ export class BulkImportStore {
       }
 
       const data = await resp.json();
-      console.log("Fetched uploaded files:", data.files);
       this.applyServerUploadStatus(data.files);
     } catch (error) {
-      console.error("Error fetching uploaded files:", error);
+      console.error("Failed to fetch uploaded files", error);
     }
   }
 
@@ -1043,7 +1036,7 @@ export class BulkImportStore {
     };
 
     flowInstance.on("fileRetry", (file, chunk) => {
-      console.log(
+      console.warn(
         `file ${file.name} chunk #${chunk.offset} is retrying # ${chunk.retries} `,
       );
     });
@@ -1544,11 +1537,9 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
-    console.log("Validating spreadsheet data...");
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
-    console.log("No cached validation, performing fresh validation...");
     this.applyDynamicValidationRules();
     const errors = {};
     const warnings = {};
