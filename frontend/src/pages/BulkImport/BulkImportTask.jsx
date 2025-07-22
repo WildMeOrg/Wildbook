@@ -162,8 +162,7 @@ const BulkImportTask = () => {
             defaultMessage="Bulk Import Task"
           />
         </h2>
-        <Breadcrumb className="small mb-2">
-          <Breadcrumb.Item href="#/bulk-import">Bulk Import</Breadcrumb.Item>
+        <Breadcrumb className="small mb-2 mt-2">
           <Breadcrumb.Item active>
             {intl.formatMessage(
               {
