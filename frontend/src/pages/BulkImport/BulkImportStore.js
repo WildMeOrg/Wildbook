@@ -454,23 +454,17 @@ export class BulkImportStore {
   }
 
   get missingPhotos() {
-    const uploadedSet = new Set(this._uploadedImages);
-
     const missing = new Set();
 
     this._spreadsheetData.forEach((row) => {
       const mediaAssets = row["Encounter.mediaAsset0"];
       if (!mediaAssets) return;
-
-      mediaAssets.split(",").forEach((raw) => {
-        const name = raw.trim();
-        const key = name.toLowerCase();
-        if (!uploadedSet.has(key)) {
+      mediaAssets.split(",").forEach((name) => {
+        if (!this._uploadedImages.includes(name)) {
           missing.add(name);
         }
       });
     });
-
     return Array.from(missing);
   }
 
