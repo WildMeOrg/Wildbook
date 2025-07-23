@@ -490,6 +490,10 @@ public class ImportTask implements java.io.Serializable {
     // this is hobbled together from some complex code in import.jsp
     // some of this is only necessary to handle legacy (non-api) uploads
     // may the gods have mercy on our soul
+    // FIXME this can be OUTRAGEOUSLY slow for tasks with 100s of annotations
+    // for the GET api for listing tasks we very likely want to move this
+    // to detailed=true so it is not called for every task -- but this currently
+    // messes up the status :(
     public JSONObject iaSummaryJson(Shepherd myShepherd) {
         int numDetectionComplete = 0;
         int numAcmId = 0;
