@@ -72,7 +72,8 @@ const BulkImportTask = () => {
   const tableData = task?.encounters?.map((item) => {
     const taskArray =
       task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
-    const classArray = taskArray.length > 0 ? taskArray[0] : [];
+    const classArray =
+      Array.isArray(taskArray) && taskArray?.length > 0 ? taskArray[0] : [];
     return {
       encounterID: item.id,
       encounterDate: item.date,
@@ -154,8 +155,9 @@ const BulkImportTask = () => {
       cell: (row) => {
         const arr = row.class;
         if (Array.isArray(arr) && arr.length === 3) {
+          const link = `/iaResults.jsp?taskId=${arr[0]}`;
           return (
-            <a href={arr[0]} target="_blank" rel="noreferrer">
+            <a href={link} target="_blank" rel="noreferrer">
               {arr[2]} {": "}
               {arr[1]}
             </a>
