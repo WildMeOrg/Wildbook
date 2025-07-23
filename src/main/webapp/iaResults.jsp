@@ -211,7 +211,7 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 
-	<div style="display: flex; flex-direction: row; justify-content: space-between; align-items: start; width: 100%">
+	<div style="display: flex; flex-direction: row; justify-content: left; align-items: start; width: 100%">
 		<div id="result_settings" style="display: grid; width: 32%;">
 		  <div>
 			<span id="scoreTypeSettings">
