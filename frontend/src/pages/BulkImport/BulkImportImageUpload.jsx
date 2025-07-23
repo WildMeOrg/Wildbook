@@ -205,20 +205,34 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                   style={{ maxWidth: "200px", position: "relative" }}
                 >
                   <div style={{ position: "relative" }}>
-                    <i
-                      className="bi bi-x-circle-fill"
+                    <div
                       style={{
+                        cursor: "pointer",
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        backgroundColor: theme.primaryColors.primary500,
                         position: "absolute",
                         top: "-10px",
                         right: "-5px",
-                        cursor: "pointer",
-                        fontSize: "1.2rem",
-                        color: theme.primaryColors.primary500,
-                        zIndex: 10,
+                        fontSize: "1rem",
+                        zIndex: 5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                       title="Remove image"
                       onClick={() => store.removePreview(preview.fileName)}
-                    ></i>
+                    >
+                      <i
+                        className="bi bi-x-lg"
+                        style={{
+                          color: "white",
+                          zIndex: 10,
+                          fontSize: "0.8rem",
+                        }}
+                      ></i>
+                    </div>
 
                     {preview.showThumbnail && preview.src ? (
                       <BootstrapImage
@@ -281,10 +295,12 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
 
                   <ProgressBar
                     now={preview.progress}
+                    variant="info"
                     label={`${Math.round(preview.progress)}%`}
                     className="mt-2"
                     style={{
                       width: "100%",
+                      height: "12px",
                       backgroundColor: theme.primaryColors.primary50,
                     }}
                   />
@@ -344,6 +360,8 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                             whiteSpace: "nowrap",
                             fontWeight: 500,
                             height: "50px",
+                            paddingLeft: "16px",
+                            alignContent: "center",
                           }}
                           title={preview.fileName}
                         >
@@ -356,10 +374,14 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                             textAlign: "right",
                           }}
                         >
-                          {(preview.fileSize / (1024 * 1024)).toFixed(1)} MB
+                          {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
                         </div>
                         <div
-                          style={{ marginLeft: "16px", cursor: "pointer" }}
+                          style={{
+                            marginLeft: "16px",
+                            cursor: "pointer",
+                            marginRight: "16px",
+                          }}
                           onClick={() => store.removePreview(preview.fileName)}
                         >
                           <i
@@ -409,7 +431,10 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
             onDrop={(e) => handleDrop(e)}
           >
             {store.imagePreview.length ? (
-              <div onClick={() => fileInputRef.current.click()}>
+              <div
+                id="add-more-files"
+                onClick={() => fileInputRef.current.click()}
+              >
                 <i
                   className="bi bi-images"
                   style={{
@@ -422,7 +447,10 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                 </p>
               </div>
             ) : (
-              <div className="mb-3 d-flex flex-column justify-content-center">
+              <div
+                className="mb-3 d-flex flex-column justify-content-center"
+                id="drop-area-content"
+              >
                 <i
                   className="bi bi-images"
                   style={{
@@ -434,13 +462,13 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                   <FormattedMessage id="BULK_IMPORT_PHOTO_INSTRUCTION" />
                 </p>
                 <MainButton
+                  id="browse-button"
                   onClick={() => {
                     if (currentCount >= store.maxImageCount) {
                       alert(`exceeding ${store.maxImageCount}`);
                     } else {
                       fileInputRef.current.click();
                     }
-                    // fileInputRef.current.click()
                   }}
                   backgroundColor={theme.wildMeColors.cyan700}
                   color={theme.defaultColors.white}
@@ -476,6 +504,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
         </Col>
         <Col xs="auto">
           <MainButton
+            id="next-button"
             onClick={() => {
               store.setActiveStep(1);
             }}

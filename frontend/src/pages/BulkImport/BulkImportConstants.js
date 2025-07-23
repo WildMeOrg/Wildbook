@@ -321,6 +321,26 @@ const parseEncounterDateString = (field, val, raw) => {
     set("day", d);
     set("hour", Number(hour));
     set("minutes", "");
+  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+    const [datePart, timePart] = val.split("T");
+    const [y, m, d] = datePart.split("-").map(Number);
+    const [hh, mm] = timePart.split(":").map(Number);
+    set("year", y);
+    set("month", m);
+    set("day", d);
+    set("hour", hh);
+    set("minutes", mm);
+    set("seconds", 0);
+  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(val)) {
+    const [datePart, timePart] = val.split("T");
+    const [y, m, d] = datePart.split("-").map(Number);
+    const [hh, mm, ss] = timePart.split(":").map(Number);
+    set("year", y);
+    set("month", m);
+    set("day", d);
+    set("hour", hh);
+    set("minutes", mm);
+    set("seconds", ss);
   } else {
     const dt = new Date(val);
     if (!isNaN(dt)) {
@@ -329,6 +349,7 @@ const parseEncounterDateString = (field, val, raw) => {
       set("day", dt.getDate());
       set("hour", dt.getHours());
       set("minutes", dt.getMinutes());
+      set("seconds", dt.getSeconds());
     }
   }
 };

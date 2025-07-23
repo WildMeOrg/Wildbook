@@ -503,5 +503,22 @@
   "BULKIMPORT_ERROR_INVALID_SYNONYMFIELDS": "Dati non validi: puoi usare solo uno dei seguenti campi sinonimi: {list}. Elimina tutti gli altri campi prima di procedere.",
   "BULKIMPORT_ERROR_INVALID_LABELEDKEYWORDINVALIDVALUE": "Valore non valido per ${col} — deve essere uno di: {allowedValues}.",
   "BULKIMPORT_ERROR_INVALID_UNKNOWNCOLUMN": "Colonna sconosciuta — potrebbe non essere elaborata",
-  "PREV": "Precedente"
+  "PREV": "Precedente",
+  "BULK_IMPORT_TASK_STATUS_complete": "completato",
+  "BULK_IMPORT_TASK_STATUS_imported": "importato",
+  "BULK_IMPORT_TASK_STATUS_processing-background": "elaborazione in background",
+  "BULK_IMPORT_TASK_STATUS_processing-foreground": "elaborazione in primo piano",
+  "BULK_IMPORT_TASK_STATUS_processing-detection": "elaborazione del rilevamento",
+  "BULK_IMPORT_TASK_STATUS_processing-pipeline": "pipeline di elaborazione",
+  "BULK_IMPORT_TASK_STATUS_error": "errore",
+  "BULK_IMPORT_TASK_STATUS_sent": "inviato",
+  "BULK_IMPORT_TASK_STATUS_identification_not_started": "identificazione non iniziata",
+  "BULK_IMPORT_TASK_STATUS_not_started": "non iniziato",
+  "BULK_IMPORT_TASK_STATUS_waiting_for_detections": "in attesa di rilevamenti",
+  "BULK_IMPORT_TASK_STATUS_in_progress": "in corso",
+  "BULK_IMPORT_TASK_STATUS_skipped": "saltato",
+  "BULK_IMPORT_DELETE_TASK_CONFIRM": "Sei sicuro di voler eliminare questa attività di importazione?",
+  "BULK_IMPORT_TASK_DELETED": "Attività di importazione eliminata con successo.",
+  "BULK_IMPORT_TASK_DELETE_ERROR": "Impossibile eliminare l'attività di importazione: {error}",
+  "BULK_IMPORT_TASK_ERROR_DEFAULT": "Impossibile elaborare la tua attività a causa di un errore."
 }

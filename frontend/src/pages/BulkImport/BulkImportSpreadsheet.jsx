@@ -358,6 +358,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             onChange={handleFileUpload}
           />
           <MainButton
+            id="browse-button"
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
             noArrow={true}
@@ -471,6 +472,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
       <div className="d-flex flex-row justify-content-between mt-4 mb-4">
         <MainButton
+          id="previous-button"
           onClick={() => store.setActiveStep(0)}
           backgroundColor={theme.wildMeColors.cyan700}
           color={theme.defaultColors.white}
@@ -480,6 +482,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
           <FormattedMessage id="PREVIOUS" />
         </MainButton>
         <MainButton
+          id="next-button"
           onClick={() => store.setActiveStep(2)}
           backgroundColor={theme.wildMeColors.cyan700}
           disabled={store.spreadsheetUploadProgress !== 100}

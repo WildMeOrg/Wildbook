@@ -101,13 +101,13 @@ describe("EditableDataTable", () => {
 
   test("renders pagination controls", () => {
     renderWithProviders(<DataTable store={mockStore} />);
-    expect(screen.getByText("Prev")).toBeInTheDocument();
-    expect(screen.getByText("Next")).toBeInTheDocument();
+    expect(screen.getByText("PREV")).toBeInTheDocument();
+    expect(screen.getByText("NEXT")).toBeInTheDocument();
   });
 
   test("pagination buttons are clickable", () => {
     renderWithProviders(<DataTable store={mockStore} />);
-    const nextBtn = screen.getByText("Next");
+    const nextBtn = screen.getByText("NEXT");
     fireEvent.click(nextBtn);
     expect(nextBtn).toBeEnabled();
   });

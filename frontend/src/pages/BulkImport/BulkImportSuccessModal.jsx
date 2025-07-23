@@ -19,7 +19,13 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered id="bulk-import-success-modal">
+    <Modal
+      size="lg"
+      show={show}
+      onHide={onHide}
+      centered
+      id="bulk-import-success-modal"
+    >
       <Modal.Header>
         <Modal.Title>
           <FormattedMessage
@@ -64,10 +70,6 @@ const SuccessModal = ({ show, onHide, fileName, submissionId, lastEdited }) => {
               <FormattedMessage id="BULK_IMPORT_STARTED_AT" /> {lastEdited}
             </div>
           </div>
-          {/* <Button variant="outline-primary" onClick={goToTaskDetails}>
-            <FormattedMessage id="SEE_DETAILS" defaultMessage="See Details" />
-            <ArrowRight className="ms-1" />
-          </Button> */}
         </Card>
       </Modal.Body>
       <Modal.Footer>

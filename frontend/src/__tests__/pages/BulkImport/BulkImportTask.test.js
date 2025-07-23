@@ -106,8 +106,12 @@ describe("BulkImportTask", () => {
     renderWithProviders(<BulkImportTask />);
 
     expect(screen.getByText("BULK_IMPORT_TASK")).toBeInTheDocument();
-    expect(screen.getAllByText("Complete")).toHaveLength(2);
-    expect(screen.getByText("In Progress")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("BULK_IMPORT_TASK_STATUS_complete"),
+    ).toHaveLength(2);
+    expect(
+      screen.getByText("BULK_IMPORT_TASK_STATUS_in_progress"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("simple-table")).toBeInTheDocument();
     expect(screen.getByText("E123")).toBeInTheDocument();
   });
@@ -179,7 +183,7 @@ describe("BulkImportTask", () => {
 
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith(
-        "Import task deleted successfully.",
+        "Bulk import task deleted successfully.",
       );
       expect(window.location.href).toBe("/react/");
     });

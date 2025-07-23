@@ -25,9 +25,6 @@ const BulkImportTask = () => {
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
   React.useEffect(() => {
-    console.log("BulkImportTask taskId:", taskId);
-    console.log("BulkImportTask task:", task);
-    console.log("BulkImportTask error:", error);
     if (error?.message || task?.status === "failed") {
       setShowError(true);
     }
@@ -45,7 +42,7 @@ const BulkImportTask = () => {
     if (!task?.id) return;
 
     const confirmed = window.confirm(
-      "Are you sure you want to delete this import task?",
+      intl.formatMessage({ id: "BULK_IMPORT_DELETE_TASK_CONFIRM" }),
     );
     if (!confirmed) return;
 
@@ -59,23 +56,33 @@ const BulkImportTask = () => {
         throw new Error(text || `HTTP ${res.status}`);
       }
 
-      alert("Import task deleted successfully.");
+      alert(intl.formatMessage({ id: "BULK_IMPORT_TASK_DELETED" }));
       window.location.href = "/react/";
     } catch (err) {
       console.error("Failed to delete import task:", err);
-      alert("Failed to delete import task. " + (err.message || ""));
+      alert(
+        intl.formatMessage(
+          { id: "BULK_IMPORT_TASK_DELETE_ERROR" },
+          { error: err.message || "" },
+        ),
+      );
     }
   };
 
-  const tableData = task?.encounters?.map((item) => ({
-    encounterID: item.id,
-    encounterDate: item.date,
-    user: item.submitter?.displayName || "-",
-    occurrenceID: item.occurrenceId || "-",
-    individualID: item.individualId || "-",
-    imageCount: item.numberMediaAssets,
-    class: item.class || "-",
-  }));
+  const tableData = task?.encounters?.map((item) => {
+    const taskArray =
+      task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
+    const classArray = taskArray.length > 0 ? taskArray[0] : [];
+    return {
+      encounterID: item.id,
+      encounterDate: item.date,
+      user: item.submitter?.displayName || "-",
+      occurrenceID: item.occurrenceId || "-",
+      individualID: item.individualId || "-",
+      imageCount: item.numberMediaAssets,
+      class: classArray,
+    };
+  });
 
   const columns = [
     {
@@ -143,8 +150,19 @@ const BulkImportTask = () => {
     },
     {
       name: "Class",
-      cell: (row) => row.class,
       selector: (row) => row.class,
+      cell: (row) => {
+        const arr = row.class;
+        if (Array.isArray(arr) && arr.length === 3) {
+          return (
+            <a href={arr[0]} target="_blank" rel="noreferrer">
+              {arr[2]} {": "}
+              {arr[1]}
+            </a>
+          );
+        }
+        return "-";
+      },
     },
   ];
 
@@ -157,8 +175,7 @@ const BulkImportTask = () => {
             defaultMessage="Bulk Import Task"
           />
         </h2>
-        <Breadcrumb className="small mb-2">
-          <Breadcrumb.Item href="#/bulk-import">Bulk Import</Breadcrumb.Item>
+        <Breadcrumb className="small mb-2 mt-2">
           <Breadcrumb.Item active>
             {intl.formatMessage(
               {
@@ -181,11 +198,11 @@ const BulkImportTask = () => {
               progress: task?.importPercent || 0,
               status: (() => {
                 if (task?.importPercent === 1) {
-                  return "Complete";
+                  return "complete";
                 } else if (task?.importPercent) {
-                  return "In Progress";
+                  return "in_progress";
                 } else {
-                  return "Not Started";
+                  return "not_started";
                 }
               })(),
             },
@@ -194,14 +211,14 @@ const BulkImportTask = () => {
                 id: "DETECTION",
               }),
               progress: task?.iaSummary?.detectionPercent || 0,
-              status: task?.iaSummary?.detectionStatus || "Not Started",
+              status: task?.iaSummary?.detectionStatus || "not_started",
             },
             {
               title: intl.formatMessage({
                 id: "IDENTIFICATION",
               }),
               progress: task?.iaSummary?.identificationPercent || 0,
-              status: task?.iaSummary?.identificationStatus || "Not Started",
+              status: task?.iaSummary?.identificationStatus || "not_started",
             },
           ].map(({ title, progress, status }) => (
             <ProgressCard
@@ -314,7 +331,11 @@ const BulkImportTask = () => {
         </Modal.Header>
         <Modal.Body>
           <p className="text-danger">
-            {error?.message || "your task failed with error"}
+            {error?.message ||
+              intl.formatMessage({
+                id: "BULK_IMPORT_TASK_ERROR_DEFAULT",
+                defaultMessage: "An error occurred while loading the task.",
+              })}
           </p>
         </Modal.Body>
         <Modal.Footer>

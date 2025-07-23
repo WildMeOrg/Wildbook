@@ -96,28 +96,19 @@ export class BulkImportStore {
         if (!val) {
           return true;
         }
-        const rawimages = val.split(",").map((img) => img.trim());
-        const images = rawimages.map((img) => img.toLowerCase());
+        const images = val.split(",").map((img) => img.trim());
         let missing = false;
-        const uploadedLower = this._uploadedImages.map((img) =>
-          img.toLowerCase(),
-        );
         images.forEach((img) => {
-          if (!uploadedLower.includes(img.toLowerCase())) {
+          if (!this._uploadedImages.includes(img)) {
             missing = true;
           }
         });
-
         return !missing;
       },
       message: (val) => {
         const images = val.split(",").map((img) => img.trim());
-        const uploadedLower = this._uploadedImages.map((img) =>
-          img.toLowerCase(),
-        );
-
         const missing = images.filter(
-          (img) => !uploadedLower.includes(img.toLowerCase()),
+          (img) => !this._uploadedImages.includes(img),
         );
 
         return `MISSING_${missing.join(", ")}`;
@@ -376,7 +367,7 @@ export class BulkImportStore {
   }
 
   get uploadedImages() {
-    return this._uploadedImages.map((img) => img.toLowerCase());
+    return this._uploadedImages;
   }
 
   get columnsDef() {
@@ -463,9 +454,7 @@ export class BulkImportStore {
   }
 
   get missingPhotos() {
-    const uploadedSet = new Set(
-      this._uploadedImages.map((f) => f.trim().toLowerCase()),
-    );
+    const uploadedSet = new Set(this._uploadedImages);
 
     const missing = new Set();
 
@@ -688,7 +677,6 @@ export class BulkImportStore {
 
   setValidationErrors(errors) {
     this._validationErrors = errors;
-    console.log("Setting validation errors:", errors);
   }
 
   setValidationWarnings(warnings) {
@@ -853,15 +841,11 @@ export class BulkImportStore {
   }
 
   applyServerUploadStatus(uploaded = []) {
-    console.log("Applying server upload status:", uploaded);
     const uploadedFileNames = uploaded.map((p) => p[0]);
-    const lowercaseuploadedFileNames = uploaded.map((p) =>
-      p[0].toLowerCase().trim(),
-    );
 
     runInAction(() => {
       this._uploadedImages = this._uploadedImages.filter((img) =>
-        lowercaseuploadedFileNames.includes(img.toLowerCase().trim()),
+        uploadedFileNames.includes(img),
       );
 
       this._imageSectionFileNames = this._imageSectionFileNames.filter((name) =>
@@ -882,10 +866,6 @@ export class BulkImportStore {
 
   async fetchAndApplyUploaded() {
     if (!this._submissionId) return;
-    console.log(
-      "Fetching uploaded files for submission ID:",
-      this._submissionId,
-    );
     try {
       const resp = await fetch(
         `/api/v3/bulk-import/${this._submissionId}/files`,
@@ -897,10 +877,9 @@ export class BulkImportStore {
       }
 
       const data = await resp.json();
-      console.log("Fetched uploaded files:", data.files);
       this.applyServerUploadStatus(data.files);
     } catch (error) {
-      console.error("Error fetching uploaded files:", error);
+      console.error("Failed to fetch uploaded files", error);
     }
   }
 
@@ -1057,7 +1036,7 @@ export class BulkImportStore {
     };
 
     flowInstance.on("fileRetry", (file, chunk) => {
-      console.log(
+      console.warn(
         `file ${file.name} chunk #${chunk.offset} is retrying # ${chunk.retries} `,
       );
     });
@@ -1243,7 +1222,21 @@ export class BulkImportStore {
   }
 
   updateRawFromNormalizedRow() {
-    console.log("Updating raw data from normalized rows");
+    runInAction(() => {
+      [
+        "Encounter.year",
+        "Encounter.month",
+        "Encounter.day",
+        "Encounter.hour",
+        "Encounter.minutes",
+        "Encounter.seconds",
+      ].forEach((col) => {
+        if (!this._rawColumns.includes(col)) {
+          this._rawColumns.push(col);
+        }
+      });
+    });
+
     this._spreadsheetData.forEach((_, rowIndex) => {
       const raw = this._rawData[rowIndex];
       const norm = this._spreadsheetData[rowIndex];
@@ -1544,11 +1537,9 @@ export class BulkImportStore {
   }
 
   validateSpreadsheet() {
-    console.log("Validating spreadsheet data...");
     if (this._cachedValidation) {
       return this._cachedValidation;
     }
-    console.log("No cached validation, performing fresh validation...");
     this.applyDynamicValidationRules();
     const errors = {};
     const warnings = {};
@@ -1582,9 +1573,7 @@ export class BulkImportStore {
                   this._labeledKeywordAllowedPairs[columnName].join(", "),
               },
             };
-            // `Invalid value for ${col} — must be one of: ${this._labeledKeywordAllowedPairs[columnName].join(", ")}`;
           }
-
           return;
         }
 
@@ -1648,16 +1637,14 @@ export class BulkImportStore {
       (n) => n !== fileName,
     );
     const file = this._flow.files.find((f) => f.name === fileName);
-    const savedFile = this._uploadedImages.find(
-      (f) => f.toLowerCase().trim() === fileName.toLowerCase().trim(),
-    );
+    const savedFile = this._uploadedImages.find((f) => f === fileName);
     if (file || savedFile) {
       this._flow.removeFile(file);
       this.setImagePreview(fileName, "remove");
       this.setImageSectionFileNames(fileName, "remove");
       runInAction(() => {
         this._uploadedImages = this._uploadedImages.filter(
-          (n) => n.toLowerCase().trim() !== fileName.toLowerCase().trim(),
+          (n) => n !== fileName,
         );
       });
     }

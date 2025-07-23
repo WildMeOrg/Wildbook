@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 
 export default function MainButton({
+  id = "button",
   link,
   onClick,
   disabled,
@@ -23,6 +24,7 @@ export default function MainButton({
 
   return (
     <Button
+      id={id}
       variant="primary"
       data-testid="main-button"
       onMouseEnter={() => setIsHovered(true)}

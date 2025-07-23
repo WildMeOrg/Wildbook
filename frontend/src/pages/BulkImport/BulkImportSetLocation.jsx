@@ -154,6 +154,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
       >
         <Suspense fallback={<div>Loading location picker...</div>}>
           <TreeSelect
+            id="location-tree-select"
             treeData={store.locationIDOptions}
             value={store.locationID}
             treeCheckable
@@ -174,6 +175,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
 
       <div className="d-flex flex-row justify-content-between mt-4">
         <MainButton
+          id="set-location-previous-button"
           onClick={() => {
             store.setActiveStep(2);
           }}
@@ -229,6 +231,7 @@ export const BulkImportSetLocation = observer(({ store }) => {
           </div>
 
           <MainButton
+            id="start-bulk-import-button"
             onClick={() => {
               handleStartImport();
             }}

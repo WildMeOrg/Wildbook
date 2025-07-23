@@ -3,6 +3,10 @@ import { screen } from "@testing-library/react";
 import Report from "../../../components/home/Report";
 import { renderWithProviders } from "../../../utils/utils";
 
+beforeAll(() => {
+  process.env.PUBLIC_URL = "/react";
+});
+
 jest.mock("../../../components/BrutalismButton", () => {
   const React = require("react");
   const BrutalismButton = ({ link, children }) =>

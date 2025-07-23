@@ -33,12 +33,6 @@ export const BulkImportTableReview = observer(({ store }) => {
       (e) => typeof e.rowNumber !== "number",
     );
   }
-
-  console.log(
-    "BulkImportTableReview - tableErrors:",
-    JSON.stringify(tableErrors),
-  );
-
   return (
     <div className="mt-4" id="bulk-import-table-review">
       <div>
@@ -81,6 +75,7 @@ export const BulkImportTableReview = observer(({ store }) => {
         className="d-flex flex-row justify-content-between mt-4 mb-4"
       >
         <MainButton
+          id="table-review-previous-button"
           onClick={() => {
             store.setActiveStep(1);
           }}
@@ -92,6 +87,7 @@ export const BulkImportTableReview = observer(({ store }) => {
           <FormattedMessage id="PREVIOUS" />
         </MainButton>
         <MainButton
+          id="table-review-next-button"
           onClick={() => {
             store.setActiveStep(3);
           }}

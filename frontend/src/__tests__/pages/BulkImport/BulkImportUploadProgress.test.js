@@ -38,7 +38,7 @@ describe("BulkImportUploadProgress", () => {
   test("renders image upload progress ring", () => {
     const store = createMockStore({ imageUploadProgress: 40 });
     renderWithProviders(<BulkImportUploadProgress store={store} />);
-    expect(screen.getByRole("img", { hidden: true })).toBeInTheDocument(); // FaImage inside SVG
+    expect(screen.getByRole("img", { hidden: true })).toBeInTheDocument();
   });
 
   test("renders spreadsheet upload progress ring", () => {

@@ -190,7 +190,6 @@ describe("BulkImportSetLocation", () => {
     usePostBulkImport.mockReturnValue({ submit: submitMock, isLoading: true });
     render(<BulkImportSetLocation store={store} />);
     const loadingElements = screen.getAllByText(/LOADING/);
-    // Both Previous and Start buttons show LOADING; pick the second for Start
     const startLoading = loadingElements[1];
     expect(startLoading).toBeInTheDocument();
     expect(startLoading.closest("button")).toBeDisabled();
