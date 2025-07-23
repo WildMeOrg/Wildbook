@@ -17,6 +17,7 @@ org.ecocean.metrics.Prometheus,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 <%@ page import="org.ecocean.ia.IA" %>
+<%@ page import="javax.jdo.PersistenceManager" %>
 
 
 <%
@@ -210,60 +211,60 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 
+	<div style="display: flex; flex-direction: row; justify-content: space-between; align-items: start; width: 100%">
+		<div id="result_settings" style="display: grid; width: 32%;">
+		  <div>
+			<span id="scoreTypeSettings">
+			<%
 
-	<div id="result_settings" style="display: inline-block;">
-      <div>
-		<span id="scoreTypeSettings">
-		<%
+			// Here we (statically, backend) build the buttons for selecting between image and individual ranking
+			String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
+			String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
+			//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
+			String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
+			System.out.println("Current URL = "+currentUrl);
+			// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType
+			String linkUrl = currentUrl;
+			linkUrl = linkUrl.replace("&scoreType=image","");
+			linkUrl = linkUrl.replace("&scoreType=individual","");
+			if (individualScores) linkUrl += "&scoreType=image";
+			else linkUrl+="&scoreType=individual";
+			String individualScoreLink = (!individualScores) ? linkUrl : "";
+			String annotationScoreLink = (individualScores)  ? linkUrl : "";
+			// onclick events for each button (do nothing if you're already on the page)
+			String individualOnClick = (!individualScores) ? "onclick=\"window.location.href = '"+individualScoreLink+"';\"" : "";
+			String annotationOnClick = (individualScores) ?  "onclick=\"window.location.href = '"+annotationScoreLink+"';\"" : "";
+			 %>
 
-		// Here we (statically, backend) build the buttons for selecting between image and individual ranking
-		String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
-		String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
-		//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
-		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
-		System.out.println("Current URL = "+currentUrl);
-		// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType
-		String linkUrl = currentUrl;
-		linkUrl = linkUrl.replace("&scoreType=image","");
-		linkUrl = linkUrl.replace("&scoreType=individual","");
-		if (individualScores) linkUrl += "&scoreType=image";
-		else linkUrl+="&scoreType=individual";
-		String individualScoreLink = (!individualScores) ? linkUrl : "";
-		String annotationScoreLink = (individualScores)  ? linkUrl : "";
-		// onclick events for each button (do nothing if you're already on the page)
-		String individualOnClick = (!individualScores) ? "onclick=\"window.location.href = '"+individualScoreLink+"';\"" : "";
-		String annotationOnClick = (individualScores) ?  "onclick=\"window.location.href = '"+annotationScoreLink+"';\"" : "";
-		 %>
+			<button class="scoreType <%=individualScoreSelected %>" <%=individualOnClick %> >Individual Scores</button>
+			<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
-		<button class="scoreType <%=individualScoreSelected %>" <%=individualOnClick %> >Individual Scores</button>
-		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
+			</span>
+		  </div>
 
-		</span>
-	  </div>
+		  <!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+		  <!-- need to add javascript to update the link href on  -->
+		  <div id="scoreNumSettings">
+				<span id="scoreNumInput">
+					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
+				</span>
+				<button class="nResults" onclick="nResultsClicker()">set</button>
+		  </div>
+		</div>
 
-	  <!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
-	  <!-- need to add javascript to update the link href on  -->
-	  <div id="scoreNumSettings">
-	  		<span id="scoreNumInput">
-	  			Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
-	  		</span>
-	  		<button class="nResults" onclick="nResultsClicker()">set</button>
-	  </div>
-	</div>
+		<style>
+			div#result_settings {
 
-	<style>
-		div#result_settings {
-
-		}
-		div#result_settings button:last-child {
-			margin-right: 15px 15px 15px 15px;
-		}
-		div#result_settings span#scoreTypeSettings {
-			float: left;
-		}
-		.enc-title .enc-link, .enc-title .indiv-link {
-			margin-left: 0;
-		}
+			}
+			div#result_settings button:last-child {
+				margin-right: 15px 15px 15px 15px;
+			}
+			div#result_settings span#scoreTypeSettings {
+				float: left;
+			}
+			.enc-title .enc-link, .enc-title .indiv-link {
+				margin-left: 0;
+			}
 		</style>
 
 		<script>
@@ -278,6 +279,84 @@ h4.intro.accordion .rotate-chevron.down {
 				}
 			}
 		</script>
+
+		<div>
+			<%
+				PersistenceManager pm = org.ecocean.ShepherdPMF.getPMF(context).getPersistenceManager();
+				Task task = pm.getObjectById(Task.class, taskId);
+				JSONObject jsonObject = task.getParameters();
+				JSONObject matchingSetFilter;
+				try {
+					matchingSetFilter = jsonObject.getJSONObject("matchingSetFilter");
+				} catch (Exception e) {
+					matchingSetFilter = new JSONObject();
+				}
+
+				List<String> dataOwners = new ArrayList<>();
+				try {
+					JSONArray dataOwnersJson = matchingSetFilter.getJSONArray("owner");
+					for (int i = 0; i < dataOwnersJson.length(); i++) {
+						String finalLabel;
+						if (dataOwnersJson.getString(i).equalsIgnoreCase("me")) {
+							finalLabel = "My Data";
+						} else if (dataOwnersJson.getString(i).equalsIgnoreCase("org")) {
+							finalLabel = "My Organization";
+						} else {
+							finalLabel = "All - no filters selected";
+						}
+
+						dataOwners.add(finalLabel);
+					}
+				} catch (Exception e) {
+					dataOwners.add("All - no filters selected");
+				}
+
+				List<String> locationIds = new ArrayList<>();
+				try {
+					JSONArray locationIdsJson = matchingSetFilter.getJSONArray("locationIds");
+					for (int i = 0; i < locationIdsJson.length(); i++) {
+						locationIds.add(locationIdsJson.getString(i));
+					}
+				} catch (Exception e) {
+					// pass
+				}
+			%>
+			<p><strong>Matching criteria selected:</strong></p>
+			<p>Data owner: <% for (String dataOwner: dataOwners) { %>[<%= dataOwner %>] <% } %></p>
+			<p>Location ID(s): <% for (String locationId: locationIds.subList(0, 3)) { %>[<%= locationId %>] <% } %><%if (locationIds.size() > 3) { %><a href="#" onClick="event.preventDefault(); $('.ia-match-filter-dialog').show();">[+<%= locationIds.size() - 3 %> more]</a><% } %></p>
+
+			<div class="ia-match-filter-dialog">
+				<h2>Location ID(s)</h2>
+				<p><% for (String locationId: locationIds) { %>[<%= locationId %>] <% } %></p>
+
+				<div class="ia-match-filter-section">
+					<input type="button" value="Okay" onClick="$('.ia-match-filter-dialog').hide()" />
+				</div>
+			</div>
+
+			<style>
+				.ia-match-filter-dialog {
+					display: none;
+					position: fixed;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					width: 70%;
+					padding: 20px;
+					border: 3px solid #888;
+					background-color: #fff;
+					z-index: 3000;
+					box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+					border-radius: 8px;
+				}
+
+				.ia-match-filter-section {
+					margin-top: 10px;
+					border-top: solid 3px #999;
+				}
+			</style>
+		</div>
+	</div>
 
 	<div id="initial-waiter" class="waiting throbbing">
 		<p>Waiting for results. <%=queueStatementID %></p>
