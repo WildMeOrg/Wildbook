@@ -70,10 +70,9 @@ const BulkImportTask = () => {
   };
 
   const tableData = task?.encounters?.map((item) => {
-    const classArray =
-      task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[
-        "da7bf13f-d48e-4eaf-b1ee-b5bcfdef455a"
-      ] || [];
+    const taskArray =
+      task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
+    const classArray = taskArray.length > 0 ? taskArray[0] : [];
     return {
       encounterID: item.id,
       encounterDate: item.date,
