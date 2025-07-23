@@ -346,26 +346,42 @@ public class ImportTask implements java.io.Serializable {
         return stats;
     }
 
-    public Map<String, Integer> statsAnnotations(Shepherd myShepherd) {
-        Map<String, Integer> sa = new HashMap<String, Integer>();
+    public JSONObject statsAnnotations(Shepherd myShepherd) {
+        JSONObject sa = new JSONObject();
         Map<Annotation, List<Task> > atm = this.getAnnotationTaskMap(myShepherd);
         int numTasks = 0;
+        JSONObject encData = new JSONObject();
 
         for (Annotation ann : atm.keySet()) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            if ((enc != null) && !encData.has(enc.getId()))
+                encData.put(enc.getId(), new JSONArray());
             sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
             for (Task atask : atm.get(ann)) {
                 String status = atask.getStatus(myShepherd);
-                if (sa.containsKey(status)) {
-                    sa.put(status, sa.get(status) + 1);
+                if (sa.has(status)) {
+                    sa.put(status, sa.optInt(status, 0) + 1);
                 } else {
                     sa.put(status, 1);
                 }
                 numTasks++;
+                if (enc != null) {
+                    JSONArray arr = new JSONArray();
+                    arr.put(atask.getId());
+                    arr.put(status);
+                    arr.put(ann.getIAClass());
+                    encData.getJSONArray(enc.getId()).put(arr);
+                }
             }
         }
+        sa.put("encounterTaskInfo", encData);
         sa.put("numTasks", numTasks);
         return sa;
     }
+
+/*
+    this likely is doing the wrong thing; using the above logic, which
+    was ported from import.jsp
 
     public Map<String, Integer> statsAnnotationsBROKEN() {
         if (iaTask == null) return null;
@@ -378,6 +394,7 @@ public class ImportTask implements java.io.Serializable {
         }
         return stats;
     }
+ */
 
 /*
     this is a slightly modified version of DeleteImportTask.java, but has all shepherd commits commented out,
@@ -481,7 +498,7 @@ public class ImportTask implements java.io.Serializable {
         int numAnnotations = 0;
         boolean pipelineStarted = false;
         Map<String, Integer> statsMA = this.statsMediaAssets();
-        Map<String, Integer> statsAnn = this.statsAnnotations(myShepherd);
+        JSONObject statsAnn = this.statsAnnotations(myShepherd);
 
         if (this.getMediaAssets() != null)
             numAssets = this.getMediaAssets().size();
@@ -525,12 +542,12 @@ public class ImportTask implements java.io.Serializable {
                 int numIdentificationComplete = 0;
                 int numIdentificationTotal = 0;
                 // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
-                if (statsAnn.get("numTasks") != null)
-                    numIdentificationTotal = statsAnn.get("numTasks");
+                if (statsAnn.optInt("numTasks", -1) >= 0)
+                    numIdentificationTotal = statsAnn.optInt("numTasks");
                 // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
                 // (it may well have been me)
-                if (statsAnn.get("completed") != null)
-                    numIdentificationComplete = statsAnn.get("completed");
+                if (statsAnn.optInt("completed", -1) >= 0)
+                    numIdentificationComplete = statsAnn.optInt("completed");
                 // TODO do we have to deal with errors as "completed" somehow?
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);
