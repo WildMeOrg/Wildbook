@@ -35,6 +35,7 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
   const handleDelete = () => {
     store.resetToDefaults();
     localStorage.removeItem("BulkImportStore");
+    localStorage.removeItem("lastBulkImportTask");
     window.location.reload();
   };
 
@@ -99,15 +100,6 @@ export const BulkImportContinueModal = ({ store, setRenderMode1 }) => {
               : {new Date(lastSavedAt).toLocaleString()}
             </div>
           </div>
-
-          {/* <Button
-            variant="outline-info"
-            size="sm"
-            className="px-3"
-            onClick={() => store.openDraftDetail?.()}
-          >
-            <FormattedMessage id="SEE_DETAILS" defaultMessage="See Details" />
-          </Button> */}
         </div>
       </Modal.Body>
 
