@@ -1365,7 +1365,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
             ArrayList<Feature> features = new  ArrayList<Feature> ();
             features.add(f);
 
-            ma.setFeatures(features);
+            ma.addFeature(f);
             ma.setDetectionStatus("complete");
 
 
