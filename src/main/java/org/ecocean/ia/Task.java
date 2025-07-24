@@ -412,15 +412,23 @@ public class Task implements java.io.Serializable {
         return t;
     }
 
-    // TODO: evaluate if we should support versions for multiple objects (when needed)
     public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd) {
+        return getTasksFor(ann, myShepherd, null);
+    }
+
+    // TODO: evaluate if we should support versions for multiple objects (when needed)
+    public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd, String ordering) {
         String qstr =
             "SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(obj) && obj.id == \""
             + ann.getId() + "\" VARIABLES org.ecocean.Annotation obj";
         Query query = myShepherd.getPM().newQuery(qstr);
 
         query.setIgnoreCache(true);
-        query.setOrdering("created");
+        if (ordering == null) {
+            query.setOrdering("created");
+        } else {
+            query.setOrdering(ordering);
+        }
         Collection c = (Collection)query.execute();
         List<Task> listy = new ArrayList<Task>(c);
         query.closeAll();

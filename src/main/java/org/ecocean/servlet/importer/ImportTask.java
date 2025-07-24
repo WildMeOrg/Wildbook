@@ -107,7 +107,7 @@ public class ImportTask implements java.io.Serializable {
         Map<Annotation, List<Task> > atm = new HashMap<Annotation, List<Task> >();
 
         for (Annotation ann : this.getAnnotations()) {
-            atm.put(ann, Task.getTasksFor(ann, myShepherd));
+            atm.put(ann, Task.getTasksFor(ann, myShepherd, "created DESC"));
         }
         return atm;
     }
