@@ -104,7 +104,7 @@ const BulkImportTask = () => {
     },
     {
       name: "Encounter Date",
-      cell: (row) => new Date(row.encounterDate).toLocaleString(),
+      cell: (row) => row.encounterDate,
       selector: (row) => row.encounterDate,
     },
     {

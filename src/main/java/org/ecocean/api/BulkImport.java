@@ -54,18 +54,30 @@ public class BulkImport extends ApiBase {
             String uri = request.getRequestURI();
             String[] args = uri.substring(8).split("/"); // args[0] == 'bulk-import'
             String bulkImportId = null;
-            if (args.length == 1) {
+            if ((args.length == 1) || ((args.length > 1) && "sourceNames".equals(args[1]))) {
                 List<ImportTask> tasks = null;
                 if (isAdmin) {
                     tasks = myShepherd.getImportTasks();
                 } else {
                     tasks = myShepherd.getImportTasksForUser(currentUser);
                 }
-                JSONArray tasksArr = new JSONArray();
-                for (ImportTask task : tasks) {
-                    tasksArr.put(taskJson(task, false, myShepherd));
+                if (args.length == 1) { // listing case
+                    JSONArray tasksArr = new JSONArray();
+                    for (ImportTask task : tasks) {
+                        tasksArr.put(taskJson(task, false, myShepherd));
+                    }
+                    rtn.put("tasks", tasksArr);
+                } else { // sourceNames case
+                    Set<String> sourceNames = new HashSet<String>();
+                    for (ImportTask task : tasks) {
+                        String sn = task.getSourceName();
+                        if (!Util.stringIsEmptyOrNull(sn)) sourceNames.add(sn);
+                    }
+                    // we want it sorted, so...
+                    List<String> ordered = new ArrayList<String>(sourceNames);
+                    java.util.Collections.sort(ordered);
+                    rtn.put("sourceNames", new JSONArray(ordered));
                 }
-                rtn.put("tasks", tasksArr);
                 rtn.put("success", true);
                 statusCode = 200;
             } else if (args.length < 2) { // i guess this means 0?
@@ -860,14 +872,18 @@ public class BulkImport extends ApiBase {
         String persistedStatus = task.getStatus();
         jt.put("status", persistedStatus);
         jt.put("_statusPersisted", persistedStatus);
-        JSONObject iaSummary = task.iaSummaryJson(myShepherd);
-        if (detailed) jt.put("iaSummary", iaSummary);
-        if (iaSummary.optBoolean("pipelineStarted", false)) {
-            if (iaSummary.optBoolean("pipelineComplete", false)) {
-                jt.put("status", "complete");
-            } else if ("complete".equals(persistedStatus)) {
-                // i guess this means we dont trust this complete, so...
-                jt.put("status", "processing-pipeline");
+        // FIXME see note on iaSummaryJson() about how this is slow, therefore
+        // we move it inside detailed==true, but this makes status fubar! :(
+        if (detailed) {
+            JSONObject iaSummary = task.iaSummaryJson(myShepherd);
+            jt.put("iaSummary", iaSummary);
+            if (iaSummary.optBoolean("pipelineStarted", false)) {
+                if (iaSummary.optBoolean("pipelineComplete", false)) {
+                    jt.put("status", "complete");
+                } else if ("complete".equals(persistedStatus)) {
+                    // i guess this means we dont trust this complete, so...
+                    jt.put("status", "processing-pipeline");
+                }
             }
         }
         Set<String> indivIds = new HashSet<String>();

@@ -520,5 +520,6 @@
     "BULK_IMPORT_DELETE_TASK_CONFIRM": "Are you sure you want to delete this import task?",
     "BULK_IMPORT_TASK_DELETED": "Bulk import task deleted successfully.",
     "BULK_IMPORT_TASK_DELETE_ERROR": "Failed to delete import task: {error}",
-    "BULK_IMPORT_TASK_ERROR_DEFAULT": "You task failed to process due to an error."
+    "BULK_IMPORT_TASK_ERROR_DEFAULT": "You task failed to process due to an error.",
+    "FILTER_BULK_IMPORT_FILE_NAMES": "Bulk Import File Names"
 }

@@ -519,5 +519,6 @@
    "BULK_IMPORT_DELETE_TASK_CONFIRM": "Êtes-vous sûr de vouloir supprimer cette tâche d'importation ?",
   "BULK_IMPORT_TASK_DELETED": "Tâche d'importation supprimée avec succès.",
   "BULK_IMPORT_TASK_DELETE_ERROR": "Échec de la suppression de la tâche d'importation : {error}",
-  "BULK_IMPORT_TASK_ERROR_DEFAULT": "Votre tâche n'a pas pu être traitée en raison d'une erreur."
+  "BULK_IMPORT_TASK_ERROR_DEFAULT": "Votre tâche n'a pas pu être traitée en raison d'une erreur.",
+  "FILTER_BULK_IMPORT_FILE_NAMES": "Noms de fichiers d'importation en masse"
 }
