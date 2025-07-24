@@ -386,7 +386,7 @@ a.button:hover {
 .ia-match-filter-title {
 	margin: 20px 0 5px 0;
 	padding: 1px 0 1px 20px;
-	background-color: #AAB;
+	background-color: #CCC;
 	color: #555;
 	font-weight: bold;
 }
@@ -981,12 +981,9 @@ try{
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
-	    if ($('#match-filter-owner-me').is(':checked')){
-			owner = "&owner=" + encodeURIComponent(JSON.stringify(["me"]));
-		}
-		else if ($('#match-filter-owner-org').is(':checked')){
-			owner = "&owner=" + encodeURIComponent(JSON.stringify(["org"]));
-		}
+	    $('input[name="match-filter-owner"]:checked').each(function() {
+			owner += '&owner=' + encodeURIComponent(this.value);
+		});
 	    $.ajax({
 	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds+owner,
 	        dataType: 'json',
@@ -1053,23 +1050,17 @@ try{
 	    <a style="margin-left: 20px;" class="button">generate children image formats</a>
 	<% } %>
 	</p>
-	<div id="ia-send-div">
+	<div id="ia-send-div" style="margin-top: 30px;">
 	<% 
 	if (allowIA) { 
 	%>
-	    
-	    <p><strong>Image Analysis</strong></p>
-	    <p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
-		    <%
-		    if (allAssets.size() > 0) {
-		    
-		    %>
-		    	
-		    	<div style="margin-bottom: 30px;margin-top: 30px;"><a class="button" style="margin-left: 20px;" onClick="$('.ia-match-filter-dialog').show()">Send to detection (no identification)</a></div>
-		
-
-	 	<% 
-		    }
+	    <p><strong>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></strong></p>
+		<%
+			if (allAssets.size() > 0) {
+		%>
+		    	<div style="margin-bottom: 30px;"><a class="button" onClick="$('.ia-match-filter-dialog').show()">Send to detection (no identification)</a></div>
+		<%
+			}
 	}
 	if((request.isUserInRole("admin") || request.isUserInRole("researcher")) 
 			&& itask.getIATask()!=null 
@@ -1079,8 +1070,10 @@ try{
 
 	if (allowReID) { 
 		%>
-		<div style="margin-bottom: 30px;margin-top: 30px;">
-		    	<a class="button" style="margin-left: 20px;" onClick="showModal()">Send to identification</a>
+		<p><strong>Click "Send to identification" to select your match-against criteria and then send to matching.</strong></p>
+
+		<div style="margin-bottom: 30px;">
+		    	<a class="button" onClick="showModal()">Send to identification</a>
 		   </div>
 		    	
 		    <%
@@ -1122,9 +1115,9 @@ try{
 				}
 			%>
 			<div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
-				<span class="el el-lg el-chevron-right rotate-chevron down" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
+				<span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
 			</div>
-			<div class="ia-match-filter-container" style="display: block">
+			<div class="ia-match-filter-container" style="display: none">
 				<div  style="width: 100%; max-height: 300px; overflow-y: scroll">
 					<div id="ia-match-filter-location" class="option-cols">
 

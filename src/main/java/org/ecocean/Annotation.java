@@ -1072,12 +1072,13 @@ public class Annotation implements java.io.Serializable {
             f += " && (" + locFilter + ") ";
         // "owner" ... which requires we have userId in the taskParams
         JSONArray owner = j.optJSONArray("owner");
-        if ((owner != null) && (userId != null)) {
+        System.out.println("INFO: matching filter owner " + owner + " for " + userId);
+        if ((owner != null)) {
             for (int i = 0; i < owner.length(); i++) {
                 String opt = owner.optString(i, null);
                 if (!Util.stringExists(opt))
                     continue;
-                if (opt.equals("me"))
+                if (opt.equals("me") && (userId != null))
                     f += " && user.uuid == '" + userId +
                             "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
                 if (opt.equals("org")) {

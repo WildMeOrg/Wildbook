@@ -17,6 +17,7 @@ org.ecocean.metrics.Prometheus,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 <%@ page import="org.ecocean.ia.IA" %>
+<%@ page import="javax.jdo.PersistenceManager" %>
 
 
 <%
@@ -149,13 +150,7 @@ String taskId = request.getParameter("taskId");
 
 <div id="encid" style="">
 
-<!-- overwrites ia.IBEIS.js for testing -->
-
-<%
-%>
-
-
-<div class="container maincontent">
+<div class="container maincontent" id="container-maincontent" style="padding-top: 0 !important;">
 
 	<div class="instructions-container">
     <h4 class="intro accordion" style="margin-bottom:0"><a
@@ -195,11 +190,6 @@ h4.intro.accordion .rotate-chevron.down {
     transform: rotate(90deg);
 }
 
-#projectDropdownSpan {
-	position: absolute;
-	padding-top: 25px;
-}
-
 </style>
 
 <script>
@@ -221,70 +211,60 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 
+	<div style="display: flex; flex-direction: row; justify-content: left; align-items: start; width: 100%">
+		<div id="result_settings" style="display: grid; width: 32%;">
+		  <div>
+			<span id="scoreTypeSettings">
+			<%
 
-	<div id="result_settings" style="display: inline-block;">
-      <div>
-		<span id="scoreTypeSettings">
-		<%
+			// Here we (statically, backend) build the buttons for selecting between image and individual ranking
+			String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
+			String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
+			//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
+			String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
+			System.out.println("Current URL = "+currentUrl);
+			// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType
+			String linkUrl = currentUrl;
+			linkUrl = linkUrl.replace("&scoreType=image","");
+			linkUrl = linkUrl.replace("&scoreType=individual","");
+			if (individualScores) linkUrl += "&scoreType=image";
+			else linkUrl+="&scoreType=individual";
+			String individualScoreLink = (!individualScores) ? linkUrl : "";
+			String annotationScoreLink = (individualScores)  ? linkUrl : "";
+			// onclick events for each button (do nothing if you're already on the page)
+			String individualOnClick = (!individualScores) ? "onclick=\"window.location.href = '"+individualScoreLink+"';\"" : "";
+			String annotationOnClick = (individualScores) ?  "onclick=\"window.location.href = '"+annotationScoreLink+"';\"" : "";
+			 %>
 
-		// Here we (statically, backend) build the buttons for selecting between image and individual ranking
-		String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
-		String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
-		//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
-		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
-		System.out.println("Current URL = "+currentUrl);
-		// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType
-		String linkUrl = currentUrl;
-		linkUrl = linkUrl.replace("&scoreType=image","");
-		linkUrl = linkUrl.replace("&scoreType=individual","");
-		if (individualScores) linkUrl += "&scoreType=image";
-		else linkUrl+="&scoreType=individual";
-		String individualScoreLink = (!individualScores) ? linkUrl : "";
-		String annotationScoreLink = (individualScores)  ? linkUrl : "";
-		// onclick events for each button (do nothing if you're already on the page)
-		String individualOnClick = (!individualScores) ? "onclick=\"window.location.href = '"+individualScoreLink+"';\"" : "";
-		String annotationOnClick = (individualScores) ?  "onclick=\"window.location.href = '"+annotationScoreLink+"';\"" : "";
-		 %>
+			<button class="scoreType <%=individualScoreSelected %>" <%=individualOnClick %> >Individual Scores</button>
+			<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
-		<button class="scoreType <%=individualScoreSelected %>" <%=individualOnClick %> >Individual Scores</button>
-		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
-
-		</span>
-	</div>
-		<div id="projectDropdownDiv" style="padding: 0px 0px 0px 50px;">
-			<span hidden class="control-label" id="projectDropdownSpan">
-				<label>Project Selection</label>
-				<select name="projectDropdown" id="projectDropdown">
-				</select>
 			</span>
-		</div>
+		  </div>
 
-
-
-		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
-		<!-- need to add javascript to update the link href on  -->
-		<div id="scoreNumSettings">
+		  <!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+		  <!-- need to add javascript to update the link href on  -->
+		  <div id="scoreNumSettings">
 				<span id="scoreNumInput">
 					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
 				</span>
 				<button class="nResults" onclick="nResultsClicker()">set</button>
+		  </div>
 		</div>
 
-	</div>
+		<style>
+			div#result_settings {
 
-	<style>
-		div#result_settings, div#projectDropdownDiv {
-
-		}
-		div#result_settings button:last-child, div#projectDropdownDiv {
-			margin-right: 15px 15px 15px 15px;
-		}
-		div#result_settings span#scoreTypeSettings {
-			float: left;
-		}
-		.enc-title .enc-link, .enc-title .indiv-link {
-			margin-left: 0;
-		}
+			}
+			div#result_settings button:last-child {
+				margin-right: 15px 15px 15px 15px;
+			}
+			div#result_settings span#scoreTypeSettings {
+				float: left;
+			}
+			.enc-title .enc-link, .enc-title .indiv-link {
+				margin-left: 0;
+			}
 		</style>
 
 		<script>
@@ -300,17 +280,87 @@ h4.intro.accordion .rotate-chevron.down {
 			}
 		</script>
 
+		<div>
+			<%
+				PersistenceManager pm = org.ecocean.ShepherdPMF.getPMF(context).getPersistenceManager();
+				Task task = pm.getObjectById(Task.class, taskId);
+				JSONObject jsonObject = task.getParameters();
+				JSONObject matchingSetFilter;
+				try {
+					matchingSetFilter = jsonObject.getJSONObject("matchingSetFilter");
+				} catch (Exception e) {
+					matchingSetFilter = new JSONObject();
+				}
 
+				List<String> dataOwners = new ArrayList<>();
+				try {
+					JSONArray dataOwnersJson = matchingSetFilter.getJSONArray("owner");
+					for (int i = 0; i < dataOwnersJson.length(); i++) {
+						String finalLabel;
+						if (dataOwnersJson.getString(i).equalsIgnoreCase("me")) {
+							finalLabel = "My Data";
+						} else if (dataOwnersJson.getString(i).equalsIgnoreCase("org")) {
+							finalLabel = "My Organization";
+						} else {
+							finalLabel = "All - no filters selected";
+						}
+
+						dataOwners.add(finalLabel);
+					}
+				} catch (Exception e) {
+					dataOwners.add("All - no filters selected");
+				}
+
+				List<String> locationIds = new ArrayList<>();
+				try {
+					JSONArray locationIdsJson = matchingSetFilter.getJSONArray("locationIds");
+					for (int i = 0; i < locationIdsJson.length(); i++) {
+						locationIds.add(locationIdsJson.getString(i));
+					}
+				} catch (Exception e) {
+					// pass
+				}
+			%>
+			<p><strong>Matching criteria selected:</strong></p>
+			<p>Data owner: <% for (String dataOwner: dataOwners) { %>[<%= dataOwner %>] <% } %></p>
+			<p>Location ID(s): <% for (String locationId: locationIds.subList(0, 3)) { %>[<%= locationId %>] <% } %><%if (locationIds.size() > 3) { %><a href="#" onClick="event.preventDefault(); $('.ia-match-filter-dialog').show();">[+<%= locationIds.size() - 3 %> more]</a><% } %></p>
+
+			<div class="ia-match-filter-dialog">
+				<h2>Location ID(s)</h2>
+				<p><% for (String locationId: locationIds) { %>[<%= locationId %>] <% } %></p>
+
+				<div class="ia-match-filter-section">
+					<input type="button" value="Okay" onClick="$('.ia-match-filter-dialog').hide()" />
+				</div>
+			</div>
+
+			<style>
+				.ia-match-filter-dialog {
+					display: none;
+					position: fixed;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					width: 70%;
+					padding: 20px;
+					border: 3px solid #888;
+					background-color: #fff;
+					z-index: 3000;
+					box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+					border-radius: 8px;
+				}
+
+				.ia-match-filter-section {
+					margin-top: 10px;
+					border-top: solid 3px #999;
+				}
+			</style>
+		</div>
+	</div>
 
 	<div id="initial-waiter" class="waiting throbbing">
 		<p>Waiting for results. <%=queueStatementID %></p>
 	</div>
-
-
-	<div id = "confirm-negative-dialog" style="display: none" title = "Confirm no match?" >
-	</div>
-
-
 </div>
 
 
@@ -417,7 +467,7 @@ var headerDefault = 'Select <b>correct match</b> from results below by <i>clicki
 // we use the same space as
 
 function init2() {   //called from wildbook.init() when finished
-	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div></div>');
+	$('#container-maincontent').prepend('<div id="encounter-info"><div class="enc-title" /></div></div>');
 	parseTaskIds();
 	for (var i = 0 ; i < taskIds.length ; i++) {
 		var tid = taskIds[i];
@@ -1233,13 +1283,6 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				}
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
-                <%
-                if(user != null){
-                %>
-                if (isQueryAnnot && !indivId) addNegativeButton(encId, displayName);
-                <%
-                }
-                %>
 
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
@@ -1879,39 +1922,6 @@ function encDisplayString(encId) {
 	return encId;
 }
 
-
-function negativeButtonClick(encId, oldDisplayName) {
-
-	var confirmMsg = 'Confirm no match?\n\n';
-	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
-	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
-	}
-	confirmMsg+= 'Click \'OK\' to record your decision.';
-
-	let paramStr = 'encId='+encId+'&noMatch=true';
-	let projectId = '<%=projectIdPrefix%>';
-	if (projectId&&projectId.length) {
-		paramStr += '&useNextProjectId=true&projectIdPrefix='+encodeURIComponent(projectId);
-	}
-
-	console.log("paramStr for 'negativeButtonClick' : "+paramStr);
-
-	if (confirm(confirmMsg)) {
-		$.ajax({
-			url: 'iaResultsNoMatch.jsp?' + paramStr,  //hacktacular!
-			type: 'GET',
-			dataType: 'json',
-			complete: function(d) {
-				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName, encId);
-			}
-		})
-	}
-}
-
 function updateNameCallback(d, oldDisplayName, encId) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
   let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
@@ -1925,25 +1935,6 @@ function updateNameCallback(d, oldDisplayName, encId) {
   }
 	alert(alertMsg);
   location.reload(); // there was an issue where the new individual name was not appearing until the iaResults pages was reloaded. I don't know why, but this solves the problem.
-}
-
-function addNegativeButton(encId, oldDisplayName) {
-        /*
-            FIXME: issue 432 uncovered some mysterious tie to org/names for the display of this button.
-            this needs further investigation to remove this for real and/or figure out why this was like this
-        */
-	//if (<%=usesAutoNames%>) {
-        if (true) {
-		console.log("Adding auto name/confirm negative button!");
-		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
-		console.log("negativeButton = "+negativeButton);
-		//var negativeButton = '<input onclick="negativeButtonClick();" type="button" value="Confirm No Match" />';
-		headerDefault = negativeButton;
-		//console.log("NEGATIVE BUTTON: About to attach "+negativeButton+" to "+JSON.stringify($('div#enc-action')));
-		$('div#enc-action').html(negativeButton);
-	} else {
-		console.log("No name scheme, baby!");
-	}
 }
 
 function getProjectData(currentUsername, selectedProject) {
@@ -2015,18 +2006,6 @@ function isProjectSelected() {
 	}
 	%>
 }
-
-$('#projectDropdown').on('change', function() {
-	let taskId = '<%=taskId%>';
-	let reloadURL = "../iaResults.jsp?taskId="+taskId;
-	let selectedProject = $("#projectDropdown").val();
-	// replace reserved pound sign in incremental ID's
-	selectedProject = selectedProject.replaceAll("#", "%23");
-	if (selectedProject&&selectedProject.length) {
-		reloadURL += "&projectIdPrefix="+selectedProject;
-	}
-	window.location.href = reloadURL;
-});
 
 // this is messy, but i'm avoiding another database hit
 var projectForEncCache = {};
