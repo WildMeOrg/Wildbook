@@ -78,13 +78,11 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         const rowKeys = Object.keys(allJsonData[0] || {});
         store.setRawColumns(rowKeys);
-        const rawMediaAssetsCols = rowKeys.filter(
+        const mediaAssetsCols = rowKeys.filter(
           (k) =>
             k.startsWith("Encounter.mediaAsset") && k.split(".").length === 2,
         );
-        const mediaAssetsCols = rawMediaAssetsCols.map((col) =>
-          col.toLowerCase(),
-        );
+
         const remaining = rowKeys
           .filter((k) => !specifiedColumns.includes(k))
           .filter((k) => !removedColumns.includes(k))
@@ -163,6 +161,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
                     : String(row[col] ?? "").trim();
                 return mediaAsset;
               })
+              .filter((v) => v !== "")
               .join(", ");
             if (mediaAssets) {
               normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
