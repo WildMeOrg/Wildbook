@@ -323,7 +323,18 @@ h4.intro.accordion .rotate-chevron.down {
 			%>
 			<p><strong>Matching criteria selected:</strong></p>
 			<p>Data owner: <% for (String dataOwner: dataOwners) { %>[<%= dataOwner %>] <% } %></p>
-			<p>Location ID(s): <% for (String locationId: locationIds.subList(0, 3)) { %>[<%= locationId %>] <% } %><%if (locationIds.size() > 3) { %><a href="#" onClick="event.preventDefault(); $('.ia-match-filter-dialog').show();">[+<%= locationIds.size() - 3 %> more]</a><% } %></p>
+			<p>
+				Location ID(s):
+					<% for (String locationId: locationIds.size() > 3 ? locationIds.subList(0, 3) : locationIds) { %>
+						[<%= locationId %>] 
+					<% } %>
+					
+					<%if (locationIds.size() > 3) { %>
+						<a href="#" onClick="event.preventDefault(); $('.ia-match-filter-dialog').show();">
+							[+<%= locationIds.size() - 3 %> more]
+						</a>
+					<% } %>
+			</p>
 
 			<div class="ia-match-filter-dialog">
 				<h2>Location ID(s)</h2>
