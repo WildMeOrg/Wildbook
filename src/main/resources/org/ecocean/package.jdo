@@ -591,6 +591,11 @@
 		<field name="annot_theta" />
 		<field name="species_text" />
 -->
+
+	<field name="embeddings" default-fetch-group="false" mapped-by="annotation">
+		<collection element-type="org.ecocean.Embedding" dependent-element="false" />
+	</field>
+
     </class>
 
     <class name="DataCollectionEvent" identity-type="application">
@@ -1011,6 +1016,32 @@
 		</field>
 	</class>
 
+	<class name="Embedding" identity-type="application">
+		<field name="id" primary-key="true">
+			<column length="36"/>
+		</field>
+<!--
+		<field name="annotation" persistence-modifier="persistent" element-type="org.ecocean.Annotation" dependent-element="false" />
+-->
+		<field name="annotation" dependent-element="false" >
+			<column name="ANNOTATION_ID" />
+		</field>
+
+		<field name="created">
+			<column jdbc-type="BIGINT" />
+			<index name="EMBEDDING_CREATED_IDX" />
+		</field>
+
+		<field name="method">
+			<column length="64" />
+			<index name="EMBEDDING_METHOD_IDX" />
+		</field>
+
+		<field name="methodVersion">
+			<column length="32" />
+			<index name="EMBEDDING_METHODVERSION_IDX" />
+		</field>
+	</class>
 
   </package>
 </jdo>

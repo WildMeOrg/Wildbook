@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +52,7 @@ public class Annotation extends Base implements java.io.Serializable {
     private Boolean isOfInterest = null; // aka AoI (Annotation of Interest)
     protected String identificationStatus;
     private ArrayList<Feature> features;
+    private Set<Embedding> embeddings;
     protected String acmId;
 
     // this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
@@ -156,6 +158,24 @@ public class Annotation extends Base implements java.io.Serializable {
         // all case-insensitive keyword-ish types
         // map.put("fubar", keywordNormalType);
 
+        // embeddings have some metadata (algorithm etc)
+        // and then the vector that is the embedding
+        JSONObject embMap = new JSONObject();
+        embMap.put("type", "nested");
+        embMap.put("dynamic", false);
+        JSONObject embProps = new JSONObject();
+        embProps.put("algorithm", keywordType);
+        embProps.put("version", keywordType);
+        JSONObject embVect = new JSONObject();
+        // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
+        embVect.put("type", "knn_vector");
+        embVect.put("dimension", 250);
+        embVect.put("space_type", "l2");
+        // etc...... TODO
+        embProps.put("vector", embVect);
+        embMap.put("properties", embProps);
+        map.put("embeddings", embMap);
+
         return map;
     }
 
@@ -198,7 +218,8 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
-        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
+        return
+                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
@@ -785,20 +806,19 @@ public class Annotation extends Base implements java.io.Serializable {
                 "ignoreViewpointMatching", this.getTaxonomy(myShepherd)))) {
                 String[] viewpoints = this.getViewpointAndNeighbors();
                 if (viewpoints != null) {
-
-	                arg = new JSONObject();
-	                arg.put("viewpoint", new JSONArray(viewpoints));
-	                wrapper = new JSONObject();
-	                wrapper.put("terms", arg);
-	                // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
-	                // to handle allowing null viewpoint, opensearch query gets messy!
-	                JSONArray should = new JSONArray(
-	                    "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
-	                should.put(wrapper);
-	                JSONObject bool = new JSONObject("{\"bool\": {}}");
-	                bool.getJSONObject("bool").put("should", should);
-	                query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(bool);
-
+                    arg = new JSONObject();
+                    arg.put("viewpoint", new JSONArray(viewpoints));
+                    wrapper = new JSONObject();
+                    wrapper.put("terms", arg);
+                    // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+                    // to handle allowing null viewpoint, opensearch query gets messy!
+                    JSONArray should = new JSONArray(
+                        "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
+                    should.put(wrapper);
+                    JSONObject bool = new JSONObject("{\"bool\": {}}");
+                    bool.getJSONObject("bool").put("should", should);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        bool);
                 }
             }
             // this does either/or part/iaClass - unsure if this is correct
@@ -1576,15 +1596,14 @@ public class Annotation extends Base implements java.io.Serializable {
         System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
         if (nonTrivial.size() < 1) return false;
         if (nonTrivial.size() == 1) return true;
-        //if they're a body and a part, consider them contiguous
+        // if they're a body and a part, consider them contiguous
         if (nonTrivial.size() == 2) {
-        	String iaClass0=nonTrivial.get(0).getIAClass();
-        	String iaClass1=nonTrivial.get(1).getIAClass();
-        	if(iaClass0!=null && iaClass1!=null) {
-        		if(iaClass0.indexOf("+")>-1&&iaClass1.indexOf("+")==-1) return true;
-        		if(iaClass1.indexOf("+")>-1&&iaClass0.indexOf("+")==-1) return true;
-        	}
-        	
+            String iaClass0 = nonTrivial.get(0).getIAClass();
+            String iaClass1 = nonTrivial.get(1).getIAClass();
+            if (iaClass0 != null && iaClass1 != null) {
+                if (iaClass0.indexOf("+") > -1 && iaClass1.indexOf("+") == -1) return true;
+                if (iaClass1.indexOf("+") > -1 && iaClass0.indexOf("+") == -1) return true;
+            }
         }
         Annotation first = nonTrivial.remove(0);
         return (first.intersectsAtLeastOne(nonTrivial) && areContiguous(nonTrivial)); // yay recursion!
@@ -1603,6 +1622,24 @@ public class Annotation extends Base implements java.io.Serializable {
             nfe.printStackTrace();
         }
         return null;
+    }
+
+    public Set<Embedding> getEmbeddings() {
+        return embeddings;
+    }
+
+    public Set<Embedding> addEmbedding(Embedding emb) {
+        if (embeddings == null) embeddings = new HashSet<Embedding>();
+        if (emb == null) return embeddings;
+        embeddings.add(emb);
+        return embeddings;
+    }
+
+    public void loadEmbeddingVectors(Shepherd myShepherd) {
+        if (embeddings == null) return;
+        for (Embedding emb : this.embeddings) {
+            emb.loadVector(myShepherd);
+        }
     }
 
     // need these two so we can use things like List.contains()
