@@ -555,6 +555,15 @@
 					"id": "Remscheid",
 					"locationID": [
 						{
+							"name": "Hohenhagen",
+							"id": "Hohenhagen",
+							"geospatialInfo": {
+								"lat": 51.180935,
+								"long": 7.216990
+							},
+							"locationID": []
+						},
+						{
 							"name": "Eschbach",
 							"id": "Eschbach",
 							"geospatialInfo": {
