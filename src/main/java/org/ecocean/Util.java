@@ -704,6 +704,15 @@ public class Util {
         return (currentToString);
     }
 
+    // how do we not have this?
+    public static String prettyPrintDateTime(long millis) {
+        return prettyPrintDateTime(new DateTime(millis));
+    }
+
+    public static String prettyPrintDateTime() {
+        return prettyPrintDateTime(System.currentTimeMillis());
+    }
+
     public static String prettyTimeStamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
