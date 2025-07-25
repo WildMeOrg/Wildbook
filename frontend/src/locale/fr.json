@@ -465,6 +465,7 @@
   "SHOWING_PAGE_INFO": "Affichage de la page {current} sur {total}",
   "SUBMISSION_ISSUE_HEADER": "Il y a des problèmes avec votre soumission :",
   "BULK_IMPORT_ERROR_INVALID_VALUE": "La valeur que vous avez saisie est invalide",
+  "BULK_IMPORT_ERROR_INVALID_IMAGE": "L'image que vous avez téléchargée n'est pas valide" ,
   "BULK_IMPORT_ERROR_REQUIRED_VALUE": "Ce champ est requis",
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Champs synonymes détectés",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Champs en double détectés",

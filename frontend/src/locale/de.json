@@ -467,6 +467,7 @@
   "SHOWING_PAGE_INFO": "Seite {current} von {total} wird angezeigt",
   "SUBMISSION_ISSUE_HEADER": "Es gibt einige Probleme mit Ihrer Einreichung:",
   "BULK_IMPORT_ERROR_INVALID_VALUE": "Der eingegebene Wert ist ungültig",
+   "BULK_IMPORT_ERROR_INVALID_IMAGE": "Das hochgeladene Bild ist ungültig" ,
   "BULK_IMPORT_ERROR_REQUIRED_VALUE": "Dieses Feld ist erforderlich",
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Synonymfelder erkannt",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Doppelte Felder erkannt",

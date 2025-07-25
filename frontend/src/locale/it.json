@@ -466,6 +466,7 @@
   "SHOWING_PAGE_INFO": "Visualizzazione della pagina {current} di {total}",
   "SUBMISSION_ISSUE_HEADER": "Ci sono alcuni problemi con il tuo invio:",
   "BULK_IMPORT_ERROR_INVALID_VALUE": "Il valore inserito non è valido",
+  "BULK_IMPORT_ERROR_INVALID_IMAGE": "L'immagine che hai caricato non è valida",
   "BULK_IMPORT_ERROR_REQUIRED_VALUE": "Questo campo è obbligatorio",
   "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Campi sinonimi rilevati",
   "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Campi duplicati rilevati",
