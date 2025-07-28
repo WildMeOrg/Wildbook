@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -834,12 +836,14 @@ public class Annotation implements java.io.Serializable {
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params, boolean filterIAClass) {
         String filter = "";
 
+        PersistenceManager pm = myShepherd.getPM();
+
         if ((enc == null) || !Util.stringExists(enc.getGenus()) ||
                 !Util.stringExists(enc.getSpecificEpithet()))
             return null;
         else if (enc.getSpecificEpithet().equals("sp")) {
             filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " +
-                    this.getMatchingSetFilterFromParameters(params) +
+                    this.getMatchingSetFilterFromParameters(params, pm) +
                     this.getMatchingSetFilterIAClassClause(filterIAClass,
                             this.getIAClass())
                     + this.getMatchingSetFilterViewpointClause(myShepherd) +
@@ -850,7 +854,7 @@ public class Annotation implements java.io.Serializable {
         // do we need to worry about our annot living in another encounter? i hope not!
         else {
             filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " +
-                    this.getMatchingSetFilterFromParameters(params) +
+                    this.getMatchingSetFilterFromParameters(params, pm) +
                     this.getMatchingSetFilterIAClassClause(filterIAClass, this.getValidIAClasses(enc.getTaxonomy(myShepherd))) + 
                     this.getMatchingSetFilterViewpointClause(myShepherd) +
                     this.getPartClause(myShepherd) + 
@@ -1021,7 +1025,7 @@ public class Annotation implements java.io.Serializable {
     // task.parameters.matchingSetFilter
     // > > > ATTENTION! if you change this method, please also adjust accordingly
     // getCurvrankDailyTag() below!! < < <
-    private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
+    private String getMatchingSetFilterFromParameters(JSONObject taskParams, PersistenceManager pm) {
         if (taskParams == null)
             return "";
         String userId = taskParams.optString("userId", null);
@@ -1081,8 +1085,11 @@ public class Annotation implements java.io.Serializable {
                 if (opt.equals("me") && (userId != null))
                     f += " && user.uuid == '" + userId +
                             "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
-                if (opt.equals("org")) {
-                    f += " && (user.organizations.contains(orgs) && orgs.name == enc.submitterOrganization) ";
+                if (opt.equals("org") && (userId != null)) {
+                    User user = (User) pm.getObjectById(User.class, userId);
+                    List<Organization> userOrganizations = user.getOrganizations();
+                    System.out.println("list orgainization"+userOrganizations);
+                    f += " && (user.organizations.contains(orgs) && orgs.id == '" + userOrganizations.get(0).getId() + "') ";
                 }
 
                 // TODO: also handle "collab" (users you collab with)
@@ -1096,6 +1103,7 @@ public class Annotation implements java.io.Serializable {
         }
         return f;
     }
+
 
     /*
      * sorta weird to have this in here, but it is inherently linked with
