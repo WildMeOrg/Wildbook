@@ -831,8 +831,7 @@ public class Annotation implements java.io.Serializable {
         return iaConf.getValidIAClassesMatchAgaint(tax);
     }
 
-    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd,
-            Encounter enc, JSONObject params, boolean filterIAClass) {
+    public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params, boolean filterIAClass) {
         String filter = "";
 
         if ((enc == null) || !Util.stringExists(enc.getGenus()) ||
@@ -852,14 +851,14 @@ public class Annotation implements java.io.Serializable {
         else {
             filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " +
                     this.getMatchingSetFilterFromParameters(params) +
-                    this.getMatchingSetFilterIAClassClause(filterIAClass,
-                            this.getValidIAClasses(enc.getTaxonomy(myShepherd)))
-                    + this.getMatchingSetFilterViewpointClause(myShepherd) +
-                    this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" +
-                    enc.getCatalogNumber()
-                    // + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
-                    + "' && enc.annotations.contains(this)" + " && enc.specificEpithet == '" +
-                    enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+                    this.getMatchingSetFilterIAClassClause(filterIAClass, this.getValidIAClasses(enc.getTaxonomy(myShepherd))) + 
+                    this.getMatchingSetFilterViewpointClause(myShepherd) +
+                    this.getPartClause(myShepherd) + 
+                    " && acmId != null " + 
+                    " && enc.catalogNumber != '" + enc.getCatalogNumber() + "'" + 
+                    " && enc.annotations.contains(this)" + 
+                    " && enc.specificEpithet == '" + enc.getSpecificEpithet() + "'" + 
+                    " VARIABLES org.ecocean.Encounter enc";
         }
         if (filter.matches(".*\\buser\\b.*"))
             filter += "; org.ecocean.User user";
@@ -867,6 +866,7 @@ public class Annotation implements java.io.Serializable {
             filter += "; org.ecocean.Organization orgs";
         if (filter.matches(".*\\bproject\\b.*"))
             filter += "; org.ecocean.Project project";
+        
         return getMatchingSetForFilter(myShepherd, filter);
     }
 
@@ -1082,10 +1082,10 @@ public class Annotation implements java.io.Serializable {
                     f += " && user.uuid == '" + userId +
                             "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
                 if (opt.equals("org")) {
-                    f += " && (user.organizations.contains(orgs) && orgs.name == enc.submitterOrganization) ";
+                    f += " && (user.organizations.contains(orgs) && orgs.name == enc.submitterOrganization) && user.uuid == '" + userId + "' ";
                 }
 
-                /// TODO also handle "collab" (users you collab with) :/
+                // TODO: also handle "collab" (users you collab with)
             }
         }
         // add projectID to filter
