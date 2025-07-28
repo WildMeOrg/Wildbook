@@ -105,6 +105,9 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         store.applyDynamicValidationRules();
 
         const formatDate = (year, month, day, hour, minute) => {
+          if (year == null || year === "") {
+            return "";
+          }
           const pad2 = (s) =>
             s != null && s !== "" ? String(s).padStart(2, "0") : "";
 
@@ -201,13 +204,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               row["Encounter.hour"],
               row["Encounter.minutes"],
             );
-            if (
-              formattedEncounterDate &&
-              formattedEncounterDate !== "undefined"
-            ) {
-              normalizedRow["Encounter.year"] = formattedEncounterDate;
-            }
-
             const formattedSightingDate = formatDate(
               row["Sighting.year"],
               row["Sighting.month"],
@@ -215,10 +211,34 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               row["Sighting.hour"],
               row["Sighting.minutes"],
             );
+
             if (
+              formattedEncounterDate &&
+              formattedEncounterDate !== "undefined"
+            ) {
+              normalizedRow["Encounter.year"] = formattedEncounterDate;
+            } else if (
               formattedSightingDate &&
               formattedSightingDate !== "undefined"
             ) {
+              store.columnsDef.splice(1, 0, "Encounter.year");
+              store.rawColumns.splice(1, 0, "Encounter.year");
+              normalizedRow["Encounter.year"] = formattedSightingDate;
+              delete normalizedRow["Sighting.year"];
+              store.setColumnsDef(
+                store.columnsDef.filter((col) => col !== "Sighting.year"),
+              );
+              store.setRawColumns(
+                store.rawColumns.filter((col) => col !== "Sighting.year"),
+              );
+            }
+            if (
+              formattedEncounterDate &&
+              formattedEncounterDate !== "undefined" &&
+              formattedSightingDate &&
+              formattedSightingDate !== "undefined"
+            ) {
+              console.log(3);
               normalizedRow["Sighting.year"] = formattedSightingDate;
             }
 
