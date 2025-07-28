@@ -6,10 +6,14 @@ import java.util.List;
 import javax.jdo.Query;
 import org.postgresql.jdbc.PgArray;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import org.ecocean.shepherd.core.Shepherd;
 
 // https://github.com/pgvector/pgvector
 // https://github.com/pgvector/pgvector-java
+// https://www.thenile.dev/blog/pgvector_myth_debunking
 // CREATE EXTENSION IF NOT EXISTS vector
 
 public class Embedding implements java.io.Serializable {
@@ -31,6 +35,11 @@ public class Embedding implements java.io.Serializable {
         this.created = System.currentTimeMillis();
     }
 
+    public Embedding(Annotation ann, String method, String methodVersion, JSONArray vecArr) {
+        this(ann, method, methodVersion, (PGvector)null);
+        this.setVector(vecArr);
+    }
+
     public Annotation getAnnotation() {
         return annotation;
     }
@@ -47,6 +56,10 @@ public class Embedding implements java.io.Serializable {
         this.vector = vec;
     }
 
+    public void setVector(JSONArray varr) {
+        this.vector = vectorFromJSONArray(varr);
+    }
+
     public String getMethod() {
         return method;
     }
@@ -54,6 +67,26 @@ public class Embedding implements java.io.Serializable {
     public String getMethodDescription() {
         return ((method == null) ? "(unknown)" : method) + " " + ((methodVersion ==
                    null) ? "(unknown version)" : methodVersion);
+    }
+
+    public float[] vectorToFloatArray() {
+        if (vector == null) return null;
+        return vector.toArray();
+    }
+
+    public static PGvector vectorFromJSONArray(JSONArray varr) {
+        if (varr == null) return null;
+        float[] vecVals = new float[varr.length()];
+        for (int i = 0; i < varr.length(); i++) {
+            try {
+                vecVals[i] = varr.getFloat(i);
+            } catch (JSONException ex) {
+                System.out.println("[WARNING] Embedding.setVector() could not getFloat at i=" + i +
+                    " of " + varr);
+                vecVals[i] = varr.getFloat(i);
+            }
+        }
+        return new PGvector(vecVals);
     }
 
     // these shenanigans could be avoided if datanucleus supported vectors, but alas
@@ -83,6 +116,27 @@ public class Embedding implements java.io.Serializable {
             if (q != null) q.closeAll();
         }
         return this.vector;
+    }
+
+    public void storeVector(Shepherd myShepherd) {
+        if (vector == null) return;
+        List<String> vals = new java.util.ArrayList<String>();
+        for (float f : vector.toArray()) {
+            vals.add(Float.toString(f));
+        }
+        String sql = "UPDATE \"EMBEDDING\" SET \"VECTOR\"='[" + String.join(",",
+            vals) + "]' WHERE \"ID\"='" + this.id + "'";
+        Query q = null;
+
+        try {
+            q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+            q.execute();
+        } catch (Exception ex) {
+            System.out.println("[ERROR] could not storeVector() on " + this.toString());
+            ex.printStackTrace();
+        } finally {
+            if (q != null) q.closeAll();
+        }
     }
 
     public String toString() {
