@@ -1082,7 +1082,7 @@ public class Annotation implements java.io.Serializable {
                     f += " && user.uuid == '" + userId +
                             "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
                 if (opt.equals("org")) {
-                    f += " && (user.organizations.contains(orgs) && orgs.name == enc.submitterOrganization) ";
+                    f += " && (user.organizations.contains(orgs) && orgs.name == enc.submitterOrganization) && user.uuid == '" + userId + "' ";
                 }
 
                 // TODO: also handle "collab" (users you collab with)
