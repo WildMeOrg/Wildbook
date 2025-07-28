@@ -238,7 +238,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               formattedSightingDate &&
               formattedSightingDate !== "undefined"
             ) {
-              console.log(3);
               normalizedRow["Sighting.year"] = formattedSightingDate;
             }
 
