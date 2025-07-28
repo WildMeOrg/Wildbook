@@ -1083,13 +1083,12 @@ public class Annotation implements java.io.Serializable {
                 if (!Util.stringExists(opt))
                     continue;
                 if (opt.equals("me") && (userId != null))
-                    f += " && user.uuid == '" + userId +
-                            "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
+                    f += " && (user.uuid == '" + userId + "' && (enc.submitters.contains(user) || enc.submitterID == user.username)) ";
                 if (opt.equals("org") && (userId != null)) {
                     User user = (User) pm.getObjectById(User.class, userId);
                     List<Organization> userOrganizations = user.getOrganizations();
-                    System.out.println("list orgainization"+userOrganizations);
-                    f += " && (user.organizations.contains(orgs) && orgs.id == '" + userOrganizations.get(0).getId() + "') ";
+                    System.out.println("list orgainization: " + userOrganizations);
+                    f += " && (enc.submitters.contains(user) && user.organizations.contains(orgs) && orgs.id == '" + userOrganizations.get(0).getId() + "') ";
                 }
 
                 // TODO: also handle "collab" (users you collab with)
