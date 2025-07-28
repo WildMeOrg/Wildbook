@@ -300,7 +300,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                         ArrayList<Annotation> annotations = loadAnnotations(row, rowShepherd, myAssets,
                                 fColIndexMap, verbose, missingColumns, unusedColumns, foundPhotos,
                                 photoDirectory, fFeedback, isUserUpload, committing, missingPhotos, context,
-                                allColsMap, skipCols);
+                                allColsMap, skipCols, filename);
         
                         Encounter enc = loadEncounter(row, annotations, context, rowShepherd, fColIndexMap,
                                 verbose, missingColumns, unusedColumns, defaultSubmitterID, committing, fFeedback);
@@ -1307,7 +1307,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
         Set<String> missingColumns, Set<String> unusedColumns, List<String> foundPhotos,
         String photoDirectory, TabularFeedback feedback, Boolean isUserUpload, boolean committing,
         List<String> missingPhotos, String context, HashMap<String, Integer> allColsMap,
-        List<Integer> skipCols) {
+        List<Integer> skipCols, String fileName) {
         AssetStore astore = getAssetStore(myShepherd);
 
         // if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
@@ -1316,7 +1316,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
         for (int i = 0; i < getNumMediaAssets(colIndexMap); i++) {
             MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets, colIndexMap,
                 verbose, missingColumns, unusedColumns, feedback, isUserUpload, photoDirectory,
-                foundPhotos, committing, missingPhotos, context, allColsMap, skipCols);
+                foundPhotos, committing, missingPhotos, context, allColsMap, skipCols, fileName);
             if (ma == null) {
                 continue;
             }
@@ -1476,7 +1476,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
         Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback,
         Boolean isUserUpload, String photoDirectory, List<String> foundPhotos, boolean committing,
         List<String> missingPhotos, String context, HashMap<String, Integer> allColsMap,
-        List<Integer> skipCols) {
+        List<Integer> skipCols, String fileName) {
         try {
             if (emptyAssetColumn(i, allColsMap, skipCols)) {
                 feedback.logParseNoValue(assetColIndex(i, allColsMap));
@@ -1489,6 +1489,30 @@ public class EncounterImportExcelServlet extends HttpServlet {
             missingColumns, unusedColumns, feedback);
         String userFilename = localPath;
         System.out.println("     localPath/userFilename: " + userFilename);
+        
+        String urlPath =  getString(row, "Encounter.mediaAsset" + i + ".imageUrl", colIndexMap, verbose,
+        missingColumns, unusedColumns, feedback);
+        
+        if (urlPath != null && !urlPath.isEmpty()) {
+            // Remove protocol
+            String withoutProtocol = urlPath.replaceFirst("^https?://", "");
+        
+            // Split into domain + path
+            int firstSlashIndex = withoutProtocol.indexOf('/');
+            if (firstSlashIndex != -1) {
+                String domain = withoutProtocol.substring(0, firstSlashIndex).replaceAll("\\.", "_");
+                String path = withoutProtocol.substring(firstSlashIndex + 1); // after first slash
+                urlPath = domain + "/" + path;
+            } else {
+                urlPath = withoutProtocol.replaceAll("\\.", "_");
+            }
+        }
+
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex != -1) {
+            fileName = fileName.substring(0, dotIndex);
+        }
+
         if (userFilename == null){
             return null;
         }
@@ -1521,6 +1545,11 @@ public class EncounterImportExcelServlet extends HttpServlet {
             fullPath = fullPath.replace("//", "/");
             resolvedPath = resolveHumanEnteredFilename(fullPath);
             System.out.println("Early exit: fullpath: " + fullPath);
+            if (resolvedPath == null){
+                fullPath = photoDirectory + "/" + "downloaded_images/" + fileName + "/" + urlPath;
+                resolvedPath = resolveHumanEnteredFilename(fullPath);
+            }
+
 
             System.out.println("     resolvedPath: " + resolvedPath);
             if (resolvedPath != null) {
