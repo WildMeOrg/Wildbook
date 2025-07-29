@@ -2,6 +2,36 @@
 	"description": "we require a root-level node here fwiw",
 	"locationID": [
 		{
+			"name": "Angola",
+			"id": "Angola",
+			"locationID": [
+				{
+					"name": "Iona National Park",
+					"id": "Iona National Park",
+					"geospatialInfo": {
+						"lat": -16.705962,
+						"long": 12.252181
+					},
+					"locationID": []
+				},
+				{
+					"name": "KAZA",
+					"id": "KAZA",
+					"locationID": [
+						{
+							"name": "Luengue-Luiana National Park",
+							"id": "Luengue-Luiana National Park",
+							"geospatialInfo": {
+								"lat": -16.806984,
+								"long": 21.079622
+							},
+							"locationID": []
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Botswana",
 			"id": "Botswana",
 			"locationID": [
