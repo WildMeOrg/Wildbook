@@ -4794,4 +4794,19 @@ public class Encounter extends Base implements java.io.Serializable {
             myShepherd.rollbackDBTransaction();
         }
     }
+    
+    //restore wild dog-specific part assignment
+    public void addAnnotationAndRemoveTrivial(Annotation newAnn) {
+        int newMaId = newAnn.getMediaAsset().getIdInt();
+        Annotation trivialAnn = null;
+        for (Annotation oldAnn: this.getAnnotations()) {
+          if (oldAnn.isTrivial() && newMaId == oldAnn.getMediaAsset().getIdInt()) {
+            trivialAnn = oldAnn;
+            break;
+          }
+        }
+        if (trivialAnn != null) replaceAnnotation(trivialAnn, newAnn);
+        else addAnnotation(newAnn);
+      }
+    
 }
