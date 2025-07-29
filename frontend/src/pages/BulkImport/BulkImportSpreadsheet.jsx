@@ -105,9 +105,6 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
         store.applyDynamicValidationRules();
 
         const formatDate = (year, month, day, hour, minute) => {
-          if (year == null || year === "") {
-            return "";
-          }
           const pad2 = (s) =>
             s != null && s !== "" ? String(s).padStart(2, "0") : "";
 
@@ -198,18 +195,18 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             }
 
             const formattedEncounterDate = formatDate(
-              row["Encounter.year"],
-              row["Encounter.month"],
-              row["Encounter.day"],
-              row["Encounter.hour"],
-              row["Encounter.minutes"],
+              row["Encounter.year"] || "",
+              row["Encounter.month"] || "",
+              row["Encounter.day"] || "",
+              row["Encounter.hour"] || "",
+              row["Encounter.minutes"] || "",
             );
             const formattedSightingDate = formatDate(
-              row["Sighting.year"],
-              row["Sighting.month"],
-              row["Sighting.day"],
-              row["Sighting.hour"],
-              row["Sighting.minutes"],
+              row["Sighting.year"] || "",
+              row["Sighting.month"] || "",
+              row["Sighting.day"] || "",
+              row["Sighting.hour"] || "",
+              row["Sighting.minutes"] || "",
             );
 
             if (
@@ -225,11 +222,29 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               store.rawColumns.splice(1, 0, "Encounter.year");
               normalizedRow["Encounter.year"] = formattedSightingDate;
               delete normalizedRow["Sighting.year"];
+              delete normalizedRow["Sighting.month"];
+              delete normalizedRow["Sighting.day"];
+              delete normalizedRow["Sighting.hour"];
+              delete normalizedRow["Sighting.minutes"];
               store.setColumnsDef(
-                store.columnsDef.filter((col) => col !== "Sighting.year"),
+                store.columnsDef.filter(
+                  (col) =>
+                    col !== "Sighting.year" &&
+                    col !== "Sighting.month" &&
+                    col !== "Sighting.day" &&
+                    col !== "Sighting.hour" &&
+                    col !== "Sighting.minutes",
+                ),
               );
               store.setRawColumns(
-                store.rawColumns.filter((col) => col !== "Sighting.year"),
+                store.rawColumns.filter(
+                  (col) =>
+                    col !== "Sighting.year" &&
+                    col !== "Sighting.month" &&
+                    col !== "Sighting.day" &&
+                    col !== "Sighting.hour" &&
+                    col !== "Sighting.minutes",
+                ),
               );
             }
             if (
