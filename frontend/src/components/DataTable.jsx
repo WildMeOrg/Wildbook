@@ -7,6 +7,9 @@ import "../css/dataTable.css";
 import { FormattedMessage } from "react-intl";
 import ThemeColorContext from "../ThemeColorProvider";
 import { useIntl } from "react-intl";
+// import { Calendar } from "antd";
+import Calendar from "./searchResultTabs/Calendar";
+import { observer } from "mobx-react-lite";
 
 const customStyles = {
   rows: {
@@ -17,7 +20,8 @@ const customStyles = {
   },
 };
 
-const MyDataTable = ({
+const MyDataTable = observer (({
+  store,
   title = "",
   columnNames = [],
   totalItems = 0,
@@ -32,8 +36,8 @@ const MyDataTable = ({
   tabs = [],
   isLoading = false,
   extraStyles = [],
-  onSelectedRowsChange = () => {},
-  onRowClicked = () => {},
+  onSelectedRowsChange = () => { },
+  onRowClicked = () => { },
 }) => {
   const [data, setData] = useState([]);
   const [filterText, setFilterText] = useState("");
@@ -232,6 +236,24 @@ const MyDataTable = ({
 
   const theme = React.useContext(ThemeColorContext);
 
+  const activeStyle = {
+    fontWeight: "bold",
+    fontSize: "1em",
+    paddingLeft: "5px",
+    paddingRight: "5px",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    color: theme.primaryColors.primary700,
+  }
+
+  const inactiveStyle = {
+    fontWeight: "bold",
+    fontSize: "1em",
+    paddingLeft: "5px",
+    paddingRight: "5px",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    color: "white",
+  }
+
   return (
     <div
       className="container"
@@ -248,19 +270,32 @@ const MyDataTable = ({
             key={"result"}
             variant="outline-tertiary"
             className="me-1"
+            onClick={() => {
+              store.setActiveStep(0);
+            }}
             style={{
-              backgroundColor: "rgba(255,255,255,0.8)",
-              color: theme.primaryColors.primary700,
-              fontWeight: "bold",
-              fontSize: "1em",
-              paddingLeft: "5px",
-              paddingRight: "5px",
+              ...(store.activeStep === 0 ? activeStyle : inactiveStyle),
             }}
           >
-            {" "}
             <FormattedMessage
               id="RESULTS_TABLE"
               defaultMessage={"Results Table"}
+            />
+          </Button>
+          <Button
+            key={"calendar"}
+            variant="outline-tertiary"
+            className="me-1"
+            onClick={() => {
+              store.setActiveStep(1);
+            }}
+            style={{
+              ...(store.activeStep === 1 ? activeStyle : inactiveStyle),
+            }}
+          >
+            <FormattedMessage
+              id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
+              defaultMessage={"Calendar View"}
             />
           </Button>
           {tabs.map((tab, index) => {
@@ -346,111 +381,128 @@ const MyDataTable = ({
             </Button>
           )}
         </InputGroup>
+        <br />
+
       </div>
       <div
+        className="w-100"
         style={{
-          borderRadius: "5px",
-          overflow: "hidden",
+          display: store.activeStep === 0 ? "block" : "none",
         }}
       >
-        <DataTable
-          // title={title}
-          columns={wrappedColumns}
-          data={filteredData}
-          customStyles={customStyles}
-          conditionalRowStyles={conditionalRowStyles(theme)}
-          // selectableRows
-          onSelectedRowsChange={onSelectedRowsChange}
-          pointerOnHover
-          highlightOnHover
-          onRowClicked={onRowClicked}
-          selectableRowsHighlight
-          progressPending={isLoading}
-          onSort={handleSort}
-        />
-      </div>
-      {filteredData.length === 0 && !isLoading ? (
         <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ color: "white" }}
+          style={{
+            borderRadius: "5px",
+            overflow: "hidden",
+          }}
         >
-          <FormattedMessage
-            id="NO_RESULTS_FOUND"
-            defaultMessage={"No results found"}
+          <DataTable
+            columns={wrappedColumns}
+            data={filteredData}
+            customStyles={customStyles}
+            conditionalRowStyles={conditionalRowStyles(theme)}
+            onSelectedRowsChange={onSelectedRowsChange}
+            pointerOnHover
+            highlightOnHover
+            onRowClicked={onRowClicked}
+            selectableRowsHighlight
+            progressPending={isLoading}
+            onSort={handleSort}
           />
         </div>
-      ) : (
-        <Row className="mt-3 d-flex justify-content-center align-items-center">
-          <Col
-            xs={12}
-            className="d-flex justify-content-center align-items-center flex-nowrap"
+        {filteredData.length === 0 && !isLoading ? (
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{ color: "white" }}
           >
-            <div className="me-3" style={{ color: "white" }}>
-              <span>
-                <FormattedMessage
-                  id="TOTAL_ITEMS"
-                  defaultMessage={"Total Items"}
-                />
-                : {totalItems}
-              </span>
-            </div>
-            <InputGroup className="me-3" style={{ width: "150px" }}>
-              <InputGroup.Text>
-                <FormattedMessage id="PER_PAGE" defaultMessage={"Per page"} />
-              </InputGroup.Text>
-              <Form.Control
-                as="select"
-                value={perPage}
-                onChange={handlePerPageChange}
-              >
-                {perPageOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </Form.Control>
-            </InputGroup>
-            <ReactPaginate
-              previousLabel={"<"}
-              nextLabel={">"}
-              breakLabel={"..."}
-              breakClassName={"page-item"}
-              breakLinkClassName={"page-link"}
-              pageCount={Math.ceil(totalItems / perPage)}
-              marginPagesDisplayed={2}
-              pageRangeDisplayed={2}
-              onPageChange={handlePageChange}
-              containerClassName={"pagination"}
-              pageClassName={"page-item"}
-              pageLinkClassName={"page-link"}
-              previousClassName={"page-item"}
-              previousLinkClassName={"page-link"}
-              nextClassName={"page-item"}
-              nextLinkClassName={"page-link"}
-              activeClassName={"active-page"}
-              forcePage={page}
+            <FormattedMessage
+              id="NO_RESULTS_FOUND"
+              defaultMessage={"No results found"}
             />
-            <InputGroup
-              className="ms-3"
-              style={{ width: "180px", whiteSpace: "nowrap" }}
+          </div>
+        ) : (
+          <Row className="mt-3 d-flex justify-content-center align-items-center">
+            <Col
+              xs={12}
+              className="d-flex justify-content-center align-items-center flex-nowrap"
             >
-              <InputGroup.Text>
-                <FormattedMessage id="GO_TO" defaultMessage={"Go to"} />
-              </InputGroup.Text>
-              <Form.Control
-                type="text"
-                value={goToPage}
-                onChange={handleGoToPageChange}
+              <div className="me-3" style={{ color: "white" }}>
+                <span>
+                  <FormattedMessage
+                    id="TOTAL_ITEMS"
+                    defaultMessage={"Total Items"}
+                  />
+                  : {totalItems}
+                </span>
+              </div>
+              <InputGroup className="me-3" style={{ width: "150px" }}>
+                <InputGroup.Text>
+                  <FormattedMessage id="PER_PAGE" defaultMessage={"Per page"} />
+                </InputGroup.Text>
+                <Form.Control
+                  as="select"
+                  value={perPage}
+                  onChange={handlePerPageChange}
+                >
+                  {perPageOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Form.Control>
+              </InputGroup>
+              <ReactPaginate
+                previousLabel={"<"}
+                nextLabel={">"}
+                breakLabel={"..."}
+                breakClassName={"page-item"}
+                breakLinkClassName={"page-link"}
+                pageCount={Math.ceil(totalItems / perPage)}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={2}
+                onPageChange={handlePageChange}
+                containerClassName={"pagination"}
+                pageClassName={"page-item"}
+                pageLinkClassName={"page-link"}
+                previousClassName={"page-item"}
+                previousLinkClassName={"page-link"}
+                nextClassName={"page-item"}
+                nextLinkClassName={"page-link"}
+                activeClassName={"active-page"}
+                forcePage={page}
               />
-              <Button className="go-button" onClick={handleGoToPageSubmit}>
-                <FormattedMessage id="GO" defaultMessage={"Go"} />
-              </Button>
-            </InputGroup>
-          </Col>
-        </Row>
-      )}
+              <InputGroup
+                className="ms-3"
+                style={{ width: "180px", whiteSpace: "nowrap" }}
+              >
+                <InputGroup.Text>
+                  <FormattedMessage id="GO_TO" defaultMessage={"Go to"} />
+                </InputGroup.Text>
+                <Form.Control
+                  type="text"
+                  value={goToPage}
+                  onChange={handleGoToPageChange}
+                />
+                <Button className="go-button" onClick={handleGoToPageSubmit}>
+                  <FormattedMessage id="GO" defaultMessage={"Go"} />
+                </Button>
+              </InputGroup>
+            </Col>
+          </Row>
+        )}
+      </div>
+      <div
+        className="w-100"
+        style={{
+          display: store.activeStep === 1 ? "block" : "none",
+        }}
+      >
+        <Calendar 
+          filteredData ={filteredData}
+        />
+      </div>
     </div>
   );
-};
+});
 
 export default MyDataTable;

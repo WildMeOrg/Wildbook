@@ -15,6 +15,7 @@ import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
 import { globalEncounterFormStore as store } from "./encounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
 
+
 export default function EncounterSearch() {
   const columns = encounterSearchColumns;
   const tabs = encounterSearchPagetabs;
@@ -172,6 +173,7 @@ export default function EncounterSearch() {
         store={store}
       />
       <DataTable
+        store={store}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",
@@ -219,6 +221,7 @@ export default function EncounterSearch() {
         store={store}
         tempFormFilters={tempFormFilters}
       />
+      {/* <Calendar /> */}
     </div>
   );
 }
