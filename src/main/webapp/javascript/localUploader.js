@@ -116,7 +116,7 @@ function uploaderInit(completionCallback, subdir, isImportExport) {
 
     flow.on('fileAdded', function (file, event) {
       if (file && file.name) {
-        file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, '')
+        file.name = file.name.replace(/[^a-zA-Z0-9.\-_ ]/g, '')
       }
       console.log('added %o %o', file, event)
     })
@@ -284,7 +284,7 @@ function filesChanged(f) {
 function filesChangedSetFilename(f) {
   console.log('filesChangedSetFilename')
   filesChanged(f)
-  let filename = f.files[0].name.replace(/[^a-zA-Z0-9\. ]/g, '')
+  let filename = f.files[0].name.replace(/[^a-zA-Z0-9.\-_ ]/g, '')
   document.getElementById('hiddenFilename').innerHTML = filename
 }
 
