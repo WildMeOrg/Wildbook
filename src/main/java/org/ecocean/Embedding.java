@@ -20,6 +20,7 @@ public class Embedding implements java.io.Serializable {
     private String id;
     private Annotation annotation;
     private PGvector vector;
+    private float[] vectorFloatArray;
     private String method;
     private String methodVersion;
     private long created;
@@ -29,7 +30,7 @@ public class Embedding implements java.io.Serializable {
     public Embedding(Annotation ann, String method, String methodVersion, PGvector vec) {
         this.id = Util.generateUUID();
         this.annotation = ann;
-        this.vector = vec;
+        this.setVector(vec);
         this.method = method;
         this.methodVersion = methodVersion;
         this.created = System.currentTimeMillis();
@@ -49,15 +50,22 @@ public class Embedding implements java.io.Serializable {
     }
 
     public PGvector getVector() {
+        if ((vector == null) && (vectorFloatArray != null))
+            vector = new PGvector(vectorFloatArray);
         return vector;
     }
 
     public void setVector(PGvector vec) {
+        if (vec != null) {
+            vectorFloatArray = vec.toArray();
+        } else {
+            vectorFloatArray = null;
+        }
         this.vector = vec;
     }
 
     public void setVector(JSONArray varr) {
-        this.vector = vectorFromJSONArray(varr);
+        this.setVector(vectorFromJSONArray(varr));
     }
 
     public String getMethod() {
@@ -88,6 +96,8 @@ public class Embedding implements java.io.Serializable {
         }
         return new PGvector(vecVals);
     }
+
+/* note: these have been deprecated but just kept for reference
 
     // these shenanigans could be avoided if datanucleus supported vectors, but alas
     public PGvector loadVector(Shepherd myShepherd) {
@@ -138,7 +148,7 @@ public class Embedding implements java.io.Serializable {
             if (q != null) q.closeAll();
         }
     }
-
+ */
     public String toString() {
         String st = "Embedding " + id;
 
