@@ -1631,16 +1631,19 @@ public class Annotation extends Base implements java.io.Serializable {
     public Set<Embedding> addEmbedding(Embedding emb) {
         if (embeddings == null) embeddings = new HashSet<Embedding>();
         if (emb == null) return embeddings;
+        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
         embeddings.add(emb);
         return embeddings;
     }
 
+/*
     public void loadEmbeddingVectors(Shepherd myShepherd) {
         if (embeddings == null) return;
         for (Embedding emb : this.embeddings) {
             emb.loadVector(myShepherd);
         }
     }
+ */
 
     // need these two so we can use things like List.contains()
     // note: this basically is "id-equivalence" rather than *content* equivalence, so will not compare semantic similarity of 2 annots

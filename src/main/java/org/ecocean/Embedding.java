@@ -47,6 +47,7 @@ public class Embedding implements java.io.Serializable {
 
     public void setAnnotation(Annotation ann) {
         this.annotation = ann;
+        ann.addEmbedding(this);
     }
 
     public PGvector getVector() {
@@ -70,6 +71,18 @@ public class Embedding implements java.io.Serializable {
 
     public String getMethod() {
         return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public String getMethodVersion() {
+        return methodVersion;
+    }
+
+    public void setMethodVersion(String methodVersion) {
+        this.methodVersion = methodVersion;
     }
 
     public String getMethodDescription() {

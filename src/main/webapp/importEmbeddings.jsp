@@ -34,6 +34,43 @@ private MediaAsset getMediaAsset(String id, Shepherd myShepherd) throws IOExcept
     return ma;
 }
 
+
+/*
+    "annot_uuid": "a4606e5c-6227-4599-bac5-54e3ec081d6c",
+    "embedding": [
+      0.5188146829605103,
+      0.6490556597709656,
+*/
+
+private Feature makeFeature(JSONArray bbox) {
+    JSONObject params = new JSONObject();
+    params.put("x", bbox.getDouble(0));
+    params.put("y", bbox.getDouble(1));
+    params.put("width", bbox.getDouble(2));
+    params.put("height", bbox.getDouble(3));
+    return new Feature("org.ecocean.boundingBox", params);
+}
+
+private String fixTaxonomy(String orig) {
+    if ((orig == null) || (orig.length() < 1)) return orig;
+    String rtn = orig.replaceAll("_", " ");
+    return rtn.substring(0, 1).toUpperCase() + rtn.substring(1);
+}
+
+private Embedding findEmbedding(JSONArray arr, String id) {
+    JSONArray embArr = null;
+    for (int i = 0 ; i < arr.length() ; i++) {
+        JSONObject jemb = arr.optJSONObject(i);
+        if (jemb.optString("annot_uuid", null).equals(id)) {
+            embArr = jemb.optJSONArray("embedding");
+            i = arr.length() + 1;
+        }
+    }
+    if (embArr == null) throw new RuntimeException("could not find embedding array for id=" + id);
+    Embedding emb = new Embedding(null, "miewID", null, embArr);
+    return emb;
+}
+
 /*
 dont really need this cuz we are faking images!!!
 private JSONObject findImageJson(JSONArray imageArr, String id) {
@@ -67,13 +104,6 @@ JSONArray embeddingV3Arr = new JSONArray(Util.readFromFile(embeddingV3JsonFile.t
 JSONArray annotArr = annotationJson.optJSONArray("annotations");
 JSONArray imageArr = annotationJson.optJSONArray("images");
 
-/*
-    "annot_uuid": "a4606e5c-6227-4599-bac5-54e3ec081d6c",
-    "embedding": [
-      0.5188146829605103,
-      0.6490556597709656,
-*/
-
 out.println("<p>makeNew=<b>" + makeNew + "</b> (set via ?makeNew=xxx)</p>");
 
 out.println("<p>num annots=<b>" + annotArr.length() + "</b><br />");
@@ -89,6 +119,7 @@ if (makeNew < 1) {
 
 Shepherd myShepherd = new Shepherd(request);
 myShepherd.beginDBTransaction();
+FeatureType.initAll(myShepherd);
 
 int ct = 0;
 for (int i = 0 ; i < annotArr.length() ; i++) {
@@ -96,29 +127,72 @@ for (int i = 0 ; i < annotArr.length() ; i++) {
     if (annJson == null) throw new RuntimeException("no json object at i=" + i);
     String annId = annJson.optString("uuid", null);
     Annotation ann = myShepherd.getAnnotation(annId);
-    if (ann != null) continue;
+    if (ann != null) {
+        System.out.println("importEmbeddings.jsp: skipping ann id=" + annId + "; exists in db");
+        continue;
+    }
+
     String annImageId = annJson.optString("image_uuid", null);
-    String annTx = annJson.optString("species", null);
+    String annTx = fixTaxonomy(annJson.optString("species", null));
     String annName = annJson.optString("name", null);
     String annViewpoint = annJson.optString("viewpoint", null);
     JSONArray bboxArr = annJson.optJSONArray("bbox");
     double annTheta = annJson.optDouble("theta", 0.0d);
     if ((annId == null) || (bboxArr == null) || (annImageId == null) || (annName == null) || (annViewpoint == null) || (annTx == null)) throw new RuntimeException("invalid json at i=" + i + " => " + annJson);
 
-    ct++;
-    out.println("<hr /><p>(" + ct + ") <xmp>" + annJson.toString(4) + "</xmp></p>");
     MediaAsset ma = getMediaAsset(annImageId, myShepherd);
-    out.println("<p><b>" + ma + "</b></p>");
+
+    Feature ft = makeFeature(bboxArr);
+    ma.addFeature(ft);
+    ann = new Annotation(annTx, ft);
+    ann.setId(annId);
+    ann.setAcmId(annId);
+    ann.setViewpoint(annViewpoint);
+    ann.setTheta(annTheta);
+
+    Embedding embV2 = findEmbedding(embeddingV2Arr, annId);
+    embV2.setMethodVersion("v2");
+    embV2.setAnnotation(ann);
+    Embedding embV3 = findEmbedding(embeddingV3Arr, annId);
+    embV3.setMethodVersion("v3");
+    embV3.setAnnotation(ann);
+
+    MarkedIndividual indiv = null;
+    if (annName != null) {
+        indiv = myShepherd.getMarkedIndividual(annName);
+        if (indiv == null) {
+            indiv = new MarkedIndividual();
+            indiv.setId(annName);
+        }
+    }
+
+    Encounter enc = new Encounter(false);
+    enc.addAnnotation(ann);
+    if (indiv != null) enc.setIndividual(indiv);
+    enc.setTaxonomyFromString(annTx);
+
+    myShepherd.getPM().makePersistent(ma);
+    myShepherd.getPM().makePersistent(ann);
+    myShepherd.getPM().makePersistent(enc);
+    if (indiv != null) myShepherd.getPM().makePersistent(indiv);
+
+    ct++;
+    out.println("<hr /><p>(" + ct + ")</p>");
+    out.println("<p><a target=\"_blank\" href=\"/obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\"><b>" + ma + "</b></a></p>");
+    out.println("<p><b>" + ann + "</b></p>");
+    out.println("<p><b>" + ft + "</b></p>");
+    out.println("<p><b>" + ann.getEmbeddings() + "</b></p>");
 
     // are we done?
-    if (ct > makeNew) {
+    if (ct >= makeNew) {
         out.println("<p><b>END</b></p>");
         i = annotArr.length() + 1;
     }
 }
 
 
-myShepherd.rollbackAndClose();
+myShepherd.commitDBTransaction();
+myShepherd.closeDBTransaction();
 
 %>
 
