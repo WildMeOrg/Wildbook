@@ -215,14 +215,18 @@ URLCodec urlCodec = new URLCodec();
 }
 
 .ia-match-filter-dialog {
-    display: none;
-    z-index: 3000;
-    position: fixed;
-    top: 10%;
-    width: 80%;
-    padding: 15px;
-    border: solid 5px #888;
-    background-color: #CCC;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  padding: 20px;
+  border: 3px solid #888;
+  background-color: #fff;
+  z-index: 3000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
 }
 
 /* may the css gods help us.   h/t https://stackoverflow.com/a/7785711 */
@@ -278,7 +282,7 @@ label.item-checked {
 .ia-match-filter-title {
     margin: 20px 0 5px 0;
     padding: 1px 0 1px 20px;
-    background-color: #AAB;
+    background-color: #CCC;
     color: #555;
     font-weight: bold;
 }
@@ -6988,6 +6992,13 @@ $(".search-collapse-header").click(function(){
     $(this).children(".rotate-chevron").toggleClass("down");
     $(this).next().slideToggle();
 });
+$(function() {
+			$('input[type="checkbox"][name="match-filter-owner"]').on('change', function() {
+				if (this.checked) {
+				$('input[type="checkbox"][name="match-filter-owner"]').not(this).prop('checked', false);
+				}
+			});
+		});
 </script>
 
 </div>
@@ -6997,6 +7008,10 @@ $(".search-collapse-header").click(function(){
     <div class="item">
         <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
         <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
+    </div>
+     <div class="item">
+        <input type="checkbox" id="match-filter-owner-org" name="match-filter-owner" value="org" />
+        <label for="match-filter-owner-org"><%=encprops.getProperty("matchFilterOwnershipOrg")%></label>
     </div>
 <!--  not yet implemented!
     <div class="item">
@@ -7029,7 +7044,7 @@ for (JSONObject algConfig : identConfigsValues) {
     forClasses += " mfalgo-iaclass-" + algConfig.getJSONArray("_iaClasses").optString(i, "__FAIL__").replaceAll("\\+", "-");
   }
 
-  out.println("<div class=\"mfalgo-item " + forClasses + " item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " data-default-checked=\"" + enabled + "\" /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  out.println("<div class=\"mfalgo-item " + forClasses + " item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " data-default-checked=\"" + enabled + "\" /><label style=\"margin-left: 3px;\" for=\"mfa-" + algNum + "\">" + description + " </label></div>");
   algNum++;
 }
 
