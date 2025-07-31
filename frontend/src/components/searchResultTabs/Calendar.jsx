@@ -27,7 +27,7 @@ export default function EncounterCalendar({ filteredData = [] }) {
     }
 
     const parsed = filteredData.map((item) => {
-      const dateStrLocal = item.date.replace(/Z$/, "");
+      const dateStrLocal = item?.date?.replace(/Z$/, "");
       const d = new Date(dateStrLocal);
       return {
         title: item.id,
