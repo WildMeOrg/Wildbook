@@ -1038,6 +1038,34 @@ public class Annotation extends Base implements java.io.Serializable {
         return anns;
     }
 
+    // a variation of matchingSet query, but includes the vector stuff - thus returns actual matches(!)
+    // method and methodVersion are used to determine *which* embedding to use; if null it will use 1st embedding
+    // return null when this annot has no embeddings to match, sorry!
+    public JSONObject getMatchQuery(Shepherd myShepherd, JSONObject taskParams, boolean useClauses,
+        String method, String methodVersion) {
+        Embedding emb = getEmbeddingByMethod(method, methodVersion);
+
+        if (emb == null) return null;
+        JSONObject query = getMatchingSetQuery(myShepherd, taskParams, useClauses);
+        JSONObject nested = new JSONObject(
+            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
+        JSONArray must = new JSONArray();
+        JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
+            new JSONArray(emb.vectorToFloatArray()));
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", 5);
+        must.put(knn);
+        if (method != null)
+            must.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
+        if (methodVersion != null)
+            must.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
+                "\"}}"));
+        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
+            must);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(nested);
+        return query;
+    }
+
     /*
         sorta weird to have this in here, but it is inherently linked with getMatchingSetXXX() above ...
         this is a string that uniquely identifies the matchingSet, dependent of content (e.g. cant be based on content uuids)
@@ -1661,6 +1689,30 @@ public class Annotation extends Base implements java.io.Serializable {
         if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
         embeddings.add(emb);
         return embeddings;
+    }
+
+    // since embeddings is a set, there isnt really an order so...
+    // pretty much random; null if we have none
+    public Embedding getAnEmbedding() {
+        return getEmbeddingByMethod(null, null);
+    }
+
+    public Embedding getEmbeddingByMethod(String method) {
+        return getEmbeddingByMethod(method, null);
+    }
+
+    // suppose we could order by created?
+    public Embedding getEmbeddingByMethod(String method, String methodVersion) {
+        if (numberEmbeddings() < 1) return null;
+        Iterator it = embeddings.iterator();
+        if (method == null) return (Embedding)it.next();
+        while (it.hasNext()) {
+            Embedding emb = (Embedding)it.next();
+            if (!method.equals(emb.getMethod())) continue;
+            if ((methodVersion == null) || (methodVersion.equals(emb.getMethodVersion())))
+                return emb;
+        }
+        return null;
     }
 
 /*
