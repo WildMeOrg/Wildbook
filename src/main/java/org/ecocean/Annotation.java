@@ -1066,6 +1066,43 @@ public class Annotation extends Base implements java.io.Serializable {
         return query;
     }
 
+    // finds annotations based on embedding vector matches
+    // null means we didnt have an embedding to query with
+    public List<Annotation> getMatches(Shepherd myShepherd, JSONObject taskParams,
+        boolean useClauses, String method, String methodVersion) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        JSONObject query = getMatchQuery(myShepherd, taskParams, useClauses, method, methodVersion);
+
+        if (query == null) return null;
+        OpenSearch os = new OpenSearch();
+        long startTime = System.currentTimeMillis();
+        JSONObject queryRes = null;
+        int hitSize = -1;
+        try {
+            int pageSize = 10000;
+            try {
+                pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
+            os.deletePit("annotation");
+            queryRes = os.queryPit("annotation", query, 0, pageSize, null, null);
+            hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
+        } catch (Exception ex) {
+            System.out.println("getMatches() exception: " + ex);
+            ex.printStackTrace();
+        }
+        JSONArray hits = OpenSearch.getHits(queryRes);
+        for (int i = 0; i < hits.length(); i++) {
+            JSONObject hit = hits.optJSONObject(i);
+            if (hit == null) continue;
+            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
+            if (ann != null) anns.add(ann);
+        }
+        System.out.println("getMatches() results: hitSize=" + hitSize + "; hits length=" +
+            hits.length() + "; anns size=" + anns.size() + "; " +
+            (System.currentTimeMillis() - startTime) + "ms");
+        return anns;
+    }
+
     /*
         sorta weird to have this in here, but it is inherently linked with getMatchingSetXXX() above ...
         this is a string that uniquely identifies the matchingSet, dependent of content (e.g. cant be based on content uuids)
