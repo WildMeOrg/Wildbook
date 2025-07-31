@@ -164,12 +164,12 @@ public class Annotation extends Base implements java.io.Serializable {
         embMap.put("type", "nested");
         embMap.put("dynamic", false);
         JSONObject embProps = new JSONObject();
-        embProps.put("algorithm", keywordType);
-        embProps.put("version", keywordType);
+        embProps.put("method", keywordType);
+        embProps.put("methodVersion", keywordType);
         JSONObject embVect = new JSONObject();
         // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
         embVect.put("type", "knn_vector");
-        embVect.put("dimension", 250);
+        embVect.put("dimension", Embedding.getVectorDimension());
         embVect.put("space_type", "l2");
         // etc...... TODO
         embProps.put("vector", embVect);
@@ -214,6 +214,28 @@ public class Annotation extends Base implements java.io.Serializable {
                 if (tod > 0) jgen.writeNumberField("encounterIndividualTimeOfDeath", tod);
             }
         }
+        jgen.writeArrayFieldStart("embeddings");
+        if (this.embeddings != null)
+            for (Embedding emb : this.embeddings) {
+                jgen.writeStartObject();
+                jgen.writeStringField("id", emb.getId());
+                jgen.writeStringField("method", emb.getMethod());
+                jgen.writeStringField("methodVersion", emb.getMethodVersion());
+                jgen.writeNumberField("created", emb.getCreated());
+
+                float[] vecFloat = emb.vectorToFloatArray();
+                // System.out.println("[INFO] indexing emb " + emb.getId() + " vector length " + ((vecFloat == null) ? "null" : vecFloat.length));
+                if ((vecFloat != null) && (vecFloat.length > 0)) {
+                    jgen.writeFieldName("vector");
+                    jgen.writeStartArray();
+                    for (int i = 0; i < vecFloat.length; i++) {
+                        jgen.writeNumber(vecFloat[i]);
+                    }
+                    jgen.writeEndArray();
+                }
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
     }
 
     // TODO should this also be limited by matchAgainst and acmId?
@@ -702,6 +724,7 @@ public class Annotation extends Base implements java.io.Serializable {
                    .append("species", species)
                    .append("iaClass", iaClass)
                    .append("bbox", getBbox())
+                   .append("numEmbed", numberEmbeddings())
                    .toString();
     }
 
@@ -1626,6 +1649,10 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public Set<Embedding> getEmbeddings() {
         return embeddings;
+    }
+
+    public int numberEmbeddings() {
+        return Util.collectionSize(embeddings);
     }
 
     public Set<Embedding> addEmbedding(Embedding emb) {

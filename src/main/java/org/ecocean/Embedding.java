@@ -34,11 +34,17 @@ public class Embedding implements java.io.Serializable {
         this.method = method;
         this.methodVersion = methodVersion;
         this.created = System.currentTimeMillis();
+        this.getVector();
     }
 
     public Embedding(Annotation ann, String method, String methodVersion, JSONArray vecArr) {
         this(ann, method, methodVersion, (PGvector)null);
         this.setVector(vecArr);
+        this.getVector();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public Annotation getAnnotation() {
@@ -90,9 +96,20 @@ public class Embedding implements java.io.Serializable {
                    null) ? "(unknown version)" : methodVersion);
     }
 
+    public long getCreated() {
+        return created;
+    }
+
     public float[] vectorToFloatArray() {
+        getVector();
         if (vector == null) return null;
         return vector.toArray();
+    }
+
+    public int vectorLength() {
+        getVector();
+        if (vector == null) return 0;
+        return vector.toArray().length;
     }
 
     public static PGvector vectorFromJSONArray(JSONArray varr) {
@@ -162,9 +179,16 @@ public class Embedding implements java.io.Serializable {
         }
     }
  */
+
+    // TODO: (1) configurable?  (2) exceptions when vector length differs?
+    public static int getVectorDimension() {
+        return 2152;
+    }
+
     public String toString() {
         String st = "Embedding " + id;
 
+        st += " (vec len " + this.vectorLength() + ")";
         if (annotation != null) st += " [Annotation " + annotation.getId() + "]";
         st += " " + this.getMethodDescription();
         st += " " + Util.prettyPrintDateTime(this.created);

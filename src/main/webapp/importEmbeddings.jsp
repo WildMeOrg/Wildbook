@@ -122,14 +122,21 @@ myShepherd.beginDBTransaction();
 FeatureType.initAll(myShepherd);
 
 int ct = 0;
+int numSkipped = 0;
 for (int i = 0 ; i < annotArr.length() ; i++) {
     JSONObject annJson = annotArr.optJSONObject(i);
     if (annJson == null) throw new RuntimeException("no json object at i=" + i);
     String annId = annJson.optString("uuid", null);
     Annotation ann = myShepherd.getAnnotation(annId);
     if (ann != null) {
+        numSkipped++;
         System.out.println("importEmbeddings.jsp: skipping ann id=" + annId + "; exists in db");
         continue;
+    }
+
+    if (numSkipped > 0) {
+        out.println("<p><i>number skipped: <b>" + numSkipped + "</b></i></p>");
+        numSkipped = 0; // so we show it only once
     }
 
     String annImageId = annJson.optString("image_uuid", null);
@@ -149,6 +156,7 @@ for (int i = 0 ; i < annotArr.length() ; i++) {
     ann.setAcmId(annId);
     ann.setViewpoint(annViewpoint);
     ann.setTheta(annTheta);
+    ann.setMatchAgainst(true);
 
     Embedding embV2 = findEmbedding(embeddingV2Arr, annId);
     embV2.setMethodVersion("v2");
