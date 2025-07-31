@@ -21,7 +21,7 @@ private MediaAsset getMediaAsset(String id, Shepherd myShepherd) throws IOExcept
     //ma.setSkipAutoIndexing(true);
     ma.addLabel("_original");
     ma.copyIn(imageSourceFile);
-    //ma.updateMetadata();
+    ma.updateMinimalMetadata();
 /*
     try {
         ma.copyIn(file);
@@ -171,12 +171,17 @@ for (int i = 0 ; i < annotArr.length() ; i++) {
         if (indiv == null) {
             indiv = new MarkedIndividual();
             indiv.setId(annName);
+            indiv.setTaxonomyString(annTx);
+            indiv.setName("indiv-" + annName);
         }
     }
 
     Encounter enc = new Encounter(false);
     enc.addAnnotation(ann);
-    if (indiv != null) enc.setIndividual(indiv);
+    if (indiv != null) {
+        enc.setIndividual(indiv);
+        indiv.addEncounterNoCommit(enc);
+    }
     enc.setTaxonomyFromString(annTx);
 
     myShepherd.getPM().makePersistent(ma);
