@@ -16,27 +16,29 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-export default function EncounterCalendar({
-  filteredData = [],
-}) {
+export default function EncounterCalendar({ filteredData = [] }) {
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
 
   useEffect(() => {
-    const data = [
-      { id: "testencounter1", created: "2025-07-01T10:00:00Z" },
-      { id: "testencounter2", created: "2025-07-01T12:00:00Z" },
-      { id: "testencounter3", created: "2025-07-05T14:00:00Z" },
-      { id: "testencounter4", created: "2025-07-28T14:00:00Z" },
-    ];
-    const parsed = data.map((item) => ({
-      title: `/encounter/jsp?id=${item.id}`,
-      start: new Date(item.created),
-      end: new Date(item.created),
-      id: item.id,
-    }));
+    if (!filteredData || filteredData.length === 0) {
+      setEvents([]);
+      return;
+    }
+
+    const parsed = filteredData.map((item) => {
+      const dateStrLocal = item.date.replace(/Z$/, "");
+      const d = new Date(dateStrLocal);
+      return {
+        title: item.id,
+        start: d,
+        end: d,
+        id: item.id,
+        url: `/encounters/encounter.jsp?number=${item.id}`,
+      };
+    });
     setEvents(parsed);
-  }, []);
+  }, [filteredData]);
 
   return (
     <div
@@ -56,12 +58,12 @@ export default function EncounterCalendar({
         startAccessor="start"
         endAccessor="end"
         style={{ height: 600 }}
-        popup
+        // popup
         toolbar={true}
         components={{
           event: ({ event }) => (
             <a
-              href={`/encounter/jsp?id=${event.id}`}
+              href={event.url}
               target="_blank"
               rel="noreferrer"
               style={{
