@@ -7,8 +7,9 @@ import "../css/dataTable.css";
 import { FormattedMessage } from "react-intl";
 import ThemeColorContext from "../ThemeColorProvider";
 import { useIntl } from "react-intl";
-import Calendar from "../pages/SearchPages/searchResultTabs/Calendar";
+import Calendar from "../pages/SearchPages/searchResultTabs/CalendarView";
 import { observer } from "mobx-react-lite";
+import ChartView from "../pages/SearchPages/searchResultTabs/ChartView";
 
 const customStyles = {
   rows: {
@@ -298,6 +299,22 @@ const MyDataTable = observer(
                 defaultMessage={"Calendar View"}
               />
             </Button>
+            <Button
+              key={"chart"}
+              variant="outline-tertiary"
+              className="me-1"
+              onClick={() => {
+                store.setActiveStep(2);
+              }}
+              style={{
+                ...(store.activeStep === 2 ? activeStyle : inactiveStyle),
+              }}
+            >
+              <FormattedMessage
+                id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
+                defaultMessage={"Chart View"}
+              />
+            </Button>
             {tabs.map((tab, index) => {
               return (
                 <Button
@@ -500,6 +517,14 @@ const MyDataTable = observer(
           }}
         >
           <Calendar filteredData={filteredData} />
+        </div>
+        <div
+          className="w-100"
+          style={{
+            display: store.activeStep === 2 ? "block" : "none",
+          }}
+        >
+          <ChartView filteredData={filteredData} />
         </div>
       </div>
     );
