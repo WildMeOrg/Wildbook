@@ -3,6 +3,7 @@ import { Calendar, Views, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./searchResultTabs.css";
+import { observer } from "mobx-react-lite";
 
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
@@ -16,17 +17,18 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-export default function EncounterCalendar({ loadingAll }) {
+const CalendarTab = observer(({ store }) => {
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
-  const filteredData = []; // This should be replaced with actual data fetching logic
   useEffect(() => {
-    if (!filteredData || filteredData.length === 0) {
+    if (!store.searchResultsAll || store.searchResultsAll.length === 0) {
       setEvents([]);
       return;
     }
 
-    const parsed = filteredData.map((item) => {
+    console.log("searchResultsAll", JSON.stringify(store.searchResultsAll));
+
+    const parsed = store?.searchResultsAll?.map((item) => {
       const dateStrLocal = item?.date?.replace(/Z$/, "");
       const d = new Date(dateStrLocal);
       return {
@@ -38,18 +40,13 @@ export default function EncounterCalendar({ loadingAll }) {
       };
     });
     setEvents(parsed);
-  }, [filteredData]);
+  }, [store.searchResultsAll]);
 
-  if (loadingAll) {
+  if (store.loadingAll) {
     return (
-      <div
-        className="spinner-border spinner-border-sm ms-1"
-        role="status"
-      >
-        <span className="visually-hidden">
-          Loading...
-        </span>
-      </div>
+      <h3 style={{ color: "white" }} >
+        Loading...
+      </h3>
     );
   }
 
@@ -93,4 +90,6 @@ export default function EncounterCalendar({ loadingAll }) {
       />
     </div>
   );
-}
+})
+
+export default CalendarTab;

@@ -24,7 +24,6 @@ const MyDataTable = observer(
   ({
     store,
     refetchAll,
-    loadingAll,
     title = "",
     columnNames = [],
     totalItems = 0,
@@ -258,8 +257,12 @@ const MyDataTable = observer(
     };
 
     const refetchAllData = () => {
+      store.setLoadingAll(true);
       refetchAll().then(({ data }) => {
-        store.setSearchResultsAll(data);
+        console.log("Refetched all data:", JSON.stringify(data));
+        store.setSearchResultsAll(data?.data?.hits || []);
+      }).finally(() => {
+        store.setLoadingAll(false);
       });
       store.setHasFetchedAllEncounters(true);
     };
@@ -531,7 +534,7 @@ const MyDataTable = observer(
             display: store.activeStep === 1 ? "block" : "none",
           }}
         >
-          <Calendar loadingAll={loadingAll} />
+          <Calendar store={store} />
         </div>
         <div
           className="w-100"
@@ -539,7 +542,7 @@ const MyDataTable = observer(
             display: store.activeStep === 2 ? "block" : "none",
           }}
         >
-          <ChartView loadingAll={loadingAll} />
+          <ChartView store={store} />
         </div>
       </div>
     );

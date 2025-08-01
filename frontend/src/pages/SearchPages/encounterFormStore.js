@@ -5,6 +5,7 @@ class EncounterFormStore {
   _activeStep = 0;
   _hasFetchedAllEncounters = false;
   _searchResultsAll = [];
+  _loadingAll = false;
 
   constructor() {
     this.formFilters = [];
@@ -27,12 +28,20 @@ class EncounterFormStore {
     return this._hasFetchedAllEncounters;
   }
 
+  get loadingAll() {
+    return this._loadingAll;
+  }
+
   set formFilters(newFilters) {
     this._formFilters = newFilters;
   }
 
   setHasFetchedAllEncounters(value) {
     this._hasFetchedAllEncounters = value;
+  }
+
+  setLoadingAll(value) {
+    this._loadingAll = value;
   }
 
   setActiveStep(step) {

@@ -3,16 +3,17 @@ import HorizontalBarChart from "../../../components/HorizontalBarChart";
 import VerticalBarChart from "../../../components/VerticalBarChart";
 import Piechart from "../../../components/Piechart";
 import Linechart from "../../../components/Linechart";
+import { observer } from "mobx-react-lite";
 
-export default function ChartView({ loadingAll }) {
+const ChartView = observer(({ store }) => {
 
-  const data = [];
+  const measurementsData = store.searchResultsAll.map((item) => item.measurements || []);
 
-  if (loadingAll) {
+  if (store.loadingAll) {
     return (
-      <div className="spinner-border spinner-border-sm ms-1" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </div>
+      <h3 style={{ color: "white" }} >
+        Loading...
+      </h3>
     );
   }
 
@@ -31,10 +32,12 @@ export default function ChartView({ loadingAll }) {
         <Piechart />
       </div>
       <VerticalBarChart
-        data={data}
+        data={measurementsData}
         vertical={true}
       />
       <Linechart />
     </div>
   );
-}
+})
+
+export default ChartView;

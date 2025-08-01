@@ -75,7 +75,6 @@ export default function EncounterSearch() {
   const {
     data: encounterDataAll,
     refetch: refetchAll,
-    loading: loadingAll,
   } = useFilterEncountersAll({
     queries: store.formFilters,
     params: { sort: encounterSortName, sortOrder: encounterSortOrder },
@@ -184,7 +183,6 @@ export default function EncounterSearch() {
       <DataTable
         store={store}
         refetchAll={refetchAll}
-        loadingAll={loadingAll}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",
