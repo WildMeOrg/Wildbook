@@ -3,6 +3,8 @@ import { makeAutoObservable } from "mobx";
 class EncounterFormStore {
   _formFilters;
   _activeStep = 0;
+  _hasFetchedAllEncounters = false;
+  _searchResultsAll = [];
 
   constructor() {
     this.formFilters = [];
@@ -17,8 +19,20 @@ class EncounterFormStore {
     return this._activeStep;
   }
 
+  get searchResultsAll() {
+    return this._searchResultsAll;
+  }
+
+  get hasFetchedAllEncounters() {
+    return this._hasFetchedAllEncounters;
+  }
+
   set formFilters(newFilters) {
     this._formFilters = newFilters;
+  }
+
+  setHasFetchedAllEncounters(value) {
+    this._hasFetchedAllEncounters = value;
   }
 
   setActiveStep(step) {
@@ -45,7 +59,7 @@ class EncounterFormStore {
         filterKey: filterKey,
         path: path,
       };
-    }    
+    }
   }
 
   removeFilter(filterId) {
@@ -59,7 +73,11 @@ class EncounterFormStore {
   resetFilters() {
     this.formFilters = [];
   }
-  
+
+  setSearchResultsAll(data) {
+    this._searchResultsAll = data;
+  }
+
 }
 
 const globalEncounterFormStore = new EncounterFormStore();

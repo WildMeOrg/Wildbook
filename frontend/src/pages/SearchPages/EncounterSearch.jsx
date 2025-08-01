@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
+import useFilterEncountersAll from "../../models/encounters/useFilterEncountersAll";
 import FilterPanel from "../../components/FilterPanel";
 import useEncounterSearchSchemas from "../../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../../components/filterFields/SideBar";
@@ -14,7 +15,6 @@ import { encounterSearchColumns } from "../../constants/searchPageColumns";
 import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
 import { globalEncounterFormStore as store } from "./encounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
-
 
 export default function EncounterSearch() {
   const columns = encounterSearchColumns;
@@ -70,6 +70,15 @@ export default function EncounterSearch() {
       size: perPage,
       from: page * perPage,
     },
+  });
+
+  const {
+    data: encounterDataAll,
+    refetch: refetchAll,
+    loading: loadingAll,
+  } = useFilterEncountersAll({
+    queries: store.formFilters,
+    params: { sort: encounterSortName, sortOrder: encounterSortOrder },
   });
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
@@ -174,6 +183,8 @@ export default function EncounterSearch() {
       />
       <DataTable
         store={store}
+        refetchAll={refetchAll}
+        loadingAll={loadingAll}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",

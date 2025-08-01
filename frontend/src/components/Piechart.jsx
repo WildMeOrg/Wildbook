@@ -33,7 +33,6 @@ export default function Piechart() {
             cy="50%"
             outerRadius={100}
             innerRadius={0}       
-            // paddingAngle={2}
             labelLine={false}     
             label={({ percent }) =>
               `${(percent * 100).toFixed(0)}%`
@@ -44,13 +43,6 @@ export default function Piechart() {
               <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />
             ))}
 
-            {/* <LabelList
-            dataKey="value"
-            position="inside"
-            formatter={v => `${v}%`}
-            fill="#fff"
-            fontSize={14}
-          /> */}
           </Pie>
 
           <Tooltip

@@ -16,10 +16,10 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-export default function EncounterCalendar({ filteredData = [] }) {
+export default function EncounterCalendar({ loadingAll }) {
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
-
+  const filteredData = []; // This should be replaced with actual data fetching logic
   useEffect(() => {
     if (!filteredData || filteredData.length === 0) {
       setEvents([]);
@@ -39,6 +39,19 @@ export default function EncounterCalendar({ filteredData = [] }) {
     });
     setEvents(parsed);
   }, [filteredData]);
+
+  if (loadingAll) {
+    return (
+      <div
+        className="spinner-border spinner-border-sm ms-1"
+        role="status"
+      >
+        <span className="visually-hidden">
+          Loading...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div

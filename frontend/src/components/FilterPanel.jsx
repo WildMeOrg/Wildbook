@@ -147,6 +147,8 @@ export default function FilterPanel({
                   refetch().then(({ data }) => {
                     console.log("Refetched data:", data);
                   });
+                  store.setHasFetchedAllEncounters(false);
+                  store.setSearchResultsAll([]);
                   setSearchParams(new URLSearchParams());
                   sessionStorage.setItem(
                     "formData",

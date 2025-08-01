@@ -1,5 +1,5 @@
 import { get, partition } from "lodash-es";
-import useFetch from "../../hooks/useFetch";
+import useFetchManual from "../../hooks/useFetchManual";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
 function buildQuery(queries) {
@@ -38,7 +38,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
   const compositeQuery = { query: { bool: boolQuery } };
   const { sortOrder, sort, size, from } = params;
 
-  return useFetch({
+  return useFetchManual({
     method: "post",
     queryKey: getEncounterFilterQueryKey(queries, size, from, sort, sortOrder),
     url: "/search/encounter",

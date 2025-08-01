@@ -23,6 +23,8 @@ const customStyles = {
 const MyDataTable = observer(
   ({
     store,
+    refetchAll,
+    loadingAll,
     title = "",
     columnNames = [],
     totalItems = 0,
@@ -37,8 +39,8 @@ const MyDataTable = observer(
     tabs = [],
     isLoading = false,
     extraStyles = [],
-    onSelectedRowsChange = () => {},
-    onRowClicked = () => {},
+    onSelectedRowsChange = () => { },
+    onRowClicked = () => { },
   }) => {
     const [data, setData] = useState([]);
     const [filterText, setFilterText] = useState("");
@@ -255,6 +257,13 @@ const MyDataTable = observer(
       color: "white",
     };
 
+    const refetchAllData = () => {
+      refetchAll().then(({ data }) => {
+        store.setSearchResultsAll(data);
+      });
+      store.setHasFetchedAllEncounters(true);
+    };
+
     return (
       <div
         className="container"
@@ -289,6 +298,9 @@ const MyDataTable = observer(
               className="me-1"
               onClick={() => {
                 store.setActiveStep(1);
+                if (!store.hasFetchedAllEncounters) {
+                  refetchAllData();
+                }
               }}
               style={{
                 ...(store.activeStep === 1 ? activeStyle : inactiveStyle),
@@ -305,6 +317,9 @@ const MyDataTable = observer(
               className="me-1"
               onClick={() => {
                 store.setActiveStep(2);
+                if (!store.hasFetchedAllEncounters) {
+                  refetchAllData();
+                }
               }}
               style={{
                 ...(store.activeStep === 2 ? activeStyle : inactiveStyle),
@@ -516,7 +531,7 @@ const MyDataTable = observer(
             display: store.activeStep === 1 ? "block" : "none",
           }}
         >
-          <Calendar filteredData={filteredData} />
+          <Calendar loadingAll={loadingAll} />
         </div>
         <div
           className="w-100"
@@ -524,7 +539,7 @@ const MyDataTable = observer(
             display: store.activeStep === 2 ? "block" : "none",
           }}
         >
-          <ChartView filteredData={filteredData} />
+          <ChartView loadingAll={loadingAll} />
         </div>
       </div>
     );
