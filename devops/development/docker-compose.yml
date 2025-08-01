@@ -90,7 +90,7 @@ services:
       #- discovery.seed_hosts=opensearch2
       - cluster.initial_master_nodes=opensearch
       - bootstrap.memory_lock=true
-      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
+      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD}
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
 

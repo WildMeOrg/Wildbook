@@ -86,7 +86,6 @@
 				/appadmin/resendBulkImportID.jsp = authc, roles[researcher]
                 /appadmin/** = authc, roles[admin]
                 #/MassSetInformOthers = authc, roles[admin]
-                /MassExposeGBIF = authc, roles[admin]
                 /MassSetLocationCodeFromLocationString = authc, roles[admin]
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
@@ -203,7 +202,7 @@
 				/appadmin/batch* = authc, roles[admin]
 				/EncounterSetSubmitterID = authc, roles[researcher]
 
-				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
+
 		        /GenePopExport = authc, roles[researcher]
 				/individualSearchResultsExport.jsp = authc, roles[researcher]
 				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
@@ -361,7 +360,7 @@
 				/MediaAssetAttach= authc, roles[researcher]
 				/EncounterResetDate = authc, roles[researcher]
 				/IndividualSearchExportCapture = authc, roles[researcher]
-				/EncounterSetTapirLinkExposure = authc, roles[researcher]
+	
 				/EncounterSetLocation = authc, roles[researcher]
 				/EncounterSetLocationID = authc, roles[researcher]
 				/CRCExportReport = authc, roles[researcher]
@@ -1245,10 +1244,7 @@
   </servlet>
 
 
-  <servlet>
-    <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterSetTapirLinkExposure</servlet-class>
-  </servlet>
+
 
   <servlet>
     <servlet-name>EncounterSetLocation</servlet-name>
@@ -1674,10 +1670,6 @@
     <servlet-class>org.ecocean.servlet.GridHeartbeatReceiver</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>MassExposeGBIF</servlet-name>
-    <servlet-class>org.ecocean.servlet.MassExposeGBIF</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>IAGateway</servlet-name>
@@ -2595,10 +2587,6 @@
 
 
 
-  <servlet-mapping>
-    <servlet-name>MassExposeGBIF</servlet-name>
-    <url-pattern>/MassExposeGBIF</url-pattern>
-  </servlet-mapping>
 
   <!--
   <servlet-mapping>
@@ -2606,10 +2594,7 @@
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
   -->
-  <servlet-mapping>
-    <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
-    <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
-  </servlet-mapping>
+
 
 
 
