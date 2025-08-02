@@ -223,8 +223,6 @@ public class Encounter extends Base implements java.io.Serializable {
     private String gpsLongitude = "", gpsLatitude = "";
     private String gpsEndLongitude = "", gpsEndLatitude = "";
 
-    // Indicates whether this record can be exposed via TapirLink
-    private boolean okExposeViaTapirLink = false;
 
     public String spotImageFileName = "";
 
@@ -1792,14 +1790,6 @@ public class Encounter extends Base implements java.io.Serializable {
             return Double.toString(decimalLongitude);
         }
         return null;
-    }
-
-    public boolean getOKExposeViaTapirLink() {
-        return okExposeViaTapirLink;
-    }
-
-    public void setOKExposeViaTapirLink(boolean ok) {
-        okExposeViaTapirLink = ok;
     }
 
     public void setAlternateID(String newID) {

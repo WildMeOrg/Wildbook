@@ -1,4 +1,4 @@
-package testing_opensearch;
+package org.ecocean;
 
 /*
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
@@ -29,11 +29,11 @@ import org.opensearch.client.opensearch.indices.GetIndexRequest;
 
 import org.ecocean.OpenSearch;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.Assert.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+
+
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;

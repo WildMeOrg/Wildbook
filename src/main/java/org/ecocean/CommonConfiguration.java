@@ -478,9 +478,6 @@ public class CommonConfiguration {
         return getProperty("urlToMastheadGraphic", context);
     }
 
-    public static String getTapirLinkURL(String context) {
-        return getProperty("tapirLinkURL", context);
-    }
 
     public static String getIPTURL(String context) {
         return getProperty("iptURL", context);
@@ -724,21 +721,7 @@ public class CommonConfiguration {
         return showEXIF;
     }
 
-    /**
-     * This configuration option defines whether a pre-installed TapirLink provider will be used in conjunction with this database to expose
-     * mark-recapture data to biodiversity frameworks, such as the GBIF.
-     *
-     * @return true if a TapirLink provider is used with the framework. False otherwise.
-     */
-    public static boolean useTapirLinkURL(String context) {
-        initialize(context);
-        boolean useTapirLink = true;
-        if ((getProperty("tapirLinkURL", context) != null) && (getProperty("tapirLinkURL",
-            context).equals("false"))) {
-            useTapirLink = false;
-        }
-        return useTapirLink;
-    }
+
 
     public static boolean showMeasurements(String context) {
         return showCategory("showMeasurements", context);
