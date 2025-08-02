@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `devops/development/run-wildbook.sh`: comprehensive script to run Wildbook in Docker development environment with automatic port conflict resolution.
 
 ### Fixed
+- Corrected JUnit 5 test execution by upgrading the `maven-surefire-plugin` and fixing misconfigured test files.
 - Fixed Docker Compose environment variable syntax in `docker-compose.yml` for better compatibility.
 - Added missing `ES_THRESHOLD` environment variable to `.env` template.
 - Improved error handling and logging in deployment scripts.
