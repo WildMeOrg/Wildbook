@@ -24,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
 
       # Install dependencies for backend
       - name: Install backend dependencies
@@ -48,13 +48,13 @@ jobs:
 
       # Run frontend tests with coverage
       - name: Run frontend tests
-        run: npm run test --coverage
+        run: CI=true npm run jest
         working-directory: frontend
         continue-on-error: true
 
       # Upload test results and coverage
       - name: Upload coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: |
@@ -72,7 +72,7 @@ jobs:
 
       # Upload to Codecov
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # Add Codecov token as a secret in GitHub
           files: |

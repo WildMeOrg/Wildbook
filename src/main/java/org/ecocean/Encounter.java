@@ -30,7 +30,6 @@ import java.util.Vector;
 import javax.jdo.Query;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,6 +43,8 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.AcousticTag;
@@ -1353,7 +1354,7 @@ public class Encounter extends Base implements java.io.Serializable {
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma != null) {
             ma.addLabel(label);
-            if (parentMA != null) ma.setParentId(parentMA.getId());
+            if (parentMA != null) ma.setParentId(parentMA.getIdInt());
             return ma;
         }
         System.out.println("creating new MediaAsset for key=" + key);
@@ -1365,7 +1366,7 @@ public class Encounter extends Base implements java.io.Serializable {
             return null;
         }
         if (parentMA != null) {
-            ma.setParentId(parentMA.getId());
+            ma.setParentId(parentMA.getIdInt());
             ma.updateMinimalMetadata(); // for children (ostensibly derived?) MediaAssets, really only need minimal metadata or so i claim
         } else {
             try {
@@ -1417,7 +1418,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
             }
         }
-        ma.setParentId(parent.getId());
+        ma.setParentId(parent.getIdInt());
         return ma;
     }
 
@@ -2897,7 +2898,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (int i = 0; i < annotations.size(); i++) {
             MediaAsset ma = annotations.get(i).getMediaAsset();
             if (ma == null) continue;
-            if (ma.getId() == id) return i;
+            if (ma.getIdInt() == id) return i;
         }
         return -1;
     }
@@ -2928,7 +2929,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void removeMediaAsset(MediaAsset ma) {
-        removeAnnotation(indexOfMediaAsset(ma.getId()));
+        removeAnnotation(indexOfMediaAsset(ma.getIdInt()));
     }
 
     // this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
@@ -3370,7 +3371,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return true;
     }
 
-///////// these are bunk now - dont use Features  TODO: fix these - perhaps by crawlng thru ma.getAnnotations() ?
+///////// this is bunk now: see fix for findAllByMediaAsset() if you need this
     public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
         String queryString =
             "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
@@ -3391,8 +3392,8 @@ public class Encounter extends Base implements java.io.Serializable {
 
         try {
             String queryString =
-                "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
-                + ma.getId();
+                "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(feat) && mediaAsset.features.contains(feat) && mediaAsset.id =="
+                + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset mediaAsset; org.ecocean.Annotation ann; org.ecocean.media.Feature feat";
             Query query = myShepherd.getPM().newQuery(queryString);
             Collection results = (Collection)query.execute();
             returnEncs = new ArrayList<Encounter>(results);
@@ -3963,8 +3964,8 @@ public class Encounter extends Base implements java.io.Serializable {
         try {
             q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
             List results = (List)q.execute();
-            Iterator it = results.iterator();
             Util.mark("perm: start encs, size=" + results.size(), startT);
+            Iterator it = results.iterator();
             while (it.hasNext()) {
                 Object[] row = (Object[])it.next();
                 String id = (String)row[0];
@@ -3980,6 +3981,13 @@ public class Encounter extends Base implements java.io.Serializable {
                 encCount++;
                 if (encCount % 1000 == 0) Util.mark("enc[" + encCount + "]", startT);
                 // viewUsers.put(uid);  // we no longer do this as we use submitterUserId from regular indexing in query filter
+                
+                //this first part asks the question: who is the owner of the Encounter collaborating with?
+                //Let those people see the encounter
+                //This ignores the one-way visibility of admins and orgAdmins
+                //the question is backwards: it asks: who can the owning user see?
+                //better to ask: who can see this Encounter by collaborating with its owner?
+                /*
                 if (collab.containsKey(uid)) {
                     for (String colUsername : collab.get(uid)) {
                         String colId = usernameToId.get(colUsername);
@@ -3991,7 +3999,27 @@ public class Encounter extends Base implements java.io.Serializable {
                         }
                         viewUsers.put(colId);
                     }
+                }*/
+                
+                //better: ask the question, who else can see this encounter via collaboration?
+                //get the entry set for all collaborations
+                Set<String> uids=collab.keySet();
+                //iterate over the key set
+                Iterator<String> uidsIter=uids.iterator();
+                while(uidsIter.hasNext()) {
+                	
+                	//get the uid for the user of this entry
+                	String localUid = uidsIter.next();
+                	//get the list of usernames in this entry
+                	Set<String> localCollabs = collab.get(localUid);
+                	//evaluate if the submitterId (a username) of this encounter is in this list
+                	if(localCollabs.contains(submitterId)) {
+                		//if the submitterId is in the list, put the uid of the user in viewUsers for OpenSearch
+                		viewUsers.put(localUid);
+                	}
                 }
+
+                
                 if (viewUsers.length() > 0) {
                     updateData.put("viewUsers", viewUsers);
                     try {
@@ -4002,12 +4030,12 @@ public class Encounter extends Base implements java.io.Serializable {
                     }
                 }
             }
-            q.closeAll();
+            
         } catch (Exception ex) {
             System.out.println("opensearchIndexPermissions(): failed during encounter loop: " + ex);
             ex.printStackTrace();
         } finally {
-            if (q != null) q.closeAll();
+        	if(q!=null)q.closeAll();
         }
         Util.mark("perm: done encs", startT);
         myShepherd.rollbackAndClose();
@@ -4029,7 +4057,9 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.beginDBTransaction();
         try {
             opensearchDocumentSerializer(jgen, myShepherd);
-        } catch (Exception e) {} finally {
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
             myShepherd.rollbackAndClose();
         }
     }
@@ -4059,7 +4089,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
         jgen.writeBooleanField("publiclyReadable", this.isPubliclyReadable());
-
+        jgen.writeStringField("distinguishingScar", this.getDistinguishingScar());
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
@@ -4067,7 +4097,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeArrayFieldStart("mediaAssets");
         for (MediaAsset ma : mas) {
             jgen.writeStartObject();
-            jgen.writeNumberField("id", ma.getId());
+            jgen.writeNumberField("id", ma.getIdInt());
             jgen.writeStringField("uuid", ma.getUUID());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
@@ -4210,6 +4240,7 @@ public class Encounter extends Base implements java.io.Serializable {
         } else {
             jgen.writeStringField("individualId", indiv.getId());
             jgen.writeStringField("individualSex", indiv.getSex());
+            jgen.writeStringField("individualTaxonomy", indiv.getTaxonomyString());
             jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
             jgen.writeStringField("individualDisplayName", indiv.getDisplayName());
             jgen.writeArrayFieldStart("individualNames");
@@ -4224,6 +4255,11 @@ public class Encounter extends Base implements java.io.Serializable {
                 String birthTime = Util.getISO8601Date(new DateTime(
                     indiv.getTimeOfBirth()).toString());
                 jgen.writeStringField("individualTimeOfBirth", birthTime);
+            }
+            if (indiv.getTimeOfDeath() > 0) {
+                String deathTime = Util.getISO8601Date(new DateTime(
+                    indiv.getTimeOfDeath()).toString());
+                jgen.writeStringField("individualTimeOfDeath", deathTime);
             }
             Encounter[] encs = indiv.getDateSortedEncounters(true);
             if ((encs != null) && (encs.length > 0)) {
@@ -4275,6 +4311,37 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNullField("occurrenceId");
         } else {
             jgen.writeStringField("occurrenceId", occ.getId());
+            jgen.writeStringField("occurrenceGroupBehavior", occ.getGroupBehavior());
+            jgen.writeStringField("occurrenceGroupComposition", occ.getGroupComposition());
+            jgen.writeStringField("occurrenceComments", occ.getComments());
+            if (occ.getVisibilityIndex() != null)
+                jgen.writeNumberField("occurrenceVisibilityIndex", occ.getVisibilityIndex());
+            if (occ.getIndividualCount() != null)
+                jgen.writeNumberField("occurrenceIndividualCount", occ.getIndividualCount());
+            if (occ.getMinGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceMinGroupSizeEstimate",
+                    occ.getMinGroupSizeEstimate());
+            if (occ.getMaxGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceMaxGroupSizeEstimate",
+                    occ.getMaxGroupSizeEstimate());
+            if (occ.getBestGroupSizeEstimate() != null)
+                jgen.writeNumberField("occurrenceBestGroupSizeEstimate",
+                    occ.getBestGroupSizeEstimate());
+            if (occ.getBearing() != null)
+                jgen.writeNumberField("occurrenceBearing", occ.getBearing());
+            if (occ.getDistance() != null)
+                jgen.writeNumberField("occurrenceDistance", occ.getDistance());
+            Double odlat = occ.getDecimalLatitude();
+            Double odlon = occ.getDecimalLongitude();
+            if ((odlat == null) || !Util.isValidDecimalLatitude(odlat) || (odlon == null) ||
+                !Util.isValidDecimalLongitude(odlon)) {
+                jgen.writeNullField("occurrenceLocationGeoPoint");
+            } else {
+                jgen.writeObjectFieldStart("occurrenceLocationGeoPoint");
+                jgen.writeNumberField("lat", odlat);
+                jgen.writeNumberField("lon", odlon);
+                jgen.writeEndObject();
+            }
         }
         jgen.writeArrayFieldStart("organizations");
         User owner = this.getSubmitterUser(myShepherd);
@@ -4311,6 +4378,78 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    public void opensearchIndexDeep()
+    throws IOException {
+        this.opensearchIndex();
+
+        final String encId = this.getId();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd bgShepherd = new Shepherd("context0");
+                bgShepherd.setAction("Encounter.opensearchIndexDeep_" + encId);
+                bgShepherd.beginDBTransaction();
+                try {
+                    Encounter enc = bgShepherd.getEncounter(encId);
+                    if ((enc == null) || (!enc.hasMarkedIndividual() && !enc.hasAnnotations())) {
+                        // bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
+                    }
+                    MarkedIndividual indiv = enc.getIndividual();
+                    if (indiv != null) {
+                        System.out.println("opensearchIndexDeep() background indexing indiv " +
+                            indiv.getId() + " via enc " + encId);
+                        try {
+                            indiv.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                indiv.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                    Occurrence occ = enc.getOccurrence(bgShepherd);
+                    if (occ != null) {
+                        System.out.println("opensearchIndexDeep() background indexing occ " +
+                            occ.getId() + " via enc " + encId);
+                        try {
+                            occ.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                occ.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                    if (enc.hasAnnotations()) {
+                        for (Annotation ann : enc.getAnnotations()) {
+                            System.out.println("opensearchIndexDeep() background indexing annot " +
+                                ann.getId() + " via enc " + encId);
+                            try {
+                                ann.opensearchIndex();
+                            } catch (Exception ex) {
+                                System.out.println("opensearchIndexDeep() background indexing " +
+                                    ann.getId() + " FAILED: " + ex.toString());
+                                ex.printStackTrace();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("opensearchIndexDeep() backgrounding Encounter " + encId +
+                        " hit an exception.");
+                    e.printStackTrace();
+                } finally {
+                    bgShepherd.rollbackAndClose();
+                }
+                System.out.println("opensearchIndexDeep() backgrounding Encounter " + encId +
+                    " finished.");
+                executor.shutdown();
+            }
+        };
+        System.out.println("opensearchIndexDeep() begin backgrounding for " + this);
+        executor.execute(rn);
+        System.out.println("opensearchIndexDeep() [foreground] finished for Encounter " + encId);
+    }
+
     // given a doc from opensearch, can user access it?
     public static boolean opensearchAccess(org.json.JSONObject doc, User user,
         Shepherd myShepherd) {
@@ -4326,15 +4465,17 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
-    @Override public long getVersion() {
-        return Util.getVersionFromModified(modified);
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getEncounter(id);
     }
 
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        String sql =
-            "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    @Override public String getAllVersionsSql() {
+        return
+                "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    }
 
-        return getAllVersions(myShepherd, sql);
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
     }
 
     public org.json.JSONObject opensearchMapping() {
@@ -4344,7 +4485,11 @@ public class Encounter extends Base implements java.io.Serializable {
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("verbatimEventDate", new org.json.JSONObject("{\"type\": \"text\"}"));
+        map.put("individualTimeOfBirth", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("individualTimeOfDeath", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        map.put("occurrenceLocationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
 
         // if we want to sort on it (and it is texty), it needs to be keyword
         // (ints, dates, etc are all sortable)
@@ -4353,6 +4498,8 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("occurrenceId", keywordType);
         map.put("state", keywordType);
         map.put("submitterUserId", keywordType);
+        map.put("individualTaxonomy", keywordType);
+        map.put("individualId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
@@ -4380,66 +4527,6 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
         return map;
-    }
-
-    public static int[] opensearchSyncIndex(Shepherd myShepherd)
-    throws IOException {
-        return opensearchSyncIndex(myShepherd, 0);
-    }
-
-    public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
-    throws IOException {
-        int[] rtn = new int[2];
-
-        if (OpenSearch.indexingActive()) {
-            System.out.println("Encounter.opensearchSyncIndex() skipped due to indexingActive()");
-            rtn[0] = -1;
-            rtn[1] = -1;
-            return rtn;
-        }
-        OpenSearch.setActiveIndexingBackground();
-        String indexName = "encounter";
-        OpenSearch os = new OpenSearch();
-        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
-            os.getAllVersions(indexName));
-        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
-        List<String> needIndexing = changes.get(0);
-        List<String> needRemoval = changes.get(1);
-        rtn[0] = needIndexing.size();
-        rtn[1] = needRemoval.size();
-        System.out.println("Encounter.opensearchSyncIndex(): stopAfter=" + stopAfter +
-            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
-        int ct = 0;
-        for (String id : needIndexing) {
-            Encounter enc = myShepherd.getEncounter(id);
-            try {
-                if (enc != null) os.index(indexName, enc);
-            } catch (Exception ex) {
-                System.out.println("Encounter.opensearchSyncIndex(): index failed " + enc + " => " +
-                    ex.toString());
-                ex.printStackTrace();
-            }
-            if (ct % 500 == 0)
-                System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
-                    rtn[0]);
-            ct++;
-            if ((stopAfter > 0) && (ct > stopAfter)) {
-                System.out.println("Encounter.opensearchSyncIndex() breaking due to stopAfter");
-                break;
-            }
-        }
-        System.out.println("Encounter.opensearchSyncIndex() finished needIndexing");
-        ct = 0;
-        for (String id : needRemoval) {
-            os.delete(indexName, id);
-            if (ct % 500 == 0)
-                System.out.println("Encounter.opensearchSyncIndex needRemoval: " + ct + "/" +
-                    rtn[1]);
-            ct++;
-        }
-        System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
-        OpenSearch.unsetActiveIndexingBackground();
-        return rtn;
     }
 
     public static Base createFromApi(org.json.JSONObject payload, List<File> files,
@@ -4707,5 +4794,4 @@ public class Encounter extends Base implements java.io.Serializable {
             myShepherd.rollbackDBTransaction();
         }
     }
-
 }

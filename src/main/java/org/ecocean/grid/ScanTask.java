@@ -2,7 +2,7 @@ package org.ecocean.grid;
 
 // unenhanced comment
 
-import org.ecocean.Shepherd;
+import org.ecocean.shepherd.core.Shepherd;
 
 import java.io.Serializable;
 import java.util.ArrayList;

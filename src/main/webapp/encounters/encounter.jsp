@@ -28,6 +28,8 @@
          org.apache.commons.codec.net.URLCodec,
          org.ecocean.metrics.Prometheus,
          java.util.*,org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -82,7 +84,7 @@
         Properties props = new Properties();
         //set up the file input stream
         //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
-        props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
+        props= ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
 		System.out.println("Trying to find locationID code");
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {
@@ -499,25 +501,7 @@ var encounterNumber = '<%=num%>';
 
 
 
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
 
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
-</head>
 
 <style type="text/css">
 
@@ -574,7 +558,21 @@ var encounterNumber = '<%=num%>';
       			Encounter enc = myShepherd.getEncounter(num);
             	//System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
             	String encNum = enc.getCatalogNumber();
-				boolean visible = enc.canUserAccess(request);
+            	
+            	
+				//let's see if this user has ownership and can make edits
+      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
+            	boolean encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(enc);
+            	boolean encounterCanBeEditedByAnyLoggedInUser = encounterIsPublic && request.getUserPrincipal() != null;
+            	pageContext.setAttribute("editable", (isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context));
+      			boolean loggedIn = false;
+      			try{
+      				if(request.getUserPrincipal()!=null){loggedIn=true;}
+      			}
+      			catch(NullPointerException nullLogged){}
+            	
+            	
+				boolean visible = isOwner || encounterIsPublic || encounterCanBeEditedByAnyLoggedInUser || enc.canUserAccess(request);
 				System.out.println("visible: "+visible);
 				//if (!visible) visible = checkAccessKey(request, enc);
 				if (!visible) {
@@ -631,16 +629,7 @@ var encounterNumber = '<%=num%>';
 					System.out.println("============ out ==============");
 				}
 
-				//let's see if this user has ownership and can make edits
-      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
-            boolean encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(enc);
-            boolean encounterCanBeEditedByAnyLoggedInUser = encounterIsPublic && request.getUserPrincipal() != null;
-            pageContext.setAttribute("editable", (isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context));
-      			boolean loggedIn = false;
-      			try{
-      				if(request.getUserPrincipal()!=null){loggedIn=true;}
-      			}
-      			catch(NullPointerException nullLogged){}
+
 
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
@@ -764,22 +753,6 @@ $(function() {
 <div style="display: inline-block; padding: 1px 5px; background-color: #AAA; color: #833; border-radius: 4px;">This encounter is marked as a <b>duplicate of <a href="encounter.jsp?number=<%=dup%>"><%=dup%></a></b>.</div><% } %>
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
- 					<table style="border-spacing: 10px;margin-left:-10px;border-collapse: inherit;">
- 						<tr valign="middle">
-  							<td>
-    							<!-- Google PLUS-ONE button -->
-								<g:plusone size="medium" annotation="none"></g:plusone>
-							</td>
-							<td>
-								<!--  Twitter TWEET THIS button -->
-								<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-								<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-							</td>
-							<td>
-								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
-						</tr>
-					</table>
           </div>
         </div>
 <!-- end main header row -->
@@ -1284,7 +1257,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
 
-	   			marker.setVisible(true);
+	   			marker.setVisible(false);
 
 	   		<%
 	   		}

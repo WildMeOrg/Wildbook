@@ -1,21 +1,25 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
 import java.text.SimpleDateFormat;
+
+import org.ecocean.datacollection.Instant;
+import org.ecocean.media.AssetStoreType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,11 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.ecocean.datacollection.Instant;
 
 import org.joda.time.DateTime;
-
-import org.ecocean.media.AssetStoreType;
 
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence is meant to represent several
@@ -385,6 +386,24 @@ public class Occurrence extends Base implements java.io.Serializable {
         return names;
     }
 
+    public Set<MarkedIndividual> getMarkedIndividuals() {
+        return getMarkedIndividuals(null);
+    }
+
+    public Set<MarkedIndividual> getMarkedIndividuals(MarkedIndividual skip) {
+        Set<MarkedIndividual> indivs = new HashSet<MarkedIndividual>();
+
+        if (this.encounters == null) return indivs;
+        String skipId = null;
+        if (skip != null) skipId = skip.getId();
+        for (Encounter enc : this.encounters) {
+            MarkedIndividual indiv = enc.getIndividual();
+            if ((indiv == null) || indiv.getId().equals(skipId)) continue;
+            indivs.add(indiv);
+        }
+        return indivs;
+    }
+
     // TODO: validate and remove if ##DEPRECATED #509 - Base class setId() method
     public void setID(String id) {
         occurrenceID = id;
@@ -599,11 +618,11 @@ public class Occurrence extends Base implements java.io.Serializable {
     public List<String> getAllSpeciesDeep() {
         List<String> result = new ArrayList<String>();
 
-        for (Taxonomy tax : taxonomies) {
+        if (taxonomies != null) for (Taxonomy tax : taxonomies) {
             String sciName = tax.getScientificName();
             if (sciName != null && !result.contains(sciName)) result.add(sciName);
         }
-        for (Encounter enc : encounters) {
+        if (encounters != null) for (Encounter enc : encounters) {
             String sciName = enc.getTaxonomyString();
             if (sciName != null && !result.contains(sciName)) result.add(sciName);
         }
@@ -1353,6 +1372,93 @@ public class Occurrence extends Base implements java.io.Serializable {
         return json;
     }
 
+    public org.json.JSONObject opensearchMapping() {
+        org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("encounters", new org.json.JSONObject("{\"type\": \"nested\"}"));
+
+        // if we want to sort on it (and it is texty), it needs to be keyword
+        // (ints, dates, etc are all sortable)
+        // note: "id" is done in Base.java
+        map.put("taxonomies", keywordType);
+
+        // all case-insensitive keyword-ish types
+        map.put("groupBehavior", keywordNormalType);
+        map.put("groupComposition", keywordNormalType);
+        map.put("initialCue", keywordNormalType);
+        map.put("humanActivityNearby", keywordNormalType);
+        map.put("fieldStudySite", keywordNormalType);
+        map.put("fieldSurveyCode", keywordNormalType);
+        map.put("sightingPlatform", keywordNormalType);
+        map.put("seaState", keywordNormalType);
+        return map;
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen, Shepherd myShepherd)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen, myShepherd);
+
+        Double dlat = this.getDecimalLatitude();
+        Double dlon = this.getDecimalLongitude();
+        if ((dlat == null) || !Util.isValidDecimalLatitude(dlat) || (dlon == null) ||
+            !Util.isValidDecimalLongitude(dlon)) {
+            jgen.writeNullField("locationGeoPoint");
+        } else {
+            jgen.writeObjectFieldStart("locationGeoPoint");
+            jgen.writeNumberField("lat", dlat);
+            jgen.writeNumberField("lon", dlon);
+            jgen.writeEndObject();
+        }
+        if (this.getDateTimeLong() != null) {
+            DateTime dt = new DateTime(this.getDateTimeLong());
+            jgen.writeStringField("date", dt.toString());
+        }
+        if (this.dateTimeCreated != null)
+            jgen.writeStringField("dateSubmitted", Util.getISO8601Date(this.dateTimeCreated));
+        jgen.writeArrayFieldStart("taxonomies");
+        for (String tx : this.getAllSpeciesDeep()) {
+            jgen.writeString(tx);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeStringField("groupBehavior", this.getGroupBehavior());
+        jgen.writeStringField("groupComposition", this.getGroupComposition());
+        jgen.writeStringField("initialCue", this.getInitialCue());
+        jgen.writeStringField("humanActivityNearby", this.getHumanActivityNearby());
+        jgen.writeStringField("fieldStudySite", this.getFieldStudySite());
+        jgen.writeStringField("fieldSurveyCode", this.getFieldSurveyCode());
+        jgen.writeStringField("sightingPlatform", this.getSightingPlatform());
+        jgen.writeStringField("seaState", this.getSeaState());
+        jgen.writeStringField("observer", this.getObserver());
+        jgen.writeStringField("comments", this.getComments());
+
+        jgen.writeArrayFieldStart("encounters");
+        if (this.encounters != null)
+            for (Encounter enc : this.getEncounters()) {
+                jgen.writeStartObject();
+                jgen.writeStringField("id", enc.getId());
+                jgen.writeStringField("submitterId", enc.getSubmitterID());
+                User submitter = enc.getSubmitterUser(myShepherd);
+                if (submitter != null) {
+                    jgen.writeStringField("submitterUserId", submitter.getId());
+                    if (submitter.getOrganizations() != null) {
+                        jgen.writeArrayFieldStart("submitterOrganizations");
+                        for (Organization org : submitter.getOrganizations()) {
+                            jgen.writeString(org.getId());
+                        }
+                        jgen.writeEndArray();
+                    }
+                }
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+    }
+
     // note this does not seem to cover *removing an encounter* as it seems the
     // encounters cling to the occurrence after it was removed. so for now this
     // has to be handled at the point of removal, e.g. OccurrenceRemoveEncounter servlet
@@ -1408,11 +1514,12 @@ public class Occurrence extends Base implements java.io.Serializable {
         return Util.getVersionFromModified(modified);
     }
 
-    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
-        // note: some Occurrences do not have ids.  :(
-        String sql =
-            "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+    @Override public Base getById(Shepherd myShepherd, String id) {
+        return myShepherd.getOccurrence(id);
+    }
 
-        return getAllVersions(myShepherd, sql);
+    @Override public String getAllVersionsSql() {
+        return
+                "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"OCCURRENCE\" ORDER BY version";
     }
 }

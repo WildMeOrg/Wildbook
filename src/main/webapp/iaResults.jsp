@@ -16,7 +16,8 @@ org.ecocean.ia.WbiaQueueUtil,
 org.ecocean.metrics.Prometheus,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
-
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdPMF" %>
 
 
 <%
@@ -26,7 +27,7 @@ String langCode = ServletUtilities.getLanguageCode(request);
 
 
 
-org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
 String scoreType = request.getParameter("scoreType");
 // we'll show individualScores unless the url specifies scoreType = image (aka annotation)
@@ -1372,12 +1373,12 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 var displayName = ft.displayName;
                 if (encId) {
                 	imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
-                	console.log("another encId = "+encId);
+                	//console.log("another encId = "+encId);
                 }
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
                 //add social unit name
                 if(socialUnitName){
-                	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                	imgInfo +='<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>';
                 }
             }
             imgInfo += '</li>';

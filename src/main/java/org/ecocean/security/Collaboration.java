@@ -6,6 +6,8 @@ import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.social.*;
 
 import javax.jdo.Query;
@@ -357,8 +359,14 @@ public class Collaboration implements java.io.Serializable {
         try {
             ArrayList<ScheduledIndividualMerge> potentialForNotification =
                 myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
-            ArrayList<ScheduledIndividualMerge> incomplete =
-                myShepherd.getAllIncompleteScheduledIndividualMerges();
+            
+            System.out.println("Collaboration:potentialForNotification: "+potentialForNotification.size());
+            
+            ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
+            
+            System.out.println("Collaboration:incomplete: "+incomplete.size());
+            
+            
             potentialForNotification.addAll(incomplete);
             for (ScheduledIndividualMerge merge : potentialForNotification) {
                 if (!merge.ignoredByUser(username) && merge.isUserParticipent(username)) {

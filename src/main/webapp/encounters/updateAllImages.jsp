@@ -4,7 +4,7 @@
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, java.io.*" %>
-
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 
 <html>

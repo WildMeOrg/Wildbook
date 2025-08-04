@@ -2,11 +2,37 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 java.util.Iterator,
-org.ecocean.*
+org.ecocean.media.*,
+org.ecocean.*,
+org.ecocean.shepherd.core.*
 "%>
 
-
 <%
+String indexName = request.getParameter("indexName");
+if (!OpenSearch.isValidIndexName(indexName)) {
+    out.println("must have ?indexName=foo");
+    return;
+}
+
+Class cls = null;
+Base obj = null;
+if (indexName.equals("encounter")) {
+    cls = Encounter.class;
+    obj = new Encounter();
+} else if (indexName.equals("annotation")) {
+    cls = Annotation.class;
+    obj = new Annotation();
+} else if (indexName.equals("media_asset")) {
+    cls = MediaAsset.class;
+    obj = new MediaAsset();
+} else if (indexName.equals("individual")) {
+    cls = MarkedIndividual.class;
+    obj = new MarkedIndividual();
+} else if (indexName.equals("occurrence")) {
+    cls = Occurrence.class;
+    obj = new Occurrence();
+}
+
 System.out.println("opensearchSync.jsp begun...");
 long timer = System.currentTimeMillis();
 int numProcessed = -1;
@@ -37,11 +63,11 @@ if (sstr != null) {
 Shepherd myShepherd = new Shepherd(request);
 OpenSearch os = new OpenSearch();
 
-if (resetIndex && os.existsIndex("encounter")) {
-    os.deleteIndex("encounter");
+if (resetIndex && os.existsIndex(indexName)) {
+    os.deleteIndex(indexName);
     OpenSearch.unsetActiveIndexingForeground();
     OpenSearch.unsetActiveIndexingBackground();
-    out.println("<p>deleted encounter index</p>");
+    out.println("<p>deleted " + indexName + " index</p>");
 }
 
 if (OpenSearch.indexingActive()) {
@@ -52,35 +78,47 @@ if (OpenSearch.indexingActive()) {
 
 OpenSearch.setActiveIndexingForeground();
 
-if (!os.existsIndex("encounter")) {
-        Encounter enc = new Encounter();
-        enc.opensearchCreateIndex();
-        out.println("<b>created encounter index</b>");
+if (!os.existsIndex(indexName)) {
+        obj.opensearchCreateIndex();
+        out.println("<b>created " + indexName + " index</b>");
 }
 
 
 if (endNum > 0) {
     if (startNum > 0) {
-        out.println("<p>indexing " + startNum + "-" + endNum + " Encounters</p>");
+        out.println("<p>indexing " + startNum + "-" + endNum + " " + indexName + "s</p>");
     } else {
-        out.println("<p>indexing through " + endNum + " Encounters</p>");
+        out.println("<p>indexing through " + endNum + " " + indexName + "s</p>");
     }
     int ct = 0;
-    Iterator itr = myShepherd.getAllEncounters("catalogNumber");
+    Iterator itr = null;
+    if (indexName.equals("encounter")) {
+        itr = myShepherd.getAllEncounters("catalogNumber");
+    } else if (indexName.equals("annotation")) {
+        itr = myShepherd.getAnnotationsFilter("matchAgainst == true && acmId != null ORDER BY id");
+    } else if (indexName.equals("media_asset")) {
+        String range = ((startNum > 0) ? startNum : 1) + "," + (endNum + 1);
+        itr = myShepherd.getMediaAssetsFilter("parentId == null ORDER BY id " + range);
+    } else if (indexName.equals("individual")) {
+        itr = myShepherd.getAllMarkedIndividuals();
+    } else if (indexName.equals("occurrence")) {
+        itr = myShepherd.getAllOccurrencesNoQuery();
+    }
+    System.out.println("opensearchSync.jsp: query all complete");
     while (itr.hasNext()) {
-            Encounter enc = (Encounter)itr.next();
-            if (!Util.stringExists(enc.getId())) continue;
+            Base iObj = (Base)itr.next();
+            if (!Util.stringExists(iObj.getId())) continue;
             ct++;
             if (startNum > 0) {
                 if (ct < startNum) continue;
                 if (ct == startNum) System.out.println("opensearchSync.jsp: starting at " + startNum);
             }
-            //System.out.println(enc.getId() + ": " + enc.getVersion());
+            //System.out.println(iObj.getId() + ": " + iObj.getVersion());
             try {
-                enc.opensearchIndex();
+                iObj.opensearchIndex();
                 numProcessed++;
             } catch (Exception ex) {
-                System.out.println("opensearchSync.jsp: exception failure on " + enc);
+                System.out.println("opensearchSync.jsp: exception failure on " + iObj);
                 ex.printStackTrace();
             }
             if (ct % 100 == 0) System.out.println("opensearchSync.jsp: count " + ct);
@@ -88,7 +126,8 @@ if (endNum > 0) {
     }
 
 } else {
-    int[] res = Encounter.opensearchSyncIndex(myShepherd);
+    OpenSearch.unsetActiveIndexingForeground(); // is set by opensearchSyncIndex
+    int[] res = Base.opensearchSyncIndex(myShepherd, cls, 0);
     out.println("<p>re-indexed: <b>" + res[0] + "</b></p>");
     out.println("<p>removed: <b>" + res[1] + "</b></p>");
 }

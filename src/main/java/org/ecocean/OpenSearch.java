@@ -3,44 +3,36 @@ package org.ecocean;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.SystemValue;
+
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.shepherd.core.ShepherdProperties;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.HttpHost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.Request;
 import org.opensearch.client.Response;
 import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
-import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
 
-import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.core.IndexRequest;
-import org.opensearch.client.opensearch.core.IndexResponse;
-import org.opensearch.client.opensearch.core.SearchRequest;
-import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
-import org.opensearch.client.opensearch.indices.DeleteIndexResponse;
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBuilder;
 import org.opensearch.client.transport.OpenSearchTransport;
 
 import java.lang.Runnable;
@@ -61,7 +53,9 @@ public class OpenSearch {
         "10m");
     public static String SEARCH_PIT_TIME = (String)getConfigurationValue("searchPitTime", "10m");
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
-    public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
+    public static String[] VALID_INDICES = {
+        "encounter", "individual", "occurrence", "annotation", "media_asset"
+    };
     public static int BACKGROUND_DELAY_MINUTES = (Integer)getConfigurationValue(
         "backgroundDelayMinutes", 20);
     public static int BACKGROUND_SLICE_SIZE = (Integer)getConfigurationValue("backgroundSliceSize",
@@ -151,12 +145,22 @@ public class OpenSearch {
                     try {
                         myShepherd.beginDBTransaction();
                         System.out.println("OpenSearch background indexing running...");
-                        Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Encounter.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, Occurrence.class,
+                        BACKGROUND_SLICE_SIZE);
+                        Base.opensearchSyncIndex(myShepherd, MediaAsset.class,
+                        BACKGROUND_SLICE_SIZE);
                         System.out.println("OpenSearch background indexing finished.");
-                        myShepherd.rollbackAndClose();
                     } catch (Exception ex) {
                         ex.printStackTrace();
+                    } finally {
                         myShepherd.rollbackAndClose();
+                        unsetActiveIndexingBackground();
                     }
                 }
             }, 2, // initial delay
@@ -390,6 +394,25 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
 
+    // just return the actual hit results
+    // note: each object in the array has _id but actual doc is in _source!!
+    public static JSONArray getHits(JSONObject queryResults) {
+        JSONArray failed = new JSONArray();
+
+        if (queryResults == null) return failed;
+        JSONObject outerHits = queryResults.optJSONObject("hits");
+        if (outerHits == null) {
+            System.out.println("could not find (outer) hits");
+            return failed;
+        }
+        JSONArray hits = outerHits.optJSONArray("hits");
+        if (hits == null) {
+            System.out.println("could not find hits");
+            return failed;
+        }
+        return hits;
+    }
+
     // https://opensearch.org/docs/2.3/opensearch/search/paginate/
     public JSONObject queryRawScroll(String indexName, final JSONObject query, int pageSize)
     throws IOException {
@@ -501,7 +524,9 @@ public class OpenSearch {
     // updateData is { field0: value0, field1: value1, ... }
     public void indexUpdate(final String indexName, String id, JSONObject updateData)
     throws IOException {
+        if (!existsIndex(indexName)) throw new IOException("index does not exist: " + indexName);
         if ((id == null) || (updateData == null)) throw new IOException("missing id or updateData");
+        updateData.put("indexTimestamp", System.currentTimeMillis());
         JSONObject doc = new JSONObject();
         doc.put("doc", updateData);
         Request updateRequest = new Request("POST", indexName + "/_update/" + id);
@@ -663,7 +688,9 @@ public class OpenSearch {
     throws IOException {
         if ((user == null) || (sourceDoc == null)) throw new IOException("null user or sourceDoc");
         JSONObject clean = new JSONObject();
-        // this is just punting future classes to later development (should never happen)
+        // these classes we let anyone see as-is
+        if ("annotation".equals(indexName) || "individual".equals(indexName)) return sourceDoc;
+        // this is just punting future classes to later development
         if (!"encounter".equals(indexName)) return clean;
         boolean hasAccess = Encounter.opensearchAccess(sourceDoc, user, myShepherd);
         if (hasAccess) {

@@ -3,7 +3,7 @@
 # it seems like we dont need a full/absolute url here
 #export PUBLIC_URL=https://example.com/react/
 export PUBLIC_URL=/react/
-export SITE_NAME="SeadragonSearch"
+export SITE_NAME="Wildbook"
 
 npm install react-app-rewired
 
@@ -12,6 +12,8 @@ cd frontend
 # Use `npm ci` for consistent and faster installs in production, as it installs exact versions 
 # from `package-lock.json` without modifying it, ensuring stability across environments.
 npm ci
+
+npm run jest
 
 npm run build
 

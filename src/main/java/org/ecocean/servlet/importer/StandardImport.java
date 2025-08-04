@@ -21,6 +21,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.importutils.*;
 import org.ecocean.media.*;
 import org.ecocean.servlet.*;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.SatelliteTag;
@@ -988,11 +989,27 @@ public class StandardImport extends HttpServlet {
         for (int bg = 0; bg < numMeasureVals; bg++) {
             // by index
             String colName = "Encounter.measurement" + bg;
-            Double val = getDouble(row, colName, colIndexMap, verbose, missingColumns,
-                unusedColumns, feedback);
+            String samplingProtocolName = colName+".samplingProtocol";
+            String samplingProtocol="";
+
+            Double val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+            
+            //if Encounter.measurementX is not found, then look for Encounter.measurementName from commonConfiguration.properties
+            if(val==null) {
+            	colName = "Encounter."+measureVals.get(bg);
+            	samplingProtocolName = colName+".samplingProtocol";
+            	val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+            }
+            
+            //get sampling protocol name
+            String samplingProtocolVal = getString(row, samplingProtocolName, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+            if(samplingProtocolVal!=null) {
+            	samplingProtocol=samplingProtocolVal;
+            }
+            
             if (val != null) {
                 Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
-                    measureUnits.get(bg), "");
+                    measureUnits.get(bg), samplingProtocol);
                 if (committing) enc.setMeasurement(valMeas, myShepherd);
                 if (unusedColumns != null) unusedColumns.remove(colName);
             }
@@ -1002,7 +1019,7 @@ public class StandardImport extends HttpServlet {
                 feedback);
             if (val != null) {
                 Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
-                    measureUnits.get(bg), "");
+                    measureUnits.get(bg), samplingProtocol);
                 if (committing) enc.setMeasurement(valMeas, myShepherd);
                 if (unusedColumns != null) unusedColumns.remove(colName);
             }
@@ -2640,29 +2657,16 @@ public class StandardImport extends HttpServlet {
                 ArrayList<MediaAsset> assets = new ArrayList<MediaAsset>();
                 for (Encounter enc : allEncs) {
                     count++;
-
+                    itask.setStatus("Registering image assets for " + count + "/" + numEncs +
+                            " encounters.");
                     ArrayList<MediaAsset> theseAssets = enc.getMedia();
                     for (MediaAsset assy : theseAssets) {
                         if (!assy.hasAcmId()) {
-                            assets.add(assy);
+                        	IAGateway.addToAcmIdQueue(context, assy.getId());
                         }
                     }
-                    if (((assets.size() >= batchSize) && assets.size() > 0) || count == numEncs) {
-                        System.out.println("About to send " + assets.size() + " assets to IA! On " +
-                            count + "/" + numEncs);
-                        itask.setStatus("Registering image assets for " + count + "/" + numEncs +
-                            " encounters.");
-                        myShepherd.updateDBTransaction();
-                        IBEISIA.sendMediaAssetsNew(assets, context);
-                        assets = new ArrayList<MediaAsset>();
-                    }
                 }
-                if (assets.size() > 0) {
-                    itask.setStatus("Registering image assets for " + count + "/" + numEncs +
-                        " encounters.");
-                    myShepherd.updateDBTransaction();
-                    IBEISIA.sendMediaAssetsNew(assets, context);
-                }
+
             }
         } catch (Exception e) {
             myShepherd.rollbackDBTransaction();

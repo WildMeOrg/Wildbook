@@ -8,6 +8,9 @@ java.net.URL,
 org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat, org.apache.commons.lang3.StringUtils" %>
+<%@ page import="org.ecocean.shepherd.core.Shepherd" %>
+<%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+
 
 <%!
   public static ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesFast(MarkedIndividual thisIndiv, Shepherd myShepherd, HttpServletRequest req, int numResults, String imageSize) throws JSONException {
@@ -196,6 +199,21 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
       		myEncs = hiddenData.securityScrubbedResults(myEncs);
 
 			int numEncs=myEncs.size();
+
+      // Calculate the number of unique sighting IDs (occurrence IDs)
+      Set<String> uniqueOccurrenceIDs = new HashSet<>();  // Set to store unique occurrence IDs
+      for (Object obj : myEncs) {
+          Encounter enc = (Encounter) obj;
+          Occurrence occurrence = enc.getOccurrence(myShepherd);
+          if (occurrence != null) { 
+              uniqueOccurrenceIDs.add(occurrence.getId());  // Add to the set if not already present
+          }
+      }
+      // Set the sighting count (unique occurrence IDs count)
+      int sightingCount = uniqueOccurrenceIDs.size();
+      
+      // Pass sighting count to JSP for display
+      request.setAttribute("sightingCount", sightingCount);
 
 	      	// This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
 	      	// without this hack
@@ -1266,13 +1284,17 @@ if (sharky.getNames() != null) {
     <br/>
     <%
       List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(sharky);
-      String unitName = "";
-      String role = "";
-      String startDate = "";
-      String endDate = "";
+
       if (isOwner&&CommonConfiguration.isCatalogEditable(context)) {
         if (units!=null) {
             for (SocialUnit unit : units) {
+            	
+                String unitName = "";
+                String role = "";
+                String startDate = "";
+                String endDate = "";	
+            	
+            
                 Membership membership = unit.getMembershipForMarkedIndividual(sharky);
                 if (unit.getSocialUnitName()!=null) {unitName=unit.getSocialUnitName();}
                 if (membership.getRole()!=null) {role=membership.getRole();}
@@ -1298,7 +1320,7 @@ if (sharky.getNames() != null) {
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
-              <p class="socialGroupMembershipStart"><%=startDate%></p>
+              <p id="<%=membership.getStartDateLong() %>" class="socialGroupMembershipStart"><%=startDate%></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
@@ -1329,6 +1351,12 @@ if (sharky.getNames() != null) {
               <select id="socialGroupNameSelect" name="socialGroupNameSelect" onchange="socialGroupNameSelectChanged(this)">
                 <option value="new" selected>CREATE NEW</option>
                 <%
+                
+                String unitName = "";
+                String role = "";
+                String startDate = "";
+                String endDate = "";
+                
                 System.out.println("How many social unit??? "+units.size());
                 if (units!=null&&units.size()>0) {
                   for (SocialUnit formUnit : units) {
@@ -1382,6 +1410,11 @@ if (sharky.getNames() != null) {
       }
       %>
 
+      <%-- Calculate the Sighting count--%>
+            <div>
+            <p><strong><%= props.getProperty("sightingCountLabel") %>: </strong> <%= request.getAttribute("sightingCount")!= null ? request.getAttribute("sightingCount") : 0 %></p>
+            </div>
+            
             <%-- Start Encounter Table --%>
       <p><strong><%=numencounters %> &amp; <%=props.getProperty("tissueSamples") %></strong></p>
       <div class="encountersBioSamples">
@@ -2331,8 +2364,6 @@ if (sharky.getNames() != null) {
       </div>
       <%-- End of Relationship Graphs --%>
       <br>
-
-
       <%-- Map --%>
       <br>
       <div>

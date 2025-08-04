@@ -19,10 +19,10 @@
 <!DOCTYPE html>
 <html>
 <%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.ShepherdProperties,
+     import="org.ecocean.shepherd.core.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
-             org.ecocean.Shepherd,
+             org.ecocean.shepherd.core.Shepherd,
              org.ecocean.Util,
              org.ecocean.Organization,
              org.ecocean.User,
@@ -114,7 +114,7 @@ if(request.getUserPrincipal()!=null){
 %>
 
 
-<html>
+
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -224,7 +224,149 @@ if(request.getUserPrincipal()!=null){
               $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
             }
           );
-        });
+
+          const searchInput = document.getElementById("quick-search-input");
+          const resultsDropdown = document.getElementById("quick-search-results");
+          const searchButton = document.getElementById("quick-search-button");
+
+          const searchIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">' +
+            '<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>' +
+          '</svg>';
+
+          if(searchButton)searchButton.addEventListener("click", function() {
+            searchInput.value = "";
+            resultsDropdown.innerHTML = "";
+            resultsDropdown.style.display = "none";
+            searchButton.innerHTML = searchIcon;
+            searchInput.focus();
+          });
+
+          const loadingText = "<%= props.getProperty("loading") %>" || "Loading...";
+          const noMatchResults = "<%= props.getProperty("noMatchResults") %>" || "No matching results found.";
+          const errorOccurred = "<%= props.getProperty("errorOccurred") %>" || "An error occurred while fetching search results.";
+          const searchResultDisplay = "<%= props.getProperty("searchResultDisplay") %>" || "Your search results will appear here.";
+          const SystemId = "<%= props.getProperty("systemId") %>" || "System ID";
+          const Name = "<%= props.getProperty("Name") %>" || "Name";
+
+          let debounceTimer;
+
+          function debounce(func, delay) {
+            return function() {
+              clearTimeout(debounceTimer);
+              debounceTimer = setTimeout(func, delay);
+            };
+          }
+
+          function performSearch() {
+            const query = searchInput.value.trim();
+
+            if (query === "") {
+                resultsDropdown.innerHTML = "";
+                resultsDropdown.style.display = "none";
+                searchButton.innerHTML = searchIcon;
+                return;
+            }
+            searchButton.innerHTML = "&times;";
+            resultsDropdown.style.display = "block";
+            resultsDropdown.innerHTML = "<div class='loading'>" + loadingText + "</div>";
+
+            $.ajax({
+                url: "/api/v3/search/individual?size=10",
+                type: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    query: {
+                        bool: {
+                            should: [
+                                {
+                                    wildcard: {
+                                        names: {
+                                            value: '*' + query + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                },
+                                {
+                                    wildcard: {
+                                        id: {
+                                            value: '*' + query + '*',
+                                            case_insensitive: true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }),
+                beforeSend: function () {
+                    resultsDropdown.innerHTML = "<div class='loading'>"+ loadingText +"</div>";
+                },
+                success: function (response) {
+                    const searchResults = response.hits || [];
+
+                    if (searchResults.length > 0) {
+                        resultsDropdown.innerHTML = searchResults.map(data => {
+                            const taxonomy = data.taxonomy ? data.taxonomy : " ";
+                            let context = Name;
+                            if (data.id.toLowerCase().includes(query.toLowerCase())) {
+                                context = SystemId;
+                            } else {
+                                context = Name;
+                            }
+
+                            let value = data.id;
+                            if(context === SystemId){
+                              value = data.id;  
+                            }else {
+                              value = data.names.find(name => name.toLowerCase().includes(query.toLowerCase())) || data.names.join(" | ");
+                            }
+
+                            return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
+                              "    <div class=\"quick-search-result\" style=\"height: 60px; font-size: 14px\">" +
+                              "        <div class=\"quick-search-result-content\">" +
+                              "            <div class=\"quick-search-result-value\" style=\"width: 100%; red; overflow: hidden\">" + value + "</div>" +
+                              "            <div class=\"quick-search-result-species\">" + taxonomy + "</div>" +
+                              "        </div>" +                             
+                              "    </div>" +
+                              "</a>";
+
+
+                        }).join("");
+                    } else {
+                        resultsDropdown.innerHTML = noMatchResults;
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error: ", error);
+                    resultsDropdown.innerHTML = errorOccurred;
+                },
+                complete: function () {
+                    document.querySelector(".loading")?.remove();
+                }
+            });
+        }
+
+          if(searchInput){
+	          // Event listener for input changes
+	          searchInput.addEventListener("focus", function() {
+	            resultsDropdown.style.display = "block";
+	            resultsDropdown.innerHTML = searchResultDisplay;
+	          });
+	          searchInput.addEventListener("input", debounce(performSearch, 300));
+	         
+	          // Event listener to close dropdown when clicking outside
+	          document.addEventListener("click", function(event) {
+		          const searchInput = document.getElementById("quick-search-input");
+		          const resultsDropdown = document.getElementById("quick-search-results");
+		
+		          if (!searchInput.contains(event.target) && !resultsDropdown.contains(event.target)) {
+			            resultsDropdown.style.display = "none";
+			            searchInput.value = "";
+		          }
+	          });
+        }
+       });
       </script>
 
       <%
@@ -357,6 +499,8 @@ if(request.getUserPrincipal()!=null){
 
 
       </script>
+
+      
       <%
         }
       %>
@@ -409,10 +553,11 @@ if(request.getUserPrincipal()!=null){
 
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
-          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #190066; ">
+          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
-              <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
-                <a class="nav-brand" target="_blank" href="https://seadragonsearch.org">        
+              <div class="header" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center">
+                <div style="height: 100%; display: flex; flex-direction: row; align-items: center; ">
+                <a class="nav-brand" target="_blank" href="<%=urlLoc %>">        
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
                     <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
@@ -435,9 +580,8 @@ if(request.getUserPrincipal()!=null){
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
-							<!--
+
                             <li><a href="<%=urlLoc %>/react/report" ><%=props.getProperty("report")%></a></li>
-                            -->
 <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))) { %>
                             <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("reportClassic")%></a></li>
 <% } %>
@@ -452,24 +596,15 @@ if(request.getUserPrincipal()!=null){
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%><span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	<%
-							if(request.getUserPrincipal()!=null && !loggingOut){
-							%>
-                          	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
-                            	
+
+                          <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li><a href="<%=urlLoc %>/react/citation"><%=props.getProperty("citing")%></a></li>
                             <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                            <%
-							}
-                            %>
-                             <li><a target="_blank" href="https://www.wildme.org/wildbook.html"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                            <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
                           <%-- <li class="divider"></li> --%>
                         </ul>
                       </li>
-                        <%
-						if(request.getUserPrincipal()!=null && !loggingOut){
-						%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("myData")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -515,12 +650,6 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
                         </ul>
                       </li>
-                      <%
-						}
-
-						if(request.getUserPrincipal()!=null && !loggingOut){
-						%>
-                
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
@@ -545,50 +674,26 @@ if(request.getUserPrincipal()!=null){
                             }
                             %>
                         </ul>
+                      </li>
 
-                      </li>
-                      <%
-						}
-						if(request.getUserPrincipal()==null){
-                      %>
-                       <li class="dropdown">
-                        <a class="dropdown-toggle" href="//wildbook.seadragonsearch.org/contactus.jsp" aria-expanded="false">Contact Us </a>
-                      </li>
-						<%
-						} 
-						%>
+                     <% if(user != null && !loggingOut){ %>
+                      <div class="quick-search-wrapper">
+                        <div class="search-box">
+                          <input 
+                            type="text" 
+                            id="quick-search-input" 
+                            placeholder="<%=props.getProperty("searchIndividuals")%>"                             
+                            autocomplete="off" 
+                          />
+                          <span id="quick-search-button" style="display: flex; align-items: center; margin-right: 5px; cursor: pointer"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                          </svg></span>
+                        </div>
+                        <div id="quick-search-results" style="width: 330px" ></div>
+                      </div>
+                      <% } %>
                       
                       <div class="search-and-secondary-wrapper d-flex" >
-                      
-                      <!-- search bar -->
-
-                    
-                    <style type="text/css">
-                      #header-search-button, #header-search-button:hover {
-                        color: inherit;
-                        background-color: inherit;
-                        padding: 0px;
-                        margin: 0px;
-                      }
-                    </style>
-                    <script>
-                      $('#header-search-button').click(function() {
-                        document.forms['header-search'].submit();
-                      })
-                    </script>
-
-
-                    <div class="search-wrapper">
-                      <label class="search-field-header" style="display: inline;">
-                            <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
-                              <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" style="color:#fff;"/>
-                              <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                              <span class="el el-lg el-search"></span>
-                          </form>
-                      </label>
-                    </div>
-                    
-                      
                         <!-- notifications -->
                         <div id="notifications">
                           <% if(user != null && !loggingOut)
@@ -695,7 +800,7 @@ if(request.getUserPrincipal()!=null){
                   <!-- end profile wrapper -->              
                 </div> 
                                 
-
+</div>
               </div>              
 
                 <script>
@@ -739,98 +844,6 @@ if(request.getUserPrincipal()!=null){
               
           </script>
         </header>
-        
-        
-        <script>
-        $('#search-site').autocomplete({
-            // sortResults: true, // they're already sorted
-            appendTo: $('#navbar-top'),
-            response: function(ev, ui) {
-                if (ui.content.length < 1) {
-                    $('#search-help').show();
-                } else {
-                    $('#search-help').hide();
-                }
-            },
-            select: function(ev, ui) {
-                if (ui.item.type == "individual") {
-                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
-                }
-                else if (ui.item.type == "encounter") {
-                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
-                }
-                else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
-                }
-                /*
-                //restore user later
-                else if (ui.item.type == "user") {
-                    window.location.replace("/user/" + ui.item.value);
-                }
-                else {
-                    alertplus.alert("Unknown result [" + ui.item.value + "] of type [" + ui.item.type + "]");
-                }
-                */
-                return false;
-            },
-            //source: app.config.wildbook.proxyUrl + "/search"
-            source: function( request, response ) {
-                $.ajax({
-                    url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
-                    dataType: "json",
-                    data: {
-                        term: request.term
-                    },
-                    success: function( data ) {
-                        var res = $.map(data, function(item) {
-                            var label="";
-                            var nickname="";
-                            if ((item.type == "individual")&&(item.species!=null)) {
-//                                label = item.species + ": ";
-                            }
-                            else if (item.type == "user") {
-                                label = "User: ";
-                            } else {
-                                label = "";
-                            }
-
-                            if(item.nickname != null){
-                            	nickname = " ("+item.nickname+")";
-                            }
-
-                            return {label: label + item.label+nickname,
-                                    value: item.value,
-                                    type: item.type,
-                                    nickname: nickname};
-                            });
-
-                        response(res);
-                    }
-                });
-            }
-        });
-        //prevent enter key on tyeahead
-        $('#search-site').keydown(function (e) {
-                	    if (e.keyCode == 13) {
-                	        e.preventDefault();
-                	        return false;
-                	    }
-        });
-
-
-        // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
-        let urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has("organization")) {
-          let orgParam = urlParams.get("organization");
-          $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',
-              secure  : false,
-              expires : 1
-          });
-        }
-
-
-        </script>
 
         <!-- ****/header**** -->
 

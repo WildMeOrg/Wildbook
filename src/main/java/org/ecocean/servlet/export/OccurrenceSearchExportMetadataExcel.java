@@ -13,6 +13,7 @@ import jxl.write.*;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import org.apache.commons.text.StringEscapeUtils;
+import org.ecocean.shepherd.core.Shepherd;
 
 public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
     private static final int BYTES_DOWNLOAD = 1024;

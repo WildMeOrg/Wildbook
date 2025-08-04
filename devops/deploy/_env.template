@@ -1,24 +1,41 @@
-# these settings are fine for a development server, but should be changed to different choices for production environments
 
+## placeholder dev pwd and user settings should be changed for production environments
+
+WILDBOOK_BASE_DIR=/data
+
+# the public url for this wildbook.
+# this value should likely be set to the same in several places in ./dockerfiles/nginx/nignx.conf
+WILDBOOK_DOMAIN=example.wildbook.org
+WILDBOOK_URL=https://${WILDBOOK_DOMAIN}
+
+## for smtp (postfix) usage:
+MAIL_HOSTNAME=example.org
+MAIL_ALLOWED_SENDER_DOMAINS=example.org
+MAIL_PORT=1587
+MAIL_RELAYHOST=smtp.examplehost.com:587
+MAIL_RELAYHOST_USERNAME=dev
+MAIL_RELAYHOST_PASSWORD=development
+
+## for opensearch
+# password should be strong:
+#     it should be at least 8 characters and must contain at least one uppercase letter,
+#     one lowercase letter, one digit, and one special character.
+OPENSEARCH_INITIAL_ADMIN_PASSWORD=development
+
+## for db:
 POSTGRES_PASSWORD=development
 
-PGADMIN_DEFAULT_EMAIL=dev@example.com
+PGADMIN_DEFAULT_EMAIL=dev@example.org
 PGADMIN_DEFAULT_PASSWORD=development
-
-# FIXME this will become irrelevant when war file is included in docker image
-# this should be a directory on your host system where you want to put your files related to development
-#   you *must* create:
-#   - $WILDBOOK_BASE_DIR/webapps/   (this is where you will deploy your war file to, under a subdir wildbook/)
-#   - $WILDBOOK_BASE_DIR/logs/      (logs will go here)
-WILDBOOK_BASE_DIR=/tmp
 
 WILDBOOK_DB_NAME=wildbook
 WILDBOOK_DB_USER=wildbook
 WILDBOOK_DB_PASSWORD=development
+
 #: i.e. jdbc:postgresql://db:5432/${WILDBOOK_DB_NAME}
 WILDBOOK_DB_CONNECTION_URL=jdbc:postgresql://db:5432/wildbook
 
-
+# for wbia:
 WBIA_DB_NAME=wbia
 WBIA_DB_USER=wbia
 WBIA_DB_PASSWORD=development
@@ -27,7 +44,3 @@ WBIA_DB_PASSWORD=development
 WBIA_DB_URI=postgresql://wbia:development@db/wbia
 #: Location within the container
 WBIA_DB_DIR=/data/db
-
-
-#SERVER_URL=http://wildbook.example.com
-SERVER_URL=http://localhost:81
