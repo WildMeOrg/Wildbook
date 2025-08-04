@@ -381,7 +381,7 @@ public class IAJsonProperties extends JsonProperties {
             return false;
         } else if (underTaxy.get(key) instanceof String &&
             ((String)underTaxy.get(key)).startsWith("@")) {
-            return false;
+            return ((String)underTaxy.get(key)).endsWith("." + key);
         } else if (underTaxy.get(key) instanceof JSONObject) {
             JSONObject obj = (JSONObject)underTaxy.get(key);
             if (!obj.isNull("_save_as")) {

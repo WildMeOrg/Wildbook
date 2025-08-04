@@ -242,13 +242,8 @@ try{
 	        jobj.put("taskID", taskID);
 	        jobj.put("indivCount", indivCount);
 	        jobj.put("status", status);
-		    if(task.getParameters()!=null){
-				JSONObject passedParams = task.getParameters().optJSONObject("_passedParameters");
-				String filenameParam = "originalFilename";
-				if(!passedParams.has(filenameParam)) filenameParam = "filename";
-				jobj.put("filename", passedParams.optString(filenameParam, ""));
-		    }	
-	        
+                String name = task.getSourceName();
+                jobj.put("filename", (name == null) ? "-" : name);
 	        jsonobj.put(jobj);
 
     	}
@@ -415,7 +410,7 @@ try{
 			function rowClick(el) {
 				console.log(el);
 				var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
-				var w = window.open('import.jsp?taskId=' + el.getAttribute('data-id'), target);
+				var w = window.open('react/bulk-import-task?id=' + el.getAttribute('data-id'), target);
 				w.focus();
 				return false;
 			}

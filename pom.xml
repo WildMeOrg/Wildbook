@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>10.7.1</version>
+  <version>10.7.2</version>
   <packaging>war</packaging>
 
   <properties>
@@ -56,6 +56,13 @@
       <artifactId>amqp-client</artifactId>
       <version>5.21.0</version>
     </dependency>
+
+	<dependency>
+	    <groupId>org.apache.tika</groupId>
+	    <artifactId>tika-core</artifactId>
+            <!-- java 8 support is EOL, 2.9.4 is last one -->
+	    <version>2.9.4</version>
+	</dependency>
 
     <!--	 Dependencies related to prometheus.	 -->
     <!-- The client -->
