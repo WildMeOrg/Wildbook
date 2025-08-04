@@ -2428,6 +2428,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             + String.join(" || names.id == ", nameIds) + ")" + taxonomyStringFilter;
         System.out.println("findByNames jdoql: " + jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
+        if (query == null) return rtn; // this is really only to save us while testing snh irl
         Collection c = (Collection)(query.execute());
         for (Object m : c) {
             MarkedIndividual ind = (MarkedIndividual)m;

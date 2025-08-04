@@ -9,8 +9,10 @@ import javax.servlet.ServletException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -86,7 +88,17 @@ public class BaseObject extends ApiBase {
         JSONObject rtn = new JSONObject();
         Encounter encounterForIA = null;
         rtn.put("success", false);
-        List<File> files = findFiles(request, payload);
+
+        Set<String> filenames = new HashSet<String>();
+        JSONArray fnArr = payload.optJSONArray("assetFilenames");
+        if (fnArr != null) {
+            for (int i = 0; i < fnArr.length(); i++) {
+                String fn = fnArr.optString(i, null);
+                if (fn != null) filenames.add(fn);
+            }
+        }
+        List<File> files = UploadedFiles.findFiles(request, payload.optString("submissionId", null),
+            filenames);
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("api.BaseObject.processPost");
@@ -220,6 +232,7 @@ public class BaseObject extends ApiBase {
         return rtn;
     }
 
+/*
     private List<File> findFiles(HttpServletRequest request, JSONObject payload)
     throws IOException {
         List<File> files = new ArrayList<File>();
@@ -243,12 +256,12 @@ public class BaseObject extends ApiBase {
                 String fn = fnArr.optString(i, null);
                 if (fn != null) filenames.add(fn);
             }
-/*  right now we *require* explicitly listed assetFilenames, so we dont do this "add all" option
+   /  right now we *require* explicitly listed assetFilenames, so we dont do this "add all" option
         } else {
             for (File f : uploadDir.listFiles()) {
                 filenames.add(f.getName());
             }
- */
+   /
         }
         if (filenames.size() < 1) return files;
         for (String fname : filenames) {
@@ -259,7 +272,7 @@ public class BaseObject extends ApiBase {
         System.out.println("findFiles(): files=" + files);
         return files;
     }
-
+ */
     private Map<File, MediaAsset> makeMediaAssets(String encounterId, List<File> files,
         Shepherd myShepherd)
     throws ApiException {
@@ -279,14 +292,20 @@ public class BaseObject extends ApiBase {
             System.out.println("makeMediaAssets(): file=" + file + " => " + sp);
             MediaAsset ma = new MediaAsset(astore, sp);
             ma.addLabel("_original");
+            boolean valid = false;
             try {
                 ma.copyIn(file);
-                ma.validateSourceImage();
+                valid = ma.validateSourceImage();
                 ma.updateMetadata();
                 results.put(file, ma);
             } catch (IOException ioe) {
                 System.out.println("BaseObject.makeMediaAssets() failed on " + file + ": " + ioe);
                 ioe.printStackTrace();
+                results.put(file, null);
+            }
+            if (!valid) {
+                System.out.println("BaseObject.makeMediaAssets() failed on " + file +
+                    ": failed validateSourceImage()");
                 results.put(file, null);
             }
         }
