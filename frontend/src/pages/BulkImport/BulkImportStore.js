@@ -110,8 +110,7 @@ export class BulkImportStore {
         const missing = images.filter(
           (img) => !this._uploadedImages.includes(img),
         );
-
-        return `MISSING_${missing.join(", ")}`;
+        return `MISSING${missing.join(", ")}`;
       },
     },
     "Encounter.year": {

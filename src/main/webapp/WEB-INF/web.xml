@@ -309,7 +309,7 @@
 
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
-					/UserConsolidate = authc
+					
 					/appadmin/consolidateDuplicateUsers.jsp = authc, roles[admin]
 					/appadmin/consolidateDuplicateUsersChecker.jsp = authc, roles[admin]
 					/appadmin/consolidateDuplicateUsersSandbox.jsp = authc, roles[admin]
@@ -429,6 +429,9 @@
 				/ImportTaskDetection = authc, roles[admin]
 
 				/imports.jsp = authc
+
+				/api/v3/bulk-import = authc
+				/api/v3/bulk-import/** = authc
 
 				/DeleteImportTask = authc, roles[researcher]
 
@@ -1083,10 +1086,7 @@
       <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
 
-	<servlet>
-		<servlet-name>UserConsolidate</servlet-name>
-		<servlet-class>org.ecocean.servlet.UserConsolidate</servlet-class>
-</servlet>
+
 
       <servlet>
         <servlet-name>UserDelete</servlet-name>
@@ -2050,10 +2050,7 @@
           <url-pattern>/UserSelfUpdate</url-pattern>
   </servlet-mapping>
 
-	<servlet-mapping>
-		<servlet-name>UserConsolidate</servlet-name>
-		<url-pattern>/UserConsolidate</url-pattern>
-</servlet-mapping>
+
 
      <servlet-mapping>
             <servlet-name>UserDelete</servlet-name>

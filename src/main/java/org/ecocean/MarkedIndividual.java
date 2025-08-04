@@ -2661,6 +2661,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("sex", keywordType);
         map.put("taxonomy", keywordType);
         map.put("users", keywordType);
+        map.put("encounterIds", keywordType);
         map.put("cooccurrenceIndividualIds", keywordType);
 
         // all case-insensitive keyword-ish types
@@ -2761,6 +2762,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         jgen.writeEndArray();
         if (this.getNumEncounters() > 0) {
             Set<String> users = new HashSet<String>();
+            Set<String> encIds = new HashSet<String>();
             jgen.writeNumberField("numberEncounters", this.getNumEncounters());
             Set<String> occIds = new HashSet<String>();
             List<Double> dlats = new ArrayList<Double>();
@@ -2768,6 +2770,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             Map<MarkedIndividual, Integer> coMap = new HashMap<MarkedIndividual, Integer>();
             int numMAs = 0;
             for (Encounter enc : this.encounters) {
+                encIds.add(enc.getId());
                 numMAs += enc.numAnnotations();
                 users.addAll(enc.getAllSubmitterIds(myShepherd));
                 Occurrence occ = enc.getOccurrence(myShepherd);
@@ -2815,6 +2818,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             jgen.writeArrayFieldStart("users");
             for (String uid : users) {
                 jgen.writeString(uid);
+            }
+            jgen.writeEndArray();
+            jgen.writeArrayFieldStart("encounterIds");
+            for (String eid : encIds) {
+                jgen.writeString(eid);
             }
             jgen.writeEndArray();
         } else {

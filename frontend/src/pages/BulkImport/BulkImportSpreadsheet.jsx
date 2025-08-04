@@ -78,13 +78,11 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
 
         const rowKeys = Object.keys(allJsonData[0] || {});
         store.setRawColumns(rowKeys);
-        const rawMediaAssetsCols = rowKeys.filter(
+        const mediaAssetsCols = rowKeys.filter(
           (k) =>
             k.startsWith("Encounter.mediaAsset") && k.split(".").length === 2,
         );
-        const mediaAssetsCols = rawMediaAssetsCols.map((col) =>
-          col.toLowerCase(),
-        );
+
         const remaining = rowKeys
           .filter((k) => !specifiedColumns.includes(k))
           .filter((k) => !removedColumns.includes(k))
@@ -163,6 +161,7 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
                     : String(row[col] ?? "").trim();
                 return mediaAsset;
               })
+              .filter((v) => v !== "")
               .join(", ");
             if (mediaAssets) {
               normalizedRow["Encounter.mediaAsset0"] = mediaAssets;
@@ -196,27 +195,61 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
             }
 
             const formattedEncounterDate = formatDate(
-              row["Encounter.year"],
-              row["Encounter.month"],
-              row["Encounter.day"],
-              row["Encounter.hour"],
-              row["Encounter.minutes"],
+              row["Encounter.year"] || "",
+              row["Encounter.month"] || "",
+              row["Encounter.day"] || "",
+              row["Encounter.hour"] || "",
+              row["Encounter.minutes"] || "",
             );
+            const formattedSightingDate = formatDate(
+              row["Sighting.year"] || "",
+              row["Sighting.month"] || "",
+              row["Sighting.day"] || "",
+              row["Sighting.hour"] || "",
+              row["Sighting.minutes"] || "",
+            );
+
             if (
               formattedEncounterDate &&
               formattedEncounterDate !== "undefined"
             ) {
               normalizedRow["Encounter.year"] = formattedEncounterDate;
+            } else if (
+              formattedSightingDate &&
+              formattedSightingDate !== "undefined"
+            ) {
+              store.columnsDef.splice(1, 0, "Encounter.year");
+              store.rawColumns.splice(1, 0, "Encounter.year");
+              normalizedRow["Encounter.year"] = formattedSightingDate;
+              delete normalizedRow["Sighting.year"];
+              delete normalizedRow["Sighting.month"];
+              delete normalizedRow["Sighting.day"];
+              delete normalizedRow["Sighting.hour"];
+              delete normalizedRow["Sighting.minutes"];
+              store.setColumnsDef(
+                store.columnsDef.filter(
+                  (col) =>
+                    col !== "Sighting.year" &&
+                    col !== "Sighting.month" &&
+                    col !== "Sighting.day" &&
+                    col !== "Sighting.hour" &&
+                    col !== "Sighting.minutes",
+                ),
+              );
+              store.setRawColumns(
+                store.rawColumns.filter(
+                  (col) =>
+                    col !== "Sighting.year" &&
+                    col !== "Sighting.month" &&
+                    col !== "Sighting.day" &&
+                    col !== "Sighting.hour" &&
+                    col !== "Sighting.minutes",
+                ),
+              );
             }
-
-            const formattedSightingDate = formatDate(
-              row["Sighting.year"],
-              row["Sighting.month"],
-              row["Sighting.day"],
-              row["Sighting.hour"],
-              row["Sighting.minutes"],
-            );
             if (
+              formattedEncounterDate &&
+              formattedEncounterDate !== "undefined" &&
               formattedSightingDate &&
               formattedSightingDate !== "undefined"
             ) {

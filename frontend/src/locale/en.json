@@ -466,6 +466,7 @@
     "SHOWING_PAGE_INFO": "Showing page {current} of {total}",
     "SUBMISSION_ISSUE_HEADER": "There are some issues with your submission:",
     "BULK_IMPORT_ERROR_INVALID_VALUE": "The value you entered is invalid",
+    "BULK_IMPORT_ERROR_INVALID_IMAGE": "The image you uploaded is invalid", 
     "BULK_IMPORT_ERROR_REQUIRED_VALUE": "This field is required",
     "BULK_IMPORT_ERROR_INVALID_SYNONYM": "Synonym fields detected",
     "BULK_IMPORT_ERROR_INVALID_DUPLICATE": "Duplicate fields detected",

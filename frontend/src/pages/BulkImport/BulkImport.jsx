@@ -86,7 +86,8 @@ const BulkImport = observer(() => {
       )}
       <BulkImportInstructionsModal store={store} />
 
-      {unfinishedTask &&
+      {!savedSubmissionId &&
+      unfinishedTask &&
       unfinishedTask.status &&
       unfinishedTask.status !== "complete" &&
       unfinishedTask.status !== "failed" &&

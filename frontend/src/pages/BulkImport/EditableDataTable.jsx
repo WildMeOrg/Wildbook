@@ -112,11 +112,12 @@ const EditableCell = observer(
                 </div>
               );
             }
-            const missingList =
-              rawError
-                ?.split("_")[1]
-                ?.split(",")
-                .map((img) => img.trim()) || [];
+            const missingList = rawError
+              .replace(/^MISSING/, "")
+              .split(",")
+              .map((name) => name.trim())
+              .filter(Boolean);
+
             return (
               <div
                 className="invalid-feedback"
