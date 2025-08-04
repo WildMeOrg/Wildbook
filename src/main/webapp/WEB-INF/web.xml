@@ -430,6 +430,9 @@
 
 				/imports.jsp = authc
 
+				/api/v3/bulk-import = authc
+				/api/v3/bulk-import/** = authc
+
 				/DeleteImportTask = authc, roles[researcher]
 
 				/MergeIndividual = authc, roles[researcher]
