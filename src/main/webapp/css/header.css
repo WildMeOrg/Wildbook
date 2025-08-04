@@ -186,7 +186,7 @@
   /* width: 250px; */
   /* height: 100%; */
   max-height: 60px;
-  margin-right: 20px;
+  margin-right: 60px;
   font-size: 24px;
   display: flex;
   align-items: center;
@@ -197,10 +197,10 @@
 
 .nav-brand {
   flex-shrink: 0;
-  width: 100px;
+  width: 300px;
   height: 50px;
   display: block !important;
-  background: url(../cust/mantamatcher/img/flukebook_logo_white.svg) no-repeat right center; 
+  background: url(../cust/mantamatcher/img/DragonSearchLogoWhite.png) no-repeat left center; 
   background-size: contain; 
 }
 

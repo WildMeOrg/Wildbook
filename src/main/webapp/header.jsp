@@ -554,10 +554,10 @@ if(request.getUserPrincipal()!=null){
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
           <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
-            <div class="nav-bar-wrapper" style="background-color: transparent">
+            <div class="nav-bar-wrapper" style="background-color: rgb(25,0,102);">
               <div class="header" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center">
                 <div style="height: 100%; display: flex; flex-direction: row; align-items: center; ">
-                <a class="nav-brand" target="_blank" href="<%=urlLoc %>">        
+                <a class="nav-brand" target="_blank" href="https://seadragonsearch.org">        
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
                     <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
@@ -580,8 +580,9 @@ if(request.getUserPrincipal()!=null){
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
-
+							<!--
                             <li><a href="<%=urlLoc %>/react/report" ><%=props.getProperty("report")%></a></li>
+							-->
 <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))) { %>
                             <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("reportClassic")%></a></li>
 <% } %>
@@ -589,22 +590,37 @@ if(request.getUserPrincipal()!=null){
                             <!--
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
-
+<%
+							if(request.getUserPrincipal()!=null && !loggingOut){
+							%>
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+							<%
+							}
+							%>
                         </ul>
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%><span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
+
                           <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
+						  	<%
+							if(request.getUserPrincipal()!=null && !loggingOut){
+							%>
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li><a href="<%=urlLoc %>/react/citation"><%=props.getProperty("citing")%></a></li>
                             <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                             <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
                           <%-- <li class="divider"></li> --%>
+						  <%
+							}
+						  %>
                         </ul>
                       </li>
+					    <%
+						if(request.getUserPrincipal()!=null && !loggingOut){
+						%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("myData")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -630,13 +646,22 @@ if(request.getUserPrincipal()!=null){
 
                         </ul>
                       </li>
+					  <%
+						}
+					  %>
+					  
+
+					  
+					  	<%
+						if(request.getUserPrincipal()!=null && !loggingOut){
+						%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
-<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))) { %>
-                            <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
-<% } %>
+							<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicEncounters", context))) { %>
+								<li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" ><%=props.getProperty("encountersClassic")%></a></li>
+							<% } %>
                           <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("sightings")%></a></li>
 
@@ -675,6 +700,21 @@ if(request.getUserPrincipal()!=null){
                             %>
                         </ul>
                       </li>
+					  <%
+						}
+					  %>
+					  
+					 <%
+						
+						if(request.getUserPrincipal()==null){
+                      %>
+                       <li class="dropdown">
+                        <a class="dropdown-toggle" href="//wildbook.seadragonsearch.org/contactus.jsp" aria-expanded="false">Contact Us </a>
+                      </li>
+						<%
+						} 
+						%>
+					  
 
                      <% if(user != null && !loggingOut){ %>
                       <div class="quick-search-wrapper">

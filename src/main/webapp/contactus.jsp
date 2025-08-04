@@ -30,3 +30,4 @@
 
       <!-- end maintext -->
       </div>
+<jsp:include page="footer.jsp" flush="true"/>
