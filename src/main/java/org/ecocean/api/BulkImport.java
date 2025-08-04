@@ -752,10 +752,11 @@ public class BulkImport extends ApiBase {
             }
             itask.setPassedParameters(passedParams);
             taskShepherd.storeNewImportTask(itask);
+            taskShepherd.commitDBTransaction();
         } catch (Exception ex) {
             ex.printStackTrace();
+            taskShepherd.rollbackDBTransaction();
         } finally {
-            taskShepherd.commitDBTransaction();
             taskShepherd.closeDBTransaction();
         }
         Util.mark("initializeImportTask(" + id + ", " + status + ")");
@@ -780,8 +781,11 @@ public class BulkImport extends ApiBase {
                 itask.addLog("errors: " + errors);
             }
             taskShepherd.storeNewImportTask(itask);
-        } finally {
             taskShepherd.commitDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            taskShepherd.rollbackDBTransaction();
+        } finally {
             taskShepherd.closeDBTransaction();
         }
         Util.mark("importTaskSet(" + id + ": " + status + ", " + progress + "% [etc] )");
@@ -816,11 +820,12 @@ public class BulkImport extends ApiBase {
             JSONObject rtn = IAGateway.handleBulkImport(data, res, myShepherd, context,
                 IA.getBaseURL(context));
             Util.mark("[INFO] > > > > > > rtn => " + rtn);
+            myShepherd.commitDBTransaction();
         } catch (Exception ex) {
             System.out.println("[ERROR] BulkImport.initiateIA(" + importId + ") failed with " + ex);
             ex.printStackTrace();
+            myShepherd.rollbackDBTransaction();
         } finally {
-            myShepherd.commitDBTransaction();
             myShepherd.closeDBTransaction();
         }
     }
