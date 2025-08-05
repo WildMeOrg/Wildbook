@@ -8,7 +8,12 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#165dbe", "#74c0fc", "#37b24d"];
+function generateHslColors(count) {
+  return Array.from({ length: count }, (_, i) => {
+    const hue = (i * 360) / count;
+    return `hsl(${hue}, 70%, 50%)`;
+  });
+}
 
 export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
   const processedData = React.useMemo(() => {
@@ -27,12 +32,16 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
     }));
   }, [data]);
 
+  const colors = React.useMemo(
+    () => generateHslColors(processedData.length),
+    [processedData.length],
+  );
+
   return (
     <div
       style={{
         width: "100%",
         height: 300,
-        padding: 16,
       }}
     >
       <p style={{ textAlign: "center", color: "white" }}>{title}</p>
@@ -50,7 +59,7 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
             label={({ percent }) => `${(percent * 100).toFixed(2)}%`}
           >
             {data.map((entry, idx) => (
-              <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />
+              <Cell key={entry.name} fill={colors[idx]} />
             ))}
           </Pie>
 
@@ -70,7 +79,7 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
             verticalAlign="middle"
             align="right"
             iconType="circle"
-            wrapperStyle={{ color: "#fff", paddingLeft: 20 }}
+            wrapperStyle={{ color: "#fff" }}
           />
         </PieChart>
       </ResponsiveContainer>
