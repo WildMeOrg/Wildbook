@@ -47,7 +47,7 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
             outerRadius={100}
             innerRadius={0}
             labelLine={false}
-            label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+            label={({ percent }) => `${(percent * 100).toFixed(2)}%`}
           >
             {data.map((entry, idx) => (
               <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />
