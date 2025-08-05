@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -6,54 +6,63 @@ import {
   Cell,
   Tooltip,
   Legend,
-} from 'recharts';
+} from "recharts";
 
-const data = [
-  { name: 'Female',  value: 140 },
-  { name: 'Male',    value: 35 },
-  { name: 'Unknown', value: 25 },
-];
+const COLORS = ["#165dbe", "#74c0fc", "#37b24d"];
 
-const COLORS = ['#165dbe', '#74c0fc', '#37b24d'];
+export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
+  const processedData = React.useMemo(() => {
+    if (!data || data.length === 0) {
+      return [];
+    }
 
-export default function Piechart() {
+    const counts = data.reduce((acc, curr) => {
+      acc[curr] = (acc[curr] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(counts).map(([key, value]) => ({
+      name: key,
+      value: value,
+    }));
+  }, [data]);
+
   return (
-    <div style={{
-      width: '100%',
-      height: 300,
-      padding: 16,
-    }}>
+    <div
+      style={{
+        width: "100%",
+        height: 300,
+        padding: 16,
+      }}
+    >
+      <p style={{ textAlign: "center", color: "white" }}>{title}</p>
       <ResponsiveContainer>
         <PieChart>
           <Pie
-            data={data}
+            data={processedData}
             dataKey="value"
             nameKey="name"
             cx="50%"
             cy="50%"
             outerRadius={100}
-            innerRadius={0}       
-            labelLine={false}     
-            label={({ percent }) =>
-              `${(percent * 100).toFixed(0)}%`
-            }
-            
+            innerRadius={0}
+            labelLine={false}
+            label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
           >
             {data.map((entry, idx) => (
               <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />
             ))}
-
           </Pie>
 
           <Tooltip
-            formatter={v => v + '%'}
+            formatter={(v) => v}
             contentStyle={{
-              backgroundColor: '#424242',
-              border: 'none',
+              backgroundColor: "#424242",
+              border: "none",
               borderRadius: 4,
-              color: '#fff',
+              color: "#fff",
             }}
-            itemStyle={{ color: '#fff' }}
+            itemStyle={{ color: "#fff" }}
           />
 
           <Legend
@@ -61,7 +70,7 @@ export default function Piechart() {
             verticalAlign="middle"
             align="right"
             iconType="circle"
-            wrapperStyle={{ color: '#fff', paddingLeft: 20 }}
+            wrapperStyle={{ color: "#fff", paddingLeft: 20 }}
           />
         </PieChart>
       </ResponsiveContainer>
