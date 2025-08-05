@@ -10,31 +10,15 @@ import {
 
 function generateHslColors(count) {
   return Array.from({ length: count }, (_, i) => {
-    const hue = (i * 360) / count;
+    const hue = (215 + (i * 360) / count) % 360; // Start from blue color
     return `hsl(${hue}, 70%, 50%)`;
   });
 }
 
 export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
-  const processedData = React.useMemo(() => {
-    if (!data || data.length === 0) {
-      return [];
-    }
-
-    const counts = data.reduce((acc, curr) => {
-      acc[curr] = (acc[curr] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(counts).map(([key, value]) => ({
-      name: key,
-      value: value,
-    }));
-  }, [data]);
-
   const colors = React.useMemo(
-    () => generateHslColors(processedData.length),
-    [processedData.length],
+    () => generateHslColors(data.length),
+    [data.length],
   );
 
   return (
@@ -48,7 +32,7 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
       <ResponsiveContainer>
         <PieChart>
           <Pie
-            data={processedData}
+            data={data}
             dataKey="value"
             nameKey="name"
             cx="50%"
