@@ -1,0 +1,478 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>uom-se</artifactId>
+	<name>Units of Measurement Implementation for Java SE</name>
+	<url>https://github.com/unitsofmeasurement/uom-se</url>
+	<description>Units of Measurement Implementation for Java SE - JDK Integration of Unit-API / JSR 363</description>
+	<organization>
+		<name>Units of Measurement project</name>
+		<url>http://unitsofmeasurement.github.io</url>
+	</organization>
+	<version>1.0.8</version>
+	<packaging>bundle</packaging>
+	<parent>
+		<groupId>tec.uom</groupId>
+		<artifactId>uom-parent</artifactId>
+		<version>1.0.4</version>
+	</parent>
+	<scm>
+		<url>https://github.com/unitsofmeasurement/uom-se.git</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/unitsofmeasurement/uom-se/issues</url>
+	</issueManagement>
+	<licenses>
+		<license>
+			<name>BSD</name>
+			<url>LICENSE.txt</url>
+		</license>
+	</licenses>
+
+	<!-- ======================================================= -->
+	<!-- Build Settings -->
+	<!-- ======================================================= -->
+	<properties>
+		<jsr.version>1.0</jsr.version>
+		<lib.version>1.0.2</lib.version>
+		<sourceEncoding>UTF-8</sourceEncoding> <!-- in Maven 3. -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${sourceEncoding}</project.reporting.outputEncoding>
+		<jdkVersion>1.8</jdkVersion>
+		<project.build.javaVersion>${jdkVersion}</project.build.javaVersion>
+		<maven.compile.targetLevel>${jdkVersion}</maven.compile.targetLevel>
+		<maven.compile.sourceLevel>${jdkVersion}</maven.compile.sourceLevel>
+		<additionalparam>-Xdoclint:none</additionalparam>
+		<hamcrest.version>1.3</hamcrest.version>
+		<maven.source.version>3.0.1</maven.source.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.measure</groupId>
+			<artifactId>unit-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>tec.uom.lib</groupId>
+			<artifactId>uom-lib-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>tec.uom.lib</groupId>
+				<artifactId>uom-lib-common</artifactId>
+				<version>${lib.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-all</artifactId>
+				<version>${hamcrest.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>${maven.source.version}</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<phase>package</phase>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											net.revelc.code
+										</groupId>
+										<artifactId>
+											formatter-maven-plugin
+										</artifactId>
+										<versionRange>
+											[0.5.2,)
+										</versionRange>
+										<goals>
+											<goal>format</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<!-- ======================================================= -->
+			<!-- Compilation -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${project.build.javaVersion}</source>
+					<target>${project.build.javaVersion}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- Source Attachment -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- JavaDoc Attachment -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<detectLinks>true</detectLinks>
+					<keywords>true</keywords>
+					<linksource>true</linksource>
+					<failOnError>false</failOnError>
+					<source>${maven.compile.sourceLevel}</source>
+					<verbose>true</verbose>
+				</configuration>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- JAR packaging -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Specification-Title>Units of Measurement Implementation for Java
+								SE</Specification-Title>
+							<Specification-Version>${project.version}</Specification-Version>
+							<Specification-Vendor>${project.organization.name}</Specification-Vendor>
+							<Implementation-Vendor>Unit-API contributors</Implementation-Vendor>
+							<Implementation-URL>${project.organization.url}</Implementation-URL>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- Packaging (OSGi bundle) -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package>tec.uom.se.*</Export-Package>
+						<Private-Package>tec.uom.se.internal.*</Private-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- Maven License Plugin -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<header>src/main/config/header.txt</header>
+					<properties>
+						<owner>Jean-Marie Dautelle, Werner Keil, V2COM</owner>
+						<currentYear>2017</currentYear>
+					</properties>
+					<excludes>
+						<exclude>**/README</exclude>
+						<exclude>**/pom.xml</exclude>
+						<exclude>**/settings.xml</exclude>
+						<exclude>src/test/resources/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+						<exclude>src/main/config/**</exclude>
+						<exclude>src/etc/**</exclude>
+						<exclude>*.css</exclude>
+						<exclude>*.editorconfig</exclude>
+						<exclude>*.jpg</exclude>
+						<exclude>*.png</exclude>
+						<exclude>*.yml</exclude>
+					</excludes>
+					<headerDefinitions>
+						<headerDefinition>src/main/config/headers.xml</headerDefinition>
+					</headerDefinitions>
+					<mapping>
+						<java>JAVA_STYLE</java>
+					</mapping>
+				</configuration>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- Maven Code Formatter -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>net.revelc.code</groupId>
+				<artifactId>formatter-maven-plugin</artifactId>
+				<configuration>
+					<configFile>${project.basedir}/src/main/config/eclipse-formatter-config.xml</configFile>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- Maven web site -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<configuration>
+					<locales>en</locales>
+					<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
+					<outputEncoding>UTF-8</outputEncoding>
+					<reportPlugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-project-info-reports-plugin</artifactId>
+							<version>2.7</version>
+							<reportSets>
+								<reportSet>
+									<reports>
+										<report>index</report>
+										<report>summary</report>
+										<report>license</report>
+										<report>scm</report>
+										<report>cim</report>
+										<report>project-team</report>
+										<report>mailing-list</report>
+										<report>issue-tracking</report>
+									</reports>
+								</reportSet>
+							</reportSets>
+						</plugin>
+
+						<!-- ======================================================= -->
+						<!-- Javadoc generation -->
+						<!-- -->
+						<!-- Do not set <docfilessubdirs> to true, since this -->
+						<!-- cause the unwanted copy of .svn sub-directories. -->
+						<!-- ======================================================= -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-javadoc-plugin</artifactId>
+							<version>2.9.1</version>
+							<configuration>
+								<source>${project.build.javaVersion}</source>             <!-- Enables javadoc to handle assertions present in J2SE 1.4. -->
+								<encoding>${project.build.sourceEncoding}</encoding>       <!-- The encoding of the source files. -->
+								<docencoding>${project.build.sourceEncoding}</docencoding> <!-- The encoding of the generated HTML files. -->
+								<charset>${sourceEncoding}</charset>         <!-- Specifies the HTML character set for this document. -->
+								<locale>en</locale>              <!-- Locale that javadoc uses when generating documentation. -->
+								<noqualifier>all</noqualifier>   <!-- Omit qualifying package name before class names in output. -->
+								<quiet>true</quiet>              <!-- Shuts off non-error and non-warning messages. -->
+								<keywords>true</keywords>        <!-- Adds HTML meta keyword tags to the generated files. -->
+								<!-- Creates links to existing javadoc-generated documentation of 
+									external referenced classes. -->
+								<links>
+									<link>http://docs.oracle.com/javase/8/docs/api/</link>
+								</links>
+							</configuration>
+						</plugin>
+
+						<!-- ======================================================= -->
+						<!-- Code analysis -->
+						<!-- ======================================================= -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-pmd-plugin</artifactId>
+							<version>3.2</version>
+							<configuration>
+								<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+								<targetJdk>${project.build.javaVersion}</targetJdk>
+							</configuration>
+						</plugin>
+
+						<!-- ======================================================= -->
+						<!-- Test results -->
+						<!-- ======================================================= -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-surefire-plugin</artifactId>
+							<version>2.16</version>
+						</plugin>
+
+						<!-- ======================================================= -->
+						<!-- Report on test results -->
+						<!-- ======================================================= -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-surefire-report-plugin</artifactId>
+							<version>2.16</version>
+						</plugin>
+
+						<!-- ======================================================= -->
+						<!-- Report on test coverage -->
+						<!-- ======================================================= -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>emma-maven-plugin</artifactId>
+							<version>1.0-alpha-3</version>
+							<reportSets>
+								<reportSet></reportSet>
+								<reportSet></reportSet>
+							</reportSets>
+						</plugin>
+
+						<!-- ======================================================= -->
+						<!-- Static analysis for occurences of bug patterns -->
+						<!-- ======================================================= -->
+						<!-- plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>findbugs-maven-plugin</artifactId> 
+							<version>2.5.2</version> </plugin> <plugin> <groupId>org.apache.maven.plugins</groupId> 
+							<artifactId>maven-checkstyle-plugin</artifactId> <version>2.11</version> 
+							<configuration> <configLocation>src/main/config/checkstyle.xml</configLocation> 
+							</configuration> </plugin -->
+					</reportPlugins>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<!-- Additional repositories -->
+	<!-- Helps to resolve Parent POM and Snapshot artifacts -->
+	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<name>JCenter</name>
+			<url>http://jcenter.bintray.com</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-release</id>
+			<name>libs-release</name>
+			<url>http://oss.jfrog.org/artifactory/libs-release</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>bintray-snapshot</id>
+			<name>libs-snapshot</name>
+			<url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>bintray-release</id>
+			<name>oss-jfrog-artifactory-release</name>
+			<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>bintray-snapshot</id>
+			<name>oss-jfrog-artifactory-snapshot</name>
+			<url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<ciManagement>
+		<system>CircleCI</system>
+		<url>https://circleci.com/gh/unitsofmeasurement/uom-se</url>
+	</ciManagement>
+
+	<profiles>
+		<profile>
+			<id>p2</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.reficio</groupId>
+						<artifactId>p2-maven-plugin</artifactId>
+						<version>1.2.0</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<configuration>
+									<artifacts>
+										<!-- specify your depencies here -->
+										<!-- <id>groupId:artifactId:version</id> -->
+										<artifact>
+											<id>javax.measure:unit-api:${jsr.version}</id>
+										</artifact>
+										<artifact>
+											<id>tec.uom.lib:uom-lib-common:${lib.version}</id>
+										</artifact>
+										<artifact>
+											<id>tec.uom:uom-se:${project.version}</id>
+										</artifact>
+									</artifacts>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+			<pluginRepositories>
+				<pluginRepository>
+					<id>reficio</id>
+					<url>http://repo.reficio.org/maven/</url>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+	</profiles>
+</project>

@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.geotools</groupId>
+    <artifactId>modules</artifactId>
+    <version>23.0</version>
+  </parent>
+
+  <groupId>org.geotools</groupId>
+  <artifactId>ogc</artifactId>
+  <packaging>pom</packaging>
+
+  <name>OGC Web Service Models</name>
+
+  <description>Collection of EMF models for OGC Web Service scheams.</description>
+
+  <developers>
+    <developer>
+      <name>Justin Deoliveira</name>
+      <roles>
+        <role>Java Developer</role>
+        <role>Module Maintainer</role>
+     </roles>
+    </developer>
+  </developers>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.eclipse.emf</groupId>
+      <artifactId>org.eclipse.emf.common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.emf</groupId>
+      <artifactId>org.eclipse.emf.ecore</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+      </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-eclipse-plugin</artifactId>
+        <configuration>
+          <additionalBuildcommands>
+            <buildcommand>org.eclipse.pde.ManifestBuilder</buildcommand>
+            <buildcommand>org.eclipse.pde.SchemaBuilder</buildcommand>
+          </additionalBuildcommands>
+          <additionalProjectnatures>
+            <projectnature>org.eclipse.pde.PluginNature</projectnature>
+          </additionalProjectnatures>
+       </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.coveo</groupId>
+        <artifactId>fmt-maven-plugin</artifactId>
+        <configuration>
+            <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <!-- disable pmd and errorprone in these modules, their code is generated -->
+  <properties>
+    <errorProneFlags>-XepDisableAllChecks</errorProneFlags>
+    <pmd.skip>true</pmd.skip>
+    <spotbugs.skip>true</spotbugs.skip>
+    <checkstyle.skip>true</checkstyle.skip>
+	<lint>none</lint>
+  </properties>
+
+
+  <modules>
+    <module>org.w3.xlink</module>
+    <module>net.opengis.ows</module>
+    <module>net.opengis.fes</module>
+    <module>net.opengis.wfs</module>
+    <module>net.opengis.wps</module>
+    <module>net.opengis.wcs</module>
+    <module>net.opengis.csw</module>
+    <module>net.opengis.wmts</module>
+  </modules>
+
+</project>

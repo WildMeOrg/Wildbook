@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>nz.ac.waikato.cms.weka.thirdparty</groupId>
+  <artifactId>bounce</artifactId>
+  <version>0.18</version>
+  <packaging>jar</packaging>
+
+  <name>bounce</name>
+  <description>Bounce, a set of Java and Swing extensions, including ... layout managers like a FormLayout and CenterLayout, image filters, a comprehensive messaging mechanism, a XMLEditorKit with syntax highlighting, tag-folding, error highlighting and automatic indentation and more. </description>
+  <url>http://www.edankert.com/bounce/</url>
+
+  <developers>
+    <developer>
+      <id>edankert</id>
+      <name>Edwin Dankert</name>
+      <email>edankert@gmail.com</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>fracpete</id>
+      <name>Peter Reutemann</name>
+      <email>fracpete@gmail.com</email>
+      <roles>
+        <role>maven deployment</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <name>BSD</name>
+      <url>http://www.opensource.org/licenses/BSD-3-Clause</url>
+      <distribution>repo</distribution>
+    </license>
+    <license>
+      <name>AS-IS</name>
+      <comments>org.bounce.util.BrowserLauncher class:
+
+This code is Copyright 1999-2002 by Eric Albert (ejalbert@cs.stanford.edu) and may be
+redistributed or modified in any form without restrictions as long as the portion of this
+from this paragraph through the end of the comment is not removed.  The author
+requests that he be notified of any application, applet, or other binary that makes use of
+this code, but that's more out of curiosity than anything and is not required.  This software
+includes no warranty.  The author is not repsonsible for any loss of data or functionality
+or any adverse or unexpected effects of using this software.
+
+Credits:
+Steven Spencer, JavaWorld magazine (Java Tip 66)
+Thanks also to Ron B. Yeh, Eric Shapiro, Ben Engber, Paul Teitlebaum, Andrea Cantatore,
+Larry Barowski, Trevor Bedzek, Frank Miedrich, Ron Rabakukk, and Glenn Vanderburg</comments>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>http://sourceforge.net/p/bounce/svn/16/tree/</url>
+  </scm>
+</project>

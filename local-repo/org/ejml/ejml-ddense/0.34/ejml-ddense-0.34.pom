@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.ejml</groupId>
+  <artifactId>ejml-ddense</artifactId>
+  <version>0.34</version>
+  <name>EJML</name>
+  <description>A fast and easy to use dense and sparse matrix linear algebra library written in Java.</description>
+  <url>http://ejml.org/</url>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>pabeles</id>
+      <name>Peter Abeles</name>
+      <email>peter.abeles@gmail.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>git@github.com:lessthanoptimal/ejml.git</connection>
+    <developerConnection>git@github.com:lessthanoptimal/ejml.git</developerConnection>
+    <url>https://github.com/lessthanoptimal/ejml</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>org.ejml</groupId>
+      <artifactId>ejml-core</artifactId>
+      <version>0.34</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ejml</groupId>
+      <artifactId>ejml-experimental</artifactId>
+      <version>0.34</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

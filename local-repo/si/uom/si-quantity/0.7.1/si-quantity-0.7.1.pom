@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>si.uom</groupId>
+		<artifactId>si-parent</artifactId>
+		<version>0.7.1</version>
+	</parent>
+	<artifactId>si-quantity</artifactId>
+	<name>SI Quantities</name>
+    <packaging>bundle</packaging>
+	<dependencies>
+		<dependency>
+			<groupId>javax.measure</groupId>
+			<artifactId>unit-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- ======================================================= -->
+			<!-- Source Attachment -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+
+            <!-- ======================================================= -->
+            <!-- Packaging (OSGi bundle) -->
+            <!-- ======================================================= -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>si.uom.*</Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+			<!-- ======================================================= -->
+			<!-- JavaDoc Attachment -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>

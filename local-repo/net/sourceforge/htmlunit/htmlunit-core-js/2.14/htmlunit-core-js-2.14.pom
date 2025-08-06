@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.sourceforge.htmlunit</groupId>
+    <artifactId>htmlunit-core-js</artifactId>
+    <version>2.14</version>
+    <packaging>jar</packaging>
+    <name>HtmlUnit Core JS</name>
+    <url>http://htmlunit.sourceforge.net</url>
+    <description>
+		HtmlUnit adaptation of Mozilla Rhino Javascript engine for Java. 
+		Changes are documented by a diff (rhinoDiff.txt) contained in the generated jar files.
+	</description>
+    <licenses>
+        <license>
+            <name>Mozilla Public License version 2.0</name>
+            <url>http://www.mozilla.org/MPL/2.0/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:HtmlUnit/htmlunit-core-js.git</connection>
+        <developerConnection>scm:git:git@github.com:HtmlUnit/htmlunit-core-js.git</developerConnection>
+        <url>https://github.com/htmlunit</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Mozilla Rhino Team</name>
+            <id>MozillaRhinoTeam</id>
+        </developer>
+        <developer>
+            <name>HtmlUnit Team</name>
+            <id>HtmlUnitTeam</id>
+        </developer>
+    </developers>
+</project>

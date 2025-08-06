@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+  <groupId>com.google.truth</groupId>
+  <artifactId>truth-parent</artifactId>
+  <version>0.32</version>
+  <packaging>pom</packaging>
+  <name>Truth (Parent)</name>
+  <description>
+    Parent metdata for Truth, a pure-java, strongly typed testing proposition framework.
+  </description>
+  <modules>
+    <module>core</module>
+    <module>extensions</module>
+  </modules>
+  <prerequisites><maven>3.1.1</maven></prerequisites>
+  <developers>
+    <developer>
+      <id>cgruber</id>
+      <name>Christian Gruber</name>
+      <email>christianedwardgruber@gmail.com</email>
+      <url>http://www.geekinasuit.com/</url>
+      <roles>
+        <role>creator</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>kak</id>
+      <name>Kurt Alfred Kluever</name>
+      <roles>
+        <role>evolver</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>
+    <developer>
+      <id>dsaff</id>
+      <name>David Saff</name>
+      <roles>
+        <role>creator</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>
+    <developer>
+      <id>hagbard</id>
+      <name>David B</name>
+      <roles>
+        <role>creator</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+2</timezone>
+    </developer>
+  </developers>
+  <url>http://github.com/google/truth</url>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <issueManagement>
+    <system>Github</system>
+    <url>https://github.com/google/truth/issues</url>
+  </issueManagement>
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>https://travis-ci.org/google/truth</url>
+  </ciManagement>
+  <mailingLists>
+    <mailingList>
+      <name>Announcements List</name>
+      <post>truth-announce@googlecode.com</post>
+    </mailingList>
+    <mailingList>
+      <name>User List</name>
+      <post>truth-users@googlecode.com</post>
+    </mailingList>
+    <mailingList>
+      <name>Developer List</name>
+      <post>truth-dev@googlecode.com</post>
+    </mailingList>
+  </mailingLists>
+  <scm>
+    <connection>scm:git:git@github.com:google/truth.git</connection>
+    <url>scm:git:git@github.com:google/truth.git</url>
+  </scm>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.5</version> <!-- work around ubuntu bug -->
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>animal-sniffer-maven-plugin</artifactId>
+          <version>1.14</version>
+          <configuration>
+            <signature>
+              <groupId>org.codehaus.mojo.signature</groupId>
+              <artifactId>java16-sun</artifactId>
+              <version>1.10</version>
+            </signature>
+          </configuration>
+          <executions>
+            <execution>
+              <id>check-java-version-compatibility</id>
+              <phase>test</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <profiles>
+    <profile>
+      <id>disable-java8-doclint</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <!-- Disable doclint in java8 where problems are errors -->
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

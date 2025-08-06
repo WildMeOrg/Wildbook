@@ -1,0 +1,512 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>tec.uom</groupId>
+	<artifactId>uom-parent</artifactId>
+	<version>1.0.4</version>
+	<packaging>pom</packaging>
+	<name>Units of Measurement parent</name>
+	<description>Units of Measurement Project Parent POM</description>
+	<organization>
+		<name>Units of Measurement</name>
+		<url>http://unitsofmeasurement.github.io/</url>
+	</organization>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>9</version>
+	</parent>
+	<licenses>
+		<license>
+			<name>BSD</name>
+			<url>http://opensource.org/licenses/BSD-3-Clause</url>
+		</license>
+	</licenses>
+	<inceptionYear>2005</inceptionYear>
+	<url>http://unitsofmeasurement.github.io/</url>
+	<scm>
+		<connection>scm:git:https://github.com/unitsofmeasurement/uom-parent.git</connection>
+		<developerConnection>scm:git:https://github.com/unitsofmeasurement/uom-parent.git</developerConnection>
+		<url>https://github.com/unitsofmeasurement/uom-parent.git</url>
+	</scm>
+	<properties>
+		<jsr.version>1.0</jsr.version>
+		<proj.version>${project.version}</proj.version>
+		<sourceEncoding>UTF-8</sourceEncoding> <!-- in Maven 3. -->
+		<project.build.sourceEncoding>${sourceEncoding}</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${sourceEncoding}</project.reporting.outputEncoding>
+		<!-- dependency versions -->
+		<junit.version>4.12</junit.version>
+		<slf4j.version>1.6.1</slf4j.version>
+		<maven-compiler.version>3.6.1</maven-compiler.version>
+		<maven-site.version>3.6</maven-site.version>
+		<!--  
+		<additionalparam>-Xdoclint:none</additionalparam>
+		-->
+		<jacoco.plugin.version>0.7.9</jacoco.plugin.version>
+	</properties>
+
+	<!-- Developers and Contributors -->
+	<developers>
+		<developer>
+			<id>dautelle</id>
+			<name>Jean-Marie Dautelle</name>
+			<email>jean-marie@dautelle.com</email>
+			<organization>Airbus</organization>
+			<organizationUrl>http://www.airbus.com</organizationUrl>
+			<timezone>+1</timezone>
+			<roles>
+				<role>Architect</role>
+				<role>Java Developer</role>
+				<role>Spec Lead</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>werner.keil</id>
+			<name>Werner Keil</name>
+			<email>werner@catmedia.us</email>
+			<organization>Creative Arts &amp; Technologies</organization>
+			<organizationUrl>http://www.catmedia.us</organizationUrl>
+			<timezone>+1</timezone>
+			<roles>
+				<role>Architect</role>
+				<role>Java Developer</role>
+				<role>Spec Lead</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Leonardo de Moura Rocha Lima</name>
+			<email>llima@v2com.mobi</email>
+			<organization>V2COM</organization>
+			<organizationUrl>http://www.v2com.mobi/</organizationUrl>
+			<timezone>-5</timezone>
+			<roles>
+				<role>Architect</role>
+				<role>Java Developer</role>
+				<role>Spec Lead</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>desruisseaux</id>
+			<name>Martin Desruisseaux</name>
+			<email>martin.desruisseaux@geomatys.com</email>
+			<organization>Geomatys</organization>
+			<organizationUrl>http://www.geomatys.com</organizationUrl>
+			<timezone>+1</timezone>
+			<roles>
+				<role>Expert</role>
+				<role>Java Developer</role>
+				<role>Jenkins Admin</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>otaviojava</id>
+			<name>Otávio Gonçalves de Santana</name>
+			<email>otaviopolianasantana@gmail.com</email>
+			<organization>Individual / SouJava</organization>
+			<timezone>-5</timezone>
+			<roles>
+				<role>Expert</role>
+				<role>Java Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>duckasteroid</id>
+			<name>Chris Senior</name>
+			<email>christopher.senior@gmail.com</email>
+			<organization>Snap-on Inc.</organization>
+			<roles>
+				<role>Expert</role>
+				<role>Java Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>eralmas7</id>
+			<name>Almas Shaikh</name>
+			<email>eralmas7@yahoo.com</email>
+			<organization>Individual</organization>
+			<roles>
+				<role>Expert</role>
+				<role>Java Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>karen_legrand</id>
+			<name>Karen Legrand</name>
+			<email>karen.legrand@iem.com</email>
+			<organization>Innovation Emergency Management (IEM)</organization>
+			<organizationUrl>http://www.iem.com</organizationUrl>
+			<timezone>-5</timezone>
+			<roles>
+				<role>Expert</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>rajmahendra</id>
+			<name>Rajmahendra Hegde</name>
+			<email>rajmahendra@gmail.com</email>
+			<organization>JUG Chennai</organization>
+			<roles>
+				<role>Expert</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>mohamed-taman</id>
+			<name>Mohamed Mahmoud Taman</name>
+			<email>mohamed.taman@gmail.com</email>
+			<organization>efinance</organization>
+			<roles>
+				<role>Expert</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<contributors>
+		<contributor>
+			<name>Daniel Leuck</name>
+			<email>dan@ikayzo.com</email>
+			<organization>Ikayzo</organization>
+			<timezone>-9</timezone>
+			<roles>
+				<role>Globalization Support</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Eric Russell</name>
+			<email>eric-r@northwestern.edu</email>
+			<timezone>-5</timezone>
+			<roles>
+				<role>Supporter</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>John Paul Morrison</name>
+			<organization>J.P. Morrison Enterprises, Ltd.</organization>
+			<timezone>-5</timezone>
+			<roles>
+				<role>Supporter</role>
+				<role>Test Analyst</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Scott Murphy</name>
+			<email>scott@ikayzo.com</email>
+			<organization>Ikayzo</organization>
+			<timezone>-9</timezone>
+			<roles>
+				<role>Japanese Translator</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Mika Terada</name>
+			<email>mika@ikayzo.com</email>
+			<organization>Ikayzo</organization>
+			<timezone>-9</timezone>
+			<roles>
+				<role>Japanese Translator</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Anatol Filin</name>
+			<email>anatol@gramant.ru</email>
+			<organization>Gramant</organization>
+			<timezone>+4</timezone>
+			<roles>
+				<role>Russian Translator</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Michael Gruebsch</name>
+			<email>michael@mkm-rabis.de</email>
+			<roles>
+				<role>Supporter</role>
+			</roles>
+			<timezone>+1</timezone>
+		</contributor>
+	</contributors>
+
+	<!-- Additional repositories -->
+	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<name>JCenter</name>
+			<url>http://jcenter.bintray.com</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-release</id>
+			<name>libs-release</name>
+			<url>http://oss.jfrog.org/artifactory/libs-release</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>bintray-snapshot</id>
+			<name>libs-snapshot</name>
+			<url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+		</repository>
+		<repository>
+			<id>bintray-uom</id>
+			<name>Bintray Units of Measurement</name>
+			<url>http://dl.bintray.com/unitsofmeasurement/maven</url>
+		</repository>
+	</repositories>
+
+	<!-- Deployment to public servers -->
+	<distributionManagement>
+		<repository>
+			<id>bintray-release</id>
+			<name>oss-jfrog-artifactory-release</name>
+			<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>bintray-snapshot</id>
+			<name>oss-jfrog-artifactory-snapshot</name>
+			<url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<!-- Dependency Management -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>javax.measure</groupId>
+				<artifactId>unit-api</artifactId>
+				<version>${jsr.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>3.0.1</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<phase>package</phase>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- License -->
+				<plugin>
+					<groupId>com.mycila</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>3.0</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<excludes>
+							<exclude>pom.xml</exclude>
+							<exclude>**/README</exclude>
+							<exclude>**/settings.xml</exclude>
+							<exclude>src/test/resources/**</exclude>
+							<exclude>src/main/resources/**</exclude>
+							<exclude>src/etc/**</exclude>
+							<exclude>*.css</exclude>
+						</excludes>
+					</configuration>
+				</plugin>
+
+				<!-- Format -->
+				<plugin>
+					<groupId>net.revelc.code</groupId>
+					<artifactId>formatter-maven-plugin</artifactId>
+					<version>0.5.2</version>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>1.6</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>1.4.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.10.4</version>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+							<configuration>
+								<failOnError>false</failOnError>
+							</configuration>
+						</execution>
+					</executions>
+					<configuration>
+						<detectLinks>true</detectLinks>
+						<!-- excludePackageNames>bar</excludePackageNames -->
+						<keywords>true</keywords>
+						<linksource>true</linksource>
+						<!-- overview>${basedir}/overview.html</overview -->
+						<source>${project.build.sourceCompilerLevel}</source>
+						<!-- stylesheetfile>${basedir}/src/site/css/measure-jdoc.css</stylesheetfile -->
+						<verbose>true</verbose>
+						<!-- only for Java SE 8+ builds, apply there if required
+						<additionalparam>-Xdoclint:none</additionalparam>
+						-->
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler.version}</version>
+					<configuration>
+						<debug>true</debug>
+						<optimize>true</optimize>
+						<verbose>true</verbose>
+						<source>${maven.compile.sourceLevel}</source>
+						<target>${maven.compile.targetLevel}</target>
+						<compilerArgument>-g</compilerArgument>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<charset>${project.build.sourceEncoding}</charset>
+						<showDeprecations>true</showDeprecations>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.8.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.0.2</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>test-jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>2.5.2</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>install</goal>
+							</goals>
+							<configuration>
+								<createChecksum>true</createChecksum>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>versions-maven-plugin</artifactId>
+					<version>2.3</version>
+				</plugin>
+				<plugin>
+					<groupId>org.bsc.maven</groupId>
+					<artifactId>maven-processor-plugin</artifactId>
+					<version>3.3.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.20</version>
+					<configuration>
+						<useSystemClassLoader>true</useSystemClassLoader>
+						<skipTests>false</skipTests>
+						<trimStackTrace>false</trimStackTrace>						
+						<forkMode>once</forkMode>
+						<includes>
+							<include>**/*Test.java</include>
+						</includes>
+						<excludes>
+							<exclude>**/Abstract*.java</exclude>
+						</excludes>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5.3</version>
+					<configuration>
+						<!-- Workaround for MGPG-9 and MRELEASE-424, MRELEASE-263 -->
+						<mavenExecutorId>forked-path</mavenExecutorId>
+					</configuration>
+				</plugin>
+				<!-- Packaging (OSGi bundle) -->
+				<plugin>
+					<groupId>org.apache.felix</groupId>
+					<artifactId>maven-bundle-plugin</artifactId>
+					<version>3.3.0</version>
+					<extensions>true</extensions>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>dashboard-maven-plugin</artifactId>
+					<version>1.0.0-beta-1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>${maven-site.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco.plugin.version}</version>
+					<configuration>
+						<destfile>${basedir}/target/coverage-reports/jacoco-unit.exec</destfile>
+						<datafile>${basedir}/target/coverage-reports/jacoco-unit.exec</datafile>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

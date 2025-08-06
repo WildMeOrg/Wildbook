@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>jgridshift</groupId>
+  <artifactId>jgridshift</artifactId>
+  <packaging>pom</packaging>
+  <version>1.2</version>
+
+  <distributionManagement>
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>osgeo</id>
+      <name>Open Source Geospatial Foundation - WebDAV upload</name>
+      <url>dav:http://download.osgeo.org/upload/geotools/</url>
+    </repository>
+    <snapshotRepository>
+      <id>boundless</id>
+      <uniqueVersion>false</uniqueVersion>
+      <name>Boundless Snapshot Repository</name>
+      <url>https://repo.boundlessgeo.com/snapshot/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  
+  <modules>
+    <module>core</module>
+    <module>sample</module>
+  </modules>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+        <version>1.0-beta-2</version>
+      </extension>
+    </extensions>
+  </build>
+</project>

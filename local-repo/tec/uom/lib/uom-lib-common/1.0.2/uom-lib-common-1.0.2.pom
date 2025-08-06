@@ -1,0 +1,92 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>tec.uom.lib</groupId>
+		<artifactId>uom-lib</artifactId>
+		<version>1.0.2</version>
+	</parent>
+	<artifactId>uom-lib-common</artifactId>
+	<name>Units of Measurement Common Library</name>
+	<packaging>bundle</packaging>
+	<properties>
+		<jdkVersion>1.7</jdkVersion>
+		<project.build.javaVersion>${jdkVersion}</project.build.javaVersion>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>javax.measure</groupId>
+			<artifactId>unit-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<!-- ======================================================= -->
+			<!-- Source Attachment -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- JavaDoc Attachment -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<detectLinks>true</detectLinks>
+					<keywords>true</keywords>
+					<linksource>true</linksource>
+					<failOnError>false</failOnError>
+					<source>${maven.compile.sourceLevel}</source>
+					<verbose>true</verbose>
+				</configuration>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- Packaging (OSGi bundle) -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package>tec.uom.lib.*</Export-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>jdk6</id>
+			<properties>
+				<jdkVersion>1.6</jdkVersion>
+			</properties>
+		</profile>
+		<profile>
+			<id>jdk7</id>
+			<properties>
+				<jdkVersion>1.7</jdkVersion>
+			</properties>
+		</profile>
+	</profiles>
+</project>

@@ -1,0 +1,14 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>javax.sql</groupId>
+  <artifactId>jdbc-stdext</artifactId>
+  <version>2.0</version>
+  <name>JDBC 2.0 Optional Package</name>
+  <description>
+    JDBC 2.0 Optional Package
+  </description>
+  <url>http://java.sun.com/products/jdbc/index.jsp</url>
+  <distributionManagement>
+    <downloadUrl>http://java.sun.com/products/jdbc/download.html</downloadUrl>
+  </distributionManagement>
+</project>

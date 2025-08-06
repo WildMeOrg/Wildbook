@@ -31,16 +31,21 @@ COPY pom.xml /app/pom.xml
 COPY local-repo /app/local-repo
 COPY config /app/config
 
-RUN mvn dependency:go-offline -B || true 
-RUN mvn org.apache.maven.plugins:maven-compiler-plugin:3.6.1:help \
- && mvn org.codehaus.mojo:exec-maven-plugin:1.2:help \
- && mvn org.apache.tomcat.maven:tomcat7-maven-plugin:2.2:help \
- && mvn org.apache.maven.plugins:maven-war-plugin:2.2:help
+RUN mvn -Dmaven.repo.local=/app/local-repo dependency:go-offline -B || true
+
+RUN mvn -Dmaven.repo.local=/app/local-repo \
+        org.apache.maven.plugins:maven-compiler-plugin:3.6.1:help \
+ &&     mvn -Dmaven.repo.local=/app/local-repo \
+        org.codehaus.mojo:exec-maven-plugin:1.2:help \
+ &&     mvn -Dmaven.repo.local=/app/local-repo \
+        org.apache.tomcat.maven:tomcat7-maven-plugin:2.2:help \
+ &&     mvn -Dmaven.repo.local=/app/local-repo \
+        org.apache.maven.plugins:maven-war-plugin:2.2:help
  
- COPY . /app
+COPY . /app
 
 # Now run Maven build
-RUN mvn clean install \
+RUN mvn -Dmaven.repo.local=/app/local-repo clean install \
     -DskipTests \
     -Dmaven.javadoc.skip=true \
     -Dhttp.keepAlive=false \
