@@ -1518,7 +1518,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
         }
         
         if (Util.stringExists(localPath)) {
-            localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
+            localPath = localPath.replaceAll("[^a-zA-Z0-9._\\- ]", "");
+
         }
         System.out.println("     localPath2: " + localPath);
         if (isUserUpload) {
