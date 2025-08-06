@@ -1,4 +1,6 @@
 import { makeAutoObservable } from "mobx";
+import { isValid, parseISO, getWeek } from "date-fns";
+import { chain, range } from 'lodash-es'
 
 class EncounterFormStore {
   _formFilters;
@@ -87,6 +89,35 @@ class EncounterFormStore {
     this._searchResultsAll = data;
   }
 
+  weekKey = (date) => {
+    const d = parseISO(date);
+    if (!isValid(d)) {
+      console.warn(`Invalid date skipped: ${date}`);
+      return null;
+    }    
+    return String(getWeek(d));
+  }
+
+  calculateWeeklyDates(dates) {
+    if (!Array.isArray(dates)) return [];
+      const validDates = dates.filter(d => typeof d === 'string' && d.trim());
+
+    const countsByWeek = chain(validDates)
+      .map(this.weekKey)
+      .filter(w => w !== null)
+      .countBy()
+      .value();
+
+    const result = range(1, 54).map((week) => {
+      const weekKey = String(week);
+      return {
+        week: weekKey,
+        count: countsByWeek[weekKey] || 0,
+        // date: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+      };
+    });
+    return result;
+  }
 }
 
 const globalEncounterFormStore = new EncounterFormStore();

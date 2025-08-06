@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -8,30 +8,18 @@ import {
   Tooltip,
   CartesianGrid,
   LabelList,
-} from "recharts";
+} from 'recharts';
 
 export default function HorizontalBarChart({ data }) {
-  const total = data.length;
-
-  const processedData = React.useMemo(() => {
-    if (!data || data.length === 0) {
-      return [];
-    }
-    const counts = data.reduce((acc, curr) => {
-      acc[curr] = (acc[curr] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(counts).map(([key, value]) => ({
-      name: key,
-      value: value,
-    }));
-  }, [data]);
+  const total = React.useMemo(
+    () => data.length? data.reduce((sum, item) => sum + item.value, 0) : 0,
+    [data]
+  );
 
   return (
     <ResponsiveContainer width="100%" height={400}>
       <BarChart
-        data={processedData}
+        data={data}
         layout="vertical"
         margin={{ top: 20, right: 40, left: 60, bottom: 20 }}
       >
@@ -52,19 +40,14 @@ export default function HorizontalBarChart({ data }) {
           axisLine={false}
         />
         <Tooltip
-          formatter={(v) => v}
-          cursor={{ fill: "rgba(255,255,255,0.1)" }}
+          formatter={v => v}
+          cursor={{ fill: 'rgba(255,255,255,0.1)' }}
         />
-        <Bar
-          dataKey="value"
-          fill="#74c0fc"
-          barSize={20}
-          radius={[0, 10, 10, 0]}
-        >
+        <Bar dataKey="value" fill="#74c0fc" barSize={20} radius={[0, 10, 10, 0]}>
           <LabelList
             dataKey="value"
             position="right"
-            formatter={(v) => `${((v / total) * 100).toFixed(2)}%`}
+            formatter={v => `${(v / total * 100).toFixed(2)}%`}
             fill="#fff"
             fontSize={12}
           />

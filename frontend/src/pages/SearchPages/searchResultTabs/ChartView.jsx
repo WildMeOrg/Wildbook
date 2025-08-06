@@ -32,7 +32,12 @@ const ChartView = observer(({ store }) => {
     store.searchResultsAll.map((item) => item.country || "unknown"),
   );
 
-  console.log("countryDistributionData:", countryDistributionData);
+  const weeklyEncounterDates = store.calculateWeeklyDates(
+    store.searchResultsAll.map((item) => item.date),
+  ).map(({ week,count }) => ({
+    name: week,
+    value: count,
+  }));
 
   if (store.loadingAll) {
     return (
@@ -56,10 +61,7 @@ const ChartView = observer(({ store }) => {
       <h2>
         <FormattedMessage id="CHART_VIEW" />
       </h2>
-      <HorizontalBarChart
-        title="SEARCH_RESULTS_MEASUREMENTS"
-        data={measurementsData}
-      />
+
       <div className="d-flex flex-row justify-content-between">
         <Piechart
           title="SEARCH_RESULTS_SEX_DISTRIBUTION"
@@ -71,6 +73,10 @@ const ChartView = observer(({ store }) => {
         />
       </div>
       <VerticalBarChart data={countryDistributionData} />
+      <HorizontalBarChart
+        title="SEARCH_RESULTS_MEASUREMENTS"
+        data={weeklyEncounterDates}
+      />
       <Linechart />
     </div>
   );
