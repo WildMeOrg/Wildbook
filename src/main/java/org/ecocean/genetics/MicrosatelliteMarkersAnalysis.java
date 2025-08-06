@@ -86,4 +86,14 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis {
         }
         return returnString.toString();
     }
+
+    public String toString() {
+        String str = super.toString() + "{";
+
+        if (loci != null)
+            for (Locus locus : loci) {
+                str += locus;
+            }
+        return str + "}";
+    }
 }
