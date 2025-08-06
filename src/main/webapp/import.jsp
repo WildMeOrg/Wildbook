@@ -1058,7 +1058,7 @@ try{
 		<%
 			if (allAssets.size() > 0) {
 		%>
-		    	<div style="margin-bottom: 30px;"><a class="button" onClick="$('.ia-match-filter-dialog').show()">Send to detection (no identification)</a></div>
+		    	<div style="margin-bottom: 30px;"><a class="button" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 		<%
 			}
 	}
