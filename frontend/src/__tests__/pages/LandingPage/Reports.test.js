@@ -3,6 +3,10 @@ import { screen } from "@testing-library/react";
 import Report from "../../../components/home/Report";
 import { renderWithProviders } from "../../../utils/utils";
 
+beforeAll(() => {
+  process.env.PUBLIC_URL = "/react";
+});
+
 jest.mock("../../../components/BrutalismButton", () => {
   const React = require("react");
   const BrutalismButton = ({ link, children }) =>
@@ -29,6 +33,6 @@ describe("Report Component", () => {
     const buttons = screen.getAllByTestId("brutalism-button");
     expect(buttons).toHaveLength(2);
     expect(buttons[0]).toHaveAttribute("href", "/submit.jsp");
-    expect(buttons[1]).toHaveAttribute("href", "/import/instructions.jsp");
+    expect(buttons[1]).toHaveAttribute("href", "/react/bulk-import");
   });
 });

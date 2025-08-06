@@ -50,6 +50,7 @@ public class Measurement extends DataCollectionEvent {
                    .append("type", getType())
                    .append("value", value)
                    .append("units", units)
+                   .append("sampProt", getSamplingProtocol())
                    .toString();
     }
 

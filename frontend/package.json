@@ -24,10 +24,11 @@
     "react-big-calendar": "^1.19.4",
     "react-bootstrap": "^2.10.1",
     "react-burger-menu": "^3.0.9",
+    "react-circular-progressbar": "^2.2.0",
     "react-data-table-component": "^7.6.2",
     "react-datetime": "^3.2.0",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.52.1",
+    "react-icons": "^4.12.0",
     "react-intl": "^6.6.2",
     "react-konva": "^18.2.10",
     "react-paginate": "^8.2.0",
@@ -35,6 +36,7 @@
     "react-router-dom": "^6.22.0",
     "react-scripts": "5.0.1",
     "react-select": "^5.8.0",
+    "react-window": "^1.8.11",
     "recharts": "^3.1.0",
     "sass": "^1.71.1",
     "web-vitals": "^2.1.4",
@@ -82,6 +84,7 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@eslint/js": "^9.9.1",
+    "@tanstack/react-table": "^8.21.3",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "bootstrap-icons": "^1.11.3",
@@ -95,6 +98,7 @@
     "jest": "^27.5.1",
     "react-app-rewired": "^2.2.1",
     "react-bootstrap-icons": "^1.11.3",
+    "react-hook-form": "^7.55.0",
     "react-query": "^3.39.3",
     "style-loader": "^3.3.4",
     "styled-components": "^6.1.8",
@@ -104,6 +108,7 @@
     "webpack": "^5.94.0",
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "webpack-dev-server": "^4.15.1",
+    "xlsx": "^0.18.5"
   }
 }

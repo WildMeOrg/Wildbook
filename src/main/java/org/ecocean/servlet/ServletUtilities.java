@@ -943,8 +943,9 @@ public class ServletUtilities {
     }
 
     public static void printParams(HttpServletRequest request) {
+        if (request == null) return;
         Enumeration<String> names = request.getParameterNames();
-
+        if (names == null) return;
         while (names.hasMoreElements()) {
             String name = names.nextElement();
             System.out.println("  " + name + ": " + request.getParameter(name));

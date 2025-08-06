@@ -71,4 +71,8 @@ public class Locus implements java.io.Serializable {
         if ((allele3 != null) && (allele3.intValue() == value.intValue())) { return true; }
         return false;
     }
+
+    public String toString() {
+        return "locus[" + this.getHTMLString() + "]";
+    }
 }
