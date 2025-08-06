@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>nz.ac.waikato.cms.weka.thirdparty</groupId>
+  <artifactId>java-cup-11b</artifactId>
+  <version>2015.03.26</version>
+  <packaging>jar</packaging>
+
+  <name>java-cup-11b</name>
+  <description>LALR parser generator for Java.</description>
+  <url>http://www2.cs.tum.edu/projects/cup/</url>
+
+  <licenses>
+    <license>
+      <name>BSD-like</name>
+      <url>https://www2.in.tum.de/repos/cup/develop/licence.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>csannian</id>
+      <name>C. Scott Ananian</name>
+      <url>http://cscott.net/</url>
+    </developer>
+    <developer>
+      <id>fflannery</id>
+      <name>Frank Flannery</name>
+    </developer>
+    <developer>
+      <id>dwang</id>
+      <name>Dan Wang</name>
+    </developer>
+    <developer>
+      <id>awappel</id>
+      <name>Andrew W. Appel</name>
+      <url>http://www.cs.princeton.edu/~appel/</url>
+    </developer>
+    <developer>
+      <id>mpetter</id>
+      <name>Michael Petter</name>
+      <url>http://www2.in.tum.de/hp/Main?nid=27</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>not available</connection>
+    <url>http://www2.cs.tum.edu/projects/cup/releases/java-cup-src-11b-20150326.tar.gz</url>
+  </scm>
+</project>

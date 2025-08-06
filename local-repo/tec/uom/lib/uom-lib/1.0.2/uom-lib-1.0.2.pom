@@ -1,0 +1,160 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>uom-lib</artifactId>
+	<groupId>tec.uom.lib</groupId>
+	<version>1.0.2</version>
+	<parent>
+		<groupId>tec.uom</groupId>
+		<artifactId>uom-parent</artifactId>
+		<version>1.0.4</version>
+	</parent>
+	<modules>
+		<module>common</module>
+		<module>assertj</module>
+	</modules>
+	<packaging>pom</packaging>
+	<name>Units of Measurement Libraries</name>
+	<url>http://github.com/unitsofmeasurement/uom-lib</url>
+	<organization>
+		<name>Units of Measurement project</name>
+		<url>http://unitsofmeasurement.github.io</url>
+	</organization>
+	<description>Units of Measurement Libraries - extending and complementing JSR 363</description>
+	<licenses>
+		<license>
+			<name>BSD</name>
+			<url>LICENSE.txt</url>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:git:https://github.com/unitsofmeasurement/uom-lib.git</connection>
+		<developerConnection>scm:git:https://github.com/unitsofmeasurement/uom-lib.git</developerConnection>
+		<url>https://github.com/unitsofmeasurement/uom-lib.git</url>
+	</scm>
+
+	<!-- ======================================================= -->
+	<!-- Build Settings -->
+	<!-- ======================================================= -->
+	<properties>
+		<jdkVersion>1.7</jdkVersion>
+		<project.build.javaVersion>${jdkVersion}</project.build.javaVersion>
+		<maven.compile.targetLevel>${jdkVersion}</maven.compile.targetLevel>
+		<maven.compile.sourceLevel>${jdkVersion}</maven.compile.sourceLevel>
+		<ri.version>1.0.2</ri.version><!-- NOT for common -->
+		<se.version>1.0.6</se.version><!-- NOT for common -->
+		<lib.version>${project.version}</lib.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>tec.units</groupId>
+				<artifactId>unit-ri</artifactId>
+				<version>${ri.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- ======================================================= -->
+				<!-- Compilation -->
+				<!-- ======================================================= -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>${project.build.javaVersion}</source>
+						<target>${project.build.javaVersion}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+
+				<!-- ======================================================= -->
+				<!-- JAR packaging -->
+				<!-- ======================================================= -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<configuration>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							</manifest>
+							<manifestEntries>
+								<Specification-Title>Units of Measurement Demos</Specification-Title>
+								<Specification-Version>${project.version}</Specification-Version>
+								<Specification-Vendor>${project.organization.name}</Specification-Vendor>
+								<Implementation-Vendor>Unit-API contributors</Implementation-Vendor>
+								<Implementation-URL>${project.organization.url}</Implementation-URL>
+							</manifestEntries>
+						</archive>
+					</configuration>
+				</plugin>
+
+				<!-- ======================================================= -->
+				<!-- Source attachment -->
+				<!-- ======================================================= -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>2.2.1</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<phase>package</phase>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>bintray-release</id>
+			<name>oss-jfrog-artifactory-release</name>
+			<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>bintray-snapshot</id>
+			<name>oss-jfrog-artifactory-snapshot</name>
+			<url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+		</snapshotRepository>
+		<site>
+			<id>unitsofmeasurement</id>
+			<url>scp://www.unitsofmeasurement.org/www/docs/lib/</url>
+		</site>
+	</distributionManagement>
+
+	<!-- Additional repositories -->
+	<!-- Helps to resolve Parent POM -->
+	<repositories>
+		<repository>
+            		<id>jcenter</id>
+            		<name>JCenter</name>
+            		<url>http://jcenter.bintray.com</url>
+        	</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-release</id>
+			<name>libs-release</name>
+			<url>http://oss.jfrog.org/artifactory/libs-release</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>bintray-snapshot</id>
+			<name>libs-snapshot</name>
+			<url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+		</repository>
+	</repositories>
+</project>

@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-parent</artifactId>
+        <version>4.0.5</version>
+    </parent>
+
+    <artifactId>datanucleus-jodatime</artifactId>
+    <version>4.1.1</version>
+
+    <name>DataNucleus Jodatime plugin</name>
+    <description>
+        Plugin providing DataNucleus support for Jodatime types.
+    </description>
+
+    <properties>
+        <dn.core.version>4.1.0-release</dn.core.version>
+        <dn.rdbms.version>4.1.0-release</dn.rdbms.version>
+        <jodatime.version>2.0</jodatime.version>
+    </properties>
+
+    <scm>
+        <connection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</developerConnection>
+        <url>https://github.com/datanucleus/${project.artifactId}</url>
+    </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>[${dn.core.version}, )</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-rdbms</artifactId>
+            <version>[${dn.rdbms.version}, )</version>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>${jodatime.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- Build process -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>org.datanucleus.store.types.jodatime;singleton:=true</Bundle-SymbolicName>
+                        <Import-Package>
+                            org.joda*;version="${jodatime.version}",
+                            org.datanucleus.store.rdbms*;version="${dn.rdbms.version}";resolution:=optional,,
+                            org.datanucleus*;version="${dn.core.version}",
+                            *;resolution:=optional
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

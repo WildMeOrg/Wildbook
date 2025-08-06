@@ -1,0 +1,22 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>servlets.com</groupId>
+  <artifactId>cos</artifactId>
+  <name>COS</name>
+  <version>05Nov2002</version>
+  <description>The O'Reilly Servlet Package (com.oreilly.servlet) by Jason Hunter
+    to accompany his book, Java Servlet Programming, including the
+    famous MultipartRequest and MultipartParser classes.</description>
+  <url>http://www.servlets.com/</url>
+  <licenses>
+    <license>
+      <name>Jason Hunter License</name>
+      <url>http://www.servlets.com/cos/license.html</url>
+      <comments>Commercial use restricted; see license for details.</comments>
+    </license>
+  </licenses>
+  <organization>
+    <name>servlets.com</name>
+    <url>http://www.servlets.com/</url>
+  </organization>
+</project>

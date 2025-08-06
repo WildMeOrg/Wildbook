@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.eclipse.emf</groupId>
+  <artifactId>org.eclipse.emf.common</artifactId>
+  <version>2.15.0</version>
+  <name>org.eclipse.emf.common</name>
+  <description>EMF Common</description>
+  <url>http://www.eclipse.org/emf</url>
+  <licenses>
+    <license>
+      <name>The Eclipse Public License Version 1.0</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>eclipse</id>
+      <name>Eclipse.org</name>
+      <email>info@eclipse.org</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>git://git.eclipse.org/gitroot/emf/org.eclipse.emf.git/</connection>
+    <url>http://git.eclipse.org/c/emf/org.eclipse.emf.git/</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>org.eclipse.platform</groupId>
+      <artifactId>org.eclipse.core.runtime</artifactId>
+      <version>[3.6.0,4.0.0)</version>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+</project>

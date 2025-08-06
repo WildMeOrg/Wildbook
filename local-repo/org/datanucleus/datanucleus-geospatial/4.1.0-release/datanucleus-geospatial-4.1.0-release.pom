@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-parent</artifactId>
+        <version>4.0.5</version>
+    </parent>
+
+    <artifactId>datanucleus-geospatial</artifactId>
+    <version>4.1.0-release</version>
+
+    <name>DataNucleus Geospatial</name>
+    <description>DataNucleus Geospatial</description>
+
+    <scm>
+        <connection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</developerConnection>
+        <url>https://github.com/datanucleus/${project.artifactId}</url>
+    </scm>
+
+    <properties>
+        <jdo.version>3.0</jdo.version>
+        <dn.core.version>4.1.0-release</dn.core.version>
+        <dn.api.jdo.version>4.1.0-release</dn.api.jdo.version>
+        <dn.rdbms.version>4.1.0-release</dn.rdbms.version>
+    </properties>
+
+    <repositories>
+        <!-- For any artifacts that aren't present in Maven Central -->
+        <repository>
+            <id>DN_M2_Repo</id>
+            <url>http://www.datanucleus.org/downloads/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>[${dn.core.version}, )</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-api-jdo</artifactId>
+            <version>[${dn.api.jdo.version}, )</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-rdbms</artifactId>
+            <version>[${dn.rdbms.version}, )</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.jdo</groupId>
+            <artifactId>jdo-api</artifactId>
+            <version>[${jdo.version}, )</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.3</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>sdoapi</artifactId>
+            <version>11.2.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>sdoutl</artifactId>
+            <version>11.2.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.vividsolutions</groupId>
+            <artifactId>jts</artifactId>
+            <version>1.12</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.vividsolutions</groupId>
+            <artifactId>jtsio</artifactId>
+            <version>1.12</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.1-901-1.jdbc4</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.postgis</groupId>
+            <artifactId>postgis-jdbc</artifactId>
+            <version>2.1.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>postgis</groupId>
+            <artifactId>postgis-jdbc-jts</artifactId>
+            <version>1.1.5</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.8.7</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>org.datanucleus.store.types.geospatial;singleton:=true</Bundle-SymbolicName>
+                        <Import-Package>
+                            javax.jdo*;version="${jdo.version}",
+                            org.datanucleus.api.jdo*;version="${dn.api.jdo.version}";resolution:=optional,
+                            org.datanucleus.store.rdbms*;version="${dn.rdbms.version}";resolution:=optional,
+                            org.datanucleus*;version="${dn.core.version}",
+                            *;resolution:=optional
+                        </Import-Package>
+                        <Export-Package>org.datanucleus*</Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

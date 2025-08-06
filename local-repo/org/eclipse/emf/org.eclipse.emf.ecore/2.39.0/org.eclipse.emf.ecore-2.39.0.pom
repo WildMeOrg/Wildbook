@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.eclipse.emf</groupId>
+  <artifactId>org.eclipse.emf.ecore</artifactId>
+  <version>2.39.0</version>
+  <name>EMF Ecore</name>
+  <description>EMF Ecore</description>
+  <url>https://github.com/eclipse-emf/org.eclipse.emf/</url>
+  <organization>
+    <name>Eclipse Foundation</name>
+    <url>https://www.eclipse.org</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>EPL-2.0</name>
+      <url>https://www.eclipse.org/legal/epl-2.0/</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <url>https://github.com/eclipse-emf/org.eclipse.emf/graphs/contributors</url>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:https://github.com/eclipse-emf/org.eclipse.emf.git</connection>
+    <developerConnection>scm:git:https://github.com/eclipse-emf/org.eclipse.emf.git</developerConnection>
+    <tag>1d0db25a697e26d05dd99bb735266004e5378af7</tag>
+    <url>https://github.com/eclipse-emf/org.eclipse.emf/tree/1d0db25a697e26d05dd99bb735266004e5378af7/plugins/org.eclipse.emf.ecore</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/eclipse-emf/org.eclipse.emf/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.eclipse.platform</groupId>
+      <artifactId>org.eclipse.core.runtime</artifactId>
+      <version>[3.9.0,4.0.0)</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.emf</groupId>
+      <artifactId>org.eclipse.emf.common</artifactId>
+      <version>2.42.0</version>
+      <optional>false</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.platform</groupId>
+      <artifactId>org.eclipse.core.resources</artifactId>
+      <version>[3.8.0,4.0.0)</version>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+</project>

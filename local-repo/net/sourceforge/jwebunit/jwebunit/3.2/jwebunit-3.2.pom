@@ -1,0 +1,553 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.sourceforge.jwebunit</groupId>
+    <artifactId>jwebunit</artifactId>
+    <name>JWebUnit</name>
+    <version>3.2</version>
+    <packaging>pom</packaging>
+    <description>
+        JWebUnit is a Java framework that facilitates creation of
+        acceptance tests for web applications. It evolved from a project
+        where we were using HttpUnit and JUnit to create acceptance
+        tests. As the tests were being written, they were continuously
+        refactored to remove duplication and other bad smells in the
+        test code. JWebUnit is the result of these refactorings.
+    </description>
+    <url>http://jwebunit.sourceforge.net</url>
+    <issueManagement>
+        <system>sourceforge</system>
+        <url>http://sourceforge.net/tracker/?group_id=61302</url>
+    </issueManagement>
+    <inceptionYear>2002</inceptionYear>
+    <prerequisites>
+      <maven>2.2.1</maven>
+    </prerequisites>
+    <modules>
+        <module>jwebunit-code-generator</module>
+        <module>jwebunit-core</module>
+        <module>jwebunit-commons-tests</module>
+        <module>jwebunit-htmlunit-plugin</module>
+        <module>jwebunit-webdriver-plugin</module>
+    </modules>
+    <mailingLists>
+        <mailingList>
+            <name>JWebUnit Development Mailing list</name>
+            <subscribe>
+                http://lists.sourceforge.net/lists/listinfo/jwebunit-development
+            </subscribe>
+            <unsubscribe>
+                http://lists.sourceforge.net/lists/listinfo/jwebunit-development
+            </unsubscribe>
+            <archive>
+                http://sourceforge.net/mailarchive/forum.php?forum_name=jwebunit-development
+            </archive>
+            <post>jwebunit-development@lists.sourceforge.net</post>
+        </mailingList>
+        <mailingList>
+            <name>JWebUnit User Mailing list</name>
+            <subscribe>
+                http://lists.sourceforge.net/lists/listinfo/jwebunit-users
+            </subscribe>
+            <unsubscribe>
+                http://lists.sourceforge.net/lists/listinfo/jwebunit-users
+            </unsubscribe>
+            <archive>
+                http://sourceforge.net/mailarchive/forum.php?forum_name=jwebunit-users
+            </archive>
+            <post>jwebunit-users@lists.sourceforge.net</post>
+        </mailingList>
+    </mailingLists>
+    <developers>
+        <developer>
+            <id>henryju</id>
+            <name>Julien Henry</name>
+            <email>henryju at users.sourceforge.net</email>
+            <url />
+            <organization>SonarSource</organization>
+            <organizationUrl>http://www.sonarsource.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>joshlane</id>
+            <name>Josh Lane</name>
+            <email>joshlane at users.sourceforge.net</email>
+            <url />
+            <organization>Brontes Technologies</organization>
+            <organizationUrl>
+                http://solutions.3m.com/wps/portal/3M/en_US/LavaCOS/3MESPE-LavaCOS/
+            </organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
+        <developer>
+            <id>jevonwright</id>
+            <name>Jevon Wright</name>
+            <email>jevonwright at users.sourceforge.net</email>
+            <url>http://www.jevon.org</url>
+            <organization />
+            <organizationUrl />
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+13</timezone>
+        </developer>
+    </developers>
+    <contributors>
+        <contributor>
+            <name>Jim Weaver</name>
+            <email>jimweaver at users.sourceforge.net</email>
+            <organization>Thoughtworks</organization>
+            <roles>
+                <role>All-Hands person</role>
+            </roles>
+            <timezone>-5</timezone>
+        </contributor>
+        <contributor>
+            <name>Wilkes Joiner</name>
+            <email>wilkesj at users.sourceforge.net</email>
+            <organization />
+            <roles>
+                <role>All-Hands person</role>
+            </roles>
+        </contributor>
+        <contributor>
+            <name>Vivek Venugopalan</name>
+            <email>vivek at magic hypen cauldron dot com</email>
+            <url>http://www.magic-cauldron.com</url>
+            <organization />
+            <roles>
+                <role>All-Hands person</role>
+            </roles>
+            <timezone>+5.5</timezone>
+        </contributor>
+        <contributor>
+            <name>Martijn Dashorst</name>
+            <email>dashorst at users.sourceforge.net</email>
+            <url>http://www.dashorst.dds.nl</url>
+            <organization>Topicus B.V.</organization>
+            <roles>
+                <role>All-Hands person</role>
+            </roles>
+            <timezone>+1</timezone>
+        </contributor>
+        <contributor>
+            <name>Nicholas Neuberger</name>
+            <email>nneuberger at users.sourceforge.net</email>
+            <url />
+            <organization>Sunshine Solar</organization>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>-6</timezone>
+        </contributor>
+        <contributor>
+            <name>Jon Frisby</name>
+            <email>jfrisby@mac.com</email>
+            <url />
+            <organization />
+            <organizationUrl />
+            <roles />
+            <timezone />
+            <properties />
+        </contributor>
+        <contributor>
+            <name>Fred Burlet</name>
+            <email>fburlet@kiala.com</email>
+            <url />
+            <organization />
+            <organizationUrl />
+            <roles />
+            <timezone />
+            <properties />
+        </contributor>
+        <contributor>
+            <name>Mike C</name>
+            <email>mtc3bmtc3b at users.sourceforge.net</email>
+            <url />
+            <organization />
+            <organizationUrl />
+            <roles />
+            <timezone />
+            <properties />
+        </contributor>
+    </contributors>
+    <licenses>
+        <license>
+            <name>LGPL License</name>
+            <url>${topDirectoryLocation}/LICENSE.txt</url>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:svn:http://jwebunit.svn.sourceforge.net/svnroot/jwebunit/tags/jwebunit-3.2</connection>
+        <developerConnection>scm:svn:https://jwebunit.svn.sourceforge.net/svnroot/jwebunit/tags/jwebunit-3.2</developerConnection>
+        <url>http://jwebunit.svn.sourceforge.net/viewvc/jwebunit/tags/jwebunit-3.2</url>
+    </scm>
+    <organization>
+        <name>SourceForge</name>
+        <url>http://sourceforge.net</url>
+    </organization>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                    <configuration>
+                        <source>1.6</source>
+                        <target>1.6</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>2.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>2.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.17</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.8.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.2.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>2.4</version>
+                    <configuration>
+                        <attach>false</attach>
+                        <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
+                        <descriptors>
+                            <descriptor>src/assemble/release.xml</descriptor>
+                        </descriptors>
+                        <descriptorRefs>
+                            <descriptorRef>source-release</descriptorRef>
+                        </descriptorRefs>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.apache.resources</groupId>
+                            <artifactId>apache-source-release-assembly-descriptor</artifactId>
+                            <version>1.0.4</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <preparationGoals>clean install</preparationGoals>
+                        <mavenExecutorId>forked-path</mavenExecutorId>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>javacc-maven-plugin</artifactId>
+                    <version>2.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>1.2.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.3</version>
+                    <dependencies>
+                        <dependency><!-- add support for ssh/scp -->
+                            <groupId>org.apache.maven.wagon</groupId>
+                            <artifactId>wagon-ssh</artifactId>
+                            <version>2.6</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9.1</version>
+                    <configuration>
+                        <quiet>true</quiet>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.9.0</version>
+                <configuration>
+                    <header>${topDirectoryLocation}/src/license/header.txt</header>
+                    <aggregate>false</aggregate>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <strictCheck>true</strictCheck>
+                    <excludes>
+                        <exclude>src/license/header.txt</exclude>
+                        <exclude>LICENSE.txt</exclude>
+                        <exclude>README.txt</exclude>
+                        <exclude>COPYING*</exclude>
+                        <exclude>src/test/clover/clover.license</exclude>
+                        <exclude>src/site/resources/images/jwebunit-architecture.odg</exclude>
+                        <exclude>src/main/javacc/WebTestCase.jj</exclude>
+                        <exclude>src/main/javacc/JWebUnit.jj</exclude>
+                        <exclude>src/main/javacc/Token.java</exclude>
+                        <exclude>src/main/resources/testcases/CharsetTest/charset.html_utf-8</exclude>
+                        <exclude>src/main/resources/testcases/NonHtmlContentTest/text.bin</exclude>
+                        <exclude>src/main/resources/testcases/FramesAndWindowsTest/TopFrame.html</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changes-plugin</artifactId>
+                <version>2.9</version>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>validate-changes</id>
+                        <phase>pre-site</phase>
+                        <goals>
+                            <goal>changes-validate</goal>
+                        </goals>
+                        <configuration>
+                            <failOnError>true</failOnError>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <properties>
+        <topDirectoryLocation>.</topDirectoryLocation>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-core</artifactId>
+                <version>1.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>1.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>8.1.7.v20120910</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.6.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>1.6.6</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.0.6</version>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>1.9.0</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.12</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jdepend-maven-plugin</artifactId>
+                <version>2.0-beta-2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changes-plugin</artifactId>
+                <version>2.7.1</version>
+                <inherited>false</inherited>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>changes-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+                <configuration>
+                    <issueLinkTemplatePerSystem>
+                        <sourceforge>http://sourceforge.net/support/tracker.php?aid=%ISSUE%</sourceforge>
+                    </issueLinkTemplatePerSystem>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8.1</version>
+                <reportSets>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <configuration>
+                            <excludePackageNames>net.sourceforge.jwebunit.javacc:net.sourceforge.jwebunit.tests</excludePackageNames>
+                            <links>
+                                <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
+                                <link>http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
+                                <link>http://kentbeck.github.com/junit/javadoc/latest/</link>
+                                <link>http://htmlunit.sourceforge.net/apidocs/</link>
+                            </links>
+                            <groups>
+                                <group>
+                                    <title>Core Packages</title>
+                                    <packages>net.sourceforge.jwebunit.api*:net.sourceforge.jwebunit.junit*:net.sourceforge.jwebunit.exception*:net.sourceforge.jwebunit.html*:net.sourceforge.jwebunit.javascript*:net.sourceforge.jwebunit.util*</packages>
+                                </group>
+                                <group>
+                                    <title>HtmlUnit Packages</title>
+                                    <packages>net.sourceforge.jwebunit.htmlunit*</packages>
+                                </group>
+                                <group>
+                                    <title>Selenium Packages</title>
+                                    <packages>net.sourceforge.jwebunit.selenium*</packages>
+                                </group>
+                            </groups>
+                        </configuration>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.4</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>project-team</report>
+                            <report>mailing-list</report>
+                            <report>license</report>
+                            <report>issue-tracking</report>
+                            <report>scm</report>
+                            <report>summary</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+    <distributionManagement>
+        <site>
+            <id>jwebunit-website</id>
+            <name>JWebUnit WebSite - Sourceforge</name>
+            <url>
+                scp://shell.sourceforge.net/home/project-web/jwebunit/htdocs
+            </url>
+        </site>
+        <snapshotRepository>
+            <id>sonatype-nexus</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <name>Sonatype Nexus OSS Snapshot Repository</name>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus</id>
+            <url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <name>Sonatype Nexus OSS Staging Repository</name>
+        </repository>
+    </distributionManagement>
+</project>

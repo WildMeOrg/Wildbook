@@ -1,0 +1,275 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>systems-parent</artifactId>
+	<groupId>systems.uom</groupId>
+	<version>0.7.2</version>
+	<parent>
+		<groupId>tec.uom</groupId>
+		<artifactId>uom-parent</artifactId>
+		<version>1.0.4</version>
+	</parent>
+	<packaging>pom</packaging>
+	<name>Units of Measurement Systems Parent</name>
+	<url>http://www.uom.systems</url>
+	<organization>
+		<name>Units of Measurement project</name>
+		<url>http://uom.technology</url>
+	</organization>
+	<description>Parent POM for Unit Systems</description>
+	<licenses>
+		<license>
+			<name>BSD</name>
+			<url>LICENSE</url>
+		</license>
+	</licenses>
+
+	<!-- ======================================================= -->
+	<!-- Build Settings -->
+	<!-- ======================================================= -->
+	<properties>
+		<jdkVersion>1.7</jdkVersion>
+		<jsr.version>1.0</jsr.version>
+		<lib.version>1.0.2</lib.version>
+		<ri.version>1.0.3</ri.version>
+		<se.version>1.0.8</se.version>
+		<si.version>0.7.1</si.version>
+		<quantity.version>0.7.2</quantity.version>
+		<systems.version>0.7.2</systems.version>
+		<project.build.javaVersion>${jdkVersion}</project.build.javaVersion>
+		<maven.compile.targetLevel>${jdkVersion}</maven.compile.targetLevel>
+		<maven.compile.sourceLevel>${jdkVersion}</maven.compile.sourceLevel>
+	</properties>
+
+	<modules>
+		<module>quantity</module> 
+		<module>common</module>
+		<module>common-java8</module>
+		<module>unicode</module>
+		<module>unicode-java8</module>
+		<module>ucum-java8</module>
+	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- ======================================================= -->
+				<!-- Compilation -->
+				<!-- ======================================================= -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>${project.build.javaVersion}</source>
+						<target>${project.build.javaVersion}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+
+				<!-- ======================================================= -->
+				<!-- JAR packaging -->
+				<!-- ======================================================= -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<configuration>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							</manifest>
+							<manifestEntries>
+								<Specification-Title>Units of Measurement Systems</Specification-Title>
+								<Specification-Version>${project.version}</Specification-Version>
+								<Specification-Vendor>${project.organization.name}</Specification-Vendor>
+								<Implementation-Vendor>Units of Measurement contributors</Implementation-Vendor>
+								<Implementation-URL>${project.organization.url}</Implementation-URL>
+							</manifestEntries>
+						</archive>
+					</configuration>
+				</plugin>
+
+				<!-- ======================================================= -->
+				<!-- JavaDoc Attachment -->
+				<!-- ======================================================= -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<detectLinks>true</detectLinks>
+						<keywords>true</keywords>
+						<linksource>true</linksource>
+						<failOnError>false</failOnError>
+						<source>${maven.compile.sourceLevel}</source>
+						<verbose>true</verbose>
+					</configuration>
+				</plugin>
+				
+				<!-- ======================================================= -->
+                <!-- Maven License Plugin -->
+                <!-- ======================================================= -->
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <configuration>
+                        <header>src/main/config/header.txt</header>
+                        <properties>
+                            <owner>Jean-Marie Dautelle, Werner Keil and others</owner>
+                            <currentYear>2017</currentYear>
+                        </properties>
+                        <excludes>
+                            <exclude>**/README</exclude>
+                            <exclude>**/pom.xml</exclude>
+                            <exclude>**/settings.xml</exclude>
+                            <exclude>src/test/resources/**</exclude>
+                            <exclude>src/main/resources/**</exclude>
+                            <exclude>src/main/config/**</exclude>
+                            <exclude>src/etc/**</exclude>
+                            <exclude>*.css</exclude>
+                            <exclude>*.editorconfig</exclude>
+                            <exclude>*.jpg</exclude>
+                            <exclude>*.png</exclude>
+                            <exclude>*.yml</exclude>
+                        </excludes>
+                        <headerDefinitions>
+                            <headerDefinition>src/main/config/headers.xml</headerDefinition>
+                        </headerDefinitions>
+                        <mapping>
+                            <java>JAVA_STYLE</java>
+                        </mapping>
+                    </configuration>
+                </plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<!-- Dependency Management -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>si.uom</groupId>
+				<artifactId>si-quantity</artifactId>
+				<version>${si.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>si.uom</groupId>
+				<artifactId>si-units</artifactId>
+				<version>${si.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>si.uom</groupId>
+				<artifactId>si-units-java8</artifactId>
+				<version>${si.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<distributionManagement>
+		<repository>
+			<id>bintray-release</id>
+			<name>oss-jfrog-artifactory-release</name>
+			<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>bintray-snapshot</id>
+			<name>oss-jfrog-artifactory-snapshot</name>
+			<url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+		</snapshotRepository>
+		<site>
+			<id>unitsofmeasurement.github.io</id>
+			<url>scp://unitsofmeasurement.github.io/www/docs/lib/</url>
+		</site>
+	</distributionManagement>
+
+	<!-- Additional repositories -->
+	<!-- Helps to resolve Parent POM and Snapshot artifacts -->
+	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<name>JCenter</name>
+			<url>http://jcenter.bintray.com</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-release</id>
+			<name>libs-release</name>
+			<url>http://oss.jfrog.org/artifactory/libs-release</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>bintray-snapshot</id>
+			<name>libs-snapshot</name>
+			<url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+		</repository>
+	</repositories>
+
+	<profiles>
+		<profile>
+			<id>p2</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.reficio</groupId>
+						<artifactId>p2-maven-plugin</artifactId>
+						<version>1.2.0</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<configuration>
+									<artifacts>
+										<!-- specify your depencies here -->
+										<artifact>
+											<id>javax.measure:unit-api:${jsr.version}</id>
+										</artifact>
+										<artifact>
+											<id>tec.uom.lib:uom-lib-common:${lib.version}</id>
+										</artifact>
+										<artifact>
+											<id>tec.uom:uom-se:${se.version}</id>
+										</artifact>
+										<artifact>
+											<id>si.uom:si-quantity:${si.version}</id>
+										</artifact>
+										<artifact>
+											<id>si.uom:si-units-java8:${si.version}</id>
+										</artifact>
+										<artifact>
+											<id>systems.uom:systems-quantity:${quantity.version}</id>
+										</artifact>
+										<artifact>
+											<id>systems.uom:systems-common-java8:${systems.version}</id>
+										</artifact>
+										<artifact>
+											<id>systems.uom:systems-unicode-java8:${systems.version}</id>
+										</artifact>
+										<artifact>
+										  <id>systems.uom:systems-ucum-java8:${systems.version}</id>
+										</artifact>
+									</artifacts>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+			<pluginRepositories>
+				<pluginRepository>
+					<id>reficio</id>
+					<url>http://repo.reficio.org/maven/</url>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+	</profiles>
+</project>
