@@ -1085,12 +1085,13 @@ try{
 		    %>
 
 		    <p><strong>Delete this bulk import?</strong></p>
-		    	<div style="margin-bottom: 20px;">
-		    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
-		              	<input name="taskID" type="hidden" value="<%=itask.getId()%>" />
-		              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" style="background-color: yellow;" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
-		        	</form>
-		    	</div>
+			<div style="margin-bottom: 20px;">
+				<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
+					<input name="taskID" type="hidden" value="<%=itask.getId()%>" />
+					<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" style="background-color: yellow;" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
+				</form>
+			</div>
+
 			<div class="ia-match-filter-dialog">
 			<h2><%=encprops.getProperty("matchFilterHeader")%></h2>
 			<%
