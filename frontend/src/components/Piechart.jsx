@@ -25,18 +25,19 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
     <div
       style={{
         width: "100%",
-        height: 300,
+        height: "450px",    
       }}
     >
       <p style={{ textAlign: "center", color: "white" }}>{title}</p>
-      <ResponsiveContainer>
-        <PieChart>
+      <ResponsiveContainer width="100%" height="100%">
+        
+        <PieChart margin={{ top: 0, right: 0, bottom: 80, left: 0 }}>
           <Pie
             data={data}
             dataKey="value"
             nameKey="name"
             cx="50%"
-            cy="50%"
+            cy="40%"
             outerRadius={100}
             innerRadius={0}
             labelLine={false}
@@ -59,9 +60,9 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
           />
 
           <Legend
-            layout="vertical"
-            verticalAlign="middle"
-            align="right"
+            layout="horizontal"
+            verticalAlign="bottom"
+            align="center"
             iconType="circle"
             wrapperStyle={{ color: "#fff" }}
           />

@@ -5,6 +5,7 @@ import Piechart from "../../../components/Piechart";
 import Linechart from "../../../components/Linechart";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
+import { Row, Col } from "react-bootstrap";
 
 const processData = (data) => {
   const counts = data.reduce((acc, curr) => {
@@ -34,7 +35,7 @@ const ChartView = observer(({ store }) => {
 
   const weeklyEncounterDates = store.calculateWeeklyDates(
     store.searchResultsAll.map((item) => item.date),
-  ).map(({ week,count }) => ({
+  ).map(({ week, count }) => ({
     name: week,
     value: count,
   }));
@@ -62,16 +63,20 @@ const ChartView = observer(({ store }) => {
         <FormattedMessage id="CHART_VIEW" />
       </h2>
 
-      <div className="d-flex flex-row justify-content-between">
-        <Piechart
-          title="SEARCH_RESULTS_SEX_DISTRIBUTION"
-          data={sexDistributionData}
-        />
-        <Piechart
-          title="SEARCH_RESULTS_SPECIES_DISTRIBUTION"
-          data={speciesDistributionData}
-        />
-      </div>
+      <Row className="g-4">
+        <Col xs={12} md={6}>
+          <Piechart
+            title="SEARCH_RESULTS_SEX_DISTRIBUTION"
+            data={sexDistributionData}
+          />
+        </Col>
+        <Col xs={12} md={6}>
+          <Piechart
+            title="SEARCH_RESULTS_SPECIES_DISTRIBUTION"
+            data={speciesDistributionData}
+          />
+        </Col>
+      </Row>
       <VerticalBarChart data={countryDistributionData} />
       <HorizontalBarChart
         title="SEARCH_RESULTS_MEASUREMENTS"
