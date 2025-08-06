@@ -6,7 +6,6 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.ecocean.resumableupload.UploadServlet;
 
 import java.io.*;
-import java.io.File;
 import java.util.*;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -1565,7 +1564,7 @@ public class StandardImport extends HttpServlet {
         String userFilename = localPath;
         System.out.println("     localPath/userFilename: " + userFilename);
         if (Util.stringExists(localPath)) {
-            localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
+            localPath = localPath.replaceAll("[^a-zA-Z0-9._\\- ]", "");
         }
         System.out.println("     localPath2: " + localPath);
         if (isUserUpload) {
