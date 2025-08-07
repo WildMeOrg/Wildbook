@@ -59,6 +59,7 @@ private String fixTaxonomy(String orig) {
 
 private Embedding findEmbedding(JSONArray arr, String id) {
     JSONArray embArr = null;
+    //Util.mark("findEmbedding id=" + id + "; len=" + arr.length());
     for (int i = 0 ; i < arr.length() ; i++) {
         JSONObject jemb = arr.optJSONObject(i);
         if (jemb.optString("annot_uuid", null).equals(id)) {
@@ -66,7 +67,8 @@ private Embedding findEmbedding(JSONArray arr, String id) {
             i = arr.length() + 1;
         }
     }
-    if (embArr == null) throw new RuntimeException("could not find embedding array for id=" + id);
+    //if (embArr == null) throw new RuntimeException("could not find embedding array for id=" + id);
+    if (embArr == null) return null;
     Embedding emb = new Embedding(null, "miewID", null, embArr);
     return emb;
 }
@@ -93,13 +95,20 @@ try {
 } catch (Exception ex) {}
 
 
-File annotationJsonFile = new File("/data/wildbook_data_dir/annot.json");
-File embeddingV2JsonFile = new File("/data/wildbook_data_dir/embed-v2.json");
-File embeddingV3JsonFile = new File("/data/wildbook_data_dir/embed-v3.json");
+File annotationJsonFile = new File("/data/wildbook_data_dir/annot-train.json");
+File embeddingV2JsonFile = new File("/data/wildbook_data_dir/embed-v2-train.json");
+File embeddingV3JsonFile = new File("/data/wildbook_data_dir/embed-v3-train.json");
 
+long t = System.currentTimeMillis();
 JSONObject annotationJson = new JSONObject(Util.readFromFile(annotationJsonFile.toString()));
+Util.mark("read annot json", t);
+t = System.currentTimeMillis();
 JSONArray embeddingV2Arr = new JSONArray(Util.readFromFile(embeddingV2JsonFile.toString()));
+Util.mark("read embedv2 json", t);
+t = System.currentTimeMillis();
 JSONArray embeddingV3Arr = new JSONArray(Util.readFromFile(embeddingV3JsonFile.toString()));
+Util.mark("read embedv3 json", t);
+t = System.currentTimeMillis();
 
 JSONArray annotArr = annotationJson.optJSONArray("annotations");
 JSONArray imageArr = annotationJson.optJSONArray("images");
@@ -159,9 +168,11 @@ for (int i = 0 ; i < annotArr.length() ; i++) {
     ann.setMatchAgainst(true);
 
     Embedding embV2 = findEmbedding(embeddingV2Arr, annId);
+    if (embV2 == null) continue;
     embV2.setMethodVersion("v2");
     embV2.setAnnotation(ann);
     Embedding embV3 = findEmbedding(embeddingV3Arr, annId);
+    if (embV2 == null) continue;
     embV3.setMethodVersion("v3");
     embV3.setAnnotation(ann);
 
@@ -190,6 +201,7 @@ for (int i = 0 ; i < annotArr.length() ; i++) {
     if (indiv != null) myShepherd.getPM().makePersistent(indiv);
 
     ct++;
+    if (ct % 100 == 0) Util.mark("create ct=" + ct, t);
     out.println("<hr /><p>(" + ct + ")</p>");
     out.println("<p><a target=\"_blank\" href=\"/obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\"><b>" + ma + "</b></a></p>");
     out.println("<p><b>" + ann + "</b></p>");
