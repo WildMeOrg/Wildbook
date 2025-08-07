@@ -24,13 +24,13 @@ const ChartView = observer(({ store }) => {
     (item) => item.measurements || [],
   );
   const sexDistributionData = processData(
-    store.searchResultsAll.map((item) => item.sex || "unknown"),
+    store.searchResultsAll.map((item) => item.sex).filter(sex => sex),
   );
   const speciesDistributionData = processData(
-    store.searchResultsAll.map((item) => item.taxonomy || "unknown"),
+    store.searchResultsAll.map((item) => item.taxonomy).filter(species => species),
   );
   const countryDistributionData = processData(
-    store.searchResultsAll.map((item) => item.country || "unknown"),
+    store.searchResultsAll.map((item) => item.country).filter(country => country),
   );
 
   const weeklyEncounterDates = store.calculateWeeklyDates(
@@ -39,6 +39,18 @@ const ChartView = observer(({ store }) => {
     name: week,
     value: count,
   }));
+
+  const haploTypesDistributionData = processData(
+    store.searchResultsAll.map((item) => item.haplotype).filter(haplo => haplo),
+  );
+
+  const assignedUserDistributionData = processData(
+    store.searchResultsAll.map((item) => item.assignedUsername).filter(user => user),
+  );
+
+  const stateDistributionData = processData(
+    store.searchResultsAll.map((item) => item.state).filter(state => state),
+  );
 
   if (store.loadingAll) {
     return (
@@ -66,6 +78,21 @@ const ChartView = observer(({ store }) => {
       <Row className="g-4">
         <Col xs={12} md={6}>
           <Piechart
+            title="SEARCH_RESULTS_STATE_DISTRIBUTION"
+            data={stateDistributionData}
+          />
+        </Col>
+        <Col xs={12} md={6}>
+          <Piechart
+            title="SEARCH_RESULTS_HAPLO_TYPES_DISTRIBUTION"
+            data={haploTypesDistributionData}
+          />
+        </Col>
+      </Row>
+      <VerticalBarChart data={countryDistributionData} />
+      <Row className="g-4">
+        <Col xs={12} md={6}>
+          <Piechart
             title="SEARCH_RESULTS_SEX_DISTRIBUTION"
             data={sexDistributionData}
           />
@@ -77,7 +104,7 @@ const ChartView = observer(({ store }) => {
           />
         </Col>
       </Row>
-      <VerticalBarChart data={countryDistributionData} />
+      <VerticalBarChart data={assignedUserDistributionData} />
       <HorizontalBarChart
         title="SEARCH_RESULTS_MEASUREMENTS"
         data={weeklyEncounterDates}

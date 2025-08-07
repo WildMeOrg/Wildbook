@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { FormattedMessage } from "react-intl";
 
 function generateHslColors(count) {
   return Array.from({ length: count }, (_, i) => {
@@ -21,16 +22,26 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
     [data.length],
   );
 
+
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ width: '100%', height: 300 }}>
+        <p><FormattedMessage id={title} /></p>
+        <p>No data available</p>
+      </div>
+    );
+  }  
+
   return (
     <div
       style={{
         width: "100%",
-        height: "450px",    
+        height: "450px",
       }}
     >
-      <p style={{ textAlign: "center", color: "white" }}>{title}</p>
+      <p><FormattedMessage id={title} /></p>
       <ResponsiveContainer width="100%" height="100%">
-        
+
         <PieChart margin={{ top: 0, right: 0, bottom: 80, left: 0 }}>
           <Pie
             data={data}
