@@ -10,6 +10,7 @@ import { useIntl } from "react-intl";
 import Calendar from "../pages/SearchPages/searchResultTabs/CalendarView";
 import { observer } from "mobx-react-lite";
 import ChartView from "../pages/SearchPages/searchResultTabs/ChartView";
+import { MappedResults } from "../pages/SearchPages/searchResultTabs/MappedResults";
 
 const customStyles = {
   rows: {
@@ -333,6 +334,25 @@ const MyDataTable = observer(
                 defaultMessage={"Chart View"}
               />
             </Button>
+            <Button
+              key={"map"}
+              variant="outline-tertiary"
+              className="me-1"
+              onClick={() => {
+                store.setActiveStep(3);
+                if (!store.hasFetchedAllEncounters) {
+                  refetchAllData();
+                }
+              }}
+              style={{
+                ...(store.activeStep === 3 ? activeStyle : inactiveStyle),
+              }}
+            >
+              <FormattedMessage
+                id="SEARCH_RESULTS_TABLE_MAP_VIEW"
+                defaultMessage={"Map View"}
+              />
+            </Button>
             {tabs.map((tab, index) => {
               return (
                 <Button
@@ -543,6 +563,14 @@ const MyDataTable = observer(
           }}
         >
           <ChartView store={store} />
+        </div>
+        <div
+          className="w-100"
+          style={{
+            display: store.activeStep === 3 ? "block" : "none",
+          }}
+        >
+          <MappedResults store={store} />
         </div>
       </div>
     );
