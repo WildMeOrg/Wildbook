@@ -1,11 +1,13 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
@@ -252,6 +254,21 @@ import org.json.JSONObject;
         }
         query.closeAll();
         return rtn;
+    }
+
+    public JSONObject opensearchDocumentAsJSONObject(Shepherd myShepherd)
+    throws IOException {
+        StringWriter sw = new StringWriter();
+        JsonFactory jf = new JsonFactory();
+        JsonGenerator jgen = jf.createGenerator(sw);
+
+        jgen.writeStartObject();
+        opensearchDocumentSerializer(jgen, myShepherd);
+        jgen.close();
+        jgen.getCurrentValue();
+        String jsonStr = sw.getBuffer().toString();
+        sw.close();
+        return new JSONObject(jsonStr);
     }
 
     // these two methods are kinda hacky needs for opensearchSyncIndex (e.g. the fact
