@@ -228,7 +228,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 taskShepherd.setAction("StandardImport.java_iTaskCommit1");
                 try {
                     taskShepherd.beginDBTransaction();
-                    User creator = getUserForRowOrCurrent(firstRow, taskShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback, request);
+                    Row creatorRow = sheet.getRow(1);
+                    User creator = getUserForRowOrCurrent(creatorRow, taskShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback, request);
                     ImportTask itask = new ImportTask(creator);
                     itask.setPassedParameters(request);
                     itask.setStatus("in-progress");
