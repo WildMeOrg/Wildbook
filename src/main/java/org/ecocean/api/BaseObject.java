@@ -41,6 +41,11 @@ public class BaseObject extends ApiBase {
         doPost(request, response);
     }
 
+    protected void doPatch(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        doPost(request, response);
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String uri = request.getRequestURI();
@@ -51,7 +56,7 @@ public class BaseObject extends ApiBase {
 
         JSONObject payload = null;
         String requestMethod = request.getMethod();
-        if (requestMethod.equals("POST")) {
+        if (requestMethod.equals("POST") || requestMethod.equals("PATCH")) {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
         }
         if (!ReCAPTCHA.sessionIsHuman(request)) {
@@ -64,11 +69,12 @@ public class BaseObject extends ApiBase {
         if (!(args[0].equals("encounters") || args[0].equals("individuals") || args[0].equals("occurrences")))
             throw new ServletException("Bad class");
  */
-        payload.put("_class", args[0]);
-
+        if (payload != null) payload.put("_class", args[0]);
         JSONObject rtn = null;
         if (requestMethod.equals("POST")) {
             rtn = processPost(request, args, payload);
+        } else if (requestMethod.equals("PATCH")) {
+            rtn = processPatch(request, args);
         } else if (requestMethod.equals("GET")) {
             rtn = processGet(request, args);
         } else {
@@ -226,6 +232,33 @@ public class BaseObject extends ApiBase {
     }
 
     protected JSONObject processGet(HttpServletRequest request, String[] args)
+    throws ServletException, IOException {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("success", false);
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.BaseObject.processGet");
+        myShepherd.beginDBTransaction();
+        User currentUser = myShepherd.getUser(request);
+        Base obj = null;
+        if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+        if (obj == null) {
+            rtn.put("statusCode", 404);
+            rtn.put("error", "not found");
+        } else if (!obj.canUserView(currentUser, myShepherd)) {
+            rtn.put("statusCode", 401);
+            rtn.put("error", "access denied");
+        } else {
+            rtn = obj.opensearchDocumentAsJSONObject(myShepherd);
+            rtn.put("statusCode", 200);
+            rtn.put("success", true);
+        }
+        myShepherd.rollbackAndClose();
+        return rtn;
+    }
+
+    protected JSONObject processPatch(HttpServletRequest request, String[] args)
     throws ServletException, IOException {
         JSONObject rtn = new JSONObject();
 

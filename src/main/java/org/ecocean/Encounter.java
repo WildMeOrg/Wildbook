@@ -3159,6 +3159,11 @@ public class Encounter extends Base implements java.io.Serializable {
         return isUserOwner(user);
     }
 
+    // this is just to override the signature on Base.java
+    @Override public boolean canUserEdit(User user, Shepherd myShepherd) {
+        return canUserEdit(user);
+    }
+
     public boolean isUserOwner(User user) { // the definition of this might change?
         if (user == null) return false;
         if ((submitters != null) && submitters.contains(user)) return true;
