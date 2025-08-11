@@ -3,18 +3,33 @@ import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
 import useGetSiteSettings from "../../../models/useGetSiteSettings"
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 
 export const MappedResults = observer(({ store }) => {
   const { data } = useGetSiteSettings();
   const mapCenterLat = data?.mapCenterLat || 51;
   const mapCenterLon = data?.mapCenterLon || 7;
   const mapZoom = data?.mapZoom || 4;
-//   const mapKey = data?.googleMapsKey || "";
-    const mapKey = "AIzaSyBp0XgdcCh6jF9B2OJtsL1JtYvT5zdrllk"; // Temporary hardcoded key for testing
+  const mapKey = data?.googleMapsKey || "";
   const mapRef = useRef(null);
-  const markerRef = useRef(null);
   const [map, setMap] = useState(null);
-  const [pan, setPan] = useState(false);
+  const markersRef = useRef([]);
+  const clustererRef = useRef(null);
+  const [locationData, setLocationData] = useState([]);
+
+  useEffect(() => {
+    if (store?.searchResultsAll) {
+      const locData = store?.searchResultsAll?.filter(
+        (result) => result?.occurrenceLocationGeoPoint && result?.occurrenceLocationGeoPoint.lat && result?.occurrenceLocationGeoPoint.lon
+      )
+        .map((result) => ({
+          lat: result?.occurrenceLocationGeoPoint?.lat,
+          lon: result?.occurrenceLocationGeoPoint?.lon,
+          title: result?.id || "",
+        })) || [];
+      setLocationData(locData);
+    }
+  }, [store?.searchResultsAll]);
 
   useEffect(() => {
     if (!mapKey) {
@@ -31,24 +46,6 @@ export const MappedResults = observer(({ store }) => {
           center: { lat: mapCenterLat, lng: mapCenterLon },
           zoom: mapZoom,
         });
-
-        // googleMap.addListener("click", (e) => {
-        //   setPan(false);
-        //   const lat = e.latLng.lat();
-        //   const lng = e.latLng.lng();
-        //   store.setLat(lat);
-        //   store.setLon(lng);
-
-        //   if (markerRef.current) {
-        //     markerRef.current.setPosition({ lat, lng });
-        //   } else {
-        //     markerRef.current = new window.google.maps.Marker({
-        //       position: { lat, lng },
-        //       map: googleMap,
-        //     });
-        //   }
-        // });
-
         setMap(googleMap);
       })
       .catch((error) => {
@@ -57,27 +54,36 @@ export const MappedResults = observer(({ store }) => {
   }, [mapCenterLat, mapCenterLon, mapZoom, mapKey]);
 
   useEffect(() => {
-    const lat = parseFloat(store.lat);
-    const lng = parseFloat(store.lon);
-
-    if (map && !isNaN(lat) && !isNaN(lng)) {
-      if (pan) {
-        map.panTo({ lat, lng });
-      }
-
-      if (markerRef.current) {
-        markerRef.current.setPosition({ lat, lng });
-      } else {
-        markerRef.current = new window.google.maps.Marker({
-          position: { lat, lng },
-          map: map,
-        });
-      }
-    } else if (markerRef.current) {
-      markerRef.current.setMap(null);
-      markerRef.current = null;
+    if (!map) {
+      return;
     }
-  }, [store.lat, store.lon, map, pan]);
+
+    if (clustererRef.current) {
+      clustererRef.current.clearMarkers();
+      clustererRef.current = null;
+    }
+
+    if (markersRef.current.length > 0) {
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
+    }
+
+    const points = locationData.filter(p => p && !isNaN(p.lat) && !isNaN(p.lon));
+    if (points.length === 0) {
+      return;
+    }
+
+    markersRef.current = points.map((point) => new window.google.maps.Marker({
+      position: { lat: parseFloat(point.lat), lng: parseFloat(point.lon) },
+      title: point.title || "",
+    }));
+
+    clustererRef.current = new MarkerClusterer({
+      map,
+      markers: markersRef.current,
+      // imagePath: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m",
+    });
+  }, [map, locationData]);
 
   return (
     <div>
