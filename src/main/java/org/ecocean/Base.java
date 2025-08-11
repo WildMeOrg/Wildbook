@@ -84,6 +84,15 @@ import org.json.JSONObject;
     // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
     // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
 
+    // these should/must be overridden. they are used for generic access control, like in api/ApiBase.java
+    public boolean canUserView(User user, Shepherd myShepherd) {
+        return false;
+    }
+
+    public boolean canUserEdit(User user, Shepherd myShepherd) {
+        return false;
+    }
+
     // this allows us to delay indexing during heavy activity which triggers auto-indexing
     // via lifecycle persisting triggers e.g. during bulk import
     public boolean skipAutoIndexing = false;
@@ -276,6 +285,23 @@ import org.json.JSONObject;
     public abstract Base getById(Shepherd myShepherd, String id);
 
     public abstract String getAllVersionsSql();
+
+    // i guess that makes this extra hacky?
+    public static Base getByClassnameAndId(Shepherd myShepherd, String className, String id) {
+        if ((myShepherd == null) || (className == null) || (id == null)) return null;
+        Base tmp = null;
+        switch (className) {
+        case "encounters":
+            tmp = new Encounter();
+            break;
+        case "annotations":
+            tmp = new Annotation();
+            break;
+        default:
+            return null;
+        }
+        return tmp.getById(myShepherd, id);
+    }
 
     // contains some reflection; not pretty, but gets the job done
     public static int[] opensearchSyncIndex(Shepherd myShepherd, Class cls, int stopAfter)
