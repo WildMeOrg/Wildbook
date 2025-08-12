@@ -1,9 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
-import { FormattedMessage } from "react-intl";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
-import useGetSiteSettings from "../../../models/useGetSiteSettings"
+import useGetSiteSettings from "../../../models/useGetSiteSettings";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
+import { FormattedMessage } from "react-intl";
+
+const PALETTE = [
+  "#2563eb",
+  "#16a34a",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#0ea5e9",
+  "#10b981",
+  "#f97316",
+  "#e11d48",
+  "#22c55e",
+];
 
 export const MappedResults = observer(({ store }) => {
   const { data } = useGetSiteSettings();
@@ -16,87 +29,198 @@ export const MappedResults = observer(({ store }) => {
   const markersRef = useRef([]);
   const clustererRef = useRef(null);
   const [locationData, setLocationData] = useState([]);
+  const [mode, setMode] = useState("species");
+
+  const pill = (title) => (
+    <span
+      style={{
+        fontSize: 12,
+        background: "#2e8ebaff",
+        padding: "5px 8px",
+        borderRadius: 12,
+        marginRight: 10,
+        marginBottom: 8,
+        marginTop: 8,
+        display: "inline-block",
+        cursor: "pointer",
+        color: "#ffffff",
+      }}
+      onClick={() => {
+        setMode(title.toLowerCase());
+      }}
+    >
+      {title}
+    </span>
+  );
 
   useEffect(() => {
-    if (store?.searchResultsAll) {
-      const locData = store?.searchResultsAll?.filter(
-        (result) => result?.occurrenceLocationGeoPoint && result?.occurrenceLocationGeoPoint.lat && result?.occurrenceLocationGeoPoint.lon
-      )
-        .map((result) => ({
-          lat: result?.occurrenceLocationGeoPoint?.lat,
-          lon: result?.occurrenceLocationGeoPoint?.lon,
-          title: result?.id || "",
-        })) || [];
-      setLocationData(locData);
-    }
+    if (!store?.searchResultsAll?.length) return;
+    const arr = store?.searchResultsAll
+      .filter((result) => {
+        const gp = result?.occurrenceLocationGeoPoint;
+        return gp && !isNaN(parseFloat(gp.lat)) && !isNaN(parseFloat(gp.lon));
+      })
+      .map((result) => ({
+        lat: parseFloat(result.occurrenceLocationGeoPoint.lat),
+        lon: parseFloat(result.occurrenceLocationGeoPoint.lon),
+        title: result?.id || "",
+        sex: result?.sex || "unknown",
+        species: result?.taxonomy || "unknown",
+      }));
+
+    setLocationData(arr);
   }, [store?.searchResultsAll]);
 
-  useEffect(() => {
-    if (!mapKey) {
-      return;
+  const categoryColorMap = useMemo(() => {
+    if (mode === "position") return new Map();
+    const map = new Map();
+    let i = 0;
+    const keyOf = (p) =>
+      mode === "sex" ? (p.sex ?? "unknown") : (p.species ?? "unknown");
+    for (const p of locationData) {
+      const k = keyOf(p);
+      if (!map.has(k)) {
+        map.set(k, PALETTE[i % PALETTE.length]);
+        i++;
+      }
     }
-    const loader = new Loader({
-      apiKey: mapKey,
-    });
+    return map;
+  }, [mode, locationData]);
 
+  const colorFor = (p) => {
+    if (mode === "position") return "#f40c0cff";
+    const k = mode === "sex" ? (p.sex ?? "unknown") : (p.species ?? "unknown");
+    return categoryColorMap.get(k) || "#1a73e8";
+  };
+
+  useEffect(() => {
+    if (!mapKey) return;
+    const loader = new Loader({ apiKey: mapKey });
     loader
       .load()
       .then(() => {
         const googleMap = new window.google.maps.Map(mapRef.current, {
           center: { lat: mapCenterLat, lng: mapCenterLon },
           zoom: mapZoom,
+          gestureHandling: "greedy",
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
         });
         setMap(googleMap);
       })
-      .catch((error) => {
-        console.error("Error loading Google Maps", error);
-      });
+      .catch((e) => console.error("Error loading Google Maps", e));
   }, [mapCenterLat, mapCenterLon, mapZoom, mapKey]);
 
   useEffect(() => {
-    if (!map) {
-      return;
-    }
+    if (!map) return;
 
     if (clustererRef.current) {
       clustererRef.current.clearMarkers();
       clustererRef.current = null;
     }
 
-    if (markersRef.current.length > 0) {
-      markersRef.current.forEach(marker => marker.setMap(null));
+    if (markersRef.current.length) {
+      markersRef.current.forEach((m) => m.setMap && m.setMap(null));
       markersRef.current = [];
     }
 
-    const points = locationData.filter(p => p && !isNaN(p.lat) && !isNaN(p.lon));
-    if (points.length === 0) {
-      return;
-    }
+    if (!locationData.length) return;
 
-    markersRef.current = points.map((point) => new window.google.maps.Marker({
-      position: { lat: parseFloat(point.lat), lng: parseFloat(point.lon) },
-      title: point.title || "",
-    }));
+    const markers = locationData.map((p) => {
+      const isColorMode = mode !== "position";
+      const icon = isColorMode
+        ? {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 6,
+            fillColor: colorFor(p),
+            fillOpacity: 1,
+            strokeWeight: 1,
+            strokeColor: "#ffffff",
+          }
+        : undefined;
 
-    clustererRef.current = new MarkerClusterer({
-      map,
-      markers: markersRef.current,
-      // imagePath: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m",
+      const marker = new window.google.maps.Marker({
+        position: { lat: p.lat, lng: p.lon },
+        title: p.title || "",
+        ...(icon ? { icon } : {}),
+      });
+
+      if (isColorMode) marker.setMap(map);
+      return marker;
     });
-  }, [map, locationData]);
+
+    markersRef.current = markers;
+
+    if (mode === "position") {
+      clustererRef.current = new MarkerClusterer({ map, markers });
+    }
+  }, [map, locationData, mode, categoryColorMap]);
+
+  const legendItems = useMemo(() => {
+    if (mode === "position") return [];
+    return Array.from(categoryColorMap.entries()).map(([label, color]) => ({
+      label,
+      color,
+    }));
+  }, [mode, categoryColorMap]);
 
   return (
-    <div>
+    <div className="d-flex flex-row">
       <div
-        className="mt-4"
+        className="mt-2 me-4"
         style={{
-          width: "100%",
-          height: "800px",
-          borderRadius: "15px",
+          width: "1200px",
+          height: 800,
+          borderRadius: 15,
           overflow: "hidden",
+          position: "relative",
         }}
       >
-        <div ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
+        <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+      </div>
+      <div className="mt-2">
+        {
+          <div
+            style={{
+              width: 300,
+              background: "rgba(255,255,255,0.9)",
+              borderRadius: 8,
+              padding: "8px 10px",
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              {<FormattedMessage id="INDEX" />}
+              <br />
+              {pill("Position")}
+              {pill("Sex")}
+              {pill("Species")}
+            </div>
+            <div
+              className="d-flex flex-column"
+              style={{ display: "flex", gap: 10 }}
+            >
+              {legendItems.map((it) => (
+                <div
+                  key={it.label}
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  <div
+                    style={{
+                      display: "block",
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      background: it.color,
+                      border: "1px solid rgba(0,0,0,0.2)",
+                    }}
+                  />
+                  <div style={{ fontSize: 12 }}>{String(it.label)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        }
       </div>
     </div>
   );
