@@ -18,7 +18,7 @@ const PALETTE = [
   "#22c55e",
 ];
 
-export const MappedResults = observer(({ store }) => {
+export const MapView = observer(({ store }) => {
   const { data } = useGetSiteSettings();
   const mapCenterLat = data?.mapCenterLat || 51;
   const mapCenterLon = data?.mapCenterLon || 7;

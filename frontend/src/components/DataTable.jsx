@@ -10,7 +10,7 @@ import { useIntl } from "react-intl";
 import Calendar from "../pages/SearchPages/searchResultTabs/CalendarView";
 import { observer } from "mobx-react-lite";
 import ChartView from "../pages/SearchPages/searchResultTabs/ChartView";
-import { MappedResults } from "../pages/SearchPages/searchResultTabs/MappedResults";
+import { MapView } from "../pages/SearchPages/searchResultTabs/MapView";
 
 const customStyles = {
   rows: {
@@ -39,8 +39,8 @@ const MyDataTable = observer(
     tabs = [],
     isLoading = false,
     extraStyles = [],
-    onSelectedRowsChange = () => { },
-    onRowClicked = () => { },
+    onSelectedRowsChange = () => {},
+    onRowClicked = () => {},
   }) => {
     const [data, setData] = useState([]);
     const [filterText, setFilterText] = useState("");
@@ -259,12 +259,14 @@ const MyDataTable = observer(
 
     const refetchAllData = () => {
       store.setLoadingAll(true);
-      refetchAll().then(({ data }) => {
-        console.log("Refetched all data:", JSON.stringify(data));
-        store.setSearchResultsAll(data?.data?.hits || []);
-      }).finally(() => {
-        store.setLoadingAll(false);
-      });
+      refetchAll()
+        .then(({ data }) => {
+          console.log("Refetched all data:", JSON.stringify(data));
+          store.setSearchResultsAll(data?.data?.hits || []);
+        })
+        .finally(() => {
+          store.setLoadingAll(false);
+        });
       store.setHasFetchedAllEncounters(true);
     };
 
@@ -570,7 +572,7 @@ const MyDataTable = observer(
             display: store.activeStep === 3 ? "block" : "none",
           }}
         >
-          <MappedResults store={store} />
+          <MapView store={store} />
         </div>
       </div>
     );
