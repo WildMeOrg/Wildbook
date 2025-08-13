@@ -17,6 +17,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.Annotation;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
@@ -55,9 +56,12 @@ public class BaseObject extends ApiBase {
         // System.out.println("args => " + java.util.Arrays.toString(args));
 
         JSONObject payload = null;
+        JSONArray payloadArray = null;
         String requestMethod = request.getMethod();
-        if (requestMethod.equals("POST") || requestMethod.equals("PATCH")) {
+        if (requestMethod.equals("POST")) {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
+        } else if (requestMethod.equals("PATCH")) {
+            payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
         }
         if (!ReCAPTCHA.sessionIsHuman(request)) {
             response.setStatus(401);
@@ -74,7 +78,7 @@ public class BaseObject extends ApiBase {
         if (requestMethod.equals("POST")) {
             rtn = processPost(request, args, payload);
         } else if (requestMethod.equals("PATCH")) {
-            rtn = processPatch(request, args);
+            rtn = processPatch(request, args, payloadArray);
         } else if (requestMethod.equals("GET")) {
             rtn = processGet(request, args);
         } else {
@@ -236,32 +240,84 @@ public class BaseObject extends ApiBase {
         JSONObject rtn = new JSONObject();
 
         rtn.put("success", false);
+        rtn.put("statusCode", 500);
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("api.BaseObject.processGet");
         myShepherd.beginDBTransaction();
-        User currentUser = myShepherd.getUser(request);
-        Base obj = null;
-        if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
-        if (obj == null) {
-            rtn.put("statusCode", 404);
-            rtn.put("error", "not found");
-        } else if (!obj.canUserView(currentUser, myShepherd)) {
-            rtn.put("statusCode", 401);
-            rtn.put("error", "access denied");
-        } else {
-            rtn = obj.opensearchDocumentAsJSONObject(myShepherd);
-            rtn.put("statusCode", 200);
-            rtn.put("success", true);
+
+        try {
+            User currentUser = myShepherd.getUser(request);
+            Base obj = null;
+            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if (obj == null) {
+                rtn.put("statusCode", 404);
+                rtn.put("error", "not found");
+            } else if (!obj.canUserView(currentUser, myShepherd)) {
+                rtn.put("statusCode", 401);
+                rtn.put("error", "access denied");
+            } else {
+                rtn = obj.opensearchDocumentAsJSONObject(myShepherd);
+                rtn.put("statusCode", 200);
+                rtn.put("success", true);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            rtn.put("error", ex.toString());
+        } finally {
+            myShepherd.rollbackAndClose();
         }
-        myShepherd.rollbackAndClose();
         return rtn;
     }
 
-    protected JSONObject processPatch(HttpServletRequest request, String[] args)
+    protected JSONObject processPatch(HttpServletRequest request, String[] args,
+        JSONArray payloadArray)
     throws ServletException, IOException {
         JSONObject rtn = new JSONObject();
 
+        rtn.put("success", false);
+        rtn.put("statusCode", 500);
+        // handle this silly case without bothering all the rest
+        if ((payloadArray == null) || (payloadArray.length() == 0)) {
+            rtn.put("statusCode", 400);
+            rtn.put("error", "empty payload array");
+            return rtn;
+        }
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.BaseObject.processPatch");
+        myShepherd.beginDBTransaction();
+
+        try {
+            User currentUser = myShepherd.getUser(request);
+            Base obj = null;
+            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if (obj == null) {
+                rtn.put("statusCode", 404);
+                rtn.put("error", "not found");
+            } else if (!obj.canUserEdit(currentUser, myShepherd)) {
+                rtn.put("statusCode", 401);
+                rtn.put("error", "access denied");
+            } else {
+                rtn = obj.processPatch(payloadArray, myShepherd);
+                rtn.put("statusCode", 200);
+                rtn.put("success", true);
+            }
+            // these are the typical 400 error that comes with invalid op/path/value etc
+        } catch (BulkValidatorException bve) {
+            rtn.put("statusCode", 400);
+            // FIXME whatever json for error bve support
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            rtn.put("error", ex.toString());
+        } finally {
+            if (rtn.optInt("statusCode", 500) == 200) {
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
+            } else {
+                myShepherd.rollbackAndClose();
+            }
+        }
         return rtn;
     }
 
