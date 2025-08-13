@@ -2,47 +2,47 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-
-			 {
-			  "name": "Australia", "id": "Australia", "locationID": [
-			  {
+	{
+		"name": "Australia", 
+		"id": "Australia", 
+		"locationID": [
+			{
 				"name": "West Australia",
 				"id": "West Australia",
 				"locationID":[
 					{
 						"name": "Ningaloo (non-specific)", 
 						"id": "Ningaloo (non-specific)",
-						"prefix": "A-", 
+						"prefix": "A-",
 						"prefixDigitPadding": 3 
-					  },
-					  {
+					},
+					{
 						"name": "North Ningaloo", 
 						"id": "North Ningaloo", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3
-					  },
-					  {
+					},
+					{
 						"name": "South Ningaloo", 
-						"id": "South Ningaloo", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3 
-					  },
-					  {
+					},
+					{
 						"name": "Shark Bay Region", 
 						"id": "Shark Bay Region", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3 
-					  },
-					  {
+					},
+					{
 						"name": "North West shelf region", 
 						"id": "North West shelf region", 
 						"prefix": "A-", 
 						"prefixDigitPadding": 3 
-					  }
+					}
 				]
-			  },
-              {
-	            "name": "East Australia",
+			},
+			{
+				"name": "East Australia",
 	            "id": "East Australia",
 				"locationID":[
 					{
@@ -409,7 +409,10 @@
 							{
 								"name": "North Stradbroke Island",
 								"id": "North Stradbroke Island",
-							"geospatialInfo":{"lat":-27.423971,"long":153.547871},
+								"geospatialInfo":{
+									"lat":-27.423971,
+									"long":153.547871
+								},
 								"locationID": []
 							},
 							{
@@ -441,509 +444,779 @@
 						]
 					}
 				]
-              }	  
-			  ]},
-
-			  {
-			  "name": "Brunei", "id": "Brunei", "prefix": "BN-", "prefixDigitPadding": 3 },
-			  {
-			  "name": "ChristmasIsland", "id": "ChristmasIsland", "prefix": "X-", "prefixDigitPadding": 3 },
-			  
-			   {
-			  "name": "Indonesia", "id": "Indonesia", "prefix": "ID-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Japan", "id": "Japan" },
-			  
-			  {
-			  "name": "Malaysia", "id": "Malaysia", "prefix": "MY-", "prefixDigitPadding": 3 },
-
-			  {
-				"name": "Myanmar", "id": "Myanmar", "prefix": "MR-", "prefixDigitPadding": 3 },
-				
-			  {
-				"name": "New Zealand", "id": "New Zealand", "prefix": "NZ-", "locationID": [
-					{
-						"name": "Bay of Plenty", "id": "Bay of Plenty", "prefix": "BP", "prefixDigitPadding": 3 },
-					{
-						"name": "Stewart Island", "id": "Stewart Island", "prefix": "SI", "prefixDigitPadding": 3 }
-						
-					]},
+            }	  
+		]
+	},
+	{
+		"name": "Brunei", 
+		"id": "Brunei", 
+		"prefix": "BN-", 
+		"prefixDigitPadding": 3,
+		"locationID": []
+	},
+	{
+		"name": "ChristmasIsland", 
+		"id": "ChristmasIsland", 
+		"prefix": "X-", 
+		"prefixDigitPadding": 3,
+		"locationID": []
+	},
+	{
+		"name": "Indonesia", 
+		"id": "Indonesia", 
+		"prefix": "ID-", 
+		"prefixDigitPadding": 3,
+		"locationID":[
+			{
+				"name": "Derawan Islands",
+				"id": "Derawan Islands",
+				"locationID": []
+			},
+			{
+				"name": "Komodo",
+				"id": "Komodo",
+				"locationID": []
+			},
+			{
+				"name": "Nusa Penida",
+				"id": "Nusa Penida",
+				"locationID": []
+			},
+			{
+				"name": "Raja Ampat",
+				"id": "Raja Ampat",
+				"locationID": []
+			}
+		]
+		},
+		{
+			"name": "Japan", 
+			"id": "Japan",
+			"locationID": []
+		},
+		{
+			"name": "Malaysia", 
+			"id": "Malaysia", 
+			"prefix": "MY-", 
+			"prefixDigitPadding": 3,
+			"locationID": []
+		},
+		{
+			"name": "Myanmar", 
+			"id": "Myanmar", 
+			"prefix": "MR-", 
+			"prefixDigitPadding": 3,
+			"locationID": []
+		},
+		{
+			"name": "New Zealand", 
+			"id": "New Zealand", 
+			"prefix": "NZ-", 
+			"locationID": [
 				{
-					"name": "Papua New Guinea",
-					"id": "Papua New Guinea",
-					"prefix": "PNG-",
+					"name": "Bay of Plenty", 
+					"id": "Bay of Plenty", 
+					"prefix": "BP", 
+					"prefixDigitPadding": 3 
+				},
+				{
+					"name": "Stewart Island", 
+					"id": "Stewart Island", 
+					"prefix": "SI", 
+					"prefixDigitPadding": 3 
+				}
+				]
+		},
+		{
+			"name": "Papua New Guinea",
+			"id": "Papua New Guinea",
+			"prefix": "PNG-",
+			"locationID": [
+				{
+					"name": "Conflict Islands",
+					"id": "Conflict Islands",
+					"geospatialInfo": {
+						"lat": -10.776076,
+						"long": 151.800799
+					},								
 					"locationID": [
 						{
-							"name": "Conflict Islands",
-							"id": "Conflict Islands",
+							"name": "Aroroa",
+							"id": "Aroroa",
 							"geospatialInfo": {
-								"lat": -10.776076,
-								"long": 151.800799
-							},
-								
-							"locationID": [
-								{
-									"name": "Aroroa",
-									"id": "Aroroa",
-									"geospatialInfo": {
-										"lat": -10.807336,
-										"long": 151.922516
-									}
-								},
-								{
-									"name": "Baden",
-									"id": "Baden",
-									"geospatialInfo": {
-										"lat": -10.820738,
-										"long": 151.828476
-									}
-								},
-								{
-									"name": "Gabugabutau",
-									"id": "Gabugabutau",
-									"geospatialInfo": {
-										"lat": -10.729466,
-										"long": 151.740952
-									}
-								},
-								{
-									"name": "Ginara",
-									"id": "Ginara",
-									"geospatialInfo": {
-										"lat": -10.752153,
-										"long": 151.830414
-									}
-								},
-								{
-								"name": "Irai",
-								"id": "Irai",
-								"geospatialInfo": {
-									"lat": -10.767671,
-									"long": 151.696853
+								"lat": -10.807336,
+								"long": 151.922516
 								}
-								},
-								{
-									"name": "Itamarina",
-									"id": "Itamarina",
-									"geospatialInfo": {
-										"lat": -10.763471,
-										"long": 151.770748
-									}
-								},
-								{
-									"name": "Kolavia",
-									"id": "Kolavia",
-									"geospatialInfo": {
-										"lat": -10.781062,
-										"long": 151.881576
-									}
-								},
-								{
-									"name": "Lachlan",
-									"id": "Lachlan",
-									"geospatialInfo": {
-										"lat": -10.826026,
-										"long": 151.840117
-									}
-								},
-								{
-									"name": "Lutmatavi",
-									"id": "Lutmatavi",
-									"geospatialInfo": {
-										"lat": -10.722061,
-										"long": 151.787802
-									}
-								},
-								{
-									"name": "Lutpolau",
-									"id": "Lutpolau",
-									"geospatialInfo": {
-										"lat": -10.717618,
-										"long": 151.757641
-									}
-								},
-								{
-									"name": "Muniara",
-									"id": "Muniara",
-									"geospatialInfo": {
-										"lat": -10.800031,
-										"long": 151.902012
-									}
-								},
-								{
-									"name": "Panaboal",
-									"id": "Panaboal",
-									"geospatialInfo": {
-										"lat": -10.738887,
-										"long": 151.826399
-									}
-								},
-								{
-									"name": "Panarakuum",
-									"id": "Panarakuum",
-									"geospatialInfo": {
-										"lat": -10.769521,
-										"long": 151.865026
-									}
-								},
-								{
-									"name": "Panasesa",
-									"id": "Panasesa",
-									"geospatialInfo": {
-										"lat": -10.740550,
-										"long": 151.722533
-									}
-								},
-								{
-									"name": "Quesal",
-									"id": "Quesal",
-									"geospatialInfo": {
-										"lat": -10.781959,
-										"long": 151.828357
-									}
-								},
-								{
-									"name": "Skye",
-									"id": "Skye",
-									"geospatialInfo": {
-										"lat": -10.834616,
-										"long": 151.874711
-									}
-								},
-								{
-									"name": "Tabulagoal",
-									"id": "Tabulagoal",
-									"geospatialInfo": {
-										"lat": -10.717497,
-										"long": 151.772433
-									}
-								},
-								{
-									"name": "Tupit",
-									"id": "Tupit",
-									"geospatialInfo": {
-										"lat": -10.721026,
-										"long": 151.747965
-									}
-								}
-
-							]
+						},
+						{
+							"name": "Baden",
+							"id": "Baden",
+							"geospatialInfo": {
+								"lat": -10.820738,
+								"long": 151.828476
+							}
+						},
+						{
+							"name": "Gabugabutau",
+							"id": "Gabugabutau",
+							"geospatialInfo": {
+								"lat": -10.729466,
+								"long": 151.740952
+							}
+						},
+						{
+							"name": "Ginara",
+							"id": "Ginara",
+							"geospatialInfo": {
+								"lat": -10.752153,
+								"long": 151.830414
+							}
+						},
+						{
+							"name": "Irai",
+							"id": "Irai",
+							"geospatialInfo": {
+								"lat": -10.767671,
+								"long": 151.696853
+							}
+						},
+						{
+							"name": "Itamarina",
+							"id": "Itamarina",
+							"geospatialInfo": {
+								"lat": -10.763471,
+								"long": 151.770748
+							}
+						},
+						{
+							"name": "Kolavia",
+							"id": "Kolavia",
+							"geospatialInfo": {
+								"lat": -10.781062,
+								"long": 151.881576
+							}
+						},
+						{
+							"name": "Lachlan",
+							"id": "Lachlan",
+							"geospatialInfo": {
+								"lat": -10.826026,
+								"long": 151.840117
+							}
+						},
+						{
+							"name": "Lutmatavi",
+							"id": "Lutmatavi",
+							"geospatialInfo": {
+								"lat": -10.722061,
+								"long": 151.787802
+							}
+						},
+						{
+							"name": "Lutpolau",
+							"id": "Lutpolau",
+							"geospatialInfo": {
+								"lat": -10.717618,
+								"long": 151.757641
+							}
+						},
+						{
+							"name": "Muniara",
+							"id": "Muniara",
+							"geospatialInfo": {
+								"lat": -10.800031,
+								"long": 151.902012
+							}
+						},
+						{
+							"name": "Panaboal",
+							"id": "Panaboal",
+							"geospatialInfo": {
+								"lat": -10.738887,
+								"long": 151.826399
+							}
+						},
+						{
+							"name": "Panarakuum",
+							"id": "Panarakuum",
+							"geospatialInfo": {
+								"lat": -10.769521,
+								"long": 151.865026
+							}
+						},
+						{
+							"name": "Panasesa",
+							"id": "Panasesa",
+							"geospatialInfo": {
+								"lat": -10.740550,
+								"long": 151.722533
+							}
+						},
+						{
+							"name": "Quesal",
+							"id": "Quesal",
+							"geospatialInfo": {
+								"lat": -10.781959,
+								"long": 151.828357
+							}
+						},
+						{
+							"name": "Skye",
+							"id": "Skye",
+							"geospatialInfo": {
+								"lat": -10.834616,
+								"long": 151.874711
+							}
+						},
+						{
+							"name": "Tabulagoal",
+							"id": "Tabulagoal",
+							"geospatialInfo": {
+								"lat": -10.717497,
+								"long": 151.772433
+							}
+						},
+						{
+							"name": "Tupit",
+							"id": "Tupit",
+							"geospatialInfo": {
+								"lat": -10.721026,
+								"long": 151.747965
+							}
 						}
-						]},		
-			  {
-			  "name": "Thailand", 
-			  "id": "Thailand", 
-			  "prefix": "T-", 
-			  "locationID": [
+					]
+				}
+			]
+		},
+		{
+			"name": "Thailand", 
+			"id": "Thailand", 
+			"prefix": "T-", 
+			"locationID": [
 				{
 					"name": "Andaman Sea", 
 					"id": "Andaman Sea", 
 					"prefix": "AS", 
-					"prefixDigitPadding": 3 },
+					"prefixDigitPadding": 3 
+				},
 				{
 					"name": "Gulf of Thailand", 
 					"id": "Gulf of Thailand", 
 					"prefix": "GoT", 
-					"prefixDigitPadding": 3 }
-					]},
-			  
-			  {
-			  "name": "India", 
-			  "id": "India" },
-			  
-			  {
-			  "name": "Atlantic and Caribbean", 
-			  "id": "Atlantic and Caribbean", 
-			  "prefix": "CRB-", 
-			  "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Honduras", 
-			  "id": "Honduras", 
-			  "prefix": "H-", 
-			  "prefixDigitPadding": 3 },
-			 
-			{
-			  "name": "Belize", 
-			  "id": "Belize", 
-			  "prefix": "BZ-", 
-			  "prefixDigitPadding": 3 },
-			{
-			  "name": "Mexico Atlantic", 
-			  "id": "Mexico Atlantic", 
-			  "prefix": "MXA-", 
-			  "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Texas", 
-			  "id": "Texas", 
-			  "prefix": "TX-", 
-			  "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "US Gulf Coast", 
-			  "id": "US Gulf Coast", 
-			  "prefix": "GC-", 
-			  "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Ewing Banks", 
-			  "id": "Ewing Banks", 
-			  "prefix": "GC-", 
-			  "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Cuba", 
-			  "id": "Cuba" },
-			  
-			  {
-			  "name": "Eastern US Coast", 
-			  "id": "Eastern US Coast", 
-			  "prefix": "USA-", 
-			  "prefixDigitPadding": 3 },
-			  
-			  {
-				"name": "Atlantic Ocean (North)", "id": "Atlantic Ocean (North)",
-			  "locationID": [
-			  
-				  {"name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID": [
-				  
-						{"name": "Adriatic Sea", "id": "Adriatic Sea", "locationID": []},
-
-						{"name": "Banco di Santa Croce (BSC)", "id": "Banco di Santa Croce (BSC)", "locationID": []},
-
-						{"name": "Gulf of Naples", "id": "Gulf of Naples", "locationID": []},
-
-						{"name": "Ligurian Sea", "id": "Ligurian Sea", "locationID": []},
-
-						{"name": "Tyrrhenian Sea", "id": "Tyrrhenian Sea", "locationID": []}
-				  
-				  ]}
-			  
-			  
-			  
-			  ]},
-			  
-			  {
-			  "name": "South Atlantic", "id": "South Atlantic", "prefix": "SHA-", "prefixDigitPadding": 3, "locationID":[
-				  {
-				  "name": "St. Helena Island", "id": "St. Helena Island", "prefix": "SHA-", "prefixDigitPadding": 3 },
-				  
-				  {
-				  "name": "Ascension Island", "id": "Ascension Island", "prefix": "ID-", "prefixDigitPadding": 3 },
-				  
-				  {
-				  "name": "Brazil", "id": "Brazil", "prefix": "BRZ-", "prefixDigitPadding": 3 },
-				   {
-				  "name": "Azores", "id": "Azores" }
-			  ] 
-			  },
-			  
-			  { "name":"Mozambique", "id":"Mozambique", "locationID":[
-			  
-			  		{
-					"name": "Guinjata", "id": "Guinjata" },
-
-					{ "name":"Bazaruto", "id":"Bazaruto", "locationID":[] },
-
-					{ "name":"Morrungulo", "id":"Morrungulo", "locationID":[] },
-
-					{ "name":"Pomene", "id":"Pomene", "locationID":[] 	},
-
-					{ "name":"San Sebastian", "id":"San Sebastian", "locationID":[] },
-
-					{ "name":"Tofo", "id":"Tofo", "locationID":[
-						{ "name":"Amazon", "id":"Amazon", "locationID":[] },
-						{ "name":"Giants Castle", "id":"Giants Castle", "locationID":[] },
-						{ "name":"Hospital", "id":"Hospital", "locationID":[] },
-						{ "name":"Manta Reef", "id":"Manta Reef", "locationID":[] },
-						{ "name":"Office", "id":"Office", "locationID":[] },
-						{ "name":"Reggies", "id":"Reggies", "locationID":[] }
-				] },
-
-				{ "name":"Zavora", "id":"Zavora", "locationID":[] }
-
-			] },
-			  
-
-			  
-			  			  {
-			  "name": "Tanzania", "id": "Tanzania", "prefix": "TZ-", "prefixDigitPadding": 3 },
-
-			  {
-			  "name": "Kenya", "id": "Kenya", "prefix": "K-", "prefixDigitPadding": 3 },
-			  
-			  			  {
-			  "name": "South Africa", "id": "South Africa", "prefix": "SA-", "prefixDigitPadding": 3, "locationID":[
-			  
-				{ "name":"False Bay", "id":"False Bay", "locationID":[] }
-			  
-			  
-			  ] },
-			  
-			  			  {
-			  "name": "Djibouti", "id": "Djibouti", "prefix": "DJ-", "prefixDigitPadding": 3 },
-			  
-			  			  {
-			  "name": "Madagascar", "id": "Madagascar", "prefix": "MD-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Mayotte", "id": "Mayotte" },
-			  
-			  
-			  {
-			  "name": "Réunion Island", "id": "Reunion Island" },
-
-
-			 {
-			  "name": "RedSea", "id": "RedSea", "prefix": "R-", "prefixDigitPadding": 3, "locationID":[
-			  
-			  
-				{"name": "RedSea-ShibHabil", "id": "RedSea-ShibHabil" }
-			  
-			  
-			  ] },
-
-
-			
-			  
-			   {
-			  "name": "Arabian Peninsula", "id": "Arabian Peninsula", "prefix": "Q-", "prefixDigitPadding": 3 },
-			  
-			   {
-			  "name": "Qatar", "id": "Qatar", "prefix": "Q-", "prefixDigitPadding": 3 },
-			  
-			   {
-			  "name": "Al Shaheen", "id": "Al Shaheen" },
-			  
-			   {
-			  "name": "Oman", "id": "Oman" },
-			  
-			   {
-			  "name": "Musandam", "id": "Musandam" },
-			  
-			  			   {
-			  "name": "Daymaniyat Islands", "id": "Daymaniyat Islands" },
-			  
-			  {
-			  "name": "Muscat", "id": "Muscat" },
-			  
-			  {
-			  "name": "UAE", "id": "UAE" },
-			  
-			  {
-			  "name": "Bahrain", "id": "Bahrain" },
-			  
-			  {
-			  "name": "Maldives", "id": "Maldives", "prefix": "M-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Seychelles", "id": "Seychelles", "prefix": "S-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Phillippines", "id": "Phillippines", "prefix": "P-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Donsol", "id": "Donsol", "prefix": "P-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Cebu", "id": "Cebu", "prefix": "P-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Limasawa Island", "id": "Limasawa Island", "prefix": "P-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Palawan Island", "id": "Palawan Island", "prefix": "P-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Taiwan", "id": "Taiwan", "prefix": "TW-", "prefixDigitPadding": 3 },
-			  
-
-
-
-			  
-			  {
-			  "name": "Pacific Ocean", "id": "Pacific Ocean", "locationID":[
-			  
-				  {
-				  "name": "California", "id": "California", "locationID":[
-					
+					"prefixDigitPadding": 3 
+				}	
+			]
+		},
+		{
+			"name": "India", 
+			"id": "India",
+			"locationID":[]
+		},
+		{
+			"name": "Atlantic and Caribbean", 
+			"id": "Atlantic and Caribbean", 
+			"prefix": "CRB-", 
+			"prefixDigitPadding": 3,
+			"locationID":[]
+		},
+		{
+			"name": "Honduras", 
+			"id": "Honduras", 
+			"prefix": "H-", 
+			"prefixDigitPadding": 3,
+			"locationID":[]
+		},
+		{
+			"name": "Belize", 
+			"id": "Belize", 
+			"prefix": "BZ-", 
+			"prefixDigitPadding": 3,
+			"locationID":[]
+		},
+		{
+			"name": "Mexico Atlantic", 
+			"id": "Mexico Atlantic", 
+			"prefix": "MXA-", 
+			"prefixDigitPadding": 3,
+			"locationID":[] 
+		},
+		{
+			"name": "Texas", 
+			"id": "Texas", 
+			"prefix": "TX-", 
+			"prefixDigitPadding": 3,
+			"locationID":[]
+		},
+		{
+			"name": "US Gulf Coast", 
+			"id": "US Gulf Coast", 
+			"prefix": "GC-", 
+			"prefixDigitPadding": 3,
+			"locationID":[]
+		},
+		{
+			"name": "Ewing Banks", 
+			"id": "Ewing Banks", 
+			"prefix": "GC-", 
+			"prefixDigitPadding": 3,
+			"locationID":[]
+		},
+		{
+			"name": "Cuba", 
+			"id": "Cuba",
+			"locationID": []
+		},
+		{
+			"name": "Eastern US Coast", 
+			"id": "Eastern US Coast", 
+			"prefix": "USA-", 
+			"prefixDigitPadding": 3,
+			"locationID":[]
+		},
+		{
+			"name": "Atlantic Ocean (North)", 
+			"id": "Atlantic Ocean (North)",
+			"locationID": [
+				{
+					"name": "Mediterranean Sea", 
+					"id": "Mediterranean Sea", 
+					"locationID": [
 						{
-					  "name": "Año Nuevo", "id": "Año Nuevo" },
-					  {
-					  "name": "Aptos", "id": "Aptos" },
-					  {
-					  "name": "Farallon Islands", "id": "Farallon Islands" },
-					  {
-					  "name": "La Jolla Cove", "id": "La Jolla Cove" },
-					  {
-					  "name": "Morro Bay", "id": "Morro Bay" },
-					  {
-					  "name": "Point La Jolla", "id": "Point La Jolla" },
-					  {
-					  "name": "Point Loma", "id": "Point Loma" },
-					  {
-					  "name": "Point Reyes", "id": "Point Reyes" },
-					  {
-					  "name": "San Diego", "id": "San Diego" },
-					  {
-					  "name": "San Francisco Bay", "id": "San Francisco Bay" },
-					  {
-					  "name": "SoCal", "id": "SoCal" }
-					  
-
-
-				  
-				  ]},
-				  
-				  
-
-				  {"name": "Ecuador", "id": "Ecuador",  "locationID": []},
-				  
-				  {"name": "Costa Rica", "id": "Costa Rica","prefix": "CR-", "prefixDigitPadding": 3,  "locationID": [ 
-						{"name": "Cocos Island", "id": "Cocos Island", "prefix": "CR-", "prefixDigitPadding": 3 }
+							"name": "Adriatic Sea", 
+							"id": "Adriatic Sea", 
+							"locationID": []
+						},
+						{
+							"name": "Banco di Santa Croce (BSC)", 
+							"id": "Banco di Santa Croce (BSC)", 
+							"locationID": []
+						},
+						{
+							"name": "Gulf of Naples", 
+							"id": "Gulf of Naples", 
+							"locationID": []
+						},
+						{
+							"name": "Ligurian Sea", 
+							"id": "Ligurian Sea", 
+							"locationID": []
+						},
+						{
+							"name": "Tyrrhenian Sea", 
+							"id": "Tyrrhenian Sea", 
+							"locationID": []
+						}
+					]
+			}
+		]
+	},
+	{
+		 "name": "South Atlantic", 
+		 "id": "South Atlantic", 
+		 "prefix": "SHA-", 
+		 "prefixDigitPadding": 3, 
+		 "locationID":[
+			{
+				"name": "St. Helena Island", 
+				"id": "St. Helena Island", 
+				"prefix": "SHA-", 
+				"prefixDigitPadding": 3 
+			},
+			{
+				"name": "Ascension Island", 
+				"id": "Ascension Island", 
+				"prefix": "ID-", 
+				"prefixDigitPadding": 3 
+			},
+			{
+				"name": "Brazil", 
+				"id": "Brazil", 
+				"prefix": "BRZ-", 
+				"prefixDigitPadding": 3 
+			},
+			{
+				"name": "Azores", 
+				"id": "Azores" 
+			}
+		] 
+	},
+	{ 
+		"name": "Mozambique", 
+		"id": "Mozambique", 
+		"locationID": [
+			{
+				"name": "Guinjata", 
+				"id": "Guinjata" 
+			},
+			{
+				"name": "Bazaruto", 
+				"id": "Bazaruto", 
+				"locationID": [] 
+			},
+			{ 
+				"name": "Morrungulo", 
+				"id": "Morrungulo", 
+				"locationID": [] 
+			},
+			{
+				"name": "Pomene", 
+				"id": "Pomene", 
+				"locationID": []
+			},
+			{
+				"name": "San Sebastian", 
+				"id": "San Sebastian", 
+				"locationID": [] 
+			},
+			{ "name": "Tofo", 
+			"id": "Tofo", 
+			"locationID": [
+				{
+					"name": "Amazon", 
+					"id":"Amazon", 
+					"locationID": [] 
+				},
+				{
+					"name": "Giants Castle", 
+					"id": "Giants Castle", 
+					"locationID": [] 
+				},
+				{
+					"name": "Hospital", 
+					"id": "Hospital", 
+					"locationID": [] 
+				},
+				{
+					"name": "Manta Reef", 
+					"id": "Manta Reef", 
+					"locationID": [] 
+				},
+				{
+					"name": "Office", 
+					"id": "Office", 
+					"locationID": [] 
+				},
+				{
+					"name": "Reggies", 
+					"id": "Reggies", 
+					"locationID": [] 
+				}
+				] 
+			},
+			{
+				"name": "Zavora", 
+				"id": "Zavora", 
+				"locationID": [] 
+			}
+			] 
+		},
+		{
+			"name": "Tanzania", 
+			"id": "Tanzania", 
+			"prefix": "TZ-", 
+			"prefixDigitPadding": 3 
+		},
+		{
+			"name": "Kenya", 
+			"id": "Kenya", 
+			"prefix": "K-", 
+			"prefixDigitPadding": 3 
+		},
+		{
+			"name": "South Africa", 
+			"id": "South Africa", 
+			"prefix": "SA-", 
+			"prefixDigitPadding": 3, 
+			"locationID":[
+				{
+					"name": "False Bay", 
+					"id":"False Bay", 
+					"locationID":[] 
+				}
+			  ] 
+		},
+		{
+			"name": "Djibouti", 
+			"id": "Djibouti", 
+			"prefix": "DJ-", 
+			"prefixDigitPadding": 3 
+		},
+		{
+			"name": "Madagascar", 
+			"id": "Madagascar", 
+			"prefix": "MD-", 
+			"prefixDigitPadding": 3 
+		},
+		{
+			"name": "Mayotte", 
+			"id": "Mayotte" 
+		},
+		{
+			"name": "Réunion Island", 
+			"id": "Reunion Island" 
+		},
+		{
+			"name": "RedSea", 
+			"id": "RedSea", 
+			"prefix": "R-", 
+			"prefixDigitPadding": 3, 
+			"locationID":[
+				{
+					"name": "RedSea-ShibHabil", 
+					"id": "RedSea-ShibHabil" 
+				}
+			  ] 
+		},
+		{
+			"name": "Arabian Peninsula", 
+			"id": "Arabian Peninsula", 
+			"prefix": "Q-", 
+			"prefixDigitPadding": 3 
+		},
+		{
+			"name": "Qatar", 
+			"id": "Qatar", 
+			"prefix": "Q-", 
+			"prefixDigitPadding": 3 
+		},
+		{
+			"name": "Al Shaheen", 
+			"id": "Al Shaheen" 
+		},
+		{
+			"name": "Oman", 
+			"id": "Oman" 
+		},
+		{
+			"name": "Musandam", 
+			"id": "Musandam" 
+		},
+		{
+			"name": "Daymaniyat Islands", 
+			"id": "Daymaniyat Islands" 
+		},
+		{
+			"name": "Muscat", 
+			"id": "Muscat" 
+		},
+		{
+			"name": "UAE", 
+			"id": "UAE" 
+		},
+		{
+			"name": "Bahrain", 
+			"id": "Bahrain"
+		},
+		{
+			"name": "Maldives", 
+			"id": "Maldives", 
+			"prefix": "M-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Seychelles", 
+			"id": "Seychelles", 
+			"prefix": "S-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Phillippines", 
+			"id": "Phillippines", 
+			"prefix": "P-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Donsol", 
+			"id": "Donsol", 
+			"prefix": "P-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Cebu", 
+			"id": "Cebu", 
+			"prefix": "P-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Limasawa Island", 
+			"id": "Limasawa Island", 
+			"prefix": "P-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Palawan Island", 
+			"id": "Palawan Island", 
+			"prefix": "P-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Taiwan", 
+			"id": "Taiwan", 
+			"prefix": "TW-", 
+			"prefixDigitPadding": 3
+		},
+		{
+			"name": "Pacific Ocean", 
+			"id": "Pacific Ocean", 
+			"locationID":[
+				{
+					"name": "California", 
+					"id": "California", 
+					"locationID":[
+						{
+							"name": "Año Nuevo", 
+							"id": "Año Nuevo" 
+						},
+						{
+							"name": "Aptos", 
+							"id": "Aptos" 
+						},
+						{
+							"name": "Farallon Islands", 
+							"id": "Farallon Islands"
+						},
+						{
+							"name": "La Jolla Cove", 
+							"id": "La Jolla Cove"
+						},
+						{
+							"name": "Morro Bay", 
+							"id": "Morro Bay"
+						},
+						{
+							"name": "Point La Jolla", 
+							"id": "Point La Jolla"
+						},
+						{
+							"name": "Point Loma", 
+							"id": "Point Loma"
+						},
+						{
+							"name": "Point Reyes", 
+							"id": "Point Reyes"
+						},
+						{
+							"name": "San Diego", 
+							"id": "San Diego"
+						},
+						{
+							"name": "San Francisco Bay", 
+							"id": "San Francisco Bay"
+						},
+						{
+							"name": "SoCal", 
+							"id": "SoCal" 
+						}
+				  ]
+				},
+				{
+					"name": "Ecuador", 
+					"id": "Ecuador",
+					"locationID": []
+				},
+				{
+					"name": "Costa Rica", 
+					"id": "Costa Rica",
+					"prefix": "CR-", 
+					"prefixDigitPadding": 3,
+					"locationID": [ 
+						{
+							"name": "Cocos Island", 
+							"id": "Cocos Island", 
+							"prefix": "CR-", 
+							"prefixDigitPadding": 3
+						}
 				     ]
-					
-				  },
-				  {"name": "Galapagos Islands", "id": "Galapagos Islands", "prefix": "G-", "prefixDigitPadding": 3 },
-				   
-				  {"name": "Hawaii", "id": "Hawaii", "prefix": "HW-", "prefixDigitPadding": 3 },
-				  
-				  {"name": "Mexico-BLP", "id": "Mexico-BLP", "locationID": [
-				  
-						{"name": "Baja California", "id": "Baja California" }
-
-					], "prefix": "MX-", "prefixDigitPadding": 3
-				  },
-				  
-				  {"name": "Mexico-LC", "id": "Mexico-LC", "prefix": "MX-", "prefixDigitPadding": 3 },
-				  
-				  {"name": "Mexico-Nayarit", "id": "Mexico-Nayarit", "prefix": "MX-", "prefixDigitPadding": 3 },
-				  
-				  {"name": "Mexico-BLA", "id": "Mexico-BLA", "prefix": "MX-", "prefixDigitPadding": 3 },
-
-				  {"name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo", "prefix": "MX-", "prefixDigitPadding": 3 },
-				  
-				  {"name": "Mexico-BC", "id": "Mexico-BC", "prefix": "MX-", "prefixDigitPadding": 3 },
-				  
-				  {"name": "New Caledonia", "id": "New Caledonia", "prefix": "NC-SP-", "prefixDigitPadding": 4 },
-				  
-				  {"name": "Oregon", "id": "Oregon" },
-
-				{"name": "Eastern Australian Coast", "id": "Eastern Australian Coast" },
-				  	  
-				  {"name": "Panama", "id": "Panama", "prefix": "PAN-", "prefixDigitPadding": 3 },
-				  
-				  {"name": "Peru", "id": "Peru" },
-				  {"name": "Washington", "id": "Washington" }
-			] },
-			{"name": "None", "id": "None", "locationID": []}
-
-
-
-			 
-
+				},
+				{
+					"name": "Galapagos Islands", 
+					"id": "Galapagos Islands", 
+					"prefix": "G-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "Hawaii", 
+					"id": "Hawaii", 
+					"prefix": "HW-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "Mexico-BLP", 
+					"id": "Mexico-BLP", 
+					"locationID": [
+						{
+							"name": "Baja California", 
+							"id": "Baja California"
+						}
+					], 
+					"prefix": "MX-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "Mexico-LC", 
+					"id": "Mexico-LC", 
+					"prefix": "MX-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "Mexico-Nayarit", 
+					"id": "Mexico-Nayarit", 
+					"prefix": "MX-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "Mexico-BLA", 
+					"id": "Mexico-BLA", 
+					"prefix": "MX-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "Mexico-Revillagigedo", 
+					"id": "Mexico-Revillagigedo", 
+					"prefix": "MX-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "Mexico-BC", 
+					"id": "Mexico-BC", 
+					"prefix": "MX-", 
+					"prefixDigitPadding": 3
+				},
+				{
+					"name": "New Caledonia", 
+					"id": "New Caledonia", 
+					"prefix": "NC-SP-", 
+					"prefixDigitPadding": 4
+				},
+				{
+					"name": "Oregon", 
+					"id": "Oregon"
+				},
+				{
+					"name": "Eastern Australian Coast", 
+					"id": "Eastern Australian Coast"
+				},
+				{
+					"name": "Panama", 
+					"id": "Panama", 
+					"prefix": "PAN-", 
+					"prefixDigitPadding": 3
+				},  
+				{
+					"name": "Peru", 
+					"id": "Peru"
+				},
+				{
+					"name": "Washington", 
+					"id": "Washington"
+				}
+			] 
+		},
+		{
+			"name": "None", 
+			"id": "None", 
+			"locationID": []
+		}
   ]
 }
 
