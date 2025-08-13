@@ -36,6 +36,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.api.ApiException;
+import org.ecocean.api.bulk.BulkValidatorException;
+import org.ecocean.api.patch.EncounterPatchValidator;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
@@ -4640,6 +4642,21 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         }
         return enc;
+    }
+
+    public org.json.JSONObject processPatch(org.json.JSONArray patchArr, Shepherd myShepherd)
+    throws BulkValidatorException {
+        if (patchArr == null)
+            throw new BulkValidatorException("null patch array",
+                    ApiException.ERROR_RETURN_CODE_REQUIRED,
+                    BulkValidatorException.TYPE_REQUIRED_VALUE);
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        for (int i = 0; i < patchArr.length(); i++) {
+            EncounterPatchValidator epv = EncounterPatchValidator.createFromPatch(
+                patchArr.optJSONObject(i), myShepherd);
+            System.out.println("[i=" + i + "] >>>>>>>> " + epv);
+        }
+        return rtn;
     }
 
     public static Object validateFieldValue(String fieldName, org.json.JSONObject data)

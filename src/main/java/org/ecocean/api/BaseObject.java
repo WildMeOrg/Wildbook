@@ -306,7 +306,7 @@ public class BaseObject extends ApiBase {
             // these are the typical 400 error that comes with invalid op/path/value etc
         } catch (BulkValidatorException bve) {
             rtn.put("statusCode", 400);
-            // FIXME whatever json for error bve support
+            rtn.put("errors", bve.getErrors());
         } catch (Exception ex) {
             ex.printStackTrace();
             rtn.put("error", ex.toString());
