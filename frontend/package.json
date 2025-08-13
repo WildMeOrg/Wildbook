@@ -103,6 +103,7 @@
     "react-query": "^3.39.3",
     "style-loader": "^3.3.4",
     "styled-components": "^6.1.8",
+    "swiper": "^11.2.10",
     "terser-webpack-plugin": "^5.3.10",
     "ts-jest": "^27.0.7",
     "unused-webpack-plugin": "^2.4.0",
