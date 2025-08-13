@@ -483,6 +483,11 @@
 							"locationID":[]
 						},
 						{
+							"name": "Mbokishi Conservancy",
+							"id": "Mbokishi Conservancy",
+							"locationID": []
+						},
+						{
 							"name": "Naboisho",
 							"id": "Naboisho",
 							"prefix": "nab",
@@ -522,11 +527,11 @@
 							"locationID":[]
 						},
 						{
-							"name": "Olarro",
+							"name": "Olarro North Conservancy",
 							"prefix": "olc",
 							"prefixDigitPadding": 3,
-							"id": "Olarro",
-							"description": "Olarro",
+							"id": "Olarro North Conservancy",
+							"description": "Olarro North Conservancy",
 							"locationID":[]
 						},
 						{
@@ -540,6 +545,11 @@
 						{
 							"name": "Pardamat Conservation Area",
 							"id": "Pardamat Conservation Area",
+							"locationID": []
+						},
+						{
+							"name": "Ripoi Conservancy",
+							"id": "Ripoi Conservancy",
 							"locationID": []
 						},
 						{
@@ -923,6 +933,15 @@
 						"id": "Etosha Heights Private Reserve",
 						"description": "Etosha Heights Private Reserve",
 						"locationID":[]
+					},
+					{
+						"name": "Etosha National Park",
+						"id": "Etosha National Park",
+						"geospatialInfo": {
+							"lat": -19.0875,
+							"long": 15.8619
+						},
+						"locationID": []
 					},
 					{
 						"name": "Epacha Private Reserve",
