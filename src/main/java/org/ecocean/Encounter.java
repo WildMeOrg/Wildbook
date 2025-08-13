@@ -4118,11 +4118,35 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStartObject();
             jgen.writeNumberField("id", ma.getIdInt());
             jgen.writeStringField("uuid", ma.getUUID());
+            jgen.writeNumberField("width", ma.getWidth());
+            jgen.writeNumberField("height", ma.getHeight());
+            jgen.writeStringField("mimeTypeMajor", ma.getMimeTypeMajor());
+            jgen.writeStringField("mimeTypeMinor", ma.getMimeTypeMinor());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
                 java.net.URL url = ma.safeURL(myShepherd);
                 if (url != null) jgen.writeStringField("url", url.toString());
             } catch (Exception ex) {}
+            // we (likely) dont need annotations to search on, but they are needed for
+            // many of the usages (export, gallery, etc) of search *results*
+            jgen.writeArrayFieldStart("annotations");
+            if (ma.hasAnnotations())
+                for (Annotation ann : ma.getAnnotations()) {
+                    jgen.writeStartObject();
+                    jgen.writeStringField("id", ann.getId());
+                    jgen.writeNumberField("theta", ann.getTheta());
+                    jgen.writeArrayFieldStart("boundingBox");
+                    int[] bbox = ann.getBbox();
+                    if (bbox != null)
+                        for (int i : bbox) {
+                            jgen.writeNumber(i);
+                        }
+                    jgen.writeEndArray();
+                    Encounter annEnc = ann.findEncounter(myShepherd);
+                    if (annEnc != null) jgen.writeStringField("encounterId", annEnc.getId());
+                    jgen.writeEndObject();
+                }
+            jgen.writeEndArray();
             jgen.writeEndObject();
             if (featuredAssetId == null) featuredAssetId = ma.getUUID();
         }
