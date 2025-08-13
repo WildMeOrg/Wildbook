@@ -11,6 +11,7 @@ import Calendar from "../pages/SearchPages/searchResultTabs/CalendarView";
 import { observer } from "mobx-react-lite";
 import ChartView from "../pages/SearchPages/searchResultTabs/ChartView";
 import { MapView } from "../pages/SearchPages/searchResultTabs/MapView";
+import GalleryView from "../pages/SearchPages/searchResultTabs/GalleryView";
 
 const customStyles = {
   rows: {
@@ -313,12 +314,12 @@ const MyDataTable = observer(
               }}
             >
               <FormattedMessage
-                id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
-                defaultMessage={"Calendar View"}
+                id="SEARCH_RESULTS_TABLE_GALLERY_VIEW"
+                defaultMessage={"Gallery View"}
               />
             </Button>
             <Button
-              key={"chart"}
+              key={"map"}
               variant="outline-tertiary"
               className="me-1"
               onClick={() => {
@@ -332,12 +333,12 @@ const MyDataTable = observer(
               }}
             >
               <FormattedMessage
-                id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
-                defaultMessage={"Chart View"}
+                id="SEARCH_RESULTS_TABLE_MAP_VIEW"
+                defaultMessage={"Map View"}
               />
             </Button>
             <Button
-              key={"map"}
+              key={"chart"}
               variant="outline-tertiary"
               className="me-1"
               onClick={() => {
@@ -351,10 +352,30 @@ const MyDataTable = observer(
               }}
             >
               <FormattedMessage
-                id="SEARCH_RESULTS_TABLE_MAP_VIEW"
-                defaultMessage={"Map View"}
+                id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
+                defaultMessage={"Chart View"}
               />
             </Button>
+            <Button
+              key={"calendar"}
+              variant="outline-tertiary"
+              className="me-1"
+              onClick={() => {
+                store.setActiveStep(4);
+                if (!store.hasFetchedAllEncounters) {
+                  refetchAllData();
+                }
+              }}
+              style={{
+                ...(store.activeStep === 4 ? activeStyle : inactiveStyle),
+              }}
+            >
+              <FormattedMessage
+                id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
+                defaultMessage={"Calendar View"}
+              />
+            </Button>
+            
             {tabs.map((tab, index) => {
               return (
                 <Button
@@ -556,7 +577,7 @@ const MyDataTable = observer(
             display: store.activeStep === 1 ? "block" : "none",
           }}
         >
-          <Calendar store={store} />
+          <GalleryView store={store} />
         </div>
         <div
           className="w-100"
@@ -564,7 +585,7 @@ const MyDataTable = observer(
             display: store.activeStep === 2 ? "block" : "none",
           }}
         >
-          <ChartView store={store} />
+          <MapView store={store} />
         </div>
         <div
           className="w-100"
@@ -572,7 +593,15 @@ const MyDataTable = observer(
             display: store.activeStep === 3 ? "block" : "none",
           }}
         >
-          <MapView store={store} />
+          <ChartView store={store} />
+        </div>
+        <div
+          className="w-100"
+          style={{
+            display: store.activeStep === 4 ? "block" : "none",
+          }}
+        >
+          <Calendar store={store} />
         </div>
       </div>
     );
