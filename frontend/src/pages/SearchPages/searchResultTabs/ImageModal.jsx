@@ -1,8 +1,18 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 
 export default function ImageModal({ open, onClose, assets = [], index = 0, setIndex }) {
+
+    const thumbsRef = useRef(null);
+
+    useEffect(() => {
+        const s = thumbsRef.current;
+        if (!s || s.destroyed) return;
+        const target = Math.max(0, Math.min(index - 1, assets.length - 1));
+        s.slideTo(target, 250);
+    }, [index, assets.length]);
+    
     useEffect(() => {
         if (!open) return;
 
@@ -24,6 +34,23 @@ export default function ImageModal({ open, onClose, assets = [], index = 0, setI
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
+
+    const canPrev = safeIndex > 0;
+    const canNext = safeIndex < assets.length - 1;
+
+    const goPrev = () => {
+        setIndex?.((p) => {
+            const cur = typeof p === "number" ? p : safeIndex;
+            return Math.max(0, cur - 1);
+        });
+    };
+
+    const goNext = () => {
+        setIndex?.((p) => {
+            const cur = typeof p === "number" ? p : safeIndex;
+            return Math.min(assets.length - 1, cur + 1);
+        });
+    };
 
     return (
         <div
@@ -61,34 +88,61 @@ export default function ImageModal({ open, onClose, assets = [], index = 0, setI
                         className="d-flex flex-column flex-grow-1"
                         style={{ minWidth: 0, minHeight: 0 }}
                     >
+
                         <div
-                            className="d-flex align-items-center justify-content-center"
-                            style={{ flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}
+                            className="d-flex align-items-center justify-content-center position-relative overflow-hidden"
+                            style={{ flex: "1 1 auto", minHeight: 0 }}
                         >
+                            <button
+                                type="button"
+                                aria-label="Previous image"
+                                className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ${canPrev ? "" : "opacity-50 pe-none"}`}
+                                onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                                onMouseDown={(e) => e.preventDefault()}
+                                disabled={!canPrev}
+                            >
+                                <i className="bi bi-chevron-left" />
+                            </button>
+
                             <img
                                 src={a.url}
                                 alt={a.filename ?? `asset-${a.id ?? safeIndex}`}
-                                style={{
-                                    maxWidth: "80%",
-                                    maxHeight: "80%",
-                                    objectFit: "contain",
-                                    cursor: "zoom-in",
-                                    display: "block",
-                                }}
+                                className="img-fluid"
+                                style={{ maxWidth: "80%", maxHeight: "80%", objectFit: "contain", userSelect: "none", cursor: "zoom-in" }}
                                 onClick={() => { }}
                             />
+
+                            <button
+                                type="button"
+                                aria-label="Next image"
+                                className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 ${canNext ? "" : "opacity-50 pe-none"}`}
+                                onClick={(e) => { e.stopPropagation(); goNext(); }}
+                                onMouseDown={(e) => e.preventDefault()}
+                                disabled={!canNext}
+                            >
+                                <i className="bi bi-chevron-right" />
+                            </button>
                         </div>
+
 
                         <div
                             style={{ flex: "0 0 110px" }}
                         >
-                            <Swiper slidesPerView="auto" spaceBetween={8} style={{ padding: "8px 12px" }}>
+                            <Swiper
+                                slidesPerView="auto"
+                                spaceBetween={8}
+                                style={{ padding: "8px 12px" }}
+                                onSwiper={(s) => (thumbsRef.current = s)}
+                            >
                                 {assets.map((item, i) => (
                                     <SwiperSlide key={item.uuid ?? item.id ?? i} style={{ width: 84 }}>
                                         <img
                                             src={item.url}
                                             alt={item.filename ?? ""}
-                                            onClick={() => setIndex?.(i)}
+                                            onClick={() => {
+                                                setIndex?.(i);
+                                                thumbsRef.current?.slideTo(Math.max(0, i - 1), 250);
+                                            }}
                                             style={{
                                                 width: 72,
                                                 height: 72,

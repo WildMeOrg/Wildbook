@@ -2497,13 +2497,12 @@ const GalleryView = observer(({ store }) => {
             </div>
 
             <ImageModal
-                open={true}
+                open={imageModalOpen}
                 onClose={() => setImageModalOpen(false)}
                 assets={allMediaAssets}
                 index={currentIndex}
                 setIndex={setCurrentIndex} 
                 />
-
         </div>
 
     );
