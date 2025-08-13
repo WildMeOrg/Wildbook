@@ -1312,7 +1312,9 @@ public class EncounterImportExcelServlet extends HttpServlet {
         AssetStore astore = getAssetStore(myShepherd);
 
         // if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
+
         ArrayList<Annotation> annots = new ArrayList<Annotation>();
+
 
         for (int i = 0; i < getNumMediaAssets(colIndexMap); i++) {
             MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets, colIndexMap,
@@ -1327,6 +1329,17 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
             String bbox = getString(row,("Annotation"+i+".bbox"), colIndexMap, verbose, missingColumns, unusedColumns, feedback);
             int[] bboxArray = new int[4];
+
+            String genus = getString(row, "Encounter.genus", colIndexMap, verbose, missingColumns,
+            unusedColumns, feedback);
+    
+            String specificEpithet = getString(row, "Encounter.specificEpithet", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
+    
+            Double quality = getDouble(row, ("Encounter.quality" + i), colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
+
+
 
             if (bbox != null && bbox.startsWith("[") && bbox.endsWith("]")) {
                 // Remove brackets
@@ -1343,17 +1356,9 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     continue;
 
                 }
-            } else {
-                // Handle null or improperly formatted string
-                System.out.println("invalid bbox ");
-                continue;
-            }
-            
+
 
             String viewPoint = getString(row,("Annotation"+i+".ViewPoint"), colIndexMap, verbose, missingColumns, unusedColumns, feedback);
-  
-
-
             JSONObject obj = new JSONObject();
             obj.put("viewpoint", viewPoint);
             obj.put("x", bboxArray[0]);
@@ -1382,15 +1387,8 @@ public class EncounterImportExcelServlet extends HttpServlet {
             ann.setWidth(bboxArray[2]);
             ann.setHeight(bboxArray[3]);
             
-            Double quality = getDouble(row, ("Encounter.quality" + i), colIndexMap, verbose,
-                missingColumns, unusedColumns, feedback);
+
             if (quality != null) ann.setQuality(quality);
-
-            String genus = getString(row, "Encounter.genus", colIndexMap, verbose, missingColumns,
-            unusedColumns, feedback);
-
-            String specificEpithet = getString(row, "Encounter.specificEpithet", colIndexMap, verbose,
-            missingColumns, unusedColumns, feedback);
 
             String taxonomyString = genus + " " + specificEpithet;
 
@@ -1403,6 +1401,22 @@ public class EncounterImportExcelServlet extends HttpServlet {
             }
 
             annots.add(ann);
+
+
+            
+            } else {
+                // Handle null or improperly formatted string
+                System.out.println("no annotation for mediaAsset");
+
+                Annotation ann = new Annotation(species, ma);
+                ann.setIsExemplar(true);
+
+                if (quality != null) ann.setQuality(quality);
+                // ann.setMatchAgainst(true);
+                annots.add(ann);
+            }
+            
+
         }
         if (annots.size() > 0) {
             for (int i = 0; i < annots.size(); i++) {
