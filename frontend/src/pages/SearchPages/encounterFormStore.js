@@ -8,6 +8,7 @@ class EncounterFormStore {
   _hasFetchedAllEncounters = false;
   _searchResultsAll = [];
   _loadingAll = false;
+  _imageCoundPerPage = 20;
 
   constructor() {
     this.formFilters = [];
@@ -34,6 +35,10 @@ class EncounterFormStore {
     return this._loadingAll;
   }
 
+  get imageCountPerPage() {
+    return this._imageCoundPerPage;
+  }
+
   set formFilters(newFilters) {
     this._formFilters = newFilters;
   }
@@ -48,6 +53,10 @@ class EncounterFormStore {
 
   setActiveStep(step) {
     this._activeStep = step;
+  }
+
+  setimageCountPerPage(count) {
+    this._imageCoundPerPage = count;
   }
 
   addFilter(filterId, clause, query, filterKey, path = "") {
@@ -94,13 +103,13 @@ class EncounterFormStore {
     if (!isValid(d)) {
       console.warn(`Invalid date skipped: ${date}`);
       return null;
-    }    
+    }
     return String(getWeek(d));
   }
 
   calculateWeeklyDates(dates) {
     if (!Array.isArray(dates)) return [];
-      const validDates = dates.filter(d => typeof d === 'string' && d.trim());
+    const validDates = dates.filter(d => typeof d === 'string' && d.trim());
 
     const countsByWeek = chain(validDates)
       .map(this.weekKey)
