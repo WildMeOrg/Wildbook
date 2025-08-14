@@ -4,6 +4,7 @@ import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.*;
 import org.ecocean.media.*;
@@ -216,8 +217,7 @@ public class IAGateway extends HttpServlet {
                     mas.add(ma);
                 }
             }
-        }
-        else {
+        } else {
             res.put("success", false);
             res.put("error", "unknown detect value");
         }
@@ -290,7 +290,7 @@ public class IAGateway extends HttpServlet {
         ArrayList<String> validIds = new ArrayList<String>();
         int limitTargetSize = j.optInt("limitTargetSize", -1); // really "only" for debugging/testing, so use if you know what you are doing
 
-        // currently this implies each annotation should be sent one-at-a-time 
+        // currently this implies each annotation should be sent one-at-a-time
         JSONArray alist = j.optJSONArray("annotationIds");
         if ((alist != null) && (alist.length() > 0)) {
             for (int i = 0; i < alist.length(); i++) {
@@ -303,7 +303,7 @@ public class IAGateway extends HttpServlet {
                 validIds.add(aid);
             }
         }
-        // i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for that now, we just send these all in one at a time. 
+        // i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for that now, we just send these all in one at a time.
         JSONArray olist = j.optJSONArray("occurrenceIds");
         if ((olist != null) && (olist.length() > 0)) {
             for (int i = 0; i < olist.length(); i++) {
@@ -412,7 +412,6 @@ public class IAGateway extends HttpServlet {
         JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes,
             myShepherd);
         if (shortCut != null) return shortCut;
-
         try {
             // TODO: cache this examplars list (per species)
             ///note: this can all go away if/when we decide not to need limitTargetSize
@@ -484,7 +483,6 @@ public class IAGateway extends HttpServlet {
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
         }
-
         return taskRes;
     }
 
@@ -569,10 +567,11 @@ public class IAGateway extends HttpServlet {
         getDetectionQueue(context).publish(content);
         return true;
     }
-    
+
     public static boolean addToAcmIdQueue(String context, String mediaAssetID)
     throws IOException {
-        System.out.println("IAGateway.addToAcmIdQueue() trying to regist MediaAsset ID: " + mediaAssetID);
+        System.out.println("IAGateway.addToAcmIdQueue() trying to regist MediaAsset ID: " +
+            mediaAssetID);
         getAcmIdQueue(context).publish(mediaAssetID);
         return true;
     }
@@ -588,7 +587,7 @@ public class IAGateway extends HttpServlet {
         detectionQueue = QueueUtil.getBest(context, "detection");
         return detectionQueue;
     }
-    
+
     public static Queue getAcmIdQueue(String context)
     throws IOException {
         acmIdQueue = QueueUtil.getBest(context, "acmid");
@@ -618,6 +617,11 @@ public class IAGateway extends HttpServlet {
         // __context and __baseUrl should be set -- this is done automatically in IAGateway, but if getting here by some other method, do the work!
         if (jobj.optBoolean("v2", false)) { // lets "new world" ia package do its thing
             IA.handleRest(jobj);
+            return;
+        }
+        if (jobj.optBoolean("MLService", false)) {
+            MLService mlserv = new MLService();
+            mlserv.processQueueJob(jobj);
             return;
         }
         boolean requeue = false;
@@ -865,7 +869,6 @@ public class IAGateway extends HttpServlet {
         for (MediaAsset asset : itask.getMediaAssets()) {
             maIds.put(asset.getId());
         }
-
         Task task = new Task();
         task.setParameters(taskParameters);
         myShepherd.storeNewTask(task);
