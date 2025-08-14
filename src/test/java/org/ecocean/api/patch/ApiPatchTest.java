@@ -140,6 +140,158 @@ class ApiPatchTest {
         }
     }
 
+    @Test void apiInvalidOp()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        // apparently admin is not good enough to edit encounters!!
+        // when(user.isAdmin(any(Shepherd.class))).thenReturn(false);
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        String payload = patchPayload("failOp", "fakePath", "someValue").toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID_OP"));
+                }
+            }
+        }
+    }
+
+    @Test void apiInvalidPath()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        String payload = patchPayload("add", "fakePath", "someValue").toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                }
+            }
+        }
+    }
+
+    // this test a path (dateTime) which should trigger our test via Encounter.validateFieldValue()
+    @Test void apiInvalidValue1()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        String payload = patchPayload("add", "dateTime", "not-a-valid-value").toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(8));
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "fieldName", "dateTime"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                }
+            }
+        }
+    }
+
+    // this test a path (elevation) which should trigger our test via BulkValidator
+    @Test void apiInvalidValue2()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        String payload = patchPayload("add", "elevation", "not-a-valid-value").toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(8));
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    // assertTrue(gotErrorsValue(jout, "fieldName", "dateTime"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                }
+            }
+        }
+    }
+
 /*
     @Test void apiEmptyPayload()
     throws ServletException, IOException {
@@ -171,6 +323,27 @@ class ApiPatchTest {
         }
     }
  */
+
+/*
+          "errors": [{
+                    "code": "INVALID",
+                    "details": "invalid op: failOp",
+                    "type": "INVALID_OP"
+          }],
+ */
+    private static boolean gotErrorsValue(JSONObject rtn, String key, Object value) {
+        if (rtn == null) return false;
+        JSONArray errArr = rtn.optJSONArray("errors");
+        if (errArr == null) return false;
+        for (int i = 0; i < errArr.length(); i++) {
+            JSONObject err = errArr.optJSONObject(i);
+            if (err == null) continue;
+            Object errVal = err.opt(key);
+            if (errVal == null) continue;
+            if (errVal.equals(value)) return true;
+        }
+        return false;
+    }
 
 /*
     @Test void apiPostNoRowsError()

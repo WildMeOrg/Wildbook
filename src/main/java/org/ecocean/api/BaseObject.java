@@ -303,8 +303,8 @@ public class BaseObject extends ApiBase {
                 rtn.put("statusCode", 200);
                 rtn.put("success", true);
             }
+        } catch (ApiException bve) {
             // these are the typical 400 error that comes with invalid op/path/value etc
-        } catch (BulkValidatorException bve) {
             rtn.put("statusCode", 400);
             rtn.put("errors", bve.getErrors());
         } catch (Exception ex) {

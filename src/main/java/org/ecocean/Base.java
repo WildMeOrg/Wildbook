@@ -379,9 +379,9 @@ import org.json.JSONObject;
     // https://datatracker.ietf.org/doc/html/rfc6902
     // op (add, remove, replace, move, copy, test), path, value
     public JSONObject processPatch(JSONArray patchArr, Shepherd myShepherd)
-    throws BulkValidatorException {
+    throws ApiException {
         // FIXME make this do something real?
-        throw new BulkValidatorException("processPatch() not yet implemented", "FAIL");
+        throw new ApiException("processPatch() not yet implemented", "FAIL");
     }
 
     // TODO should this be an abstract? will we need some base stuff?

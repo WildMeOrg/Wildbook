@@ -4645,17 +4645,19 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public org.json.JSONObject processPatch(org.json.JSONArray patchArr, Shepherd myShepherd)
-    throws BulkValidatorException {
+    throws ApiException {
         if (patchArr == null)
-            throw new BulkValidatorException("null patch array",
-                    ApiException.ERROR_RETURN_CODE_REQUIRED,
-                    BulkValidatorException.TYPE_REQUIRED_VALUE);
-        org.json.JSONObject rtn = new org.json.JSONObject();
+            throw new ApiException("null patch array", ApiException.ERROR_RETURN_CODE_REQUIRED);
+        org.json.JSONArray resArr = new org.json.JSONArray();
         for (int i = 0; i < patchArr.length(); i++) {
-            EncounterPatchValidator epv = EncounterPatchValidator.createFromPatch(
+            System.out.println("applied patch at [i=" + i + "]: " + patchArr.optJSONObject(i));
+            org.json.JSONObject patchRes = EncounterPatchValidator.applyPatch(this,
                 patchArr.optJSONObject(i), myShepherd);
-            System.out.println("[i=" + i + "] >>>>>>>> " + epv);
+            System.out.println("patch returned at [i=" + i + "]: " + patchRes);
+            resArr.put(patchRes);
         }
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        rtn.put("patchResults", resArr);
         return rtn;
     }
 
