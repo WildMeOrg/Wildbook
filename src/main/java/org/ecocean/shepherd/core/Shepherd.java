@@ -2220,7 +2220,7 @@ public class Shepherd {
 
     public List<Organization> getAllCommonOrganizationsForTwoUsers(User user1, User user2) {
         ArrayList<Organization> al = new ArrayList<Organization>();
-
+        if(user1==null||user2==null) return al;
         try {
             Query q = getPM().newQuery(
                 "SELECT FROM org.ecocean.Organization WHERE members.contains(user1) && members.contains(user2) && user1.uuid == \""
@@ -2229,8 +2229,13 @@ public class Shepherd {
             Collection results = (Collection)q.execute();
             al = new ArrayList<Organization>(results);
             q.closeAll();
-        } catch (javax.jdo.JDOException x) {
+        }
+        catch (javax.jdo.JDOException x) {
             x.printStackTrace();
+            return al;
+        }
+        catch (Exception xe) {
+            xe.printStackTrace();
             return al;
         }
         return al;
