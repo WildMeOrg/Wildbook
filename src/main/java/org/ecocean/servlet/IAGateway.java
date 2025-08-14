@@ -855,12 +855,15 @@ public class IAGateway extends HttpServlet {
         if (taskParameters != null) importTaskId = taskParameters.optString("importTaskId", null);
         ImportTask itask = null;
         Task parentTask = null;
+        String resTaskId = null;
         if (importTaskId != null) itask = myShepherd.getImportTask(importTaskId);
         if (itask != null) {
             parentTask = new Task(); // root task to hold all others, to connect to ImportTask
             parentTask.setParameters(taskParameters);
             myShepherd.storeNewTask(parentTask);
             itask.setIATask(parentTask);
+            resTaskId = parentTask.getId();
+            itask.addLog("handleBulkImport() initiated IA Task " + resTaskId);
             System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask +
                 " to link to " + itask);
         }
@@ -873,6 +876,7 @@ public class IAGateway extends HttpServlet {
         task.setParameters(taskParameters);
         myShepherd.storeNewTask(task);
         if (parentTask != null) parentTask.addChild(task);
+        if (resTaskId == null) resTaskId = task.getId();
         myShepherd.commitDBTransaction();
         // System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
         JSONObject qjob = new JSONObject(jin.toString()); // clone it to start with so we get all same content
@@ -889,6 +893,7 @@ public class IAGateway extends HttpServlet {
         res.put("queuedCount", okCount);
         res.remove("error");
         res.put("success", true);
+        res.put("resTaskId", resTaskId);
         return res;
     }
 }
