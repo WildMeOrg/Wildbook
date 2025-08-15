@@ -2781,18 +2781,19 @@ public class EncounterImportExcelServlet extends HttpServlet {
 
                     ArrayList<MediaAsset> theseAssets = enc.getMedia();
                     for (MediaAsset assy : theseAssets) {
-                        if (!assy.hasAcmId()) {
-                            assets.add(assy);
-                        }
-
+                       
                         ArrayList<Annotation> theseAnns =  assy.getAnnotations();
 
-                     for (Annotation ann : theseAnns){
-
-                        if (!ann.hasAcmId()){
-                            annotations.add(ann);
+                        if (!assy.hasAcmId() && theseAnns.size() > 0) {
+                                assets.add(assy);
                         }
-                     }
+
+                        for (Annotation ann : theseAnns){
+
+                            if (!ann.hasAcmId()){
+                                annotations.add(ann);
+                            }
+                        }
                     }
                     if (((assets.size() >= batchSize) && assets.size() > 0) || count == numEncs) {
                         System.out.println("About to send " + assets.size() + " assets to IA! On " +
