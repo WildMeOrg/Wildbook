@@ -4134,6 +4134,9 @@ public class Encounter extends Base implements java.io.Serializable {
                 for (Annotation ann : ma.getAnnotations()) {
                     jgen.writeStartObject();
                     jgen.writeStringField("id", ann.getId());
+                    jgen.writeStringField("iaClass", ann.getIAClass());
+                    jgen.writeStringField("viewpoint", ann.getViewpoint());
+                    jgen.writeBooleanField("isTrivial", ann.isTrivial());
                     jgen.writeNumberField("theta", ann.getTheta());
                     jgen.writeArrayFieldStart("boundingBox");
                     int[] bbox = ann.getBbox();
