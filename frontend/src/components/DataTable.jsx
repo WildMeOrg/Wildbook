@@ -273,7 +273,7 @@ const MyDataTable = observer(
 
     return (
       <div
-        className="container"
+        className="container mt-3 mb-5"
         style={{
           ...style,
         }}
@@ -462,7 +462,7 @@ const MyDataTable = observer(
           <br />
         </div>
         <div
-          className="w-100"
+          className="w-100 mt-1"
           style={{
             display: store.activeStep === 0 ? "block" : "none",
           }}

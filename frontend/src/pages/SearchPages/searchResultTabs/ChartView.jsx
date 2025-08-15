@@ -6,6 +6,7 @@ import Linechart from "../../../components/Linechart";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Row, Col } from "react-bootstrap";
+import FullScreenLoader from "../../../components/FullScreenLoader";
 
 const processData = (data) => {
   const counts = data.reduce((acc, curr) => {
@@ -52,25 +53,19 @@ const ChartView = observer(({ store }) => {
     store.searchResultsAll.map((item) => item.state).filter(state => state),
   );
 
-  if (store.loadingAll) {
-    return (
-      <h3 style={{ color: "white" }}>
-        <FormattedMessage id="LOADING" />
-      </h3>
-    );
-  }
-
   return (
     <div
-      className="container"
+      className="container mt-1"
       style={{
         padding: "1rem",
         background: "rgba(255, 255, 255, 0.1)",
         backdropFilter: "blur(2px)",
         WebkitBackdropFilter: "blur(2px)",
         color: "white",
+        position: "relative",
       }}
     >
+      { store.loadingAll && <FullScreenLoader/>}
       <h2>
         <FormattedMessage id="CHART_VIEW" />
       </h2>

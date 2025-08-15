@@ -4,6 +4,7 @@ import { Loader } from "@googlemaps/js-api-loader";
 import useGetSiteSettings from "../../../models/useGetSiteSettings";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { FormattedMessage } from "react-intl";
+import FullScreenLoader from "../../../components/FullScreenLoader";
 
 const PALETTE = [
   "#2563eb",
@@ -166,7 +167,10 @@ export const MapView = observer(({ store }) => {
   }, [mode, categoryColorMap]);
 
   return (
-    <div className="d-flex flex-row">
+    <div className="d-flex flex-row mt-1"
+      style={{ position: "relative", color: "white" }}
+    >
+      { store.loadingAll && <FullScreenLoader/>}
       <div
         className="mt-2 me-4"
         style={{

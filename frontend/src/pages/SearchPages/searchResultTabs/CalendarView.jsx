@@ -4,6 +4,7 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./searchResultTabs.css";
 import { observer } from "mobx-react-lite";
+import FullScreenLoader from "../../../components/FullScreenLoader";
 
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
@@ -42,24 +43,16 @@ const CalendarTab = observer(({ store }) => {
     setEvents(parsed);
   }, [store.searchResultsAll]);
 
-  if (store.loadingAll) {
-    return (
-      <h3 style={{ color: "white" }} >
-        Loading...
-      </h3>
-    );
-  }
-
   return (
     <div
-      className="container"
-      style={{ padding: "1rem", backgroundColor: "#f8f9fa" }}
+      className="container mt-1"
+      style={{ backgroundColor: "#f8f9fa", position: "relative" }}
     >
       {/* <div style={{ marginBottom: "1rem", width: "100%", display: "flex", justifyContent: "flex-end" }}>
         <button onClick={() => setView(Views.MONTH)}>Grid</button>
         <button onClick={() => setView(Views.AGENDA)}>List</button>
       </div> */}
-
+      {store.loadingAll && <FullScreenLoader />}
       <Calendar
         localizer={localizer}
         events={events}
