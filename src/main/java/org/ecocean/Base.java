@@ -390,6 +390,20 @@ import org.json.JSONObject;
         return null;
     }
 
+    /*
+        this basically applies the patch ops on a base object. in the case of add/replace/remove there
+        is a TON of overlap (basically calling setters) between this and both BulkImporter.processRow()
+        and Base.createFromApi() .... this is really ugly and unfortunate. in some wonderful future
+        this setter activity (basically mapping fieldname to setter) would be consolidated.
+        as in these other cases, the *values* we use here are assumed to have already been validated,
+        and thus we can just blindingly set them (including setting nulls for "remove"), including being
+        able to cast the value object to the necessary value-class.
+     */
+    public Object applyPatchOp(String fieldName, Object value, String op) {
+        // override me
+        return null;
+    }
+
 /*
     public static JSONObject opensearchQuery(final JSONObject scrollData)
     throws IOException {
