@@ -66,11 +66,11 @@ class ApiPatchTest {
         when(mockResponse.getWriter()).thenReturn(writer);
     }
 
-    private JSONArray patchPayload(String op, String path, String value) {
+    private JSONArray patchPayload(String op, String path, Object value) {
         return patchPayload(op, path, value, null);
     }
 
-    private JSONArray patchPayload(String op, String path, String value, JSONArray prev) {
+    private JSONArray patchPayload(String op, String path, Object value, JSONArray prev) {
         if (prev == null) prev = new JSONArray();
         JSONObject opObj = new JSONObject();
         opObj.put("op", op);
@@ -262,6 +262,45 @@ class ApiPatchTest {
         Encounter enc = new Encounter();
         enc.setSubmitterID("someUser");
         String payload = patchPayload("add", "elevation", "not-a-valid-value").toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(8));
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    // assertTrue(gotErrorsValue(jout, "fieldName", "dateTime"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                }
+            }
+        }
+    }
+
+    // just some successful ones (single and multi-patch)
+    @Test void apiValidPatches()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        String payload = patchPayload("add", "elevation", 10.0).toString();
 
         when(mockRequest.getRequestURI()).thenReturn(
             "/api/v3/encounters/00000000-0000-0000-0000-000000000000");

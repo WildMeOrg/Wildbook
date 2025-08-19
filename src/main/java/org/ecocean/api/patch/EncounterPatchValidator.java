@@ -3,10 +3,11 @@ package org.ecocean.api.patch;
 import org.ecocean.api.ApiException;
 import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.api.bulk.BulkValidatorException;
-import org.ecocean.shepherd.core.Shepherd;
-
 import org.ecocean.Encounter;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.Util;
 
+import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,8 +48,13 @@ public class EncounterPatchValidator {
                 BulkValidator bv = new BulkValidator(bulkFieldName, value, myShepherd);
                 System.out.println("**** BV!! **** " + bv);
             } else {
+// FIXME need to validate path more generally, maybe via applyPatchOp() throwing exception???
                 //
             }
+            enc.applyPatchOp(path, value, op);
+        } else if (op.equals("remove")) {
+            // TODO need to check required, etc.
+            enc.applyPatchOp(path, null, op);
         } else { // other ops
         }
         // FIXME temporary fall-through fail
@@ -58,6 +64,34 @@ public class EncounterPatchValidator {
         if (errorMsg != null)
             throw new ApiException(errorMsg, ApiException.ERROR_RETURN_CODE_INVALID);
         return rtn;
+    }
+
+    // checks internal consistency of Encounter, such as missing one of lat/lon etc.
+    public static void finalValidation(Encounter enc, Shepherd myShepherd)
+    throws ApiException {
+        // first check that we didnt end up with only half lat/lon set
+        if (((enc.getDecimalLatitude() == null) && (enc.getDecimalLongitude() != null)) ||
+            ((enc.getDecimalLatitude() != null) && (enc.getDecimalLongitude() == null)))
+            throw new ApiException("must have both decimalLatitude and decimalLongitude values set",
+                    ApiException.ERROR_RETURN_CODE_REQUIRED);
+        // now make sure we didnt tweak one of y/m/d value and create invalid date
+        if ((enc.getYear() > 0) && (enc.getMonth() > 0) && (enc.getDay() > 0)) {
+            YearMonth yearMonth = YearMonth.of(enc.getYear(), enc.getMonth());
+            if (!yearMonth.isValidDay(enc.getDay()))
+                throw new ApiException("day is out of range for month",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+            if (Util.dateIsInFuture(enc.getYear(), enc.getMonth(), enc.getDay()))
+                throw new ApiException("date cannot be set in future",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+        }
+        if ((enc.getMonth() < 1) && (enc.getDay() > 0))
+            throw new ApiException("cannot have day set but no month set",
+                    ApiException.ERROR_RETURN_CODE_INVALID);
+        // make sure we didnt set one of genus/specificEpithet and create invalid taxonomy
+        String sciName = enc.getTaxonomyString();
+        if ((sciName != null) && !myShepherd.isValidTaxonomyName(sciName))
+            throw new ApiException("genus and specificEpithet are an invalid taxonomy: " + sciName,
+                    ApiException.ERROR_RETURN_CODE_INVALID);
     }
 
     public static boolean isValidOp(String op) {

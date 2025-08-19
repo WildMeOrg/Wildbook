@@ -4658,7 +4658,138 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         org.json.JSONObject rtn = new org.json.JSONObject();
         rtn.put("patchResults", resArr);
+        // after applying each patch, make sure nothing is wrong
+        EncounterPatchValidator.finalValidation(this, myShepherd);
         return rtn;
+    }
+
+    // see note on painful redundancy with bulk import and createFromApi on
+    // Base.applyPatchOp()
+    public Object applyPatchOp(String fieldName, Object value, String op) {
+        System.out.println("+++++++++++++++++++++++++++ " + op + " " + fieldName + "=>" + value +
+            " on: " + this);
+        switch (fieldName) {
+        case "decimalLatitude":
+            setDecimalLatitude((Double)value);
+            break;
+        case "decimalLongitude":
+            setDecimalLongitude((Double)value);
+            break;
+        case "alternateID":
+            setAlternateID((String)value);
+            break;
+        case "behavior":
+            setBehavior((String)value);
+            break;
+        case "country":
+            setCountry((String)value);
+            break;
+        case "dateInMilliseconds":
+            if (value != null) setDateInMilliseconds((Long)value);
+            break;
+        case "year":
+            if (value == null) {
+                setYear(0);
+            } else {
+                setYear((Integer)value);
+            }
+            break;
+        case "month":
+            if (value == null) {
+                setMonth(0);
+            } else {
+                setMonth((Integer)value);
+            }
+            break;
+        case "day":
+            if (value == null) {
+                setDay(0);
+            } else {
+                setDay((Integer)value);
+            }
+            break;
+        case "hour":
+            if (value == null) {
+                setDay(0);
+            } else {
+                setDay((Integer)value);
+            }
+            break;
+        case "minutes":
+            setMinutes((String)value);
+            break;
+/*  TODO FIXME continue .....
+        case "Encounter.depth":
+            enc.setDepth(bv.getValueDouble());
+            break;
+        case "Encounter.elevation":
+            enc.setMaximumElevationInMeters(bv.getValueDouble());
+            break;
+        case "Encounter.genus":
+            enc.setGenus(bv.getValueString());
+            break;
+        case "Encounter.specificEpithet":
+            enc.setSpecificEpithet(bv.getValueString());
+            break;
+        case "Encounter.lifeStage":
+            enc.setLifeStage(bv.getValueString());
+            break;
+        case "Encounter.livingStatus":
+            enc.setLivingStatus(bv.getValueString());
+            break;
+        case "Encounter.locationID":
+            enc.setLocationID(bv.getValueString());
+            break;
+        case "Encounter.sex":
+            enc.setSex(bv.getValueString());
+            break;
+        case "Encounter.state":
+            enc.setState(bv.getValueString());
+            break;
+        case "Encounter.submitterName":
+            enc.setSubmitterName(bv.getValueString());
+            break;
+        case "Encounter.submitterOrganization":
+            enc.setSubmitterOrganization(bv.getValueString());
+            break;
+        case "Encounter.distinguishingScar":
+            enc.setDistinguishingScar(bv.getValueString());
+            break;
+        case "Encounter.groupRole":
+            enc.setGroupRole(bv.getValueString());
+            break;
+        case "Encounter.identificationRemarks":
+            enc.setIdentificationRemarks(bv.getValueString());
+            break;
+        case "Encounter.sightingRemarks":
+            enc.setOccurrenceRemarks(bv.getValueString());
+            break;
+        case "Encounter.otherCatalogNumbers":
+            enc.setOtherCatalogNumbers(bv.getValueString());
+            break;
+        case "Encounter.patterningCode":
+            enc.setPatterningCode(bv.getValueString());
+            break;
+        case "Encounter.researcherComments":
+            if (!bv.valueIsNull()) enc.addComments(bv.getValueString());
+            break;
+        case "Encounter.verbatimLocality":
+            enc.setVerbatimLocality(bv.getValueString());
+            break;
+
+        case "SatelliteTag.serialNumber":
+            if (!bv.valueIsNull()) {
+                SatelliteTag stag = new SatelliteTag("", bv.getValueString(), "");
+                enc.setSatelliteTag(stag);
+            }
+            break;
+
+ */
+        default:
+            System.out.println("[INFO] applyPatchOp() ignoring " + op + " " + fieldName + "=>" +
+                value + " on: " + this);
+        }
+        return value;
     }
 
     public static Object validateFieldValue(String fieldName, org.json.JSONObject data)
