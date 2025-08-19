@@ -317,15 +317,23 @@ public class EncounterImportExcelServlet extends HttpServlet {
                                 missingColumns, unusedColumns, fFeedback);
         
                         if (committing) {
+
+                            for (Map.Entry<String, MediaAsset> entry : myAssets.entrySet()) {
+                                MediaAsset ma = entry.getValue();
+                                if (ma != null) {
+                                    ma.setMetadata();
+                                    rowShepherd.getPM().makePersistent(ma);
+                                }
+                            }
+
                             for (Annotation ann : annotations) {
                                 MediaAsset ma = ann.getMediaAsset();
                                 if (ma != null) {
-                                    ma.setMetadata();
                                     ma.updateStandardChildren(rowShepherd);
                                     rowShepherd.storeNewAnnotation(ann);
                                 }
                             }
-        
+
                             rowShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
                             rowShepherd.beginDBTransaction();
                             encsCreated.add(enc.getCatalogNumber());
@@ -1353,7 +1361,6 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 } else {
 
                     System.out.println("invalid bbox array");
-                    ma.setDetectionStatus("complete");
                     continue;
 
                 }
@@ -1408,6 +1415,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
             } else {
                 // Handle null or improperly formatted string
                 System.out.println("no annotation for mediaAsset");
+                ma.setDetectionStatus("complete");
 
                 Annotation ann = new Annotation(species, ma);
                 ann.setIsExemplar(true);
