@@ -1353,6 +1353,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 } else {
 
                     System.out.println("invalid bbox array");
+                    ma.setDetectionStatus("complete");
                     continue;
 
                 }
