@@ -32,7 +32,7 @@ public class EncounterPatchValidator {
         rtn.put("_patch", patch);
         String path = patch.optString("path");
         Object value = patch.opt("value");
-        System.out.println(">>>>>>>>>>>>> PATCH obj=" + patch.toString(8));
+        // System.out.println(">>>>>>>>>>>>> PATCH obj=" + patch.toString(8));
         // add and replace are interchangeable for some things, so lets reuse
         // existing code for these when we can
         if (op.equals("add") || op.equals("replace")) {
@@ -47,19 +47,20 @@ public class EncounterPatchValidator {
                 // this will throw an exception if no bueno
                 BulkValidator bv = new BulkValidator(bulkFieldName, value, myShepherd);
                 System.out.println("**** BV!! **** " + bv);
+                value = bv.getValue();
             } else {
 // FIXME need to validate path more generally, maybe via applyPatchOp() throwing exception???
                 //
             }
+            // if we get through to here, value should be cleared to do actual patch
+            // but this will throw exception if bad path
             enc.applyPatchOp(path, value, op);
         } else if (op.equals("remove")) {
             // TODO need to check required, etc.
             enc.applyPatchOp(path, null, op);
         } else { // other ops
         }
-        // FIXME temporary fall-through fail
-        rtn.put("error", "fell through");
-
+        // no exceptions means we had success
         String errorMsg = rtn.optString("error", null);
         if (errorMsg != null)
             throw new ApiException(errorMsg, ApiException.ERROR_RETURN_CODE_INVALID);

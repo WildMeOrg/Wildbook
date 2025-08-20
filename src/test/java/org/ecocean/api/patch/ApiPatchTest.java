@@ -209,6 +209,7 @@ class ApiPatchTest {
                     verify(mockResponse).setStatus(400);
                     assertFalse(jout.getBoolean("success"));
                     assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                    assertTrue(gotErrorsValue(jout, "details", "unknown fieldName: fakePath"));
                 }
             }
         }
@@ -243,7 +244,6 @@ class ApiPatchTest {
                     apiServlet.doPatch(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(8));
                     verify(mockResponse).setStatus(400);
                     assertFalse(jout.getBoolean("success"));
                     assertTrue(gotErrorsValue(jout, "fieldName", "dateTime"));
@@ -282,7 +282,6 @@ class ApiPatchTest {
                     apiServlet.doPatch(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(8));
                     verify(mockResponse).setStatus(400);
                     assertFalse(jout.getBoolean("success"));
                     // assertTrue(gotErrorsValue(jout, "fieldName", "dateTime"));
@@ -321,11 +320,9 @@ class ApiPatchTest {
                     apiServlet.doPatch(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
-                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> " + jout.toString(8));
-                    verify(mockResponse).setStatus(400);
-                    assertFalse(jout.getBoolean("success"));
-                    // assertTrue(gotErrorsValue(jout, "fieldName", "dateTime"));
-                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertTrue(enc.getMaximumElevationInMeters() == 10.0D);
                 }
             }
         }

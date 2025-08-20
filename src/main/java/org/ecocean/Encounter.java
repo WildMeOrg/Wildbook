@@ -4660,12 +4660,16 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("patchResults", resArr);
         // after applying each patch, make sure nothing is wrong
         EncounterPatchValidator.finalValidation(this, myShepherd);
+        // no exceptions means success
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
         return rtn;
     }
 
     // see note on painful redundancy with bulk import and createFromApi on
     // Base.applyPatchOp()
-    public Object applyPatchOp(String fieldName, Object value, String op) {
+    public Object applyPatchOp(String fieldName, Object value, String op)
+    throws ApiException {
         System.out.println("+++++++++++++++++++++++++++ " + op + " " + fieldName + "=>" + value +
             " on: " + this);
         switch (fieldName) {
@@ -4718,76 +4722,66 @@ public class Encounter extends Base implements java.io.Serializable {
         case "minutes":
             setMinutes((String)value);
             break;
-/*  TODO FIXME continue .....
-        case "Encounter.depth":
-            enc.setDepth(bv.getValueDouble());
+        case "depth":
+            setDepth((Double)value);
             break;
-        case "Encounter.elevation":
-            enc.setMaximumElevationInMeters(bv.getValueDouble());
+        case "elevation":
+            setMaximumElevationInMeters((Double)value);
             break;
-        case "Encounter.genus":
-            enc.setGenus(bv.getValueString());
+        case "genus":
+            setGenus((String)value);
             break;
-        case "Encounter.specificEpithet":
-            enc.setSpecificEpithet(bv.getValueString());
+        case "specificEpithet":
+            setSpecificEpithet((String)value);
             break;
-        case "Encounter.lifeStage":
-            enc.setLifeStage(bv.getValueString());
+        case "lifeStage":
+            setLifeStage((String)value);
             break;
-        case "Encounter.livingStatus":
-            enc.setLivingStatus(bv.getValueString());
+        case "livingStatus":
+            setLivingStatus((String)value);
             break;
-        case "Encounter.locationID":
-            enc.setLocationID(bv.getValueString());
+        case "locationID":
+            setLocationID((String)value);
             break;
-        case "Encounter.sex":
-            enc.setSex(bv.getValueString());
+        case "sex":
+            setSex((String)value);
             break;
-        case "Encounter.state":
-            enc.setState(bv.getValueString());
+        case "state":
+            setState((String)value);
             break;
-        case "Encounter.submitterName":
-            enc.setSubmitterName(bv.getValueString());
+        case "submitterName":
+            setSubmitterName((String)value);
             break;
-        case "Encounter.submitterOrganization":
-            enc.setSubmitterOrganization(bv.getValueString());
+        case "submitterOrganization":
+            setSubmitterOrganization((String)value);
             break;
-        case "Encounter.distinguishingScar":
-            enc.setDistinguishingScar(bv.getValueString());
+        case "distinguishingScar":
+            setDistinguishingScar((String)value);
             break;
-        case "Encounter.groupRole":
-            enc.setGroupRole(bv.getValueString());
+        case "groupRole":
+            setGroupRole((String)value);
             break;
-        case "Encounter.identificationRemarks":
-            enc.setIdentificationRemarks(bv.getValueString());
+        case "identificationRemarks":
+            setIdentificationRemarks((String)value);
             break;
-        case "Encounter.sightingRemarks":
-            enc.setOccurrenceRemarks(bv.getValueString());
+        case "sightingRemarks":
+            setOccurrenceRemarks((String)value);
             break;
-        case "Encounter.otherCatalogNumbers":
-            enc.setOtherCatalogNumbers(bv.getValueString());
+        case "otherCatalogNumbers":
+            setOtherCatalogNumbers((String)value);
             break;
-        case "Encounter.patterningCode":
-            enc.setPatterningCode(bv.getValueString());
+        case "patterningCode":
+            setPatterningCode((String)value);
             break;
-        case "Encounter.researcherComments":
-            if (!bv.valueIsNull()) enc.addComments(bv.getValueString());
+        case "researcherComments":
+            if (value != null) addComments((String)value);
             break;
-        case "Encounter.verbatimLocality":
-            enc.setVerbatimLocality(bv.getValueString());
+        case "verbatimLocality":
+            setVerbatimLocality((String)value);
             break;
-
-        case "SatelliteTag.serialNumber":
-            if (!bv.valueIsNull()) {
-                SatelliteTag stag = new SatelliteTag("", bv.getValueString(), "");
-                enc.setSatelliteTag(stag);
-            }
-            break;
-
- */
         default:
-            System.out.println("[INFO] applyPatchOp() ignoring " + op + " " + fieldName + "=>" +
-                value + " on: " + this);
+            throw new ApiException("unknown fieldName: " + fieldName,
+                    ApiException.ERROR_RETURN_CODE_INVALID);
         }
         return value;
     }

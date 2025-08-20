@@ -399,7 +399,8 @@ import org.json.JSONObject;
         and thus we can just blindingly set them (including setting nulls for "remove"), including being
         able to cast the value object to the necessary value-class.
      */
-    public Object applyPatchOp(String fieldName, Object value, String op) {
+    public Object applyPatchOp(String fieldName, Object value, String op)
+    throws ApiException {
         // override me
         return null;
     }
