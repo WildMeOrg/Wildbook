@@ -75,7 +75,7 @@ class ApiPatchTest {
         JSONObject opObj = new JSONObject();
         opObj.put("op", op);
         opObj.put("path", path);
-        opObj.put("value", value);
+        if (value != null) opObj.put("value", value);
         prev.put(opObj);
         return prev;
     }
@@ -210,6 +210,84 @@ class ApiPatchTest {
                     assertFalse(jout.getBoolean("success"));
                     assertTrue(gotErrorsValue(jout, "code", "INVALID"));
                     assertTrue(gotErrorsValue(jout, "details", "unknown fieldName: fakePath"));
+                }
+            }
+        }
+    }
+
+    @Test void apiRequiredValue1()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        String payload = patchPayload("remove", "genus", null).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "REQUIRED"));
+                    assertTrue(gotErrorsValue(jout, "details",
+                        "genus is a required value, cannot remove"));
+                }
+            }
+        }
+    }
+
+    @Test void apiRequiredValue2()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        enc.setGenus("Genus");
+        enc.setSpecificEpithet("specificEpithet");
+        String payload = patchPayload("add", "genus", null).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                    assertTrue(gotErrorsValue(jout, "details",
+                        "genus and specificEpithet are an invalid taxonomy: specificEpithet"));
                 }
             }
         }

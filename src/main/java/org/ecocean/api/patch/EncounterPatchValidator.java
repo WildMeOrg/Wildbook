@@ -21,6 +21,10 @@ public class EncounterPatchValidator {
     public static String ERROR_INVALID_OP = "INVALID_OP";
     public static String ERROR_INVALID_PATH = "INVALID_PATH";
 
+    // "remove" op not allowed on these
+    public static final Set<String> PATHS_REQUIRED = new HashSet<>(Arrays.asList("genus",
+        "specificEpithet", "year"));
+
     public static JSONObject applyPatch(Encounter enc, JSONObject patch, Shepherd myShepherd)
     throws ApiException {
         if (patch == null)
@@ -48,15 +52,14 @@ public class EncounterPatchValidator {
                 BulkValidator bv = new BulkValidator(bulkFieldName, value, myShepherd);
                 System.out.println("**** BV!! **** " + bv);
                 value = bv.getValue();
-            } else {
-// FIXME need to validate path more generally, maybe via applyPatchOp() throwing exception???
-                //
             }
             // if we get through to here, value should be cleared to do actual patch
             // but this will throw exception if bad path
             enc.applyPatchOp(path, value, op);
         } else if (op.equals("remove")) {
-            // TODO need to check required, etc.
+            if (PATHS_REQUIRED.contains(path))
+                throw new ApiException(path + " is a required value, cannot remove",
+                        ApiException.ERROR_RETURN_CODE_REQUIRED);
             enc.applyPatchOp(path, null, op);
         } else { // other ops
         }
