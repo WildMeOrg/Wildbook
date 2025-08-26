@@ -866,6 +866,7 @@ public class BulkImport extends ApiBase {
             null ? JSONObject.NULL : task.getCreator().infoJSONObject(myShepherd));
         jt.put("dateCreated", task.getCreated());
         jt.put("sourceName", task.getSourceName());
+        jt.put("matchingLocations", task.getMatchingLocations());
         jt.put("legacy", task.isLegacy());
         jt.put("errors", task.getErrors());
         // "importPercent" was deemed more consistent and useful
