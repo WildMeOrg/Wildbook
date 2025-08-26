@@ -23,11 +23,34 @@ import convertToTreeData from "../../utils/converToTreeData";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
+function findNodeByValue(treeData, value) {
+  for (const node of treeData) {
+    if (node.value === value) return node;
+    if (node.children) {
+      const found = findNodeByValue(node.children, value);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function getAllDescendantValues(node) {
+  let res = [];
+  if (node.children) {
+    for (const child of node.children) {
+      res.push(child.value);
+      res = res.concat(getAllDescendantValues(child));
+    }
+  }
+  return res;
+}
+
 const BulkImportTask = () => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
   const [showError, setShowError] = useState(false);
   const [reIdModalOpen, setReIdModalOpen] = useState(false);
+  const [selected, setSelected] = useState([]);
   const [locationID, setLocationID] = useState([]);
   const [locationIDString, setLocationIDString] = useState("");
   const [locationIDOptions, setLocationIDOptions] = useState([]);
@@ -42,6 +65,19 @@ const BulkImportTask = () => {
       );
     }
   }, [siteData]);
+
+  useEffect(() => {
+    const allIDs = new Set();
+    selected.forEach((id) => {
+      allIDs.add(id.value);
+      const node = findNodeByValue(locationIDOptions, id.value);
+      if (node) {
+        getAllDescendantValues(node).forEach((childId) => allIDs.add(childId));
+      }
+    });
+    setLocationIDString(Array.from(allIDs).join("&locationID="));
+    setLocationID(Array.from(allIDs));
+  }, [selected, locationIDOptions]);
 
   useEffect(() => {
     if (error?.message || task?.status === "failed") {
@@ -458,11 +494,7 @@ const BulkImportTask = () => {
                 placeholder="Select locations"
                 dropdownStyle={{ maxHeight: "500px", zIndex: 9999 }}
                 onChange={(selected) => {
-                  setLocationID(selected);
-                  const finalString = selected
-                    .map((item) => `&locationID=${item.value}`)
-                    .join("");
-                  setLocationIDString(finalString);
+                  setSelected(selected);
                 }}
               />
             </Suspense>
@@ -521,6 +553,7 @@ const BulkImportTask = () => {
             id="next-button"
             onClick={() => {
               setReIdModalOpen(false);
+              setSelected([]);
               setLocationID([]);
               setLocationIDString("");
             }}
