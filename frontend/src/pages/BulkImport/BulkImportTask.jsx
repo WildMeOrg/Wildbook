@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Container,
   Row,
@@ -15,15 +15,35 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import InfoAccordion from "../../components/InfoAccordion";
 import SimpleDataTable from "../../components/SimpleDataTable";
 import { Modal } from "react-bootstrap";
+import { Suspense, lazy } from "react";
+import useGetSiteSettings from "../../models/useGetSiteSettings";
+import axios from "axios";
+import MainButton from "../../components/MainButton";
+import convertToTreeData from "../../utils/converToTreeData";
+
+const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
 const BulkImportTask = () => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
   const [showError, setShowError] = useState(false);
-
+  const [reIdModalOpen, setReIdModalOpen] = useState(false);
+  const [locationID, setLocationID] = useState([]);
+  const [locationIDString, setLocationIDString] = useState("");
+  const [locationIDOptions, setLocationIDOptions] = useState([]);
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
-  React.useEffect(() => {
+  const { data: siteData } = useGetSiteSettings();
+
+  useEffect(() => {
+    if (siteData) {
+      setLocationIDOptions(
+        convertToTreeData(siteData?.locationData.locationID) || [],
+      );
+    }
+  }, [siteData]);
+
+  useEffect(() => {
     if (error?.message || task?.status === "failed") {
       setShowError(true);
     }
@@ -346,6 +366,23 @@ const BulkImportTask = () => {
 
       <Row className="g-2 mb-4">
         <Col xs="auto">
+          <MainButton
+            id="next-button"
+            onClick={() => {
+              setReIdModalOpen(true);
+            }}
+            backgroundColor={theme.wildMeColors.cyan700}
+            color={theme.defaultColors.white}
+            noArrow={true}
+            style={{ width: "auto", fontSize: "1rem", marginTop: 0 }}
+          >
+            <FormattedMessage
+              id="BULK_IMPORT_RE_ID"
+              defaultMessage={"Re-Identification"}
+            />
+          </MainButton>
+        </Col>
+        <Col xs="auto">
           <Button variant="outline-danger" onClick={deleteTask}>
             <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
           </Button>
@@ -382,6 +419,118 @@ const BulkImportTask = () => {
           >
             <FormattedMessage id="RETRY" defaultMessage="Retry" />
           </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal
+        show={reIdModalOpen}
+        onHide={() => setReIdModalOpen(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FormattedMessage
+              id="BULK_IMPORT_RE_ID"
+              defaultMessage="Send Bulk Import for Re-Identification"
+            />
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div
+            style={{
+              width: "500px",
+              maxWidth: "100%",
+            }}
+          >
+            <Suspense fallback={<div>Loading location picker...</div>}>
+              <TreeSelect
+                id="location-tree-select"
+                treeData={locationIDOptions}
+                value={locationID}
+                treeCheckable
+                treeCheckStrictly
+                showCheckedStrategy="SHOW_ALL"
+                treeNodeFilterProp="value"
+                treeLine
+                showSearch
+                size="large"
+                allowClear
+                style={{ width: "100%" }}
+                placeholder="Select locations"
+                dropdownStyle={{ maxHeight: "500px", zIndex: 9999 }}
+                onChange={(selected) => {
+                  setLocationID(selected);
+                  const finalString = selected
+                    .map((item) => `&locationID=${item.value}`)
+                    .join("");
+                  setLocationIDString(finalString);
+                }}
+              />
+            </Suspense>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <MainButton
+            id="next-button"
+            onClick={() => {
+              setShowError(false);
+              axios
+                .get(
+                  `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}&locationID=${locationIDString}`,
+                )
+                .then((response) => {
+                  if (response.status === 200) {
+                    alert(
+                      intl.formatMessage({
+                        id: "BULK_IMPORT_RE_ID_SUCCESS",
+                        defaultMessage:
+                          "Re-identification task started successfully.",
+                      }),
+                    );
+                    window.location.reload();
+                  } else {
+                    throw new Error(
+                      intl.formatMessage({
+                        id: "BULK_IMPORT_RE_ID_ERROR",
+                        defaultMessage:
+                          "Failed to start re-identification task.",
+                      }),
+                    );
+                  }
+                })
+                .catch((error) => {
+                  console.error(
+                    "Error starting re-identification task:",
+                    error,
+                  );
+                  alert(
+                    intl.formatMessage({
+                      id: "BULK_IMPORT_RE_ID_ERROR",
+                      defaultMessage: "Failed to start re-identification task.",
+                    }),
+                  );
+                });
+            }}
+            backgroundColor={theme.wildMeColors.cyan700}
+            color={theme.defaultColors.white}
+            noArrow={true}
+            style={{ width: "auto", fontSize: "1rem" }}
+          >
+            <FormattedMessage id="SUBMIT" defaultMessage="Submit" />
+          </MainButton>
+          <MainButton
+            id="next-button"
+            onClick={() => {
+              setReIdModalOpen(false);
+              setLocationID([]);
+              setLocationIDString("");
+            }}
+            backgroundColor={theme.defaultColors.white}
+            color={theme.wildMeColors.cyan700}
+            noArrow={true}
+            style={{ width: "auto", fontSize: "1rem" }}
+          >
+            <FormattedMessage id="CLOSE" defaultMessage="Cancel" />
+          </MainButton>
         </Modal.Footer>
       </Modal>
     </Container>
