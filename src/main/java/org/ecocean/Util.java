@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -1215,5 +1217,19 @@ public class Util {
         if (iso8601.length() < 16) return null;
         if (iso8601.length() == 16) iso8601 += 'Z';
         return iso8601;
+    }
+
+    // from issue #1227, there are a couple ways to derive a list of valid countries (e.g. for validating
+    // bulk import data), including some based on CommonConfiguration. for now we are using a canned list
+    // but might be adjusted later to allow customization
+    public static List<String> getCountries() {
+        List<String> cnames = new ArrayList<String>();
+
+        for (String code : Locale.getISOCountries()) {
+            Locale obj = new Locale("", code);
+            cnames.add(obj.getDisplayCountry());
+        }
+        Collections.sort(cnames);
+        return cnames;
     }
 }
