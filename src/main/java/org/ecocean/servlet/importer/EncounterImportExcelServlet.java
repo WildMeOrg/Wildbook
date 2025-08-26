@@ -1628,7 +1628,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
             }
         }
         // create MediaAsset and return it
-        JSONObject assetParams = astore.createParameters(f);
+        JSONObject assetParams = astore.createParameters(f,"EncounterImportExcelServlet");
         assetParams.put("_localDirect", f.toString());
         assetParams.put("userFilename", userFilename);
 
