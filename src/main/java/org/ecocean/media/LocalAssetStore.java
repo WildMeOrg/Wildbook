@@ -323,12 +323,13 @@ public class LocalAssetStore extends AssetStore {
 
     @Override public JSONObject createParameters(File file, String grouping) {
         JSONObject p = new JSONObject();
+        final String SENTINEL = "EncounterImportExcelServlet";
 
         if (file == null) return p;
-        if (underRoot(file.toPath())) { // note: we ignore grouping here!
+        if (underRoot(file.toPath()) && !SENTINEL.equals(grouping)) { // note: we ignore grouping here!
             p.put("path", file.toPath());
         } else { // must be just some file "elsewhere", so we store it in some unique dir
-            if (grouping == null)
+            if (grouping == null || SENTINEL.equals(grouping))
                 grouping = Util.hashDirectories(Util.generateUUID(), File.separator);
             p.put("path",
                 root().toString() + File.separator + grouping + File.separator + file.getName());
