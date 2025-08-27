@@ -8,7 +8,7 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { FormattedMessage, useIntl } from "react-intl";
-import { FaImage } from "react-icons/fa";
+import { FaImage, FaTasks } from "react-icons/fa";
 import useGetBulkImportTask from "../../models/bulkImport/useGetBulkImportTask";
 import { ProgressCard } from "../../components/ProgressCard";
 import ThemeColorContext from "../../ThemeColorProvider";
@@ -57,6 +57,16 @@ const BulkImportTask = () => {
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
   const { data: siteData } = useGetSiteSettings();
+  const [userRoles, setUserRoles] = useState(null);
+
+  const fetchData = async () => {
+    const response = await axios.get("/api/v3/user");
+    setUserRoles(response.data.roles || []);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (siteData) {
@@ -284,9 +294,15 @@ const BulkImportTask = () => {
               title: intl.formatMessage({
                 id: "IMPORT",
               }),
-              progress: task?.importPercent || 0,
+              progress: task?.importPercent || (task?.status === "complete"
+                  || task?.iaSummary?.detectionStatus === "complete"
+                  || task?.status === "processing-pipeline") ? 1 : 0,
               status: (() => {
-                if (task?.importPercent === 1) {
+                if (task?.importPercent === 1
+                  || task?.status === "complete"
+                  || task?.iaSummary?.detectionStatus === "complete"
+                  || task?.status === "processing-pipeline"
+                ) {
                   return "complete";
                 } else if (task?.importPercent) {
                   return "in_progress";
@@ -321,12 +337,12 @@ const BulkImportTask = () => {
       </Row>
 
       <section>
-        <h5 className="fw-semibold mb-2">
+        <h6 className="fw-semibold mb-2">
           <FormattedMessage
             id="BULK_IMPORT_DATA_UPLOADED"
             defaultMessage="Data Uploaded"
           />
-        </h5>
+        </h6>
 
         <div
           style={{
@@ -400,80 +416,29 @@ const BulkImportTask = () => {
         <SimpleDataTable columns={columns} data={tableData} />
       </section>
 
-      <Row className="g-2 mb-4">
-        <Col xs="auto">
-          <MainButton
-            id="next-button"
-            onClick={() => {
-              setReIdModalOpen(true);
-            }}
-            backgroundColor={theme.wildMeColors.cyan700}
-            color={theme.defaultColors.white}
-            noArrow={true}
-            style={{ width: "auto", fontSize: "1rem", marginTop: 0 }}
-          >
+      <Row>
+        <Col>
+          <h6 className="fw-semibold mb-2">
             <FormattedMessage
-              id="BULK_IMPORT_RE_ID"
-              defaultMessage={"Re-Identification"}
+              id="LOCATION_ID"
+              defaultMessage="Location ID"
             />
-          </MainButton>
-        </Col>
-        <Col xs="auto">
-          <Button variant="outline-danger" onClick={deleteTask}>
-            <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
-          </Button>
+          </h6>
+          <div className="mb-3">
+            <p>
+              <FormattedMessage
+                id="BULK_IMPORT_LOCATION_ID_DESC"
+              />
+            </p>
+          </div>
         </Col>
       </Row>
-      <Modal show={showError} onHide={() => setShowError(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FormattedMessage
-              id="BULK_IMPORT_TASK_ERROR"
-              defaultMessage="Error Loading Bulk Import Task"
-            />
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p className="text-danger">
-            {error?.message ||
-              intl.formatMessage({
-                id: "BULK_IMPORT_TASK_ERROR_DEFAULT",
-                defaultMessage: "An error occurred while loading the task.",
-              })}
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowError(false)}>
-            <FormattedMessage id="CLOSE" defaultMessage="Close" />
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              refetch();
-              setShowError(false);
-            }}
-          >
-            <FormattedMessage id="RETRY" defaultMessage="Retry" />
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <Modal
-        show={reIdModalOpen}
-        onHide={() => setReIdModalOpen(false)}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <FormattedMessage
-              id="BULK_IMPORT_RE_ID"
-              defaultMessage="Send Bulk Import for Re-Identification"
-            />
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+
+      <Row>
+        <Col>
           <div
             style={{
-              width: "500px",
+              width: "300px",
               maxWidth: "100%",
             }}
           >
@@ -499,10 +464,19 @@ const BulkImportTask = () => {
               />
             </Suspense>
           </div>
-        </Modal.Body>
-        <Modal.Footer>
+        </Col>
+      </Row>
+
+      <Row className="g-2 mb-4">
+        <Col xs="auto">
           <MainButton
-            id="next-button"
+            id="re-id-button"
+            disabled={
+              (!userRoles?.includes("admin") && !userRoles?.includes("researcher"))
+              || !locationIDString
+              || task?.status !== "complete"
+              || (task?.iaSummary?.detectionStatus !== "complete")
+            }
             onClick={() => {
               setShowError(false);
               axios
@@ -545,27 +519,59 @@ const BulkImportTask = () => {
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
             noArrow={true}
-            style={{ width: "auto", fontSize: "1rem" }}
+            style={{ width: "auto", height: "40px", fontSize: "1rem", marginLeft: 0 }}
           >
-            <FormattedMessage id="SUBMIT" defaultMessage="Submit" />
+            <FormattedMessage
+              id="BULK_IMPORT_SEND_TO_IDENTIFICATION"
+            />
           </MainButton>
+        </Col>
+        <Col xs="auto">
           <MainButton
-            id="next-button"
-            onClick={() => {
-              setReIdModalOpen(false);
-              setSelected([]);
-              setLocationID([]);
-              setLocationIDString("");
-            }}
-            backgroundColor={theme.defaultColors.white}
-            color={theme.wildMeColors.cyan700}
+            onClick={deleteTask}
+            shadowColor={theme.statusColors.red500}
+            color={theme.statusColors.red500}
             noArrow={true}
-            style={{ width: "auto", fontSize: "1rem" }}
+            style={{ width: "auto", height: "40px", fontSize: "1rem", border: `1px solid ${theme.statusColors.red500}` }}
           >
-            <FormattedMessage id="CLOSE" defaultMessage="Cancel" />
+            <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
           </MainButton>
+        </Col>
+      </Row>
+      <Modal show={showError} onHide={() => setShowError(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FormattedMessage
+              id="BULK_IMPORT_TASK_ERROR"
+              defaultMessage="Error Loading Bulk Import Task"
+            />
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="text-danger">
+            {error?.message ||
+              intl.formatMessage({
+                id: "BULK_IMPORT_TASK_ERROR_DEFAULT",
+                defaultMessage: "An error occurred while loading the task.",
+              })}
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowError(false)}>
+            <FormattedMessage id="CLOSE" defaultMessage="Close" />
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              refetch();
+              setShowError(false);
+            }}
+          >
+            <FormattedMessage id="RETRY" defaultMessage="Retry" />
+          </Button>
         </Modal.Footer>
       </Modal>
+      
     </Container>
   );
 };
