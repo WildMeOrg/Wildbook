@@ -768,7 +768,7 @@ public class IAGateway extends HttpServlet {
                             Thread.sleep(whileSleepMillis);
                         } catch (java.lang.InterruptedException ex) {}
                         if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
-                            false)) {
+                            false) || jobj.optBoolean("MLService", false)) {
                             addToDetectionQueue(context, jobj.toString());
                         } else {
                             addToQueue(context, jobj.toString());
