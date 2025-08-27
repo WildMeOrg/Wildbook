@@ -10,6 +10,8 @@ import java.util.List;
 
 import org.ecocean.Annotation;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.media.Feature;
+import org.ecocean.media.FeatureType;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.RestClient;
 import org.ecocean.servlet.IAGateway;
@@ -95,6 +97,7 @@ public class MLService {
         Shepherd myShepherd = new Shepherd("context0");
         myShepherd.setAction("MLService.processQueueJob");
         myShepherd.beginDBTransaction();
+        FeatureType.initAll(myShepherd);
         JSONArray ids = jobData.optJSONArray("mediaAssetIds");
         try {
             if (ids != null) {
@@ -120,7 +123,10 @@ public class MLService {
     }
 
     public void requeueJob(JSONObject jobData, boolean increment) {
-        System.out.println("+++ requeueJob(): increment=" + increment + "; jobData=" + jobData);
+        System.out.println("+++ MLService.requeueJob(): increment=" + increment + "; jobData=" +
+            jobData);
+        // this handles a bunch of messiness, including max retries etc
+        IAGateway.requeueJob(jobData, increment);
     }
 
     public void send(MediaAsset ma, String taxonomyString)
@@ -129,8 +135,72 @@ public class MLService {
         for (JSONObject conf : getConfigs(taxonomyString)) {
             JSONObject payload = createPayload(ma, conf);
             JSONObject res = sendPayload(conf.optString("api_endpoint", null), payload);
-            System.out.println(conf + " RES => " + res);
+            // got results, now we try to use them
+            System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
+                "; RESPONSE => " + res);
+            List<Annotation> anns = processMediaAssetResults(ma, res);
+            System.out.println("MLService.send() anns=" + anns);
         }
+    }
+
+    public List<Annotation> processMediaAssetResults(MediaAsset ma, JSONObject res)
+    throws IAException {
+        if (res == null) throw new IAException("empty results");
+        if (!res.optBoolean("success", false))
+            throw new IAException("results success=false: " + res);
+        JSONArray bboxes = res.optJSONArray("bboxes");
+        if (bboxes == null) throw new IAException("null bboxes in results: " + res);
+        List<Annotation> anns = new ArrayList<Annotation>();
+        if (bboxes.length() < 1) return anns;
+        // TODO do we ever care about scores?
+        List<Double> scores = Util.jsonArrayToDoubleList(res.optJSONArray("scores"));
+        if ((scores == null) || (scores.size() != bboxes.length()))
+            throw new IAException("scores size does not match bboxes: " + res);
+        List<Double> thetas = Util.jsonArrayToDoubleList(res.optJSONArray("thetas"));
+        if ((thetas == null) || (thetas.size() != bboxes.length()))
+            throw new IAException("thetas size does not match bboxes: " + res);
+        List<String> classNames = Util.jsonArrayToStringList(res.optJSONArray("class_names"));
+        if ((classNames == null) || (classNames.size() != bboxes.length()))
+            throw new IAException("class_names size does not match bboxes: " + res);
+        // FIXME wtf happened to viewpoint??? :)
+        // iterate over bboxes and make annots
+        for (int i = 0; i < bboxes.length(); i++) {
+            List<Double> xywh = Util.jsonArrayToDoubleList(bboxes.optJSONArray(i));
+            if (xywh == null) throw new IAException("error parsing bbox[" + i + "] (null): " + res);
+            if (xywh.size() != 4)
+                throw new IAException("error parsing bbox[" + i + "] (size): " + res);
+            Annotation ann = createAnnotation(xywh, thetas.get(i), classNames.get(i), null);
+            Annotation exists = ma.findAnnotation(ann, true);
+            if (exists != null) { // i guess we just skip this and do not create???
+                System.out.println("[WARNING] MLService.processMediaAssetResults() skipping i=" +
+                    i + " (res=" + res + ") due to existing matching " + exists);
+                continue;
+            }
+            ma.addFeature(ann.getFeature());
+            anns.add(ann);
+        }
+        ma.setDetectionStatus("complete");
+        return anns;
+    }
+
+    private Annotation createAnnotation(List<Double> bbox, Double theta, String iaClass,
+        String viewpoint)
+    throws IAException {
+        if ((bbox == null) || (bbox.size() != 4))
+            throw new IAException("createAnnotation() bad bbox");
+        if ((bbox.get(2) < 1.0d) || (bbox.get(3) < 1.0d))
+            throw new IAException("createAnnotation() bad bbox width/height");
+        JSONObject fparams = new JSONObject();
+        fparams.put("x", bbox.get(0));
+        fparams.put("y", bbox.get(1));
+        fparams.put("width", bbox.get(2));
+        fparams.put("height", bbox.get(3));
+        fparams.put("theta", ((theta == null) ? 0.0d : theta));
+        fparams.put("viewpoint", viewpoint);
+        Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+        Annotation ann = new Annotation(null, ft, iaClass);
+        ann.setViewpoint(viewpoint);
+        return ann;
     }
 
     public void send(Annotation ann)
@@ -157,6 +227,8 @@ public class MLService {
             String msg = ex.getMessage();
             if (msg.contains("Connection refused")) {
                 throw new IAException("Connection refused", true, true);
+            } else if (msg.contains("Read timed out")) {
+                throw new IAException("time out", true); // no increment
             } else if (msg.contains("HTTP error code : 500")) {
                 throw new IAException("500 error", true, true);
             } else if (msg.contains("HTTP error code : 502")) {
