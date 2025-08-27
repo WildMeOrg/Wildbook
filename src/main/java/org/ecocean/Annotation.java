@@ -299,6 +299,12 @@ public class Annotation extends Base implements java.io.Serializable {
         return features;
     }
 
+    // gets first, cuz you are a trusting individual
+    public Feature getFeature() {
+        if (features == null) return null;
+        return features.get(0);
+    }
+
     public void setFeatures(ArrayList<Feature> f) {
         features = f;
         this.setVersion();
@@ -712,6 +718,44 @@ public class Annotation extends Base implements java.io.Serializable {
         }
         // System.out.println("Set new Bounding box.");
         return bbox;
+    }
+
+    public boolean equalsBbox(Annotation other) {
+        if (other == null) return false;
+        int[] mine = this.getBbox();
+        if (mine == null) return false;
+        int[] otherBbox = other.getBbox();
+        if (otherBbox == null) return false;
+        if (mine.length != otherBbox.length) return false;
+        for (int i = 0; i < mine.length; i++) {
+            if (mine[i] != otherBbox[i]) return false;
+        }
+        return true;
+    }
+
+    public boolean equalsTheta(Annotation other) {
+        if (other == null) return false;
+        return (this.theta == other.getTheta());
+    }
+
+    // combines theta + bbox
+    public boolean equalsShape(Annotation other) {
+        if (!equalsTheta(other)) return false;
+        return equalsBbox(other);
+    }
+
+    public boolean equalsIAClass(Annotation other) {
+        if (other == null) return false;
+        if ((other.getIAClass() == null) && (iaClass == null)) return true; // sketchy?
+        if (iaClass == null) return false;
+        return iaClass.equals(other.getIAClass());
+    }
+
+    public boolean equalsViewpoint(Annotation other) {
+        if (other == null) return false;
+        if ((other.getViewpoint() == null) && (viewpoint == null)) return true; // sketchy?
+        if (viewpoint == null) return false;
+        return viewpoint.equals(other.getViewpoint());
     }
 
     public String getBboxAsString() {
