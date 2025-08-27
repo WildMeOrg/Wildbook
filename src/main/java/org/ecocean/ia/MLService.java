@@ -3,9 +3,18 @@ package org.ecocean.ia;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.ecocean.Annotation;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.RestClient;
 import org.ecocean.servlet.IAGateway;
+import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.Util;
 
 import java.io.IOException;
 
@@ -18,10 +27,38 @@ public class MLService {
         iaConfig = IAJsonProperties.iaConfig();
     }
 
-    public JSONObject initiateRequest(MediaAsset ma)
+    public JSONObject initiateRequest(MediaAsset ma, String taxonomyString)
     throws IOException {
-        addToQueue(createJobData(ma));
+        addToQueue(createJobData(ma, taxonomyString));
         return null;
+    }
+
+    public IAJsonProperties getIAConfig() {
+        return iaConfig;
+    }
+
+    // there can be multiple configs (differing model_id)
+    public List<JSONObject> getConfigs(String taxonomyString)
+    throws IAException {
+        IAJsonProperties iac = getIAConfig();
+
+        if (iac == null) return null;
+        JSONObject txConf = (JSONObject)iac.get(taxonomyString);
+        if (txConf == null)
+            throw new IAException(
+                      "MLService.getConfigs() configuration problem with taxonomyString=" +
+                      taxonomyString);
+        JSONArray confs = txConf.optJSONArray("_mlservice_conf");
+        if (confs == null)
+            throw new IAException(
+                      "MLService.getConfigs() configuration problem with taxonomyString=" +
+                      taxonomyString + "; txConf=" + txConf);
+        List<JSONObject> configs = new ArrayList<JSONObject>();
+        for (int i = 0; i < confs.length(); i++) {
+            JSONObject jc = confs.optJSONObject(i);
+            if (jc != null) configs.add(jc);
+        }
+        return configs;
     }
 
     public void addToQueue(JSONObject jobData)
@@ -30,7 +67,8 @@ public class MLService {
         IAGateway.addToDetectionQueue("context0", jobData.toString());
     }
 
-    public JSONObject createJobData(MediaAsset ma) {
+    // i think we *must* pass taxonomyString here
+    public JSONObject createJobData(MediaAsset ma, String taxonomyString) {
 /* examples from IAGateway
         qjob.put("taskId", task.getId());
         qjob.put("mediaAssetIds", maIds);
@@ -43,6 +81,7 @@ public class MLService {
         JSONObject data = new JSONObject();
 
         data.put("MLService", true);
+        data.put("taxonomyString", taxonomyString);
 
         JSONArray maIds = new JSONArray();
         maIds.put(ma.getIdInt());
@@ -53,6 +92,80 @@ public class MLService {
     public void processQueueJob(JSONObject jobData) {
         System.out.println("#################################################### processing: " +
             jobData.toString(8));
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("MLService.processQueueJob");
+        myShepherd.beginDBTransaction();
+        JSONArray ids = jobData.optJSONArray("mediaAssetIds");
+        try {
+            if (ids != null) {
+                for (String maId : Util.jsonArrayToStringList(ids)) {
+                    send(myShepherd.getMediaAsset(maId), jobData.optString("taxonomyString", null));
+                }
+            } else {
+                ids = jobData.optJSONArray("annotationIds");
+                if (ids != null) {
+                    for (String annId : Util.jsonArrayToStringList(ids)) {
+                        send(myShepherd.getAnnotation(annId));
+                    }
+                }
+            }
+        } catch (IAException iaex) {
+            System.out.println("processQueueJob() threw " + iaex + " with jobData=" + jobData);
+            iaex.printStackTrace();
+            if (iaex.shouldRequeue()) requeueJob(jobData, iaex.shouldIncrement());
+        } finally {
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+        }
+    }
+
+    public void requeueJob(JSONObject jobData, boolean increment) {
+        System.out.println("+++ requeueJob(): increment=" + increment + "; jobData=" + jobData);
+    }
+
+    public void send(MediaAsset ma, String taxonomyString)
+    throws IAException {
+        if (ma == null) throw new IAException("null MediaAsset passed");
+        for (JSONObject conf : getConfigs(taxonomyString)) {
+            JSONObject payload = createPayload(ma, conf);
+            JSONObject res = sendPayload(conf.optString("api_endpoint", null), payload);
+            System.out.println(conf + " RES => " + res);
+        }
+    }
+
+    public void send(Annotation ann)
+    throws IAException {
+        throw new IAException("NOT YET IMPLEMENTED");
+    }
+
+    private JSONObject sendPayload(String endpoint, JSONObject payload)
+    throws IAException {
+        if (endpoint == null) throw new IAException("null api_endpoint");
+        URL url = null;
+        try {
+            url = new URL(endpoint);
+        } catch (MalformedURLException urlEx) {
+            throw new IAException("api_endpoint url error: " + urlEx);
+        }
+        try {
+            // throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
+            JSONObject res = RestClient.post(url, payload);
+            return res;
+        } catch (Exception ex) {
+            System.out.println("sendPayload(" + url + ") threw " + ex);
+            ex.printStackTrace();
+            String msg = ex.getMessage();
+            if (msg.contains("Connection refused")) {
+                throw new IAException("Connection refused", true, true);
+            } else if (msg.contains("HTTP error code : 500")) {
+                throw new IAException("500 error", true, true);
+            } else if (msg.contains("HTTP error code : 502")) {
+                throw new IAException("502 error", true); // we requeue, but dont increment this?
+            }
+            // default behavior is to retry, but with increment
+            throw new IAException("unhandled exception [will requeue, incremented] on POST: " + ex,
+                    true, true);
+        }
     }
 
 /*
@@ -100,4 +213,26 @@ public class MLService {
             }
             myShepherd.closeDBTransaction();
  */
+
+    // this is to request detection find an annotation and (optionally) return embedding as well
+    public JSONObject createPayload(MediaAsset ma, JSONObject config)
+    throws IAException {
+        if ((config == null) || (ma == null))
+            throw new IAException("MLService.createPayload() configuration problem with ma=" + ma +
+                    "; config=" + config);
+        JSONObject payload = new JSONObject(config.toString());
+        payload.remove("api_endpoint");
+        payload.put("image_url", ma.webURL());
+        // FIXME add embedding boolean/args
+        return payload;
+    }
+
+    // this only gets the embedding, from a given (manual or pre-existing) Annotation
+    public JSONObject createPayload(Annotation ann, JSONObject config)
+    throws IAException {
+        JSONObject payload = createPayload(ann.getMediaAsset(), config);
+
+        // TODO ann stuff
+        return payload;
+    }
 }
