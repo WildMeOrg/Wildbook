@@ -500,6 +500,19 @@ public class Util {
         return rtn;
     }
 
+    public static List<Double> jsonArrayToDoubleList(JSONArray arr) {
+        if (arr == null) return null;
+        List<Double> rtn = new ArrayList<Double>();
+        for (int i = 0; i < arr.length(); i++) {
+            Double jdbl = null;
+            try {
+                jdbl = arr.getDouble(i);
+            } catch (org.json.JSONException je) {}
+            if (jdbl != null) rtn.add(jdbl);
+        }
+        return rtn;
+    }
+
     public static boolean jsonArrayContains(JSONArray arr, String str) {
         if ((str == null) || (arr == null)) return false; // might be a matter of philosophical debate
         return jsonArrayToStringList(arr).contains(str);
