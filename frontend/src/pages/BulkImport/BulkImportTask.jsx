@@ -20,42 +20,20 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import axios from "axios";
 import MainButton from "../../components/MainButton";
 import convertToTreeData from "../../utils/converToTreeData";
+import { useLocalObservable, observer } from "mobx-react-lite";
+import { BulkImportTaskStore } from "./BulkImportTaskStore";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 
-function findNodeByValue(treeData, value) {
-  for (const node of treeData) {
-    if (node.value === value) return node;
-    if (node.children) {
-      const found = findNodeByValue(node.children, value);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function getAllDescendantValues(node) {
-  let res = [];
-  if (node.children) {
-    for (const child of node.children) {
-      res.push(child.value);
-      res = res.concat(getAllDescendantValues(child));
-    }
-  }
-  return res;
-}
-
-const BulkImportTask = () => {
+const BulkImportTask = observer(() => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
   const [showError, setShowError] = useState(false);
-  const [selected, setSelected] = useState([]);
-  const [locationIDString, setLocationIDString] = useState("");
-  const [locationIDOptions, setLocationIDOptions] = useState([]);
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
   const { data: siteData } = useGetSiteSettings();
   const [userRoles, setUserRoles] = useState(null);
+  const store = useLocalObservable(() => new BulkImportTaskStore());
 
   const previousLocationID = task?.matchingLocations || [];
 
@@ -69,37 +47,17 @@ const BulkImportTask = () => {
   }, []);
 
   useEffect(() => {
-    if (siteData) {
-      setLocationIDOptions(
-        convertToTreeData(siteData?.locationData.locationID) || [],
-      );
-    }
-  }, [siteData]);
+    if (!siteData?.locationData?.locationID) return;
+    const options = convertToTreeData(siteData?.locationData?.locationID) || [];
+    store.setOptions(options);
+  }, [siteData, store]);
 
   useEffect(() => {
-    if (!previousLocationID?.length || !locationIDOptions?.length) return;
-
-    const initial = previousLocationID
-      .map((id) => {
-        const node = findNodeByValue(locationIDOptions, id);
-        return node ? { value: node.value, label: node.title } : null;
-      })
-      .filter(Boolean);
-
-    setSelected(initial);
-  }, [locationIDOptions, previousLocationID?.join?.(",")]);
-
-  useEffect(() => {
-    const allIDs = new Set();
-    selected.forEach((id) => {
-      allIDs.add(id.value);
-      const node = findNodeByValue(locationIDOptions, id.value);
-      if (node) {
-        getAllDescendantValues(node).forEach((childId) => allIDs.add(childId));
-      }
-    });
-    setLocationIDString(Array.from(allIDs).join("&locationID="));
-  }, [selected, locationIDOptions]);
+    if (!store.locationOptions.length) return;
+    if (!previousLocationID?.length) return;
+    if (store.locationID.length) return;
+    store.initFromPrevious(previousLocationID);
+  }, [store, store.locationOptions.length, previousLocationID?.join?.(",")]);
 
   useEffect(() => {
     if (error?.message || task?.status === "failed") {
@@ -457,8 +415,8 @@ const BulkImportTask = () => {
             <Suspense fallback={<div>Loading location picker...</div>}>
               <TreeSelect
                 id="location-tree-select"
-                treeData={locationIDOptions}
-                value={selected}
+                treeData={store.locationOptions}
+                value={store.locationID}
                 treeCheckable
                 treeCheckStrictly
                 showCheckedStrategy="SHOW_ALL"
@@ -470,9 +428,9 @@ const BulkImportTask = () => {
                 style={{ width: "100%" }}
                 placeholder="Select locations"
                 dropdownStyle={{ maxHeight: "500px", zIndex: 9999 }}
-                onChange={(selected) => {
-                  setSelected(selected);
-                }}
+                onChange={(vals, labels, extra) =>
+                  store.handleStrictChange(vals, labels, extra)
+                }
               />
             </Suspense>
           </div>
@@ -486,7 +444,7 @@ const BulkImportTask = () => {
             disabled={
               (!userRoles?.includes("admin") &&
                 !userRoles?.includes("researcher")) ||
-              !locationIDString ||
+              !store.locationIDString ||
               task?.status !== "complete" ||
               task?.iaSummary?.detectionStatus !== "complete"
             }
@@ -494,7 +452,7 @@ const BulkImportTask = () => {
               setShowError(false);
               axios
                 .get(
-                  `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}&locationID=${locationIDString}`,
+                  `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}${store.locationIDString}`,
                 )
                 .then((response) => {
                   if (response.status === 200) {
@@ -594,6 +552,6 @@ const BulkImportTask = () => {
       </Modal>
     </Container>
   );
-};
+});
 
 export default BulkImportTask;
