@@ -8,7 +8,7 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { FormattedMessage, useIntl } from "react-intl";
-import { FaImage, FaTasks } from "react-icons/fa";
+import { FaImage } from "react-icons/fa";
 import useGetBulkImportTask from "../../models/bulkImport/useGetBulkImportTask";
 import { ProgressCard } from "../../components/ProgressCard";
 import ThemeColorContext from "../../ThemeColorProvider";
@@ -49,15 +49,15 @@ const BulkImportTask = () => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
   const [showError, setShowError] = useState(false);
-  const [reIdModalOpen, setReIdModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [locationID, setLocationID] = useState([]);
   const [locationIDString, setLocationIDString] = useState("");
   const [locationIDOptions, setLocationIDOptions] = useState([]);
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
   const { data: siteData } = useGetSiteSettings();
   const [userRoles, setUserRoles] = useState(null);
+
+  const previousLocationID = task?.matchingLocations || [];
 
   const fetchData = async () => {
     const response = await axios.get("/api/v3/user");
@@ -77,6 +77,19 @@ const BulkImportTask = () => {
   }, [siteData]);
 
   useEffect(() => {
+    if (!previousLocationID?.length || !locationIDOptions?.length) return;
+
+    const initial = previousLocationID
+      .map((id) => {
+        const node = findNodeByValue(locationIDOptions, id);
+        return node ? { value: node.value, label: node.title } : null;
+      })
+      .filter(Boolean);
+
+    setSelected(initial);
+  }, [locationIDOptions, previousLocationID?.join?.(",")]);
+
+  useEffect(() => {
     const allIDs = new Set();
     selected.forEach((id) => {
       allIDs.add(id.value);
@@ -86,7 +99,6 @@ const BulkImportTask = () => {
       }
     });
     setLocationIDString(Array.from(allIDs).join("&locationID="));
-    setLocationID(Array.from(allIDs));
   }, [selected, locationIDOptions]);
 
   useEffect(() => {
@@ -294,14 +306,19 @@ const BulkImportTask = () => {
               title: intl.formatMessage({
                 id: "IMPORT",
               }),
-              progress: task?.importPercent || (task?.status === "complete"
-                  || task?.iaSummary?.detectionStatus === "complete"
-                  || task?.status === "processing-pipeline") ? 1 : 0,
+              progress:
+                task?.importPercent ||
+                task?.status === "complete" ||
+                task?.iaSummary?.detectionStatus === "complete" ||
+                task?.status === "processing-pipeline"
+                  ? 1
+                  : 0,
               status: (() => {
-                if (task?.importPercent === 1
-                  || task?.status === "complete"
-                  || task?.iaSummary?.detectionStatus === "complete"
-                  || task?.status === "processing-pipeline"
+                if (
+                  task?.importPercent === 1 ||
+                  task?.status === "complete" ||
+                  task?.iaSummary?.detectionStatus === "complete" ||
+                  task?.status === "processing-pipeline"
                 ) {
                   return "complete";
                 } else if (task?.importPercent) {
@@ -419,16 +436,11 @@ const BulkImportTask = () => {
       <Row>
         <Col>
           <h6 className="fw-semibold mb-2">
-            <FormattedMessage
-              id="LOCATION_ID"
-              defaultMessage="Location ID"
-            />
+            <FormattedMessage id="LOCATION_ID" defaultMessage="Location ID" />
           </h6>
           <div className="mb-3">
             <p>
-              <FormattedMessage
-                id="BULK_IMPORT_LOCATION_ID_DESC"
-              />
+              <FormattedMessage id="BULK_IMPORT_LOCATION_ID_DESC" />
             </p>
           </div>
         </Col>
@@ -446,7 +458,7 @@ const BulkImportTask = () => {
               <TreeSelect
                 id="location-tree-select"
                 treeData={locationIDOptions}
-                value={locationID}
+                value={selected}
                 treeCheckable
                 treeCheckStrictly
                 showCheckedStrategy="SHOW_ALL"
@@ -472,10 +484,11 @@ const BulkImportTask = () => {
           <MainButton
             id="re-id-button"
             disabled={
-              (!userRoles?.includes("admin") && !userRoles?.includes("researcher"))
-              || !locationIDString
-              || task?.status !== "complete"
-              || (task?.iaSummary?.detectionStatus !== "complete")
+              (!userRoles?.includes("admin") &&
+                !userRoles?.includes("researcher")) ||
+              !locationIDString ||
+              task?.status !== "complete" ||
+              task?.iaSummary?.detectionStatus !== "complete"
             }
             onClick={() => {
               setShowError(false);
@@ -519,11 +532,14 @@ const BulkImportTask = () => {
             backgroundColor={theme.wildMeColors.cyan700}
             color={theme.defaultColors.white}
             noArrow={true}
-            style={{ width: "auto", height: "40px", fontSize: "1rem", marginLeft: 0 }}
+            style={{
+              width: "auto",
+              height: "40px",
+              fontSize: "1rem",
+              marginLeft: 0,
+            }}
           >
-            <FormattedMessage
-              id="BULK_IMPORT_SEND_TO_IDENTIFICATION"
-            />
+            <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
           </MainButton>
         </Col>
         <Col xs="auto">
@@ -532,7 +548,12 @@ const BulkImportTask = () => {
             shadowColor={theme.statusColors.red500}
             color={theme.statusColors.red500}
             noArrow={true}
-            style={{ width: "auto", height: "40px", fontSize: "1rem", border: `1px solid ${theme.statusColors.red500}` }}
+            style={{
+              width: "auto",
+              height: "40px",
+              fontSize: "1rem",
+              border: `1px solid ${theme.statusColors.red500}`,
+            }}
           >
             <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
           </MainButton>
@@ -571,7 +592,6 @@ const BulkImportTask = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-      
     </Container>
   );
 };
