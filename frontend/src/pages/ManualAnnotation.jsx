@@ -50,6 +50,7 @@ export default function ManualAnnotation() {
     rotation: 0,
   });
   const { data: siteData } = useGetSiteSettings();
+  const [rotationInfo, setRotationInfo] = useState(null);
 
   const iaClassesForTaxonomy = siteData?.iaClassesForTaxonomy || {};
 
@@ -64,6 +65,7 @@ export default function ManualAnnotation() {
       const response = await fetch(`/api/v3/media-assets/${assetId}`);
       const data = await response.json();
       setData(data);
+      setRotationInfo(data.rotationInfo || null);
 
       const annotation =
         data.annotations?.find(
@@ -130,6 +132,17 @@ export default function ManualAnnotation() {
             width: width / factor.x,
             height: height / factor.y,
           };
+
+          if (rotationInfo) {
+            const imgW = data.width;
+            const imgH = data.height;
+            const adjW = imgH / imgW;
+            const adjH = imgW / imgH;
+            scaledRect.x /= adjW;
+            scaledRect.width /= adjW;
+            scaledRect.y /= adjH;
+            scaledRect.height /= adjH;
+          }
 
           const rectCenterX = scaledRect.x + scaledRect.width / 2;
           const rectCenterY = scaledRect.y + scaledRect.height / 2;
@@ -431,11 +444,24 @@ export default function ManualAnnotation() {
                   return;
                 } else {
                   setIncomplete(false);
-                  const { x, y, width, height, rotation } = calculateFinalRect(
+                  let { x, y, width, height, rotation } = calculateFinalRect(
                     rect,
                     scaleFactor,
                     value,
                   );
+
+                  if (rotationInfo) {
+                    const imgW = data.width;
+                    const imgH = data.height;
+                    const adjW = imgH / imgW;
+                    const adjH = imgW / imgH;
+
+                    x *= adjW;
+                    width *= adjW;
+                    y *= adjH;
+                    height *= adjH;
+                  }
+
                   await createAnnotation({
                     encounterId,
                     assetId,
