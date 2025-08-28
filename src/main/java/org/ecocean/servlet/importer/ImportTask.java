@@ -134,6 +134,13 @@ public class ImportTask implements java.io.Serializable {
         return null;
     }
 
+    public JSONArray getMatchingLocations() {
+        if (getParameters() == null) return null;
+        JSONObject passed = getParameters().optJSONObject("_passedParameters");
+        if (passed == null) return null;
+        return passed.optJSONArray("matchingLocations");
+    }
+
     // this means was NOT sent via api
     // NOTE this logic may end up being flaky; adjust accordingly
     public boolean isLegacy() {

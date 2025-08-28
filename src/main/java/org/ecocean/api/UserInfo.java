@@ -21,21 +21,21 @@ public class UserInfo extends ApiBase {
         myShepherd.setAction("api.UserInfo.HEAD");
         myShepherd.beginDBTransaction();
         try {
-	        User currentUser = myShepherd.getUser(request);
-	        if (currentUser == null) {
-	            response.setStatus(401);
-	            // response.setHeader("Content-Type", "application/json");
-	            // response.getWriter().write("{\"success\": false}");
-	            return;
-	        }
-	        response.setStatus(200);
-	        response.setHeader("X-User-Id", currentUser.getId());
-	        // TODO: evaluate if other header information (notifications, login time) should be set here
-        }
-        catch(Exception e) {e.printStackTrace();}
-        finally {
-        	myShepherd.rollbackDBTransaction();
-        	myShepherd.closeDBTransaction();
+            User currentUser = myShepherd.getUser(request);
+            if (currentUser == null) {
+                response.setStatus(401);
+                // response.setHeader("Content-Type", "application/json");
+                // response.getWriter().write("{\"success\": false}");
+                return;
+            }
+            response.setStatus(200);
+            response.setHeader("X-User-Id", currentUser.getId());
+            // TODO: evaluate if other header information (notifications, login time) should be set here
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
         }
     }
 
@@ -59,7 +59,7 @@ public class UserInfo extends ApiBase {
         JSONObject results = null;
         String arg = request.getPathInfo();
         if ((arg == null) || arg.equals("/")) { // current user (no guid)
-            results = currentUser.infoJSONObject(context, true);
+            results = currentUser.infoJSONObject(myShepherd, true);
         } else {
             User otherUser = myShepherd.getUserByUUID(arg.substring(1));
             if (otherUser == null) {
@@ -70,9 +70,9 @@ public class UserInfo extends ApiBase {
                 myShepherd.closeDBTransaction();
                 return;
             } else if (otherUser.getId().equals(currentUser.getId())) {
-                results = currentUser.infoJSONObject(context, true);
+                results = currentUser.infoJSONObject(myShepherd, true);
             } else {
-                results = otherUser.infoJSONObject(context, false);
+                results = otherUser.infoJSONObject(myShepherd, false);
             }
         }
         myShepherd.rollbackDBTransaction();
