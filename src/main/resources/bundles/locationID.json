@@ -263,7 +263,16 @@
 								"locationID": []
 							}
 						]
-					}
+					},
+					{
+					"name": "Olympia",
+					"id": "Olympia",
+					"geospatialInfo": {
+						"lat": 47.0436865,
+						"long": -122.9090031
+					},
+					"locationID": []
+				}
 				]
 				}
 			]
