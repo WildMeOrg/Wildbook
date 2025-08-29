@@ -102,13 +102,14 @@ public class MLService {
         try {
             if (ids != null) {
                 for (String maId : Util.jsonArrayToStringList(ids)) {
-                    send(myShepherd.getMediaAsset(maId), jobData.optString("taxonomyString", null));
+                    send(myShepherd.getMediaAsset(maId), jobData.optString("taxonomyString", null),
+                        myShepherd);
                 }
             } else {
                 ids = jobData.optJSONArray("annotationIds");
                 if (ids != null) {
                     for (String annId : Util.jsonArrayToStringList(ids)) {
-                        send(myShepherd.getAnnotation(annId));
+                        send(myShepherd.getAnnotation(annId), myShepherd);
                     }
                 }
             }
@@ -129,7 +130,7 @@ public class MLService {
         IAGateway.requeueJob(jobData, increment);
     }
 
-    public void send(MediaAsset ma, String taxonomyString)
+    public void send(MediaAsset ma, String taxonomyString, Shepherd myShepherd)
     throws IAException {
         if (ma == null) throw new IAException("null MediaAsset passed");
         for (JSONObject conf : getConfigs(taxonomyString)) {
@@ -139,7 +140,10 @@ public class MLService {
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
                 "; RESPONSE => " + res);
             List<Annotation> anns = processMediaAssetResults(ma, res);
-            System.out.println("MLService.send() anns=" + anns);
+            System.out.println("MLService.send() created " + anns.size() + " anns on " + ma + ": " +
+                anns);
+            // FIXME persist anns using myShepherd
+            // FIXME send along to ident????? (but using vectors!!!????!)
         }
     }
 
@@ -203,7 +207,7 @@ public class MLService {
         return ann;
     }
 
-    public void send(Annotation ann)
+    public void send(Annotation ann, Shepherd myShepherd)
     throws IAException {
         throw new IAException("NOT YET IMPLEMENTED");
     }
