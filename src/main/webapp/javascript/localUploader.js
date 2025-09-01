@@ -22,6 +22,7 @@ var mediaAssetSetId = false
 var randomPrefix = Math.floor(Math.random() * 100000) //this is only used for filenames when we dont get a mediaAssetSetId -- which is hopefully never
 var keyToFilename = {}
 var pendingUpload = -1
+var subdir2Val = ""
 
 //TODO we should make this more generic wrt elements and events
 function uploaderInit(completionCallback, subdir, isImportExport) {
@@ -84,13 +85,29 @@ function uploaderInit(completionCallback, subdir, isImportExport) {
   } else {
     $('#uptype').html('server local')
     console.info('uploader is using uploading direct to host (not S3)')
+
     flow = new Flow({
       // target backs up a dir bc this is called from webapp/import/
-      target: `../ResumableUpload?isImportExport=${isImportExport}`,
+      target: function (file, chunk) {
+        let base = `../ResumableUpload?isImportExport=${encodeURIComponent(isImportExport)}`
+    
+        if (isImportExport === true || isImportExport === 'true') {
+          const subdir2Val = document.getElementById('subdir2')?.value?.trim() || ''
+          if (subdir2Val) {
+            base += `&subdir2=${encodeURIComponent(subdir2Val)}`
+          }
+        }
+    
+        return base
+      },
       forceChunkSize: true,
-      query: {
-        subdir: subdir,
-        mediaAssetSetId: mediaAssetSetId,
+      query: function (file, chunk) {
+        const q = {
+          subdir: subdir,
+          mediaAssetSetId: mediaAssetSetId,
+        }
+      
+        return q
       },
       testChunks: false,
     })
@@ -99,6 +116,18 @@ function uploaderInit(completionCallback, subdir, isImportExport) {
       function (ev) {
         var files = flow.files
         console.log('files --> %o', files)
+
+
+        const subdir2El = document.getElementById('subdir2')
+        const subdir2Val = subdir2El?.value?.trim()
+
+        // ✅ Check if subdir2Val is empty
+        if (subdir2El && !subdir2Val) {
+          alert('Please fill in the submitter username value before uploading.')
+          return // stop execution here
+        }
+
+        
         pendingUpload = files.length
         for (var i = 0; i < files.length; i++) {
           console.log('%d %o', i, files[i])

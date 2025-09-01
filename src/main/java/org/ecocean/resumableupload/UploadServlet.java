@@ -229,18 +229,26 @@ public class UploadServlet extends HttpServlet {
     public static String getUploadDir(HttpServletRequest request) {
         System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
         ServletUtilities.printParams(request);
-        String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
+
+        boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+        String subdirPath = "";
+
+        if (isImportExport){
+            subdirPath = "subdir2";
+        }
+        else{
+            subdirPath= "subdir";
+        }
+        String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute(subdirPath,
             request);
         System.out.println("UploadServlet got subdir " + subDir);
         if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
 
-        boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
         
         String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), isImportExport);
 
-        if (!isImportExport){
-            fullDir = fullDir + subDir;
-        }
+        fullDir = fullDir + subDir;
+        
 
         System.out.println("UploadServlet got uploadDir = " + fullDir);
         ensureDirectoryExists(fullDir);
@@ -251,18 +259,29 @@ public class UploadServlet extends HttpServlet {
     public static String getUploadDir(HttpServletRequest request, String fileName) {
         System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
         ServletUtilities.printParams(request);
-        String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
+
+        boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+
+        String subdirPath = "";
+
+        if (isImportExport){
+            subdirPath = "subdir2";
+        }
+        else{
+            subdirPath= "subdir";
+        }
+        
+        String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute(subdirPath,
             request);
         System.out.println("UploadServlet got subdir " + subDir);
         if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
 
-        boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+
         
         String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), isImportExport, fileName);
 
-        if (!isImportExport){
-            fullDir = fullDir + subDir;
-        }
+        fullDir = fullDir + subDir;
+        
 
         System.out.println("UploadServlet got uploadDir = " + fullDir);
         ensureDirectoryExists(fullDir);

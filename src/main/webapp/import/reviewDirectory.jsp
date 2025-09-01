@@ -24,7 +24,7 @@ UploadServlet.setSubdirForUpload(subdir, request);
 
 String dirName = UploadServlet.getUploadDir(request);
 boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
-
+String importExportDir = request.getParameter("subdir2");
 
 
 
@@ -131,7 +131,7 @@ ol.filelist li {
 	</div>
   <div>
 		<input style="background-color: #CCC;" onClick="document.location='photos.jsp';" type="submit" value="Go back and try again">
-		<input onClick="document.location.href='spreadsheet.jsp?isImportExport=<%=isImportExport%>';" type="submit" value="Accept and move on">
+		<input onClick="document.location.href='spreadsheet.jsp?isImportExport=<%=isImportExport%>&subdir2=<%=importExportDir%>';" type="submit" value="Accept and move on">
   </div>
 
           
