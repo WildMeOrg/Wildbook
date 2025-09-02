@@ -126,7 +126,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         String photoDirectory = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), true);
 
-        if (subdir != null && !subdir.equals("")){
+        if (subdir != null && !subdir.equals("") && !subdir.equals("null")){
             photoDirectory = photoDirectory + "/" +subdir;
         }
 
