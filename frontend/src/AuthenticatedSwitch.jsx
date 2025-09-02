@@ -5,6 +5,7 @@ import NotFound from "./pages/errorPages/NotFound";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import Footer from "./components/Footer";
 import useGetMe from "./models/auth/users/useGetMe";
+import Encounter from "./pages/Encounter/Encounter";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -75,6 +76,8 @@ export default function AuthenticatedSwitch({
             <Route path="/home" element={<Home />} />
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
+            <Route path="/encounter" element={<Encounter />} />
+
             <Route path="/encounter-search" element={<EncounterSearch />} />
             <Route path="/admin/logs" element={<AdminLogs />} />
             <Route path="/manual-annotation" element={<ManualAnnotation />} />
