@@ -21,6 +21,7 @@ Shepherd myShepherd=new Shepherd(context);
 String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
 UploadServlet.setSubdirForUpload(subdir, request);
 boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
+String importExportDir = request.getParameter("subdir2");
 
 
 // this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
@@ -55,10 +56,10 @@ function uploadFinished() {
     var filename = document.getElementById('hiddenFilename').innerHTML;
 
     // Resolve JSP variable server-side
-    var redirect = '<%= isImportExport ? "EncounterImportExcelServlet" : "standard-upload" %>';
+    var redirect = '<%= isImportExport ? "EncounterImportExcelServlet?subdir2="+importExportDir + "&" : "standard-upload?" %>';
 
     // Perform client-side redirect with query params
-    window.location.replace(redirect + '?filename=' + encodeURIComponent(filename) + '&isUserUpload=true');
+    window.location.replace(redirect + 'filename=' + encodeURIComponent(filename) + '&isUserUpload=true');
 }
 </script>
 <body onLoad="uploaderInit(uploadFinished,null,'<%=isImportExport%>')">

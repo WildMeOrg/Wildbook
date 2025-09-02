@@ -53,8 +53,10 @@ if (!org.ecocean.servlet.ReCAPTCHA.sessionIsHuman(request)) {
 function uploadFinished() {
 	console.log("uploadFinished! Callback executing");
 	document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
+	var subdir2 = document.getElementById('subdir2')?.value?.trim()
 	// forward user to the review page
 	redirect = 'reviewDirectory.jsp?isImportExport=<%=isImportExport%>';
+	redirect = redirect + '&subdir2=' + subdir2;
 	window.location.replace(redirect);
 }
 </script>
@@ -146,12 +148,25 @@ if (request.isUserInRole("admin")) adminMode = true;
 	<span id="folder-name" style="margin-left: 10px; font-family: sans-serif;">No folder chosen</span>
 	<input type="file" id="file-chooser" webkitdirectory directory multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)"  style="display: none;"/> 
 	<br>
+
+	<% if (isImportExport) { %>
+
+		<div class="row">
+			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-top: 20px;">
+				<input required name="subdir2" placeholder="submitter username" type="text" id="subdir2"  class="form-control" style="width: 22%;">
+				  </div>
+			</div>
+	
+	<% } %>
+
 	<button id="upload-button">begin upload</button>
 	<br>
+	
 	<p><b>If you have selected a large number of photos they may take a while to load in the interface.<b> Once you have clicked the 'Begin Upload' button the images will be sent, and you will automatically
 	be taken to the next page when they are finished.</p>
 
 	<% if (isImportExport) { %>
+
 		<button id="skip-photos" onClick="document.location.href='spreadsheet.jsp?isImportExport=<%=isImportExport%>';">Skip Photos</button>
 	
 	<% } %>

@@ -122,10 +122,10 @@ public class EncounterImportExcelServlet extends HttpServlet {
            
         Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
         myShepherd.beginDBTransaction();
-        String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
+        String subdir = request.getParameter("subdir2");
         myShepherd.rollbackDBTransaction();
 
-        String photoDirectory = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), true);
+        String photoDirectory = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request), true) + "/" +subdir;
 
 
         System.out.println("IS USER UPLOAD! ---> photoDirectory = " + photoDirectory);
@@ -1565,16 +1565,41 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 feedback.logParseNoValue(assetColIndex(i, allColsMap));
                 return null;
             }
-            localPath = Util.windowsFileStringToLinux(localPath).trim();
-            fullPath = photoDirectory + "/" + localPath;
-            fullPath = fullPath.replace("//", "/");
-            resolvedPath = resolveHumanEnteredFilename(fullPath);
-            System.out.println("Early exit: fullpath: " + fullPath);
-            if (resolvedPath == null){
-                fullPath = photoDirectory + "/" + "downloaded_images/" + fileName + "/" + urlPath;
-                resolvedPath = resolveHumanEnteredFilename(fullPath);
-            }
+            // localPath = Util.windowsFileStringToLinux(localPath).trim();
+            // fullPath = photoDirectory + "/" + localPath;
+            // fullPath = fullPath.replace("//", "/");
+            // resolvedPath = resolveHumanEnteredFilename(fullPath);
+            // System.out.println("Early exit: fullpath: " + fullPath);
+            // if (resolvedPath == null){
+            //     fullPath = photoDirectory + "/" + "downloaded_images/" + fileName + "/" + urlPath;
+            //     resolvedPath = resolveHumanEnteredFilename(fullPath);
+            // }
 
+            String normalizedDir = photoDirectory.replace("\\", "/").trim();
+            String lastFolder = normalizedDir.substring(normalizedDir.lastIndexOf("/") + 1);
+
+            // Build candidate paths
+            String localCandidate = photoDirectory + "/" + Util.windowsFileStringToLinux(localPath).trim();
+            localCandidate = localCandidate.replace("//", "/");
+
+            String downloadedCandidate = photoDirectory + "/" + "downloaded_images/" + fileName + "/" + urlPath;
+
+            // Try resolution in different orders depending on last folder
+            if ("importExport".equalsIgnoreCase(lastFolder)) {
+                // First try downloaded_images, then local path
+                resolvedPath = resolveHumanEnteredFilename(downloadedCandidate);
+                if (resolvedPath == null) {
+                    resolvedPath = resolveHumanEnteredFilename(localCandidate);
+                }
+                fullPath = (resolvedPath != null) ? resolvedPath : downloadedCandidate;
+            } else {
+                // First try local path, then downloaded_images
+                resolvedPath = resolveHumanEnteredFilename(localCandidate);
+                if (resolvedPath == null) {
+                    resolvedPath = resolveHumanEnteredFilename(downloadedCandidate);
+                }
+                fullPath = (resolvedPath != null) ? resolvedPath : localCandidate;
+            }
 
             System.out.println("     resolvedPath: " + resolvedPath);
             if (resolvedPath != null) {
