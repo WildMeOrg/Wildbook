@@ -1221,6 +1221,15 @@
 					"locationID":[]
 				},
 				{
+					"name": "Tswalu Kalahari Reserve",
+					"id": "Tswalu Kalahari Reserve",
+					"geospatialInfo": {
+						"lat": -27.24027,
+						"long": 22.38372
+					},
+					"locationID": []
+				},
+				{
 					"name": "UmPhafa Private Nature Reserve",
 					"id": "UmPhafa Private Nature Reserve",
 					"description": "UmPhafa Private Nature Reserve",
