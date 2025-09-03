@@ -59,6 +59,14 @@ function uploadFinished() {
 	redirect = redirect + '&subdir2=' + subdir2;
 	window.location.replace(redirect);
 }
+function photoSkipped() {
+	var subdir2 = document.getElementById('subdir2')?.value?.trim()
+	redirect = 'spreadsheet.jsp?isImportExport=<%=isImportExport%>';
+	redirect = redirect + '&subdir2=' + subdir2;
+	window.location.replace(redirect);
+
+}
+
 </script>
 <body onLoad="uploaderInit(uploadFinished,'<%=subdir%>', '<%=isImportExport%>')">
 <div class="container maincontent">
@@ -166,8 +174,7 @@ if (request.isUserInRole("admin")) adminMode = true;
 	be taken to the next page when they are finished.</p>
 
 	<% if (isImportExport) { %>
-
-		<button id="skip-photos" onClick="document.location.href='spreadsheet.jsp?isImportExport=<%=isImportExport%>';">Skip Photos</button>
+		<button id="skip-photos" onClick="photoSkipped();">Skip Photos</button>
 	
 	<% } %>
 
