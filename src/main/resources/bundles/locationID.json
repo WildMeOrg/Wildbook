@@ -119,6 +119,15 @@
 			},
 			"locationID": []
 		},
+	    {
+			"name": "Dry-Tex Creek",
+			"id": "Dry-Tex Creek",
+			"geospatialInfo": {
+				"lat": 43.688444,
+				"long": -116.175306
+		},
+			"locationID": []
+		},
 		{
 			"name": "Rapid River, ME",
 			"id": "Rapid River ME",
