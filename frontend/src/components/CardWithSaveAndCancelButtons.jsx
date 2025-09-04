@@ -29,7 +29,7 @@ export default function CardWithSaveAndCancelButtons({
             </div>
             <div>{content}</div>
 
-            <div className="d-flex justify-content-between align-items-center w-100">
+            <div className="d-flex justify-content-between align-items-center w-100 flex-wrap mt-3">
                 <MainButton
                     onClick={onSave}
                     noArrow={true}

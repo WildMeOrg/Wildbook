@@ -6,12 +6,12 @@ export default function TextInput({
     onChange,
     placeholder = "Enter text",
     className = "",
-    title = "Text Input",
+    label = "Text Input",
     ...props
 }) {
     return (
         <div className={`text-input-container ${className}`}>
-            {title && <h6 >{title}</h6>}
+            {label && <h6 >{label}</h6>}
             <input
                 type="text"
                 value={value}
