@@ -523,5 +523,6 @@
    "BULK_IMPORT_TASK_ERROR_DEFAULT": "Su tarea no se pudo procesar debido a un error.",
    "FILTER_BULK_IMPORT_FILE_NAMES": "Nombres de archivos de importación masiva",
   "BULK_IMPORT_SEND_TO_IDENTIFICATION": "Enviar para identificación",
-  "BULK_IMPORT_LOCATION_ID_DESC": "Cuantas más opciones seleccione, más tiempo tardará la identificación. Sea lo más específico posible."
+  "BULK_IMPORT_LOCATION_ID_DESC": "Cuantas más opciones seleccione, más tiempo tardará la identificación. Sea lo más específico posible.",
+  "DANGER_ZONE": "Zona de Peligro"
 }

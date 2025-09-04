@@ -500,6 +500,11 @@ const BulkImportTask = observer(() => {
             <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
           </MainButton>
         </Col>
+      </Row>
+      <Row>
+        <h5 className="text-danger">
+          <FormattedMessage id="DANGER_ZONE" />
+        </h5>
         <Col xs="auto">
           <MainButton
             onClick={deleteTask}
@@ -511,6 +516,9 @@ const BulkImportTask = observer(() => {
               height: "40px",
               fontSize: "1rem",
               border: `1px solid ${theme.statusColors.red500}`,
+              marginLeft: 0,
+              marginTop: "1rem",
+              marginBottom: "2rem",
             }}
           >
             <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
