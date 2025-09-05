@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import MainButton from "../../components/MainButton";
 import axios from "axios";
 import { observer } from "mobx-react-lite";
@@ -17,15 +17,24 @@ import LocationIcon from "../../components/LocationIcon";
 import AttributesIcon from "../../components/AttributesIcon";
 import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
+import SelectInput from "../../SelectInput";
+import useGetSiteSettings from "../../models/useGetSiteSettings";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
+
+  const { data: siteSettings } = useGetSiteSettings();
+
+  useEffect(() => {
+    if (!siteSettings) return;
+    store.setSiteSettings(siteSettings);
+  }, [siteSettings, store]);
 
   const params = new URLSearchParams(window.location.search);
   const encounterId =
     params.get("number") || "4770c075-a4c7-48c3-9616-8fa87aa2d65a";
 
-  React.useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
     axios
       .get(`/api/v3/encounters/${encounterId}`)
@@ -64,7 +73,7 @@ const Encounter = observer(() => {
       </div>
       {store.overviewActive ? (
 
-        <Row>
+        <Row className="mt-3 mb-3">
           <Col md={3}>
             {store.editDateCard ? (
               <CardWithSaveAndCancelButtons
@@ -100,7 +109,7 @@ const Encounter = observer(() => {
                 onClick={() => store.setEditDateCard(true)}
                 content={
                   <div>
-                    <div>Encounter Date: {store.getFieldValue("date", "encounterDate") || "None"}</div>
+                    <div>Encounter Date: {store.getFieldValue("date", "date") || "None"}</div>
                     <div>Verbatim Event Date: {store.getFieldValue("date", "verbatimEventDate") || "None"}</div>
                   </div>
                 }
@@ -178,31 +187,26 @@ const Encounter = observer(() => {
                         <a href={`/imports/${store.encounterData.importTaskId}`}>
                           {store.encounterData.importTaskId}
                         </a>
-                      ) : "None"}
+                      ) : ""}
                     </div>
-
-                    <div style={{ marginTop: 12 }}>
-                      <label className="form-label">Assigned User</label>
-                      <input
-                        className="form-control"
-                        value={store.getFieldValue("metadata", "assignedUser") ?? ""}
-                        onChange={(e) => store.setFieldValue("metadata", "assignedUser", e.target.value)}
+                      <SelectInput
+                        label="Assigned User"
+                        value={store.getFieldValue("metadata", "assignedUsername") ?? ""}
+                        onChange={(v) => store.setFieldValue("metadata", "assignedUsername", v)}
+                        options={store.siteSettingsData?.siteUsers?.map((user) => ({
+                          value: user.username,
+                          label: user.username,
+                        })) || []}
+                        className="mb-3"
                       />
-                    </div>
-
-                    <div style={{ marginTop: 12 }}>
-                      <label className="form-label">Sharing Permission</label>
-                      <select
-                        className="form-select"
-                        value={store.getFieldValue("metadata", "sharingPermission") ?? ""}
-                        onChange={(e) => store.setFieldValue("metadata", "sharingPermission", e.target.value)}
-                      >
-                        <option value="">Select…</option>
-                        <option value="private">Only me</option>
-                        <option value="link_view">Anyone with the link can view</option>
-                        <option value="org_view">My organization can view</option>
-                      </select>
-                    </div>
+                    <SelectInput
+                      label="Sharing Permission"
+                      value={store.getFieldValue("metadata", "sharingPermission") ?? ""}
+                      onChange={(v) => store.setFieldValue("metadata", "sharingPermission", v)}
+                      options={[]}
+                      className="mb-3"
+                    />
+                  
                   </div>
                 }
               />
@@ -214,7 +218,7 @@ const Encounter = observer(() => {
                 content={
                   <div>
                     <div>Encounter ID: {store.encounterData?.id}</div>
-                    <div>Date Created: {store.encounterData?.createdAt}</div>
+                    <div>Date Created: {store.encounterData?.dateSubmitted}</div>
                     <div>Last Edit: {store.encounterData?.updatedAt}</div>
                     <div>
                       Imported via:{" "}
@@ -224,7 +228,7 @@ const Encounter = observer(() => {
                         </a>
                       ) : "None"}
                     </div>
-                    <div>Assigned User: {store.getFieldValue("metadata", "assignedUser") || "None"}</div>
+                    <div>Assigned User: {store.getFieldValue("metadata", "assignedUsername") || "None"}</div>
                     <div>Sharing Permission: {store.getFieldValue("metadata", "sharingPermission") || "None"}</div>
                   </div>
                 }
@@ -282,8 +286,7 @@ const Encounter = observer(() => {
                     <div>Location: {store.getFieldValue("location", "locationName") || "None"}</div>
                     <div>Location ID: {store.getFieldValue("location", "locationId") || "None"}</div>
                     <div>
-                      Coordinates: {store.getFieldValue("location", "decimalLatitude") || "?"}°N{" "}
-                      {store.getFieldValue("location", "decimalLongitude") || "?"}°E
+                      Coordinates: {store.getFieldValue("location", "occurrenceLocationGeoPoint") || "none"}
                     </div>
                   </div>
                 }
@@ -305,45 +308,57 @@ const Encounter = observer(() => {
                 }}
                 content={
                   <div>
-                    <TextInput
+                    <SelectInput
                       label="Taxonomy"
                       value={store.getFieldValue("attributes", "taxonomy") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "taxonomy", v)}
+                      options={store.taxonomyOptions}
+                      className="mb-3"
                     />
-                    <TextInput
-                      label="Status"
-                      value={store.getFieldValue("attributes", "status") ?? ""}
-                      onChange={(v) => store.setFieldValue("attributes", "status", v)}
+                     <SelectInput
+                      label="Living Status"
+                      value={store.getFieldValue("attributes", "livingStatus") ?? ""}
+                      onChange={(v) => store.setFieldValue("attributes", "livingStatus", v)}
+                      options={store.livingStatusOptions}
+                      className="mb-3"
                     />
-                    <TextInput
+                    <SelectInput
                       label="Sex"
                       value={store.getFieldValue("attributes", "sex") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "sex", v)}
+                      options={store.sexOptions}
+                      className="mb-3"
                     />
                     <TextInput
                       label="Noticeable Scarring"
-                      value={store.getFieldValue("attributes", "noticeableScarring") ?? ""}
-                      onChange={(v) => store.setFieldValue("attributes", "noticeableScarring", v)}
+                      value={store.getFieldValue("attributes", "distinguishingScar") ?? ""}
+                      onChange={(v) => store.setFieldValue("attributes", "distinguishingScar", v)}
                     />
-                    <TextInput
+                    <SelectInput
                       label="Behavior"
                       value={store.getFieldValue("attributes", "behavior") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "behavior", v)}
+                      options={store.behaviorOptions}
+                      className="mb-3"
                     />
                     <TextInput
                       label="Group Role"
                       value={store.getFieldValue("attributes", "groupRole") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "groupRole", v)}
                     />
-                    <TextInput
+                    <SelectInput
                       label="Patterning Code"
                       value={store.getFieldValue("attributes", "patterningCode") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "patterningCode", v)}
+                      options={store.patterningCodeOptions}
+                      className="mb-3"
                     />
-                    <TextInput
+                    <SelectInput
                       label="Life Stage"
                       value={store.getFieldValue("attributes", "lifeStage") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "lifeStage", v)}
+                      options={store.lifeStageOptions}
+                      className="mb-3"
                     />
                     <TextInput
                       label="Observation Comments"
@@ -360,15 +375,15 @@ const Encounter = observer(() => {
                 onClick={() => store.setEditAttributesCard(true)}
                 content={
                   <div>
-                    <div>Taxonomy: {store.getFieldValue("attributes", "taxonomy") || "None"}</div>
-                    <div>Status: {store.getFieldValue("attributes", "status") || "None"}</div>
-                    <div>Sex: {store.getFieldValue("attributes", "sex") || "Unknown"}</div>
-                    <div>Noticeable Scarring: {store.getFieldValue("attributes", "noticeableScarring") || "empty"}</div>
-                    <div>Behavior: {store.getFieldValue("attributes", "behavior") || "empty"}</div>
-                    <div>Group Role: {store.getFieldValue("attributes", "groupRole") || "None"}</div>
-                    <div>Patterning Code: {store.getFieldValue("attributes", "patterningCode") || "None"}</div>
-                    <div>Life Stage: {store.getFieldValue("attributes", "lifeStage") || "empty"}</div>
-                    <div>Observation Comments: {store.getFieldValue("attributes", "observationComments") || "None"}</div>
+                    <div>Taxonomy: {store.getFieldValue("attributes", "taxonomy")}</div>
+                    <div>Status: {store.getFieldValue("attributes", "livingStatus")}</div>
+                    <div>Sex: {store.getFieldValue("attributes", "sex")}</div>
+                    <div>Noticeable Scarring: {store.getFieldValue("attributes", "distinguishingScar")}</div>
+                    <div>Behavior: {store.getFieldValue("attributes", "behavior")}</div>
+                    <div>Group Role: {store.getFieldValue("attributes", "groupRole")}</div>
+                    <div>Patterning Code: {store.getFieldValue("attributes", "patterningCode")}</div>
+                    <div>Life Stage: {store.getFieldValue("attributes", "lifeStage")}</div>
+                    <div>Observation Comments: {store.getFieldValue("attributes", "observationComments")}</div>
                   </div>
                 }
               />

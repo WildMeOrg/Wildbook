@@ -13,7 +13,7 @@ export default function CardWithEditButton({
 }) {
     const theme = React.useContext(ThemeColorContext);
     return (
-        <div className="d-flex flex-column justify-content-between mt-3 position-relative"
+        <div className="d-flex flex-column justify-content-between mt-3 position-relative mb-3"
             style={{
                 padding: "10px",
                 borderRadius: "10px",

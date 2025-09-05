@@ -16,7 +16,7 @@ export default function CardWithSaveAndCancelButtons({
 }) {
     const theme = React.useContext(ThemeColorContext);
     return (
-        <div className="d-flex flex-column justify-content-between mt-3"
+        <div className="d-flex flex-column justify-content-between mt-3 mb-3"
             style={{
                 padding: "10px",
                 borderRadius: "10px",

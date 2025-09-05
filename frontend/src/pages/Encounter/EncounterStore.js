@@ -2,7 +2,6 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 
-// EncounterStore.js
 const SECTION_FIELD_PATHS = {
   date: ["encounterDate", "verbatimEventDate"],
   identify: ["individualName", "matchedBy", "alternateID"],
@@ -10,9 +9,9 @@ const SECTION_FIELD_PATHS = {
   location: ["locationName", "locationId", "decimalLatitude", "decimalLongitude"],
   attributes: [
     "taxonomy",
-    "status",
+    "livingStatus",
     "sex",
-    "noticeableScarring",
+    "distinguishingScar",
     "behavior",
     "groupRole",
     "patterningCode",
@@ -20,7 +19,6 @@ const SECTION_FIELD_PATHS = {
     "observationComments",
   ],
 };
-
 
 function splitPathIntoSegments(fieldPath) {
   return fieldPath.replace(/\[(\d+)\]/g, ".$1").split(".");
@@ -70,12 +68,23 @@ function deleteValueAtPath(targetObject, fieldPath) {
 class EncounterStore {
   _encounterData = null;
 
+  _siteSettingsData = null;
+
   _overviewActive = true;
   _editDateCard = false;
   _editIdentifyCard = false;
   _editMetadataCard = false;
   _editLocationCard = false;
   _editAttributesCard = false;
+
+
+  _taxonomyOptions = [];
+  _livingStatusOptions = [];
+  _sexOptions = [];
+  _lifeStageOptions = [];
+  _behaviorOptions = [];
+  _groupRoleOptions = [];
+  _patterningCodeOptions = [];
 
   _sectionDrafts = new Map(Object.keys(SECTION_FIELD_PATHS).map((name) => [name, {}]));
 
@@ -88,6 +97,8 @@ class EncounterStore {
     this._encounterData = newEncounterData;
     this.resetAllDrafts();
   }
+
+  // Getters and setters for UI state
 
   get overviewActive() { return this._overviewActive; }
   setOverviewActive(isActive) { this._overviewActive = isActive; }
@@ -107,6 +118,16 @@ class EncounterStore {
   get editAttributesCard() { return this._editAttributesCard; }
   setEditAttributesCard(isEditing) { this._editAttributesCard = isEditing; }
 
+
+  get taxonomyOptions() { return this._taxonomyOptions; }
+  get livingStatusOptions() { return this._livingStatusOptions; }
+  get sexOptions() { return this._sexOptions; }
+  get lifeStageOptions() { return this._lifeStageOptions; }
+  get behaviorOptions() { return this._behaviorOptions; }
+  get groupRoleOptions() { return this._groupRoleOptions; }
+  get patterningCodeOptions() { return this._patterningCodeOptions; }
+
+
   getFieldValue(sectionName, fieldPath) {
     const draftForSection = this._sectionDrafts.get(sectionName) || {};
     if (Object.prototype.hasOwnProperty.call(draftForSection, fieldPath)) {
@@ -119,6 +140,39 @@ class EncounterStore {
     const draftForSection = { ...(this._sectionDrafts.get(sectionName) || {}) };
     draftForSection[fieldPath] = newValue;
     this._sectionDrafts.set(sectionName, draftForSection);
+  }
+
+  setSiteSettings(siteSettingsData) {
+    this._siteSettingsData = siteSettingsData;
+    this._taxonomyOptions = siteSettingsData.siteTaxonomies?.map((taxonomy) => ({
+      value: taxonomy.scientificName,
+      label: taxonomy.scientificName,
+    }));
+    this._livingStatusOptions = siteSettingsData.livingStatus?.map((status) => ({
+      value: status,
+      label: status,
+    }));
+    this._sexOptions = siteSettingsData.sex?.map((data) => ({
+      value: data,
+      label: data,
+    }));
+    this._lifeStageOptions = siteSettingsData.lifeStage?.map((data) => ({
+      value: data,
+      label: data,
+    }));
+    this._behaviorOptions = siteSettingsData.behavior?.map((data) => ({
+      value: data,
+      label: data,
+    }));
+    this._groupRoleOptions = siteSettingsData.groupRoles?.map((data) => ({
+      value: data,
+      label: data,
+    }));
+    this._patterningCodeOptions = siteSettingsData.patterningCode?.map((data) => ({
+      value: data,
+      label: data,
+    })
+    )   
   }
 
   resetSectionDraft(sectionName) {
