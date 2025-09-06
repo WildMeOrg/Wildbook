@@ -758,8 +758,39 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "France",
+			"id": "France",
+			"locationID": [
+				{
+					"name": "Brittany",
+					"id": "Brittany",
+					"locationID":[
+						{
+							"name": "Rennes Metropole",
+							"id": "Rennes Metropole",
+							"locationID": [
+								{
+									"name": "Prevalaye",
+									"id": "Prevalaye",
+									"locationID": []
+								},
+								{
+									"name": "Bois de Soeuvres",
+									"id": "Bois de Soeuvres",
+									"locationID": []
+								},
+								{
+									"name": "Poterie",
+									"id": "Poterie",
+									"locationID": []
+								}
+							]
+						}
+					]
+				}
+			]
 		}
-
-		  
 	]
   }  
