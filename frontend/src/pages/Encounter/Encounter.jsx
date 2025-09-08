@@ -19,6 +19,7 @@ import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
 import SelectInput from "../../SelectInput";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
+import PillWithDropdown from "../../components/PillWithDropdown";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
@@ -46,12 +47,32 @@ const Encounter = observer(() => {
   }, [encounterId, store]);
 
   return (
-    <Container>
-      <h2>Encounter {store.encounterData?.individualNames ?
-        store.encounterData?.individualNames.map(
-          (name) => !!name)[0] : "Unassigned"}
-      </h2>
-      <p>Encounter ID: {encounterId}</p>
+    <Container style={{ padding: "20px" }}>
+
+      <Row>
+        <Col md={6}>
+          <h2 >
+            Encounter {store.encounterData?.individualDisplayName ? `of ${store.encounterData?.individualDisplayName}` : "Unassigned "}
+          </h2>
+          <p>Encounter ID: {encounterId}</p>
+        </Col>
+        <Col md={6} className="text-end">
+          <PillWithDropdown
+            options = {store.siteSettingsData?.encounterState?.map((state) => ({
+              value: state,
+              label: state,
+            })) || []}
+            selectedOption={store.encounterData?.state || "unidentified"}
+            onSelect={(value) => {
+              console.log("Selected state:", value);
+              store.setFieldValue("metadata", "state", value);
+            }}
+          />
+
+        </Col>
+
+      </Row>
+
 
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "row" }}>
 
@@ -132,8 +153,8 @@ const Encounter = observer(() => {
                   <div>
                     <TextInput
                       label="Identified as"
-                      value={store.getFieldValue("identify", "individualName") ?? ""}
-                      onChange={(v) => store.setFieldValue("identify", "individualName", v)}
+                      value={store.getFieldValue("identify", "individualDisplayName") ?? ""}
+                      onChange={(v) => store.setFieldValue("identify", "individualDisplayName", v)}
                     />
                     <TextInput
                       label="Matched by"
@@ -155,9 +176,9 @@ const Encounter = observer(() => {
                 onClick={() => store.setEditIdentifyCard(true)}
                 content={
                   <div>
-                    <div>Identified as: {store.getFieldValue("identify", "individualName") || "Unknown"}</div>
-                    <div>Matched by: {store.getFieldValue("identify", "matchedBy") || "Unknown"}</div>
-                    <div>Alternate ID: {store.getFieldValue("identify", "alternateID") || "None"}</div>
+                    <div>Identified as: {store.getFieldValue("identify", "individualDisplayName")}</div>
+                    <div>Matched by: {store.getFieldValue("identify", "matchedBy")}</div>
+                    <div>Alternate ID: {store.getFieldValue("identify", "alternateID")}</div>
                   </div>
                 }
               />
@@ -189,16 +210,16 @@ const Encounter = observer(() => {
                         </a>
                       ) : ""}
                     </div>
-                      <SelectInput
-                        label="Assigned User"
-                        value={store.getFieldValue("metadata", "assignedUsername") ?? ""}
-                        onChange={(v) => store.setFieldValue("metadata", "assignedUsername", v)}
-                        options={store.siteSettingsData?.siteUsers?.map((user) => ({
-                          value: user.username,
-                          label: user.username,
-                        })) || []}
-                        className="mb-3"
-                      />
+                    <SelectInput
+                      label="Assigned User"
+                      value={store.getFieldValue("metadata", "assignedUsername") ?? ""}
+                      onChange={(v) => store.setFieldValue("metadata", "assignedUsername", v)}
+                      options={store.siteSettingsData?.siteUsers?.map((user) => ({
+                        value: user.username,
+                        label: user.username,
+                      })) || []}
+                      className="mb-3"
+                    />
                     <SelectInput
                       label="Sharing Permission"
                       value={store.getFieldValue("metadata", "sharingPermission") ?? ""}
@@ -206,7 +227,7 @@ const Encounter = observer(() => {
                       options={[]}
                       className="mb-3"
                     />
-                  
+
                   </div>
                 }
               />
@@ -260,8 +281,8 @@ const Encounter = observer(() => {
                     />
                     <TextInput
                       label="Location ID"
-                      value={store.getFieldValue("location", "locationId") ?? ""}
-                      onChange={(v) => store.setFieldValue("location", "locationId", v)}
+                      value={store.getFieldValue("location", "country") ?? ""}
+                      onChange={(v) => store.setFieldValue("location", "country", v)}
                     />
                     <TextInput
                       label="Latitude"
@@ -315,7 +336,7 @@ const Encounter = observer(() => {
                       options={store.taxonomyOptions}
                       className="mb-3"
                     />
-                     <SelectInput
+                    <SelectInput
                       label="Living Status"
                       value={store.getFieldValue("attributes", "livingStatus") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "livingStatus", v)}

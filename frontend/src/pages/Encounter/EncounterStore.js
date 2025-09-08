@@ -4,9 +4,9 @@ import axios from "axios";
 
 const SECTION_FIELD_PATHS = {
   date: ["encounterDate", "verbatimEventDate"],
-  identify: ["individualName", "matchedBy", "alternateID"],
-  metadata: ["assignedUser", "sharingPermission"],
-  location: ["locationName", "locationId", "decimalLatitude", "decimalLongitude"],
+  identify: ["individualDisplayName", "matchedBy", "alternateID"],
+  metadata: ["assignedUser", "sharingPermission", "state"],
+  location: ["locationName", "country", "decimalLatitude", "decimalLongitude"],
   attributes: [
     "taxonomy",
     "livingStatus",
@@ -18,7 +18,7 @@ const SECTION_FIELD_PATHS = {
     "lifeStage",
     "observationComments",
   ],
-};
+}
 
 function splitPathIntoSegments(fieldPath) {
   return fieldPath.replace(/\[(\d+)\]/g, ".$1").split(".");
@@ -142,6 +142,7 @@ class EncounterStore {
     this._sectionDrafts.set(sectionName, draftForSection);
   }
 
+  get siteSettingsData() { return this._siteSettingsData; }
   setSiteSettings(siteSettingsData) {
     this._siteSettingsData = siteSettingsData;
     this._taxonomyOptions = siteSettingsData.siteTaxonomies?.map((taxonomy) => ({
