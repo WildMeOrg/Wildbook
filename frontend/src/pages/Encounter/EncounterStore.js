@@ -3,9 +3,9 @@ import { makeAutoObservable } from "mobx";
 import axios from "axios";
 
 const SECTION_FIELD_PATHS = {
-  date: ["encounterDate", "verbatimEventDate"],
+  date: ["encounterDate", "verbatimLocality"],
   identify: ["individualDisplayName", "matchedBy", "alternateID"],
-  metadata: ["assignedUser", "sharingPermission", "state"],
+  metadata: ["assignedUsername", "sharingPermission", "state", "observationComments"],
   location: ["locationName", "country", "decimalLatitude", "decimalLongitude"],
   attributes: [
     "taxonomy",
@@ -53,7 +53,7 @@ function deleteValueAtPath(targetObject, fieldPath) {
   let cursor = targetObject;
   for (let i = 0; i < pathSegments.length - 1; i++) {
     const segment = pathSegments[i];
-    if (cursor[segment] == null) return; 
+    if (cursor[segment] == null) return;
     cursor = cursor[segment];
   }
   const lastSegment = pathSegments[pathSegments.length - 1];
@@ -143,6 +143,7 @@ class EncounterStore {
   }
 
   get siteSettingsData() { return this._siteSettingsData; }
+
   setSiteSettings(siteSettingsData) {
     this._siteSettingsData = siteSettingsData;
     this._taxonomyOptions = siteSettingsData.siteTaxonomies?.map((taxonomy) => ({
@@ -173,7 +174,7 @@ class EncounterStore {
       value: data,
       label: data,
     })
-    )   
+    )
   }
 
   resetSectionDraft(sectionName) {
@@ -211,6 +212,8 @@ class EncounterStore {
   }
 
   applyPatchOperationsLocally(operations) {
+    if (!Array.isArray(operations) || operations.length === 0) return;
+    console.log("Applying operations locally:", operations);
     if (!this._encounterData) return;
     const nextEncounter = JSON.parse(JSON.stringify(this._encounterData));
     for (const operation of operations) {
@@ -222,6 +225,8 @@ class EncounterStore {
       }
     }
     this._encounterData = nextEncounter;
+
+    console.log("Applied operations locally:", JSON.stringify(this._encounterData));
   }
 
   /**
@@ -242,6 +247,12 @@ class EncounterStore {
 
     this.applyPatchOperationsLocally(operations);
     this.resetSectionDraft(sectionName);
+  }
+
+  async setEncounterState(newState) {    
+    const operations = [{ op: "replace", path: "state", value: newState }];
+    this.applyPatchOperationsLocally(operations);
+    await axios.patch(`/api/v3/encounters/${this._encounterData?.id}`, operations);
   }
 }
 

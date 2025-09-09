@@ -8,7 +8,7 @@ import { Row, Col } from "react-bootstrap";
 import ActivePill from "../../components/ActivePill";
 import InactivePill from "../../components/InactivePill";
 import CardWithSaveAndCancelButtons from "../../components/CardWithSaveAndCancelButtons";
-import TextInput from "../../components/TextInput";
+import TextInput from "../../components/generalInputs/TextInput";
 import DateIcon from "../../components/DateIcon";
 import DateCardContent from "./DateCardContent";
 import IdentifyIcon from "../../components/IdentifyIcon";
@@ -17,9 +17,10 @@ import LocationIcon from "../../components/LocationIcon";
 import AttributesIcon from "../../components/AttributesIcon";
 import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
-import SelectInput from "../../SelectInput";
+import SelectInput from "../../components/generalInputs/SelectInput";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import PillWithDropdown from "../../components/PillWithDropdown";
+import DateInput from "../../components/generalInputs/DateInput";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
@@ -58,14 +59,15 @@ const Encounter = observer(() => {
         </Col>
         <Col md={6} className="text-end">
           <PillWithDropdown
-            options = {store.siteSettingsData?.encounterState?.map((state) => ({
+            options={store.siteSettingsData?.encounterState?.map((state) => ({
               value: state,
               label: state,
             })) || []}
-            selectedOption={store.encounterData?.state || "unidentified"}
+            selectedOption={store.encounterData?.state || "unidentifiable"}
             onSelect={(value) => {
               console.log("Selected state:", value);
-              store.setFieldValue("metadata", "state", value);
+              // store.setFieldValue("metadata", "state", value);
+              store.setEncounterState(value);
             }}
           />
 
@@ -110,15 +112,16 @@ const Encounter = observer(() => {
                 }}
                 content={
                   <div>
-                    <TextInput
+                    <DateInput
                       label="Encounter Date"
-                      value={store.getFieldValue("date", "encounterDate") ?? ""}
-                      onChange={(v) => store.setFieldValue("date", "encounterDate", v)}
+                      value={store.getFieldValue("date", "date") ?? ""}
+                      onChange={(v) => store.setFieldValue("date", "date", v)}
+                      className="mb-3"
                     />
                     <TextInput
                       label="Verbatim Event Date"
-                      value={store.getFieldValue("date", "verbatimEventDate") ?? ""}
-                      onChange={(v) => store.setFieldValue("date", "verbatimEventDate", v)}
+                      value={store.getFieldValue("date", "verbatimLocality") ?? ""}
+                      onChange={(v) => store.setFieldValue("date", "verbatimLocality", v)}
                     />
                   </div>
                 }
@@ -131,11 +134,10 @@ const Encounter = observer(() => {
                 content={
                   <div>
                     <div>Encounter Date: {store.getFieldValue("date", "date") || "None"}</div>
-                    <div>Verbatim Event Date: {store.getFieldValue("date", "verbatimEventDate") || "None"}</div>
+                    <div>Verbatim Event Date: {store.getFieldValue("date", "verbatimLocality") || "None"}</div>
                   </div>
                 }
-              />
-            )}
+              />            )}
 
             {store.editIdentifyCard ? (
               <CardWithSaveAndCancelButtons
@@ -205,7 +207,10 @@ const Encounter = observer(() => {
                     <div>
                       Imported via:{" "}
                       {store.encounterData?.importTaskId ? (
-                        <a href={`/imports/${store.encounterData.importTaskId}`}>
+                        <a
+                          href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
+                          target="_blank"
+                          rel="noopener noreferrer">
                           {store.encounterData.importTaskId}
                         </a>
                       ) : ""}
@@ -214,10 +219,14 @@ const Encounter = observer(() => {
                       label="Assigned User"
                       value={store.getFieldValue("metadata", "assignedUsername") ?? ""}
                       onChange={(v) => store.setFieldValue("metadata", "assignedUsername", v)}
-                      options={store.siteSettingsData?.siteUsers?.map((user) => ({
-                        value: user.username,
-                        label: user.username,
-                      })) || []}
+                      options={store.siteSettingsData?.users
+                        ?.filter((item) => item.username)
+                        .map((item) => {
+                          return {
+                            value: item.username,
+                            label: item.username,
+                          };
+                        }) || []}
                       className="mb-3"
                     />
                     <SelectInput
@@ -244,10 +253,13 @@ const Encounter = observer(() => {
                     <div>
                       Imported via:{" "}
                       {store.encounterData?.importTaskId ? (
-                        <a href={`/imports/${store.encounterData.importTaskId}`}>
+                        <a
+                          href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
+                          target="_blank"
+                          rel="noopener noreferrer">
                           {store.encounterData.importTaskId}
                         </a>
-                      ) : "None"}
+                      ) : "none"}
                     </div>
                     <div>Assigned User: {store.getFieldValue("metadata", "assignedUsername") || "None"}</div>
                     <div>Sharing Permission: {store.getFieldValue("metadata", "sharingPermission") || "None"}</div>

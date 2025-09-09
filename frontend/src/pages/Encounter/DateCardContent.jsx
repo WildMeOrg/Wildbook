@@ -1,7 +1,7 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import TextInput from "../../components/TextInput";
+import TextInput from "../../components/generalInputs/TextInput";
 
 export default function DateCardContent({ value, onChange }) {
   return (
