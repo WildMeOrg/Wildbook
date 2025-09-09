@@ -863,9 +863,10 @@ public class BulkImport extends ApiBase {
         jt.put("id", task.getId());
         jt.put("creator",
             task.getCreator() ==
-            null ? JSONObject.NULL : task.getCreator().infoJSONObject(myShepherd.getContext()));
+            null ? JSONObject.NULL : task.getCreator().infoJSONObject(myShepherd));
         jt.put("dateCreated", task.getCreated());
         jt.put("sourceName", task.getSourceName());
+        jt.put("matchingLocations", task.getMatchingLocations());
         jt.put("legacy", task.isLegacy());
         jt.put("errors", task.getErrors());
         // "importPercent" was deemed more consistent and useful
@@ -908,7 +909,7 @@ public class BulkImport extends ApiBase {
                     encj.put("numberMediaAssets", enc.numAnnotations());
                     User sub = enc.getSubmitterUser(myShepherd);
                     if (sub != null)
-                        encj.put("submitter", sub.infoJSONObject(myShepherd.getContext()));
+                        encj.put("submitter", sub.infoJSONObject(myShepherd));
                 }
                 encArr.put(encj);
             }

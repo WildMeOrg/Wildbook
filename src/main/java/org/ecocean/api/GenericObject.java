@@ -25,13 +25,13 @@ public class GenericObject extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.GenericObject.doGet");
         myShepherd.beginDBTransaction();
 
         String uri = request.getRequestURI();
         String[] args = uri.substring(8).split("/");
         if (args.length < 1) throw new ServletException("bad path");
-
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
         try {
@@ -39,8 +39,8 @@ public class GenericObject extends ApiBase {
             switch (args[0]) {
             case "media-assets":
                 if (currentUser == null) {
-                        rtn.put("statusCode", 401);
-                        rtn.put("error", "access denied");
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
                 } else {
                     MediaAsset ma = null;
                     URL url = null;
@@ -59,6 +59,7 @@ public class GenericObject extends ApiBase {
                         rtn.put("url", url.toString());
                         rtn.put("width", ma.getWidth());
                         rtn.put("height", ma.getHeight());
+                        rtn.put("rotationInfo", ma.getRotationInfo());
                         JSONArray janns = new JSONArray();
                         for (Annotation ann : ma.getAnnotations()) {
                             JSONObject jann = new JSONObject();
@@ -91,7 +92,6 @@ public class GenericObject extends ApiBase {
             default:
                 throw new ApiException("bad class");
             }
-
         } catch (ApiException apiEx) {
             rtn.put("statusCode", 400);
             rtn.put("errors", apiEx.getErrors());
@@ -99,7 +99,6 @@ public class GenericObject extends ApiBase {
         } finally {
             myShepherd.rollbackAndClose();
         }
-
         response.setStatus(rtn.optInt("statusCode", 500));
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
@@ -110,5 +109,4 @@ public class GenericObject extends ApiBase {
     throws ServletException, IOException {
         throw new ServletException("not yet supported");
     }
-
 }
