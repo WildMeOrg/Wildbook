@@ -86,6 +86,10 @@ class EncounterStore {
   _groupRoleOptions = [];
   _patterningCodeOptions = [];
 
+
+  _selectedImageIndex = 0;
+  _selectedAnnotationIndex = 0;
+
   _sectionDrafts = new Map(Object.keys(SECTION_FIELD_PATHS).map((name) => [name, {}]));
 
   constructor() {
@@ -99,7 +103,6 @@ class EncounterStore {
   }
 
   // Getters and setters for UI state
-
   get overviewActive() { return this._overviewActive; }
   setOverviewActive(isActive) { this._overviewActive = isActive; }
 
@@ -117,6 +120,16 @@ class EncounterStore {
 
   get editAttributesCard() { return this._editAttributesCard; }
   setEditAttributesCard(isEditing) { this._editAttributesCard = isEditing; }
+
+
+
+
+  // image and annotation operations
+  get selectedImageIndex() { return this._selectedImageIndex; }
+  setSelectedImageIndex(index) { this._selectedImageIndex = index; }
+
+  get selectedAnnotationIndex() { return this._selectedAnnotationIndex; }
+  setSelectedAnnotationIndex(index) { this._selectedAnnotationIndex = index; }
 
 
   get taxonomyOptions() { return this._taxonomyOptions; }
