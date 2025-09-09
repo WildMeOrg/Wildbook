@@ -4598,11 +4598,7 @@ public class Encounter extends Base implements java.io.Serializable {
     throws IOException {
         org.json.JSONObject rtn = super.jsonForApiGet(myShepherd);
         rtn.put("researcherComments", getRComments());
-/*
-   sharing permission
-   group role
-   imported via is it bulkimporttaskid? -- in encounters.jsp ... needs own method!!!
- */
+        rtn.put("groupRole", getGroupRole());
         return rtn;
     }
 
