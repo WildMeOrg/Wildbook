@@ -130,6 +130,21 @@
 			]
 		},
 		{
+			"name": "Eswatini",
+			"id": "Eswatini",
+			"locationID": [
+				{
+					"name": "Mbuluzi Game Reserve",
+					"id": "Mbuluzi Game Reserve",
+					"geospatialInfo": {
+						"lat": -26.15647,
+						"long": 31.98235
+					},
+					"locationID":[]
+				}
+			]
+		},
+		{
 			"name": "Kenya",
 			"id": "Kenya",
 			"geospatialInfo":{
@@ -1195,6 +1210,11 @@
 					"id": "Mpongo",
 					"description": "Mpongo",
 					"locationID":[]
+				},
+				{
+					"name": "Mtimkulu Game Reserve",
+					"id": "Mtimkulu Game Reserve",
+					"locationID": []
 				},
 				{
 					"name": "Oceana",
