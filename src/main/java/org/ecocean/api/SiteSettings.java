@@ -123,6 +123,8 @@ public class SiteSettings extends ApiBase {
             Arrays.sort(barr);
             settings.put("behavior", behavs);
 
+            settings.put("behaviorOptions", new JSONObject(myShepherd.getTaxonomicBehaviors()));
+
             settings.put("bulkImportFieldNameSynonyms", BulkValidator.fieldNameSynonymsJson());
 
             List<String> kws = new ArrayList<String>();
