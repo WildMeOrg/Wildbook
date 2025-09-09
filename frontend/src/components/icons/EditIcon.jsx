@@ -1,5 +1,5 @@
 import React from "react";
-import ThemeColorContext from "../ThemeColorProvider";
+import ThemeColorContext from "../../ThemeColorProvider";
 
 export default function EditIcon() {
     const theme = React.useContext(ThemeColorContext);

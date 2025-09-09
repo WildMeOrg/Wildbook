@@ -9,12 +9,12 @@ import ActivePill from "../../components/ActivePill";
 import InactivePill from "../../components/InactivePill";
 import CardWithSaveAndCancelButtons from "../../components/CardWithSaveAndCancelButtons";
 import TextInput from "../../components/generalInputs/TextInput";
-import DateIcon from "../../components/DateIcon";
+import DateIcon from "../../components/icons/DateIcon";
 import DateCardContent from "./DateCardContent";
 import IdentifyIcon from "../../components/IdentifyIcon";
-import MetadataIcon from "../../components/MetaDataIcon";
-import LocationIcon from "../../components/LocationIcon";
-import AttributesIcon from "../../components/AttributesIcon";
+import MetadataIcon from "../../components/icons/MetaDataIcon";
+import LocationIcon from "../../components/icons/LocationIcon";
+import AttributesIcon from "../../components/icons/AttributesIcon";
 import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
 import SelectInput from "../../components/generalInputs/SelectInput";
@@ -137,7 +137,7 @@ const Encounter = observer(() => {
                     <div>Verbatim Event Date: {store.getFieldValue("date", "verbatimLocality") || "None"}</div>
                   </div>
                 }
-              />            )}
+              />)}
 
             {store.editIdentifyCard ? (
               <CardWithSaveAndCancelButtons
@@ -424,7 +424,9 @@ const Encounter = observer(() => {
 
           </Col>
           <Col md={6}>
-            <ImageCard />
+            <ImageCard
+              store={store}              
+            />
           </Col>
         </Row>) : (
         <p>TDB</p>

@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 
 import ThemeColorContext from "../ThemeColorProvider";
-import EditIcon from "./EditIcon";
+import EditIcon from "./icons/EditIcon";
 
 export default function CardWithEditButton({
     onClick,
