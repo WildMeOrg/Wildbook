@@ -267,6 +267,14 @@ import org.json.JSONObject;
         return rtn;
     }
 
+    // this is the results used for a single GET of object via api
+    // default behavior here is just to use opensearchDocument, but each class can override
+    // if desired
+    public JSONObject jsonForApiGet(Shepherd myShepherd)
+    throws IOException {
+        return opensearchDocumentAsJSONObject(myShepherd);
+    }
+
     public JSONObject opensearchDocumentAsJSONObject(Shepherd myShepherd)
     throws IOException {
         StringWriter sw = new StringWriter();

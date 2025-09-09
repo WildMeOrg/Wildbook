@@ -86,8 +86,8 @@ class EncounterApiTest {
                 Map emptyMap = new HashMap();
                 doReturn(emptyMap).when(encSpy).getBiologicalMeasurementsByType();
                 Shepherd myShepherd = new Shepherd("context0");
-                JSONObject json = encSpy.opensearchDocumentAsJSONObject(myShepherd);
-                assertEquals(json.length(), 43);
+                JSONObject json = encSpy.jsonForApiGet(myShepherd);
+                assertEquals(json.length(), 44);
                 assertEquals(json.getString("id"), encId);
             }
         }

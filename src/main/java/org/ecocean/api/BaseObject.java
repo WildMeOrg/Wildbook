@@ -257,7 +257,7 @@ public class BaseObject extends ApiBase {
                 rtn.put("statusCode", 401);
                 rtn.put("error", "access denied");
             } else {
-                rtn = obj.opensearchDocumentAsJSONObject(myShepherd);
+                rtn = obj.jsonForApiGet(myShepherd);
                 rtn.put("statusCode", 200);
                 rtn.put("success", true);
             }

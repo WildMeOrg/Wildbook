@@ -4594,6 +4594,18 @@ public class Encounter extends Base implements java.io.Serializable {
         return map;
     }
 
+    public org.json.JSONObject jsonForApiGet(Shepherd myShepherd)
+    throws IOException {
+        org.json.JSONObject rtn = super.jsonForApiGet(myShepherd);
+        rtn.put("researcherComments", getRComments());
+/*
+   sharing permission
+   group role
+   imported via is it bulkimporttaskid? -- in encounters.jsp ... needs own method!!!
+ */
+        return rtn;
+    }
+
     public static Base createFromApi(org.json.JSONObject payload, List<File> files,
         Shepherd myShepherd)
     throws ApiException {
@@ -4707,6 +4719,7 @@ public class Encounter extends Base implements java.io.Serializable {
             setDecimalLongitude((Double)value);
             break;
         case "alternateID":
+            // note: is same as otherCatalogNumbers
             setAlternateID((String)value);
             break;
         case "behavior":
