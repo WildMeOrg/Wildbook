@@ -740,15 +740,15 @@ public class MediaAsset extends Base implements java.io.Serializable {
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request,
         String bestType) {
         if (store == null) return null;
+        if ((bestType == null) && AccessControl.isAnonymous(request)) bestType = "mid";
         if (bestType == null) bestType = "master";
-        // note, this next line means bestType may get bumped *up* for anon user
-        if (AccessControl.isAnonymous(request)) bestType = "mid";
         if (store instanceof URLAssetStore) bestType = "original"; // this is cuz it is assumed to be a "public" url
-
+/*
+        // why is this here??! killing this 2025-09-10  -jon
         // hack for flukebook
         bestType = "master";
-        // System.out.println("bestSafeAsset: ma #"+getId()+" has bestType "+bestType);
-        // gotta consider that wre are the best!
+ */
+        // gotta consider that we are the best!
         if (this.hasLabel("_" + bestType)) return this;
         // if we are a child asset, we need to find our parent then find best from there!
         MediaAsset top = this; // assume we are the parent-est
