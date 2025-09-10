@@ -175,10 +175,20 @@ class EncounterStore {
       value: data,
       label: data,
     }));
-    this._behaviorOptions = siteSettingsData.behavior?.map((data) => ({
-      value: data,
-      label: data,
-    }));
+    const allOptions = [
+      ...(siteSettingsData.behaviorOptions[this._encounterData?.species] || []).map((data) => ({
+        value: data,
+        label: data,
+      })),
+      ...(siteSettingsData.behaviorOptions[""] || []).map((data) => ({
+        value: data,
+        label: data,
+      })),
+      ...siteSettingsData.behavior?.map((data) => ({
+        value: data,
+        label: data,
+      }))];
+    this._behaviorOptions = [...new Map(allOptions.map(item => [item.value, item])).values()];
     this._groupRoleOptions = siteSettingsData.groupRoles?.map((data) => ({
       value: data,
       label: data,
@@ -262,7 +272,7 @@ class EncounterStore {
     this.resetSectionDraft(sectionName);
   }
 
-  async setEncounterState(newState) {    
+  async setEncounterState(newState) {
     const operations = [{ op: "replace", path: "state", value: newState }];
     this.applyPatchOperationsLocally(operations);
     await axios.patch(`/api/v3/encounters/${this._encounterData?.id}`, operations);
