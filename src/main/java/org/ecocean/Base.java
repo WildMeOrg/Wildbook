@@ -274,9 +274,9 @@ import org.json.JSONObject;
     throws IOException {
         JSONObject rtn = new JSONObject();
 
-        // default/base behavior is to disallow null user; so this whole thing should be overridden
-        // (not use via super) if this behavior is undesirable
-        if (user == null) {
+        // default/base behavior uses canUserView(), which can disallow user=null etc
+        // override jsonForApiGet() if this is undesirable behavior (e.g. Encounter)
+        if (!canUserView(user, myShepherd)) {
             rtn.put("success", false);
             rtn.put("statusCode", 401);
             rtn.put("error", "access denied");
