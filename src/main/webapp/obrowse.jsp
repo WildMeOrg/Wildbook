@@ -66,6 +66,12 @@ java.util.Properties" %>
 		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
 	}
 
+	private String niceJson(JSONArray j) {
+		if (j == null) return format(null, "none");
+		//return "<pre class=\"json\">" + j.toString().replaceAll(",", ",\n") + "</pre>";
+		return "<pre class=\"json\">" + j.toString(3) + "</pre>";
+	}
+
 	private String showEncounter(Encounter enc, HttpServletRequest req) {
 		if (enc == null) return "<b>[none]</b>";
 		String h = "<div class=\"encounter shown\"><a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">Encounter <b>" + enc.getCatalogNumber() + "</b></a>";
@@ -153,10 +159,15 @@ java.util.Properties" %>
 		return h + "</ul></div>";
 	}
 
-        private String showImportTask(ImportTask itask) {
+        private String showImportTask(ImportTask itask, Shepherd myShepherd) {
+            Task iaTask = itask.getIATask();
             String h = "<div><b>" + itask.getId() + "</b> " + itask.toString() + "<ul>";
             h += "<li>" + format("creator", itask.getCreator()) + "</li>";
             h += "<li>" + format("created", itask.getCreated()) + "</li>";
+            h += "<li>" + format("status", itask.getStatus()) + "</li>";
+            h += "<li>" + format("sourceName", itask.getSourceName()) + "</li>";
+            h += "<li>processingProgress: " + itask.getProcessingProgress() + "</li>";
+            if (iaTask != null) h += "<li><a href=\"obrowse.jsp?type=Task&id=" + iaTask.getId() + "\">IATask " + iaTask.getId() + "</a></li>";
             h += "</ul>";
             if (Util.collectionIsEmptyOrNull(itask.getEncounters())) {
                 h += "<p><i>no Encounters</i></p>";
@@ -167,7 +178,10 @@ java.util.Properties" %>
                 }
                 h += "</ul></p>";
             }
+            h += "<p><b>errors:</b> " + niceJson(itask.getErrors()) + "</p>";
             h += "<p><b>parameters:</b> " + niceJson(itask.getParameters()) + "</p>";
+            h += "<p><b>statsMediaAssets:</b> " + niceJson(new JSONObject(itask.statsMediaAssets())) + "</p>";
+            h += "<p><b>statsAnnotations:</b> " + niceJson(new JSONObject(itask.statsAnnotations(myShepherd))) + "</p>";
             if (Util.collectionIsEmptyOrNull(itask.getLog())) {
                 h += "<p><i>empty log</i></p>";
             } else {
@@ -191,8 +205,9 @@ java.util.Properties" %>
             return h;
         }
 
-        private String showTask(Task task) {
+        private String showTask(Task task, Shepherd myShepherd) {
             String h = "<div><b>" + task.getId() + "</b> " + task.toString() + "<ul>";
+            h += "<li> status: <b>" + task.getStatus(myShepherd) + "</b></li>";
             Task parent = task.getParent();
             if (parent == null) {
                 h += "<li><i class=\"format-value format-none\">No parent</i></li>";
@@ -236,6 +251,8 @@ java.util.Properties" %>
         }
         h += "</li>";
         h += "<li>parameters: " + niceJson(task.getParameters()) + "</li>";
+        h += "<li>detectionStatusSummary: " + niceJson(new JSONObject(task.detectionStatusSummary())) + "</li>";
+        h += "<li>identificationStatusSummary: " + niceJson(new JSONObject(task.identificationStatusSummary())) + "</li>";
         h += "<li><a target=\"_new\" href=\"iaResults.jsp?taskId=" + task.getId() + "\">iaResults</a></li>";
         h += "<li><a target=\"_new\" href=\"ia?v2&includeChildren&taskId=" + task.getId() + "\">JSON task tree</a></li>";
         h += "</ul>";
@@ -657,7 +674,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("Task")) {
 	try {
 		Task task = ((Task) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Task.class, id), true)));
-		out.println(showTask(task));
+		out.println(showTask(task, myShepherd));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		needForm = true;
@@ -666,7 +683,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("ImportTask")) {
 	try {
 		ImportTask task = ((ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, id), true)));
-		out.println(showImportTask(task));
+		out.println(showImportTask(task, myShepherd));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		needForm = true;
