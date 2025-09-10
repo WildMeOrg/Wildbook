@@ -21,6 +21,7 @@ import SelectInput from "../../components/generalInputs/SelectInput";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import PillWithDropdown from "../../components/PillWithDropdown";
 import DateInput from "../../components/generalInputs/DateInput";
+import FreeTextAndSelectInput from "../../components/generalInputs/FreeTextAndSelectInput";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
@@ -367,7 +368,7 @@ const Encounter = observer(() => {
                       value={store.getFieldValue("attributes", "distinguishingScar") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "distinguishingScar", v)}
                     />
-                    <SelectInput
+                    <FreeTextAndSelectInput
                       label="Behavior"
                       value={store.getFieldValue("attributes", "behavior") ?? ""}
                       onChange={(v) => store.setFieldValue("attributes", "behavior", v)}
@@ -425,8 +426,9 @@ const Encounter = observer(() => {
           </Col>
           <Col md={6}>
             <ImageCard
-              store={store}              
+              store={store}
             />
+
           </Col>
         </Row>) : (
         <p>TDB</p>
