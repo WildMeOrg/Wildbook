@@ -90,8 +90,7 @@ public class SiteSettings extends ApiBase {
                 CommonConfiguration.getIndexedPropertyValues("lifeStage", context));
             settings.put("livingStatus",
                 CommonConfiguration.getIndexedPropertyValues("livingStatus", context));
-            settings.put("country",
-                CommonConfiguration.getIndexedPropertyValues("country", context));
+            settings.put("country", Util.getCountries());
             settings.put("annotationViewpoint", Annotation.getAllValidViewpointsSorted());
             settings.put("patterningCode",
                 CommonConfiguration.getIndexedPropertyValues("patterningCode", context));
