@@ -270,9 +270,22 @@ import org.json.JSONObject;
     // this is the results used for a single GET of object via api
     // default behavior here is just to use opensearchDocument, but each class can override
     // if desired
-    public JSONObject jsonForApiGet(Shepherd myShepherd)
+    public JSONObject jsonForApiGet(Shepherd myShepherd, User user)
     throws IOException {
-        return opensearchDocumentAsJSONObject(myShepherd);
+        JSONObject rtn = new JSONObject();
+
+        // default/base behavior is to disallow null user; so this whole thing should be overridden
+        // (not use via super) if this behavior is undesirable
+        if (user == null) {
+            rtn.put("success", false);
+            rtn.put("statusCode", 401);
+            rtn.put("error", "access denied");
+            return rtn;
+        }
+        rtn = opensearchDocumentAsJSONObject(myShepherd);
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        return rtn;
     }
 
     public JSONObject opensearchDocumentAsJSONObject(Shepherd myShepherd)

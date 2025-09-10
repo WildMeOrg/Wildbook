@@ -63,7 +63,8 @@ public class BaseObject extends ApiBase {
         } else if (requestMethod.equals("PATCH")) {
             payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
         }
-        if (!ReCAPTCHA.sessionIsHuman(request)) {
+        // GET is allowed through without user/captcha
+        if (!requestMethod.equals("GET") && !ReCAPTCHA.sessionIsHuman(request)) {
             response.setStatus(401);
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write("{\"success\": false}");
@@ -253,13 +254,16 @@ public class BaseObject extends ApiBase {
             if (obj == null) {
                 rtn.put("statusCode", 404);
                 rtn.put("error", "not found");
+/*
+    we now let jsonForApiGet() handle this, as some objects non-logged-in users can see
+    part of. therefore, jsonForApiGet() must set statusCode/error as needed.
+
             } else if (!obj.canUserView(currentUser, myShepherd)) {
                 rtn.put("statusCode", 401);
                 rtn.put("error", "access denied");
+ */
             } else {
-                rtn = obj.jsonForApiGet(myShepherd);
-                rtn.put("statusCode", 200);
-                rtn.put("success", true);
+                rtn = obj.jsonForApiGet(myShepherd, currentUser);
             }
         } catch (Exception ex) {
             ex.printStackTrace();

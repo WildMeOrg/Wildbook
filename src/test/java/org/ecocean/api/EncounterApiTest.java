@@ -86,7 +86,7 @@ class EncounterApiTest {
                 Map emptyMap = new HashMap();
                 doReturn(emptyMap).when(encSpy).getBiologicalMeasurementsByType();
                 Shepherd myShepherd = new Shepherd("context0");
-                JSONObject json = encSpy.jsonForApiGet(myShepherd);
+                JSONObject json = encSpy.jsonForApiGet(myShepherd, null);
                 assertEquals(json.length(), 44);
                 assertEquals(json.getString("id"), encId);
             }

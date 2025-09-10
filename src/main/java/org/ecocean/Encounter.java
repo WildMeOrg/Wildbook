@@ -4131,7 +4131,7 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField("mimeTypeMinor", ma.getMimeTypeMinor());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
-                java.net.URL url = ma.safeURL(myShepherd);
+                java.net.URL url = ma.safeURL(myShepherd, null, "master");
                 if (url != null) jgen.writeStringField("url", url.toString());
             } catch (Exception ex) {}
             // we (likely) dont need annotations to search on, but they are needed for
@@ -4594,11 +4594,56 @@ public class Encounter extends Base implements java.io.Serializable {
         return map;
     }
 
-    public org.json.JSONObject jsonForApiGet(Shepherd myShepherd)
+    // for encounters, we allow null user to see *some* things
+    public org.json.JSONObject jsonForApiGet(Shepherd myShepherd, User user)
     throws IOException {
-        org.json.JSONObject rtn = super.jsonForApiGet(myShepherd);
-        rtn.put("researcherComments", getRComments());
-        rtn.put("groupRole", getGroupRole());
+        org.json.JSONObject rtn = opensearchDocumentAsJSONObject(myShepherd);
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        boolean isPublic = isPubliclyReadable();
+        if ((user == null) && !isPublic) {
+            String[] blocked = {
+                "importTaskSourceName", "locationId", "locationName", "country", "verbatimLocality"
+            };
+            for (String field : blocked) {
+                rtn.remove(field);
+            }
+        } else {
+            rtn.put("researcherComments", getRComments());
+            rtn.put("groupRole", getGroupRole());
+
+            User submitter = getSubmitterUser(myShepherd);
+            if (submitter != null)
+                rtn.put("submitterInfo", submitter.infoJSONObject(myShepherd, false));
+        }
+        // these are blocked for non-logged-in *even if it is public*
+        if (user == null) {
+            String[] blocked = {
+                "microsatelliteMarkers", "locationGeoPoint", "occurrenceLocationGeoPoint",
+                    "mediaAssetKeywords", "mediaAssetLabeledKeywords", "biologicalMeasurements",
+                    "importTaskCreatorId", "annotationIAClasses", "annotationViewpoints",
+                    "researcherComments", "informOthers", "photographers", "submitters",
+                    "assignedUsername"
+            };
+            for (String field : blocked) {
+                rtn.remove(field);
+            }
+            // we redo mediaAssets, with no annots and mid size
+            org.json.JSONArray mas = new org.json.JSONArray();
+            for (MediaAsset ma : getMedia()) {
+                org.json.JSONObject maj = new org.json.JSONObject();
+                maj.put("uuid", ma.getUUID());
+                maj.put("mimeTypeMajor", ma.getMimeTypeMajor());
+                maj.put("mimeTypeMinor", ma.getMimeTypeMinor());
+                try {
+                    // historic data might throw IllegalArgumentException: Path not under given root
+                    java.net.URL url = ma.safeURL(myShepherd, null, "mid");
+                    if (url != null) maj.put("url", url.toString());
+                } catch (Exception ex) {}
+                mas.put(maj);
+            }
+            rtn.put("mediaAssets", mas);
+        }
         return rtn;
     }
 
