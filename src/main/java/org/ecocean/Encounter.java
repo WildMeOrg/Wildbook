@@ -4611,6 +4611,7 @@ public class Encounter extends Base implements java.io.Serializable {
         } else {
             rtn.put("researcherComments", getRComments());
             rtn.put("groupRole", getGroupRole());
+            rtn.put("identificationRemarks", getIdentificationRemarks());
 
             User submitter = getSubmitterUser(myShepherd);
             if (submitter != null)
@@ -4759,7 +4760,7 @@ public class Encounter extends Base implements java.io.Serializable {
         case "decimalLongitude":
             setDecimalLongitude((Double)value);
             break;
-        case "alternateID":
+        case "alternateId":
             // note: is same as otherCatalogNumbers
             setAlternateID((String)value);
             break;
@@ -4821,7 +4822,7 @@ public class Encounter extends Base implements java.io.Serializable {
         case "livingStatus":
             setLivingStatus((String)value);
             break;
-        case "locationID":
+        case "locationId":
             setLocationID((String)value);
             break;
         case "sex":
@@ -4829,6 +4830,9 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "state":
             setState((String)value);
+            break;
+        case "submitterId":
+            setSubmitterID((String)value);
             break;
         case "submitterName":
             setSubmitterName((String)value);
@@ -4859,6 +4863,9 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "verbatimLocality":
             setVerbatimLocality((String)value);
+            break;
+        case "verbatimEventDate":
+            setVerbatimEventDate((String)value);
             break;
         default:
             throw new ApiException("unknown fieldName: " + fieldName,
