@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Container,
   Row,
@@ -15,15 +15,51 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import InfoAccordion from "../../components/InfoAccordion";
 import SimpleDataTable from "../../components/SimpleDataTable";
 import { Modal } from "react-bootstrap";
+import { Suspense, lazy } from "react";
+import useGetSiteSettings from "../../models/useGetSiteSettings";
+import axios from "axios";
+import MainButton from "../../components/MainButton";
+import convertToTreeData from "../../utils/converToTreeData";
+import { useLocalObservable, observer } from "mobx-react-lite";
+import { BulkImportTaskStore } from "./BulkImportTaskStore";
 
-const BulkImportTask = () => {
+const TreeSelect = lazy(() => import("antd/es/tree-select"));
+
+const BulkImportTask = observer(() => {
   const intl = useIntl();
   const theme = useContext(ThemeColorContext);
   const [showError, setShowError] = useState(false);
-
   const taskId = new URLSearchParams(window.location.search).get("id");
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
-  React.useEffect(() => {
+  const { data: siteData } = useGetSiteSettings();
+  const [userRoles, setUserRoles] = useState(null);
+  const store = useLocalObservable(() => new BulkImportTaskStore());
+
+  const previousLocationID = task?.matchingLocations || [];
+
+  const fetchData = async () => {
+    const response = await axios.get("/api/v3/user");
+    setUserRoles(response.data.roles || []);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!siteData?.locationData?.locationID) return;
+    const options = convertToTreeData(siteData?.locationData?.locationID) || [];
+    store.setOptions(options);
+  }, [siteData, store]);
+
+  useEffect(() => {
+    if (!store.locationOptions.length) return;
+    if (!previousLocationID?.length) return;
+    if (store.locationID.length) return;
+    store.initFromPrevious(previousLocationID);
+  }, [store, store.locationOptions.length, previousLocationID?.join?.(",")]);
+
+  useEffect(() => {
     if (error?.message || task?.status === "failed") {
       setShowError(true);
     }
@@ -228,9 +264,20 @@ const BulkImportTask = () => {
               title: intl.formatMessage({
                 id: "IMPORT",
               }),
-              progress: task?.importPercent || 0,
+              progress:
+                task?.importPercent ||
+                task?.status === "complete" ||
+                task?.iaSummary?.detectionStatus === "complete" ||
+                task?.status === "processing-pipeline"
+                  ? 1
+                  : 0,
               status: (() => {
-                if (task?.importPercent === 1) {
+                if (
+                  task?.importPercent === 1 ||
+                  task?.status === "complete" ||
+                  task?.iaSummary?.detectionStatus === "complete" ||
+                  task?.status === "processing-pipeline"
+                ) {
                   return "complete";
                 } else if (task?.importPercent) {
                   return "in_progress";
@@ -265,12 +312,12 @@ const BulkImportTask = () => {
       </Row>
 
       <section>
-        <h5 className="fw-semibold mb-2">
+        <h6 className="fw-semibold mb-2">
           <FormattedMessage
             id="BULK_IMPORT_DATA_UPLOADED"
             defaultMessage="Data Uploaded"
           />
-        </h5>
+        </h6>
 
         <div
           style={{
@@ -344,11 +391,138 @@ const BulkImportTask = () => {
         <SimpleDataTable columns={columns} data={tableData} />
       </section>
 
+      <Row>
+        <Col>
+          <h6 className="fw-semibold mb-2">
+            <FormattedMessage id="LOCATION_ID" defaultMessage="Location ID" />
+          </h6>
+          <div className="mb-3">
+            <p>
+              <FormattedMessage id="BULK_IMPORT_LOCATION_ID_DESC" />
+            </p>
+          </div>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col>
+          <div
+            style={{
+              width: "300px",
+              maxWidth: "100%",
+            }}
+          >
+            <Suspense fallback={<div>Loading location picker...</div>}>
+              <TreeSelect
+                id="location-tree-select"
+                treeData={store.locationOptions}
+                value={store.locationID}
+                treeCheckable
+                treeCheckStrictly
+                showCheckedStrategy="SHOW_ALL"
+                treeNodeFilterProp="value"
+                treeLine
+                showSearch
+                size="large"
+                allowClear
+                style={{ width: "100%" }}
+                placeholder="Select locations"
+                dropdownStyle={{ maxHeight: "500px", zIndex: 9999 }}
+                onChange={(vals, labels, extra) =>
+                  store.handleStrictChange(vals, labels, extra)
+                }
+              />
+            </Suspense>
+          </div>
+        </Col>
+      </Row>
+
       <Row className="g-2 mb-4">
         <Col xs="auto">
-          <Button variant="outline-danger" onClick={deleteTask}>
+          <MainButton
+            id="re-id-button"
+            disabled={
+              (!userRoles?.includes("admin") &&
+                !userRoles?.includes("researcher")) ||
+              !store.locationIDString ||
+              task?.status !== "complete" ||
+              task?.iaSummary?.detectionStatus !== "complete"
+            }
+            onClick={() => {
+              setShowError(false);
+              axios
+                .get(
+                  `/appadmin/resendBulkImportID.jsp?importIdTask=${taskId}${store.locationIDString}`,
+                )
+                .then((response) => {
+                  if (response.status === 200) {
+                    alert(
+                      intl.formatMessage({
+                        id: "BULK_IMPORT_RE_ID_SUCCESS",
+                        defaultMessage:
+                          "Re-identification task started successfully.",
+                      }),
+                    );
+                    window.location.reload();
+                  } else {
+                    throw new Error(
+                      intl.formatMessage({
+                        id: "BULK_IMPORT_RE_ID_ERROR",
+                        defaultMessage:
+                          "Failed to start re-identification task.",
+                      }),
+                    );
+                  }
+                })
+                .catch((error) => {
+                  console.error(
+                    "Error starting re-identification task:",
+                    error,
+                  );
+                  alert(
+                    intl.formatMessage({
+                      id: "BULK_IMPORT_RE_ID_ERROR",
+                      defaultMessage: "Failed to start re-identification task.",
+                    }),
+                  );
+                });
+            }}
+            backgroundColor={theme.wildMeColors.cyan700}
+            color={theme.defaultColors.white}
+            noArrow={true}
+            style={{
+              width: "auto",
+              height: "40px",
+              fontSize: "1rem",
+              marginLeft: 0,
+            }}
+          >
+            <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
+          </MainButton>
+        </Col>
+      </Row>
+      <Row>
+        <h5 className="text-danger">
+          <FormattedMessage id="DANGER_ZONE" />
+        </h5>
+        <Col xs="auto">
+          <MainButton
+            onClick={deleteTask}
+            shadowColor={theme.statusColors.red500}
+            color={theme.statusColors.red500}
+            noArrow={true}
+            style={{
+              width: "auto",
+              height: "40px",
+              fontSize: "1rem",
+              border: `1px solid ${theme.statusColors.red500}`,
+              marginLeft: 0,
+              marginTop: "1rem",
+              marginBottom: "2rem",
+            }}
+          >
             <FormattedMessage id="BULK_IMPORT_DELETE_TASK" />
-          </Button>
+          </MainButton>
         </Col>
       </Row>
       <Modal show={showError} onHide={() => setShowError(false)} centered>
@@ -386,6 +560,6 @@ const BulkImportTask = () => {
       </Modal>
     </Container>
   );
-};
+});
 
 export default BulkImportTask;

@@ -522,5 +522,8 @@
   "BULK_IMPORT_TASK_DELETED": "Attività di importazione eliminata con successo.",
   "BULK_IMPORT_TASK_DELETE_ERROR": "Impossibile eliminare l'attività di importazione: {error}",
   "BULK_IMPORT_TASK_ERROR_DEFAULT": "Impossibile elaborare la tua attività a causa di un errore.",
-  "FILTER_BULK_IMPORT_FILE_NAMES": "Nomi dei file di importazione in blocco"
+  "FILTER_BULK_IMPORT_FILE_NAMES": "Nomi dei file di importazione in blocco",
+  "BULK_IMPORT_SEND_TO_IDENTIFICATION": "Invia per l’identificazione",
+  "BULK_IMPORT_LOCATION_ID_DESC": "Più opzioni selezioni, più tempo richiederà l’identificazione. Sii il più specifico possibile.",
+  "DANGER_ZONE": "Zona pericolosa"
 }
