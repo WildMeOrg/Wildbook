@@ -746,6 +746,8 @@ public class Encounter extends Base implements java.io.Serializable {
         return occurrenceRemarks;
     }
 
+    // FIXME why is setComments() affecting occurrenceRemarks, and yet
+    // addComments() affecting researchComments  !!!!!????
     // @param newComments Occurrence remarks to set
     @Override public void setComments(String newComments) {
         occurrenceRemarks = newComments;
@@ -4849,6 +4851,7 @@ public class Encounter extends Base implements java.io.Serializable {
         case "identificationRemarks":
             setIdentificationRemarks((String)value);
             break;
+        case "occurrenceRemarks":
         case "sightingRemarks":
             setOccurrenceRemarks((String)value);
             break;
@@ -4858,6 +4861,9 @@ public class Encounter extends Base implements java.io.Serializable {
         case "patterningCode":
             setPatterningCode((String)value);
             break;
+        // these we really only want to append to (i think??)
+        // so this should only happen when op=add/replace and
+        // value is non-null
         case "researcherComments":
             if (value != null) addComments((String)value);
             break;
