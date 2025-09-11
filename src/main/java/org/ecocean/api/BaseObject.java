@@ -310,7 +310,20 @@ public class BaseObject extends ApiBase {
         } catch (ApiException bve) {
             // these are the typical 400 error that comes with invalid op/path/value etc
             rtn.put("statusCode", 400);
-            rtn.put("errors", bve.getErrors());
+            JSONArray errors = bve.getErrors();
+            // the price we pay for recycling these validations :(
+            // we have to truncate the fieldname from bulk-flavor
+            if (bve instanceof BulkValidatorException) {
+                for (int i = 0; i < errors.length(); i++) {
+                    try {
+                        String fname = errors.getJSONObject(i).getString("fieldName");
+                        int dot = fname.indexOf(".");
+                        if (dot > -1)
+                            errors.getJSONObject(i).put("fieldName", fname.substring(dot + 1));
+                    } catch (org.json.JSONException jex) {}
+                }
+            }
+            rtn.put("errors", errors);
         } catch (Exception ex) {
             ex.printStackTrace();
             rtn.put("error", ex.toString());

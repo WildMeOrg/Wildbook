@@ -4831,7 +4831,7 @@ public class Encounter extends Base implements java.io.Serializable {
         case "state":
             setState((String)value);
             break;
-        case "submitterId":
+        case "submitterID":
             setSubmitterID((String)value);
             break;
         case "submitterName":

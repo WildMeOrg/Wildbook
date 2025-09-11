@@ -23,7 +23,7 @@ public class EncounterPatchValidator {
 
     // "remove" op not allowed on these
     public static final Set<String> PATHS_REQUIRED = new HashSet<>(Arrays.asList("genus",
-        "specificEpithet", "year"));
+        "specificEpithet", "year", "submitterID"));
 
     public static JSONObject applyPatch(Encounter enc, JSONObject patch, Shepherd myShepherd)
     throws ApiException {
