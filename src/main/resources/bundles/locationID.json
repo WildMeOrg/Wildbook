@@ -142,6 +142,21 @@
 					"locationID": []
 				},
 				{
+					"name": "Solingen",
+					"id": "Solingen",
+					"locationID": [
+						{
+							"name": "Steinbach",
+							"id": "Steinbach",
+							"geospatialInfo": {
+								"lat": 51.220200536404946,
+								"long": 7.08888989827654
+							},
+							"locationID": []
+						}
+					]
+				},
+				{
 					"name": "Steinbachholz",
 					"id": "Steinbachholz",
 					"locationID": []
