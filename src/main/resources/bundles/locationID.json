@@ -134,6 +134,11 @@
 			"id": "Eswatini",
 			"locationID": [
 				{
+					"name": "Hlane Royal National Park",
+					"id": "Hlane Royal National Park",
+					"locationID": []
+				},
+				{
 					"name": "Mbuluzi Game Reserve",
 					"id": "Mbuluzi Game Reserve",
 					"geospatialInfo": {
