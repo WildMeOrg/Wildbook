@@ -435,4 +435,14 @@ import org.json.JSONObject;
         return res;
     }
  */
+
+    // basically mean id-equivalent, override if undesirable
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Base)) return false;
+        Base two = (Base)u2;
+        if ((this.getId() == null) || (two == null) || (two.getId() == null))
+            return false;
+        return this.getId().equals(two.getId());
+    }
 }
