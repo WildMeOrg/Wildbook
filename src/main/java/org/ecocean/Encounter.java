@@ -3144,7 +3144,10 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public boolean canUserAccess(User user, String context) {
-        if (canUserEdit(user)) return true;
+        if (user == null) return false;
+        // see comment below on canUserEdit(); substituting isUserOwner() now
+        // if (canUserEdit(user)) return true;
+        if (isUserOwner(user)) return true;
         String username = user.getUsername();
         if (username == null) return false;
         return Collaboration.canUserAccessEncounter(this, context, username);
@@ -3159,13 +3162,21 @@ public class Encounter extends Base implements java.io.Serializable {
                 myShepherd.getContext()));
     }
 
+    // as part of 10.9, canUserEdit() was modified. it was not
+/*
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
     }
+ */
 
-    // this is just to override the signature on Base.java
+    // rewrite for 10.9 tries to actually do the right thing and (maybe) make sense
     @Override public boolean canUserEdit(User user, Shepherd myShepherd) {
-        return canUserEdit(user);
+        if (user == null) return false;
+        if (isUserOwner(user)) return true;
+        if (user.isAdmin(myShepherd)) return true;
+        if (Collaboration.canEditEncounter(this, user, myShepherd.getContext())) return true;
+        // TODO there seems to be some legacy stuff about roles based on location. is this real?
+        return false;
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
