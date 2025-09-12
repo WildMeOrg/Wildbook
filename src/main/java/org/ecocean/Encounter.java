@@ -4873,11 +4873,53 @@ public class Encounter extends Base implements java.io.Serializable {
         case "verbatimEventDate":
             setVerbatimEventDate((String)value);
             break;
+        // we should get value as a MarkedIndividual here (or null)
+        case "individualId":
+            if ("remove".equals(op) || (value == null)) {
+                MarkedIndividual current = removeIndividual();
+                if (current != null) {
+                    System.out.println("enc.applyPatchOp() removed " + this + " from " + current);
+                }
+            } else {
+                // value should be an individual (new or existing)
+                MarkedIndividual indiv = (MarkedIndividual)value;
+                MarkedIndividual current = getIndividual();
+                if (indiv.equals(current)) {
+                    System.out.println(
+                        "enc.applyPatchOp() ignoring adding existing individual to " + this);
+                    break;
+                }
+                current = removeIndividual();
+                if (current != null) {
+                    setIndividual(null);
+                    System.out.println("enc.applyPatchOp() removed (prior to re-setting) " + this +
+                        " from " + current);
+                }
+                indiv.addEncounter(this);
+                setIndividual(indiv);
+                // this will only set indiv taxonomy if NOT set
+                // so for new indiv and existing with no taxonomy
+                if (indiv.getTaxonomyString() == null)
+                    indiv.setTaxonomyString(this.getTaxonomyString());
+                // indiv.version will be updated by above calls
+                System.out.println("enc.applyPatchOp() added " + this + " to " + indiv);
+            }
+            break;
         default:
             throw new ApiException("unknown fieldName: " + fieldName,
                     ApiException.ERROR_RETURN_CODE_INVALID);
         }
         return value;
+    }
+
+    public MarkedIndividual removeIndividual() {
+        MarkedIndividual current = getIndividual();
+
+        if (current == null) return null;
+        current.removeEncounter(this);
+        setIndividual(null);
+        // FIXME if individual is empty -- kill it? but how: no shepherd
+        return current;
     }
 
     public static Object validateFieldValue(String fieldName, org.json.JSONObject data)

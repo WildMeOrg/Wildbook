@@ -4,6 +4,7 @@ import org.ecocean.api.ApiException;
 import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.Encounter;
+import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
@@ -34,8 +35,11 @@ public class EncounterPatchValidator {
             throw new ApiException("invalid op: " + op, ERROR_INVALID_OP);
         JSONObject rtn = new JSONObject();
         rtn.put("_patch", patch);
-        String path = patch.optString("path");
+        String path = patch.optString("path", null);
+        if (path == null)
+            throw new ApiException("empty path", ERROR_INVALID_PATH);
         Object value = patch.opt("value");
+        if (patch.isNull("value")) value = null;
         // System.out.println(">>>>>>>>>>>>> PATCH obj=" + patch.toString(8));
         // add and replace are interchangeable for some things, so lets reuse
         // existing code for these when we can
@@ -52,6 +56,10 @@ public class EncounterPatchValidator {
                 BulkValidator bv = new BulkValidator(bulkFieldName, value, myShepherd);
                 System.out.println("**** BV!! **** " + bv);
                 value = bv.getValue();
+            }
+            if (path.equals("individualId") && (value != null)) {
+                value = getOrCreateMarkedIndividual(value.toString(), myShepherd);
+                System.out.println("applyPatch() path=individualId using " + value);
             }
             // if we get through to here, value should be cleared to do actual patch
             // but this will throw exception if bad path
@@ -100,5 +108,17 @@ public class EncounterPatchValidator {
 
     public static boolean isValidOp(String op) {
         return VALID_OPS.contains(op);
+    }
+
+    private static MarkedIndividual getOrCreateMarkedIndividual(String id, Shepherd myShepherd) {
+        MarkedIndividual indiv = myShepherd.getMarkedIndividual(id);
+
+        if (indiv != null) return indiv;
+        indiv = new MarkedIndividual();
+        indiv.setId(id);
+        indiv.addName(id);
+        // other properties like taxonomy set during actual patchOp
+        myShepherd.getPM().makePersistent(indiv);
+        return indiv;
     }
 }
