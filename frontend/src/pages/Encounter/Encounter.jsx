@@ -20,6 +20,8 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import PillWithDropdown from "../../components/PillWithDropdown";
 import DateInput from "../../components/generalInputs/DateInput";
 import FreeTextAndSelectInput from "../../components/generalInputs/FreeTextAndSelectInput";
+import CoordinatesInput from "../../components/generalInputs/CoordinatesInput";
+import { MapDisplay } from "./MapDisplay";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
@@ -409,16 +411,7 @@ const Encounter = observer(() => {
                       }
                       className="mb-3"
                     />
-                    <TextInput
-                      label="Latitude"
-                      value={
-                        store.getFieldValue("location", "locationGeoPoint") ??
-                        ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("location", "locationGeoPoint", v)
-                      }
-                    />
+                    <CoordinatesInput store={store} />
                   </div>
                 }
               />
@@ -443,9 +436,7 @@ const Encounter = observer(() => {
                       Country:{" "}
                       {store.getFieldValue("location", "country") || "None"}
                     </div>
-                    {/* <div>
-                      Coordinates: {store.getFieldValue("location", "locationGeoPoint") || "none"}
-                    </div> */}
+                    <MapDisplay store={store} />
                   </div>
                 }
               />

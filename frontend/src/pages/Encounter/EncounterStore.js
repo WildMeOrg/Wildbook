@@ -23,6 +23,8 @@ const SECTION_FIELD_PATHS = {
     "locationName",
     "country",
     "locationGeoPoint",
+    "decimalLatitude",
+    "decimalLongitude",
   ],
   attributes: [
     "taxonomy",
@@ -94,6 +96,9 @@ class EncounterStore {
   _editLocationCard = false;
   _editAttributesCard = false;
 
+  _lat = null;
+  _lon = null;
+
   _taxonomyOptions = [];
   _livingStatusOptions = [];
   _sexOptions = [];
@@ -119,6 +124,8 @@ class EncounterStore {
   }
   setEncounterData(newEncounterData) {
     this._encounterData = newEncounterData;
+    this._lat = newEncounterData?.locationGeoPoint?.lat || null;
+    this._lon = newEncounterData?.locationGeoPoint?.lon || null;
     this.resetAllDrafts();
   }
 
@@ -178,6 +185,20 @@ class EncounterStore {
   }
   setSelectedAnnotationIndex(index) {
     this._selectedAnnotationIndex = index;
+  }
+
+  get lat() {
+    return this._lat;
+  }
+  setLat(newLat) {
+    this._lat = newLat;
+  }
+
+  get lon() {
+    return this._lon;
+  }
+  setLon(newLon) {
+    this._lon = newLon;
   }
 
   get taxonomyOptions() {
