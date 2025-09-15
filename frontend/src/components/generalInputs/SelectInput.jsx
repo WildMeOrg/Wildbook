@@ -1,4 +1,3 @@
-
 import React from "react";
 import Form from "react-bootstrap/Form";
 
@@ -33,8 +32,12 @@ export default function SelectInput({
             );
           }
           return (
-            <option key={String(opt.value)} value={opt.value} disabled={opt.disabled}>
-              {opt.label}
+            <option
+              key={String(opt.value)}
+              value={opt.value}
+              disabled={opt.disabled}
+            >
+              {opt.label || opt.title || opt.value}
             </option>
           );
         })}
