@@ -1,0 +1,17 @@
+.progress-stepper-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+  }
+  
+  .progress-line {
+    position: absolute;
+    top: 24px; 
+    left: 24px; 
+    right: 24px; 
+    height: 2px;
+    background-color: #ccc;
+    z-index: 0;
+  }
+  

@@ -52,7 +52,7 @@ export default function Report() {
           <BrutalismButton link={"/submit.jsp"}>
             <FormattedMessage id="REPORT_AN_ENCOUNTER" />
           </BrutalismButton>
-          <BrutalismButton link={"/import/instructions.jsp"}>
+          <BrutalismButton link={`${process.env.PUBLIC_URL}/bulk-import`}>
             <FormattedMessage id="BULK_REPORT" />
           </BrutalismButton>
         </div>
