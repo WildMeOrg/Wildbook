@@ -352,30 +352,33 @@ class EncounterStore {
    * @param {string} encounterId
    */
 
-  // 把 "YYYY-MM-DD" 或 "YYYY-MM-DDTHH:mm"（可带/不带 Z 或偏移）切成年月日时分
   parseYMDHM(val) {
     if (val == null) return null;
 
     if (val instanceof Date && !isNaN(val)) {
       return {
-        year: val.getFullYear(),
-        month: val.getMonth() + 1,
-        day: val.getDate(),
-        hour: val.getHours(),
-        minutes: val.getMinutes(),
+        year: String(val.getFullYear()).padStart(4, "0"),
+        month: String(val.getMonth() + 1).padStart(2, "0"),
+        day: String(val.getDate()).padStart(2, "0"),
+        hour: String(val.getHours()).padStart(2, "0"),
+        minutes: String(val.getMinutes()).padStart(2, "0"),
       };
     }
 
     const s = String(val).trim();
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+
+    const re =
+      /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?(?:[T\s](\d{2}):(\d{2}))?(?:Z|[+-]\d{2}:\d{2})?$/;
+    const m = re.exec(s);
     if (!m) return null;
+
     const [, Y, M, D, H, Min] = m;
     return {
       year: Y,
-      month: M,
-      day: D,
-      hour: H,
-      minutes: Min,
+      month: M ?? "",
+      day: D ?? "",
+      hour: H ?? "",
+      minutes: Min ?? "",
     };
   }
 
@@ -388,16 +391,27 @@ class EncounterStore {
         const p = this.parseYMDHM(op.value);
         if (!p) continue;
         out.push({ op: "replace", path: "year", value: String(p.year) });
-        out.push({ op: "replace", path: "month", value: String(p.month) });
-        out.push({ op: "replace", path: "day", value: String(p.day) });
-        if (p.hasTime) {
-          out.push({ op: "replace", path: "hour", value: String(p.hour) });
-          out.push({
-            op: "replace",
-            path: "minutes",
-            value: String(p.minutes),
-          });
-        }
+        out.push({
+          op: "replace",
+          path: "month",
+          value: p.month != null ? String(p.month) : null,
+        });
+        out.push({
+          op: "replace",
+          path: "day",
+          value: p.day != null ? String(p.day) : null,
+        });
+        out.push({
+          op: "replace",
+          path: "hour",
+          value: p.hour != null ? String(p.hour) : null,
+        });
+        out.push({
+          op: "replace",
+          path: "minutes",
+          value: p.minutes != null ? String(p.minutes) : null,
+        });
+
         continue;
       }
 
@@ -438,6 +452,10 @@ class EncounterStore {
     }
 
     const expanded = this.expandOperations(operations);
+    console.log(
+      "NON-STRING values1:",
+      expanded.filter((op) => "value" in op && typeof op.value !== "string"),
+    );
     console.log(`Section "${sectionName}" has operations:`, operations);
     console.log(`Saving section "${sectionName}" with operations:`, expanded);
 

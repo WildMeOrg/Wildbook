@@ -11,12 +11,21 @@ export default function DateInput({ value = "", onChange }) {
       value={m}
       dateFormat="YYYY-MM-DD"
       timeFormat="HH:mm"
+      closeOnSelect={true}
       onChange={(dt) => {
-        if (!moment.isMoment(dt) || !dt.isValid()) return onChange?.("");
-        onChange?.(dt.clone().format("YYYY-MM-DDTHH:mm[Z]"));
+        const s = moment.isMoment(dt)
+          ? dt.format("YYYY-MM-DD[T]HH:mm[Z]")
+          : String(dt);
+        onChange?.(s);
       }}
       renderInput={(props, open) => (
-        <input {...props} value={value || ""} onFocus={open} />
+        <input
+          {...props}
+          placeholder="YYYY / YYYY-MM / YYYY-MM-DD / YYYY-MM-DD HH:mm"
+          value={value || ""}
+          onFocus={open}
+          onChange={(e) => onChange?.(e.target.value)}
+        />
       )}
     />
   );
