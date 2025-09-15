@@ -1,17 +1,24 @@
 package org.ecocean.servlet.importer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
+import org.ecocean.Project;
+import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
@@ -25,16 +32,24 @@ public class ImportTask implements java.io.Serializable {
     private List<Encounter> encounters;
     private String parameters;
     private List<String> log;
+    private String errors;
     private String status;
     private Task iaTask;
+    // processingProgress is really used for IMPORT progress only (0.0 thru 1.0)
+    private Double processingProgress;
 
     public ImportTask() {
         this((User)null);
     }
+
     public ImportTask(User u) {
+        this(u, Util.generateUUID());
+    }
+
+    public ImportTask(User u, String id) {
         this.creator = u;
         this.updateCreated();
-        this.id = Util.generateUUID();
+        this.id = id;
     }
 
     public String getId() {
@@ -47,6 +62,18 @@ public class ImportTask implements java.io.Serializable {
 
     public DateTime getCreated() {
         return created;
+    }
+
+    public int numberEncounters() {
+        return Util.collectionSize(encounters);
+    }
+
+    public Double getProcessingProgress() {
+        return processingProgress;
+    }
+
+    public void setProcessingProgress(Double prog) {
+        processingProgress = prog;
     }
 
     public List<Encounter> getEncounters() {
@@ -63,12 +90,65 @@ public class ImportTask implements java.io.Serializable {
         if (!encounters.contains(enc)) encounters.add(enc);
     }
 
+    public Set<Annotation> getAnnotations() {
+        Set<Annotation> anns = new HashSet<Annotation>();
+
+        if (encounters != null)
+            for (Encounter enc : encounters) {
+                if (enc.getAnnotations() != null)
+                    for (Annotation ann : enc.getAnnotations()) {
+                        anns.add(ann);
+                    }
+            }
+        return anns;
+    }
+
+    public Map<Annotation, List<Task> > getAnnotationTaskMap(Shepherd myShepherd) {
+        Map<Annotation, List<Task> > atm = new HashMap<Annotation, List<Task> >();
+
+        for (Annotation ann : this.getAnnotations()) {
+            atm.put(ann, Task.getTasksFor(ann, myShepherd, "created DESC"));
+        }
+        return atm;
+    }
+
     public void setCreator(User u) {
         creator = u;
     }
 
     public User getCreator() {
         return creator;
+    }
+
+    // classically the excel filename the user uploaded, generalized for api usage
+    public String getSourceName() {
+        if (getParameters() == null) return null;
+        JSONObject passed = getParameters().optJSONObject("_passedParameters");
+        if (passed == null) return null;
+        String name = passed.optString("sourceName", null);
+        if (name != null) return name;
+        // for some reason (!???) these are arrays with 1 element
+        JSONArray nameArr = passed.optJSONArray("originalFilename");
+        if (nameArr == null) nameArr = passed.optJSONArray("filename");
+        if ((nameArr != null) && (nameArr.length() > 0)) return nameArr.optString(0, null);
+        return null;
+    }
+
+    public JSONArray getMatchingLocations() {
+        if (getParameters() == null) return null;
+        JSONObject passed = getParameters().optJSONObject("_passedParameters");
+        if (passed == null) return null;
+        return passed.optJSONArray("matchingLocations");
+    }
+
+    // this means was NOT sent via api
+    // NOTE this logic may end up being flaky; adjust accordingly
+    public boolean isLegacy() {
+        if (getParameters() == null) return true; // ????
+        JSONObject passed = getParameters().optJSONObject("_passedParameters");
+        if (passed == null) return true; // ?????
+        if (passed.optString("bulkImportId", null) != null) return false;
+        return true;
     }
 
     public List<MarkedIndividual> getMarkedIndividuals() {
@@ -132,6 +212,40 @@ public class ImportTask implements java.io.Serializable {
         if (p == null) p = new JSONObject();
         p.put("_passedParameters", Util.requestParametersToJSONObject(request));
         parameters = p.toString();
+    }
+
+    public void setPassedParameters(JSONObject passed) {
+        JSONObject p = getParameters();
+
+        if (p == null) p = new JSONObject();
+        p.put("_passedParameters", passed);
+        parameters = p.toString();
+    }
+
+    public JSONObject getPassedParameters() {
+        if (this.getParameters() == null) return null;
+        return this.getParameters().optJSONObject("_passedParameters");
+    }
+
+    public JSONArray getErrors() {
+        return Util.stringToJSONArray(errors);
+    }
+
+    public void setErrors(JSONArray err) {
+        if (err == null) {
+            errors = null;
+        } else {
+            errors = err.toString();
+        }
+    }
+
+    public JSONArray addError(JSONObject err) {
+        JSONArray errs = this.getErrors();
+
+        if (err == null) return errs;
+        if (errs == null) errs = new JSONArray();
+        errs.put(err);
+        return errs;
     }
 
     // note: this auto-timestamps
@@ -208,6 +322,17 @@ public class ImportTask implements java.io.Serializable {
         return !iaTask.getParameters().optBoolean("skipIdent", false);
     }
 
+    // for sake of this value, skipping detection is also good enough
+    public boolean skippedIdentification() {
+        if (skippedDetection()) return true;
+        return !iaTaskRequestedIdentification();
+    }
+
+    public boolean skippedDetection() {
+        if (this.getPassedParameters() == null) return false;
+        return this.getPassedParameters().optBoolean("skipDetection", false);
+    }
+
     public Map<String, Integer> stats() {
         if (iaTask == null) return null;
         Map<String, Integer> stats = new HashMap<String, Integer>();
@@ -220,7 +345,7 @@ public class ImportTask implements java.io.Serializable {
         if (iaTask == null) return null;
         List<Task> tasks = iaTask.findNodesWithMediaAssets();
         Map<String, Integer> stats = new HashMap<String, Integer>();
-        stats.put("count", tasks.size());
+        stats.put("numTasks", tasks.size());
         for (Task task : tasks) {
             Map<String, Integer> tsum = task.detectionStatusSummary();
             stats = Util.mapAdd(stats, tsum);
@@ -228,15 +353,249 @@ public class ImportTask implements java.io.Serializable {
         return stats;
     }
 
-    public Map<String, Integer> statsAnnotations() {
+    public JSONObject statsAnnotations(Shepherd myShepherd) {
+        JSONObject sa = new JSONObject();
+        Map<Annotation, List<Task> > atm = this.getAnnotationTaskMap(myShepherd);
+        int numTasks = 0;
+        JSONObject encData = new JSONObject();
+
+        for (Annotation ann : atm.keySet()) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            if ((enc != null) && !encData.has(enc.getId()))
+                encData.put(enc.getId(), new JSONArray());
+            sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            for (Task atask : atm.get(ann)) {
+                String status = atask.getStatus(myShepherd);
+                if (sa.has(status)) {
+                    sa.put(status, sa.optInt(status, 0) + 1);
+                } else {
+                    sa.put(status, 1);
+                }
+                numTasks++;
+                if (enc != null) {
+                    JSONArray arr = new JSONArray();
+                    arr.put(atask.getId());
+                    arr.put(status);
+                    arr.put(ann.getIAClass());
+                    encData.getJSONArray(enc.getId()).put(arr);
+                }
+            }
+        }
+        sa.put("encounterTaskInfo", encData);
+        sa.put("numTasks", numTasks);
+        return sa;
+    }
+
+/*
+    this likely is doing the wrong thing; using the above logic, which
+    was ported from import.jsp
+
+    public Map<String, Integer> statsAnnotationsBROKEN() {
         if (iaTask == null) return null;
         List<Task> tasks = iaTask.findNodesWithAnnotations();
         Map<String, Integer> stats = new HashMap<String, Integer>();
-        stats.put("count", tasks.size());
+        stats.put("numTasks", tasks.size());
         for (Task task : tasks) {
             Map<String, Integer> tsum = task.identificationStatusSummary();
             stats = Util.mapAdd(stats, tsum);
         }
         return stats;
+    }
+ */
+
+/*
+    this is a slightly modified version of DeleteImportTask.java, but has all shepherd commits commented out,
+    with the idea that a single commit outside (in the caller) should do the job. note also that in the servlet version,
+    an exception does a rollback, but very likely many of the steps up until that point has been commited, so not sure
+    what state that leaves things in the actual db
+ */
+    public static void deleteWithRelated(String id, User user, Shepherd myShepherd)
+    throws IOException {
+        if ((id == null) || (user == null)) throw new IOException("must provide id and user");
+        ImportTask itask = myShepherd.getImportTask(id);
+        if (itask == null) throw new IOException("invalid ImportTask id=" + id);
+        if (!Collaboration.canUserAccessImportTask(itask, myShepherd.getContext(),
+            user.getUsername()))
+            throw new IOException("user does not have privileges to delete task");
+        Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
+        try {
+            List<Encounter> allEncs = new ArrayList<Encounter>(itask.getEncounters());
+            int total = allEncs.size();
+            for (int i = 0; i < allEncs.size(); i++) {
+                Encounter enc = allEncs.get(i);
+                Occurrence occ = myShepherd.getOccurrence(enc);
+                MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
+                List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                ArrayList<Annotation> anns = enc.getAnnotations();
+                for (Annotation ann : anns) {
+                    enc.removeAnnotation(ann);
+                    // myShepherd.updateDBTransaction();
+                    List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+                    if (iaTasks != null && !iaTasks.isEmpty()) {
+                        for (Task iaTask : iaTasks) {
+                            iaTask.removeObject(ann);
+                            // myShepherd.updateDBTransaction();
+                        }
+                    }
+                    myShepherd.throwAwayAnnotation(ann);
+                    // myShepherd.updateDBTransaction();
+                }
+                // handle occurrences
+                if (occ != null) {
+                    occ.removeEncounter(enc);
+                    // myShepherd.updateDBTransaction();
+                    if (occ.getEncounters().size() == 0) {
+                        myShepherd.throwAwayOccurrence(occ);
+                        // myShepherd.updateDBTransaction();
+                    }
+                }
+                // handle markedindividual
+                if (mark != null) {
+                    mark.removeEncounter(enc);
+                    // myShepherd.updateDBTransaction();
+                    if (mark.getEncounters().size() == 0) {
+                        // check for social unit membership and remove
+                        List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
+                            mark);
+                        if (units != null && units.size() > 0) {
+                            for (SocialUnit unit : units) {
+                                boolean worked = unit.removeMember(mark, myShepherd);
+                                // if (worked) myShepherd.updateDBTransaction();
+                            }
+                        }
+                        myShepherd.throwAwayMarkedIndividual(mark);
+                        // myShepherd.updateDBTransaction();
+                    }
+                }
+                // handle projects
+                if (projects != null && projects.size() > 0) {
+                    for (Project project : projects) {
+                        project.removeEncounter(enc);
+                        // myShepherd.updateDBTransaction();
+                    }
+                }
+                itask.removeEncounter(enc);
+                itask.addLog("Servlet DeleteImportTask removed Encounter: " +
+                    enc.getCatalogNumber());
+                // myShepherd.updateDBTransaction();
+                try {
+                    myShepherd.throwAwayEncounter(enc);
+                } catch (Exception e) {
+                    System.out.println("Exception on throwAwayEncounter!!");
+                    e.printStackTrace();
+                }
+                // myShepherd.updateDBTransaction();
+            }
+            myShepherd.getPM().deletePersistent(itask);
+            // myShepherd.commitDBTransaction();
+        } catch (Exception ex) {
+            throw new IOException("general exception on ImportTask delete: " + ex);
+        }
+        Util.mark("ImportTask.deleteWithRelated(" + id + ") completed");
+    }
+
+    // this is hobbled together from some complex code in import.jsp
+    // some of this is only necessary to handle legacy (non-api) uploads
+    // may the gods have mercy on our soul
+    // FIXME this can be OUTRAGEOUSLY slow for tasks with 100s of annotations
+    // for the GET api for listing tasks we very likely want to move this
+    // to detailed=true so it is not called for every task -- but this currently
+    // messes up the status :(
+    public JSONObject iaSummaryJson(Shepherd myShepherd) {
+        int numDetectionComplete = 0;
+        int numAcmId = 0;
+        int numAllowedIA = 0;
+        int numAssets = 0;
+        int numAnnotations = 0;
+        boolean pipelineStarted = false;
+        Map<String, Integer> statsMA = this.statsMediaAssets();
+        JSONObject statsAnn = this.statsAnnotations(myShepherd);
+
+        if (this.getMediaAssets() != null)
+            numAssets = this.getMediaAssets().size();
+        for (MediaAsset ma : this.getMediaAssets()) {
+            numAnnotations += ma.numAnnotations();
+            if (ma.getAcmId() != null) numAcmId++;
+            // check if we can get validity off the image before the expensive check of hitting the AssetStore
+            if (ma.isValidImageForIA() != null) {
+                if (ma.isValidImageForIA().booleanValue()) numAllowedIA++;
+            } else if (ma.validateSourceImage()) {
+                numAllowedIA++;
+            }
+/*
+                if ((ma.isValidImageForIA() == null) || !ma.isValidImageForIA().booleanValue()) {
+                    invalidMediaAssets.add(asset);
+                }
+ */
+            if ((ma.getDetectionStatus() != null) &&
+                (ma.getDetectionStatus().equals("complete") ||
+                ma.getDetectionStatus().equals("pending"))) numDetectionComplete++;
+        }
+        JSONObject pj = new JSONObject();
+        pj.put("statsMediaAssets", statsMA);
+        pj.put("statsAnnotations", statsAnn);
+        pj.put("numberMediaAssets", numAssets);
+        pj.put("numberAnnotations", numAnnotations);
+        pj.put("numberMediaAssetACMIds", numAcmId);
+        pj.put("numberMediaAssetValidIA", numAllowedIA);
+        pj.put("detectionNumberComplete", numDetectionComplete);
+        // non-legacy flavor
+        if ((this.getIATask() != null) && this.iaTaskStarted()) {
+            pipelineStarted = true;
+            if (numDetectionComplete == numAllowedIA) {
+                pj.put("detectionPercent", 1.0);
+                pj.put("detectionStatus", "complete");
+            } else {
+                if (numAssets > 0) pj.put("detectionPercent", numDetectionComplete / numAssets);
+                pj.put("detectionStatus", "sent");
+            }
+            if (this.iaTaskRequestedIdentification()) {
+                int numIdentificationComplete = 0;
+                int numIdentificationTotal = 0;
+                // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
+                if (statsAnn.optInt("numTasks", -1) >= 0)
+                    numIdentificationTotal = statsAnn.optInt("numTasks");
+                // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
+                // (it may well have been me)
+                if (statsAnn.optInt("completed", -1) >= 0)
+                    numIdentificationComplete = statsAnn.optInt("completed");
+                // TODO do we have to deal with errors as "completed" somehow?
+                pj.put("identificationNumberComplete", numIdentificationComplete);
+                pj.put("identificationNumTotal", numIdentificationTotal);
+                if (numIdentificationTotal == 0) {
+                    pj.put("identificationStatus", "identification not started");
+                    pj.put("identificationPercent", 0.0);
+                } else if (numIdentificationComplete >= numIdentificationTotal) {
+                    pj.put("identificationStatus", "complete");
+                    pj.put("identificationPercent", 1.0);
+                } else {
+                    pj.put("identificationStatus", "sent");
+                    pj.put("identificationPercent",
+                        new Double(numIdentificationComplete) / new Double(numIdentificationTotal));
+                }
+            }
+            // legacy flavor
+        } else if ((this.getIATask() == null) && (numDetectionComplete > 0)) {
+            pipelineStarted = true;
+            if (numDetectionComplete == numAssets) {
+                pj.put("detectionPercent", 1.0);
+                pj.put("detectionStatus", "complete");
+            } else {
+                if (numAssets > 0)
+                    pj.put("detectionPercent",
+                        new Double(numDetectionComplete) / new Double(numAssets));
+                pj.put("detectionStatus", "sent");
+            }
+            pj.put("identificationStatus", "unknown");
+        }
+        if (this.skippedDetection()) pj.put("detectionStatus", "skipped");
+        if (this.skippedIdentification()) pj.put("identificationStatus", "skipped");
+        String ds = pj.optString("detectionStatus");
+        String is = pj.optString("identificationStatus");
+        pj.put("pipelineStarted", pipelineStarted);
+        boolean pipelineComplete = ((ds.equals("complete") || ds.equals("skipped")) &&
+            (is.equals("complete") || is.equals("skipped")));
+        pj.put("pipelineComplete", pipelineComplete);
+        return pj;
     }
 }
