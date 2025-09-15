@@ -1,34 +1,23 @@
+import React from "react";
+import Datetime from "react-datetime";
+import moment from "moment";
+import "react-datetime/css/react-datetime.css";
 
-import React from 'react';
+export default function DateInput({ value = "", onChange }) {
+  const m = value ? moment.parseZone(value) : null;
 
-import PropTypes from 'prop-types';
-
-export default function DateInput({
-    value,
-    onChange,
-    placeholder = "Select date",
-    className = "",
-    label = "Date Input",
-    ...props
-}) {
-    return (
-        <div className={`date-input-container ${className}`}>
-            {label && <h6>{label}</h6>}
-            <input
-                type="date"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder}
-                className={`form-control ${className}`}
-                {...props}
-            />
-        </div>
-    );
+  return (
+    <Datetime
+      value={m}
+      dateFormat="YYYY-MM-DD"
+      timeFormat="HH:mm"
+      onChange={(dt) => {
+        if (!moment.isMoment(dt) || !dt.isValid()) return onChange?.("");
+        onChange?.(dt.clone().format("YYYY-MM-DDTHH:mm[Z]"));
+      }}
+      renderInput={(props, open) => (
+        <input {...props} value={value || ""} onFocus={open} />
+      )}
+    />
+  );
 }
-
-DateInput.propTypes = {
-    value: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    placeholder: PropTypes.string,
-    className: PropTypes.string,
-};
