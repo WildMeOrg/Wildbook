@@ -385,8 +385,7 @@ public class BulkValidator {
             return value;
 
         case "Encounter.country":
-            if ((value != null) && !CommonConfiguration.getIndexedPropertyValues("country",
-                myShepherd.getContext()).contains(value))
+            if ((value != null) && !Util.getCountries().contains(value))
                 throw new BulkValidatorException("invalid country value: " + value,
                         ApiException.ERROR_RETURN_CODE_INVALID);
             return value;
