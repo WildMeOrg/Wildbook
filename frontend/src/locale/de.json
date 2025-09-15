@@ -526,6 +526,7 @@
   "FILTER_BULK_IMPORT_FILE_NAMES": "Dateinamen für den Massenimport",
 "BULK_IMPORT_SEND_TO_IDENTIFICATION": "Zur Identifizierung senden",
   "BULK_IMPORT_LOCATION_ID_DESC": "Je mehr Optionen Sie auswählen, desto länger dauert die Identifizierung. Seien Sie so präzise wie möglich.",
-  "DANGER_ZONE": "Gefahrenzone"
+  "DANGER_ZONE": "Gefahrenzone",
+  "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Die Schaltfläche ist deaktiviert, wenn die Erkennung oder die erste Identifizierungsaufgabe nicht abgeschlossen ist. Bitte warten Sie, bis die Aufgabe abgeschlossen ist, bevor Sie zur Identifizierung senden."
 }
 
