@@ -82,6 +82,18 @@ import org.json.JSONObject;
     // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
     // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
 
+    // this allows us to delay indexing during heavy activity which triggers auto-indexing
+    // via lifecycle persisting triggers e.g. during bulk import
+    public boolean skipAutoIndexing = false;
+
+    public void setSkipAutoIndexing(boolean skip) {
+        skipAutoIndexing = skip;
+    }
+
+    public boolean getSkipAutoIndexing() {
+        return skipAutoIndexing;
+    }
+
     public abstract String opensearchIndexName();
 
     public void opensearchCreateIndex()

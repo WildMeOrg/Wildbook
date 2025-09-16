@@ -3,16 +3,18 @@ package org.ecocean.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
+import org.ecocean.api.bulk.BulkImportUtil;
+import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ContextConfiguration;
@@ -62,7 +64,7 @@ public class SiteSettings extends ApiBase {
             settings.put("mapZoom", CommonConfiguration.getMapZoom(context));
             settings.put("googleMapsKey", CommonConfiguration.getGoogleMapsKey(context));
 
-            Set<String> sciNames = new HashSet<String>();  // used later
+            Set<String> sciNames = new HashSet<String>(); // used later
             JSONArray txArr = new JSONArray();
             List<List<String> > nameArray = myShepherd.getAllTaxonomyCommonNames();
             if (Util.collectionSize(nameArray) > 1) {
@@ -88,8 +90,7 @@ public class SiteSettings extends ApiBase {
                 CommonConfiguration.getIndexedPropertyValues("lifeStage", context));
             settings.put("livingStatus",
                 CommonConfiguration.getIndexedPropertyValues("livingStatus", context));
-            settings.put("country",
-                CommonConfiguration.getIndexedPropertyValues("country", context));
+            settings.put("country", Util.getCountries());
             settings.put("annotationViewpoint", Annotation.getAllValidViewpointsSorted());
             settings.put("patterningCode",
                 CommonConfiguration.getIndexedPropertyValues("patterningCode", context));
@@ -109,7 +110,9 @@ public class SiteSettings extends ApiBase {
 
             JSONObject iaForTx = new JSONObject();
             for (String sn : sciNames) {
-                iaForTx.put(sn, iaConfig.getValidIAClassesIgnoreRedirects(new org.ecocean.Taxonomy(sn)));
+                String snSpaces = sn.replaceAll("_", " ");
+                iaForTx.put(snSpaces,
+                    iaConfig.getValidIAClassesIgnoreRedirects(new org.ecocean.Taxonomy(snSpaces)));
             }
             settings.put("iaClassesForTaxonomy", iaForTx);
 
@@ -118,6 +121,8 @@ public class SiteSettings extends ApiBase {
             Object[] barr = behavs.toArray();
             Arrays.sort(barr);
             settings.put("behavior", behavs);
+
+            settings.put("bulkImportFieldNameSynonyms", BulkValidator.fieldNameSynonymsJson());
 
             List<String> kws = new ArrayList<String>();
             // this seems like less desirable method: getAllKeywordsNoLabeledKeywords()
@@ -134,6 +139,8 @@ public class SiteSettings extends ApiBase {
                 lkeyword.getJSONArray(lkw.getLabel()).put(lkw.getValue());
             }
             settings.put("labeledKeyword", lkeyword);
+            // these are values which are allowed for a given labeledKeyword
+            settings.put("labeledKeywordAllowedValues", BulkImportUtil.getLabeledKeywordMap());
 
             JSONObject orgs = new JSONObject();
             for (Organization org : myShepherd.getAllOrganizations()) {
@@ -178,6 +185,8 @@ public class SiteSettings extends ApiBase {
             settings.put("showMeasurements", CommonConfiguration.showMeasurements(context));
             settings.put("maximumMediaSizeMegabytes",
                 CommonConfiguration.getMaxMediaSizeInMegabytes(context));
+            settings.put("maximumMediaCountEncounter",
+                CommonConfiguration.getMaxMediaCountEncounter(context));
 
             JSONArray loci = new JSONArray();
             for (String locus : myShepherd.getAllLoci()) {
@@ -244,6 +253,7 @@ public class SiteSettings extends ApiBase {
                 }
                 settings.put(group, jg);
             }
+            settings.put("bulkImportMinimalFields", BulkValidator.minimalFieldsJson());
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
