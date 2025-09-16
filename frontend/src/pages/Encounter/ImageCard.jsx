@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import MailIcon from "../../components/icons/MailIcon";
 import { observer } from "mobx-react-lite";
-
-const handleClick = (encounterId, storeEncounterId) => {
-  if (encounterId === storeEncounterId) {
-    console.log("Clicked on the rectangle for the current encounter");
-  } else {
-    console.log("Clicked on the rectangle for a different encounter");
-    window.location.href = `/react/encounter?number=${encounterId}`;
-  }
-}
+import ImageModal from "../../components/ImageModal";
 
 const ImageCard = observer(({ store = {} }) => {
   const canvasRef = useRef(null);
@@ -17,6 +9,7 @@ const ImageCard = observer(({ store = {} }) => {
   const [rects, setRects] = useState([]);
   const [scaleX, setScaleX] = useState(1);
   const [scaleY, setScaleY] = useState(1);
+  const [ openImageModal, setOpenImageModal ] = useState(false);
 
   useEffect(() => {
     const encounterData = store.encounterData;
@@ -27,7 +20,7 @@ const ImageCard = observer(({ store = {} }) => {
     ) {
       const selectedImage = encounterData.mediaAssets[store.selectedImageIndex];
       const annotations = selectedImage?.annotations;
-      if (annotations.length > 0) {
+      if (annotations?.length > 0) {
         const anns = selectedImage?.annotations || [];
         setRects(
           anns.map((a) => ({
@@ -121,6 +114,21 @@ const ImageCard = observer(({ store = {} }) => {
     };
   }, [rects]);
 
+  const handleClick = (encounterId, storeEncounterId) => {
+  if (encounterId === storeEncounterId) {
+    console.log("Clicked on the rectangle for the current encounter");
+    setOpenImageModal(true);
+    store.setSelectedImageIndex(store.selectedImageIndex);
+    // Optionally, you can also set the index of the rectangle or any other state needed for the modal
+    // store.setSelectedRectangleIndex(index);
+    // Open the modal here or perform any other action needed
+
+  } else {
+    console.log("Clicked on the rectangle for a different encounter");
+    window.location.href = `/react/encounter?number=${encounterId}`;
+  }
+}
+
   return (
     <div
       className="d-flex flex-column justify-content-between mt-3 position-relative mb-3"
@@ -152,10 +160,10 @@ const ImageCard = observer(({ store = {} }) => {
           console.log("Rendering rect", JSON.stringify(rect));
           return (
             <div
-              id={`rect-${index}`}              
+              id={`rect-${index}`}
               key={index}
               style={{
-                cursor:"pointer",
+                cursor: "pointer",
                 position: "absolute",
                 top: rect.y / scaleX,
                 left: rect.x / scaleY,
@@ -290,6 +298,15 @@ const ImageCard = observer(({ store = {} }) => {
           />
         ))}
       </div>
+      {openImageModal && (
+        <ImageModal
+          open={openImageModal}
+          onClose={() => setOpenImageModal(false)}
+          assets={store.encounterData?.mediaAssets || []}
+          index={store.selectedImageIndex}
+          setIndex={(index) => store.setSelectedImageIndex(index)}
+        />
+      )}
     </div>
   );
 });

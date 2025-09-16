@@ -37,6 +37,7 @@
     "react-select": "^5.8.0",
     "react-window": "^1.8.11",
     "sass": "^1.71.1",
+    "swiper": "^12.0.1",
     "web-vitals": "^2.1.4",
     "webpack-merge": "^5.10.0",
     "webpack-version-file": "^0.1.7",
