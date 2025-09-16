@@ -413,7 +413,7 @@ public class IBEISIA {
         JSONArray uuidList = new JSONArray();
 
         for (MediaAsset ma : mas) {
-            uuidList.put(toFancyUUID(ma.getAcmId()));
+        	if(ma.getAcmId()!=null)uuidList.put(toFancyUUID(ma.getAcmId()));
         }
         return uuidList;
     }

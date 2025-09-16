@@ -1580,6 +1580,16 @@ public class Annotation extends Base implements java.io.Serializable {
         System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
         if (nonTrivial.size() < 1) return false;
         if (nonTrivial.size() == 1) return true;
+        //if they're a body and a part, consider them contiguous
+        if (nonTrivial.size() == 2) {
+        	String iaClass0=nonTrivial.get(0).getIAClass();
+        	String iaClass1=nonTrivial.get(1).getIAClass();
+        	if(iaClass0!=null && iaClass1!=null) {
+        		if(iaClass0.indexOf("+")>-1&&iaClass1.indexOf("+")==-1) return true;
+        		if(iaClass1.indexOf("+")>-1&&iaClass0.indexOf("+")==-1) return true;
+        	}
+        	
+        }
         Annotation first = nonTrivial.remove(0);
         return (first.intersectsAtLeastOne(nonTrivial) && areContiguous(nonTrivial)); // yay recursion!
     }
