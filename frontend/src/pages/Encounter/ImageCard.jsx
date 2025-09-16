@@ -2,10 +2,21 @@ import React, { useState, useEffect, useRef } from "react";
 import MailIcon from "../../components/icons/MailIcon";
 import { observer } from "mobx-react-lite";
 
+const handleClick = (encounterId, storeEncounterId) => {
+  if (encounterId === storeEncounterId) {
+    console.log("Clicked on the rectangle for the current encounter");
+  } else {
+    console.log("Clicked on the rectangle for a different encounter");
+    window.location.href = `/react/encounter?number=${encounterId}`;
+  }
+}
+
 const ImageCard = observer(({ store = {} }) => {
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const [rects, setRects] = useState([]);
+  const [scaleX, setScaleX] = useState(1);
+  const [scaleY, setScaleY] = useState(1);
 
   useEffect(() => {
     const encounterData = store.encounterData;
@@ -25,6 +36,8 @@ const ImageCard = observer(({ store = {} }) => {
             width: a.boundingBox[2],
             height: a.boundingBox[3],
             rotation: (a.theta * Math.PI) / 180,
+            annotationId: a.id,
+            encounterId: a.encounterId,
           })),
         );
       }
@@ -33,8 +46,8 @@ const ImageCard = observer(({ store = {} }) => {
 
   useEffect(() => {
     if (!rects.length || !imgRef.current) return;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
+    // const canvas = canvasRef.current;
+    // const context = canvas.getContext("2d");
     const handleImageLoad = () => {
       if (imgRef.current) {
         const naturalWidth =
@@ -43,48 +56,54 @@ const ImageCard = observer(({ store = {} }) => {
           store.encounterData?.mediaAssets[store.selectedImageIndex]?.height;
         const displayWidth = imgRef.current.clientWidth;
         const displayHeight = imgRef.current.clientHeight;
-        const scaleX = naturalWidth / displayWidth;
-        const scaleY = naturalHeight / displayHeight;
 
-        canvas.width = imgRef.current.clientWidth;
-        canvas.height = imgRef.current.clientHeight;
+        setScaleX(naturalWidth / displayWidth);
+        setScaleY(naturalHeight / displayHeight);
 
-        const imageContainer = imgElement?.parentElement;
+        // canvas.width = imgRef.current.clientWidth;
+        // canvas.height = imgRef.current.clientHeight;
 
-        if (imgRef && imageContainer) {
-          imageContainer.style.height = `${imgElement.clientHeight}px`;
-        }
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.strokeStyle = "red";
-        context.lineWidth = 2;
+        // const imageContainer = imgElement?.parentElement;
 
-        rects.forEach((rect) => {
-          console.log("rect", JSON.stringify(rect));
-          const scaledRect = {
-            x: rect.x / scaleX,
-            y: rect.y / scaleY,
-            width: rect.width / scaleX,
-            height: rect.height / scaleY,
-          };
+        // if (imgRef && imageContainer) {
+        //   imageContainer.style.height = `${imgElement.clientHeight}px`;
+        // }
+        // context.setTransform(1, 0, 0, 1, 0, 0);
+        // context.clearRect(0, 0, canvas.width, canvas.height);
+        // context.strokeStyle = "red";
+        // context.lineWidth = 2;
 
-          context.strokeStyle = "red";
-          context.lineWidth = 2;
+        // rects.forEach((rect) => {
+        //   console.log("rect", JSON.stringify(rect));
+        //   const scaledRect = {
+        //     x: rect.x / scaleX,
+        //     y: rect.y / scaleY,
+        //     width: rect.width / scaleX,
+        //     height: rect.height / scaleY,
+        //   };
 
-          const rectCenterX = scaledRect.x + scaledRect.width / 2;
-          const rectCenterY = scaledRect.y + scaledRect.height / 2;
+        //   if (rect.encounterId === store.encounterData.id) {
+        //     context.strokeStyle = "red";
+        //   } else {
+        //     context.strokeStyle = "yellow";
+        //   }
 
-          context.save();
-          context.translate(rectCenterX, rectCenterY);
-          if (rect.rotation) context.rotate(rect.rotation);
-          context.strokeRect(
-            -scaledRect.width / 2,
-            -scaledRect.height / 2,
-            scaledRect.width,
-            scaledRect.height,
-          );
-          context.restore();
-        });
+        //   context.lineWidth = 2;
+
+        //   const rectCenterX = scaledRect.x + scaledRect.width / 2;
+        //   const rectCenterY = scaledRect.y + scaledRect.height / 2;
+
+        //   context.save();
+        //   context.translate(rectCenterX, rectCenterY);
+        //   if (rect.rotation) context.rotate(rect.rotation);
+        //   context.strokeRect(
+        //     -scaledRect.width / 2,
+        //     -scaledRect.height / 2,
+        //     scaledRect.width,
+        //     scaledRect.height,
+        //   );
+        //   context.restore();
+        // });
       }
     };
 
@@ -128,18 +147,39 @@ const ImageCard = observer(({ store = {} }) => {
           position: "relative",
         }}
       >
+
+        {rects.length > 0 && rects.map((rect, index) => {
+          console.log("Rendering rect", JSON.stringify(rect));
+          return (
+            <div
+              id={`rect-${index}`}              
+              key={index}
+              style={{
+                cursor:"pointer",
+                position: "absolute",
+                top: rect.y / scaleX,
+                left: rect.x / scaleY,
+                width: rect.width / scaleX,
+                height: rect.height / scaleY,
+                border: rect.encounterId === store.encounterData.id ? "2px solid red" : "2px solid yellow",
+                transform: `rotate(${(rect.rotation * 180) / Math.PI}deg)`,
+              }}
+              onClick={() => handleClick(rect.encounterId, store.encounterData.id)}
+            ></div>)
+        }
+        )}
+
         <img
           ref={imgRef}
           src={
             store.encounterData?.mediaAssets[store.selectedImageIndex]?.url ||
             ""
           }
-          // src="http://frontend.scribble.com/wildbook_data_dir/5/5/55deb4fe-c87c-4418-ac5e-03717e5217e7/57c10bc4-88e1-464c-b36a-22b31ba08c40-master.jpg"
           alt="No image available"
           style={{ width: "100%", height: "auto" }}
         />
 
-        <canvas
+        {/* <canvas
           ref={canvasRef}
           width={imgRef.current?.clientWidth || 150}
           height={imgRef.current?.clientHeight || 150}
@@ -149,7 +189,7 @@ const ImageCard = observer(({ store = {} }) => {
             left: 0,
             pointerEvents: "none", // Prevent interaction with the canvas
           }}
-        ></canvas>
+        ></canvas> */}
       </div>
 
       <div
