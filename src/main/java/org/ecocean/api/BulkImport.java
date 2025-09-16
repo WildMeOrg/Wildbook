@@ -905,6 +905,7 @@ public class BulkImport extends ApiBase {
                     if (enc.hasMarkedIndividual()) {
                         indivIds.add(enc.getIndividualID());
                         encj.put("individualId", enc.getIndividualID());
+                        encj.put("individualDisplayName", enc.getDisplayName());
                     }
                     encj.put("numberMediaAssets", enc.numAnnotations());
                     User sub = enc.getSubmitterUser(myShepherd);
