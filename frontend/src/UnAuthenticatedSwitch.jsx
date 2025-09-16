@@ -52,7 +52,6 @@ export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
           <Routes>
             <Route
               path="/home"
-              ß
               element={<Unauthorized setHeader={setHeader} />}
             />
             <Route path="/encounter" element={<EncounterPageViewOnly />} />
