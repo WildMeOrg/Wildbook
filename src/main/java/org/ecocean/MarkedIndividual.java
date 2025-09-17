@@ -2429,6 +2429,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             + String.join(" || names.id == ", nameIds) + ")" + taxonomyStringFilter;
         System.out.println("findByNames jdoql: " + jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
+        if (query == null) return rtn; // this is really only to save us while testing snh irl
         Collection c = (Collection)(query.execute());
         for (Object m : c) {
             MarkedIndividual ind = (MarkedIndividual)m;
@@ -2603,7 +2604,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             other.getIndividualID() + "'";
         Query q = myShepherd.getPM().newQuery(filter);
         Collection cTemp = (Collection)q.execute();
-        ArrayList<ScheduledIndividualMerge> c = new ArrayList<ScheduledIndividualMerge>(cTemp); 
+        ArrayList<ScheduledIndividualMerge> c = new ArrayList<ScheduledIndividualMerge>(cTemp);
         q.closeAll();
         ArrayList<ScheduledIndividualMerge> merges = new ArrayList<ScheduledIndividualMerge>(c);
         // throw out any scheduled merge related to this individual as it is now being merged.
@@ -2661,6 +2662,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         map.put("sex", keywordType);
         map.put("taxonomy", keywordType);
         map.put("users", keywordType);
+        map.put("encounterIds", keywordType);
         map.put("cooccurrenceIndividualIds", keywordType);
 
         // all case-insensitive keyword-ish types
@@ -2761,6 +2763,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         jgen.writeEndArray();
         if (this.getNumEncounters() > 0) {
             Set<String> users = new HashSet<String>();
+            Set<String> encIds = new HashSet<String>();
             jgen.writeNumberField("numberEncounters", this.getNumEncounters());
             Set<String> occIds = new HashSet<String>();
             List<Double> dlats = new ArrayList<Double>();
@@ -2768,6 +2771,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             Map<MarkedIndividual, Integer> coMap = new HashMap<MarkedIndividual, Integer>();
             int numMAs = 0;
             for (Encounter enc : this.encounters) {
+                encIds.add(enc.getId());
                 numMAs += enc.numAnnotations();
                 users.addAll(enc.getAllSubmitterIds(myShepherd));
                 Occurrence occ = enc.getOccurrence(myShepherd);
@@ -2815,6 +2819,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             jgen.writeArrayFieldStart("users");
             for (String uid : users) {
                 jgen.writeString(uid);
+            }
+            jgen.writeEndArray();
+            jgen.writeArrayFieldStart("encounterIds");
+            for (String eid : encIds) {
+                jgen.writeString(eid);
             }
             jgen.writeEndArray();
         } else {

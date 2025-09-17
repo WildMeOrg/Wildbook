@@ -2,9 +2,12 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -24,6 +27,7 @@ import net.jpountz.xxhash.StreamingXXHash32;
 import net.jpountz.xxhash.XXHash32;
 import net.jpountz.xxhash.XXHashFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.Tika;
 import org.joda.time.DateTime;
 
 import com.drew.imaging.jpeg.JpegMetadataReader;
@@ -38,7 +42,9 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import java.util.Iterator;
 
@@ -718,6 +724,20 @@ public class Util {
         }
     }
 
+    public static boolean dateIsInFuture(Integer year, Integer month, Integer day) {
+        if (year == null) return false;
+        Calendar cal = Calendar.getInstance();
+        int nowY = cal.get(Calendar.YEAR);
+        int nowM = cal.get(Calendar.MONTH) + 1; // frikken zero-based months!
+        int nowD = cal.get(Calendar.DAY_OF_MONTH);
+        if (year > nowY) return true;
+        if (month == null) return false; // only have year
+        if ((year == nowY) && (month > nowM)) return true;
+        if (day == null) return false; // only have year/month
+        if ((year == nowY) && (month == nowM) && (day > nowD)) return true;
+        return false;
+    }
+
     public static String capitolizeFirstLetter(String str) {
         if (str == null) return str;
         if (str.length() <= 1) return (str.toUpperCase());
@@ -1077,6 +1097,45 @@ public class Util {
         return Long.toHexString(f.length()) + Integer.toHexString(xxhash(f));
     }
 
+    public static boolean containsFilename(Set<File> files, String filename) {
+        if (files == null) return false;
+        for (File f : files) {
+            if (f.getName().equals(filename)) return true;
+        }
+        return false;
+    }
+
+    public static boolean containsFilename(List<File> files, String filename) {
+        return containsFilename(new HashSet<File>(files), filename);
+    }
+
+    // this is a good "quick first pass" at checking an uploaded file for use as MediaAsset
+    // but does not 100% guarantee creation of a MediaAsset will succeed
+    // it can process 1000 files in < 1 second
+    public static boolean fastFileValidation(File file) {
+        if (file == null) return false;
+        if (file.length() < 1000) return false;
+        try {
+            // probeContentType() sux cuz it uses extension first before actually probing :(
+            // String type = Files.probeContentType(file.toPath());
+            // so we just commit to another library, as Tika seems legit at using content of file
+            Tika tika = new Tika();
+            String type = tika.detect(file);
+            if (type == null) return false; // seems to return null for file not exists
+            if (type.startsWith("video/")) return true;
+            String[] accepted = { "jpeg", "png", "bmp", "gif" };
+            for (String subType : accepted) {
+                if (type.equals("image/" + subType)) return true;
+            }
+            System.out.println("fastFileValidation() failed on " + file + ": " + type);
+            return false;
+        } catch (Exception ex) {
+            System.out.println("fastFileValidation() failed on " + file + ": " + ex);
+            // ex.printStackTrace(); // seems overkill
+        }
+        return false;
+    }
+
     // h/t StackOverflow user erickson https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java
     public static <T extends Comparable<? super T> > List<T> asSortedList(Collection<T> c) {
         List<T> list = new ArrayList<T>(c);
@@ -1159,6 +1218,7 @@ public class Util {
         if (iso8601.length() == 16) iso8601 += 'Z';
         return iso8601;
     }
+
     
     //IOT Customizations
     public static List<MeasurementEventDesc> findMeasurementEventDescs(String langCode,String context) {
@@ -1211,4 +1271,20 @@ public class Util {
       //END IOT customizations
     
     
+
+
+    // from issue #1227, there are a couple ways to derive a list of valid countries (e.g. for validating
+    // bulk import data), including some based on CommonConfiguration. for now we are using a canned list
+    // but might be adjusted later to allow customization
+    public static List<String> getCountries() {
+        List<String> cnames = new ArrayList<String>();
+
+        for (String code : Locale.getISOCountries()) {
+            Locale obj = new Locale("", code);
+            cnames.add(obj.getDisplayCountry());
+        }
+        Collections.sort(cnames);
+        return cnames;
+    }
+
 }
