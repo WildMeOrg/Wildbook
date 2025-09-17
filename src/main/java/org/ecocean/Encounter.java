@@ -4747,6 +4747,7 @@ public class Encounter extends Base implements java.io.Serializable {
         // no exceptions means success
         rtn.put("success", true);
         rtn.put("statusCode", 200);
+        this.setDWCDateLastModified();
         return rtn;
     }
 
