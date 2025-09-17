@@ -99,6 +99,10 @@ class EncounterStore {
   _lat = null;
   _lon = null;
 
+  _showAnnotations = true; // Default to showing annotations
+
+  _tags = ["erin", "test", "tag"]; // Example tags, replace with actual data
+
   _taxonomyOptions = [];
   _livingStatusOptions = [];
   _sexOptions = [];
@@ -199,6 +203,20 @@ class EncounterStore {
   }
   setLon(newLon) {
     this._lon = newLon;
+  }
+
+  get showAnnotations() {
+    return this._showAnnotations;
+  }
+  setShowAnnotations(show) {
+    this._showAnnotations = show;
+  }
+
+  get tags() {
+    return this._tags;
+  }
+  setTags(newTags) {
+    this._tags = newTags;
   }
 
   get taxonomyOptions() {

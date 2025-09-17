@@ -35,7 +35,7 @@ const Encounter = observer(() => {
 
   const params = new URLSearchParams(window.location.search);
   const encounterId =
-    params.get("number") || "4770c075-a4c7-48c3-9616-8fa87aa2d65a";
+    params.get("number");
 
   useEffect(() => {
     let cancelled = false;

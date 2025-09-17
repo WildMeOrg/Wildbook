@@ -10,6 +10,7 @@ const ImageCard = observer(({ store = {} }) => {
   const [scaleX, setScaleX] = useState(1);
   const [scaleY, setScaleY] = useState(1);
   const [ openImageModal, setOpenImageModal ] = useState(false);
+   const [rotationInfo, setRotationInfo] = useState(null);
 
   useEffect(() => {
     const encounterData = store.encounterData;
@@ -119,10 +120,6 @@ const ImageCard = observer(({ store = {} }) => {
     console.log("Clicked on the rectangle for the current encounter");
     setOpenImageModal(true);
     store.setSelectedImageIndex(store.selectedImageIndex);
-    // Optionally, you can also set the index of the rectangle or any other state needed for the modal
-    // store.setSelectedRectangleIndex(index);
-    // Open the modal here or perform any other action needed
-
   } else {
     console.log("Clicked on the rectangle for a different encounter");
     window.location.href = `/react/encounter?number=${encounterId}`;
@@ -157,7 +154,17 @@ const ImageCard = observer(({ store = {} }) => {
       >
 
         {rects.length > 0 && rects.map((rect, index) => {
-          console.log("Rendering rect", JSON.stringify(rect));
+          if (store.encounterData?.mediaAssets[store.selectedImageIndex]?.rotationInfo) {
+            const imgW = store.encounterData?.mediaAssets[store.selectedImageIndex]?.width;
+            const imgH = store.encounterData?.mediaAssets[store.selectedImageIndex]?.height;
+            const adjW = imgH / imgW;
+            const adjH = imgW / imgH;
+            rect.x /= adjW;
+            rect.width /= adjW;
+            rect.y /= adjH;
+            rect.height /= adjH;
+          }
+          console.log("adjusted rect", JSON.stringify(rect));
           return (
             <div
               id={`rect-${index}`}
@@ -305,6 +312,8 @@ const ImageCard = observer(({ store = {} }) => {
           assets={store.encounterData?.mediaAssets || []}
           index={store.selectedImageIndex}
           setIndex={(index) => store.setSelectedImageIndex(index)}
+          rect = {rects?.filter(data => data.encounterId === store.encounterData.id)[0] || {}}
+          store={store}
         />
       )}
     </div>
