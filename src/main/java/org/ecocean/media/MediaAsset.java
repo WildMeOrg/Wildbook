@@ -954,7 +954,8 @@ public class MediaAsset extends Base implements java.io.Serializable {
         for (Keyword kw : this.getKeywords()) {
             JSONObject kj = new JSONObject();
             kj.put("id", kw.getIndexname());
-            kj.put("name", kw.getDisplayName());
+            kj.put("displayName", kw.getDisplayName());
+            kj.put("name", kw.getReadableName());
             if (kw instanceof LabeledKeyword) {
                 LabeledKeyword lkw = (LabeledKeyword)kw;
                 kj.put("label", lkw.getLabel());
