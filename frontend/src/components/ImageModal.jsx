@@ -1,22 +1,98 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
+import { observer } from "mobx-react-lite";
+import {
+    addExistingKeyword,
+    addNewKeywordText,
+    removeKeyword,
+} from "../utils/keywordsFunctions";
+import PillWithButton from "./PillWithButton";
+import { useNavigate } from "react-router";
+import { FormattedMessage } from "react-intl";
+import MainButton from "../components/MainButton";
+import ThemeColorContext from "../ThemeColorProvider";
 
-export default function ImageModal({
+
+// const handleAddExistingKeywords = async (keywordId) => {
+//     const data = await addExistingKeyword(mid, keywordId);
+//     if (data && data.success) {
+//       onRefresh && onRefresh(data.results && data.results[mid]);
+//     } else {
+//       console.error(data && (data.error || data.message));
+//     }
+//   };
+
+//   const handleAddNewKeywords = async (mid,text) => {
+//     if (!text || !text.trim()) return;
+//     const data = await addNewKeywordText(mid, text.trim());
+//     if (data && data.success) {
+//       onRefresh && onRefresh(data.results && data.results[mid]);
+//     } else {
+//       console.error(data && (data.error || data.message));
+//     }
+//   };
+
+//   const handleRemoveKeywords = async (keywordId) => {
+//     const data = await removeKeyword(mid, keywordId);
+//     if (data && data.success) {
+//       onRefresh && onRefresh(data.results && data.results[mid]);
+//     } else {
+//       console.error(data && (data.error || data.message));
+//     }
+//   };
+
+export const ImageModal = observer(({
     open,
     onClose,
     assets = [],
     index = 0,
-    setIndex
-}) {
+    setIndex,
+    rect = {},
+    store = {},
+}) => {
+    const themeColor = React.useContext(ThemeColorContext);
 
     const thumbsRef = useRef(null);
+    const imgRef = useRef(null);
+    const [scaleX, setScaleX] = useState(1);
+    const [scaleY, setScaleY] = useState(1);
+    const [addTagsFieldOpen, setAddTagsFieldOpen] = useState(false);
+
+    const currentAnnotation = assets[index]?.annotations.filter (a => a.encounterId === store.encounterData.id)?.[0] || {};
+    console.log("currentAnnotation", JSON.stringify(currentAnnotation));
+    const editAnnotationParams = {
+        x: currentAnnotation?.boundingBox[0] || 0,
+        y: currentAnnotation?.boundingBox[1] || 0,
+        width: currentAnnotation?.boundingBox[2] || 0,
+        height: currentAnnotation?.boundingBox[3] || 0,
+    };
+    const annotationParam = encodeURIComponent(JSON.stringify(editAnnotationParams));
+    console.log("editAnnotationParams", JSON.stringify(editAnnotationParams));
+
+    useEffect(() => {
+        if (!!assets[index]) {
+            const asset = assets[index];
+            // const tags = await 
+            // store.setTags()
+        }
+
+    }, [JSON.stringify(assets), JSON.stringify(index)]);
 
     useEffect(() => {
         const s = thumbsRef.current;
         if (!s || s.destroyed) return;
         const target = Math.max(0, Math.min(index - 1, assets.length - 1));
         s.slideTo(target, 250);
+        const naturalWidth =
+            assets[index]?.width;
+        const naturalHeight =
+            assets[index]?.height;
+        const displayWidth = imgRef.current.clientWidth;
+        const displayHeight = imgRef.current.clientHeight;
+
+        setScaleX(naturalWidth / displayWidth);
+        setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
 
     useEffect(() => {
@@ -41,25 +117,26 @@ export default function ImageModal({
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
 
-    const canPrev = safeIndex > 0;
-    const canNext = safeIndex < assets.length - 1;
+    // const canPrev = safeIndex > 0;
+    // const canNext = safeIndex < assets.length - 1;
 
-    const goPrev = () => {
-        setIndex?.((p) => {
-            const cur = typeof p === "number" ? p : safeIndex;
-            return Math.max(0, cur - 1);
-        });
-    };
+    // const goPrev = () => {
+    //     setIndex?.((p) => {
+    //         const cur = typeof p === "number" ? p : safeIndex;
+    //         return Math.max(0, cur - 1);
+    //     });
+    // };
 
-    const goNext = () => {
-        setIndex?.((p) => {
-            const cur = typeof p === "number" ? p : safeIndex;
-            return Math.min(assets.length - 1, cur + 1);
-        });
-    };
+    // const goNext = () => {
+    //     setIndex?.((p) => {
+    //         const cur = typeof p === "number" ? p : safeIndex;
+    //         return Math.min(assets.length - 1, cur + 1);
+    //     });
+    // };
 
     return (
         <div
+            id="image-modal"
             role="dialog"
             aria-modal="true"
             className="position-fixed top-0 start-0 w-100 h-100"
@@ -70,13 +147,14 @@ export default function ImageModal({
                 color: "white",
                 zIndex: 1080
             }}
-            onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
+        // onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
         >
             <div
+                id="image-modal-content"
                 className="container-fluid h-100 d-flex flex-column"
                 style={{ minHeight: 0 }}
             >
-                <div
+                {/* <div
                     className="d-flex align-items-center text-white"
                     style={{ flex: "0 0 56px" }}
                 >
@@ -84,22 +162,42 @@ export default function ImageModal({
                     <div className="ms-auto d-flex gap-2 me-2">
                         <button className="btn btn-sm" onClick={onClose}>Close</button>
                     </div>
-                </div>
+                </div> */}
 
                 <div
+                    id="image-modal-body"
                     className="d-flex"
                     style={{ flex: "1 1 auto", minHeight: 0 }}
                 >
                     <div
-                        className="d-flex flex-column flex-grow-1"
+                        id="image-modal-left"
+                        className="d-flex flex-column flex-grow-1 w-100"
                         style={{ minWidth: 0, minHeight: 0 }}
                     >
+                        <div className="w-100 d-flex flex-row align-items-center text-white p-2">
+
+                            <span className="text-white-50 ms-2">{safeIndex + 1}/{assets.length}</span>
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-outline-light rounded-circle position-absolute top-0 end-0 m-2"
+                                onClick={onClose}
+                                aria-label="Close"
+                            >
+                                <i className="bi bi-x" />
+                            </button>
+
+                            {/* <div className="ms-auto d-flex gap-2 me-2">
+                                <button className="btn btn-sm" onClick={onClose}>Close</button>
+                            </div> */}
+
+                        </div>
 
                         <div
-                            className="d-flex align-items-center justify-content-center position-relative overflow-hidden"
+                            id="image-modal-image"
+                            className="d-flex justify-content-center position-relative overflow-hidden"
                             style={{ flex: "1 1 auto", minHeight: 0 }}
                         >
-                            <button
+                            {/* <button
                                 type="button"
                                 aria-label="Previous image"
                                 className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ${canPrev ? "" : "opacity-50 pe-none"}`}
@@ -108,17 +206,51 @@ export default function ImageModal({
                                 disabled={!canPrev}
                             >
                                 <i className="bi bi-chevron-left" />
-                            </button>
+                            </button> */}
+                            <div
+                                className="position-relative"
 
-                            <img
-                                src={a.url}
-                                alt={a.filename ?? `asset-${a.id ?? safeIndex}`}
-                                className="img-fluid"
-                                style={{ maxWidth: "80%", maxHeight: "80%", objectFit: "contain", userSelect: "none", cursor: "zoom-in" }}
-                                onClick={() => { }}
-                            />
+                                style={{ maxWidth: "90vw", maxHeight: "80vh" }}>
+                                <img
+                                    id="image-modal-main-image"
+                                    src={a.url}
+                                    ref={imgRef}
+                                    alt={`asset-${a.id ?? safeIndex}`}
+                                    className="img-fluid"
+                                    style={{
+                                        display: "block",
+                                        maxWidth: "100%",
+                                        maxHeight: "80vh",
+                                        width: "auto",
+                                        height: "auto",
+                                        objectFit: "contain",
+                                        margin: "0 auto",
+                                    }}
+                                    onLoad={() => {
+                                        const iw = imgRef.current?.clientWidth || 1;
+                                        const ih = imgRef.current?.clientHeight || 1;
+                                        setScaleX((assets[safeIndex]?.width || iw) / iw);
+                                        setScaleY((assets[safeIndex]?.height || ih) / ih);
+                                    }}
+                                    onClick={() => { }}
+                                />
+                                {store.showAnnotations && Object.keys(rect).length > 0 && (
+                                    <div
+                                        className="position-absolute"
+                                        style={{
+                                            left: rect.x / scaleX,
+                                            top: rect.y / scaleY,
+                                            width: rect.width / scaleX,
+                                            height: rect.height / scaleY,
+                                            border: "2px solid red",
+                                            transform: `rotate(${rect.rotation}rad)`,
+                                            pointerEvents: "none",
+                                        }}
+                                    />)
+                                }
+                            </div>
 
-                            <button
+                            {/* <button
                                 type="button"
                                 aria-label="Next image"
                                 className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 ${canNext ? "" : "opacity-50 pe-none"}`}
@@ -127,7 +259,7 @@ export default function ImageModal({
                                 disabled={!canNext}
                             >
                                 <i className="bi bi-chevron-right" />
-                            </button>
+                            </button> */}
                         </div>
 
 
@@ -165,6 +297,7 @@ export default function ImageModal({
                     </div>
 
                     <aside
+                        id="image-modal-right"
                         className="bg-white text-black ps-3 pe-3 pt-2"
                         style={{
                             flex: "0 0 360px",
@@ -174,21 +307,51 @@ export default function ImageModal({
                     >
                         <div className="d-flex align-items-center gap-2 mb-2">
                             {a.url ? (
-                                <img src={a.url} alt="" className="rounded" style={{ width: 36, height: 36, objectFit: "cover" }} />
+                                <img src={a.url} alt="thumbnail" className="rounded-circle" style={{ width: 36, height: 36, objectFit: "cover", }} />
                             ) : (
-                                <div className="rounded bg-light" style={{ width: 36, height: 36 }} />
+                                <div className="rounded-circle bg-light" style={{ width: 36, height: 36 }} />
                             )}
                             <div>
-                                <div className="fw-semibold">{a.filename ?? `asset-${a.id ?? safeIndex}`}</div>
+                                <div className="fw-semibold">
+                                    Encounter{" "}
+                                    {store.encounterData?.individualDisplayName
+                                        ? `of ${store.encounterData?.individualDisplayName}`
+                                        : "Unassigned "}
+                                    {store.encounterData?.date}
+                                </div>
                                 <div className="text-muted small">{a.date ?? ""}</div>
                             </div>
                         </div>
+                        <div>
 
+                        </div>
+                        <div className="form-check form-switch mb-3">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="show-annotations-switch"
+                                checked={store.showAnnotations}
+                                onChange={(e) => store.setShowAnnotations(e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="show-annotations-switch">
+                                Show Annotations
+                            </label>
+                        </div>
                         <div className="d-flex flex-wrap gap-2 mb-3">
-                            {(a.tags ?? []).map((t) => (
-                                <span key={t} className="badge text-bg-secondary">{t}</span>
-                            ))}
-                            <button className="btn btn-sm btn-outline-secondary">+ Add Tag</button>
+                            {(store.tags ?? []).map((t) =>
+                                <PillWithButton
+                                    text={t}
+                                    onClose={() => {
+                                        removeKeyword("3653817", "123");
+                                    }}
+
+                                />
+                            )}
+                            <button className="btn btn-sm btn-outline-secondary"
+                                onClick={async () => {
+                                    await addNewKeywordText("3653817", "123")
+                                }}
+                            >+ Add Tag</button>
                         </div>
 
                         <dl className="row g-2 mb-3">
@@ -204,12 +367,45 @@ export default function ImageModal({
                             <button className="btn btn-outline-secondary btn-sm">Match Results</button>
                             <button className="btn btn-outline-secondary btn-sm">Visual Matcher</button>
                             <button className="btn btn-outline-secondary btn-sm">New Match</button>
-                            <button className="btn btn-outline-secondary btn-sm">Add Annotation</button>
-                            <button className="btn btn-outline-secondary btn-sm">Edit Annotation</button>
+                            <MainButton
+                                link={`/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}`}
+                                noArrow={true}
+                                color="white"
+                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                borderColor={themeColor?.wildMeColors?.cyan700}
+                                target={true}
+                            >
+                                <FormattedMessage id="ADD_ANNOTATION" />
+                            </MainButton>
+                            <MainButton
+                                link={`/react/edit-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.id}`}
+                                noArrow={true}
+                                color="white"
+                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                borderColor={themeColor?.wildMeColors?.cyan700}
+                                target={true}
+                            >
+                                <FormattedMessage id="EDIT_ANNOTATION" />
+                            </MainButton>
+                            {/* EncounterRemoveAnnotation */}
+                            <MainButton
+                                noArrow={true}
+                                color="white"
+                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                borderColor={themeColor?.wildMeColors?.cyan700}
+                                target={true}
+                                onClick ={() => {
+                                    store.removeAnnotation(currentAnnotation?.id);
+                                }}
+                            >
+                                <FormattedMessage id="DELETE_ANNOTATION" />
+                            </MainButton>
                         </div>
                     </aside>
                 </div>
             </div>
         </div>
     );
-}
+})
+
+export default ImageModal;

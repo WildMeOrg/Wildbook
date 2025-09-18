@@ -24,7 +24,7 @@ const ImageCard = observer(({ store = {} }) => {
       if (annotations?.length > 0) {
         const anns = selectedImage?.annotations || [];
         setRects(
-          anns.map((a) => ({
+          anns.filter(data => !data.isTrivial)?.map((a) => ({
             x: a.boundingBox[0],
             y: a.boundingBox[1],
             width: a.boundingBox[2],

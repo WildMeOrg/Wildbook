@@ -113,7 +113,6 @@ class EncounterStore {
   _locationIdOptions = [];
 
   _selectedImageIndex = 0;
-  _selectedAnnotationIndex = 0;
 
   _sectionDrafts = new Map(
     Object.keys(SECTION_FIELD_PATHS).map((name) => [name, {}]),
@@ -182,13 +181,6 @@ class EncounterStore {
   }
   setSelectedImageIndex(index) {
     this._selectedImageIndex = index;
-  }
-
-  get selectedAnnotationIndex() {
-    return this._selectedAnnotationIndex;
-  }
-  setSelectedAnnotationIndex(index) {
-    this._selectedAnnotationIndex = index;
   }
 
   get lat() {
@@ -419,6 +411,21 @@ class EncounterStore {
       hour: H ?? "",
       minutes: Min ?? "",
     };
+  }
+
+
+  removeAnnotation(annotationId) {
+    return axios.post(
+      "/EncounterRemoveAnnotation",
+      {
+        annotation: String(annotationId),
+        detach: "true",
+        number: String(this._encounterData.id),
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   expandOperations(operations) {
