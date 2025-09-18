@@ -4647,6 +4647,19 @@ public class Encounter extends Base implements java.io.Serializable {
                 mas.put(maj);
             }
             rtn.put("mediaAssets", mas);
+        } else {
+            // we do some magic to add keywords on assets, as they arent indexed this way
+            if (rtn.optJSONArray("mediaAssets") != null) {
+                for (int i = 0; i < rtn.getJSONArray("mediaAssets").length(); i++) {
+                    if (rtn.getJSONArray("mediaAssets").optJSONObject(i) != null) {
+                        MediaAsset ma = MediaAssetFactory.loadByUuid(rtn.getJSONArray(
+                            "mediaAssets").getJSONObject(i).optString("uuid"), myShepherd);
+                        if (ma != null)
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("keywords",
+                                ma.getKeywordsJSONArray());
+                    }
+                }
+            }
         }
         return rtn;
     }
