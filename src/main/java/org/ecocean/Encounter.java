@@ -4800,13 +4800,17 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "hour":
             if (value == null) {
-                setDay(0);
+                setHour(0);
             } else {
-                setDay((Integer)value);
+                setHour((Integer)value);
             }
             break;
         case "minutes":
-            setMinutes((String)value);
+            if (value == null) {
+                setMinutes(null);
+            } else {
+                setMinutes(value.toString());
+            }
             break;
         case "depth":
             setDepth((Double)value);
