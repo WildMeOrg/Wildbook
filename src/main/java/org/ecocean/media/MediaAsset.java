@@ -946,6 +946,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
         return jobj;
     }
 
+    // a little redundancy with code in sanitizeJSON above; TODO could cleanup/consolidate?
+    public JSONArray getKeywordsJSONArray() {
+        JSONArray kwa = new JSONArray();
+
+        if (Util.collectionSize(this.getKeywords()) < 1) return kwa;
+        for (Keyword kw : this.getKeywords()) {
+            JSONObject kj = new JSONObject();
+            kj.put("id", kw.getIndexname());
+            kj.put("displayName", kw.getDisplayName());
+            kj.put("name", kw.getReadableName());
+            if (kw instanceof LabeledKeyword) {
+                LabeledKeyword lkw = (LabeledKeyword)kw;
+                kj.put("label", lkw.getLabel());
+            }
+            kwa.put(kj);
+        }
+        return kwa;
+    }
+
     // carefree, safe json version
     public JSONObject toSimpleJSONObject() {
         JSONObject j = new JSONObject();

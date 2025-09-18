@@ -4647,6 +4647,19 @@ public class Encounter extends Base implements java.io.Serializable {
                 mas.put(maj);
             }
             rtn.put("mediaAssets", mas);
+        } else {
+            // we do some magic to add keywords on assets, as they arent indexed this way
+            if (rtn.optJSONArray("mediaAssets") != null) {
+                for (int i = 0; i < rtn.getJSONArray("mediaAssets").length(); i++) {
+                    if (rtn.getJSONArray("mediaAssets").optJSONObject(i) != null) {
+                        MediaAsset ma = MediaAssetFactory.loadByUuid(rtn.getJSONArray(
+                            "mediaAssets").getJSONObject(i).optString("uuid"), myShepherd);
+                        if (ma != null)
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("keywords",
+                                ma.getKeywordsJSONArray());
+                    }
+                }
+            }
         }
         return rtn;
     }
@@ -4747,6 +4760,7 @@ public class Encounter extends Base implements java.io.Serializable {
         // no exceptions means success
         rtn.put("success", true);
         rtn.put("statusCode", 200);
+        this.setDWCDateLastModified();
         return rtn;
     }
 
@@ -4799,13 +4813,17 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "hour":
             if (value == null) {
-                setDay(0);
+                setHour(0);
             } else {
-                setDay((Integer)value);
+                setHour((Integer)value);
             }
             break;
         case "minutes":
-            setMinutes((String)value);
+            if (value == null) {
+                setMinutes(null);
+            } else {
+                setMinutes(value.toString());
+            }
             break;
         case "depth":
             setDepth((Double)value);

@@ -257,6 +257,11 @@ public class Annotation extends Base implements java.io.Serializable {
         return features;
     }
 
+    public Feature getFeature() {
+        if (Util.collectionSize(features) < 1) return null;
+        return features.get(0);
+    }
+
     public void setFeatures(ArrayList<Feature> f) {
         features = f;
         this.setVersion();
@@ -359,14 +364,20 @@ public class Annotation extends Base implements java.io.Serializable {
                    (getHeight() == (int)ma.getHeight()));
     }
 
+// theta has been stored in Feature for forever
     public double getTheta() {
-        return theta;
+        Feature ft = getFeature();
+
+        if (ft == null) return 0.0d;
+        if (ft.getParameters() == null) return 0.0d;
+        return ft.getParameters().optDouble("theta", 0.0d);
     }
 
+/*
     public void setTheta(double t) {
         theta = t;
     }
-
+ */
     public boolean isIAReady() {
         MediaAsset ma = this.getMediaAsset();
 

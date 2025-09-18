@@ -67,7 +67,11 @@ class ApiPatchTest {
     }
 
     private JSONArray patchPayload(String op, String path, Object value) {
-        return patchPayload(op, path, value, null);
+        return patchPayload(op, path, value, (JSONArray)null);
+    }
+
+    private JSONArray patchPayload(String op, String path, Object value, String prev) {
+        return patchPayload(op, path, value, new JSONArray(prev));
     }
 
     private JSONArray patchPayload(String op, String path, Object value, JSONArray prev) {
@@ -401,6 +405,92 @@ class ApiPatchTest {
                     verify(mockResponse).setStatus(200);
                     assertTrue(jout.getBoolean("success"));
                     assertTrue(enc.getMaximumElevationInMeters() == 10.0D);
+                }
+            }
+        }
+    }
+
+    @Test void apiDateValid()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        String payload = patchPayload("replace", "year", "2000").toString();
+        payload = patchPayload("replace", "month", "01", payload).toString();
+        payload = patchPayload("replace", "day", "02", payload).toString();
+        payload = patchPayload("replace", "hour", "11", payload).toString();
+        payload = patchPayload("replace", "minutes", "00", payload).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals("2000-01-02 11:00", enc.getDate());
+                }
+            }
+        }
+    }
+
+    // goes from full date set to only year
+    @Test void apiDateTruncateValid()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        enc.setYear(2025);
+        enc.setMonth(11);
+        enc.setDay(1);
+        enc.setHour(13);
+        String payload = patchPayload("replace", "year", "2000").toString();
+        payload = patchPayload("remove", "month", null, payload).toString();
+        payload = patchPayload("replace", "day", null, payload).toString();
+        payload = patchPayload("remove", "hour", null, payload).toString();
+        payload = patchPayload("remove", "minutes", null, payload).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    // getDate() returns stupid string for year only but what can you do?
+                    assertEquals("2000 00:00", enc.getDate());
                 }
             }
         }
