@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import MailIcon from "../../components/icons/MailIcon";
 import { observer } from "mobx-react-lite";
 import ImageModal from "../../components/ImageModal";
+import { useNavigate } from "react-router-dom";
 
 const ImageCard = observer(({ store = {} }) => {
   const canvasRef = useRef(null);
@@ -9,8 +10,9 @@ const ImageCard = observer(({ store = {} }) => {
   const [rects, setRects] = useState([]);
   const [scaleX, setScaleX] = useState(1);
   const [scaleY, setScaleY] = useState(1);
-  const [ openImageModal, setOpenImageModal ] = useState(false);
-   const [rotationInfo, setRotationInfo] = useState(null);
+  const [openImageModal, setOpenImageModal] = useState(false);
+  const [rotationInfo, setRotationInfo] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const encounterData = store.encounterData;
@@ -116,15 +118,15 @@ const ImageCard = observer(({ store = {} }) => {
   }, [rects]);
 
   const handleClick = (encounterId, storeEncounterId) => {
-  if (encounterId === storeEncounterId) {
-    console.log("Clicked on the rectangle for the current encounter");
-    setOpenImageModal(true);
-    store.setSelectedImageIndex(store.selectedImageIndex);
-  } else {
-    console.log("Clicked on the rectangle for a different encounter");
-    window.location.href = `/react/encounter?number=${encounterId}`;
+    if (encounterId === storeEncounterId) {
+      console.log("Clicked on the rectangle for the current encounter");
+      setOpenImageModal(true);
+      store.setSelectedImageIndex(store.selectedImageIndex);
+    } else {
+      console.log("Clicked on the rectangle for a different encounter");
+      window.location.href = `/react/encounter?number=${encounterId}`;
+    }
   }
-}
 
   return (
     <div
@@ -231,7 +233,15 @@ const ImageCard = observer(({ store = {} }) => {
           </svg>
           <p>Match Results</p>
         </div>
-        <div className="d-flex align-items-center justify-content-center flex-column">
+        <div className="d-flex align-items-center justify-content-center flex-column"
+          style={{ cursor: "pointer" }}
+          onClick={() => {
+            const number = store.encounterData?.id;
+            const mediaAssetId = store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
+            const url = `${window.location.origin}/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
+            window.open(url, "_blank");
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="25"
@@ -265,7 +275,12 @@ const ImageCard = observer(({ store = {} }) => {
           </svg>
           <p>New Match</p>
         </div>
-        <div className="d-flex align-items-center justify-content-center flex-column">
+        <div className="d-flex align-items-center justify-content-center flex-column"
+          style={{ cursor: "pointer" }}
+          onClick={() => {
+            navigate(`/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets[store.selectedImageIndex]?.id}`);
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="18"
@@ -312,7 +327,7 @@ const ImageCard = observer(({ store = {} }) => {
           assets={store.encounterData?.mediaAssets || []}
           index={store.selectedImageIndex}
           setIndex={(index) => store.setSelectedImageIndex(index)}
-          rect = {rects?.filter(data => data.encounterId === store.encounterData.id)[0] || {}}
+          rect={rects?.filter(data => data.encounterId === store.encounterData.id)[0] || {}}
           store={store}
         />
       )}

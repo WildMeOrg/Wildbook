@@ -12,9 +12,10 @@ export const MapDisplay = observer(
   }) => {
     const mapElRef = useRef(null);
     const { data } = useGetSiteSettings();
-    const apiKey = data?.googleMapsKey || "";
+    const apiKey = data?.googleMapsKey;
 
     useEffect(() => {
+      if(!apiKey) return;
       const loader = new Loader({ apiKey });
       let marker;
 

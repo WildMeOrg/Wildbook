@@ -22,7 +22,7 @@ export default function DateInput({ value = "", onChange }) {
         <input
           {...props}
           placeholder="YYYY / YYYY-MM / YYYY-MM-DD / YYYY-MM-DD HH:mm"
-          value={value || ""}
+          value={value || null}
           onFocus={open}
           onChange={(e) => onChange?.(e.target.value)}
         />

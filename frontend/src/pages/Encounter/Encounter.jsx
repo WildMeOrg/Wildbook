@@ -114,7 +114,7 @@ const Encounter = observer(() => {
                   <div>
                     <DateInput
                       label="Encounter Date"
-                      value={store.getFieldValue("date", "date") ?? ""}
+                      value={store.getFieldValue("date", "date") ?? null}
                       onChange={(v) => {
                         store.setFieldValue("date", "date", v);
                       }}

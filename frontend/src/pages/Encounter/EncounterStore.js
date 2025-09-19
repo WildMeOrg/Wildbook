@@ -354,6 +354,7 @@ class EncounterStore {
         operations.push({ op: "replace", path: fieldPath, value: newValue });
       }
     }
+    console.log("Building operations for section:", JSON.stringify(operations));
     return operations;
   }
 
@@ -432,30 +433,33 @@ class EncounterStore {
     const base = operations.slice();
     const out = [];
 
+    console.log("Expanding operations:", JSON.stringify(base));
+
     for (const op of base) {
       if (op.path === "date") {
         const p = this.parseYMDHM(op.value);
+        console.log("p.month", p?.month);
         if (!p) continue;
         out.push({ op: "replace", path: "year", value: String(p.year) });
         out.push({
           op: "replace",
           path: "month",
-          value: p.month != null ? String(p.month) : null,
+          value: !!p.month ? String(p.month) : null,
         });
         out.push({
           op: "replace",
           path: "day",
-          value: p.day != null ? String(p.day) : null,
+          value: !!p.day ? String(p.day) : null,
         });
         out.push({
           op: "replace",
           path: "hour",
-          value: p.hour != null ? String(p.hour) : null,
+          value: !!p.hour ? String(p.hour) : null,
         });
         out.push({
           op: "replace",
           path: "minutes",
-          value: p.minutes != null ? String(p.minutes) : null,
+          value: !!p.minutes ? String(p.minutes) : null,
         });
 
         continue;
