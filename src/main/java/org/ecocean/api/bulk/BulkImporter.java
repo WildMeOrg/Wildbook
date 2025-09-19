@@ -23,7 +23,7 @@ import org.ecocean.Keyword;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
 import org.ecocean.servlet.importer.ImportTask;
@@ -350,7 +350,7 @@ public class BulkImporter {
                 sampProt = fmap.get(mspFN.get(i)).getValueString();
             String munit = null;
             if (i < munits.size()) munit = munits.get(i);
-            Measurement meas = new Measurement(enc.getId(), mvals.get(i), mdbl, munit, sampProt);
+            MeasurementEvent meas = new MeasurementEvent(enc.getId(), mvals.get(i), mdbl, munit, sampProt);
             System.out.println("[INFO] field " + measFN.get(i) + " [i=" + i + "] created " + meas);
             enc.setMeasurement(meas);
         }

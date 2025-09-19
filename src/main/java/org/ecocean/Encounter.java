@@ -2511,10 +2511,10 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // like above but way less persisty
-    public void setMeasurement(Measurement measurement) {
+    public void setMeasurement(MeasurementEvent measurement) {
         if (measurement == null) return;
-        if (measurements == null) measurements = new ArrayList<Measurement>();
-        Measurement hasType = this.getMeasurement(measurement.getType());
+        if (measurements == null) measurements = new ArrayList<MeasurementEvent>();
+        MeasurementEvent hasType = this.getMeasurement(measurement.getType());
         if (hasType == null) {
             measurements.add(measurement);
         } else if (measurement.getValue() == null) {
