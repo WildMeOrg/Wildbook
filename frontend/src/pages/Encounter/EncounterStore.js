@@ -99,7 +99,15 @@ class EncounterStore {
   _lat = null;
   _lon = null;
 
-  _showAnnotations = true; // Default to showing annotations
+  _showAnnotations = true;
+  _openContactInfoModal = false;
+  _OpenEncounterHistoryModal = false;
+  __openAddPeopleModal = false;
+  _openAddPeopleModal = false;
+
+   _newPersonName = '';
+   _newPersonEmail = '';
+   _newPersonRole = '';
 
   _tags = ["erin", "test", "tag"]; // Example tags, replace with actual data
 
@@ -175,6 +183,75 @@ class EncounterStore {
     this._editAttributesCard = isEditing;
   }
 
+  get newPersonName() {
+    return this._newPersonName;
+  }
+  setNewPersonName(name) {
+    this._newPersonName = name;
+  }
+
+  get newPersonEmail() {
+    return this._newPersonEmail;
+  }
+  setNewPersonEmail(email) {
+    this._newPersonEmail = email;
+  }
+
+  get newPersonRole() {
+    return this._newPersonRole;
+  }
+  setNewPersonRole(role) {
+    this._newPersonRole = role;
+  }
+
+  setOpenAddPeopleModal(isOpen) {
+    console.log("Setting openAddPeopleModal to:", isOpen);
+    this._openAddPeopleModal = isOpen;
+  }
+
+  get openAddPeopleModal() {
+    return this._openAddPeopleModal;
+  }
+
+  addNewPerson() {
+    const body = new URLSearchParams({
+    encounter: this._encounterData.id,
+    type: this._newPersonRole,
+    email: this._newPersonEmail,
+  });
+
+    axios.post("/EncounterAddUser", body, {
+      headers: { "X-Requested-With": "XMLHttpRequest" }, 
+    })
+    .then(response => {
+      console.log("New person added successfully:", response.data);
+      this.setNewPersonName('');
+      this.setNewPersonEmail('');
+      this.setNewPersonRole('');
+    })
+    .catch(error => {
+      console.error("Error adding new person:", error);
+    });
+  }
+
+  removeContact(type, uuid) {
+    const body = new URLSearchParams({
+      encounter: this._encounterData.id,
+      type: type,
+      uuid: uuid,
+    });
+
+    axios.post("/EncounterRemoveUser", body, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    })
+      .then(response => {
+        console.log("Contact removed successfully:", response.data);
+      })
+      .catch(error => {
+        console.error("Error removing contact:", error);
+      });
+  }
+
   // image and annotation operations
   get selectedImageIndex() {
     return this._selectedImageIndex;
@@ -202,6 +279,20 @@ class EncounterStore {
   }
   setShowAnnotations(show) {
     this._showAnnotations = show;
+  }
+
+  get openContactInfoModal() {
+    return this._openContactInfoModal;
+  }
+  setOpenContactInfoModal(isOpen) {
+    this._openContactInfoModal = isOpen;
+  }
+
+  get OpenEncounterHistoryModal() {
+    return this._OpenEncounterHistoryModal;
+  }
+  setOpenEncounterHistoryModal(isOpen) {
+    this._OpenEncounterHistoryModal = isOpen;
   }
 
   get tags() {

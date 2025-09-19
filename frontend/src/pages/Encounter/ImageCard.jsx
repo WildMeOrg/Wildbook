@@ -236,6 +236,9 @@ const ImageCard = observer(({ store = {} }) => {
         <div className="d-flex align-items-center justify-content-center flex-column"
           style={{ cursor: "pointer" }}
           onClick={() => {
+            if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              return;
+            }
             const number = store.encounterData?.id;
             const mediaAssetId = store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
             const url = `${window.location.origin}/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
@@ -278,6 +281,9 @@ const ImageCard = observer(({ store = {} }) => {
         <div className="d-flex align-items-center justify-content-center flex-column"
           style={{ cursor: "pointer" }}
           onClick={() => {
+            if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              return;
+            }
             navigate(`/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets[store.selectedImageIndex]?.id}`);
           }}
         >

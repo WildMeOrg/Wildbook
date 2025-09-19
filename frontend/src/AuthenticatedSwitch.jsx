@@ -5,7 +5,6 @@ import NotFound from "./pages/errorPages/NotFound";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import Footer from "./components/Footer";
 import useGetMe from "./models/auth/users/useGetMe";
-import Encounter from "./pages/Encounter/Encounter";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -28,6 +27,8 @@ const EditAnnotation = lazy(() => import("./pages/EditAnnotation"));
 
 const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
+
+const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,

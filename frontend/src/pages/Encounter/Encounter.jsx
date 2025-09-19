@@ -22,6 +22,9 @@ import DateInput from "../../components/generalInputs/DateInput";
 import FreeTextAndSelectInput from "../../components/generalInputs/FreeTextAndSelectInput";
 import CoordinatesInput from "../../components/generalInputs/CoordinatesInput";
 import { MapDisplay } from "./MapDisplay";
+import ContactIcon from "../../components/icons/ContactIcon";
+import HistoryIcon from "../../components/icons/HistoryIcon";
+import ContactInfoModal from "./ContactInfoModal";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
@@ -52,6 +55,11 @@ const Encounter = observer(() => {
 
   return (
     <Container style={{ padding: "20px" }}>
+      <ContactInfoModal
+        isOpen={store.openContactInfoModal}
+        onClose={() => store.setOpenContactInfoModal(false)}
+        store={store}
+      />
       <Row>
         <Col md={6}>
           <h2>
@@ -79,21 +87,41 @@ const Encounter = observer(() => {
       </Row>
 
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "row" }}>
-        <ActivePill
-          text="Overview"
-          style={{ marginRight: "10px" }}
-          onClick={() => {
-            console.log("Add Individual clicked");
-            store.setOverviewActive(true);
-          }}
-        />
-        <InactivePill
-          text="More Details"
-          onClick={() => {
-            console.log("Add Individual clicked");
-            store.setOverviewActive(false);
-          }}
-        />
+        <div>
+          <ActivePill
+            text="Overview"
+            style={{ marginRight: "10px" }}
+            onClick={() => {
+              console.log("Add Individual clicked");
+              store.setOverviewActive(true);
+            }}
+          />
+          <InactivePill
+            text="More Details"
+            onClick={() => {
+              console.log("Add Individual clicked");
+              store.setOverviewActive(false);
+            }}
+          /></div>
+        <div className="d-flex flex-row" style={{ marginLeft: "auto" }}>
+          <div
+            style={{ marginRight: "10px", cursor: "pointer" }}
+            onClick={() => {
+              store.setOpenContactInfoModal(true);
+            }}
+          >
+            <ContactIcon />
+          </div>
+          <div
+            style={{ marginRight: "10px", cursor: "pointer" }}
+            onClick={() => {
+              store.setOpenEncounterHistoryModal(true);
+            }}
+          >
+            <HistoryIcon />
+          </div>
+
+        </div>
       </div>
       {store.overviewActive ? (
         <Row className="mt-3 mb-3">
