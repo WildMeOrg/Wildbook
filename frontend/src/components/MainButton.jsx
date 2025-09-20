@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 
 export default function MainButton({
+  id = "button",
   link,
   onClick,
   disabled,
@@ -23,6 +24,7 @@ export default function MainButton({
 
   return (
     <Button
+      id={id}
       variant="primary"
       data-testid="main-button"
       onMouseEnter={() => setIsHovered(true)}
@@ -32,11 +34,13 @@ export default function MainButton({
       type={type}
       className={`d-flex justify-content-center align-items-center ${className}`}
       style={{
-        backgroundColor: backgroundColor,
-        border: borderColor
-          ? `2px solid ${borderColor}`
-          : `2px solid ${backgroundColor}`,
-        color: color,
+        backgroundColor: disabled ? "gray" : backgroundColor,
+        border: disabled
+          ? "gray"
+          : borderColor
+            ? `2px solid ${borderColor}`
+            : `2px solid ${backgroundColor}`,
+        color: disabled ? "black" : color,
         margin: "8px",
         borderRadius: "4.8px",
         fontWeight: "bold",

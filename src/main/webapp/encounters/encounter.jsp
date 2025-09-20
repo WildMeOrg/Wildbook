@@ -153,6 +153,10 @@ File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectory
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
 
+//basic Encounter permissions: false by default
+boolean isOwner=false;
+boolean encounterIsPublic=false;
+
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -439,12 +443,15 @@ function setIndivAutocomplete(el) {
                     myShepherd.beginDBTransaction();
                     String numForGps = request.getParameter("number").replaceAll("\\+", "").trim();
                     Encounter encForGps = myShepherd.getEncounter(numForGps);
-                    if(encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
+                    isOwner = ServletUtilities.isUserAuthorizedForEncounter(encForGps, request,myShepherd);
+                	encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(encForGps);
+                	
+                    if((isOwner || encounterIsPublic) && encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
                       %>
                       centerLat = '<%=encForGps.getLatitudeAsDouble()%>';
                       <%
                     }
-                    if(encForGps.getLongitudeAsDouble()!=null){
+                    if((isOwner || encounterIsPublic) && encForGps.getLongitudeAsDouble()!=null){
                       %>
                       centerLong = '<%=encForGps.getLongitudeAsDouble()%>';
                       <%
@@ -561,8 +568,8 @@ var encounterNumber = '<%=num%>';
             	
             	
 				//let's see if this user has ownership and can make edits
-      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
-            	boolean encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(enc);
+      			isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
+            	encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(enc);
             	boolean encounterCanBeEditedByAnyLoggedInUser = encounterIsPublic && request.getUserPrincipal() != null;
             	pageContext.setAttribute("editable", (isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context));
       			boolean loggedIn = false;
@@ -1140,7 +1147,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <em><%=encprops.getProperty("elevation") %></em>
 &nbsp;
 <%
-    if (enc.getMaximumElevationInMeters()!=null) {
+    if ((isOwner || encounterIsPublic) && enc.getMaximumElevationInMeters()!=null) {
   %>
   <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%> </span><%=encprops.getProperty("meters")%> <%
   } else {
@@ -1223,9 +1230,18 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
     <script type="text/javascript">
         var markers = [];
-        var lat = <%=enc.getDecimalLatitude()%>;
-        var lon = <%=enc.getDecimalLongitude()%>;
-        var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
+        var lat = '<%=CommonConfiguration.getCenterLat(context)%>';
+        var lon = '<%=CommonConfiguration.getCenterLong(context)%>';
+        <%
+        if((isOwner || encounterIsPublic)&&enc.getDecimalLatitude()!=null && enc.getDecimalLongitude()!=null){
+        %>
+        	lat = <%=enc.getDecimalLatitude()%>;
+        	lon = <%=enc.getDecimalLongitude()%>;
+        <%
+        }
+        %>
+        var latLng = new google.maps.LatLng(lat,lon);
+        
         //bounds.extend(latLng);
          	<%
          	//currently unused programatically
