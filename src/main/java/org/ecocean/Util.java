@@ -1232,4 +1232,9 @@ public class Util {
         Collections.sort(cnames);
         return cnames;
     }
+
+    // TODO could be read from config in future, if desired
+    public static List<String> getIdentificationRemarksValues() {
+        return Arrays.asList("Unmatched first encounter", "Visual inspection", "Pattern match");
+    }
 }
