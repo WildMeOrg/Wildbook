@@ -4770,6 +4770,8 @@ public class Encounter extends Base implements java.io.Serializable {
     throws ApiException {
         System.out.println("+++++++++++++++++++++++++++ " + op + " " + fieldName + "=>" + value +
             " on: " + this);
+        // TODO future enhancement: op=remove path=annotations/ANNOT_ID should perform
+        // functionality of servlet/EncounterRemoveAnnotation.java
         switch (fieldName) {
         case "decimalLatitude":
             setDecimalLatitude((Double)value);

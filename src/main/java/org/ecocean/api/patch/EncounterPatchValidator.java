@@ -61,6 +61,10 @@ public class EncounterPatchValidator {
                 value = getOrCreateMarkedIndividual(value.toString(), myShepherd);
                 System.out.println("applyPatch() path=individualId using " + value);
             }
+            // TODO future enhancement: op=remove path=annotations/ANNOT_ID
+            // so would need to validate ANNOT_ID here
+            // see also: enc.applyPatchOp()
+
             // if we get through to here, value should be cleared to do actual patch
             // but this will throw exception if bad path
             enc.applyPatchOp(path, value, op);
@@ -110,13 +114,13 @@ public class EncounterPatchValidator {
         return VALID_OPS.contains(op);
     }
 
-    private static MarkedIndividual getOrCreateMarkedIndividual(String id, Shepherd myShepherd) {
-        MarkedIndividual indiv = myShepherd.getMarkedIndividual(id);
+    private static MarkedIndividual getOrCreateMarkedIndividual(String idOrName,
+        Shepherd myShepherd) {
+        MarkedIndividual indiv = myShepherd.getMarkedIndividual(idOrName);
 
         if (indiv != null) return indiv;
-        indiv = new MarkedIndividual();
-        indiv.setId(id);
-        indiv.addName(id);
+        indiv = new MarkedIndividual(); // will get assigned id
+        indiv.addName(idOrName);
         // other properties like taxonomy set during actual patchOp
         myShepherd.getPM().makePersistent(indiv);
         return indiv;
