@@ -3,6 +3,7 @@ import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import SubmitterFilter from "./SubmitterFilter";
+import useGetAllBulkImportTasks from "../../models/bulkImport/useGetAllBulkImportTasks";
 
 export default function MetadataFilter({ data, store }) {
   const encounterStatusOptions =
@@ -38,6 +39,15 @@ export default function MetadataFilter({ data, store }) {
           label: item.username,
         };
       }) || [];
+
+  const { data: taskData } = useGetAllBulkImportTasks();
+  const tasks = taskData?.sourceNames || [];
+  const bulkImportTaskOptions = tasks.map((name) => {
+    return {
+      value: name,
+      label: name,
+    };
+  });
 
   return (
     <div>
@@ -81,6 +91,17 @@ export default function MetadataFilter({ data, store }) {
         field="projects"
         filterId="projects"
         filterKey={"Project Name"}
+        store={store}
+      />
+      <FormGroupMultiSelect
+        isMulti={true}
+        noDesc={true}
+        label="FILTER_BULK_IMPORT_FILE_NAMES"
+        options={bulkImportTaskOptions}
+        term="terms"
+        field="importTaskSourceName"
+        filterId="importTaskSourceName"
+        filterKey={"Bulk Import Task"}
         store={store}
       />
       <FormGroupMultiSelect

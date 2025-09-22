@@ -294,7 +294,15 @@ if(request.getUserPrincipal()!=null){
                                             case_insensitive: true
                                         }
                                     }
-                                }
+                                },
+                                {
+                                  wildcard: {
+                                    encounterIds: {
+                                      value: '*' + query + '*',
+                                            case_insensitive: true
+                                    },
+                                  },
+                                },
                             ]
                         }
                     }
@@ -590,7 +598,7 @@ if(request.getUserPrincipal()!=null){
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
 
-                            <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            <li class="dropdown"><a href="<%=urlLoc %>/react/bulk-import"><%=props.getProperty("bulkImport")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -656,7 +664,6 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
 
-                          <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageMyAccounts")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("libraryAdministration")%></a></li>
                           <li><a href="<%=urlLoc %>/react/admin/logs"><%=props.getProperty("logs")%></a></li>
