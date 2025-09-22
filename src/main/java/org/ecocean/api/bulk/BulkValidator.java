@@ -69,18 +69,17 @@ public class BulkValidator {
     // validated, but just accepted as-is and set on appropriate object
     public static final Set<String> MINIMAL_FIELD_NAMES_STRING = new HashSet<>(Arrays.asList(
         "Encounter.alternateID", "Encounter.distinguishingScar", "Encounter.groupRole",
-        "Encounter.identificationRemarks", "Encounter.individualID", "Encounter.sightingID",
-        "Encounter.sightingRemarks", "Encounter.otherCatalogNumbers", "Encounter.patterningCode",
-        "Encounter.submitterName", "Encounter.submitterOrganization", "MarkedIndividual.name",
-        "MarkedIndividual.nickname", "MarkedIndividual.nickName", "Membership.role",
-        "MicrosatelliteMarkersAnalysis.alleleNames", "MicrosatelliteMarkersAnalysis.analysisID",
-        "MitochondrialDNAAnalysis.haplotype", "Sighting.comments", "Sighting.fieldStudySite",
-        "Sighting.groupBehavior", "Sighting.groupComposition", "Sighting.humanActivityNearby",
-        "Sighting.initialCue", "Sighting.observer", "Sighting.sightingID", "Sighting.terrain",
-        "Sighting.transectName", "Sighting.vegetation", "SatelliteTag.serialNumber",
-        "SexAnalysis.processingLabTaskID", "SocialUnit.socialUnitName", "Survey.comments",
-        "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel",
-        "TissueSample.tissueType"));
+        "Encounter.individualID", "Encounter.sightingID", "Encounter.sightingRemarks",
+        "Encounter.otherCatalogNumbers", "Encounter.patterningCode", "Encounter.submitterName",
+        "Encounter.submitterOrganization", "MarkedIndividual.name", "MarkedIndividual.nickname",
+        "MarkedIndividual.nickName", "Membership.role", "MicrosatelliteMarkersAnalysis.alleleNames",
+        "MicrosatelliteMarkersAnalysis.analysisID", "MitochondrialDNAAnalysis.haplotype",
+        "Sighting.comments", "Sighting.fieldStudySite", "Sighting.groupBehavior",
+        "Sighting.groupComposition", "Sighting.humanActivityNearby", "Sighting.initialCue",
+        "Sighting.observer", "Sighting.sightingID", "Sighting.terrain", "Sighting.transectName",
+        "Sighting.vegetation", "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID",
+        "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type",
+        "SurveyTrack.vesselID", "Survey.vessel", "TissueSample.tissueType"));
     public static final Set<String> MINIMAL_FIELD_NAMES_INT = new HashSet<>(Arrays.asList(
         "Sighting.fieldSurveyCode", "Sighting.groupSize", "Sighting.individualCount",
         "Sighting.maxGroupSizeEstimate", "Sighting.minGroupSizeEstimate",
@@ -394,6 +393,12 @@ public class BulkValidator {
         case "Encounter.country":
             if ((value != null) && !Util.getCountries().contains(value))
                 throw new BulkValidatorException("invalid country value: " + value,
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
+            return value;
+
+        case "Encounter.identificationRemarks":
+            if ((value != null) && !Util.getIdentificationRemarksValues().contains(value))
+                throw new BulkValidatorException("invalid identificationRemarks value: " + value,
                         ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
