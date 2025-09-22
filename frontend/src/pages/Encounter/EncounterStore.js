@@ -122,6 +122,16 @@ class EncounterStore {
 
   _selectedImageIndex = 0;
 
+  _measurementsAndTrackingSection = true;
+  _editTracking = false;
+  _editMeasurements = false;
+
+  _biologicalSamplesSection = false;
+  _editBiologicalSamples = false;
+
+  _projectsSection = false;
+  _editProjects = false;
+
   _sectionDrafts = new Map(
     Object.keys(SECTION_FIELD_PATHS).map((name) => [name, {}]),
   );
@@ -250,6 +260,55 @@ class EncounterStore {
       .catch(error => {
         console.error("Error removing contact:", error);
       });
+  }
+
+  get measurementsAndTrackingSection() {
+    return this._measurementsAndTrackingSection;
+  }
+  setMeasurementsAndTrackingSection(isEnabled) {
+    this._measurementsAndTrackingSection = isEnabled;
+  }
+
+  get editTracking() {
+    return this._editTracking;
+  }
+  setEditTracking(isEditing) {
+    this._editTracking = isEditing;
+  }
+
+  get editMeasurements() {
+    return this._editMeasurements;
+  }
+  setEditMeasurements(isEditing) {
+    this._editMeasurements = isEditing;
+  }
+
+  get biologicalSamplesSection() {
+    return this._biologicalSamplesSection;
+  }
+  setBiologicalSamplesSection(isEnabled) {
+    this._biologicalSamplesSection = isEnabled;
+  }
+
+  get editBiologicalSamples() {
+    return this._editBiologicalSamples;
+  }
+  setEditBiologicalSamples(isEditing) {
+    this._editBiologicalSamples = isEditing;
+  }
+
+  get projectsSection() {
+    return this._projectsSection;
+  }
+  setProjectsSection(isEnabled) {
+    this._projectsSection = isEnabled;
+  }
+
+  get editProjects() {
+    return this._editProjects;
+  }
+  setEditProjects(isEditing) {
+    this._editProjects = isEditing;
   }
 
   // image and annotation operations

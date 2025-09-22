@@ -37,10 +37,7 @@ export default function EncounterPageViewOnly() {
               : "Unassigned "}
           </h2>
           <p>Encounter ID: {encounterId}</p>
-        </Col>
-        <Col md={6} className="text-end">
-          <ActivePill text={data?.state || "unidentifiable"} />
-        </Col>
+        </Col>       
       </Row>
 
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "row" }}>

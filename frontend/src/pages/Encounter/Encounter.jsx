@@ -25,6 +25,7 @@ import { MapDisplay } from "./MapDisplay";
 import ContactIcon from "../../components/icons/ContactIcon";
 import HistoryIcon from "../../components/icons/HistoryIcon";
 import ContactInfoModal from "./ContactInfoModal";
+import { MoreDetails } from "./MoreDetails";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
@@ -641,7 +642,9 @@ const Encounter = observer(() => {
           </Col>
         </Row>
       ) : (
-        <p>TDB</p>
+        <MoreDetails
+          store={store}
+        />
       )}
     </Container>
   );
