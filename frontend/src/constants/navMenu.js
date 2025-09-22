@@ -37,7 +37,7 @@ const authenticatedMenu = (
             defaultMessage="Bulk Import"
           />
         ),
-        href: "/import/instructions.jsp",
+        href: `${process.env.PUBLIC_URL}/bulk-import`,
       },
     ],
   },
