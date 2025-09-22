@@ -14,6 +14,7 @@
 	org.apache.commons.io.FileUtils" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
+
 <%
 String context = ServletUtilities.getContext(request);
 //Shepherd myShepherd=new Shepherd(context);
@@ -30,6 +31,7 @@ String wbName = ContextConfiguration.getNameForContext(context);
 
 %>
 <jsp:include page="../header.jsp" flush="true"/>
+<meta http-equiv="refresh" content="0; url=/react/bulk-import" />
 <style> 
 .import-explanation {
 }

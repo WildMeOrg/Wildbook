@@ -17,6 +17,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 import org.joda.time.DateTime;
+import org.json.JSONArray;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -127,19 +128,24 @@ public class User implements Serializable {
         this.lastLogin = -1;
     }
 
-    public org.json.JSONObject infoJSONObject(String context) {
-        return this.infoJSONObject(context, false);
+    public org.json.JSONObject infoJSONObject(Shepherd myShepherd) {
+        return this.infoJSONObject(myShepherd, false);
     }
 
     // only admin and user-themself should have includeSensitive=true
-    public org.json.JSONObject infoJSONObject(String context, boolean includeSensitive) {
+    public org.json.JSONObject infoJSONObject(Shepherd myShepherd, boolean includeSensitive) {
         org.json.JSONObject info = new org.json.JSONObject();
         info.put("id", this.uuid);
         info.put("displayName", this.getDisplayName());
-        info.put("imageURL", Util.jsonNull(this.getUserImageURL(context)));
+        info.put("imageURL", Util.jsonNull(this.getUserImageURL(myShepherd.getContext())));
         if (includeSensitive) {
             info.put("email", this.getEmailAddress());
             info.put("username", this.getUsername());
+            JSONArray roleArr = new JSONArray();
+            for (Role role : myShepherd.getAllRolesForUser(this.getUsername())) {
+                if (role.getRolename() != null) roleArr.put(role.getRolename());
+            }
+            info.put("roles", roleArr);
         }
         return info;
     }

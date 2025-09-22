@@ -464,6 +464,22 @@ public class CommonConfiguration {
         }
         return maxSize;
     }
+    public static int getMaxMediaCountEncounter(String context) {
+        int maxCount = 200;
+
+        try {
+            String sMaxCount = getProperty("maximumMediaCountEncounter", context);
+            if (sMaxCount != null) {
+                Integer value = new Integer(sMaxCount);
+                maxCount = value.intValue();
+            }
+        } catch (Exception e) {
+            System.out.println(
+                "\n\nHit an exception trying to read maximumMediaCountEncounter property from commonConfiguration.properties.");
+            e.printStackTrace();
+        }
+        return maxCount;
+    }
 
     public static String getHTMLKeywords(String context) {
         return getProperty("htmlKeywords", context).trim();

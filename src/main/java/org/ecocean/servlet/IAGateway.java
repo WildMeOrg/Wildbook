@@ -216,8 +216,7 @@ public class IAGateway extends HttpServlet {
                     mas.add(ma);
                 }
             }
-        }
-        else {
+        } else {
             res.put("success", false);
             res.put("error", "unknown detect value");
         }
@@ -290,7 +289,7 @@ public class IAGateway extends HttpServlet {
         ArrayList<String> validIds = new ArrayList<String>();
         int limitTargetSize = j.optInt("limitTargetSize", -1); // really "only" for debugging/testing, so use if you know what you are doing
 
-        // currently this implies each annotation should be sent one-at-a-time 
+        // currently this implies each annotation should be sent one-at-a-time
         JSONArray alist = j.optJSONArray("annotationIds");
         if ((alist != null) && (alist.length() > 0)) {
             for (int i = 0; i < alist.length(); i++) {
@@ -303,7 +302,7 @@ public class IAGateway extends HttpServlet {
                 validIds.add(aid);
             }
         }
-        // i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for that now, we just send these all in one at a time. 
+        // i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for that now, we just send these all in one at a time.
         JSONArray olist = j.optJSONArray("occurrenceIds");
         if ((olist != null) && (olist.length() > 0)) {
             for (int i = 0; i < olist.length(); i++) {
@@ -412,7 +411,6 @@ public class IAGateway extends HttpServlet {
         JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes,
             myShepherd);
         if (shortCut != null) return shortCut;
-
         try {
             // TODO: cache this examplars list (per species)
             ///note: this can all go away if/when we decide not to need limitTargetSize
@@ -484,7 +482,6 @@ public class IAGateway extends HttpServlet {
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
         }
-
         return taskRes;
     }
 
@@ -569,10 +566,11 @@ public class IAGateway extends HttpServlet {
         getDetectionQueue(context).publish(content);
         return true;
     }
-    
+
     public static boolean addToAcmIdQueue(String context, String mediaAssetID)
     throws IOException {
-        System.out.println("IAGateway.addToAcmIdQueue() trying to regist MediaAsset ID: " + mediaAssetID);
+        System.out.println("IAGateway.addToAcmIdQueue() trying to regist MediaAsset ID: " +
+            mediaAssetID);
         getAcmIdQueue(context).publish(mediaAssetID);
         return true;
     }
@@ -588,7 +586,7 @@ public class IAGateway extends HttpServlet {
         detectionQueue = QueueUtil.getBest(context, "detection");
         return detectionQueue;
     }
-    
+
     public static Queue getAcmIdQueue(String context)
     throws IOException {
         acmIdQueue = QueueUtil.getBest(context, "acmid");
@@ -852,12 +850,15 @@ if (message.startsWith("alite:")) { Util.mark("alite >>> " + org.ecocean.Annotat
         if (taskParameters != null) importTaskId = taskParameters.optString("importTaskId", null);
         ImportTask itask = null;
         Task parentTask = null;
+        String resTaskId = null;
         if (importTaskId != null) itask = myShepherd.getImportTask(importTaskId);
         if (itask != null) {
             parentTask = new Task(); // root task to hold all others, to connect to ImportTask
             parentTask.setParameters(taskParameters);
             myShepherd.storeNewTask(parentTask);
             itask.setIATask(parentTask);
+            resTaskId = parentTask.getId();
+            itask.addLog("handleBulkImport() initiated IA Task " + resTaskId);
             System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask +
                 " to link to " + itask);
         }
@@ -866,11 +867,11 @@ if (message.startsWith("alite:")) { Util.mark("alite >>> " + org.ecocean.Annotat
         for (MediaAsset asset : itask.getMediaAssets()) {
             maIds.put(asset.getId());
         }
-
         Task task = new Task();
         task.setParameters(taskParameters);
         myShepherd.storeNewTask(task);
         if (parentTask != null) parentTask.addChild(task);
+        if (resTaskId == null) resTaskId = task.getId();
         myShepherd.commitDBTransaction();
         // System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
         JSONObject qjob = new JSONObject(jin.toString()); // clone it to start with so we get all same content
@@ -887,6 +888,7 @@ if (message.startsWith("alite:")) { Util.mark("alite >>> " + org.ecocean.Annotat
         res.put("queuedCount", okCount);
         res.remove("error");
         res.put("success", true);
+        res.put("resTaskId", resTaskId);
         return res;
     }
 }
