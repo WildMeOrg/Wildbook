@@ -4619,6 +4619,10 @@ public class Encounter extends Base implements java.io.Serializable {
             User submitter = getSubmitterUser(myShepherd);
             if (submitter != null)
                 rtn.put("submitterInfo", submitter.infoJSONObject(myShepherd, false));
+            // the user-listy things
+            rtn.put("submitters", userListJSONArray(myShepherd, this.submitters));
+            rtn.put("photographers", userListJSONArray(myShepherd, this.photographers));
+            rtn.put("informOthers", userListJSONArray(myShepherd, this.informOthers));
         }
         // these are blocked for non-logged-in *even if it is public*
         if (user == null) {
@@ -4662,6 +4666,16 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         }
         return rtn;
+    }
+
+    // internal utility function
+    private org.json.JSONArray userListJSONArray(Shepherd myShepherd, List<User> users) {
+        org.json.JSONArray arr = new org.json.JSONArray();
+        if (Util.collectionIsEmptyOrNull(users)) return arr;
+        for (User user : users) {
+            arr.put(user.infoJSONObject(myShepherd, false));
+        }
+        return arr;
     }
 
     public static Base createFromApi(org.json.JSONObject payload, List<File> files,
