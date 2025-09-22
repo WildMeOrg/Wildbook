@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import org.ecocean.DataCollectionEvent;
+import org.ecocean.Util;
 
 public class TissueSample extends DataCollectionEvent {
     private static final long serialVersionUID = -4918907304313880745L;
@@ -169,5 +170,10 @@ public class TissueSample extends DataCollectionEvent {
             }
         }
         return null;
+    }
+
+    public String toString() {
+        return super.toString() + " [sampleID:" + sampleID + "] tissueType:" + tissueType + " (" +
+                   Util.collectionSize(analyses) + " analyses)";
     }
 }

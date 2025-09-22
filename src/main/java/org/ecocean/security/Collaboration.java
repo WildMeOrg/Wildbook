@@ -361,14 +361,15 @@ public class Collaboration implements java.io.Serializable {
         try {
             ArrayList<ScheduledIndividualMerge> potentialForNotification =
                 myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
-            
-            System.out.println("Collaboration:potentialForNotification: "+potentialForNotification.size());
-            
-            ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
-            
-            System.out.println("Collaboration:incomplete: "+incomplete.size());
-            
-            
+
+            System.out.println("Collaboration:potentialForNotification: " +
+                potentialForNotification.size());
+
+            ArrayList<ScheduledIndividualMerge> incomplete =
+                myShepherd.getAllIncompleteScheduledIndividualMerges();
+
+            System.out.println("Collaboration:incomplete: " + incomplete.size());
+
             potentialForNotification.addAll(incomplete);
             for (ScheduledIndividualMerge merge : potentialForNotification) {
                 if (!merge.ignoredByUser(username) && merge.isUserParticipent(username)) {
@@ -467,6 +468,22 @@ public class Collaboration implements java.io.Serializable {
         if ((all == null) || (all.size() < 1)) return true;
         for (Encounter enc : all) {
             if (canUserAccessEncounter(enc, request)) return true; // one is good enough (either owner or in collab or no security etc)
+        }
+        return false;
+    }
+
+    // like above, but can pass username
+    public static boolean canUserAccessImportTask(ImportTask itask, String context,
+        String username) {
+        if (itask.getCreator() != null && username != null &&
+            itask.getCreator().getUsername().equals(username)) {
+            return true;
+        }
+        // otherwise check the Encounters
+        List<Encounter> all = itask.getEncounters();
+        if ((all == null) || (all.size() < 1)) return true;
+        for (Encounter enc : all) {
+            if (canUserAccessEncounter(enc, context, username)) return true; // one is good enough (either owner or in collab or no security etc)
         }
         return false;
     }
