@@ -14,6 +14,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ReCAPTCHA;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.User;
@@ -181,12 +182,15 @@ class BulkApiOtherTest {
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
                 mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
-                apiServlet.doGet(mockRequest, mockResponse);
-                responseOut.flush();
-                JSONObject jout = new JSONObject(responseOut.toString());
-                verify(mockResponse).setStatus(200);
-                assertTrue(jout.getBoolean("success"));
-                assertEquals(jout.getJSONArray("tasks").length(), 1);
+                try (MockedStatic<ServletUtilities> mockSU = mockStatic(ServletUtilities.class)) {
+                    mockSU.when(() -> ServletUtilities.isUserAuthorizedForImportTask(any(ImportTask.class), any(HttpServletRequest.class), any(Shepherd.class))).thenReturn(true);
+                    apiServlet.doGet(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals(jout.getJSONArray("tasks").length(), 1);
+                }
             }
         }
 
