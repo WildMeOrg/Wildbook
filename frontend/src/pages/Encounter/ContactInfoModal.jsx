@@ -10,12 +10,12 @@ export const ContactInfoModal = observer(({
     onClose,
     store = {}
 }) => {
+    console.log("submitterInfo:", JSON.stringify(store.encounterData?.submitterInfo));
     if (!isOpen) return null;
     const theme = React.useContext(ThemeColorContext);
     console.log("openAddPeopleModal:", JSON.stringify(store.openAddPeopleModal));
     return (
         <div className="modal show d-block" style={{
-            // backgroundColor: 'rgba(172, 59, 59, 0.5)',
             padding: '20px',
             height: '100vh',
             overflowY: 'auto',
@@ -37,19 +37,30 @@ export const ContactInfoModal = observer(({
                                 only applied to this encounter, and they can opt out anytime.
                             </p>
                         </div>
-                        <ContactInfoCard
-                            title="submitter"
-                            data={store.encounterData?.submitters}
-                            onDelete={() =>
-                                // store.removeContact(data?.id)
-                                console.log(`Delete submitter:`) // Placeholder for delete function
-                            }
-                        />
+                        {Object.keys(store.encounterData?.submitterInfo).length > 0  &&
+                            <ContactInfoCard
+                                title="Managing Researcher"
+                                data={[store.encounterData?.submitterInfo]}
+                                onDelete={() =>
+                                    console.log(`Delete submitter:`)
+                                }
+                            />
+                        }
+                        {store.encounterData?.submitters.length > 0 &&
+                            <ContactInfoCard
+                                title="submitter"
+                                data={store.encounterData?.submitters}
+                                onDelete={() =>
+                                    // store.removeContact(data?.id)
+                                    console.log(`Delete submitter:`) 
+                                }
+                            />
+                        }
 
-                        {
+                        {store.encounterData?.photographers.length > 0 &&
                             <ContactInfoCard title="photographer" data={store.encounterData?.photographers} />
                         }
-                        {
+                        {store.encounterData?.informOthers.length > 0 &&
                             <ContactInfoCard title="other users to inform" data={store.encounterData?.informOthers} />
                         }
 

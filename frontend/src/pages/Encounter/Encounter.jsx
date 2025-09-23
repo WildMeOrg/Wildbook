@@ -26,6 +26,8 @@ import ContactIcon from "../../components/icons/ContactIcon";
 import HistoryIcon from "../../components/icons/HistoryIcon";
 import ContactInfoModal from "./ContactInfoModal";
 import { MoreDetails } from "./MoreDetails";
+import EncounterHistoryModal from "./EncounterHistoryModal";
+import MatchCriteriaModal from "./MatchCriteria";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
@@ -60,6 +62,16 @@ const Encounter = observer(() => {
         isOpen={store.openContactInfoModal}
         onClose={() => store.setOpenContactInfoModal(false)}
         store={store}
+      />
+      <EncounterHistoryModal 
+        isOpen={store.openEncounterHistoryModal}
+        onClose={() => store.setOpenEncounterHistoryModal(false)}
+        store={store}
+      />
+      <MatchCriteriaModal
+        store={store}
+        isOpen={store.openMatchCriteriaModal}
+        onClose={() => store.setOpenMatchCriteriaModal(false)}
       />
       <Row>
         <Col md={6}>
@@ -212,7 +224,7 @@ const Encounter = observer(() => {
                         )
                       }
                     />
-                    <TextInput
+                    {/* <TextInput
                       label="Matched by"
                       value={
                         store.getFieldValue(
@@ -227,6 +239,17 @@ const Encounter = observer(() => {
                           v,
                         )
                       }
+                    /> */}
+                    <SelectInput
+                      label="Matched by"
+                      value={
+                        store.getFieldValue("identify", "identificationRemarks") ?? ""
+                      }
+                      onChange={(v) =>
+                        store.setFieldValue("identify", "identificationRemarks", v)
+                      }
+                      options={store.identificationRemarksOptions}
+                      className="mb-3"                      
                     />
                     <TextInput
                       label="Alternate ID"

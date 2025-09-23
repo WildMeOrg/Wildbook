@@ -1,11 +1,15 @@
 import React from 'react';
 import TrashCanIcon from '../../components/icons/TrashCanIcon';
+import AddPeople from './AddPeople';
+import { observer } from 'mobx-react-lite';
 
-export default function ContactInfoCard({
+export const ContactInfoCard = observer(({
     title = "Contact Information",
-    data = "No data available",
-    onDelete = () => { },
-}) {
+    data = [],
+    store = {},
+}) => {
+
+    console.log("ContactInfoCard data:", JSON.stringify(data));
 
     return (
         <div
@@ -23,21 +27,46 @@ export default function ContactInfoCard({
             <div className="mt-3 mb-3">
                 {data?.map((item, index) => {
                     return (
-                        <div 
+                        <div
                             key={index}
                             className="d-flex flex-row align-items-center mb-2"
-                        >                           
+                        >
                             <span className="avatar">
-                                <i
-                                    className="bi bi-person-circle"
-                                    style={{ fontSize: "1.5rem", color: "#6c757d", marginRight: "10px" }}
-                                ></i>
+                                {item.image ? (
+                                    <img
+                                        src={item.image}
+                                        alt="Avatar"
+                                        style={{
+                                            width: "30px",
+                                            height: "30px",
+                                            borderRadius: "50%",
+                                            marginRight: "10px",
+                                        }}
+                                    />)
+                                    :
+                                    <i
+                                        className="bi bi-person-circle"
+                                        style={{ fontSize: "1.5rem", color: "#6c757d", marginRight: "10px" }}
+                                    ></i>}
                             </span>
-                            <div> {item}</div>
+                            <div> {item?.displayName}</div>
+                            <div style={{marginLeft: "auto",
+                                cursor: "pointer",
+                            }}
+                                onClick={() => {
+                                    store.removeContact(item.id);
+                                }}
+                            >
+                                <TrashCanIcon/>
+                            </div>
                         </div>
                     )
                 })}
             </div>
+            
+        
         </div>
     )
-}
+})
+
+export default ContactInfoCard;

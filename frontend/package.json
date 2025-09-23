@@ -10,6 +10,7 @@
     "axios": "^1.7.4",
     "bootstrap": "^5.3.2",
     "copy-webpack-plugin": "^12.0.2",
+    "dompurify": "^3.2.7",
     "exif-js": "^2.3.0",
     "flow.js": "^0.2.6",
     "google-map-react": "^2.2.1",

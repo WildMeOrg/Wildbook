@@ -12,8 +12,7 @@ const SECTION_FIELD_PATHS = {
   ],
   metadata: [
     "id",
-    "assignedUsername",
-    "sharingPermission",
+    "submitterID",
     "state",
     "observationComments",
   ],
@@ -23,8 +22,6 @@ const SECTION_FIELD_PATHS = {
     "locationName",
     "country",
     "locationGeoPoint",
-    "decimalLatitude",
-    "decimalLongitude",
   ],
   attributes: [
     "taxonomy",
@@ -100,14 +97,16 @@ class EncounterStore {
   _lon = null;
 
   _showAnnotations = true;
-  _openContactInfoModal = false;
-  _OpenEncounterHistoryModal = false;
-  __openAddPeopleModal = false;
-  _openAddPeopleModal = false;
 
-   _newPersonName = '';
-   _newPersonEmail = '';
-   _newPersonRole = '';
+  _openContactInfoModal = false;
+  _openEncounterHistoryModal = false;
+  _openAddPeopleModal = false;
+  _openAddPeopleModal = false;
+  _openMatchCriteriaModal = false;
+
+  _newPersonName = '';
+  _newPersonEmail = '';
+  _newPersonRole = '';
 
   _tags = ["erin", "test", "tag"]; // Example tags, replace with actual data
 
@@ -119,8 +118,16 @@ class EncounterStore {
   _groupRoleOptions = [];
   _patterningCodeOptions = [];
   _locationIdOptions = [];
+  _identificationRemarksOptions = [];
+  _algorithmOptions = [
+    { label: "MiewID Matcher", value: "MiewID Matcher" },
+    { label: "HotSpotter Pattern Matcher", value: "HotSpotter Pattern Matcher" },
+  ];
 
   _selectedImageIndex = 0;
+
+  _selectedMatchLocation = "";
+  _owner = "";
 
   _measurementsAndTrackingSection = true;
   _editTracking = false;
@@ -214,34 +221,63 @@ class EncounterStore {
     this._newPersonRole = role;
   }
 
+  get openAddPeopleModal() {
+    return this._openAddPeopleModal;
+  }
   setOpenAddPeopleModal(isOpen) {
     console.log("Setting openAddPeopleModal to:", isOpen);
     this._openAddPeopleModal = isOpen;
   }
 
-  get openAddPeopleModal() {
-    return this._openAddPeopleModal;
+  get openMatchCriteriaModal() {
+    return this._openMatchCriteriaModal;
+  }
+  setOpenMatchCriteriaModal(isOpen) {
+    console.log("Setting openMatchCriteriaModal to:", isOpen);
+    this._openMatchCriteriaModal = isOpen;
+  }
+
+  get selectedLocation() {
+    return this._selectedMatchLocation;
+  }
+  setSelectedLocation(location) {
+    console.log("Setting selectedLocation to:", location);
+    this._selectedMatchLocation = location
+  }
+
+  get owner () {
+    return this._owner;
+  }
+  setMyData(owner) {
+    this._owner = owner;
+  }
+
+  get selectedAlgorithm() {
+    return this._selectedAlgorithm;
+  }
+  setselectedAlgorithm(algorithm) {
+    this._selectedAlgorithm = algorithm;
   }
 
   addNewPerson() {
     const body = new URLSearchParams({
-    encounter: this._encounterData.id,
-    type: this._newPersonRole,
-    email: this._newPersonEmail,
-  });
+      encounter: this._encounterData.id,
+      type: this._newPersonRole,
+      email: this._newPersonEmail,
+    });
 
     axios.post("/EncounterAddUser", body, {
-      headers: { "X-Requested-With": "XMLHttpRequest" }, 
+      headers: { "X-Requested-With": "XMLHttpRequest" },
     })
-    .then(response => {
-      console.log("New person added successfully:", response.data);
-      this.setNewPersonName('');
-      this.setNewPersonEmail('');
-      this.setNewPersonRole('');
-    })
-    .catch(error => {
-      console.error("Error adding new person:", error);
-    });
+      .then(response => {
+        console.log("New person added successfully:", response.data);
+        this.setNewPersonName('');
+        this.setNewPersonEmail('');
+        this.setNewPersonRole('');
+      })
+      .catch(error => {
+        console.error("Error adding new person:", error);
+      });
   }
 
   removeContact(type, uuid) {
@@ -347,11 +383,11 @@ class EncounterStore {
     this._openContactInfoModal = isOpen;
   }
 
-  get OpenEncounterHistoryModal() {
-    return this._OpenEncounterHistoryModal;
+  get openEncounterHistoryModal() {
+    return this._openEncounterHistoryModal;
   }
   setOpenEncounterHistoryModal(isOpen) {
-    this._OpenEncounterHistoryModal = isOpen;
+    this._openEncounterHistoryModal = isOpen;
   }
 
   get tags() {
@@ -390,6 +426,26 @@ class EncounterStore {
       return this._locationIdOptions;
     }
     return [];
+  }
+
+  get identificationRemarksOptions() {
+    if (this._siteSettingsData?.identificationRemarks) {
+      this._identificationRemarksOptions = this._siteSettingsData.identificationRemarks.map(
+        (data) => ({
+          value: data,
+          label: data,
+        }),
+      );
+      return this._identificationRemarksOptions;
+    }
+    return [];
+  }
+
+  get algorithmOptions() {
+    return this._algorithmOptions;
+  }
+  setAlgorithmOptions(algorithmOptions) {
+    this._algorithmOptions = algorithmOptions;
   }
 
   getFieldValue(sectionName, fieldPath) {
@@ -529,10 +585,24 @@ class EncounterStore {
     );
   }
 
-  /**
-   * @param {string} sectionName - 'date' | 'identify' | 'metadata' | 'location' | 'attributes'
-   * @param {string} encounterId
-   */
+  removeContact(id) {
+    console.log("Removing contact with ID:", id);
+    const body = new URLSearchParams({
+      encounter: this._encounterData.id,
+      contactId: id,
+    });
+
+    axios.post("/EncounterRemoveContact", body, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    })
+      .then(response => {
+        console.log("Contact removed successfully:", response.data);
+        // Optionally, you can refresh the contact list or perform other actions here
+      })
+      .catch(error => {
+        console.error("Error removing contact:", error);
+      });
+  }
 
   parseYMDHM(val) {
     if (val == null) return null;
