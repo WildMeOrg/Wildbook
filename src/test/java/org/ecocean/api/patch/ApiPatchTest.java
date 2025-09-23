@@ -496,20 +496,26 @@ class ApiPatchTest {
         }
     }
 
-/*
-    @Test void apiEmptyPayload()
+    @Test void apiListyUserAddFailNoUser()
     throws ServletException, IOException {
-        User user = null;
-        // to test this we need a valid payload *and* a (faked) valid encounter... sigh
-        String payload = patchPayload("fake", null, null).toString();
-        when(mockRequest.getRequestURI()).thenReturn("/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        User owner = mock(User.class);
+        String idA = "00000000-0000-0000-0000-00000000000A";
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("add", "photographers", idA).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
         when(mockRequest.getMethod()).thenReturn("PATCH");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
 
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
                 (mock, context) -> {
-            //when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
             when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            when(mock.getUserByUUID(idA)).thenReturn(null);
             doNothing().when(mock).beginDBTransaction();
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -520,13 +526,214 @@ class ApiPatchTest {
                     apiServlet.doPatch(mockRequest, mockResponse);
                     responseOut.flush();
                     JSONObject jout = new JSONObject(responseOut.toString());
-                    verify(mockResponse).setStatus(401);
+                    verify(mockResponse).setStatus(400);
                     assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                    assertTrue(gotErrorsValue(jout, "details", "photographers no user id=" + idA));
                 }
             }
         }
     }
- */
+
+    @Test void apiListyUserAddEmailFail()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String badEmail = "bademail";
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("add", "photographers", badEmail).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                    assertTrue(gotErrorsValue(jout, "details",
+                        "photographers has unusable value=" + badEmail));
+                }
+            }
+        }
+    }
+
+    @Test void apiListyUserAddByIdSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        User userA = mock(User.class);
+        String idA = "00000000-0000-0000-0000-00000000000A";
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("add", "photographers", idA).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            when(mock.getUserByUUID(idA)).thenReturn(userA);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals(enc.getPhotographers().get(0), userA);
+                }
+            }
+        }
+    }
+
+    @Test void apiListyUserAddByEmailSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        User userA = mock(User.class);
+        String emailA = "userA@example.com";
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("add", "photographers", emailA).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            when(mock.getOrCreateUserByEmailAddress(emailA, null)).thenReturn(userA);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals(enc.getPhotographers().get(0), userA);
+                }
+            }
+        }
+    }
+
+    @Test void apiListyUserRemoveFail()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        User userA = mock(User.class);
+        String idA = "00000000-0000-0000-0000-00000000000A";
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        enc.addInformOther(userA);
+        String payload = patchPayload("remove", "informOthers", idA).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            when(mock.getUserByUUID(idA)).thenReturn(null);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                    assertTrue(gotErrorsValue(jout, "details",
+                        "informOthers value is invalid user id"));
+                    assertEquals(enc.getInformOthers().get(0), userA);
+                }
+            }
+        }
+    }
+
+    @Test void apiListyUserRemoveSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        User userA = mock(User.class);
+        String idA = "00000000-0000-0000-0000-00000000000A";
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        enc.addInformOther(userA);
+        String payload = patchPayload("remove", "informOthers", idA).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            when(mock.getUserByUUID(idA)).thenReturn(userA);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals(enc.getInformOthers().size(), 0);
+                }
+            }
+        }
+    }
 
 /*
           "errors": [{

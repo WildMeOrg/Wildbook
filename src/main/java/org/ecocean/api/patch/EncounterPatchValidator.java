@@ -6,6 +6,7 @@ import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.User;
 import org.ecocean.Util;
 
 import java.time.YearMonth;
@@ -25,6 +26,9 @@ public class EncounterPatchValidator {
     // "remove" op not allowed on these
     public static final Set<String> PATHS_REQUIRED = new HashSet<>(Arrays.asList("genus",
         "specificEpithet", "year", "submitterID"));
+    // remove needs a value (id) on these
+    public static final Set<String> PATHS_REMOVE_NEEDS_USER_VALUE = new HashSet<>(Arrays.asList(
+        "photographers", "informOthers", "submitters"));
 
     public static JSONObject applyPatch(Encounter enc, JSONObject patch, Shepherd myShepherd)
     throws ApiException {
@@ -61,6 +65,29 @@ public class EncounterPatchValidator {
                 value = getOrCreateMarkedIndividual(value.toString(), myShepherd);
                 System.out.println("applyPatch() path=individualId using " + value);
             }
+            if (PATHS_REMOVE_NEEDS_USER_VALUE.contains(path)) {
+                if (op.equals("replace"))
+                    throw new ApiException(path + " cannot use op=replace",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                if (value == null)
+                    throw new ApiException(path + " requires a value to add to list",
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                String userValue = value.toString();
+                if (Util.isUUID(userValue)) {
+                    User addUser = myShepherd.getUserByUUID(userValue);
+                    if (addUser == null)
+                        throw new ApiException(path + " no user id=" + userValue,
+                                ApiException.ERROR_RETURN_CODE_INVALID);
+                    value = addUser;
+                } else if (Util.isValidEmailAddress(userValue)) {
+                    User addUser = myShepherd.getOrCreateUserByEmailAddress(userValue, null);
+                    value = addUser;
+                    System.out.println("applyPatch() path=" + path + " using " + value);
+                } else {
+                    throw new ApiException(path + " has unusable value=" + userValue,
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                }
+            }
             // TODO future enhancement: op=remove path=annotations/ANNOT_ID
             // so would need to validate ANNOT_ID here
             // see also: enc.applyPatchOp()
@@ -72,7 +99,18 @@ public class EncounterPatchValidator {
             if (PATHS_REQUIRED.contains(path))
                 throw new ApiException(path + " is a required value, cannot remove",
                         ApiException.ERROR_RETURN_CODE_REQUIRED);
-            enc.applyPatchOp(path, null, op);
+            if (PATHS_REMOVE_NEEDS_USER_VALUE.contains(path)) {
+                if (value == null)
+                    throw new ApiException(path + " requires a value to remove from list",
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                value = myShepherd.getUserByUUID(value.toString());
+                if (value == null)
+                    throw new ApiException(path + " value is invalid user id",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                enc.applyPatchOp(path, value, op);
+            } else {
+                enc.applyPatchOp(path, null, op);
+            }
         } else { // other ops
         }
         // no exceptions means we had success

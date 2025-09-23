@@ -3834,6 +3834,11 @@ public class Encounter extends Base implements java.io.Serializable {
         if (!submitters.contains(user)) submitters.add(user);
     }
 
+    public void removeSubmitter(User user) {
+        if ((user == null) || (submitters == null)) return;
+        submitters.remove(user);
+    }
+
     public void addPhotographer(User user) {
         if (user == null) return;
         if (photographers == null) photographers = new ArrayList<User>();
@@ -3852,6 +3857,11 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    public void removePhotographer(User user) {
+        if ((user == null) || (photographers == null)) return;
+        photographers.remove(user);
+    }
+
     public void addInformOther(User user) {
         if (user == null) return;
         if (informOthers == null) informOthers = new ArrayList<User>();
@@ -3862,6 +3872,11 @@ public class Encounter extends Base implements java.io.Serializable {
         if (users == null) { this.informOthers = null; } else {
             this.informOthers = users;
         }
+    }
+
+    public void removeInformOther(User user) {
+        if ((user == null) || (informOthers == null)) return;
+        informOthers.remove(user);
     }
 
     public static List<String> getIndividualIDs(Collection<Encounter> encs) {
@@ -4784,8 +4799,11 @@ public class Encounter extends Base implements java.io.Serializable {
     throws ApiException {
         System.out.println("+++++++++++++++++++++++++++ " + op + " " + fieldName + "=>" + value +
             " on: " + this);
+        if (op == null)
+            throw new ApiException("op is required", ApiException.ERROR_RETURN_CODE_REQUIRED);
         // TODO future enhancement: op=remove path=annotations/ANNOT_ID should perform
         // functionality of servlet/EncounterRemoveAnnotation.java
+        User user = null; // needed for some options below
         switch (fieldName) {
         case "decimalLatitude":
             setDecimalLatitude((Double)value);
@@ -4938,6 +4956,31 @@ public class Encounter extends Base implements java.io.Serializable {
                     indiv.setTaxonomyString(this.getTaxonomyString());
                 // indiv.version will be updated by above calls
                 System.out.println("enc.applyPatchOp() added " + this + " to " + indiv);
+            }
+            break;
+        // value should be a user here
+        case "informOthers":
+            user = (User)value;
+            if (op.equals("remove")) {
+                removeInformOther(user);
+            } else {
+                addInformOther(user);
+            }
+            break;
+        case "submitters":
+            user = (User)value;
+            if (op.equals("remove")) {
+                removeSubmitter(user);
+            } else {
+                addSubmitter(user);
+            }
+            break;
+        case "photographers":
+            user = (User)value;
+            if (op.equals("remove")) {
+                removePhotographer(user);
+            } else {
+                addPhotographer(user);
             }
             break;
         default:
