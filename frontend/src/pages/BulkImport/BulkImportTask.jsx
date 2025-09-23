@@ -115,6 +115,7 @@ const BulkImportTask = observer(() => {
       user: item.submitter?.displayName || "-",
       occurrenceID: item.occurrenceId || "-",
       individualID: item.individualId || "-",
+      individualName: item.individualDisplayName || item.individualId || "-",
       imageCount: item.numberMediaAssets,
       class: classArray,
     };
@@ -165,15 +166,15 @@ const BulkImportTask = observer(() => {
     },
     {
       name: "Individual ID",
-      selector: (row) => row.individualID,
+      selector: (row) => row.individualName,
       cell: (row) =>
-        row.individualID !== "-" ? (
+        row.individualName !== "-" ? (
           <a
             href={`/individuals.jsp?id=${row.individualID}`}
             target="_blank"
             rel="noreferrer"
           >
-            {row.individualID}
+            {row.individualName}
           </a>
         ) : (
           "-"
