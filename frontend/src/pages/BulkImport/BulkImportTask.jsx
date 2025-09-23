@@ -499,6 +499,22 @@ const BulkImportTask = observer(() => {
           >
             <FormattedMessage id="BULK_IMPORT_SEND_TO_IDENTIFICATION" />
           </MainButton>
+          {((!userRoles?.includes("admin") &&
+            !userRoles?.includes("researcher")) ||
+            !store.locationIDString ||
+            task?.status !== "complete" ||
+            task?.iaSummary?.detectionStatus !== "complete") && (
+            <p
+              style={{
+                color: theme.grayColors.gray500,
+              }}
+            >
+              <FormattedMessage
+                id="BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC"
+                defaultMessage="Button is disabled if detection or initial identification task is incomplete"
+              />
+            </p>
+          )}
         </Col>
       </Row>
       <Row>
