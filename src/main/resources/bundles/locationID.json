@@ -36,6 +36,24 @@
 			"id": "Botswana",
 			"locationID": [
 				{
+					"name": "NG20",
+					"id": "NG20",
+					"geospatialInfo": {
+						"lat": -18.929,
+						"long": 23.281
+					},
+					"locationID": []
+				},
+				{
+					"name": "Nxai Pan National Park",
+					"id": "Nxai Pan National Park",
+					"geospatialInfo": {
+						"lat": -20.0953,
+						"long": 24.809
+					},
+					"locationID": []
+				},
+				{
 					"name": "Tuli Block",
 					"id": "Tuli Block",
 					"locationID": [
