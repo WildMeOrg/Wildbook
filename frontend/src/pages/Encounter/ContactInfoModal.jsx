@@ -13,7 +13,7 @@ export const ContactInfoModal = observer(({
     console.log("submitterInfo:", JSON.stringify(store.encounterData?.submitterInfo));
     if (!isOpen) return null;
     const theme = React.useContext(ThemeColorContext);
-    console.log("openAddPeopleModal:", JSON.stringify(store.openAddPeopleModal));
+
     return (
         <div className="modal show d-block" style={{
             padding: '20px',
@@ -37,33 +37,36 @@ export const ContactInfoModal = observer(({
                                 only applied to this encounter, and they can opt out anytime.
                             </p>
                         </div>
-                        {Object.keys(store.encounterData?.submitterInfo).length > 0  &&
+                        {Object.keys(store.encounterData?.submitterInfo).length > 0 &&
                             <ContactInfoCard
                                 title="Managing Researcher"
+                                type="submitters"
                                 data={[store.encounterData?.submitterInfo]}
-                                onDelete={() =>
-                                    console.log(`Delete submitter:`)
-                                }
+                                store={store}
                             />
                         }
                         {store.encounterData?.submitters.length > 0 &&
                             <ContactInfoCard
                                 title="submitter"
+                                type="submitters"
                                 data={store.encounterData?.submitters}
-                                onDelete={() =>
-                                    // store.removeContact(data?.id)
-                                    console.log(`Delete submitter:`) 
-                                }
+                                store={store}
                             />
                         }
-
                         {store.encounterData?.photographers.length > 0 &&
-                            <ContactInfoCard title="photographer" data={store.encounterData?.photographers} />
+                            <ContactInfoCard
+                                title="photographer"
+                                type="photographers"
+                                store={store}
+                                data={store.encounterData?.photographers} />
                         }
                         {store.encounterData?.informOthers.length > 0 &&
-                            <ContactInfoCard title="other users to inform" data={store.encounterData?.informOthers} />
+                            <ContactInfoCard
+                                title="other users to inform"
+                                type="informOthers"
+                                store={store}
+                                data={store.encounterData?.informOthers} />
                         }
-
                         <MainButton
                             onClick={() => store.setOpenAddPeopleModal(true)}
                             noArrow={true}

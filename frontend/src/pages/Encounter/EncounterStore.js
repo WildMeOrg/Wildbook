@@ -101,7 +101,6 @@ class EncounterStore {
   _openContactInfoModal = false;
   _openEncounterHistoryModal = false;
   _openAddPeopleModal = false;
-  _openAddPeopleModal = false;
   _openMatchCriteriaModal = false;
 
   _newPersonName = '';
@@ -245,7 +244,7 @@ class EncounterStore {
     this._selectedMatchLocation = location
   }
 
-  get owner () {
+  get owner() {
     return this._owner;
   }
   setMyData(owner) {
@@ -259,43 +258,29 @@ class EncounterStore {
     this._selectedAlgorithm = algorithm;
   }
 
-  addNewPerson() {
-    const body = new URLSearchParams({
-      encounter: this._encounterData.id,
-      type: this._newPersonRole,
-      email: this._newPersonEmail,
-    });
-
-    axios.post("/EncounterAddUser", body, {
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    })
-      .then(response => {
-        console.log("New person added successfully:", response.data);
-        this.setNewPersonName('');
-        this.setNewPersonEmail('');
-        this.setNewPersonRole('');
-      })
-      .catch(error => {
-        console.error("Error adding new person:", error);
-      });
+  async addNewPerson() {
+    const result = await axios.patch(`/api/v3/encounters/${this._encounterData.id}`, [
+      { op: "add", path: this._newPersonRole, value: this._newPersonEmail },
+    ]);
+    if (result.status === 200) {
+      this.setOpenAddPeopleModal(false);
+      this._newPersonName = '';
+      this._newPersonEmail = '';
+      this._newPersonRole = '';
+    } else {
+      console.error("Failed to add new person:", result);
+    }
   }
 
-  removeContact(type, uuid) {
-    const body = new URLSearchParams({
-      encounter: this._encounterData.id,
-      type: type,
-      uuid: uuid,
-    });
-
-    axios.post("/EncounterRemoveUser", body, {
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    })
-      .then(response => {
-        console.log("Contact removed successfully:", response.data);
-      })
-      .catch(error => {
-        console.error("Error removing contact:", error);
-      });
+  async removeContact(type, uuid) {
+    const data = await axios.patch(`/api/v3/encounters/${this._encounterData.id}`, [
+      { op: "remove", path: type, value: uuid }]);
+    if (data.status === 200) {
+      this._encounterData[type] = this._encounterData[type].filter(item => item.id !== uuid);
+      this.setOpenContactInfoModal(false);
+    } else {
+      console.error("Failed to remove contact:", data);
+    }
   }
 
   get measurementsAndTrackingSection() {
@@ -585,24 +570,24 @@ class EncounterStore {
     );
   }
 
-  removeContact(id) {
-    console.log("Removing contact with ID:", id);
-    const body = new URLSearchParams({
-      encounter: this._encounterData.id,
-      contactId: id,
-    });
+  // removeContact(id) {
+  //   console.log("Removing contact with ID:", id);
+  //   const body = new URLSearchParams({
+  //     encounter: this._encounterData.id,
+  //     contactId: id,
+  //   });
 
-    axios.post("/EncounterRemoveContact", body, {
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    })
-      .then(response => {
-        console.log("Contact removed successfully:", response.data);
-        // Optionally, you can refresh the contact list or perform other actions here
-      })
-      .catch(error => {
-        console.error("Error removing contact:", error);
-      });
-  }
+  //   axios.post("/EncounterRemoveContact", body, {
+  //     headers: { "X-Requested-With": "XMLHttpRequest" },
+  //   })
+  //     .then(response => {
+  //       console.log("Contact removed successfully:", response.data);
+  //       // Optionally, you can refresh the contact list or perform other actions here
+  //     })
+  //     .catch(error => {
+  //       console.error("Error removing contact:", error);
+  //     });
+  // }
 
   parseYMDHM(val) {
     if (val == null) return null;
@@ -722,14 +707,8 @@ class EncounterStore {
     }
 
     const expanded = this.expandOperations(operations);
-    console.log(
-      "NON-STRING values1:",
-      expanded.filter((op) => "value" in op && typeof op.value !== "string"),
-    );
-    console.log(`Section "${sectionName}" has operations:`, operations);
-    console.log(`Saving section "${sectionName}" with operations:`, expanded);
 
-    await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
+    const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
     this.applyPatchOperationsLocally(operations);
     this.resetSectionDraft(sectionName);
   }

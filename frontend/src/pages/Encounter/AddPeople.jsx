@@ -12,13 +12,6 @@ export const AddPeople = observer(({ store }) => {
         <div>
             <h6>Add New People</h6>
             <TextInput
-                value={store.newPersonName}
-                onChange={(value) => store.setNewPersonName(value)}
-                placeholder="Enter name"
-                className="mb-3"
-                label="Name"
-            />
-            <TextInput
                 value={store.newPersonEmail}
                 onChange={(value) => store.setNewPersonEmail(value)}
                 placeholder="Enter email"
@@ -28,7 +21,7 @@ export const AddPeople = observer(({ store }) => {
             <SelectInput
                 value={store.newPersonRole}
                 onChange={(value) => store.setNewPersonRole(value)}
-                options={['submitter', 'photographer', 'informOther']}
+                options={['submitters', 'photographers', 'informOthers']}
                 placeholder="Select role"
                 className="mb-3"
                 label="Role"
@@ -44,7 +37,7 @@ export const AddPeople = observer(({ store }) => {
                     {"Save"}
                 </MainButton>
                 <MainButton
-                    onClick={() =>{
+                    onClick={() => {
                         store.setNewPersonName('');
                         store.setNewPersonEmail('');
                         store.setNewPersonRole('');

@@ -1,15 +1,13 @@
 import React from 'react';
 import TrashCanIcon from '../../components/icons/TrashCanIcon';
-import AddPeople from './AddPeople';
 import { observer } from 'mobx-react-lite';
 
 export const ContactInfoCard = observer(({
     title = "Contact Information",
+    type = "submitter",
     data = [],
     store = {},
 }) => {
-
-    console.log("ContactInfoCard data:", JSON.stringify(data));
 
     return (
         <div
@@ -54,7 +52,7 @@ export const ContactInfoCard = observer(({
                                 cursor: "pointer",
                             }}
                                 onClick={() => {
-                                    store.removeContact(item.id);
+                                    store.removeContact(type, item.id);
                                 }}
                             >
                                 <TrashCanIcon/>
