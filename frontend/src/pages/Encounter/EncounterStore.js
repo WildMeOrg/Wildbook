@@ -107,7 +107,8 @@ class EncounterStore {
   _newPersonEmail = '';
   _newPersonRole = '';
 
-  _tags = ["erin", "test", "tag"]; // Example tags, replace with actual data
+  _tags = [];
+  _addTagsFieldOpen = false;
 
   _taxonomyOptions = [];
   _livingStatusOptions = [];
@@ -376,10 +377,17 @@ class EncounterStore {
   }
 
   get tags() {
-    return this._tags;
+    return this._encounterData?.mediaAssets?.[this._selectedImageIndex]?.keywords || [];
   }
   setTags(newTags) {
     this._tags = newTags;
+  }
+
+  get addTagsFieldOpen() {
+    return this._addTagsFieldOpen;
+  }
+  setAddTagsFieldOpen(add) {
+    this._addTagsFieldOpen = add;
   }
 
   get taxonomyOptions() {
@@ -570,24 +578,6 @@ class EncounterStore {
     );
   }
 
-  // removeContact(id) {
-  //   console.log("Removing contact with ID:", id);
-  //   const body = new URLSearchParams({
-  //     encounter: this._encounterData.id,
-  //     contactId: id,
-  //   });
-
-  //   axios.post("/EncounterRemoveContact", body, {
-  //     headers: { "X-Requested-With": "XMLHttpRequest" },
-  //   })
-  //     .then(response => {
-  //       console.log("Contact removed successfully:", response.data);
-  //       // Optionally, you can refresh the contact list or perform other actions here
-  //     })
-  //     .catch(error => {
-  //       console.error("Error removing contact:", error);
-  //     });
-  // }
 
   parseYMDHM(val) {
     if (val == null) return null;
@@ -709,8 +699,48 @@ class EncounterStore {
     const expanded = this.expandOperations(operations);
 
     const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
-    this.applyPatchOperationsLocally(operations);
+    console.log("Save section result:");
+    // this.applyPatchOperationsLocally(operations);
     this.resetSectionDraft(sectionName);
+  }
+
+  async refreshEncounterData() {
+    if (!this._encounterData?.id) {
+      console.warn('No encounter ID available for refresh');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`/api/v3/encounters/${this._encounterData.id}`);
+      if (response.status === 200 && response.data) {
+        const currentImageIndex = this._selectedImageIndex;
+
+        this.setEncounterData(response.data);
+
+        if (currentImageIndex < (response.data.mediaAssets?.length || 0)) {
+          this.setSelectedImageIndex(currentImageIndex);
+        }
+
+        console.log('Encounter data refreshed successfully');
+        return response.data;
+      }
+    } catch (error) {
+      console.error('Failed to refresh encounter data:', error);
+      throw error;
+    }
+  }
+
+  async saveSectionAndRefresh(sectionName, encounterId) {
+    try {
+      await this.saveSection(sectionName, encounterId);
+
+      await this.refreshEncounterData();
+
+      return true;
+    } catch (error) {
+      console.error(`Failed to save section ${sectionName}:`, error);
+      throw error;
+    }
   }
 
   async setEncounterState(newState) {

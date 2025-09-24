@@ -12,7 +12,6 @@ const ImageCard = observer(({ store = {} }) => {
   const [scaleX, setScaleX] = useState(1);
   const [scaleY, setScaleY] = useState(1);
   const [openImageModal, setOpenImageModal] = useState(false);
-  const [rotationInfo, setRotationInfo] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -163,35 +162,49 @@ const ImageCard = observer(({ store = {} }) => {
       >
 
         {rects.length > 0 && rects.map((rect, index) => {
-          if (store.encounterData?.mediaAssets[store.selectedImageIndex]?.rotationInfo) {
+          let newRect = { ...rect };
+
+          if (store.encounterData?.mediaAssets[store.selectedImageIndex]?.rotation) {
             const imgW = store.encounterData?.mediaAssets[store.selectedImageIndex]?.width;
             const imgH = store.encounterData?.mediaAssets[store.selectedImageIndex]?.height;
             const adjW = imgH / imgW;
             const adjH = imgW / imgH;
-            rect.x /= adjW;
-            rect.width /= adjW;
-            rect.y /= adjH;
-            rect.height /= adjH;
+            console.log("adjW", adjW, "adjH", adjH);
+            newRect = {
+              ...rect,
+              x: (rect.x / scaleX) * adjW,
+              width: (rect.width / scaleX) * adjW,
+              y: (rect.y / scaleY) * adjH,
+              height: (rect.height / scaleY) * adjH,
+            };
+          } else {
+            newRect = {
+              ...rect,
+              x: rect.x / scaleX,
+              y: rect.y / scaleY,
+              width: rect.width / scaleX,
+              height: rect.height / scaleY,
+            };
           }
-          console.log("adjusted rect", JSON.stringify(rect));
+
           return (
             <div
               id={`rect-${index}`}
               key={index}
               style={{
-                cursor: "pointer",
                 position: "absolute",
-                top: rect.y / scaleY,
-                left: rect.x / scaleX,
-                width: rect.width / scaleX,
-                height: rect.height / scaleY,
-                border: rect.encounterId === store.encounterData.id ? "2px solid red" : "2px solid yellow",
-                transform: `rotate(${(rect.rotation * 180) / Math.PI}deg)`,
+                top: newRect.y,
+                left: newRect.x,
+                width: newRect.width,
+                height: newRect.height,
+                border: newRect.encounterId === store.encounterData.id ? "2px solid red" : "2px solid yellow",
+                transform: `rotate(${(newRect.rotation * 180) / Math.PI}deg)`,
+                transformOrigin: "center",
               }}
-              onClick={() => handleClick(rect.encounterId, store.encounterData.id)}
-            ></div>)
-        }
-        )}
+              onClick={() => handleClick(newRect.encounterId, store.encounterData.id)}
+            ></div>
+          )
+        })}
 
         <img
           ref={imgRef}

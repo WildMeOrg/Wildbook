@@ -53,6 +53,7 @@ export const ContactInfoCard = observer(({
                             }}
                                 onClick={() => {
                                     store.removeContact(type, item.id);
+                                    store.refreshEncounterData();
                                 }}
                             >
                                 <TrashCanIcon/>

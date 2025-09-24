@@ -146,6 +146,7 @@ const Encounter = observer(() => {
                 onSave={async () => {
                   await store.saveSection("date", encounterId);
                   store.setEditDateCard(false);
+                  await store.refreshEncounterData();
                 }}
                 onCancel={() => {
                   store.resetSectionDraft("date");
@@ -201,6 +202,7 @@ const Encounter = observer(() => {
                 onSave={async () => {
                   await store.saveSection("identify", encounterId);
                   store.setEditIdentifyCard(false);
+                  await store.refreshEncounterData();
                 }}
                 onCancel={() => {
                   store.resetSectionDraft("identify");
@@ -301,6 +303,7 @@ const Encounter = observer(() => {
                 onSave={async () => {
                   await store.saveSection("metadata", encounterId);
                   store.setEditMetadataCard(false);
+                  await store.refreshEncounterData();                  
                 }}
                 onCancel={() => {
                   store.resetSectionDraft("metadata");
@@ -419,6 +422,7 @@ const Encounter = observer(() => {
                 onSave={async () => {
                   await store.saveSection("location", encounterId);
                   store.setEditLocationCard(false);
+                  await store.refreshEncounterData();
                 }}
                 onCancel={() => {
                   store.resetSectionDraft("location");
@@ -501,6 +505,7 @@ const Encounter = observer(() => {
                 onSave={async () => {
                   await store.saveSection("attributes", encounterId);
                   store.setEditAttributesCard(false);
+                  await store.refreshEncounterData();
                 }}
                 onCancel={() => {
                   store.resetSectionDraft("attributes");

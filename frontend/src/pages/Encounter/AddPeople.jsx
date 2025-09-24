@@ -28,7 +28,10 @@ export const AddPeople = observer(({ store }) => {
             />
             <div className="d-flex justify-content-between align-items-center w-100 flex-wrap mt-3">
                 <MainButton
-                    onClick={() => store.addNewPerson()}
+                    onClick={() => {
+                        store.addNewPerson();                        
+                        store.refreshEncounterData();
+                    }}
                     noArrow={true}
                     backgroundColor={theme.primaryColors.primary700}
                     color="white"

@@ -13,35 +13,6 @@ import { FormattedMessage } from "react-intl";
 import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
 
-
-// const handleAddExistingKeywords = async (keywordId) => {
-//     const data = await addExistingKeyword(mid, keywordId);
-//     if (data && data.success) {
-//       onRefresh && onRefresh(data.results && data.results[mid]);
-//     } else {
-//       console.error(data && (data.error || data.message));
-//     }
-//   };
-
-//   const handleAddNewKeywords = async (mid,text) => {
-//     if (!text || !text.trim()) return;
-//     const data = await addNewKeywordText(mid, text.trim());
-//     if (data && data.success) {
-//       onRefresh && onRefresh(data.results && data.results[mid]);
-//     } else {
-//       console.error(data && (data.error || data.message));
-//     }
-//   };
-
-//   const handleRemoveKeywords = async (keywordId) => {
-//     const data = await removeKeyword(mid, keywordId);
-//     if (data && data.success) {
-//       onRefresh && onRefresh(data.results && data.results[mid]);
-//     } else {
-//       console.error(data && (data.error || data.message));
-//     }
-//   };
-
 export const ImageModal = observer(({
     open,
     onClose,
@@ -57,9 +28,8 @@ export const ImageModal = observer(({
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
-    const [addTagsFieldOpen, setAddTagsFieldOpen] = useState(false);
 
-    const currentAnnotation = assets[index]?.annotations.filter (a => a.encounterId === store.encounterData.id)?.[0] || {};
+    const currentAnnotation = assets[index]?.annotations.filter(a => a.encounterId === store.encounterData.id)?.[0] || {};
     console.log("currentAnnotation", JSON.stringify(currentAnnotation));
     const editAnnotationParams = {
         x: currentAnnotation?.boundingBox[0] || 0,
@@ -69,6 +39,7 @@ export const ImageModal = observer(({
     };
     const annotationParam = encodeURIComponent(JSON.stringify(editAnnotationParams));
     console.log("editAnnotationParams", JSON.stringify(editAnnotationParams));
+    const [tagText, setTagText] = useState("");
 
     useEffect(() => {
         if (!!assets[index]) {
@@ -338,20 +309,61 @@ export const ImageModal = observer(({
                             </label>
                         </div>
                         <div className="d-flex flex-wrap gap-2 mb-3">
-                            {(store.tags ?? []).map((t) =>
+                            {(store.tags ?? []).map((tag) =>
                                 <PillWithButton
-                                    text={t}
-                                    onClose={() => {
-                                        removeKeyword("3653817", "123");
+                                    text={tag.displayName || tag.name}
+                                    onClose={async () => {
+                                        console.log("Removing tag:", tag);
+                                        const data = await removeKeyword(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tag.id);
+                                        console.log("removeKeyword result", JSON.stringify(data));
+                                        if (data?.success === true) {
+                                            console.log("Tag removed successfully:", data.results);
+                                            await store.refreshEncounterData();
+                                        } else {
+                                            console.error("Failed to remove tag:", data);
+                                        }
                                     }}
-
                                 />
                             )}
                             <button className="btn btn-sm btn-outline-secondary"
                                 onClick={async () => {
-                                    await addNewKeywordText("3653817", "123")
+                                    store.setAddTagsFieldOpen(!store.addTagsFieldOpen);
                                 }}
                             >+ Add Tag</button>
+                            {store.addTagsFieldOpen && (
+                                <div className="input-group mb-3">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="New tag"
+                                        onChange={(e) => {
+                                            const text = e.target.value.trim();
+                                            setTagText(text);
+                                        }}
+                                        value={tagText}
+                                    />
+                                    <button
+                                        className="btn btn-outline-secondary"
+                                        onClick={async (e) => {
+                                            if (tagText) {
+                                                const result = await addNewKeywordText(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tagText);
+                                                console.log("addNewKeywordText result", JSON.stringify(result));
+                                                if (result?.success === true) {
+                                                    store.setAddTagsFieldOpen(false);
+                                                    setTagText("");
+                                                    console.log("Tag1111 added successfully:", result.results);
+                                                    store.setAddTagsFieldOpen(false);
+                                                    await store.refreshEncounterData();
+                                                } else {
+                                                    console.error("Failed to add new tag:", result);
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <dl className="row g-2 mb-3">
@@ -394,7 +406,7 @@ export const ImageModal = observer(({
                                 backgroundColor={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
-                                onClick ={() => {
+                                onClick={() => {
                                     store.removeAnnotation(currentAnnotation?.id);
                                 }}
                             >

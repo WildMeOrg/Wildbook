@@ -6,7 +6,7 @@ import ThemeColorContext from "../ThemeColorProvider";
 export default function PillWithButton({
   text,
   onClick,
-    onClose,
+  onClose,
 }) {
   const theme = React.useContext(ThemeColorContext);
 
