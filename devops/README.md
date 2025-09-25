@@ -59,6 +59,8 @@ To create the war file:
 1. cd to the deploy directory `cd ~/wildbook-dev/webapps/wildbook` 
 1. deploy your warfile `jar -xvf /code/directory/Wildbook/target/wildbook-X.Y.Z.war`
 
+
+
 ### Deploy
 1. `cd` to the `devops/development` directory in the code repo
 1. run `docker-compose up [-d]`
