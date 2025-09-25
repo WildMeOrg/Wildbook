@@ -159,6 +159,9 @@ public class SiteSettings extends ApiBase {
             }
             settings.put("labeledKeyword", lkeyword);
             // these are values which are allowed for a given labeledKeyword
+            // TODO the sub-arrays are ordered correctly here, but the labels (since it is a map)
+            // loses its ordering when converted to JSONObject ... could be fixed by iterating thru
+            // keys (which should be in correct order) rather than all-in-one json conversion
             settings.put("labeledKeywordAllowedValues", BulkImportUtil.getLabeledKeywordMap());
 
             JSONObject orgs = new JSONObject();
