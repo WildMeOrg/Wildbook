@@ -294,7 +294,7 @@ public class MetricsBot {
             // WBIA Metrics pull
             String metricsURL = IA.getProperty(context, "IBEISIARestUrlAddImages");
             if (metricsURL != null) {
-                metricsURL = metricsURL.replaceAll("/api/image/json/", "") + "/metrics";
+                metricsURL = metricsURL.replaceAll("/image/json/", "") + "/metrics";
                 String wbiaMetrics = httpGetRemoteText(metricsURL);
 
                 // WBIA turnaround time all task types
