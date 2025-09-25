@@ -1185,9 +1185,7 @@ try{
 			</div>
 
 			<div class="ia-match-filter-section">
-				<% if(allowIA) {%>
-				<input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="sendToIA(false)" />
-				<%}
+				<%
 				if (allowReID){
 				%>
 				<input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="resendToID()" />
