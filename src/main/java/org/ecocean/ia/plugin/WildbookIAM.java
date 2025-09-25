@@ -341,7 +341,7 @@ public class WildbookIAM extends IAPlugin {
         JSONArray jids = null;
 
         try {
-            jids = apiGetJSONArray("/annot/json/", context);
+            jids = apiGetJSONArray("/api/annot/json/", context);
         } catch (Exception ex) {
             ex.printStackTrace();
             IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
@@ -371,7 +371,7 @@ public class WildbookIAM extends IAPlugin {
         JSONArray jids = null;
 
         try {
-            jids = apiGetJSONArray("/image/json/", context);
+            jids = apiGetJSONArray("/api/image/json/", context);
         } catch (Exception ex) {
             ex.printStackTrace();
             IA.log("ERROR: WildbookIAM.iaImageIds() returning empty; failed due to " +
