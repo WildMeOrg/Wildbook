@@ -20,6 +20,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import PillWithDropdown from "../../components/PillWithDropdown";
 import DateInput from "../../components/generalInputs/DateInput";
 import FreeTextAndSelectInput from "../../components/generalInputs/FreeTextAndSelectInput";
+import SearchAndSelectInput from "../../components/generalInputs/SearchAndSelectInput";
 import CoordinatesInput from "../../components/generalInputs/CoordinatesInput";
 import { MapDisplay } from "./MapDisplay";
 import ContactIcon from "../../components/icons/ContactIcon";
@@ -63,7 +64,7 @@ const Encounter = observer(() => {
         onClose={() => store.setOpenContactInfoModal(false)}
         store={store}
       />
-      <EncounterHistoryModal 
+      <EncounterHistoryModal
         isOpen={store.openEncounterHistoryModal}
         onClose={() => store.setOpenEncounterHistoryModal(false)}
         store={store}
@@ -105,14 +106,12 @@ const Encounter = observer(() => {
             text="Overview"
             style={{ marginRight: "10px" }}
             onClick={() => {
-              console.log("Add Individual clicked");
               store.setOverviewActive(true);
             }}
           />
           <InactivePill
             text="More Details"
             onClick={() => {
-              console.log("Add Individual clicked");
               store.setOverviewActive(false);
             }}
           /></div>
@@ -210,38 +209,6 @@ const Encounter = observer(() => {
                 }}
                 content={
                   <div>
-                    <TextInput
-                      label="Identified as"
-                      value={
-                        store.getFieldValue(
-                          "identify",
-                          "individualDisplayName",
-                        ) ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue(
-                          "identify",
-                          "individualDisplayName",
-                          v,
-                        )
-                      }
-                    />
-                    {/* <TextInput
-                      label="Matched by"
-                      value={
-                        store.getFieldValue(
-                          "identify",
-                          "identificationRemarks",
-                        ) ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue(
-                          "identify",
-                          "identificationRemarks",
-                          v,
-                        )
-                      }
-                    /> */}
                     <SelectInput
                       label="Matched by"
                       value={
@@ -251,8 +218,27 @@ const Encounter = observer(() => {
                         store.setFieldValue("identify", "identificationRemarks", v)
                       }
                       options={store.identificationRemarksOptions}
-                      className="mb-3"                      
+                      className="mb-3"
                     />
+
+                    <SearchAndSelectInput
+                      label="Individual ID"
+                      value={store.getFieldValue("identify", "individualID") ?? ""}
+                      onChange={(v) => store.setFieldValue("identify", "individualID", v)}
+                      options={[]}
+                      loadOptions={async (q) => {
+                        const resp = await store.searchIndividualsByName(q);
+                        const options = resp.data.hits.map((it) => ({
+                          value: String(it.id),
+                          label: it.displayName,
+                        }));
+                        return options;
+                      }}
+
+                      debounceMs={300}
+                      minChars={2}
+                    />
+
                     <TextInput
                       label="Alternate ID"
                       value={
@@ -268,6 +254,25 @@ const Encounter = observer(() => {
                           v,
                         )
                       }
+                    />
+                    <SearchAndSelectInput
+                      label="Sighting ID"
+                      value={store.getFieldValue("identify", "occurrenceID") ?? ""}
+                      onChange={(v) => store.setFieldValue("identify", "sightingId", v)}
+                      options={[]}
+                      loadOptions={async (q) => {
+                        const resp = await store.searchSightingsByName(q);
+                        console.log("options", resp.data?.items?.map(it => ({
+                          value: String(it.id),
+                          label: it.displayName
+                        })))
+                        return resp.data?.items?.map(it => ({
+                          value: String(it.id),
+                          label: it.displayName
+                        })) ?? [];
+                      }}
+                      debounceMs={300}
+                      minChars={2}
                     />
                   </div>
                 }
@@ -303,7 +308,7 @@ const Encounter = observer(() => {
                 onSave={async () => {
                   await store.saveSection("metadata", encounterId);
                   store.setEditMetadataCard(false);
-                  await store.refreshEncounterData();                  
+                  await store.refreshEncounterData();
                 }}
                 onCancel={() => {
                   store.resetSectionDraft("metadata");

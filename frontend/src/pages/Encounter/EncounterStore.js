@@ -1,6 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 import convertToTreeDataWithName from "../../utils/converToTreeData";
+import { debounce } from "lodash";
 
 const SECTION_FIELD_PATHS = {
   date: ["date", "verbatimEventDate"],
@@ -8,7 +9,8 @@ const SECTION_FIELD_PATHS = {
     "individualDisplayName",
     "otherCatalogNumbers",
     "identificationRemarks",
-    "occurrenceId",
+    "sightingId",
+    "individualID",
   ],
   metadata: [
     "id",
@@ -107,8 +109,17 @@ class EncounterStore {
   _newPersonEmail = '';
   _newPersonRole = '';
 
+
+  _individualSearchInput = "";
+  _searchingIndividuals = false;
+  _individualSearchResults = [];
+  _searchingSightings = false;
+  _sightingSearchResults = [];
+  _sightingSearchInput = "";
+
   _tags = [];
   _addTagsFieldOpen = false;
+  _availableKeywords = [];
 
   _taxonomyOptions = [];
   _livingStatusOptions = [];
@@ -198,6 +209,63 @@ class EncounterStore {
   }
   setEditAttributesCard(isEditing) {
     this._editAttributesCard = isEditing;
+  }
+
+  get searchingIndividuals() {
+    return this._searchingIndividuals;
+  }
+
+  get individualSearchResults() {
+    return this._individualSearchResults;
+  }
+
+  get searchingSightings() {
+    return this._searchingSightings;
+  }
+
+  get sightingSearchResults() {
+    return this._sightingSearchResults;
+  }
+
+  get individualSearchInput() {
+    return this._individualSearchInput;
+  }
+
+  get sightingSearchInput() {
+    return this._sightingSearchInput;
+  }
+
+  // setter 方法
+  setIndividualSearchInput(input) {
+    this._individualSearchInput = input;
+    // 触发搜索（防抖）
+    this.debouncedSearchIndividuals(input);
+  }
+
+  setSightingSearchInput(input) {
+    this._sightingSearchInput = input;
+    // 触发搜索（防抖）
+    this.debouncedSearchSightings(input);
+  }
+
+  debouncedSearchIndividuals = debounce(async (inputValue) => {
+    if (inputValue && inputValue.length >= 2) {
+      await this.searchIndividualsByName(inputValue);
+    } else {
+      this.clearIndividualSearchResults();
+    }
+  }, 300);
+
+  debouncedSearchSightings = debounce(async (inputValue) => {
+    if (inputValue && inputValue.length >= 2) {
+      await this.searchSightingsByIndividualId(inputValue);
+    } else {
+      this.clearSightingSearchResults();
+    }
+  }, 300);
+
+  clearIndividualSearchResults() {
+    this._individualSearchResults = [];
   }
 
   get newPersonName() {
@@ -388,6 +456,13 @@ class EncounterStore {
   }
   setAddTagsFieldOpen(add) {
     this._addTagsFieldOpen = add;
+  }
+
+  get availableKeywords() {
+    return this._siteSettingsData?.keyword || [];
+  }
+  setAvailableKeywords(keywords) {
+    this._availableKeywords = keywords;
   }
 
   get taxonomyOptions() {
@@ -656,7 +731,6 @@ class EncounterStore {
           path: "minutes",
           value: !!p.minutes ? String(p.minutes) : null,
         });
-
         continue;
       }
 
@@ -683,10 +757,94 @@ class EncounterStore {
         continue;
       }
 
+      if (op.path === "individualID" && op.value) {
+        out.push({
+          op: "replace",
+          path: "individualId",
+          value: op.value,
+        });
+        continue;
+      }
+
       out.push(op);
     }
 
     return out;
+  }
+
+  async searchIndividualsByName(inputValue) {
+
+    this._searchingIndividuals = true;
+
+    try {
+      const searchQuery = {
+        query: {
+          bool: {
+            filter: [
+              ...(this._encounterData?.taxonomy ? [{
+                match: {
+                  taxonomy: this._encounterData.taxonomy
+                }
+              }] : []),
+              {
+                wildcard: {
+                  names: {
+                    value: `*${inputValue}*`,
+                    case_insensitive: true
+                  }
+                }
+              }
+            ]
+          }
+        },
+      };
+
+     const resp = axios.post('/api/v3/search/individual?size=20&from=0', searchQuery);
+     return resp;
+
+    } catch (error) {
+      console.error('Failed to search individuals:', error);
+      this._individualSearchResults = [];
+    } finally {
+      this._searchingIndividuals = false;
+    }
+  }
+
+  async searchSightingsByName(inputValue) {
+    this._searchingIndividuals = true;
+
+    try {
+      const searchQuery = {
+        query: {
+          bool: {
+            filter: [
+              {
+                wildcard: {
+                  names: {
+                    value: `*${inputValue}*`,
+                    case_insensitive: true
+                  }
+                }
+              }
+            ]
+          }
+        },
+      };
+
+      const response = await axios.post('/api/v3/search/occurrence?size=20&from=0', searchQuery);
+      return response;
+      
+    } catch (error) {
+      console.error('Failed to search sightings:', error);
+      this._sightingSearchResults = [];
+    } finally {
+      this._searchingSightings = false;
+    }
+    return [];
+  }  
+
+  clearSightingSearchResults() {
+    this._sightingSearchResults = [];
   }
 
   async saveSection(sectionName, encounterId) {

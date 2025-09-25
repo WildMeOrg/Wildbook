@@ -10,7 +10,6 @@ export const ContactInfoModal = observer(({
     onClose,
     store = {}
 }) => {
-    console.log("submitterInfo:", JSON.stringify(store.encounterData?.submitterInfo));
     if (!isOpen) return null;
     const theme = React.useContext(ThemeColorContext);
 

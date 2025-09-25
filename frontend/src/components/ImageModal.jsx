@@ -8,7 +8,6 @@ import {
     removeKeyword,
 } from "../utils/keywordsFunctions";
 import PillWithButton from "./PillWithButton";
-import { useNavigate } from "react-router";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
@@ -30,7 +29,6 @@ export const ImageModal = observer(({
     const [scaleY, setScaleY] = useState(1);
 
     const currentAnnotation = assets[index]?.annotations.filter(a => a.encounterId === store.encounterData.id)?.[0] || {};
-    console.log("currentAnnotation", JSON.stringify(currentAnnotation));
     const editAnnotationParams = {
         x: currentAnnotation?.boundingBox[0] || 0,
         y: currentAnnotation?.boundingBox[1] || 0,
@@ -38,7 +36,6 @@ export const ImageModal = observer(({
         height: currentAnnotation?.boundingBox[3] || 0,
     };
     const annotationParam = encodeURIComponent(JSON.stringify(editAnnotationParams));
-    console.log("editAnnotationParams", JSON.stringify(editAnnotationParams));
     const [tagText, setTagText] = useState("");
 
     useEffect(() => {
@@ -311,6 +308,7 @@ export const ImageModal = observer(({
                         <div className="d-flex flex-wrap gap-2 mb-3">
                             {(store.tags ?? []).map((tag) =>
                                 <PillWithButton
+                                    key={tag.id}
                                     text={tag.displayName || tag.name}
                                     onClose={async () => {
                                         console.log("Removing tag:", tag);
@@ -331,37 +329,76 @@ export const ImageModal = observer(({
                                 }}
                             >+ Add Tag</button>
                             {store.addTagsFieldOpen && (
-                                <div className="input-group mb-3">
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="New tag"
-                                        onChange={(e) => {
-                                            const text = e.target.value.trim();
-                                            setTagText(text);
-                                        }}
-                                        value={tagText}
-                                    />
-                                    <button
-                                        className="btn btn-outline-secondary"
-                                        onClick={async (e) => {
-                                            if (tagText) {
-                                                const result = await addNewKeywordText(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tagText);
-                                                console.log("addNewKeywordText result", JSON.stringify(result));
-                                                if (result?.success === true) {
-                                                    store.setAddTagsFieldOpen(false);
-                                                    setTagText("");
-                                                    console.log("Tag1111 added successfully:", result.results);
-                                                    store.setAddTagsFieldOpen(false);
-                                                    await store.refreshEncounterData();
-                                                } else {
-                                                    console.error("Failed to add new tag:", result);
+                                <div>
+                                    <div className="input-group mb-3">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="New tag"
+                                            onChange={(e) => {
+                                                const text = e.target.value.trim();
+                                                setTagText(text);
+                                            }}
+                                            value={tagText}
+                                        />
+                                        <button
+                                            className="btn btn-outline-secondary"
+                                            onClick={async (e) => {
+                                                if (tagText) {
+                                                    const result = await addNewKeywordText(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tagText);
+                                                    console.log("addNewKeywordText result", JSON.stringify(result));
+                                                    if (result?.success === true) {
+                                                        store.setAddTagsFieldOpen(false);
+                                                        setTagText("");
+                                                        console.log("Tag1111 added successfully:", result.results);
+                                                        store.setAddTagsFieldOpen(false);
+                                                        await store.refreshEncounterData();
+                                                    } else {
+                                                        console.error("Failed to add new tag:", result);
+                                                    }
                                                 }
-                                            }
-                                        }}
-                                    >
-                                        Add
-                                    </button>
+                                            }}
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                    <div className="input-group mb-3">
+                                        <select
+                                            className="form-select"
+                                            onChange={async (e) => {
+                                                const keywordId = e.target.value;
+                                                if (keywordId) {
+                                                    const result = await addExistingKeyword(
+                                                        store.encounterData?.mediaAssets[store.selectedImageIndex]?.id,
+                                                        keywordId
+                                                    );
+                                                    console.log("addExistingKeyword result", JSON.stringify(result));
+                                                    if (result?.success === true) {
+                                                        store.setAddTagsFieldOpen(false);
+                                                        await store.refreshEncounterData();
+                                                    } else {
+                                                        console.error("Failed to add existing keyword:", result);
+                                                    }
+                                                    e.target.value = "";
+                                                }
+                                            }}
+                                            defaultValue=""
+                                        >
+                                            <option value="" disabled>Select existing keyword...</option>
+                                            {(store.availableKeywords || []).map((keyword) => (
+                                                <option key={keyword.id} value={keyword.name}>
+                                                    {keyword.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            className="btn btn-outline-secondary"
+                                            disabled
+                                            style={{ opacity: 0.6 }}
+                                        >
+                                            Select
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -399,7 +436,6 @@ export const ImageModal = observer(({
                             >
                                 <FormattedMessage id="EDIT_ANNOTATION" />
                             </MainButton>
-                            {/* EncounterRemoveAnnotation */}
                             <MainButton
                                 noArrow={true}
                                 color="white"
