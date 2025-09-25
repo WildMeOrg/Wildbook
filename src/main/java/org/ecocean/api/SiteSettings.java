@@ -3,6 +3,7 @@ package org.ecocean.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -127,14 +128,29 @@ public class SiteSettings extends ApiBase {
 
             settings.put("bulkImportFieldNameSynonyms", BulkValidator.fieldNameSynonymsJson());
 
+            // kwId maps Keyword name to id so we can build the id-list *after we sort* by name
+            // this hackily assumes no duplicate names (some data backs this up?)... but i will
+            // claim this is fine, since if we have duplicate-named Keywords, it really doesnt
+            // matter which id we use for the sake of adding a new one
+            Map<String, String> kwId = new HashMap<String, String>();
             List<String> kws = new ArrayList<String>();
             // this seems like less desirable method: getAllKeywordsNoLabeledKeywords()
             for (Keyword kw : myShepherd.getSortedKeywordList()) {
-                if (!kws.contains(kw.getDisplayName())) kws.add(kw.getDisplayName());
+                if (!kws.contains(kw.getDisplayName())) {
+                    kws.add(kw.getDisplayName());
+                    kwId.put(kw.getDisplayName(), kw.getIndexname());
+                }
             }
             Object[] sortArray = kws.toArray();
             Arrays.sort(sortArray);
             settings.put("keyword", sortArray);
+            // build parallel id list post-sorting
+            JSONArray kwIdArr = new JSONArray();
+            for (Object kwName : sortArray) {
+                if (kwName == null) kwName = ""; // snh, but dont want to mess up ordering/length
+                kwIdArr.put(kwId.get(kwName.toString()));
+            }
+            settings.put("keywordId", kwIdArr);
 
             JSONObject lkeyword = new JSONObject();
             for (LabeledKeyword lkw : myShepherd.getAllLabeledKeywords()) {
