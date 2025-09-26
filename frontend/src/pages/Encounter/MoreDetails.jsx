@@ -10,6 +10,7 @@ import ThemeColorContext from '../../ThemeColorProvider';
 import CardWithSaveAndCancelButtons from '../../components/CardWithSaveAndCancelButtons';
 import ProjectsIcon from '../../components/icons/ProjectsIcon';
 import { MeasurementsAndTrackingReview } from './MeasurementsAndTrackingReview';
+import { Navigate } from 'react-router-dom';
 
 export const MoreDetails = observer(({
     store = {}
@@ -35,6 +36,9 @@ export const MoreDetails = observer(({
                             store.setBiologicalSamplesSection(true)
                             store.setMeasurementsAndTrackingSection(false)
                             store.setProjectsSection(false)
+                            console.log('Biological Samples Section Clicked');
+                            // Redirect to the biological samples page
+                            window.location.href = '/encounters/biologicalSamples.jsp?number=' + store.encounterData?.id;
                         }}
                         style={{ cursor: 'pointer', color: !store.biologicalSamplesSection ? 'black' : 'blue' }}
                     >

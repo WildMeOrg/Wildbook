@@ -268,7 +268,13 @@ export const ImageModal = observer(({
                     >
                         <div className="d-flex align-items-center gap-2 mb-2">
                             {a.url ? (
-                                <img src={a.url} alt="thumbnail" className="rounded-circle" style={{ width: 36, height: 36, objectFit: "cover", }} />
+                                <img 
+                                src={a.url} 
+                                alt="thumbnail" 
+                                className="rounded-circle" 
+                                width={36} 
+                                height={36} 
+                                style={{ objectFit: "cover", overFlow:"hidden"}} />
                             ) : (
                                 <div className="rounded-circle bg-light" style={{ width: 36, height: 36 }} />
                             )}
@@ -476,17 +482,49 @@ export const ImageModal = observer(({
 
                         <dl className="row g-2 mb-3">
                             <dt className="col-5">Encounter</dt>
-                            <dd className="col-7 mb-0">{a.encounterId ?? "—"}</dd>
+                            <dd className="col-7 mb-0">{store.encounterData.id ?? "—"}</dd>
                             <dt className="col-5">Individual ID</dt>
-                            <dd className="col-7 mb-0">{a.individualId ?? "—"}</dd>
+                            <dd className="col-7 mb-0">{store.encounterData.individualId ?? "—"}</dd>
                             <dt className="col-5">Location ID</dt>
-                            <dd className="col-7 mb-0">{a.locationId ?? "—"}</dd>
+                            <dd className="col-7 mb-0">{store.encounterData.locationId ?? "—"}</dd>
+                            <dt className="col-5">Verbatim Event Date</dt>
+                            <dd className="col-7 mb-0">{store.encounterData.verbatimEventDate ?? "—"}</dd>
                         </dl>
 
                         <div className="d-grid gap-2">
-                            <button className="btn btn-outline-secondary btn-sm">Match Results</button>
-                            <button className="btn btn-outline-secondary btn-sm">Visual Matcher</button>
-                            <button className="btn btn-outline-secondary btn-sm">New Match</button>
+                            <MainButton
+                                link={`/react/encounter/${store.encounterData.id}/edit`}
+                                noArrow={true}
+                                color="white"
+                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                borderColor={themeColor?.wildMeColors?.cyan700}
+                                target={true}
+                            >
+                                <FormattedMessage id="MATCH_RESULTS" />
+                            </MainButton>
+
+                            <MainButton
+                                link={`/react/encounter/${store.encounterData.id}/edit`}
+                                noArrow={true}
+                                color="white"
+                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                borderColor={themeColor?.wildMeColors?.cyan700}
+                                target={true}
+                            >
+                                <FormattedMessage id="VISUAL_MATCHER" />
+                            </MainButton>
+
+                            <MainButton
+                                link={`/react/encounter/${store.encounterData.id}/edit`}
+                                noArrow={true}
+                                color="white"
+                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                borderColor={themeColor?.wildMeColors?.cyan700}
+                                target={true}
+                            >
+                                <FormattedMessage id="NEW_MATCH" />
+                            </MainButton>
+                            
                             <MainButton
                                 link={`/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}`}
                                 noArrow={true}
