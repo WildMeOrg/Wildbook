@@ -262,10 +262,6 @@ const Encounter = observer(() => {
                       options={[]}
                       loadOptions={async (q) => {
                         const resp = await store.searchSightingsByName(q);
-                        console.log("options", resp.data?.items?.map(it => ({
-                          value: String(it.id),
-                          label: it.displayName
-                        })))
                         return resp.data?.items?.map(it => ({
                           value: String(it.id),
                           label: it.displayName

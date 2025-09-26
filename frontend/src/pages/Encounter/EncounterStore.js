@@ -120,6 +120,12 @@ class EncounterStore {
   _tags = [];
   _addTagsFieldOpen = false;
   _availableKeywords = [];
+  _availableKeywordsId = [];
+  _selectedKeyword = null;
+  _availabelLabeledKeywords = [];
+  _labeledKeywordAllowedValues = [];
+  _selectedLabeledKeyword = null;
+  _selectedAllowedValues = [];
 
   _taxonomyOptions = [];
   _livingStatusOptions = [];
@@ -235,16 +241,13 @@ class EncounterStore {
     return this._sightingSearchInput;
   }
 
-  // setter 方法
   setIndividualSearchInput(input) {
     this._individualSearchInput = input;
-    // 触发搜索（防抖）
     this.debouncedSearchIndividuals(input);
   }
 
   setSightingSearchInput(input) {
     this._sightingSearchInput = input;
-    // 触发搜索（防抖）
     this.debouncedSearchSightings(input);
   }
 
@@ -293,7 +296,6 @@ class EncounterStore {
     return this._openAddPeopleModal;
   }
   setOpenAddPeopleModal(isOpen) {
-    console.log("Setting openAddPeopleModal to:", isOpen);
     this._openAddPeopleModal = isOpen;
   }
 
@@ -301,7 +303,6 @@ class EncounterStore {
     return this._openMatchCriteriaModal;
   }
   setOpenMatchCriteriaModal(isOpen) {
-    console.log("Setting openMatchCriteriaModal to:", isOpen);
     this._openMatchCriteriaModal = isOpen;
   }
 
@@ -309,7 +310,6 @@ class EncounterStore {
     return this._selectedMatchLocation;
   }
   setSelectedLocation(location) {
-    console.log("Setting selectedLocation to:", location);
     this._selectedMatchLocation = location
   }
 
@@ -461,9 +461,41 @@ class EncounterStore {
   get availableKeywords() {
     return this._siteSettingsData?.keyword || [];
   }
-  setAvailableKeywords(keywords) {
-    this._availableKeywords = keywords;
+
+  get availableKeywordsId() {
+    return this._siteSettingsData?.keywordId || [];
   }
+
+  get selectedKeyword() {
+    return this._selectedKeyword;
+  }
+  setSelectedKeyword(keyword) {
+    this._selectedKeyword = keyword;
+  }
+
+  get availabelLabeledKeywords() {
+    return Object.keys(this._siteSettingsData?.labeledKeyword) || [];
+  }
+
+  get labeledKeywordAllowedValues() {
+    return this._siteSettingsData?.labeledKeywordAllowedValues[this.selectedLabeledKeyword] || [];
+  }
+
+  get selectedLabeledKeyword() {
+    return this._selectedLabeledKeyword;
+  }
+  setSelectedLabeledKeyword(keyword) {
+    this._selectedLabeledKeyword = keyword;
+  }
+
+  get selectedAllowedValues() {
+    return this._selectedAllowedValues;
+  }
+
+  setSelectedAllowedValues(allowedValues) {
+    this._selectedAllowedValues = allowedValues;
+  }
+
 
   get taxonomyOptions() {
     return this._taxonomyOptions;
@@ -525,10 +557,6 @@ class EncounterStore {
   }
 
   setFieldValue(sectionName, fieldPath, newValue) {
-    console.log(
-      `Setting field value for section "${sectionName}", path "${fieldPath}" to`,
-      newValue,
-    );
     const draftForSection = { ...(this._sectionDrafts.get(sectionName) || {}) };
     draftForSection[fieldPath] = newValue;
     this._sectionDrafts.set(sectionName, draftForSection);
@@ -628,13 +656,11 @@ class EncounterStore {
         operations.push({ op: "replace", path: fieldPath, value: newValue });
       }
     }
-    console.log("Building operations for section:", JSON.stringify(operations));
     return operations;
   }
 
   applyPatchOperationsLocally(operations) {
     if (!Array.isArray(operations) || operations.length === 0) return;
-    console.log("Applying operations locally:", operations);
     if (!this._encounterData) return;
     const nextEncounter = JSON.parse(JSON.stringify(this._encounterData));
     for (const operation of operations) {
@@ -647,10 +673,6 @@ class EncounterStore {
     }
     this._encounterData = nextEncounter;
 
-    console.log(
-      "Applied operations locally:",
-      JSON.stringify(this._encounterData),
-    );
   }
 
 
@@ -703,12 +725,9 @@ class EncounterStore {
     const base = operations.slice();
     const out = [];
 
-    console.log("Expanding operations:", JSON.stringify(base));
-
     for (const op of base) {
       if (op.path === "date") {
         const p = this.parseYMDHM(op.value);
-        console.log("p.month", p?.month);
         if (!p) continue;
         out.push({ op: "replace", path: "year", value: String(p.year) });
         out.push({
@@ -799,8 +818,8 @@ class EncounterStore {
         },
       };
 
-     const resp = axios.post('/api/v3/search/individual?size=20&from=0', searchQuery);
-     return resp;
+      const resp = axios.post('/api/v3/search/individual?size=20&from=0', searchQuery);
+      return resp;
 
     } catch (error) {
       console.error('Failed to search individuals:', error);
@@ -833,7 +852,7 @@ class EncounterStore {
 
       const response = await axios.post('/api/v3/search/occurrence?size=20&from=0', searchQuery);
       return response;
-      
+
     } catch (error) {
       console.error('Failed to search sightings:', error);
       this._sightingSearchResults = [];
@@ -841,7 +860,7 @@ class EncounterStore {
       this._searchingSightings = false;
     }
     return [];
-  }  
+  }
 
   clearSightingSearchResults() {
     this._sightingSearchResults = [];
@@ -857,7 +876,6 @@ class EncounterStore {
     const expanded = this.expandOperations(operations);
 
     const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
-    console.log("Save section result:");
     // this.applyPatchOperationsLocally(operations);
     this.resetSectionDraft(sectionName);
   }
@@ -879,7 +897,6 @@ class EncounterStore {
           this.setSelectedImageIndex(currentImageIndex);
         }
 
-        console.log('Encounter data refreshed successfully');
         return response.data;
       }
     } catch (error) {

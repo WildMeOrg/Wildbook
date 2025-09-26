@@ -6,6 +6,7 @@ import {
     addExistingKeyword,
     addNewKeywordText,
     removeKeyword,
+    addExistingLabeledKeyword
 } from "../utils/keywordsFunctions";
 import PillWithButton from "./PillWithButton";
 import { FormattedMessage } from "react-intl";
@@ -37,15 +38,6 @@ export const ImageModal = observer(({
     };
     const annotationParam = encodeURIComponent(JSON.stringify(editAnnotationParams));
     const [tagText, setTagText] = useState("");
-
-    useEffect(() => {
-        if (!!assets[index]) {
-            const asset = assets[index];
-            // const tags = await 
-            // store.setTags()
-        }
-
-    }, [JSON.stringify(assets), JSON.stringify(index)]);
 
     useEffect(() => {
         const s = thumbsRef.current;
@@ -271,6 +263,7 @@ export const ImageModal = observer(({
                             flex: "0 0 360px",
                             minHeight: 0,
                             overflowY: "auto",
+                            overflowX: "auto",
                         }}
                     >
                         <div className="d-flex align-items-center gap-2 mb-2">
@@ -311,11 +304,8 @@ export const ImageModal = observer(({
                                     key={tag.id}
                                     text={tag.displayName || tag.name}
                                     onClose={async () => {
-                                        console.log("Removing tag:", tag);
                                         const data = await removeKeyword(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tag.id);
-                                        console.log("removeKeyword result", JSON.stringify(data));
                                         if (data?.success === true) {
-                                            console.log("Tag removed successfully:", data.results);
                                             await store.refreshEncounterData();
                                         } else {
                                             console.error("Failed to remove tag:", data);
@@ -323,13 +313,20 @@ export const ImageModal = observer(({
                                     }}
                                 />
                             )}
-                            <button className="btn btn-sm btn-outline-secondary"
+                            <button className="btn btn-sm"
+                                style={{
+                                    cursor: "pointer",
+                                    backgroundColor: themeColor?.wildMeColors?.cyan700,
+                                    color: "white",
+                                    borderRadius: "20px",
+                                }}
                                 onClick={async () => {
                                     store.setAddTagsFieldOpen(!store.addTagsFieldOpen);
                                 }}
                             >+ Add Tag</button>
                             {store.addTagsFieldOpen && (
                                 <div>
+                                    <p>Add New Keyword</p>
                                     <div className="input-group mb-3">
                                         <input
                                             type="text"
@@ -341,16 +338,21 @@ export const ImageModal = observer(({
                                             }}
                                             value={tagText}
                                         />
+
                                         <button
-                                            className="btn btn-outline-secondary"
+                                            className="btn"
+                                            style={{
+                                                cursor: "pointer",
+                                                backgroundColor: tagText ? themeColor?.wildMeColors?.cyan700 : "lightgray",
+                                                color: tagText ? "white" : "black",
+                                            }}
                                             onClick={async (e) => {
                                                 if (tagText) {
                                                     const result = await addNewKeywordText(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tagText);
-                                                    console.log("addNewKeywordText result", JSON.stringify(result));
                                                     if (result?.success === true) {
                                                         store.setAddTagsFieldOpen(false);
                                                         setTagText("");
-                                                        console.log("Tag1111 added successfully:", result.results);
+                                                        store.setSelectedKeyword(null);
                                                         store.setAddTagsFieldOpen(false);
                                                         await store.refreshEncounterData();
                                                     } else {
@@ -362,42 +364,111 @@ export const ImageModal = observer(({
                                             Add
                                         </button>
                                     </div>
+                                    <p className="muted">Select keyword</p>
                                     <div className="input-group mb-3">
                                         <select
                                             className="form-select"
                                             onChange={async (e) => {
-                                                const keywordId = e.target.value;
-                                                if (keywordId) {
-                                                    const result = await addExistingKeyword(
-                                                        store.encounterData?.mediaAssets[store.selectedImageIndex]?.id,
-                                                        keywordId
-                                                    );
-                                                    console.log("addExistingKeyword result", JSON.stringify(result));
-                                                    if (result?.success === true) {
-                                                        store.setAddTagsFieldOpen(false);
-                                                        await store.refreshEncounterData();
-                                                    } else {
-                                                        console.error("Failed to add existing keyword:", result);
-                                                    }
-                                                    e.target.value = "";
-                                                }
+                                                const selectedValue = e.target.value;
+                                                store.setSelectedKeyword(selectedValue);
                                             }}
-                                            defaultValue=""
+                                            value={store.selectedKeyword || ""}
                                         >
                                             <option value="" disabled>Select existing keyword...</option>
-                                            {(store.availableKeywords || []).map((keyword) => (
-                                                <option key={keyword.id} value={keyword.name}>
-                                                    {keyword.name}
+                                            {(store.availableKeywords || []).map((keyword, index) => (
+                                                <option key={index} value={store.availableKeywordsId[index]}>
+                                                    {keyword}
                                                 </option>
                                             ))}
                                         </select>
                                         <button
-                                            className="btn btn-outline-secondary"
-                                            disabled
-                                            style={{ opacity: 0.6 }}
+                                            className="btn"
+                                            disabled={!store.selectedKeyword}
+                                            style={{
+                                                cursor: "pointer",
+                                                backgroundColor: store.selectedKeyword ? themeColor?.wildMeColors?.cyan700 : "lightgray",
+                                                color: store.selectedKeyword ? "white" : "black",
+                                            }}
+                                            onClick={async (e) => {
+                                                if (store.selectedKeyword) {
+                                                    const result = await addExistingKeyword(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, store.selectedKeyword);
+                                                    if (result?.success === true) {
+                                                        store.setAddTagsFieldOpen(false);
+                                                        store.setSelectedKeyword(null);
+                                                        setTagText("");
+                                                        store.setAddTagsFieldOpen(false);
+                                                        await store.refreshEncounterData();
+                                                    } else {
+                                                        console.error("Failed to add existing tag:", result);
+                                                    }
+                                                }
+                                            }}
                                         >
-                                            Select
+                                            Add
                                         </button>
+                                    </div>
+                                    <p>Select Labeled Keyword</p>
+                                    <div className="mb-3" >
+                                        <select
+                                            className="form-select"
+                                            onChange={async (e) => {
+                                                const selectedValue = e.target.value;
+                                                store.setSelectedLabeledKeyword(selectedValue);
+                                            }}
+                                            value={store.selectedLabeledKeyword || ""}
+                                        >
+                                            <option value="" disabled>Select existing labeled keyword...</option>
+                                            {(store.availabelLabeledKeywords || []).map((keyword) => (
+                                                <option key={keyword} value={keyword}>
+                                                    {keyword}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="input-group mt-3">
+                                            <select
+                                                className="form-select"
+                                                onChange={async (e) => {
+                                                    const selectedValue = e.target.value;
+                                                    store.setSelectedAllowedValues(selectedValue);
+                                                }}
+                                                defaultValue=""
+                                                value={store.selectedAllowedValues || ""}
+                                            >
+                                                <option value="" disabled>Select Allowed Valus...</option>
+                                                {(store.labeledKeywordAllowedValues || []).map((keyword) => (
+                                                    <option key={keyword} value={keyword}>
+                                                        {keyword}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                className="btn"
+                                                disabled={!store.selectedLabeledKeyword || !store.selectedAllowedValues}
+                                                style={{
+                                                    cursor: "pointer",
+                                                    backgroundColor: (store.setSelectedLabeledKeyword && store.selectedAllowedValues) ? themeColor?.wildMeColors?.cyan700 : "lightgray",
+                                                    color: store.selectedKeyword ? "white" : "black",
+                                                }}
+                                                onClick={async (e) => {
+                                                    if (store.setSelectedLabeledKeyword && store.selectedAllowedValues) {
+                                                        const result = await addExistingLabeledKeyword(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, store.selectedLabeledKeyword, store.selectedAllowedValues);
+                                                        if (result?.success === true) {
+                                                            store.setAddTagsFieldOpen(false);
+                                                            store.setSelectedLabeledKeyword(null);
+                                                            store.setSelectedAllowedValues(null);
+                                                            setTagText("");
+                                                            store.setSelectedKeyword(null);
+                                                            store.setAddTagsFieldOpen(false);
+                                                            await store.refreshEncounterData();
+                                                        } else {
+                                                            console.error("Failed to add existing tag:", result);
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
