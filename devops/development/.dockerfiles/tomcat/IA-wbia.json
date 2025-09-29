@@ -700,64 +700,174 @@
       },
 
       "wild_dog_ambiguous": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyAmbiguous"
+        "_save_as": "wild_dog",
+        "_save_keyword": "BodyAmbiguous",
+         "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
       },
       "wild_dog_dark": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyDark"
+        "_save_as": "wild_dog",
+        "_save_keyword": "BodyDark",
+         "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
       },
       "wild_dog_general": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyGeneral"
+        "_save_as": "wild_dog",
+        "_save_keyword": "BodyGeneral",
+         "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
       },
       "wild_dog_puppy": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "Puppy"
+        "_save_as": "wild_dog",
+        "_save_keyword": "Puppy",
+         "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
       },
       "wild_dog_standard": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyStandard"
+        "_save_as": "wild_dog",
+        "_save_keyword": "BodyStandard",
+         "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
       },
       "wild_dog_tan": {
-        "_id_conf": "@Lycaon.pictus.wild_dog._id_conf",
-        "_save_keyword": "BodyTan"
-      },
-      "wild_dog+tail_ambiguous": {
-        "_id_conf": [],
-        "_save_keyword": "TailAmbiguous"
-      },
-      "wild_dog+tail_double_black_brown": {
-        "_id_conf": [],
-        "_save_keyword": "TailDoubleBlackBrown"
-      },
-      "wild_dog+tail_double_black_white": {
-        "_id_conf": [],
-        "_save_keyword": "TailDoubleBlackWhite"
+        "_save_as": "wild_dog",
+        "_save_keyword": "BodyTan",
+         "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
       },
       "wild_dog+tail_general": {
         "_id_conf": [],
         "_save_keyword": "TailGeneral"
       },
+      "wild_dog+tail_ambiguous": {
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailAmbiguous",
+         "_id_conf": [],
+      },
+      "wild_dog+tail_double_black_brown": {
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailDoubleBlackBrown",
+         "_id_conf": [],
+      },
+      "wild_dog+tail_double_black_white": {
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailDoubleBlackWhite",
+         "_id_conf": [],
+      },
       "wild_dog+tail_long_black": {
-        "_id_conf": [],
-        "_save_keyword": "TailLongBlack"
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailLongBlack",
+         "_id_conf": [],
       },
       "wild_dog+tail_long_white": {
-        "_id_conf": [],
-        "_save_keyword": "TailLongWhite"
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailLongWhite",
+         "_id_conf": [],
       },
       "wild_dog+tail_short_black": {
-        "_id_conf": [],
-        "_save_keyword": "TailShortBlack"
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailShortBlack",
+         "_id_conf": [],
       },
       "wild_dog+tail_standard": {
-        "_id_conf": [],
-        "_save_keyword": "TailStandard"
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailStandard",
+         "_id_conf": [],
       },
       "wild_dog+tail_triple_black": {
-        "_id_conf": [],
-        "_save_keyword": "TailTripleBlack"
+        "_save_as": "wild_dog+tail_general",
+        "_save_keyword": "TailTripleBlack",
+         "_id_conf": [],
       }
     }
   },
