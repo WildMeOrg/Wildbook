@@ -4,8 +4,7 @@ import { observer } from "mobx-react-lite";
 import EncounterStore from "./EncounterStore";
 import { Container } from "react-bootstrap";
 import { Row, Col } from "react-bootstrap";
-import ActivePill from "../../components/ActivePill";
-import InactivePill from "../../components/InactivePill";
+import Pill from "../../components/Pill";
 import CardWithSaveAndCancelButtons from "../../components/CardWithSaveAndCancelButtons";
 import TextInput from "../../components/generalInputs/TextInput";
 import DateIcon from "../../components/icons/DateIcon";
@@ -41,8 +40,7 @@ const Encounter = observer(() => {
   }, [siteSettings, store]);
 
   const params = new URLSearchParams(window.location.search);
-  const encounterId =
-    params.get("number");
+  const encounterId = params.get("number");
 
   useEffect(() => {
     let cancelled = false;
@@ -102,19 +100,24 @@ const Encounter = observer(() => {
 
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "row" }}>
         <div>
-          <ActivePill
+          <Pill
             text="Overview"
             style={{ marginRight: "10px" }}
+            active={store.overviewActive}
             onClick={() => {
+              if (store.overviewActive) return;
               store.setOverviewActive(true);
             }}
           />
-          <InactivePill
+          <Pill
             text="More Details"
+            active={!store.overviewActive}
             onClick={() => {
+              if (!store.overviewActive) return;
               store.setOverviewActive(false);
             }}
-          /></div>
+          />
+        </div>
         <div className="d-flex flex-row" style={{ marginLeft: "auto" }}>
           <div
             style={{ marginRight: "10px", cursor: "pointer" }}
@@ -132,7 +135,6 @@ const Encounter = observer(() => {
           >
             <HistoryIcon />
           </div>
-
         </div>
       </div>
       {store.overviewActive ? (
@@ -212,10 +214,17 @@ const Encounter = observer(() => {
                     <SelectInput
                       label="Matched by"
                       value={
-                        store.getFieldValue("identify", "identificationRemarks") ?? ""
+                        store.getFieldValue(
+                          "identify",
+                          "identificationRemarks",
+                        ) ?? ""
                       }
                       onChange={(v) =>
-                        store.setFieldValue("identify", "identificationRemarks", v)
+                        store.setFieldValue(
+                          "identify",
+                          "identificationRemarks",
+                          v,
+                        )
                       }
                       options={store.identificationRemarksOptions}
                       className="mb-3"
@@ -223,8 +232,12 @@ const Encounter = observer(() => {
 
                     <SearchAndSelectInput
                       label="Individual ID"
-                      value={store.getFieldValue("identify", "individualID") ?? ""}
-                      onChange={(v) => store.setFieldValue("identify", "individualID", v)}
+                      value={
+                        store.getFieldValue("identify", "individualID") ?? ""
+                      }
+                      onChange={(v) =>
+                        store.setFieldValue("identify", "individualID", v)
+                      }
                       options={[]}
                       loadOptions={async (q) => {
                         const resp = await store.searchIndividualsByName(q);
@@ -234,7 +247,6 @@ const Encounter = observer(() => {
                         }));
                         return options;
                       }}
-
                       debounceMs={300}
                       minChars={2}
                     />
@@ -257,15 +269,21 @@ const Encounter = observer(() => {
                     />
                     <SearchAndSelectInput
                       label="Sighting ID"
-                      value={store.getFieldValue("identify", "occurrenceID") ?? ""}
-                      onChange={(v) => store.setFieldValue("identify", "sightingId", v)}
+                      value={
+                        store.getFieldValue("identify", "occurrenceID") ?? ""
+                      }
+                      onChange={(v) =>
+                        store.setFieldValue("identify", "sightingId", v)
+                      }
                       options={[]}
                       loadOptions={async (q) => {
                         const resp = await store.searchSightingsByName(q);
-                        return resp.data?.items?.map(it => ({
-                          value: String(it.id),
-                          label: it.displayName
-                        })) ?? [];
+                        return (
+                          resp.data?.items?.map((it) => ({
+                            value: String(it.id),
+                            label: it.displayName,
+                          })) ?? []
+                        );
                       }}
                       debounceMs={300}
                       minChars={2}
@@ -671,9 +689,7 @@ const Encounter = observer(() => {
           </Col>
         </Row>
       ) : (
-        <MoreDetails
-          store={store}
-        />
+        <MoreDetails store={store} />
       )}
     </Container>
   );

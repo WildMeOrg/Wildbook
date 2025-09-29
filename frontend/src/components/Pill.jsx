@@ -1,10 +1,7 @@
-
-
 import React from "react";
-import PropTypes from "prop-types";
 import ThemeColorContext from "../ThemeColorProvider";
 
-export default function ActivePill({ text, onClick, style }) {
+export default function Pill({ text, onClick, style, active }) {
   const theme = React.useContext(ThemeColorContext);
   return (
     <div
@@ -12,18 +9,16 @@ export default function ActivePill({ text, onClick, style }) {
       style={{
         display: "inline-block",
         padding: "5px 10px",
-        backgroundColor: theme.primaryColors.primary500,
-        color: "#fff",
+        backgroundColor: active
+          ? theme.primaryColors.primary500
+          : theme.primaryColors.primary100,
+        color: active ? "#fff" : "black",
         borderRadius: "20px",
         cursor: "pointer",
-        ...style, 
+        ...style,
       }}
     >
       {text}
     </div>
   );
 }
-ActivePill.propTypes = {
-  text: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
-};

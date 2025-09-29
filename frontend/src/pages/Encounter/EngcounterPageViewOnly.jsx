@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import axios from "axios";
 import { Container } from "react-bootstrap";
 import { Row, Col } from "react-bootstrap";
-import ActivePill from "../../components/ActivePill";
+import Pill from "../../components/Pill";
 import DateIcon from "../../components/icons/DateIcon";
 import IdentifyIcon from "../../components/IdentifyIcon";
 import AttributesIcon from "../../components/icons/AttributesIcon";
@@ -37,11 +37,11 @@ export default function EncounterPageViewOnly() {
               : "Unassigned "}
           </h2>
           <p>Encounter ID: {encounterId}</p>
-        </Col>       
+        </Col>
       </Row>
 
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "row" }}>
-        <ActivePill text="Overview" style={{ marginRight: "10px" }} />
+        <Pill active={true} text="Overview" style={{ marginRight: "10px" }} />
       </div>
       {
         <Row className="mt-3 mb-3">
