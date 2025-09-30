@@ -38,6 +38,55 @@ const SECTION_FIELD_PATHS = {
   ],
 };
 
+const LOCAL_FIELD_ERRORS = {
+  date: {
+    date: "invalid date"
+  },
+  location: {
+    latitude: "please enter invalid latitude and longitude",
+    longitude: "please enter invalid latitude and longitude",
+  },
+};
+
+function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
+  console.log(`Validating field: ${sectionName}.${fieldPath} with value: ${value}`);
+  const errors = LOCAL_FIELD_ERRORS[sectionName] || {};
+  const errorMessage = errors[fieldPath];
+  if (!errorMessage) return null;
+
+  if (sectionName === "date") {
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return errorMessage;
+    return null;
+  }
+
+  if (sectionName === "location") {
+    const isEmpty = (v) => v === "" || v == null;
+
+    const lat = fieldPath === "latitude"  ? value : ctx.lat;
+    const lon = fieldPath === "longitude" ? value : ctx.lon;
+
+    if (isEmpty(lat) && isEmpty(lon)) return null;
+
+    if (fieldPath === "latitude") {
+      if (isEmpty(value)) return errorMessage; 
+      const n = Number(value);
+      if (!Number.isFinite(n) || n < -90 || n > 90) return errorMessage;
+      return null;
+    }
+
+    if (fieldPath === "longitude") {
+      if (isEmpty(value)) return errorMessage;
+      const n = Number(value);
+      if (!Number.isFinite(n) || n < -180 || n > 180) return errorMessage;
+      return null;
+    }
+  }
+
+  return null;
+}
+
+
 function splitPathIntoSegments(fieldPath) {
   return fieldPath.replace(/\[(\d+)\]/g, ".$1").split(".");
 }
@@ -95,6 +144,8 @@ class EncounterStore {
   _editLocationCard = false;
   _editAttributesCard = false;
 
+  _fieldErrors = new Map();
+
   _lat = null;
   _lon = null;
 
@@ -108,7 +159,6 @@ class EncounterStore {
   _newPersonName = '';
   _newPersonEmail = '';
   _newPersonRole = '';
-
 
   _individualSearchInput = "";
   _searchingIndividuals = false;
@@ -174,7 +224,23 @@ class EncounterStore {
     this.resetAllDrafts();
   }
 
-  // Getters and setters for UI state
+  get fieldErrors () {
+    return this._fieldErrors;
+  }
+
+  getFieldError(sectionName, fieldPath) {
+    return this._fieldErrors.get(`${sectionName}.${fieldPath}`) || null;
+  }
+
+  setFieldError(sectionName, fieldPath, errorMsg) {
+    const key = `${sectionName}.${fieldPath}`;
+    if (errorMsg) {
+      this._fieldErrors.set(key, errorMsg);
+    } else {
+      this._fieldErrors.delete(key);
+    }
+  }
+
   get overviewActive() {
     return this._overviewActive;
   }
@@ -413,15 +479,27 @@ class EncounterStore {
     return this._lat;
   }
   setLat(newLat) {
-    this._lat = newLat;
-  }
+  this._lat = newLat;
+  this.setFieldError("location", "latitude",
+    validateFieldValue("location", "latitude", newLat, { lat: newLat, lon: this._lon })
+  );
+  this.setFieldError("location", "longitude",
+    validateFieldValue("location", "longitude", this._lon, { lat: newLat, lon: this._lon })
+  );
+}
 
   get lon() {
     return this._lon;
   }
   setLon(newLon) {
-    this._lon = newLon;
-  }
+  this._lon = newLon;
+  this.setFieldError("location", "longitude",
+    validateFieldValue("location", "longitude", newLon, { lat: this._lat, lon: newLon })
+  );
+  this.setFieldError("location", "latitude",
+    validateFieldValue("location", "latitude", this._lat, { lat: this._lat, lon: newLon })
+  );
+}
 
   get showAnnotations() {
     return this._showAnnotations;
@@ -560,6 +638,12 @@ class EncounterStore {
     const draftForSection = { ...(this._sectionDrafts.get(sectionName) || {}) };
     draftForSection[fieldPath] = newValue;
     this._sectionDrafts.set(sectionName, draftForSection);
+
+    const error = validateFieldValue(sectionName, fieldPath, newValue);
+    console.log("error", JSON.stringify(error));
+    if (error) {
+      this.setFieldError(sectionName, fieldPath, error);
+    }
   }
 
   get siteSettingsData() {

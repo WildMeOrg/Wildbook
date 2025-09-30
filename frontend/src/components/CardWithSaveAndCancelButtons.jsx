@@ -7,6 +7,7 @@ import ThemeColorContext from "../ThemeColorProvider";
 export default function CardWithSaveAndCancelButtons({
     onSave,
     onCancel,
+    disabled = false,
     saveButtonText = "Save",
     cancelButtonText = "Cancel",
     icon,
@@ -35,6 +36,7 @@ export default function CardWithSaveAndCancelButtons({
                     noArrow={true}
                     backgroundColor={theme.primaryColors.primary700}
                     color="white"
+                    disabled={disabled}
                 >
                     {saveButtonText}
                 </MainButton>

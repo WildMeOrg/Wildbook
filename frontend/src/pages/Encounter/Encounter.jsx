@@ -32,6 +32,8 @@ import MatchCriteriaModal from "./MatchCriteria";
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
 
+  console.log("store.fieldErrors", JSON.stringify(store.getFieldError("date", "date")));
+
   const { data: siteSettings } = useGetSiteSettings();
 
   useEffect(() => {
@@ -143,6 +145,7 @@ const Encounter = observer(() => {
             {store.editDateCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<DateIcon />}
+                disabled={!!store.getFieldError("date", "date")}
                 title="Date"
                 onSave={async () => {
                   await store.saveSection("date", encounterId);
@@ -163,6 +166,11 @@ const Encounter = observer(() => {
                       }}
                       className="mb-3"
                     />
+                    {store.getFieldError("date", "date") && (
+                      <div className="invalid-feedback d-block">
+                        {store.getFieldError("date", "date")}
+                      </div>
+                    )}
                     <TextInput
                       label="Verbatim Event Date"
                       value={
@@ -372,7 +380,7 @@ const Encounter = observer(() => {
                       }
                       className="mb-3"
                     />
-                    <SelectInput
+                    {/* <SelectInput
                       label="Sharing Permission"
                       value={
                         store.getFieldValue("metadata", "sharingPermission") ??
@@ -383,7 +391,7 @@ const Encounter = observer(() => {
                       }
                       options={[]}
                       className="mb-3"
-                    />
+                    /> */}
                   </div>
                 }
               />
@@ -423,11 +431,11 @@ const Encounter = observer(() => {
                       {store.getFieldValue("metadata", "assignedUsername") ||
                         "None"}
                     </div>
-                    <div>
+                    {/* <div>
                       Sharing Permission:{" "}
                       {store.getFieldValue("metadata", "sharingPermission") ||
                         "None"}
-                    </div>
+                    </div> */}
                   </div>
                 }
               />
@@ -437,6 +445,7 @@ const Encounter = observer(() => {
             {store.editLocationCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<LocationIcon />}
+                disabled={!!store.getFieldError("location", "latitude") || !!store.getFieldError("location", "longitude")}
                 title="Location"
                 onSave={async () => {
                   await store.saveSection("location", encounterId);

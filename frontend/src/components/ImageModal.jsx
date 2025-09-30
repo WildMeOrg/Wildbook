@@ -23,13 +23,13 @@ export const ImageModal = observer(({
     store = {},
 }) => {
     const themeColor = React.useContext(ThemeColorContext);
-
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
+    const allAnnotations = assets[index]?.annotations.filter(a => !a.isTrivial) || [];
 
-    const currentAnnotation = assets[index]?.annotations.filter(a => a.encounterId === store.encounterData.id)?.[0] || {};
+    const currentAnnotation = allAnnotations.filter(a => a.encounterId === store.encounterData.id)?.[0] || null;
     const editAnnotationParams = {
         x: currentAnnotation?.boundingBox[0] || 0,
         y: currentAnnotation?.boundingBox[1] || 0,
@@ -528,8 +528,8 @@ export const ImageModal = observer(({
                             <MainButton
                                 link={`/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}`}
                                 noArrow={true}
-                                color="white"
-                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                backgroundColor="white"
+                                color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                             >
@@ -538,8 +538,9 @@ export const ImageModal = observer(({
                             <MainButton
                                 link={`/react/edit-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.id}`}
                                 noArrow={true}
-                                color="white"
-                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                disabled ={!currentAnnotation?.id}
+                                backgroundColor="white"
+                                color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                             >
@@ -547,8 +548,9 @@ export const ImageModal = observer(({
                             </MainButton>
                             <MainButton
                                 noArrow={true}
-                                color="white"
-                                backgroundColor={themeColor?.wildMeColors?.cyan700}
+                                backgroundColor="white"
+                                disabled ={!currentAnnotation?.id}
+                                color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                                 onClick={() => {

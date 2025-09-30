@@ -109,6 +109,11 @@ export const CoordinatesInput = observer(({ store }) => {
                 }
               }}
             />
+            {store.getFieldError("location", "latitude") && (
+              <div className="invalid-feedback d-block">
+                {store.getFieldError("location", "latitude") || ""}
+              </div>
+            )}
           </div>
           <div className="w-50">
             <Form.Control
@@ -127,6 +132,11 @@ export const CoordinatesInput = observer(({ store }) => {
                 }
               }}
             />
+            {store.getFieldError("location", "longitude") && (
+              <div className="invalid-feedback d-block">
+                {store.getFieldError("location", "longitude") || ""}
+              </div>
+            )}
           </div>
         </div>
       </Form.Group>

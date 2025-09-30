@@ -127,7 +127,7 @@ const ImageCard = observer(({ store = {} }) => {
     if (encounterId === storeEncounterId) {
       console.log("Clicked on the rectangle for the current encounter");
       setOpenImageModal(true);
-      store.setSelectedImageIndex(store.selectedImageIndex);
+      // store.setSelectedImageIndex(store.selectedImageIndex);
     } else {
       console.log("Clicked on the rectangle for a different encounter");
       window.location.href = `/react/encounter?number=${encounterId}`;
@@ -159,6 +159,12 @@ const ImageCard = observer(({ store = {} }) => {
           width: "100%",
           position: "relative",
         }}
+        onClick ={() => {
+          if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+            return;
+          }
+          setOpenImageModal(true);
+        } }
       >
 
         {rects.length > 0 && rects.map((rect, index) => {
