@@ -522,5 +522,9 @@
     "BULK_IMPORT_TASK_DELETED": "Bulk import task deleted successfully.",
     "BULK_IMPORT_TASK_DELETE_ERROR": "Failed to delete import task: {error}",
     "BULK_IMPORT_TASK_ERROR_DEFAULT": "You task failed to process due to an error.",
-    "FILTER_BULK_IMPORT_FILE_NAMES": "Bulk Import File Names"
+    "FILTER_BULK_IMPORT_FILE_NAMES": "Bulk Import File Names",
+    "BULK_IMPORT_SEND_TO_IDENTIFICATION": "Send to Identification",
+    "BULK_IMPORT_LOCATION_ID_DESC": "The more options you select, the longer identification takes. Be as specific as possible.",
+    "DANGER_ZONE": "Danger Zone",
+    "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Button is disabled if detection or initial identification task is incomplete. Please wait for the task to complete before sending to identification."
 }

@@ -500,6 +500,9 @@ class BulkApiPostTest {
         Occurrence occ = mock(Occurrence.class);
         String requestBody = getValidPayloadArrays();
 
+        // test a valid country while we are at it
+        requestBody = addToRows(requestBody, "Encounter.country", "Germany");
+
         when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
         when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
 
@@ -605,4 +608,36 @@ class BulkApiPostTest {
             }
         }
     }
+
+    @Test void apiPostInvalidCountry()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+        String requestBody = getValidPayloadArrays();
+
+        requestBody = addToRows(requestBody, "Encounter.country", "fail-country");
+
+        when(mockRequest.getRequestURI()).thenReturn("/api/v3/bulk-import");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(requestBody)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+        })) {
+            try (MockedStatic<UploadedFiles> mockUF = mockStatic(UploadedFiles.class)) {
+                mockUF.when(() -> UploadedFiles.findFiles(any(HttpServletRequest.class),
+                    any(String.class))).thenReturn(emptyFiles);
+                try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                    mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(
+                        mockPMF);
+                    apiServlet.doPost(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(hasError(jout, 0, "Encounter.country"));
+                }
+            }
+        }
+    }
+
 }

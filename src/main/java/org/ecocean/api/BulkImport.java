@@ -64,7 +64,8 @@ public class BulkImport extends ApiBase {
                 if (args.length == 1) { // listing case
                     JSONArray tasksArr = new JSONArray();
                     for (ImportTask task : tasks) {
-                        tasksArr.put(taskJson(task, false, myShepherd));
+                        if (isAdmin || ServletUtilities.isUserAuthorizedForImportTask(task, request, myShepherd))
+                            tasksArr.put(taskJson(task, false, myShepherd));
                     }
                     rtn.put("tasks", tasksArr);
                 } else { // sourceNames case
@@ -90,7 +91,7 @@ public class BulkImport extends ApiBase {
                     ImportTask task = myShepherd.getImportTask(bulkImportId);
                     if (task == null) {
                         statusCode = 404;
-                    } else if (!isAdmin && !currentUser.equals(task.getCreator())) {
+                    } else if (!isAdmin && !ServletUtilities.isUserAuthorizedForImportTask(task, request, myShepherd)) {
                         statusCode = 403;
                         rtn.put("message", "no access to task");
                     } else {
@@ -863,9 +864,10 @@ public class BulkImport extends ApiBase {
         jt.put("id", task.getId());
         jt.put("creator",
             task.getCreator() ==
-            null ? JSONObject.NULL : task.getCreator().infoJSONObject(myShepherd.getContext()));
+            null ? JSONObject.NULL : task.getCreator().infoJSONObject(myShepherd));
         jt.put("dateCreated", task.getCreated());
         jt.put("sourceName", task.getSourceName());
+        jt.put("matchingLocations", task.getMatchingLocations());
         jt.put("legacy", task.isLegacy());
         jt.put("errors", task.getErrors());
         // "importPercent" was deemed more consistent and useful
@@ -904,11 +906,12 @@ public class BulkImport extends ApiBase {
                     if (enc.hasMarkedIndividual()) {
                         indivIds.add(enc.getIndividualID());
                         encj.put("individualId", enc.getIndividualID());
+                        encj.put("individualDisplayName", enc.getDisplayName());
                     }
                     encj.put("numberMediaAssets", enc.numAnnotations());
                     User sub = enc.getSubmitterUser(myShepherd);
                     if (sub != null)
-                        encj.put("submitter", sub.infoJSONObject(myShepherd.getContext()));
+                        encj.put("submitter", sub.infoJSONObject(myShepherd));
                 }
                 encArr.put(encj);
             }

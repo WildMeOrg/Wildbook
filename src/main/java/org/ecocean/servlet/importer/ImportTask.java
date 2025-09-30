@@ -134,6 +134,13 @@ public class ImportTask implements java.io.Serializable {
         return null;
     }
 
+    public JSONArray getMatchingLocations() {
+        if (getParameters() == null) return null;
+        JSONObject passed = getParameters().optJSONObject("_passedParameters");
+        if (passed == null) return null;
+        return passed.optJSONArray("matchingLocations");
+    }
+
     // this means was NOT sent via api
     // NOTE this logic may end up being flaky; adjust accordingly
     public boolean isLegacy() {
@@ -348,15 +355,24 @@ public class ImportTask implements java.io.Serializable {
 
     public JSONObject statsAnnotations(Shepherd myShepherd) {
         JSONObject sa = new JSONObject();
+        // List<Task> is ordered 'created desc'
         Map<Annotation, List<Task> > atm = this.getAnnotationTaskMap(myShepherd);
         int numTasks = 0;
+        int numLatestTasks = 0;
         JSONObject encData = new JSONObject();
 
         for (Annotation ann : atm.keySet()) {
             Encounter enc = ann.findEncounter(myShepherd);
             if ((enc != null) && !encData.has(enc.getId()))
                 encData.put(enc.getId(), new JSONArray());
+            // trivial annots will not be sent correctly to ident (no iaClass etc)
+            // so we skip them in counts as if not sent
+            if (ann.isTrivial()) {
+                sa.put(ann.getId(), 0);
+                continue;
+            }
             sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            boolean latestTask = true; // only for first (most recent) task
             for (Task atask : atm.get(ann)) {
                 String status = atask.getStatus(myShepherd);
                 if (sa.has(status)) {
@@ -365,6 +381,16 @@ public class ImportTask implements java.io.Serializable {
                     sa.put(status, 1);
                 }
                 numTasks++;
+                // this records only most recent task statuses like: numLatestTask_complete
+                if (latestTask) {
+                    String latestStatus = "numLatestTask_" + atask.getStatus(myShepherd);
+                    if (sa.has(latestStatus)) {
+                        sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
+                    } else {
+                        sa.put(latestStatus, 1);
+                    }
+                    numLatestTasks++;
+                }
                 if (enc != null) {
                     JSONArray arr = new JSONArray();
                     arr.put(atask.getId());
@@ -372,10 +398,12 @@ public class ImportTask implements java.io.Serializable {
                     arr.put(ann.getIAClass());
                     encData.getJSONArray(enc.getId()).put(arr);
                 }
+                latestTask = false;
             }
         }
         sa.put("encounterTaskInfo", encData);
         sa.put("numTasks", numTasks);
+        sa.put("numLatestTasks", numLatestTasks);
         return sa;
     }
 
@@ -546,12 +574,12 @@ public class ImportTask implements java.io.Serializable {
                 int numIdentificationComplete = 0;
                 int numIdentificationTotal = 0;
                 // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
-                if (statsAnn.optInt("numTasks", -1) >= 0)
-                    numIdentificationTotal = statsAnn.optInt("numTasks");
+                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
+                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
                 // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
                 // (it may well have been me)
-                if (statsAnn.optInt("completed", -1) >= 0)
-                    numIdentificationComplete = statsAnn.optInt("completed");
+                if (statsAnn.optInt("numLatestTask_completed", -1) >= 0)
+                    numIdentificationComplete = statsAnn.optInt("numLatestTask_completed");
                 // TODO do we have to deal with errors as "completed" somehow?
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);

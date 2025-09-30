@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.util.Calendar;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.Assert.*;
 
@@ -42,5 +43,16 @@ class UtilTest {
         assertTrue(Util.dateIsInFuture(year, month + 1, null));
         assertTrue(Util.dateIsInFuture(year, month, day + 1));
         assertTrue(Util.dateIsInFuture(year + 1, month, day));
+    }
+
+    // some of these assertions may fail if the world collapses
+    // into political chaos
+    @Test void testCountries() {
+        List<String> cs = Util.getCountries();
+
+        assertNotNull(cs);
+        assertTrue(cs.size() > 100);
+        assertTrue(cs.contains("Palestinian Territories"));
+        assertTrue(cs.contains("United States"));
     }
 }
