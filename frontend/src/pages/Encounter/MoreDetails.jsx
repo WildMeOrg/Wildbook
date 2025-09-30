@@ -8,9 +8,8 @@ import MeasurementsIcon from '../../components/icons/MeasurementsIcon';
 import { Row } from 'react-bootstrap';
 import ThemeColorContext from '../../ThemeColorProvider';
 import CardWithSaveAndCancelButtons from '../../components/CardWithSaveAndCancelButtons';
-import ProjectsIcon from '../../components/icons/ProjectsIcon';
 import { MeasurementsAndTrackingReview } from './MeasurementsAndTrackingReview';
-import { Navigate } from 'react-router-dom';
+import { ProjectsCard } from './ProjectsCard';
 
 export const MoreDetails = observer(({
     store = {}
@@ -143,35 +142,13 @@ export const MoreDetails = observer(({
                     </Col>
                 }
                 {store.projectsSection &&
-                    <Col md={9} sm={12}>
-                        {!store.editProjects ?
-                            <CardWithEditButton
-                                icon={<ProjectsIcon />}
-                                title="Projects"
-                                content={
-                                    <div>
-                                        <div>Projects: {store.projects}</div>
-                                    </div>
-                                }
-                                onClick={() => {
-                                    store.setEditProjects(true);
-                                }}
-                            /> :
-                            <CardWithSaveAndCancelButtons
-                                icon={<ProjectsIcon />}
-                                title="Projects"
-                                content={() => {
-                                    return (
-                                        <div>
-                                            <div>Projects: {store.projects}</div>
-                                        </div>
-                                    );
-                                }}
-                            />}
+                    <Col md={9} sm={12}>                        
+                            <ProjectsCard
+                                store={store}
+                            />
                     </Col>
                 }
-
             </Row>
         </Container>
     );
-})
+});

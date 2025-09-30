@@ -52,8 +52,10 @@ export const ContactInfoCard = observer(({
                                 cursor: "pointer",
                             }}
                                 onClick={() => {
-                                    store.removeContact(type, item.id);
-                                    store.refreshEncounterData();
+                                    if (window.confirm(`Are you sure you want to remove this contact?`)) {
+                                        store.removeContact(type, item.id);
+                                        store.refreshEncounterData();
+                                    }                                                                       
                                 }}
                             >
                                 <TrashCanIcon/>

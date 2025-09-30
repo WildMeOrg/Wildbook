@@ -78,10 +78,20 @@ const Encounter = observer(() => {
         <Col md={6}>
           <h2>
             Encounter{" "}
-            {store.encounterData?.individualDisplayName
-              ? `of ${store.encounterData?.individualDisplayName}`
-              : "Unassigned "}
+            {store.encounterData?.individualDisplayName ? (
+              <a
+                href={`/individuals.jsp?id=${store.encounterData.individualId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                {store.encounterData.individualDisplayName}
+              </a>
+            ) : (
+              "Unassigned"
+            )}
           </h2>
+
           <p>Encounter ID: {encounterId}</p>
         </Col>
         <Col md={6} className="text-end">
@@ -380,18 +390,6 @@ const Encounter = observer(() => {
                       }
                       className="mb-3"
                     />
-                    {/* <SelectInput
-                      label="Sharing Permission"
-                      value={
-                        store.getFieldValue("metadata", "sharingPermission") ??
-                        ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("metadata", "sharingPermission", v)
-                      }
-                      options={[]}
-                      className="mb-3"
-                    /> */}
                   </div>
                 }
               />
@@ -431,11 +429,6 @@ const Encounter = observer(() => {
                       {store.getFieldValue("metadata", "assignedUsername") ||
                         "None"}
                     </div>
-                    {/* <div>
-                      Sharing Permission:{" "}
-                      {store.getFieldValue("metadata", "sharingPermission") ||
-                        "None"}
-                    </div> */}
                   </div>
                 }
               />

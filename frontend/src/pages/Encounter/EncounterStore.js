@@ -2,6 +2,7 @@ import { makeAutoObservable } from "mobx";
 import axios from "axios";
 import convertToTreeDataWithName from "../../utils/converToTreeData";
 import { debounce } from "lodash";
+import { toJS } from "mobx";
 
 const SECTION_FIELD_PATHS = {
   date: ["date", "verbatimEventDate"],
@@ -63,13 +64,13 @@ function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
   if (sectionName === "location") {
     const isEmpty = (v) => v === "" || v == null;
 
-    const lat = fieldPath === "latitude"  ? value : ctx.lat;
+    const lat = fieldPath === "latitude" ? value : ctx.lat;
     const lon = fieldPath === "longitude" ? value : ctx.lon;
 
     if (isEmpty(lat) && isEmpty(lon)) return null;
 
     if (fieldPath === "latitude") {
-      if (isEmpty(value)) return errorMessage; 
+      if (isEmpty(value)) return errorMessage;
       const n = Number(value);
       if (!Number.isFinite(n) || n < -90 || n > 90) return errorMessage;
       return null;
@@ -204,7 +205,7 @@ class EncounterStore {
   _editBiologicalSamples = false;
 
   _projectsSection = false;
-  _editProjects = false;
+  _selectedProjects = null;
 
   _sectionDrafts = new Map(
     Object.keys(SECTION_FIELD_PATHS).map((name) => [name, {}]),
@@ -224,7 +225,7 @@ class EncounterStore {
     this.resetAllDrafts();
   }
 
-  get fieldErrors () {
+  get fieldErrors() {
     return this._fieldErrors;
   }
 
@@ -418,6 +419,52 @@ class EncounterStore {
     }
   }
 
+  async addEncounterToProject() {
+    console.log("Adding encounter to project");
+    if (!this._selectedProjects) {
+      console.error("No project selected to add the encounter to.");
+      return;
+    }
+    console.log("Adding encounter to project:", this._selectedProjects);
+    const payload = {
+      projects: toJS(this._selectedProjects.map(project => ({
+        id: project.id,
+        encountersToAdd: [this._encounterData.id],
+      })))
+    };
+
+    const result = await axios.post("/ProjectUpdate", payload, {
+      headers: { "Content-Type": "application/json" },
+    })
+    if (result.status === 200) {
+      this.refreshEncounterData();
+    }
+    else {
+      console.error("Failed to add encounter to project:", result);
+    }
+  }
+
+  async removeProjectFromEncounter(projectId) {
+    console.log("Removing project from encounter:", projectId);
+    const payload = {
+      projects: [
+        {
+          id: projectId,
+          encountersToRemove: [this._encounterData.id],
+        }
+      ]
+    }
+    const result = await axios.post("/ProjectUpdate", payload, {
+      headers: { "Content-Type": "application/json" },
+    })
+    if (result.status === 200) {
+      this.refreshEncounterData();
+    }
+    else {
+      console.error("Failed to add encounter to project:", result);
+    }
+  }
+
   get measurementsAndTrackingSection() {
     return this._measurementsAndTrackingSection;
   }
@@ -460,11 +507,12 @@ class EncounterStore {
     this._projectsSection = isEnabled;
   }
 
-  get editProjects() {
-    return this._editProjects;
+  get selectedProjects() {
+    return this._selectedProjects;
   }
-  setEditProjects(isEditing) {
-    this._editProjects = isEditing;
+  setSelectedProjects(projectId) {
+    console.log("Setting selected project:", projectId);
+    this._selectedProjects = projectId;
   }
 
   // image and annotation operations
@@ -479,27 +527,27 @@ class EncounterStore {
     return this._lat;
   }
   setLat(newLat) {
-  this._lat = newLat;
-  this.setFieldError("location", "latitude",
-    validateFieldValue("location", "latitude", newLat, { lat: newLat, lon: this._lon })
-  );
-  this.setFieldError("location", "longitude",
-    validateFieldValue("location", "longitude", this._lon, { lat: newLat, lon: this._lon })
-  );
-}
+    this._lat = newLat;
+    this.setFieldError("location", "latitude",
+      validateFieldValue("location", "latitude", newLat, { lat: newLat, lon: this._lon })
+    );
+    this.setFieldError("location", "longitude",
+      validateFieldValue("location", "longitude", this._lon, { lat: newLat, lon: this._lon })
+    );
+  }
 
   get lon() {
     return this._lon;
   }
   setLon(newLon) {
-  this._lon = newLon;
-  this.setFieldError("location", "longitude",
-    validateFieldValue("location", "longitude", newLon, { lat: this._lat, lon: newLon })
-  );
-  this.setFieldError("location", "latitude",
-    validateFieldValue("location", "latitude", this._lat, { lat: this._lat, lon: newLon })
-  );
-}
+    this._lon = newLon;
+    this.setFieldError("location", "longitude",
+      validateFieldValue("location", "longitude", newLon, { lat: this._lat, lon: newLon })
+    );
+    this.setFieldError("location", "latitude",
+      validateFieldValue("location", "latitude", this._lat, { lat: this._lat, lon: newLon })
+    );
+  }
 
   get showAnnotations() {
     return this._showAnnotations;
