@@ -4667,15 +4667,51 @@ public class Encounter extends Base implements java.io.Serializable {
             }
             rtn.put("mediaAssets", mas);
         } else {
-            // we do some magic to add keywords on assets, as they arent indexed this way
+            // for real users we add some extras to assets and annotations
             if (rtn.optJSONArray("mediaAssets") != null) {
                 for (int i = 0; i < rtn.getJSONArray("mediaAssets").length(); i++) {
                     if (rtn.getJSONArray("mediaAssets").optJSONObject(i) != null) {
                         MediaAsset ma = MediaAssetFactory.loadByUuid(rtn.getJSONArray(
                             "mediaAssets").getJSONObject(i).optString("uuid"), myShepherd);
-                        if (ma != null)
+                        if (ma != null) {
                             rtn.getJSONArray("mediaAssets").getJSONObject(i).put("keywords",
                                 ma.getKeywordsJSONArray());
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("detectionStatus",
+                                ma.getDetectionStatus());
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("userFilename",
+                                ma.getUserFilename());
+                        }
+                        // now we cram some stuff into each annotation as well
+                        if (rtn.getJSONArray("mediaAssets").getJSONObject(i).optJSONArray(
+                            "annotations") != null) {
+                            for (int j = 0;
+                                j <
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                "annotations").length();
+                                j++) {
+                                if (rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").optJSONObject(j) == null) continue;
+                                // this parsing of nested json really makes me miss perl
+                                Annotation ann = myShepherd.getAnnotation(rtn.getJSONArray(
+                                    "mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).optString("id", null));
+                                if (ann == null) continue;
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).put("identificationStatus",
+                                    ann.getIdentificationStatus());
+                                // annTasks are in chron order so most recent will be at end
+                                List<Task> annTasks = ann.getRootIATasks(myShepherd);
+                                int ntasks = Util.collectionSize(annTasks);
+                                if (ntasks > 0) {
+                                    rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                        "annotations").getJSONObject(j).put("iaTaskId",
+                                        annTasks.get(ntasks - 1).getId());
+                                    rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                        "annotations").getJSONObject(j).put("iaTaskParameters",
+                                        annTasks.get(ntasks - 1).getParameters());
+                                }
+                            }
+                        }
                     }
                 }
             }
