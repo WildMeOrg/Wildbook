@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -2557,6 +2558,14 @@ public class Encounter extends Base implements java.io.Serializable {
         metalTags.remove(metalTag);
     }
 
+    public void removeMetalTagByTagNumber(String tagNumber) {
+        if ((tagNumber == null) || (metalTags == null)) return;
+        ListIterator<MetalTag> it = metalTags.listIterator();
+        while (it.hasNext()) {
+            if (tagNumber.equals(it.next().getTagNumber())) it.remove();
+        }
+    }
+
     public void setMetalTags(List<MetalTag> metalTags) {
         this.metalTags = metalTags;
     }
@@ -4950,6 +4959,19 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "patterningCode":
             setPatterningCode((String)value);
+            break;
+        case "satelliteTag":
+            setSatelliteTag((SatelliteTag)value);
+            break;
+        case "acousticTag":
+            setAcousticTag((AcousticTag)value);
+            break;
+        case "metalTags":
+            if ("remove".equals(op) && (value != null)) {
+                removeMetalTagByTagNumber(value.toString());
+            } else if ("add".equals(op) && (value != null)) {
+                addMetalTag((MetalTag)value);
+            }
             break;
         // these we really only want to append to (i think??)
         // so this should only happen when op=add/replace and

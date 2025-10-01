@@ -8,6 +8,7 @@ import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.tag.*;
 import org.ecocean.User;
 import org.ecocean.Util;
 
@@ -80,6 +81,30 @@ public class EncounterPatchValidator {
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 }
             }
+            if (path.equals("acousticTag")) {
+                JSONObject jval = testJsonValue(value, new String[] { "idNumber", "serialNumber" });
+                if (jval != null)
+                    value = new AcousticTag(jval.optString("serialNumber", null),
+                        jval.optString("idNumber", null));
+            }
+            if (path.equals("satelliteTag")) {
+                JSONObject jval = testJsonValue(value,
+                    new String[] { "argosPttNumber", "serialNumber", "name" });
+                if (jval != null)
+                    value = new SatelliteTag(jval.optString("name", null),
+                        jval.optString("serialNumber", null),
+                        jval.optString("argosPttNumber", null));
+            }
+            // since metalTags is a list we can only add, and null is pointless
+            if (path.equals("metalTags") && (value != null)) {
+                if (op.equals("replace"))
+                    throw new ApiException(path + " cannot use op=replace",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                JSONObject jval = testJsonValue(value, new String[] { "location", "number" });
+                if (jval != null)
+                    value = new MetalTag(jval.optString("number", null),
+                        jval.optString("location", null));
+            }
             if (PATHS_REMOVE_NEEDS_USER_VALUE.contains(path)) {
                 if (op.equals("replace"))
                     throw new ApiException(path + " cannot use op=replace",
@@ -123,6 +148,11 @@ public class EncounterPatchValidator {
                     throw new ApiException(path + " value is invalid user id",
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 enc.applyPatchOp(path, value, op);
+            } else if (path.equals("metalTags")) {
+                if (value == null)
+                    throw new ApiException(path + " requires a value to remove from list",
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                enc.applyPatchOp(path, value.toString(), op);
             } else {
                 enc.applyPatchOp(path, null, op);
             }
@@ -165,6 +195,21 @@ public class EncounterPatchValidator {
 
     public static boolean isValidOp(String op) {
         return VALID_OPS.contains(op);
+    }
+
+    private static JSONObject testJsonValue(Object value, String[] validFields)
+    throws ApiException {
+        if (value == null) return null; // null is valid
+        if (!(value instanceof JSONObject))
+            throw new ApiException("must pass a json object",
+                    ApiException.ERROR_RETURN_CODE_INVALID);
+        JSONObject jval = (JSONObject)value;
+        for (String key : jval.keySet()) {
+            if (!Arrays.asList(validFields).contains(key))
+                throw new ApiException(key + " is an invalid key",
+                        ApiException.ERROR_RETURN_CODE_INVALID);
+        }
+        return jval;
     }
 
     private static MarkedIndividual getOrCreateMarkedIndividual(String idOrName,
