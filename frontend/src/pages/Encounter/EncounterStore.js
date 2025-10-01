@@ -53,7 +53,6 @@ const LOCAL_FIELD_ERRORS = {
 };
 
 function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
-  console.log(`Validating field: ${sectionName}.${fieldPath} with value: ${value}`);
   const errors = LOCAL_FIELD_ERRORS[sectionName] || {};
   const errorMessage = errors[fieldPath];
   if (!errorMessage) return null;
@@ -213,6 +212,10 @@ class EncounterStore {
   ];
 
   _selectedImageIndex = 0;
+  _encounterAnnotations = null;
+  _selectedAnnotationId = null;
+
+  _matchResultClickable = false;
 
   _selectedMatchLocation = "";
   _owner = "";
@@ -440,12 +443,10 @@ class EncounterStore {
   }
 
   async addEncounterToProject() {
-    console.log("Adding encounter to project");
     if (!this._selectedProjects) {
       console.error("No project selected to add the encounter to.");
       return;
     }
-    console.log("Adding encounter to project:", this._selectedProjects);
     const payload = {
       projects: toJS(this._selectedProjects.map(project => ({
         id: project.id,
@@ -465,7 +466,6 @@ class EncounterStore {
   }
 
   async removeProjectFromEncounter(projectId) {
-    console.log("Removing project from encounter:", projectId);
     const payload = {
       projects: [
         {
@@ -484,6 +484,8 @@ class EncounterStore {
       console.error("Failed to add encounter to project:", result);
     }
   }
+
+  async 
 
   get measurementsAndTrackingSection() {
     return this._measurementsAndTrackingSection;
@@ -531,11 +533,9 @@ class EncounterStore {
     return this._selectedProjects;
   }
   setSelectedProjects(projectId) {
-    console.log("Setting selected project:", projectId);
     this._selectedProjects = projectId;
   }
 
-  // image and annotation operations
   get selectedImageIndex() {
     return this._selectedImageIndex;
   }
@@ -543,11 +543,35 @@ class EncounterStore {
     this._selectedImageIndex = index;
   }
 
+  get encounterAnnotations() {
+    return this.encounterData?.mediaAssets?.[this._selectedImageIndex]?.annotations?.filter(data => data.encounterId === this.encounterData.id) || [];
+  }
+
+  get selectedAnnotationId() {
+    return this._selectedAnnotationId;
+  }
+  setSelectedAnnotationId(annotationId) {
+    this._selectedAnnotationId = annotationId;
+  }
+
+  get matchResultClickable() {
+    const selectedAnnotation = this.encounterAnnotations?.find(
+      (annotation) => annotation.id === this.selectedAnnotationId
+    ) || [];
+    const iaTaskId = !!selectedAnnotation?.iaTaskId;
+    const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
+    const identActive = iaTaskId && !skipId;
+    const detectionComplete = this.encounterData?.mediaAssets?.[this._selectedImageIndex]?.detectionStatus === "complete";
+    const identificationStatus = selectedAnnotation?.identificationStatus === "complete" || selectedAnnotation?.identificationStatus === "pending";
+
+    return identActive && (detectionComplete || identificationStatus);
+  }
+
   get lat() {
     return this._lat;
   }
   setLat(newLat) {
-    this.setFieldError("location", "latitude", null);    
+    this.setFieldError("location", "latitude", null);
     this._lat = newLat;
     this.setFieldError("location", "latitude",
       validateFieldValue("location", "latitude", newLat, { lat: newLat, lon: this._lon })
@@ -869,6 +893,20 @@ class EncounterStore {
         annotation: String(annotationId),
         detach: "true",
         number: String(this._encounterData.id),
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  deleteImage() {
+    return axios.post(
+      "/MediaAssetAttach",
+      {
+        detach: "true",
+        EncounterID: this._encounterData.id,
+        MediaAssetID: this._encounterData.mediaAssets[this._selectedImageIndex].id,
       },
       {
         headers: { "Content-Type": "application/json" },

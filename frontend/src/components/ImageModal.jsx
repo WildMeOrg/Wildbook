@@ -268,13 +268,13 @@ export const ImageModal = observer(({
                     >
                         <div className="d-flex align-items-center gap-2 mb-2">
                             {a.url ? (
-                                <img 
-                                src={a.url} 
-                                alt="thumbnail" 
-                                className="rounded-circle" 
-                                width={36} 
-                                height={36} 
-                                style={{ objectFit: "cover", overFlow:"hidden"}} />
+                                <img
+                                    src={a.url}
+                                    alt="thumbnail"
+                                    className="rounded-circle"
+                                    width={36}
+                                    height={36}
+                                    style={{ objectFit: "cover", overFlow: "hidden" }} />
                             ) : (
                                 <div className="rounded-circle bg-light" style={{ width: 36, height: 36 }} />
                             )}
@@ -493,29 +493,37 @@ export const ImageModal = observer(({
 
                         <div className="d-grid gap-2">
                             <MainButton
-                                link={`/react/encounter/${store.encounterData.id}/edit`}
+                                link={`/iaResults.jsp?taskId=${currentAnnotation?.iaTaskId}`}
                                 noArrow={true}
                                 color="white"
                                 backgroundColor={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
+                                disabled={!store.matchResultClickable}
                             >
                                 <FormattedMessage id="MATCH_RESULTS" />
                             </MainButton>
 
                             <MainButton
-                                link={`/react/encounter/${store.encounterData.id}/edit`}
                                 noArrow={true}
                                 color="white"
                                 backgroundColor={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
+                                onClick={() => {
+                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+                                        return;
+                                    }
+                                    const number = store.encounterData?.id;
+                                    const mediaAssetId = store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
+                                    const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
+                                    window.open(url, "_blank");
+                                }}
                             >
                                 <FormattedMessage id="VISUAL_MATCHER" />
                             </MainButton>
 
                             <MainButton
-                                link={`/react/encounter/${store.encounterData.id}/edit`}
                                 noArrow={true}
                                 color="white"
                                 backgroundColor={themeColor?.wildMeColors?.cyan700}
@@ -524,40 +532,77 @@ export const ImageModal = observer(({
                             >
                                 <FormattedMessage id="NEW_MATCH" />
                             </MainButton>
-                            
+
                             <MainButton
-                                link={`/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}`}
                                 noArrow={true}
                                 backgroundColor="white"
                                 color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
+                                onClick={() => {
+                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+                                        return;
+                                    }
+                                    window.open(`/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}`, "_blank");
+                                }}
                             >
                                 <FormattedMessage id="ADD_ANNOTATION" />
                             </MainButton>
                             <MainButton
-                                link={`/react/edit-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.id}`}
                                 noArrow={true}
-                                disabled ={!currentAnnotation?.id}
+                                disabled={!currentAnnotation?.id}
                                 backgroundColor="white"
                                 color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
+                                onClick={() => {
+                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex] || !annotationParam || !assets[index]?.id) {
+                                        return;
+                                    }
+                                    window.open(`/react/edit-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.id}`, "_blank");
+                                }}
                             >
                                 <FormattedMessage id="EDIT_ANNOTATION" />
                             </MainButton>
                             <MainButton
                                 noArrow={true}
                                 backgroundColor="white"
-                                disabled ={!currentAnnotation?.id}
+                                disabled={!currentAnnotation?.id}
                                 color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
-                                onClick={() => {
-                                    store.removeAnnotation(currentAnnotation?.id);
+                                onClick={async () => {
+                                    if (window.confirm("Are you sure you want to delete this annotation?")) {
+                                        await store.removeAnnotation(currentAnnotation?.id);
+                                        window.location.reload();
+                                    }                                    
                                 }}
                             >
                                 <FormattedMessage id="DELETE_ANNOTATION" />
+                            </MainButton>
+                            <h5 className="text-danger mt-3">
+                                <FormattedMessage id="DANGER_ZONE" />
+                            </h5>
+                            <MainButton
+                                onClick={async () => {
+                                    if (window.confirm("Are you sure you want to delete this image?")) {
+                                        await store.deleteImage();
+                                        window.location.reload();
+                                    }
+                                }}
+                                shadowColor={themeColor.statusColors.red500}
+                                color={themeColor.statusColors.red500}
+                                noArrow={true}
+                                style={{
+                                    width: "auto",
+                                    height: "40px",
+                                    fontSize: "1rem",
+                                    border: `1px solid ${themeColor.statusColors.red500}`,
+                                    marginTop: "1rem",
+                                    marginBottom: "2rem",
+                                }}
+                            >
+                                <FormattedMessage id="DELETE_IMAGE" />
                             </MainButton>
                         </div>
                     </aside>
