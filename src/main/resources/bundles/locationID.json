@@ -21,6 +21,30 @@
             ]
         },
         {
+            "name": "Eswatini",
+            "id": "Eswatini",
+            "locationID": [
+                {
+                    "name": "Mbuluzi Game Reserve",
+                    "id": "Mbuluzi Game Reserve",
+                    "geospatialInfo": {
+                        "lat": -26.156017,
+                        "long": 31.982833
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Mlilwane Wildlife Sanctuary",
+                    "id": "Mlilwane Wildlife Sanctuary",
+                    "geospatialInfo": {
+                        "lat": -26.49783,
+                        "long": 31.18572
+                    },
+                    "locationID": []
+                }
+            ]
+        },
+        {
             "name": "Kenya",
             "id": "Kenya",
             "locationID": [
