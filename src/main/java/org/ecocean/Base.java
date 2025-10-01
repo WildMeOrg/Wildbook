@@ -405,6 +405,14 @@ import org.json.JSONObject;
         throw new ApiException("processPatch() not yet implemented", "FAIL");
     }
 
+    // this will be run at the end of all patches, if successful
+    // even though passed a shepherd, the obj should be *committed* at this point,
+    // making it suitable for background tasks etc.
+    public org.json.JSONObject afterPatch(Shepherd myShepherd) {
+        // override this if needed
+        return null;
+    }
+
     // TODO should this be an abstract? will we need some base stuff?
     public static Object validateFieldValue(String fieldName, JSONObject data)
     throws ApiException {
