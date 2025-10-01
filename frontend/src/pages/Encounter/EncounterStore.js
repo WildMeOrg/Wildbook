@@ -3,6 +3,9 @@ import axios from "axios";
 import convertToTreeDataWithName from "../../utils/converToTreeData";
 import { debounce } from "lodash";
 import { toJS } from "mobx";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
 
 const SECTION_FIELD_PATHS = {
   date: ["date", "verbatimEventDate"],
@@ -56,8 +59,25 @@ function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
   if (!errorMessage) return null;
 
   if (sectionName === "date") {
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return errorMessage;
+    if (value == null || value === "") return null;
+    const FORMATS = [
+      "YYYY",
+      "YYYY-MM",
+      "YYYY-MM-DD",
+      "YYYY-MM-DDTHH",
+      "YYYY-MM-DDTHH:mm",
+      "YYYY-MM-DDTHH:mm[Z]",
+    ];
+    let parsed;
+    if (value instanceof Date) {
+      parsed = dayjs(value);
+    } else {
+      parsed = dayjs(String(value).trim(), FORMATS, true);
+    }
+
+    if (!parsed.isValid() || parsed.isAfter(dayjs())) {
+      return errorMessage;
+    }
     return null;
   }
 
@@ -527,6 +547,7 @@ class EncounterStore {
     return this._lat;
   }
   setLat(newLat) {
+    this.setFieldError("location", "latitude", null);    
     this._lat = newLat;
     this.setFieldError("location", "latitude",
       validateFieldValue("location", "latitude", newLat, { lat: newLat, lon: this._lon })
@@ -540,6 +561,7 @@ class EncounterStore {
     return this._lon;
   }
   setLon(newLon) {
+    this.setFieldError("location", "longitude", null);
     this._lon = newLon;
     this.setFieldError("location", "longitude",
       validateFieldValue("location", "longitude", newLon, { lat: this._lat, lon: newLon })
@@ -683,6 +705,7 @@ class EncounterStore {
   }
 
   setFieldValue(sectionName, fieldPath, newValue) {
+    this.setFieldError(sectionName, fieldPath, null);
     const draftForSection = { ...(this._sectionDrafts.get(sectionName) || {}) };
     draftForSection[fieldPath] = newValue;
     this._sectionDrafts.set(sectionName, draftForSection);

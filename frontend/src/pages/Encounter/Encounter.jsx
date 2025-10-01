@@ -165,6 +165,7 @@ const Encounter = observer(() => {
                 onCancel={() => {
                   store.resetSectionDraft("date");
                   store.setEditDateCard(false);
+                  store.setFieldError("date", "date", null);
                 }}
                 content={
                   <div>
@@ -448,6 +449,8 @@ const Encounter = observer(() => {
                 onCancel={() => {
                   store.resetSectionDraft("location");
                   store.setEditLocationCard(false);
+                  store.setFieldError("location", "latitude", null);
+                  store.setFieldError("location", "longitude", null);
                 }}
                 content={
                   <div>

@@ -15,28 +15,36 @@ export const MapDisplay = observer(
     const apiKey = data?.googleMapsKey;
 
     useEffect(() => {
-      if(!apiKey) return;
+      if (!apiKey) return;
       const loader = new Loader({ apiKey });
+
       let marker;
+      let map;
+      let isMounted = true;
 
       loader.load().then(() => {
-        const center = store.lat
-          ? { lat: store.lat, lng: store.lon }
-          : fallbackCenter;
+        if (!isMounted) return;
+        const el = mapElRef.current;
+        if (!el) return;
 
-        const map = new window.google.maps.Map(mapElRef.current, {
+        const hasCoords = Number.isFinite(Number(store.lat)) && Number.isFinite(Number(store.lon));
+        const center = hasCoords ? { lat: Number(store.lat), lng: Number(store.lon) } : fallbackCenter;
+
+        map = new window.google.maps.Map(el, {
           center,
           zoom,
           disableDefaultUI: disableUI,
         });
 
-        if (store.lat && store.lon) {
+        if (hasCoords) {
           marker = new window.google.maps.Marker({ position: center, map });
         }
       });
 
       return () => {
+        isMounted = false;
         if (marker) marker.setMap(null);
+        map = null;
       };
     }, [
       apiKey,
@@ -47,6 +55,7 @@ export const MapDisplay = observer(
       store.lat,
       store.lon,
     ]);
+
 
     return (
       <div

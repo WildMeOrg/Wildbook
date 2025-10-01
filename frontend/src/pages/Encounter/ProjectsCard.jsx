@@ -110,7 +110,11 @@ export const ProjectsCard = observer(({ store = {}
             </div>
             <div className="d-flex justify-content-between mt-3">
                 <MainButton
-                    onClick={store.addEncounterToProject}
+                    onClick={() => {
+                        store.addEncounterToProject();
+                        store.setSelectedProjects(null);
+                    }}
+                    disabled ={!store.selectedProjects || store.selectedProjects.length === 0}
                     noArrow={true}
                     color="white"
                     backgroundColor={themeColor?.wildMeColors?.cyan700}

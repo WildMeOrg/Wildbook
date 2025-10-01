@@ -14,7 +14,7 @@ export default function DateInput({ value = "", onChange }) {
       closeOnSelect={true}
       onChange={(dt) => {
         const s = moment.isMoment(dt)
-          ? dt.format("YYYY-MM-DD[T]HH:mm[Z]")
+          ? dt.format("YYYY-MM-DD[T]HH:mm")
           : String(dt);
         onChange?.(s);
       }}
