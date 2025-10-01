@@ -1185,6 +1185,17 @@ public class MediaAsset extends Base implements java.io.Serializable {
             ids.size() + " <<<<");
     }
 
+    // convenience when you have list of MediaAssets
+    public static void updateStandardChildrenBackgroundAssets(String context,
+        List<MediaAsset> assets) {
+        if (Util.collectionIsEmptyOrNull(assets)) return;
+        List<Integer> maIds = new ArrayList<Integer>();
+        for (MediaAsset ma : assets) {
+            maIds.add(ma.getIdInt());
+        }
+        updateStandardChildrenBackground(context, maIds);
+    }
+
     // convenience, XXX  BUT see not above about sending multiple ids when possible!  XXX
     public static void updateStandardChildrenBackground(final String context, int id) {
         updateStandardChildrenBackground(context, new ArrayList<Integer>(id));
