@@ -6,7 +6,6 @@ import ImageModal from "../../components/ImageModal";
 import { useNavigate } from "react-router-dom";
 
 const ImageCard = observer(({ store = {} }) => {
-  const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const [rects, setRects] = useState([]);
   const [scaleX, setScaleX] = useState(1);
@@ -15,14 +14,17 @@ const ImageCard = observer(({ store = {} }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const encounterData = store.encounterData;
     if (
-      encounterData &&
-      encounterData.mediaAssets &&
-      encounterData.mediaAssets.length > 0
+      store.encounterData &&
+      store.encounterData?.mediaAssets &&
+      store.encounterData?.mediaAssets?.length > 0
     ) {
-      const selectedImage = encounterData.mediaAssets[store.selectedImageIndex];
+      console.log("Encounter Data:", JSON.stringify(store.encounterData));
+      console.log("Selected Image Index:", store.selectedImageIndex);
+      const selectedImage = store.encounterData.mediaAssets[store.selectedImageIndex];
       const annotations = selectedImage?.annotations;
+      console.log("Selected Image:", JSON.stringify(selectedImage));
+      console.log("Selected Image Annotations:", JSON.stringify(annotations));
       if (annotations?.length > 0) {
         const anns = selectedImage?.annotations || [];
         setRects(
@@ -37,19 +39,15 @@ const ImageCard = observer(({ store = {} }) => {
           })),
         );
       } else {
-        // Clear annotations when image has no annotations
         setRects([]);
       }
     } else {
-      // Clear annotations when no encounter data
       setRects([]);
     }
   }, [store.encounterData, store.selectedImageIndex]);
 
   useEffect(() => {
     if (!imgRef.current) return;
-    // const canvas = canvasRef.current;
-    // const context = canvas.getContext("2d");
     const handleImageLoad = () => {
       if (imgRef.current) {
         const naturalWidth =
@@ -61,51 +59,6 @@ const ImageCard = observer(({ store = {} }) => {
 
         setScaleX(naturalWidth / displayWidth);
         setScaleY(naturalHeight / displayHeight);
-
-        // canvas.width = imgRef.current.clientWidth;
-        // canvas.height = imgRef.current.clientHeight;
-
-        // const imageContainer = imgElement?.parentElement;
-
-        // if (imgRef && imageContainer) {
-        //   imageContainer.style.height = `${imgElement.clientHeight}px`;
-        // }
-        // context.setTransform(1, 0, 0, 1, 0, 0);
-        // context.clearRect(0, 0, canvas.width, canvas.height);
-        // context.strokeStyle = "red";
-        // context.lineWidth = 2;
-
-        // rects.forEach((rect) => {
-        //   console.log("rect", JSON.stringify(rect));
-        //   const scaledRect = {
-        //     x: rect.x / scaleX,
-        //     y: rect.y / scaleY,
-        //     width: rect.width / scaleX,
-        //     height: rect.height / scaleY,
-        //   };
-
-        //   if (rect.encounterId === store.encounterData.id) {
-        //     context.strokeStyle = "red";
-        //   } else {
-        //     context.strokeStyle = "yellow";
-        //   }
-
-        //   context.lineWidth = 2;
-
-        //   const rectCenterX = scaledRect.x + scaledRect.width / 2;
-        //   const rectCenterY = scaledRect.y + scaledRect.height / 2;
-
-        //   context.save();
-        //   context.translate(rectCenterX, rectCenterY);
-        //   if (rect.rotation) context.rotate(rect.rotation);
-        //   context.strokeRect(
-        //     -scaledRect.width / 2,
-        //     -scaledRect.height / 2,
-        //     scaledRect.width,
-        //     scaledRect.height,
-        //   );
-        //   context.restore();
-        // });
       }
     };
 
@@ -123,11 +76,12 @@ const ImageCard = observer(({ store = {} }) => {
     };
   }, [rects, store.selectedImageIndex, store.encounterData]);
 
-  const handleClick = (encounterId, storeEncounterId) => {
+  const handleClick = (encounterId, storeEncounterId, annotationId) => {
     if (encounterId === storeEncounterId) {
+      store.setSelectedAnnotationId(annotationId)
       console.log("Clicked on the rectangle for the current encounter");
       setOpenImageModal(true);
-      // store.setSelectedImageIndex(store.selectedImageIndex);
+      store.setSelectedImageIndex(store.selectedImageIndex);
     } else {
       console.log("Clicked on the rectangle for a different encounter");
       window.location.href = `/react/encounter?number=${encounterId}`;
@@ -159,12 +113,6 @@ const ImageCard = observer(({ store = {} }) => {
           width: "100%",
           position: "relative",
         }}
-        onClick ={() => {
-          if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
-            return;
-          }
-          setOpenImageModal(true);
-        } }
       >
 
         {rects.length > 0 && rects.map((rect, index) => {
@@ -206,9 +154,13 @@ const ImageCard = observer(({ store = {} }) => {
                 border: newRect.encounterId === store.encounterData.id ? "2px solid red" : "2px solid yellow",
                 transform: `rotate(${(newRect.rotation * 180) / Math.PI}deg)`,
                 transformOrigin: "center",
+                cursor: "pointer",
+                zIndex: 10,
+                backgroundColor: newRect.annotationId === store.selectedAnnotationId ? "rgba(240, 11, 11, 0.5)" : "transparent",
               }}
-              onClick={() => handleClick(newRect.encounterId, store.encounterData.id)}
-            ></div>
+              onClick={() => handleClick(newRect.encounterId, store.encounterData.id, newRect.annotationId)}
+            >
+            </div>
           )
         })}
 
@@ -221,18 +173,6 @@ const ImageCard = observer(({ store = {} }) => {
           alt="No image available"
           style={{ width: "100%", height: "auto" }}
         />
-
-        {/* <canvas
-          ref={canvasRef}
-          width={imgRef.current?.clientWidth || 150}
-          height={imgRef.current?.clientHeight || 150}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            pointerEvents: "none", // Prevent interaction with the canvas
-          }}
-        ></canvas> */}
       </div>
 
       <div
@@ -244,7 +184,18 @@ const ImageCard = observer(({ store = {} }) => {
           padding: "10px",
         }}
       >
-        <div className="d-flex align-items-center justify-content-center flex-column">
+        <div className="d-flex align-items-center justify-content-center flex-column"
+          onClick={() => {
+            if (store.selectedAnnotationId && store.matchResultClickable) {
+              const taskId = store.selectedAnnotationId?.iaTaskId;
+              const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
+              window.open(url, "_blank", "noopener,noreferrer");
+            } else {
+              alert("Please select an annotation to view match results.");
+            }
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="19"
@@ -267,7 +218,7 @@ const ImageCard = observer(({ store = {} }) => {
             }
             const number = store.encounterData?.id;
             const mediaAssetId = store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
-            const url = `${window.location.origin}/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
+            const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
             window.open(url, "_blank");
           }}
         >
@@ -287,6 +238,9 @@ const ImageCard = observer(({ store = {} }) => {
         </div>
         <div className="d-flex align-items-center justify-content-center flex-column"
           onClick={() => {
+            if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              return;
+            }
             store.setOpenMatchCriteriaModal(true);
           }}
           style={{ cursor: "pointer" }}
@@ -315,7 +269,7 @@ const ImageCard = observer(({ store = {} }) => {
             if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
               return;
             }
-            navigate(`/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets[store.selectedImageIndex]?.id}`);
+            window.open(`/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets[store.selectedImageIndex]?.id}`, "_blank");
           }}
         >
           <svg
@@ -364,7 +318,7 @@ const ImageCard = observer(({ store = {} }) => {
           assets={store.encounterData?.mediaAssets || []}
           index={store.selectedImageIndex}
           setIndex={(index) => store.setSelectedImageIndex(index)}
-          rect={rects?.filter(data => data.encounterId === store.encounterData.id)[0] || {}}
+          rect={rects?.filter(data => data.annotationId === store.selectedAnnotationId)[0] || {}}
           store={store}
         />
       )}

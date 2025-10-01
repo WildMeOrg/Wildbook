@@ -31,8 +31,8 @@ import MatchCriteriaModal from "./MatchCriteria";
 
 const Encounter = observer(() => {
   const store = React.useMemo(() => new EncounterStore(), []);
-
-  console.log("store.fieldErrors", JSON.stringify(store.getFieldError("date", "date")));
+  
+  console.log("match result clickable:", JSON.stringify(store.matchResultClickable));
 
   const { data: siteSettings } = useGetSiteSettings();
 
