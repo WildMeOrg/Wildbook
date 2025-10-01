@@ -183,73 +183,72 @@
 					"locationID":[]
 				},
 				{
-    "name": "Athi-Kapiti Plains",
-    "id": "Athi-Kapiti Plains",
-    "description": "Athi-Kapiti Plains",
-    "locationID":[
-		{
-            "name": "Astra Ranch",
-            "id": "Astra Ranch",
-            "description": "Astra Ranch",
-			"locationID":[]
-        },
-		{
-            "name": "Kapiti Plains Estate",
-            "id": "Kapiti Plains Estate",
-            "description": "Kapiti Plains Estate",
-			"locationID":[]
-        },
-		{
-			"name": "Kwenia Vulture Sanctuary",
-			"id": "Kwenia Vulture Sanctuary",
-			"description": "Kwenia Vulture Sanctuary",
-			"locationID":[]
-		},
-		{
-            "name": "Lisa Ranch",
-            "id": "Lisa Ranch",
-            "description": "Lisa Ranch",
-			"locationID":[]
-        },
-		{
-            "name": "Lukenya Hill Conservancy",
-            "id": "Lukenya Hill Conservancy",
-            "description": "Lukenya Hill Conservancy",
-			"locationID":[]
-        },
-        {
-            "name": "Lukenya Wildlife Conservancy",
-            "id": "Lukenya Wildlife Conservancy",
-            "description": "Lukenya Wildlife Conservancy",
-			"locationID":[]
-        },
-		{
-            "name": "Maanzoni Wildlife Conservancy",
-            "id": "Maanzoni Wildlife Conservancy",
-            "description": "Maanzoni Wildlife Conservancy",
-			"locationID":[]
-        },
-        {
-            "name": "Machakos Ranching",
-            "id": "Machakos Ranching",
-            "description": "Machakos Ranching",
-			"locationID":[]
-        },
-		{
-            "name": "Mwambi Hill Conservancy",
-            "id": "Mwambi Hill Conservancy",
-            "description": "Mwambi Hill Conservancy",
-			"locationID":[]
-        },
-		{
-            "name": "Swara Plains Conservancy",
-            "id": "Swara Plains Conservancy",
-            "description": "Swara Plains Conservancy",
-			"locationID":[]
-        }
-        
-    ]
-},
+					"name": "Athi-Kapiti Plains",
+					"id": "Athi-Kapiti Plains",
+					"description": "Athi-Kapiti Plains",
+					"locationID":[
+						{
+							"name": "Astra Ranch",
+							"id": "Astra Ranch",
+							"description": "Astra Ranch",
+							"locationID":[]
+						},
+						{
+							"name": "Kapiti Plains Estate",
+							"id": "Kapiti Plains Estate",
+							"description": "Kapiti Plains Estate",
+							"locationID":[]
+						},
+						{
+							"name": "Kwenia Vulture Sanctuary",
+							"id": "Kwenia Vulture Sanctuary",
+							"description": "Kwenia Vulture Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Lisa Ranch",
+							"id": "Lisa Ranch",
+							"description": "Lisa Ranch",
+							"locationID":[]
+						},
+						{
+							"name": "Lukenya Hill Conservancy",
+							"id": "Lukenya Hill Conservancy",
+							"description": "Lukenya Hill Conservancy",
+							"locationID":[]
+						},
+						{
+							"name": "Lukenya Wildlife Conservancy",
+							"id": "Lukenya Wildlife Conservancy",
+							"description": "Lukenya Wildlife Conservancy",
+							"locationID":[]
+						},
+						{
+							"name": "Maanzoni Wildlife Conservancy",
+							"id": "Maanzoni Wildlife Conservancy",
+							"description": "Maanzoni Wildlife Conservancy",
+							"locationID":[]
+						},
+						{
+							"name": "Machakos Ranching",
+							"id": "Machakos Ranching",
+							"description": "Machakos Ranching",
+							"locationID":[]
+						},
+						{
+							"name": "Mwambi Hill Conservancy",
+							"id": "Mwambi Hill Conservancy",
+							"description": "Mwambi Hill Conservancy",
+							"locationID":[]
+						},
+						{
+							"name": "Swara Plains Conservancy",
+							"id": "Swara Plains Conservancy",
+							"description": "Swara Plains Conservancy",
+							"locationID":[]
+						}
+					]
+                },
 				{
 					"name": "Garissa",
 					"id": "Garissa",
@@ -272,198 +271,208 @@
 							"description": "Colour Crops Farm",
 							"locationID":[]
 						},
-					{
-						"name": "Crater Lake Game Sanctuary",
-						"id": "Crater Lake Game Sanctuary",
-						"description": "Crater Lake Game Sanctuary",
-						"locationID":[]
-					},
-					{
-						"name": "Crescent Island Game Sanctuary",
-						"id": "Crescent Island Game Sanctuary",
-						"description": "Crescent Island Game Sanctuary",
-						"locationID":[]
-					},
-					{
-						"name": "Gideon Moi Farm",
-						"id": "Gideon Moi Farm",
-						"description": "Gideon Moy Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Hells Gate National Park",
-						"id": "Hells Gate National Park",
-						"description": "Hells Gate National Park",
-						"locationID":[]
-					},
-					{
-						"name": "Hippo Point Farm",
-						"id": "Hippo Point Farm",
-						"description": "Hippo Point Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Karlo Farm",
-						"id": "Karlo Farm",
-						"description": "Karlo Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Kedong Ranch",
-						"id": "Kedong Ranch",
-						"description": "Kedong Ranch",
-						"locationID":[]
-					},
-					{
-						"name": "Kilimandege Bird Sanctuary",
-						"id": "Kilimandege Bird Sanctuary",
-						"description": "Kilimandege Bird Sanctuary",
-						"locationID":[]
-					},
-					{
-						"name": "Kimata Farm",
-						"id": "Kimata Farm",
-						"description": "Kimata Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Kinja Farm",
-						"id": "Kinja Farm",
-						"description": "Kinja Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Kipkulei Farm",
-						"id": "Kipkulei Farm",
-						"description": "Kipkulei Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Kongoni Game Valley",
-						"id": "Kongoni Game Valley",
-						"description": "Kongoni Game Valley",
-						"locationID":[]
-					},
-					{
-						"name": "Lake Naivasha",
-						"id": "Lake Naivasha",
-						"description": "Lake Naivasha",
-						"locationID":[]
-					},
-					{
-						"name": "Loldia Farm",
-						"id": "Loldia Farm",
-						"description": "Loldia Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Manera Farm",
-						"id": "Manera Farm",
-						"description": "Manera Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Marula Farm",
-						"id": "Marula Farm",
-						"description": "Marula Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Morendat Farm",
-						"id": "Morendat Farm",
-						"description": "Morendat Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Mt Longonot National Park",
-						"id": "Mt Longonot National Park",
-						"description": "Mt Longonot National Park",
-						"locationID":[]
-					},
-					{
-						"name": "Mundui Farm",
-						"id": "Mundui Farm",
-						"description": "Mundui Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Nini Flower Farm",
-						"id": "Nini Flower Farm",
-						"description": "Nini Flower Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Olerai House Sanctuary",
-						"id": "Olerai House Sanctuary",
-						"description": "Olerai House Sanctuary",
-						"locationID":[]
-					},
-					{
-						"name": "Olsuswa Eco Park",
-						"id": "Olsuswa Eco Park",
-						"description": "Olsuswa Eco ParK",
-						"locationID":[]
-					},
-					{
-						"name": "Oserengoni Wildlife Sanctuary",
-						"id":"Oserengoni Wildlife Sanctuary",
-						"description": "Oserengoni Wildlife Sanctuary",
-						"locationID":[]
-					},
-					{
-						"name": "Sanctuary Farm",
-						"id": "Sanctuary Farm",
-						"description": "Sanctuary Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Sara Higgins Farm",
-						"id": "Sara Higgins Farm",
-						"description": "Sara Higgins Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Sirocco Wildlife Sanctuary",
-						"id": "Sirocco Wildlife Sanctuary",
-						"description": "Sirocco Wildlife Sanctuary",
-						"locationID":[]
-					},
-					{
-						"name": "Sopa Lodge",
-						"id": "Sopa Lodge",
-						"description": "Sopa Lodge",
-						"locationID":[]
-					},
-					{
-						"name": "Wanjugu Farm",
-						"id": "Wanjugu Farm",
-						"description": "Wanjugu Farm",
-						"locationID":[]
-					},
-					{
-						"name": "Wileli Wildlife Sanctuary",
-						"id": "Wileli Wildlife Sanctuary",
-						"description": "Wileli Wildlife Sanctuary:",
-						"locationID":[]
-					},
-					{
-						"name": "WRTI",
-						"id": "WRTI",
-						"description": "WRTI",
-						"locationID":[]
-					},
-					{
+						{
+							"name": "Crater Lake Game Sanctuary",
+							"id": "Crater Lake Game Sanctuary",
+							"description": "Crater Lake Game Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Crescent Island Game Sanctuary",
+							"id": "Crescent Island Game Sanctuary",
+							"description": "Crescent Island Game Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Gideon Moi Farm",
+							"id": "Gideon Moi Farm",
+							"description": "Gideon Moy Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Hells Gate National Park",
+							"id": "Hells Gate National Park",
+							"description": "Hells Gate National Park",
+							"locationID":[]
+						},
+						{
+							"name": "Hippo Point Farm",
+							"id": "Hippo Point Farm",
+							"description": "Hippo Point Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Karlo Farm",
+							"id": "Karlo Farm",
+							"description": "Karlo Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Kedong Ranch",
+							"id": "Kedong Ranch",
+							"description": "Kedong Ranch",
+							"locationID":[]
+						},
+						{
+							"name": "Kigio Wildlife Conservancy",
+							"id": "Kigio Wildlife Conservancy",
+							"description": "Kigio Wildlife Conservancy",
+							"geospatialInfo": {
+								"lat": -0.56745,
+								"long": 36.39336
+							},
+							"locationID":[]
+						},
+						{
+							"name": "Kilimandege Bird Sanctuary",
+							"id": "Kilimandege Bird Sanctuary",
+							"description": "Kilimandege Bird Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Kimata Farm",
+							"id": "Kimata Farm",
+							"description": "Kimata Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Kinja Farm",
+							"id": "Kinja Farm",
+							"description": "Kinja Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Kipkulei Farm",
+							"id": "Kipkulei Farm",
+							"description": "Kipkulei Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Kongoni Game Valley",
+							"id": "Kongoni Game Valley",
+							"description": "Kongoni Game Valley",
+							"locationID":[]
+						},
+						{
+							"name": "Lake Naivasha",
+							"id": "Lake Naivasha",
+							"description": "Lake Naivasha",
+							"locationID":[]
+						},
+						{
+							"name": "Loldia Farm",
+							"id": "Loldia Farm",
+							"description": "Loldia Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Manera Farm",
+							"id": "Manera Farm",
+							"description": "Manera Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Marula Farm",
+							"id": "Marula Farm",
+							"description": "Marula Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Morendat Farm",
+							"id": "Morendat Farm",
+							"description": "Morendat Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Mt Longonot National Park",
+							"id": "Mt Longonot National Park",
+							"description": "Mt Longonot National Park",
+							"locationID":[]
+						},
+						{
+							"name": "Mundui Farm",
+							"id": "Mundui Farm",
+							"description": "Mundui Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Nini Flower Farm",
+							"id": "Nini Flower Farm",
+							"description": "Nini Flower Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Olerai House Sanctuary",
+							"id": "Olerai House Sanctuary",
+							"description": "Olerai House Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Olsuswa Eco Park",
+							"id": "Olsuswa Eco Park",
+							"description": "Olsuswa Eco ParK",
+							"locationID":[]
+						},
+						{
+							"name": "Oserengoni Wildlife Sanctuary",
+							"id":"Oserengoni Wildlife Sanctuary",
+							"description": "Oserengoni Wildlife Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Sanctuary Farm",
+							"id": "Sanctuary Farm",
+							"description": "Sanctuary Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Sara Higgins Farm",
+							"id": "Sara Higgins Farm",
+							"description": "Sara Higgins Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Sirocco Wildlife Sanctuary",
+							"id": "Sirocco Wildlife Sanctuary",
+							"description": "Sirocco Wildlife Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Sopa Lodge",
+							"id": "Sopa Lodge",
+							"description": "Sopa Lodge",
+							"locationID":[]
+						},
+						{
+							"name": "Wanjugu Farm",
+							"id": "Wanjugu Farm",
+							"description": "Wanjugu Farm",
+							"locationID":[]
+						},
+						{
+							"name": "Wileli Wildlife Sanctuary",
+							"id": "Wileli Wildlife Sanctuary",
+							"description": "Wileli Wildlife Sanctuary:",
+							"locationID":[]
+						},
+						{
+							"name": "WRTI",
+							"id": "WRTI",
+							"description": "WRTI",
+							"locationID":[]
+						},
+						{
 						"name": "WRTI Annex",
 						"id": "WRTI Annex",
 						"description": "WRTI Annex",
 						"locationID":[]
-					},
-					{
-						"name": "WRTI Game Farm",
-						"id": "WRTI Game Farm",
-						"description": "WRTI Game Farm",
-						"locationID":[]
-					}
+					    },
+						{
+							"name": "WRTI Game Farm",
+							"id": "WRTI Game Farm",
+							"description": "WRTI Game Farm",
+							"locationID":[]
+						}
 					 ]
 				},
 				{
