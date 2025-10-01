@@ -292,9 +292,10 @@ public class BaseObject extends ApiBase {
         myShepherd.setAction("api.BaseObject.processPatch");
         myShepherd.beginDBTransaction();
 
+        Base obj = null;
         try {
             User currentUser = myShepherd.getUser(request);
-            Base obj = null;
+            obj = null;
             if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
             if (obj == null) {
                 rtn.put("statusCode", 404);
@@ -330,6 +331,7 @@ public class BaseObject extends ApiBase {
         } finally {
             if (rtn.optInt("statusCode", 500) == 200) {
                 myShepherd.commitDBTransaction();
+                if (obj != null) rtn.put("_afterPatch", obj.afterPatch(myShepherd));
                 myShepherd.closeDBTransaction();
             } else {
                 myShepherd.rollbackAndClose();
