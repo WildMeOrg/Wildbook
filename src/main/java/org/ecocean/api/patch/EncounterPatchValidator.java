@@ -3,12 +3,16 @@ package org.ecocean.api.patch;
 import org.ecocean.api.ApiException;
 import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.api.bulk.BulkValidatorException;
+import org.ecocean.api.UploadedFiles;
 import org.ecocean.Encounter;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,6 +36,8 @@ public class EncounterPatchValidator {
 
     public static JSONObject applyPatch(Encounter enc, JSONObject patch, Shepherd myShepherd)
     throws ApiException {
+        if (enc == null)
+            throw new ApiException("null encounter", ApiException.ERROR_RETURN_CODE_REQUIRED);
         if (patch == null)
             throw new ApiException("null patch json", ApiException.ERROR_RETURN_CODE_REQUIRED);
         String op = patch.optString("op");
@@ -64,6 +70,15 @@ public class EncounterPatchValidator {
             if (path.equals("individualId") && (value != null)) {
                 value = getOrCreateMarkedIndividual(value.toString(), myShepherd);
                 System.out.println("applyPatch() path=individualId using " + value);
+            }
+            if (path.equals("assets") && (value != null)) {
+                if (value instanceof JSONObject) {
+                    value = createMediaAsset((JSONObject)value, enc.getId(), myShepherd);
+                    System.out.println("applyPatch() path=assets using " + value);
+                } else {
+                    throw new ApiException("must pass json object as value: " + value,
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                }
             }
             if (PATHS_REMOVE_NEEDS_USER_VALUE.contains(path)) {
                 if (op.equals("replace"))
@@ -162,5 +177,22 @@ public class EncounterPatchValidator {
         // other properties like taxonomy set during actual patchOp
         myShepherd.getPM().makePersistent(indiv);
         return indiv;
+    }
+
+    private static MediaAsset createMediaAsset(JSONObject data, String targetSubdir,
+        Shepherd myShepherd)
+    throws ApiException {
+        if (data == null)
+            throw new ApiException("null asset data", ApiException.ERROR_RETURN_CODE_REQUIRED);
+        File file = null;
+        try {
+            file = UploadedFiles.getFile(data.optString("submissionId", null),
+                data.optString("filename", null));
+        } catch (IOException ex) {
+            throw new ApiException(ex.getMessage(), ApiException.ERROR_RETURN_CODE_INVALID);
+        }
+        MediaAsset ma = UploadedFiles.makeMediaAsset(targetSubdir, file, myShepherd);
+        myShepherd.getPM().makePersistent(ma);
+        return ma;
     }
 }

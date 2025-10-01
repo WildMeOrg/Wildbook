@@ -36,6 +36,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.api.ApiException;
+import org.ecocean.api.bulk.BulkImportUtil;
 import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.api.patch.EncounterPatchValidator;
 import org.ecocean.genetics.*;
@@ -4994,6 +4995,13 @@ public class Encounter extends Base implements java.io.Serializable {
                 System.out.println("enc.applyPatchOp() added " + this + " to " + indiv);
             }
             break;
+        case "assets":
+            if ("add".equals(op) && (value != null)) {
+                MediaAsset ma = (MediaAsset)value;
+                ma.setDetectionStatus("_new");
+                addMediaAsset(ma);
+            }
+            break;
         // value should be a user here
         case "informOthers":
             user = (User)value;
@@ -5024,6 +5032,24 @@ public class Encounter extends Base implements java.io.Serializable {
                     ApiException.ERROR_RETURN_CODE_INVALID);
         }
         return value;
+    }
+
+    public org.json.JSONObject afterPatch(Shepherd myShepherd) {
+        org.json.JSONObject res = new org.json.JSONObject();
+        List<Base> needsIndexing = new ArrayList<Base>();
+        // handle assets that were newly added
+        List<MediaAsset> newAssets = new ArrayList<MediaAsset>();
+        for (MediaAsset ma : this.getMedia()) {
+            if ("_new".equals(ma.getDetectionStatus())) {
+                newAssets.add(ma);
+                needsIndexing.add(ma);
+            }
+        }
+        res.put("numNewAssets", newAssets.size());
+        MediaAsset.updateStandardChildrenBackgroundAssets(myShepherd.getContext(), newAssets);
+        BulkImportUtil.bulkOpensearchIndex(needsIndexing);
+        // FIXME  see servlet/MediaAssetCreate - replicate sending stuff to IA but maybe a nice method?
+        return res;
     }
 
     public MarkedIndividual removeIndividual() {
