@@ -152,7 +152,8 @@ public class EncounterPatchValidator {
                 if (value == null)
                     throw new ApiException(path + " requires a value to remove from list",
                             ApiException.ERROR_RETURN_CODE_REQUIRED);
-                enc.applyPatchOp(path, value.toString(), op);
+                JSONObject jval = testJsonValue(value, new String[] { "location", "number" });
+                enc.applyPatchOp(path, jval, op);
             } else {
                 enc.applyPatchOp(path, null, op);
             }

@@ -2558,11 +2558,13 @@ public class Encounter extends Base implements java.io.Serializable {
         metalTags.remove(metalTag);
     }
 
-    public void removeMetalTagByTagNumber(String tagNumber) {
-        if ((tagNumber == null) || (metalTags == null)) return;
+    public void removeMetalTagByValues(String tagNumber, String location) {
+        if ((tagNumber == null) || (location == null) || (metalTags == null)) return;
         ListIterator<MetalTag> it = metalTags.listIterator();
         while (it.hasNext()) {
-            if (tagNumber.equals(it.next().getTagNumber())) it.remove();
+            MetalTag next = it.next();
+            if (tagNumber.equals(next.getTagNumber()) && location.equals(next.getLocation()))
+                it.remove();
         }
     }
 
@@ -4968,7 +4970,8 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "metalTags":
             if ("remove".equals(op) && (value != null)) {
-                removeMetalTagByTagNumber(value.toString());
+                org.json.JSONObject jval = (org.json.JSONObject)value;
+                removeMetalTagByValues(jval.optString("number"), jval.optString("location"));
             } else if ("add".equals(op) && (value != null)) {
                 addMetalTag((MetalTag)value);
             }
