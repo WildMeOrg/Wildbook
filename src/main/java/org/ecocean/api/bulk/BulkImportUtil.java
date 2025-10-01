@@ -221,7 +221,7 @@ public class BulkImportUtil {
     // this (intentionally) does not use IndexManager queues as we assume these are newly created
     // and dont need to be done deeply
     public static void bulkOpensearchIndex(final List<Base> objs) {
-        if (objs == null) return;
+        if (Util.collectionIsEmptyOrNull(objs)) return;
         Integer numThreads = (Integer)OpenSearch.getConfigurationValue("indexingNumAllowedThreads",
             4);
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
