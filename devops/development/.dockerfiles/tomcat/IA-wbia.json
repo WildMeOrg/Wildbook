@@ -3,7 +3,29 @@
   "_global": {
     "_note": "according to drew, these are not used and should be set within _confs below!",
     "add_images": "http://172.31.26.160:5000/api/image/json/",
-    "add_annotations": "http://172.31.26.160:5000/api/annot/json/",
+    "add_annotations": "http://172.31.26.160:5000/api/annot/json/",  
+    "start_identify": "http://172.31.26.160:5000/api/engine/query/graph/",
+    "identify_review": "http://172.31.26.160:5000/api/review/query/graph/",
+    "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+    "detect_review": "http://172.31.26.160:5000/api/review/detect/cnn/yolo/",
+    "get_job_status": "http://172.31.26.160:5000/api/engine/job/status/",
+    "get_job_result": "http://172.31.26.160:5000/api/engine/job/result/"
+  },
+  "new_wbia": {
+    "_note": "according to drew, these are not used and should be set within _confs below!",
+    "add_images": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/image/json/",
+    "add_annotations": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/annot/json/",
+    "start_identify": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/engine/query/graph/",
+    "identify_review": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/review/query/graph/",
+    "start_detect": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/engine/detect/cnn/lightnet/",
+    "detect_review": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/review/detect/cnn/yolo/",
+    "get_job_status": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/engine/job/status/",
+    "get_job_result": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/engine/job/result/"
+  },
+  "old_wbia": {
+    "_note": "according to drew, these are not used and should be set within _confs below!",
+    "add_images": "http://172.31.26.160:5000/api/image/json/",
+    "add_annotations": "http://172.31.26.160:5000/api/annot/json/",  
     "start_identify": "http://172.31.26.160:5000/api/engine/query/graph/",
     "identify_review": "http://172.31.26.160:5000/api/review/query/graph/",
     "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
@@ -20,7 +42,8 @@
           "model_tag": "jaguar_v2",
           "labeler_algo": "densenet",
           "sensitivity": 0.5,
-          "nms_thresh": 0.5
+          "nms_thresh": 0.5,
+          "architecture": "old_wbia"
         }
       ],
       "jaguar": {
@@ -50,7 +73,8 @@
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
-          "nms_thresh": 0.5
+          "nms_thresh": 0.5,
+          "architecture": "old_wbia"
         }
       ],
       "leopard": {
@@ -80,7 +104,8 @@
           "model_tag": "snow_leopard_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
-          "nms_thresh": 0.4
+          "nms_thresh": 0.4,
+          "architecture": "old_wbia"
         }
       ],
       "snow_leopard": {
@@ -111,7 +136,8 @@
           "model_tag": "lions_v0",
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
-          "nms_aware": "ispart"
+          "nms_aware": "ispart",
+          "architecture": "old_wbia"
         }
       ],
       "lion": {
@@ -192,7 +218,8 @@
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
-          "nms_thresh": 0.5
+          "nms_thresh": 0.5,
+          "architecture": "old_wbia"
         }
       ],
       "leopard": {
@@ -226,7 +253,8 @@
           "model_tag": "snow_leopard_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
-          "nms_thresh": 0.4
+          "nms_thresh": 0.4,
+          "architecture": "old_wbia"
         }
       ],
       "snow_leopard": {
@@ -260,7 +288,8 @@
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
-          "nms_thresh": 0.5
+          "nms_thresh": 0.5,
+          "architecture": "old_wbia"
         }
       ],
       "leopard": {
@@ -296,7 +325,8 @@
           "model_tag": "leopard_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
-          "nms_thresh": 0.5
+          "nms_thresh": 0.5,
+          "architecture": "old_wbia"
         }
       ],
 
@@ -333,7 +363,8 @@
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
           "sensitivity": 0.74,
-          "nms_thresh": 0.4
+          "nms_thresh": 0.4,
+          "architecture": "old_wbia"
         }
       ],
       "hyaena": {
@@ -369,7 +400,8 @@
           "model_tag": "hyaena_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.74,
-          "nms_thresh": 0.7
+          "nms_thresh": 0.7,
+          "architecture": "old_wbia"
         }
       ],
       "hyaena": {
@@ -396,12 +428,13 @@
     "brunnea": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
           "labeler_model_tag": "hyaena_v0",
           "sensitivity": 0.74,
-          "nms_thresh": 0.4
+          "nms_thresh": 0.4,
+          "architecture": "new_wbia"
         }
       ],
       "hyaena": {
@@ -439,7 +472,8 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.7,
           "nms_thresh": 0.4,
-          "nms_aware": "ispart"
+          "nms_aware": "ispart",
+          "architecture": "old_wbia"
         }
       ],
       "lion": {
@@ -531,7 +565,8 @@
           "model_tag": "cheetah_v2",
           "labeler_algo": "densenet",
           "sensitivity": 0.64,
-          "nms_thresh": 0.4
+          "nms_thresh": 0.4,
+          "architecture": "old_wbia"
         }
       ],
       "cheetah": {
@@ -568,7 +603,8 @@
           "model_tag": "cheetah_v2",
           "labeler_algo": "densenet",
           "sensitivity": 0.64,
-          "nms_thresh": 0.4
+          "nms_thresh": 0.4,
+          "architecture": "old_wbia"
         }
       ],
       "genet": {
@@ -602,7 +638,8 @@
           "model_tag": "cheetah_v2",
           "labeler_algo": "densenet",
           "sensitivity": 0.64,
-          "nms_thresh": 0.4
+          "nms_thresh": 0.4,
+          "architecture": "old_wbia"
         }
       ],
       "cheetah": {
@@ -640,7 +677,8 @@
           "model_tag": "cheetah_v2",
           "sensitivity": 0.64,
           "nms_thresh": 0.4,
-          "nms_aware": "byclass"
+          "nms_aware": "byclass",
+          "architecture": "old_wbia"
         }
       ],
       "cheetah": {
@@ -676,7 +714,8 @@
           "nms_aware": "ispart",
           "nms_thresh": 0.5,
           "sensitivity": 0.48,
-          "use_labeler_species": true
+          "use_labeler_species": true,
+          "architecture": "old_wbia"
         }
       ],
       "wild_dog": {
@@ -881,7 +920,8 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "labeler_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3",
+          "architecture": "old_wbia"
         }
       ],
       "lynx_pardinus": {
@@ -916,7 +956,8 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "labeler_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3",
+          "architecture": "old_wbia"
         }
       ],
       "lynx_pardinus": {
@@ -951,7 +992,8 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "labeler_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3",
+          "architecture": "old_wbia"
         }
       ],
       "lynx_pardinus": {
@@ -986,7 +1028,8 @@
           "nms_aware": null,
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
-          "labeler_model_tag": "lynx_v3"
+          "labeler_model_tag": "lynx_v3",
+          "architecture": "old_wbia"
         }
       ],
       "lynx_pardinus": {

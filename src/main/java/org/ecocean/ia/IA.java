@@ -168,7 +168,13 @@ public class IA {
             JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl, i);
             task.addParameter("detectArgs", detectArgs);
 
-            String detectionUrl = iaConfig.getDetectionUrl(taxy, i);
+            String detectionUrl = null;
+            try {
+                String architecture = iaConfig.getDetectionConfig(taxy).getString("architecture");
+                detectionUrl = iaConfig.getJson().getJSONObject(architecture).getString("start_detect");
+            } catch (Exception e) {
+                detectionUrl = iaConfig.getDetectionUrl(taxy, i);
+            }
             task.addParameter("__detect_url", detectionUrl);
 
             JSONObject qjob = new JSONObject();
@@ -324,6 +330,7 @@ public class IA {
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
                 newTaskParams.put("ibeis.identification",
                     ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+                newTaskParams.put("detectArgs", iaConfig.getDetectionArgs(annsOneIAClass.get(0).getTaxonomy(myShepherd), getBaseURL(context)));
                 topTask.setParameters(newTaskParams);
                 tasks.add(topTask); // topTask will be used as *the*(only) task -- no children
             } else {

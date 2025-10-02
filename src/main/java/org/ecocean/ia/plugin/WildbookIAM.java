@@ -21,6 +21,8 @@ import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.ecocean.IAJsonProperties;
+import org.ecocean.Taxonomy;
 
 // NOTE!  this steals **a lot** from IBEISIA right now. eventually lets move it all here and kill that off!
 import org.ecocean.identity.IBEISIA;
@@ -33,6 +35,7 @@ import org.ecocean.identity.IBEISIA;
  */
 public class WildbookIAM extends IAPlugin {
     private String context = null;
+    private IAJsonProperties iaJsonProperties = null;
 
     public WildbookIAM() {
         super();
@@ -40,6 +43,7 @@ public class WildbookIAM extends IAPlugin {
     public WildbookIAM(String context) {
         super(context);
         this.context = context;
+        this.iaJsonProperties = IAJsonProperties.iaConfig();
     }
 
     @Override public boolean isEnabled() {
@@ -87,8 +91,8 @@ public class WildbookIAM extends IAPlugin {
         IA.log("INFO: WildbookIAM.prime(" + this.context + ") called");
         IBEISIA.setIAPrimed(false);
         if (!isEnabled()) return;
-        final List<String> iaAnnotIds = iaAnnotationIds();
-        final List<String> iaImageIds = iaImageIds();
+        final List<String> iaAnnotIds = iaAnnotationIds(null);
+        final List<String> iaImageIds = iaImageIds(null);
         Runnable r = new Runnable() {
             public void run() {
                 Shepherd myShepherd = new Shepherd(context);
@@ -140,7 +144,16 @@ public class WildbookIAM extends IAPlugin {
     public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
-        String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
+        String u = null;
+        Taxonomy taxy = null;
+        try {
+            Shepherd myShepherd = new Shepherd(context);
+            taxy = mas.get(0).getTaxonomy(myShepherd);
+            String architecture = iaJsonProperties.getDetectionConfig(taxy).getString("architecture");
+            u = iaJsonProperties.getJson().getJSONObject(architecture).getString("add_images");
+        } catch (Exception e) {
+            u = IA.getProperty(context, "IBEISIARestUrlAddImages");
+        }
 
         if (u == null)
             throw new MalformedURLException(
@@ -151,7 +164,7 @@ public class WildbookIAM extends IAPlugin {
 
         // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaImageIds = new ArrayList<String>();
-        if (checkFirst) iaImageIds = iaImageIds();
+        if (checkFirst) iaImageIds = iaImageIds(taxy);
         // initial initialization(!)
         HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
@@ -225,7 +238,15 @@ public class WildbookIAM extends IAPlugin {
         Shepherd myShepherd)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
-        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+        String u = null;
+        Taxonomy taxy = null;
+        try {
+            taxy = anns.get(0).getTaxonomy(myShepherd);
+            String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
+            u = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_annotations");
+        } catch (Exception e) {
+            u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+        }
 
         if (u == null)
             throw new MalformedURLException(
@@ -247,7 +268,7 @@ public class WildbookIAM extends IAPlugin {
 
         // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaAnnotIds = new ArrayList<String>();
-        if (checkFirst) iaAnnotIds = iaAnnotationIds();
+        if (checkFirst) iaAnnotIds = iaAnnotationIds(taxy);
         HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
         map.put("image_uuid_list", new ArrayList<String>());
         map.put("annot_species_list", new ArrayList<String>());
@@ -331,17 +352,17 @@ public class WildbookIAM extends IAPlugin {
     }
 
     // instance version of below (since context is known)
-    public List<String> iaAnnotationIds() {
-        return iaAnnotationIds(this.context);
+    public List<String> iaAnnotationIds(Taxonomy taxy) {
+        return iaAnnotationIds(this.context, taxy);
     }
 
     // this fails "gracefully" with empty list if network fubar.  bad decision?
-    public static List<String> iaAnnotationIds(String context) {
+    public static List<String> iaAnnotationIds(String context, Taxonomy taxy) {
         List<String> ids = new ArrayList<String>();
         JSONArray jids = null;
 
         try {
-            jids = apiGetJSONArray("/api/annot/json/", context);
+            jids = apiGetJSONArray("/api/annot/json/", context, taxy);
         } catch (Exception ex) {
             ex.printStackTrace();
             IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
@@ -362,16 +383,16 @@ public class WildbookIAM extends IAPlugin {
     }
 
     // as above, but images
-    public List<String> iaImageIds() {
-        return iaImageIds(this.context);
+    public List<String> iaImageIds(Taxonomy taxy) {
+        return iaImageIds(this.context, taxy);
     }
 
-    public static List<String> iaImageIds(String context) {
+    public static List<String> iaImageIds(String context, Taxonomy taxy) {
         List<String> ids = new ArrayList<String>();
         JSONArray jids = null;
 
         try {
-            jids = apiGetJSONArray("/api/image/json/", context);
+            jids = apiGetJSONArray("/api/image/json/", context, taxy);
         } catch (Exception ex) {
             ex.printStackTrace();
             IA.log("ERROR: WildbookIAM.iaImageIds() returning empty; failed due to " +
@@ -391,16 +412,29 @@ public class WildbookIAM extends IAPlugin {
         return ids;
     }
 
-    public JSONArray apiGetJSONArray(String urlSuffix)
+    public JSONArray apiGetJSONArray(String urlSuffix, Taxonomy taxy)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
-        return apiGetJSONArray(urlSuffix, this.context);
+        return apiGetJSONArray(urlSuffix, this.context, taxy);
     }
 
-    public static JSONArray apiGetJSONArray(String urlSuffix, String context)
+    public static JSONArray apiGetJSONArray(String urlSuffix, String context, Taxonomy taxy)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
-        URL u = IBEISIA.iaURL(context, urlSuffix);
+
+        URL u = null;
+
+        if (taxy != null && urlSuffix.equals("/api/image/json/")) {
+            String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
+            String urlString = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_images");
+            u = new URL(urlString);
+        } else if (taxy != null && urlSuffix.equals("/api/annot/json/")) {
+            String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
+            String urlString = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_annotations");
+            u = new URL(urlString);
+        } else {
+            u = IBEISIA.iaURL(context, urlSuffix);
+        }
         JSONObject rtn = RestClient.get(u);
 
         if ((rtn == null) || (rtn.optJSONObject("status") == null) ||

@@ -256,7 +256,19 @@ public class IBEISIA {
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
-        String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
+        Shepherd myShepherd = new Shepherd(context);
+        String u = null;
+        if (qanns.size() > 0) {
+            try {
+                Taxonomy taxy = qanns.get(0).getTaxonomy(myShepherd);
+                String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
+                u = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("start_identify");
+            } catch (Exception e) {
+                u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
+            }
+        } else {
+            u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
+        }
         if (u == null)
             throw new MalformedURLException(
                       "configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
@@ -265,7 +277,6 @@ public class IBEISIA {
         Util.mark("sendIdentify-0  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()),
             startTime);
 
-        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
 
@@ -443,8 +454,8 @@ public class IBEISIA {
         System.out.println("sendDetect got detectArgs " + detectArgsWithMas.toString());
 
         URL url = new URL(detectUrl);
-        String iaBase = IA.getProperty(context, "IABASEIP");
-        url = new URL(iaBase + url.getPath().substring(1));
+        // String iaBase = IA.getProperty(context, "IABASEIP");
+        // url = new URL(iaBase + url.getPath().substring(1));
         System.out.println("sendDetectNew sending to url " + url);
 
         return RestClient.post(url, detectArgsWithMas);
@@ -679,7 +690,19 @@ public class IBEISIA {
     public static JSONObject getJobStatus(String jobID, String context)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
-        String u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
+
+        String u = null;
+
+        try {
+            Shepherd myShepherd = new Shepherd(context);
+            String taskId = findTaskIDFromJobID(jobID, context);
+            Task task = Task.load(taskId, myShepherd);
+            JSONObject parameters = task.getParameters();
+            String architecture = parameters.getJSONObject("detectArgs").getString("architecture");
+            u = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("get_job_status");
+        } catch (Exception e) {
+            u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
+        }
 
         if (u == null)
             throw new MalformedURLException(
@@ -693,7 +716,19 @@ public class IBEISIA {
     public static JSONObject getJobResult(String jobID, String context)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
-        String u = IA.getProperty(context, "IBEISIARestUrlGetJobResult");
+        
+        String u = null;
+
+        try {
+            Shepherd myShepherd = new Shepherd(context);
+            String taskId = findTaskIDFromJobID(jobID, context);
+            Task task = Task.load(taskId, myShepherd);
+            JSONObject parameters = task.getParameters();
+            String architecture = parameters.getJSONObject("detectArgs").getString("architecture");
+            u = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("get_job_result");
+        } catch (Exception e) {
+            u = IA.getProperty(context, "IBEISIARestUrlGetJobResult");
+        }
 
         if (u == null)
             throw new MalformedURLException(
@@ -4755,7 +4790,13 @@ public class IBEISIA {
         WildbookIAM plugin = getPluginInstance(myShepherd.getContext());
         ArrayList<Annotation> annsToSend = new ArrayList<Annotation>();
         // List<String> iaAnnotIds = plugin.iaAnnotationIds();
-        HashSet<String> iaAnnotIds = new HashSet(plugin.iaAnnotationIds());
+        HashSet<String> iaAnnotIds = new HashSet<String>();
+        if (anns.size() > 0) {
+            Taxonomy taxy = anns.get(0).getTaxonomy(myShepherd);
+            iaAnnotIds = new HashSet(plugin.iaAnnotationIds(taxy));
+        } else {
+            iaAnnotIds = new HashSet(plugin.iaAnnotationIds(null));
+        }
         if (iaAnnotIds.isEmpty())
             throw new RuntimeException("iaAnnotIds is empty; possible IA problems");
         Util.mark("sendAnnotationsAsNeeded 1 ", tt);
@@ -4769,7 +4810,7 @@ public class IBEISIA {
             if (ma == null) continue; // snh #bad
             annsToSend.add(ann);
             // get iaImageIds only if we need it
-            if (iaImageIds == null) iaImageIds = new HashSet(plugin.iaImageIds());
+            if (iaImageIds == null) iaImageIds = new HashSet(plugin.iaImageIds(ann.getTaxonomy(myShepherd)));
             if (iaImageIds.isEmpty())
                 throw new RuntimeException("iaImageIds is empty; possible IA problems");
             if (iaImageIds.contains(ma.getAcmId())) continue;
@@ -4850,7 +4891,7 @@ public class IBEISIA {
     public static Map<String, String> iaSpeciesDiff(Shepherd myShepherd, boolean includeCleanup) {
         String context = myShepherd.getContext();
         Map<String, String> ourMap = acmIdSpeciesMap(myShepherd);
-        List<String> iaIds = org.ecocean.ia.plugin.WildbookIAM.iaAnnotationIds(context);
+        List<String> iaIds = org.ecocean.ia.plugin.WildbookIAM.iaAnnotationIds(context, null);
         int orig = iaIds.size();
         List<String> ourIds = new ArrayList<String>(ourMap.keySet());
         List<String> needCleanup = null;
