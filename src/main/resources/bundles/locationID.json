@@ -160,6 +160,32 @@
 					"locationID": []
 				},
 				{
+					"name": "Osterzgebirge",
+					"id": "Osterzgebirge",
+					"locationID": [
+						{
+							"name": "Lockwitzbach",
+							"id": "Lockwitzbach",
+							"locationID": []
+						},
+						{
+							"name": "Müglitz",
+							"id": "Müglitz",
+							"locationID": []
+						},
+						{
+							"name": "Seidewitz",
+							"id": "Seidewitz",
+							"locationID": []
+						},
+						{
+							"name": "Weißeritz",
+							"id": "Weißeritz",
+							"locationID": []
+						}
+					]
+				},
+				{
 					"name": "Reifenstein",
 					"id": "Reifenstein",
 					"locationID":[]
