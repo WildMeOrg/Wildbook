@@ -105,6 +105,26 @@ public class EncounterPatchValidator {
                     value = new MetalTag(jval.optString("number", null),
                         jval.optString("location", null));
             }
+            // measurements (list) is kinda touchy, as we should respect having only 1 of each type
+            // thus, we should not allow an op=add for a type that exists
+            if (path.equals("measurements")) {
+                if (value == null)
+                    throw new ApiException(path + " must have a value for op=" + op,
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                JSONObject jval = testJsonValue(value,
+                    new String[] { "type", "value", "units", "samplingProtocol" });
+                String type = jval.optString("type", null);
+                if (type == null)
+                    throw new ApiException(path + " must have a type for op=" + op,
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                // ugh: hasMeasurement() will return false if there is a Measurement with the given type,
+                // but value is false .... sigh, so this has to be taken into account
+                if (enc.hasMeasurement(type) && op.equals("add"))
+                    throw new ApiException("measurement with type " + type +
+                            " already exists, please use op=replace instead",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                value = enc.getOrCreateMeasurement(jval);
+            }
             if (PATHS_REMOVE_NEEDS_USER_VALUE.contains(path)) {
                 if (op.equals("replace"))
                     throw new ApiException(path + " cannot use op=replace",
@@ -154,6 +174,15 @@ public class EncounterPatchValidator {
                             ApiException.ERROR_RETURN_CODE_REQUIRED);
                 JSONObject jval = testJsonValue(value, new String[] { "location", "number" });
                 enc.applyPatchOp(path, jval, op);
+                // we only need to pass value=type for removal of measurement
+            } else if (path.equals("measurements")) {
+                if (value == null)
+                    throw new ApiException(path + " must have a value (measurement type) for op=" +
+                            op, ApiException.ERROR_RETURN_CODE_REQUIRED);
+                if (!enc.hasMeasurement(value.toString()))
+                    throw new ApiException("measurement with type " + value.toString() +
+                            " does not exist", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                enc.applyPatchOp(path, value.toString(), op);
             } else {
                 enc.applyPatchOp(path, null, op);
             }

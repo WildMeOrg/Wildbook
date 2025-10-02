@@ -2513,6 +2513,32 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    public Measurement removeMeasurementByType(String type) {
+        // findMeasurementOfType() seems to return even ones with value=null
+        // (versus getMeasurement())... so this seems the better choice?
+        Measurement m = findMeasurementOfType(type);
+
+        if (m != null) measurements.remove(m);
+        return m;
+    }
+
+    // will find the Measurement (by type) and modify it *or* make a new one
+    public Measurement getOrCreateMeasurement(org.json.JSONObject jdata) {
+        if (jdata == null) return null;
+        String type = jdata.optString("type", null);
+        if (type == null) return null;
+        Measurement m = findMeasurementOfType(type);
+        if (m == null) {
+            m = new Measurement(this.getId(), type, jdata.optDouble("value", 0.0D),
+                jdata.optString("units", null), jdata.optString("samplingProtocol", null));
+        } else {
+            m.setValue(jdata.optDouble("value", 0.0D));
+            m.setUnits(jdata.optString("units", null));
+            m.setSamplingProtocol(jdata.optString("samplingProtocol", null));
+        }
+        return m;
+    }
+
     // like above but way less persisty
     public void setMeasurement(Measurement measurement) {
         if (measurement == null) return;
@@ -2528,6 +2554,13 @@ public class Encounter extends Base implements java.io.Serializable {
             hasType.setValue(measurement.getValue());
             hasType.setSamplingProtocol(measurement.getSamplingProtocol());
         }
+    }
+
+    // like above but less..... checky (trust the caller!)
+    public void addMeasurement(Measurement meas) {
+        if (meas == null) return;
+        if (measurements == null) measurements = new ArrayList<Measurement>();
+        measurements.add(meas);
     }
 
     public void removeMeasurement(int num) { measurements.remove(num); }
@@ -4974,6 +5007,16 @@ public class Encounter extends Base implements java.io.Serializable {
                 removeMetalTagByValues(jval.optString("number"), jval.optString("location"));
             } else if ("add".equals(op) && (value != null)) {
                 addMetalTag((MetalTag)value);
+            }
+            break;
+        case "measurements":
+            if ("remove".equals(op) && (value != null)) {
+                removeMeasurementByType(value.toString());
+            } else if (value instanceof Measurement) {
+                // for op=add or op=replace, if it has the measurement (i.e. by type), it means
+                // it should be changed in place already so dont do anything
+                Measurement meas = (Measurement)value;
+                if (findMeasurementOfType(meas.getType()) == null) addMeasurement(meas);
             }
             break;
         // these we really only want to append to (i think??)
