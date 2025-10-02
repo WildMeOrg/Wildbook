@@ -428,7 +428,7 @@
     "brunnea": {
       "_detect_conf": [
         {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "start_detect": "https://h4s1noaaz0.execute-api.us-east-1.amazonaws.com/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "hyaena_v0",
           "labeler_model_tag": "hyaena_v0",
