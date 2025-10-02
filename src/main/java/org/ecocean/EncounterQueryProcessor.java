@@ -1340,9 +1340,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
                 // now we have to break apart genus species
                 StringTokenizer tokenizer = new StringTokenizer(genusSpecies, " ");
-                if (tokenizer.countTokens() == 2) {
+                if (tokenizer.countTokens() >1) {
                     genus = tokenizer.nextToken();
-                    specificEpithet = tokenizer.nextToken();
+                    while(tokenizer.hasMoreTokens()) {
+                    	specificEpithet+=tokenizer.nextToken()+" ";
+                    }
+                    specificEpithet=specificEpithet.trim();
                     if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                         filter += "genus == '" + genus + "' ";
                     } else { filter += " && genus == '" + genus + "' "; }
