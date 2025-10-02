@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import MailIcon from "../../components/icons/MailIcon";
 import { observer } from "mobx-react-lite";
 import ImageModal from "../../components/ImageModal";
 import { useNavigate } from "react-router-dom";
+import ThemeColorContext from "../../ThemeColorProvider";
+import { FormattedMessage } from "react-intl";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -11,7 +13,10 @@ const ImageCard = observer(({ store = {} }) => {
   const [scaleX, setScaleX] = useState(1);
   const [scaleY, setScaleY] = useState(1);
   const [openImageModal, setOpenImageModal] = useState(false);
-  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  const maxSize = 10000000; // 10MB
+  const theme = useContext(ThemeColorContext);
+  
 
   useEffect(() => {
     if (
@@ -75,6 +80,26 @@ const ImageCard = observer(({ store = {} }) => {
       }
     };
   }, [rects, store.selectedImageIndex, store.encounterData]);
+
+    useEffect(() => {
+      const ref = fileInputRef.current;
+      if (!ref) return;
+  
+      if (!store.flow) {
+        store.initializeFlow(ref, maxSize);
+      } else {
+        store.flow.assignBrowse(ref);
+      }
+  
+      const handleChange = () => {
+        store.triggerUploadAfterFileInput();
+      };
+      ref.addEventListener("change", handleChange);
+  
+      return () => {
+        ref.removeEventListener("change", handleChange);
+      };
+    }, [store, maxSize]);
 
   const handleClick = (encounterId, storeEncounterId, annotationId) => {
     if (encounterId === storeEncounterId) {
@@ -310,6 +335,21 @@ const ImageCard = observer(({ store = {} }) => {
             onClick={() => store.setSelectedImageIndex(index)}
           />
         ))}
+        <div
+                id="add-more-files"
+                onClick={() => fileInputRef.current.click()}
+              >
+                <i
+                  className="bi bi-images"
+                  style={{
+                    fontSize: "1rem",
+                    color: theme.wildMeColors.cyan700,
+                  }}
+                ></i>
+                <p>
+                  <FormattedMessage id="ADD_MORE_FILES" />
+                </p>
+              </div>
       </div>
       {openImageModal && (
         <ImageModal

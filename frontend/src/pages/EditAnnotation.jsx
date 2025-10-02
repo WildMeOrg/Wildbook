@@ -13,11 +13,13 @@ import useCreateAnnotation from "../models/encounters/useCreateAnnotation";
 import calculateFinalRect from "../models/js/calculateFinalRect";
 import calculateScaleFactor from "../models/js/calculateScaleFactor";
 import AddAnnotationModal from "../components/AddAnnotationModal";
+import axios from "axios";
 
-export default function ManualAnnotation() {
+export default function EditAnnotation() {
     const [searchParams] = useSearchParams();
     const assetId = searchParams.get("assetId");
     const encounterId = searchParams.get("encounterId");
+    const annotationId = searchParams.get("annotationId");
     const theme = useContext(ThemeColorContext);
     const imgRef = useRef(null);
     const canvasRef = useRef(null);
@@ -94,57 +96,54 @@ export default function ManualAnnotation() {
     };
 
     useEffect(() => {
-        console.log("preFilledAnnotaion", preFilledAnnotation);
-        console.log("annotation", annotation);
-        console.log("imgRef", imgRef.current?.clientHeight, imgRef.current?.clientWidth);
-        console.log("scaleFactor", scaleFactor);
-        
         const ready =
-            !preFilledAnnotation &&               
+            !preFilledAnnotation &&
             annotation &&
             imgRef.current &&
             imgRef.current.clientWidth > 0 &&
             imgRef.current.clientHeight > 0 &&
             Number.isFinite(scaleFactor.x) &&
             Number.isFinite(scaleFactor.y);
-console.log("result++++++++++++++++++++: ",ready)
         if (!ready) return;
-        console.log("-------------------++++++++++++++++++++++++++++*******************************************************************");
-        console.log("preFilledAnnotation", preFilledAnnotation);
-        console.log("annotation", annotation);
-        console.log("imgRef", imgRef.current.clientHeight, imgRef.current.clientWidth);
 
         const factor = scaleFactor || { x: 1, y: 1 };
-        let sx = annotation.x / (factor.x || 1);
-        let sy = annotation.y / (factor.y || 1);
-        let sw = annotation.width / (factor.x || 1);
-        let sh = annotation.height / (factor.y || 1);
+        let x = annotation.x / (factor.x || 1);
+        let y = annotation.y / (factor.y || 1);
+        let width = annotation.width / (factor.x || 1);
+        let height = annotation.height / (factor.y || 1);
 
-        console.log("scaleFactor", scaleFactor);
-        console.log("factor", factor);
-
-        // if (rotationInfo) {
-        //     const imgW = data.width;
-        //     const imgH = data.height;
-        //     const adjW = imgH / imgW;
-        //     const adjH = imgW / imgH;
-
-        //     sx /= adjW;
-        //     sw /= adjW;
-        //     sy /= adjH;
-        //     sh /= adjH;
-        // }
+        if (rotationInfo) {
+            const imgW = data.width;
+            const imgH = data.height;
+            const adjW = imgH / imgW;
+            const adjH = imgW / imgH;
+            x /= adjW;
+            width /= adjW;
+            y /= adjH;
+            height /= adjH;
+        }
 
         const theta = annotation.theta ?? annotation.rotation ?? 0;
         const deg = (theta * 180) / Math.PI;
 
-        console.log("sx, sy, sw, sh", sx, sy, sw, sh);
+        const centerOffsetX = width / 2;
+        const centerOffsetY = height / 2;
+
+        const originalCenterX = x + centerOffsetX;
+        const originalCenterY = y + centerOffsetY;
+
+        const rad = (deg * Math.PI) / 180;
+        const rotatedOffsetX = Math.cos(rad) * centerOffsetX - Math.sin(rad) * centerOffsetY;
+        const rotatedOffsetY = Math.sin(rad) * centerOffsetX + Math.cos(rad) * centerOffsetY;
+
+        const newX = originalCenterX - rotatedOffsetX;
+        const newY = originalCenterY - rotatedOffsetY;
 
         setRect({
-            x: sx,
-            y: sy,
-            width: sw,
-            height: sh,
+            x: newX,
+            y: newY,
+            width: width,
+            height: height,
             rotation: deg,
         });
         setValue(deg);
@@ -177,16 +176,6 @@ console.log("result++++++++++++++++++++: ",ready)
                     imgRef.current.clientHeight,
                 );
                 setScaleFactor(factor);
-                // if(annotation) {
-                //     setRect({
-                //         x: annotation.x * factor.x,
-                //         y: annotation.y * factor.y,
-                //         width: annotation.width * factor.x,
-                //         height: annotation.height * factor.y,
-                //         rotation: annotation.theta || 0,
-                //     });
-                // }
-
 
                 const canvas = canvasRef.current;
                 const context = canvas.getContext("2d");
@@ -197,7 +186,7 @@ console.log("result++++++++++++++++++++: ",ready)
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 const validAnnotations = data.annotations.filter(
                     (annotation) => !annotation.trivial,
-                ).filter(data => data.encounterId === encounterId);
+                ).filter(data => data.encounterId === encounterId && data.id !== annotationId);
                 for (const annotation of validAnnotations) {
                     const { x, y, width, height, theta } = annotation;
                     const scaledRect = {
@@ -486,6 +475,7 @@ console.log("result++++++++++++++++++++: ",ready)
                                 imgHeight={imgRef.current?.height}
                                 imgWidth={imgRef.current?.width}
                                 setRect={setRect}
+                                value={value}
                                 setValue={setValue}
                                 drawStatus={drawStatus}
                                 scaleFactor={scaleFactor}
@@ -536,6 +526,18 @@ console.log("result++++++++++++++++++++: ",ready)
                                         height *= adjH;
                                     }
 
+                                    await axios.post(
+                                        "/EncounterRemoveAnnotation",
+                                        {
+                                            annotation: String(annotationId),
+                                            detach: "true",
+                                            number: String(encounterId),
+                                        },
+                                        {
+                                            headers: { "Content-Type": "application/json" },
+                                        }
+                                    );
+
                                     await createAnnotation({
                                         encounterId,
                                         assetId,
@@ -549,7 +551,7 @@ console.log("result++++++++++++++++++++: ",ready)
                                     });
                                 }
                             } catch (error) {
-                                alert("Error creating annotation", error);
+                                alert("Error editing annotation", error);
                                 setShowModal(true);
                             }
                         }}

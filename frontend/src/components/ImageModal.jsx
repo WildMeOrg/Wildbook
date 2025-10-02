@@ -31,11 +31,13 @@ export const ImageModal = observer(({
 
     const currentAnnotation = allAnnotations.filter(a => a.encounterId === store.encounterData.id)?.[0] || null;
     const editAnnotationParams = {
-        x: currentAnnotation?.boundingBox[0] || 0,
-        y: currentAnnotation?.boundingBox[1] || 0,
-        width: currentAnnotation?.boundingBox[2] || 0,
-        height: currentAnnotation?.boundingBox[3] || 0,
+        x: rect.x || 0,
+        y: rect.y || 0,
+        width: rect.width || 0,
+        height: rect.height || 0,
+        theta: rect.rotation || 0,
     };
+
     const annotationParam = encodeURIComponent(JSON.stringify(editAnnotationParams));
     const [tagText, setTagText] = useState("");
 
@@ -493,13 +495,15 @@ export const ImageModal = observer(({
 
                         <div className="d-grid gap-2">
                             <MainButton
-                                link={`/iaResults.jsp?taskId=${currentAnnotation?.iaTaskId}`}
                                 noArrow={true}
                                 color="white"
                                 backgroundColor={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                                 disabled={!store.matchResultClickable}
+                                onClick={() => {
+                                    window.open(`/iaResults.jsp?taskId=${currentAnnotation?.iaTaskId}`, "_blank");
+                                }}
                             >
                                 <FormattedMessage id="MATCH_RESULTS" />
                             </MainButton>
@@ -575,7 +579,7 @@ export const ImageModal = observer(({
                                     if (window.confirm("Are you sure you want to delete this annotation?")) {
                                         await store.removeAnnotation(currentAnnotation?.id);
                                         window.location.reload();
-                                    }                                    
+                                    }
                                 }}
                             >
                                 <FormattedMessage id="DELETE_ANNOTATION" />

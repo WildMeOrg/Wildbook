@@ -22,6 +22,7 @@ const ResizableRotatableRect = ({
         stroke: "red",
         strokeWidth: 2,
         draggable: true,
+        rotation: rect.rotation || 0,
       });
     }
   }, [rect.x, rect.y, rect.width, rect.height, drawStatus]);
