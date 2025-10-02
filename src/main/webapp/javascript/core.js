@@ -245,6 +245,7 @@ var wildbook = {
     */
     makeAutocomplete: function(el, args) {
         if (typeof args != 'object') args = {};
+        var minLen = (args && args.minLength != null) ? args.minLength : 3;
 
         //this is "default behavior"
         //  item has:  item.species, item.label, item.type, item.value
@@ -274,7 +275,8 @@ var wildbook = {
                 }
             });
         };
-
+        
+        args.minLength = minLen;
         $(el).autocomplete(args);
     }
 };
