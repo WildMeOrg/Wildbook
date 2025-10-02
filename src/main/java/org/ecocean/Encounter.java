@@ -2741,6 +2741,14 @@ public class Encounter extends Base implements java.io.Serializable {
         return annotations;
     }
 
+    public Annotation getAnnotation(String annId) {
+        if ((annId == null) || (annotations == null)) return null;
+        for (Annotation ann : annotations) {
+            if (annId.equals(ann.getId())) return ann;
+        }
+        return null;
+    }
+
     public Set<String> getAnnotationViewpoints() {
         Set<String> vps = new HashSet<String>();
 
@@ -5017,6 +5025,17 @@ public class Encounter extends Base implements java.io.Serializable {
                 // it should be changed in place already so dont do anything
                 Measurement meas = (Measurement)value;
                 if (findMeasurementOfType(meas.getType()) == null) addMeasurement(meas);
+            }
+            break;
+        case "annotations":
+            // for now we can only patch op=remove on path=annotations
+            // adding annots is done through legacy servlet
+            if ("remove".equals(op) && (value instanceof Annotation)) {
+                // enc.removeAnnotation and deletePersistent (from db/shepherd) done in EncounterPatchValidator
+                // so we only need to clean up some loose ends here
+                Annotation goneAnnot = (Annotation)value;
+                goneAnnot.setSkipAutoIndexing(true);
+                goneAnnot.opensearchUnindexQuiet();
             }
             break;
         // these we really only want to append to (i think??)

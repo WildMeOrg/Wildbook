@@ -4,6 +4,7 @@ import org.ecocean.api.ApiException;
 import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.api.UploadedFiles;
+import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
@@ -183,6 +184,17 @@ public class EncounterPatchValidator {
                     throw new ApiException("measurement with type " + value.toString() +
                             " does not exist", ApiException.ERROR_RETURN_CODE_REQUIRED);
                 enc.applyPatchOp(path, value.toString(), op);
+            } else if (path.equals("annotations")) {
+                if (value == null)
+                    throw new ApiException(path + " must have a value (annotation id) for op=" + op,
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                Annotation ann = enc.getAnnotation(value.toString());
+                if (ann == null)
+                    throw new ApiException("no such annotation id=" + value.toString(),
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                enc.removeAnnotation(ann);
+                myShepherd.getPM().deletePersistent(ann);
+                value = ann;
             } else {
                 enc.applyPatchOp(path, null, op);
             }
