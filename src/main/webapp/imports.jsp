@@ -231,6 +231,11 @@ try{
 	            else{iaStatusString="identification";}
 	        }
 	        String status=task.getStatus();
+	        //update for Wildbook 10.8+
+	        //legacy bulk imports stopped at "complete" for an import task status
+	        //10.8 added a subsequent "processing-detection" state, but for this page's
+	        //purposes, we want to just list that additional state as the legacy complete value
+	        if(status!=null && status.equals("processing-detection")) status="complete";
 	        
 	        //let's build this Task's JSON
 	        JSONObject jobj = new JSONObject();
