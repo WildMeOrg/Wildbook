@@ -4,7 +4,9 @@ import convertToTreeDataWithName from "../../utils/converToTreeData";
 import { debounce } from "lodash";
 import { toJS } from "mobx";
 import dayjs from "dayjs";
+import Flow from "@flowjs/flow.js";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { v4 as uuidv4 } from "uuid";
 dayjs.extend(customParseFormat);
 
 const SECTION_FIELD_PATHS = {
@@ -206,14 +208,24 @@ class EncounterStore {
   _patterningCodeOptions = [];
   _locationIdOptions = [];
   _identificationRemarksOptions = [];
+  // Algorithm options for matching
   _algorithmOptions = [
     { label: "MiewID Matcher", value: "MiewID Matcher" },
     { label: "HotSpotter Pattern Matcher", value: "HotSpotter Pattern Matcher" },
   ];
+  _metalTagLocation = [];
+  _metalTagValues = [];
+  _acousticTagValues = {};
+  _satelliteTagValues = {};
 
   _selectedImageIndex = 0;
   _encounterAnnotations = null;
   _selectedAnnotationId = null;
+
+  flow = null;
+  imageSubmissionId = null;
+  uploadProgress = 0;
+  uploadErrors = [];
 
   _matchResultClickable = false;
 
@@ -235,7 +247,7 @@ class EncounterStore {
   );
 
   constructor() {
-    makeAutoObservable(this, {}, { autoBind: true });
+    makeAutoObservable(this, { flow: false }, { autoBind: true });
   }
 
   get encounterData() {
@@ -245,6 +257,9 @@ class EncounterStore {
     this._encounterData = newEncounterData;
     this._lat = newEncounterData?.locationGeoPoint?.lat || null;
     this._lon = newEncounterData?.locationGeoPoint?.lon || null;
+    this._metalTagValues = newEncounterData?.metalTags || [];
+    this._acousticTagValues = newEncounterData?.acousticTag || {};
+    this._satelliteTagValues = newEncounterData?.satelliteTag || {};
     this.resetAllDrafts();
   }
 
@@ -351,7 +366,7 @@ class EncounterStore {
 
   debouncedSearchSightings = debounce(async (inputValue) => {
     if (inputValue && inputValue.length >= 2) {
-      await this.searchSightingsByIndividualId(inputValue);
+      await this.searchSightingsById(inputValue);
     } else {
       this.clearSightingSearchResults();
     }
@@ -484,8 +499,6 @@ class EncounterStore {
       console.error("Failed to add encounter to project:", result);
     }
   }
-
-  async 
 
   get measurementsAndTrackingSection() {
     return this._measurementsAndTrackingSection;
@@ -713,6 +726,31 @@ class EncounterStore {
     return [];
   }
 
+  get metalTagLocation() {
+    return this._siteSettingsData?.metalTagLocation || [];
+  }
+
+  get metalTagValues() {
+    return this._metalTagValues;
+  }
+  setMetalTagValues(newValues) {
+    this._metalTagValues = newValues;
+  }
+
+  get acousticTagValues() {
+    return this._acousticTagValues;
+  }
+  setAcousticTagValues(newValues) {
+    this._acousticTagValues = { ...this._acousticTagValues, ...newValues };
+  }
+
+  get satelliteTagValues() {
+    return this._satelliteTagValues;
+  }
+  setSatelliteTagValues(newValues) {
+    this._satelliteTagValues = { ...this._satelliteTagValues, ...newValues };
+  }
+
   get algorithmOptions() {
     return this._algorithmOptions;
   }
@@ -838,6 +876,186 @@ class EncounterStore {
     return operations;
   }
 
+  buildTrackingPatchPayload() {
+    const ops = [];
+
+    // Handle Metal Tags
+    const originalMetalTags = this._encounterData?.metalTags || [];
+    const currentMetalTags = this._metalTagValues || [];
+
+    // Add or update tags
+    currentMetalTags.forEach(currentTag => {
+      const originalTag = originalMetalTags.find(
+        tag => tag.location === currentTag.location
+      );
+
+      // If tag doesn't exist or number changed, add it
+      if (!originalTag || originalTag.number !== currentTag.number) {
+        ops.push({
+          op: "replace",
+          path: "metalTags",
+          value: { location: currentTag.location, number: currentTag.number }
+        });
+      }
+    });
+
+    // Remove tags that no longer exist
+    // originalMetalTags.forEach(originalTag => {
+    //   const stillExists = currentMetalTags.find(
+    //     tag => tag.location === originalTag.location
+    //   );
+
+      // if (!stillExists) {
+      //   ops.push({
+      //     op: "remove",
+      //     path: "metalTags",
+      //     value: { location: originalTag.location, number: originalTag.number }
+      //   });
+      // }
+    // });
+
+    // Handle Acoustic Tag
+    const originalAcoustic = this._encounterData?.acousticTag || {};
+    const currentAcoustic = this._acousticTagValues || {};
+
+    const hasAcousticChanges =
+      currentAcoustic.serialNumber !== originalAcoustic.serialNumber ||
+      currentAcoustic.idNumber !== originalAcoustic.idNumber;
+
+    if (hasAcousticChanges) {
+     
+        // Has values - add/update
+        ops.push({
+          op: "replace",
+          path: "acousticTag",
+          value: {
+            ...(currentAcoustic.serialNumber && { serialNumber: currentAcoustic.serialNumber }),
+            ...(currentAcoustic.idNumber && { idNumber: currentAcoustic.idNumber })
+          }
+        });
+      } 
+      // else if (originalAcoustic.serialNumber || originalAcoustic.idNumber) {
+      //   // All fields cleared - remove
+      //   ops.push({
+      //     op: "remove",
+      //     path: "acousticTag"
+      //   });
+    
+    // }
+
+    // Handle Satellite Tag
+    const originalSatellite = this._encounterData?.satelliteTag || {};
+    const currentSatellite = this._satelliteTagValues || {};
+
+    const hasSatelliteChanges =
+      currentSatellite.name !== originalSatellite.name ||
+      currentSatellite.serialNumber !== originalSatellite.serialNumber ||
+      currentSatellite.argosPttNumber !== originalSatellite.argosPttNumber;
+
+    if (hasSatelliteChanges) {
+     
+        ops.push({
+          op: "replace",
+          path: "satelliteTag",
+          value: {
+            ...(currentSatellite.name && { name: currentSatellite.name }),
+            ...(currentSatellite.serialNumber && { serialNumber: currentSatellite.serialNumber }),
+            ...(currentSatellite.argosPttNumber && { argosPttNumber: currentSatellite.argosPttNumber })
+          }
+        });
+   
+      // else if (originalSatellite.name || originalSatellite.serialNumber || originalSatellite.argosPttNumber) {
+      //   // All fields cleared - remove
+      //   ops.push({
+      //     op: "remove",
+      //     path: "satelliteTag"
+      //   });
+      // }
+    }
+    return ops;
+  }
+
+  async patchTracking() {
+    const ops = this.buildTrackingPatchPayload();
+    console.log("patchTracking ops:", JSON.stringify(ops));
+    if (!ops.length) return;
+    const resp = await axios.patch(`/api/v3/encounters/${this.encounterData.id}`, ops);
+    if (resp.status === 200) {
+      await this.refreshEncounterData();
+      this.setEditTracking?.(false);
+    } else {
+      console.error("patchTracking failed:", resp);
+    }
+  }
+
+  initializeFlow(inputEl, maxSizeMB = 10) {
+    if (this.flow) {
+      if (inputEl) this.flow.assignBrowse(inputEl);
+      return;
+    }
+
+    if (!this.imageSubmissionId) {
+      this.imageSubmissionId = uuidv4();
+    }
+
+    const flow = new Flow({
+      target: "/ResumableUpload",
+      forceChunkSize: true,
+      testChunks: false,
+      query: () => ({ submissionId: this.imageSubmissionId }),
+    });
+
+    if (inputEl) flow.assignBrowse(inputEl);
+
+    const supported = new Set(["image/jpeg", "image/jpg", "image/png", "image/bmp"]);
+    const maxBytes = maxSizeMB * 1024 * 1024;
+
+    flow.on("fileAdded", (file) => {
+      const typeOk = supported.has(file?.file?.type || "");
+      const sizeOk = file.size <= maxBytes;
+      return typeOk && sizeOk;
+    });
+
+    flow.on("filesSubmitted", () => {
+      flow.upload();
+    });
+
+    flow.on("fileSuccess", async (file, message) => {
+      try {
+        const op = {
+          op: "add",
+          path: "assets",
+          value: {
+            submissionId: this.imageSubmissionId,
+            filename: file?.file?.name || file?.name || "upload.jpg",
+          },
+        };
+        await axios.patch(`/api/v3/encounters/${this._encounterData.id}`, [op], {
+          headers: { "Content-Type": "application/json" },
+        });
+        alert("Image uploaded successfully, page will be reloaded!");
+        window.location.reload();
+      } catch (e) {
+        console.error("PATCH add assets failed:", e);
+      } finally {
+        this.uploadProgress = 0;
+        this.uploadErrors = [];
+      }
+    });
+
+    flow.on("fileError", (_file, msg) => {
+      console.error("Upload failed:", msg);
+    });
+
+    this.flow = flow;
+  }
+
+  triggerUploadImage() {
+    if (this.flow && this.flow.files && this.flow.files.length > 0) {
+      this.flow.upload();
+    }
+  }
+
   applyPatchOperationsLocally(operations) {
     if (!Array.isArray(operations) || operations.length === 0) return;
     if (!this._encounterData) return;
@@ -853,7 +1071,6 @@ class EncounterStore {
     this._encounterData = nextEncounter;
 
   }
-
 
   parseYMDHM(val) {
     if (val == null) return null;
@@ -1022,7 +1239,7 @@ class EncounterStore {
     }
   }
 
-  async searchSightingsByName(inputValue) {
+  async searchSightingsById(inputValue) {
     this._searchingIndividuals = true;
 
     try {
@@ -1032,7 +1249,7 @@ class EncounterStore {
             filter: [
               {
                 wildcard: {
-                  names: {
+                  id: {
                     value: `*${inputValue}*`,
                     case_insensitive: true
                   }

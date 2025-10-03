@@ -6,6 +6,8 @@ import ImageModal from "../../components/ImageModal";
 import { useNavigate } from "react-router-dom";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
+import Flow from "@flowjs/flow.js";
+import ImageIcon from "../../components/icons/ImageIcon";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -14,9 +16,8 @@ const ImageCard = observer(({ store = {} }) => {
   const [scaleY, setScaleY] = useState(1);
   const [openImageModal, setOpenImageModal] = useState(false);
   const fileInputRef = useRef(null);
-  const maxSize = 10000000; // 10MB
+  const maxSize = 10;
   const theme = useContext(ThemeColorContext);
-  
 
   useEffect(() => {
     if (
@@ -24,12 +25,8 @@ const ImageCard = observer(({ store = {} }) => {
       store.encounterData?.mediaAssets &&
       store.encounterData?.mediaAssets?.length > 0
     ) {
-      console.log("Encounter Data:", JSON.stringify(store.encounterData));
-      console.log("Selected Image Index:", store.selectedImageIndex);
       const selectedImage = store.encounterData.mediaAssets[store.selectedImageIndex];
       const annotations = selectedImage?.annotations;
-      console.log("Selected Image:", JSON.stringify(selectedImage));
-      console.log("Selected Image Annotations:", JSON.stringify(annotations));
       if (annotations?.length > 0) {
         const anns = selectedImage?.annotations || [];
         setRects(
@@ -81,34 +78,23 @@ const ImageCard = observer(({ store = {} }) => {
     };
   }, [rects, store.selectedImageIndex, store.encounterData]);
 
-    useEffect(() => {
-      const ref = fileInputRef.current;
-      if (!ref) return;
-  
-      if (!store.flow) {
-        store.initializeFlow(ref, maxSize);
-      } else {
-        store.flow.assignBrowse(ref);
-      }
-  
-      const handleChange = () => {
-        store.triggerUploadAfterFileInput();
-      };
-      ref.addEventListener("change", handleChange);
-  
-      return () => {
-        ref.removeEventListener("change", handleChange);
-      };
-    }, [store, maxSize]);
+  useEffect(() => {
+    const ref = fileInputRef.current;
+    if (!ref) return;
+
+    if (!store.flow) {
+      store.initializeFlow(ref, maxSize);
+    } else {
+      store.flow.assignBrowse(ref);
+    }
+  }, [store, maxSize]);
 
   const handleClick = (encounterId, storeEncounterId, annotationId) => {
     if (encounterId === storeEncounterId) {
       store.setSelectedAnnotationId(annotationId)
-      console.log("Clicked on the rectangle for the current encounter");
       setOpenImageModal(true);
       store.setSelectedImageIndex(store.selectedImageIndex);
     } else {
-      console.log("Clicked on the rectangle for a different encounter");
       window.location.href = `/react/encounter?number=${encounterId}`;
     }
   }
@@ -137,7 +123,9 @@ const ImageCard = observer(({ store = {} }) => {
         style={{
           width: "100%",
           position: "relative",
+          cursor: "pointer",
         }}
+        onClick={() => setOpenImageModal(true)}
       >
 
         {rects.length > 0 && rects.map((rect, index) => {
@@ -148,7 +136,6 @@ const ImageCard = observer(({ store = {} }) => {
             const imgH = store.encounterData?.mediaAssets[store.selectedImageIndex]?.height;
             const adjW = imgH / imgW;
             const adjH = imgW / imgH;
-            console.log("adjW", adjW, "adjH", adjH);
             newRect = {
               ...rect,
               x: (rect.x / scaleX) * adjW,
@@ -196,7 +183,7 @@ const ImageCard = observer(({ store = {} }) => {
             ""
           }
           alt="No image available"
-          style={{ width: "100%", height: "auto" }}
+          style={{ width: "100%", height: "auto" }}          
         />
       </div>
 
@@ -336,20 +323,39 @@ const ImageCard = observer(({ store = {} }) => {
           />
         ))}
         <div
-                id="add-more-files"
-                onClick={() => fileInputRef.current.click()}
-              >
-                <i
-                  className="bi bi-images"
-                  style={{
-                    fontSize: "1rem",
-                    color: theme.wildMeColors.cyan700,
-                  }}
-                ></i>
-                <p>
-                  <FormattedMessage id="ADD_MORE_FILES" />
-                </p>
-              </div>
+          id="add-more-files"
+          onClick={() => fileInputRef.current.click()}
+        >
+          <label
+            htmlFor={"add-more-files-input"}
+            id="add-more-files"
+            style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}
+          >
+            <div style={{
+              width: 100,
+              height: 70,
+              borderRadius: 5,
+              cursor: "pointer",
+              border: `2px dashed ${theme.primaryColors.primary500}`,
+              backgroundColor: `${theme.primaryColors.primary100}`,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "column",
+            }} >
+              <FormattedMessage id="ADD_IMAGE" />
+            </div>
+
+          </label>
+
+          <input
+            id={"add-more-files-input"}
+            type="file"
+            ref={fileInputRef}
+            accept="image/jpeg,image/png,image/bmp"
+            style={{ display: "none" }}
+          />
+        </div>
       </div>
       {openImageModal && (
         <ImageModal
@@ -358,7 +364,7 @@ const ImageCard = observer(({ store = {} }) => {
           assets={store.encounterData?.mediaAssets || []}
           index={store.selectedImageIndex}
           setIndex={(index) => store.setSelectedImageIndex(index)}
-          rect={rects?.filter(data => data.annotationId === store.selectedAnnotationId)[0] || {}}
+          rects={rects?.filter(data => data.encounterId === store.encounterData?.id) || []}
           store={store}
         />
       )}

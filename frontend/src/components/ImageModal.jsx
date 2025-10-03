@@ -19,7 +19,7 @@ export const ImageModal = observer(({
     assets = [],
     index = 0,
     setIndex,
-    rect = {},
+    rects = [],
     store = {},
 }) => {
     const themeColor = React.useContext(ThemeColorContext);
@@ -27,16 +27,25 @@ export const ImageModal = observer(({
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
-    const allAnnotations = assets[index]?.annotations.filter(a => !a.isTrivial) || [];
 
-    const currentAnnotation = allAnnotations.filter(a => a.encounterId === store.encounterData.id)?.[0] || null;
-    const editAnnotationParams = {
-        x: rect.x || 0,
-        y: rect.y || 0,
-        width: rect.width || 0,
-        height: rect.height || 0,
-        theta: rect.rotation || 0,
-    };
+    const currentAnnotation = rects.filter(a => a.annotationId === store.selectedAnnotationId)?.[0] || null;
+    const [editAnnotationParams, setEditAnnotationParams] = useState({});
+
+    console.log("rects", JSON.stringify(rects));
+    console.log("currentAnnotation", JSON.stringify(currentAnnotation));
+    console.log("selectedAnnotationId", JSON.stringify(store.selectedAnnotationId));
+
+    useEffect(() => {
+        if (!currentAnnotation) return;
+        setEditAnnotationParams({
+            x: currentAnnotation.x || 0,
+            y: currentAnnotation.y || 0,
+            width: currentAnnotation.width || 0,
+            height: currentAnnotation.height || 0,
+            theta: currentAnnotation.rotation || 0,
+        });
+    }, [currentAnnotation]);
+    console.log("editAnnotationParams", JSON.stringify(editAnnotationParams));
 
     const annotationParam = encodeURIComponent(JSON.stringify(editAnnotationParams));
     const [tagText, setTagText] = useState("");
@@ -109,7 +118,6 @@ export const ImageModal = observer(({
                 color: "white",
                 zIndex: 1080
             }}
-        // onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
         >
             <div
                 id="image-modal-content"
@@ -194,21 +202,28 @@ export const ImageModal = observer(({
                                         setScaleX((assets[safeIndex]?.width || iw) / iw);
                                         setScaleY((assets[safeIndex]?.height || ih) / ih);
                                     }}
-                                    onClick={() => { }}
                                 />
-                                {store.showAnnotations && Object.keys(rect).length > 0 && (
-                                    <div
-                                        className="position-absolute"
-                                        style={{
-                                            left: rect.x / scaleX,
-                                            top: rect.y / scaleY,
-                                            width: rect.width / scaleX,
-                                            height: rect.height / scaleY,
-                                            border: "2px solid red",
-                                            transform: `rotate(${rect.rotation}rad)`,
-                                            pointerEvents: "none",
-                                        }}
-                                    />)
+                                {store.showAnnotations && rects.length > 0 && (
+                                    rects.map((rect, index) => (
+
+                                        <div
+                                            key={index}
+                                            className="position-absolute"
+                                            onClick={() => {
+                                                console.log("Clicked rect:", JSON.stringify(rect.annotationId));
+                                                store.setSelectedAnnotationId(rect.annotationId);
+                                            }}
+                                            style={{
+                                                left: rect.x / scaleX,
+                                                top: rect.y / scaleY,
+                                                width: rect.width / scaleX,
+                                                height: rect.height / scaleY,
+                                                border: "2px solid red",
+                                                transform: `rotate(${rect.rotation}rad)`,
+                                                cursor: "pointer",
+                                                backgroundColor: rect.annotationId === store.selectedAnnotationId ? "rgba(240, 11, 11, 0.5)" : "transparent",
+                                            }}
+                                        />)))
                                 }
                             </div>
 
@@ -554,7 +569,7 @@ export const ImageModal = observer(({
                             </MainButton>
                             <MainButton
                                 noArrow={true}
-                                disabled={!currentAnnotation?.id}
+                                disabled={!currentAnnotation?.annotationId}
                                 backgroundColor="white"
                                 color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
@@ -563,7 +578,7 @@ export const ImageModal = observer(({
                                     if (!store.encounterData?.mediaAssets[store.selectedImageIndex] || !annotationParam || !assets[index]?.id) {
                                         return;
                                     }
-                                    window.open(`/react/edit-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.id}`, "_blank");
+                                    window.open(`/react/edit-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.annotationId}`, "_blank");
                                 }}
                             >
                                 <FormattedMessage id="EDIT_ANNOTATION" />
@@ -571,7 +586,7 @@ export const ImageModal = observer(({
                             <MainButton
                                 noArrow={true}
                                 backgroundColor="white"
-                                disabled={!currentAnnotation?.id}
+                                disabled={!currentAnnotation?.annotationId}
                                 color={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}

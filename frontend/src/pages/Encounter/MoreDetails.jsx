@@ -8,7 +8,8 @@ import MeasurementsIcon from '../../components/icons/MeasurementsIcon';
 import { Row } from 'react-bootstrap';
 import ThemeColorContext from '../../ThemeColorProvider';
 import CardWithSaveAndCancelButtons from '../../components/CardWithSaveAndCancelButtons';
-import { MeasurementsAndTrackingReview } from './MeasurementsAndTrackingReview';
+import { TrackingReview } from './TrackingReview';
+import { TrackingEdit } from './TrackingEdit';
 import { ProjectsCard } from './ProjectsCard';
 
 export const MoreDetails = observer(({
@@ -62,7 +63,9 @@ export const MoreDetails = observer(({
                             <CardWithEditButton
                                 icon={<TrackingIcon />}
                                 title="Tracking"
-                                content={<MeasurementsAndTrackingReview />
+                                content={<TrackingReview 
+                                    store={store}
+                                />
                                 }
                                 onClick={() => {
                                     store.setEditTracking(true);
@@ -70,18 +73,11 @@ export const MoreDetails = observer(({
                             /> :
                             <CardWithSaveAndCancelButtons
                                 icon={<TrackingIcon />}
-                                title="Traching"
+                                title="Tracking"
                                 content={
-                                    <div>
-                                        <p>Acoustic Tags</p>
-                                        <p>Serial Number: {store.encounterData?.acousticTag?.serialNumber}</p>
-                                        <p>ID: {store.encounterData?.acousticTag?.idNumber}</p>
-                                        <div style={{
-                                            width: '100%',
-                                            height: "10px",
-                                            borderBottom: '1px solid #ccc',
-                                        }}></div>
-                                    </div>}
+                                    <TrackingEdit 
+                                        store={store}
+                                    />}
 
                             />}
                         {!store.editMeasurements ?
