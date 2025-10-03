@@ -5,6 +5,7 @@ import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.Annotation;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
@@ -96,15 +97,25 @@ public class EncounterPatchValidator {
                         jval.optString("serialNumber", null),
                         jval.optString("argosPttNumber", null));
             }
-            // since metalTags is a list we can only add, and null is pointless
+            // metalTags is a list, but location field is unique so can be used as key
+            // also, null value is pointless, so ignored
             if (path.equals("metalTags") && (value != null)) {
-                if (op.equals("replace"))
-                    throw new ApiException(path + " cannot use op=replace",
+                if (!CommonConfiguration.showMetalTags(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 JSONObject jval = testJsonValue(value, new String[] { "location", "number" });
-                if (jval != null)
-                    value = new MetalTag(jval.optString("number", null),
-                        jval.optString("location", null));
+                if (jval != null) {
+                    String loc = jval.optString("location", null);
+                    if (loc == null)
+                        throw new ApiException(path + " cannot have null location",
+                                ApiException.ERROR_RETURN_CODE_REQUIRED);
+                    if (!MetalTag.getValidLocations(myShepherd.getContext()).contains(loc))
+                        throw new ApiException(path + " has invalid location=" + loc,
+                                ApiException.ERROR_RETURN_CODE_INVALID);
+                    value = jval;
+                    // value = new MetalTag(jval.optString("number", null),
+                    // jval.optString("location", null));
+                }
             }
             // measurements (list) is kinda touchy, as we should respect having only 1 of each type
             // thus, we should not allow an op=add for a type that exists
@@ -170,13 +181,15 @@ public class EncounterPatchValidator {
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 enc.applyPatchOp(path, value, op);
             } else if (path.equals("metalTags")) {
+                if (!CommonConfiguration.showMetalTags(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
                 if (value == null)
-                    throw new ApiException(path + " requires a value to remove from list",
+                    throw new ApiException(path + " requires a location value to remove from list",
                             ApiException.ERROR_RETURN_CODE_REQUIRED);
-                JSONObject jval = testJsonValue(value, new String[] { "location", "number" });
-                enc.applyPatchOp(path, jval, op);
-                // we only need to pass value=type for removal of measurement
+                enc.applyPatchOp(path, value.toString(), op);
             } else if (path.equals("measurements")) {
+                // we only need to pass value=type for removal of measurement
                 if (value == null)
                     throw new ApiException(path + " must have a value (measurement type) for op=" +
                             op, ApiException.ERROR_RETURN_CODE_REQUIRED);

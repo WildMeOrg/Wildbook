@@ -2587,17 +2587,31 @@ public class Encounter extends Base implements java.io.Serializable {
         metalTags.add(metalTag);
     }
 
+    // this does NOT validate values
+    public MetalTag addOrUpdateMetalTag(String location, String number) {
+        if ((location == null) || (number == null)) return null;
+        MetalTag tag = findMetalTagForLocation(location);
+        if (tag == null) {
+            tag = new MetalTag(number, location);
+            addMetalTag(tag);
+        } else {
+            tag.setTagNumber(number);
+        }
+        return tag;
+    }
+
     public void removeMetalTag(MetalTag metalTag) {
         metalTags.remove(metalTag);
     }
 
-    public void removeMetalTagByValues(String tagNumber, String location) {
-        if ((tagNumber == null) || (location == null) || (metalTags == null)) return;
+    // this will clear out ALL tags with this location, but i think we
+    // are supposed to only have [at most] one anyway!
+    public void removeMetalTag(String location) {
+        if ((location == null) || (metalTags == null)) return;
         ListIterator<MetalTag> it = metalTags.listIterator();
         while (it.hasNext()) {
             MetalTag next = it.next();
-            if (tagNumber.equals(next.getTagNumber()) && location.equals(next.getLocation()))
-                it.remove();
+            if (location.equals(next.getLocation())) it.remove();
         }
     }
 
@@ -5010,11 +5024,15 @@ public class Encounter extends Base implements java.io.Serializable {
             setAcousticTag((AcousticTag)value);
             break;
         case "metalTags":
+            // we only need location to remove
             if ("remove".equals(op) && (value != null)) {
+                removeMetalTag(value.toString());
+            } else if (("add".equals(op) || "replace".equals(op)) &&
+                (value instanceof org.json.JSONObject)) {
+                // add or replace will update based on location if exists
                 org.json.JSONObject jval = (org.json.JSONObject)value;
-                removeMetalTagByValues(jval.optString("number"), jval.optString("location"));
-            } else if ("add".equals(op) && (value != null)) {
-                addMetalTag((MetalTag)value);
+                addOrUpdateMetalTag(jval.optString("location", null),
+                    jval.optString("number", null));
             }
             break;
         case "measurements":
