@@ -4,6 +4,8 @@ import org.ecocean.api.ApiException;
 import org.ecocean.api.bulk.BulkValidator;
 import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.api.UploadedFiles;
+import org.ecocean.Annotation;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
@@ -82,28 +84,68 @@ public class EncounterPatchValidator {
                 }
             }
             if (path.equals("acousticTag")) {
+                if (!CommonConfiguration.showAcousticTag(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
                 JSONObject jval = testJsonValue(value, new String[] { "idNumber", "serialNumber" });
                 if (jval != null)
                     value = new AcousticTag(jval.optString("serialNumber", null),
                         jval.optString("idNumber", null));
             }
             if (path.equals("satelliteTag")) {
+                if (!CommonConfiguration.showSatelliteTag(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
                 JSONObject jval = testJsonValue(value,
                     new String[] { "argosPttNumber", "serialNumber", "name" });
-                if (jval != null)
-                    value = new SatelliteTag(jval.optString("name", null),
-                        jval.optString("serialNumber", null),
+                if (jval != null) {
+                    String name = jval.optString("name", "_FAIL_");
+                    if (!SatelliteTag.getValidNames(myShepherd.getContext()).contains(name))
+                        throw new ApiException(path + " has invalid name=" + name,
+                                ApiException.ERROR_RETURN_CODE_INVALID);
+                    value = new SatelliteTag(name, jval.optString("serialNumber", null),
                         jval.optString("argosPttNumber", null));
+                }
             }
-            // since metalTags is a list we can only add, and null is pointless
+            // metalTags is a list, but location field is unique so can be used as key
+            // also, null value is pointless, so ignored
             if (path.equals("metalTags") && (value != null)) {
-                if (op.equals("replace"))
-                    throw new ApiException(path + " cannot use op=replace",
+                if (!CommonConfiguration.showMetalTags(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 JSONObject jval = testJsonValue(value, new String[] { "location", "number" });
-                if (jval != null)
-                    value = new MetalTag(jval.optString("number", null),
-                        jval.optString("location", null));
+                if (jval != null) {
+                    String loc = jval.optString("location", null);
+                    if (loc == null)
+                        throw new ApiException(path + " cannot have null location",
+                                ApiException.ERROR_RETURN_CODE_REQUIRED);
+                    if (!MetalTag.getValidLocations(myShepherd.getContext()).contains(loc))
+                        throw new ApiException(path + " has invalid location=" + loc,
+                                ApiException.ERROR_RETURN_CODE_INVALID);
+                    value = jval;
+                    // value = new MetalTag(jval.optString("number", null),
+                    // jval.optString("location", null));
+                }
+            }
+            // measurements (list) is kinda touchy, as we should respect having only 1 of each type
+            // thus, we should not allow an op=add for a type that exists
+            if (path.equals("measurements")) {
+                if (value == null)
+                    throw new ApiException(path + " must have a value for op=" + op,
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                JSONObject jval = testJsonValue(value,
+                    new String[] { "type", "value", "units", "samplingProtocol" });
+                String type = jval.optString("type", null);
+                if (type == null)
+                    throw new ApiException(path + " must have a type for op=" + op,
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                // ugh: hasMeasurement() will return false if there is a Measurement with the given type,
+                // but value is false .... sigh, so this has to be taken into account
+                if (enc.hasMeasurement(type) && op.equals("add"))
+                    throw new ApiException("measurement with type " + type +
+                            " already exists, please use op=replace instead",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                value = enc.getOrCreateMeasurement(jval);
             }
             if (PATHS_REMOVE_NEEDS_USER_VALUE.contains(path)) {
                 if (op.equals("replace"))
@@ -149,11 +191,33 @@ public class EncounterPatchValidator {
                             ApiException.ERROR_RETURN_CODE_INVALID);
                 enc.applyPatchOp(path, value, op);
             } else if (path.equals("metalTags")) {
+                if (!CommonConfiguration.showMetalTags(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
                 if (value == null)
-                    throw new ApiException(path + " requires a value to remove from list",
+                    throw new ApiException(path + " requires a location value to remove from list",
                             ApiException.ERROR_RETURN_CODE_REQUIRED);
-                JSONObject jval = testJsonValue(value, new String[] { "location", "number" });
-                enc.applyPatchOp(path, jval, op);
+                enc.applyPatchOp(path, value.toString(), op);
+            } else if (path.equals("measurements")) {
+                // we only need to pass value=type for removal of measurement
+                if (value == null)
+                    throw new ApiException(path + " must have a value (measurement type) for op=" +
+                            op, ApiException.ERROR_RETURN_CODE_REQUIRED);
+                if (!enc.hasMeasurement(value.toString()))
+                    throw new ApiException("measurement with type " + value.toString() +
+                            " does not exist", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                enc.applyPatchOp(path, value.toString(), op);
+            } else if (path.equals("annotations")) {
+                if (value == null)
+                    throw new ApiException(path + " must have a value (annotation id) for op=" + op,
+                            ApiException.ERROR_RETURN_CODE_REQUIRED);
+                Annotation ann = enc.getAnnotation(value.toString());
+                if (ann == null)
+                    throw new ApiException("no such annotation id=" + value.toString(),
+                            ApiException.ERROR_RETURN_CODE_INVALID);
+                enc.removeAnnotation(ann);
+                myShepherd.getPM().deletePersistent(ann);
+                value = ann;
             } else {
                 enc.applyPatchOp(path, null, op);
             }

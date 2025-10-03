@@ -2513,6 +2513,32 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
+    public Measurement removeMeasurementByType(String type) {
+        // findMeasurementOfType() seems to return even ones with value=null
+        // (versus getMeasurement())... so this seems the better choice?
+        Measurement m = findMeasurementOfType(type);
+
+        if (m != null) measurements.remove(m);
+        return m;
+    }
+
+    // will find the Measurement (by type) and modify it *or* make a new one
+    public Measurement getOrCreateMeasurement(org.json.JSONObject jdata) {
+        if (jdata == null) return null;
+        String type = jdata.optString("type", null);
+        if (type == null) return null;
+        Measurement m = findMeasurementOfType(type);
+        if (m == null) {
+            m = new Measurement(this.getId(), type, jdata.optDouble("value", 0.0D),
+                jdata.optString("units", null), jdata.optString("samplingProtocol", null));
+        } else {
+            m.setValue(jdata.optDouble("value", 0.0D));
+            m.setUnits(jdata.optString("units", null));
+            m.setSamplingProtocol(jdata.optString("samplingProtocol", null));
+        }
+        return m;
+    }
+
     // like above but way less persisty
     public void setMeasurement(Measurement measurement) {
         if (measurement == null) return;
@@ -2528,6 +2554,13 @@ public class Encounter extends Base implements java.io.Serializable {
             hasType.setValue(measurement.getValue());
             hasType.setSamplingProtocol(measurement.getSamplingProtocol());
         }
+    }
+
+    // like above but less..... checky (trust the caller!)
+    public void addMeasurement(Measurement meas) {
+        if (meas == null) return;
+        if (measurements == null) measurements = new ArrayList<Measurement>();
+        measurements.add(meas);
     }
 
     public void removeMeasurement(int num) { measurements.remove(num); }
@@ -2554,17 +2587,31 @@ public class Encounter extends Base implements java.io.Serializable {
         metalTags.add(metalTag);
     }
 
+    // this does NOT validate values
+    public MetalTag addOrUpdateMetalTag(String location, String number) {
+        if ((location == null) || (number == null)) return null;
+        MetalTag tag = findMetalTagForLocation(location);
+        if (tag == null) {
+            tag = new MetalTag(number, location);
+            addMetalTag(tag);
+        } else {
+            tag.setTagNumber(number);
+        }
+        return tag;
+    }
+
     public void removeMetalTag(MetalTag metalTag) {
         metalTags.remove(metalTag);
     }
 
-    public void removeMetalTagByValues(String tagNumber, String location) {
-        if ((tagNumber == null) || (location == null) || (metalTags == null)) return;
+    // this will clear out ALL tags with this location, but i think we
+    // are supposed to only have [at most] one anyway!
+    public void removeMetalTag(String location) {
+        if ((location == null) || (metalTags == null)) return;
         ListIterator<MetalTag> it = metalTags.listIterator();
         while (it.hasNext()) {
             MetalTag next = it.next();
-            if (tagNumber.equals(next.getTagNumber()) && location.equals(next.getLocation()))
-                it.remove();
+            if (location.equals(next.getLocation())) it.remove();
         }
     }
 
@@ -2706,6 +2753,14 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
+    }
+
+    public Annotation getAnnotation(String annId) {
+        if ((annId == null) || (annotations == null)) return null;
+        for (Annotation ann : annotations) {
+            if (annId.equals(ann.getId())) return ann;
+        }
+        return null;
     }
 
     public Set<String> getAnnotationViewpoints() {
@@ -4969,11 +5024,36 @@ public class Encounter extends Base implements java.io.Serializable {
             setAcousticTag((AcousticTag)value);
             break;
         case "metalTags":
+            // we only need location to remove
             if ("remove".equals(op) && (value != null)) {
+                removeMetalTag(value.toString());
+            } else if (("add".equals(op) || "replace".equals(op)) &&
+                (value instanceof org.json.JSONObject)) {
+                // add or replace will update based on location if exists
                 org.json.JSONObject jval = (org.json.JSONObject)value;
-                removeMetalTagByValues(jval.optString("number"), jval.optString("location"));
-            } else if ("add".equals(op) && (value != null)) {
-                addMetalTag((MetalTag)value);
+                addOrUpdateMetalTag(jval.optString("location", null),
+                    jval.optString("number", null));
+            }
+            break;
+        case "measurements":
+            if ("remove".equals(op) && (value != null)) {
+                removeMeasurementByType(value.toString());
+            } else if (value instanceof Measurement) {
+                // for op=add or op=replace, if it has the measurement (i.e. by type), it means
+                // it should be changed in place already so dont do anything
+                Measurement meas = (Measurement)value;
+                if (findMeasurementOfType(meas.getType()) == null) addMeasurement(meas);
+            }
+            break;
+        case "annotations":
+            // for now we can only patch op=remove on path=annotations
+            // adding annots is done through legacy servlet
+            if ("remove".equals(op) && (value instanceof Annotation)) {
+                // enc.removeAnnotation and deletePersistent (from db/shepherd) done in EncounterPatchValidator
+                // so we only need to clean up some loose ends here
+                Annotation goneAnnot = (Annotation)value;
+                goneAnnot.setSkipAutoIndexing(true);
+                goneAnnot.opensearchUnindexQuiet();
             }
             break;
         // these we really only want to append to (i think??)
