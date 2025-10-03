@@ -14,6 +14,9 @@ import org.ecocean.ia.Task;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.jdo.JDOUserException;
+import javax.jdo.PersistenceManager;
+
 public class TaskRetry extends HttpServlet {
     PersistenceManagerFactory pmf;
     PersistenceNucleusContext nucCtx;
@@ -41,104 +44,83 @@ public class TaskRetry extends HttpServlet {
             taskIds = new ArrayList<>(Arrays.asList(taskIdsQueryParam.split(",")));
         }
 
-        // process all tasks, forward once
-        String context = ServletUtilities.getContext(request);
-        getPMF(request, servletID);
-        PersistenceManager pm = pmf.getPersistenceManager();
-        List<String> retried = new ArrayList<>();
-        List<String> alreadyQueued = new ArrayList<>();
-        Map<String, String> failures = new LinkedHashMap<>();
-
         for (String taskId : taskIds) {
+            getPMF(request, servletID);
+            String context = ServletUtilities.getContext(request);
+            PersistenceManager pm = pmf.getPersistenceManager();
 
             try {
                 Task task = pm.getObjectById(Task.class, taskId);
-                if (task == null) {
-                    failures.put(taskId, "Task not found");
-                    continue;
-                }
-                String message = task.getQueueResumeMessage();
 
-                if (message == null || message.isEmpty()) {
-                    String baseUrl = IA.getBaseURL(context);
-                    Query q = pm.newQuery(
-                            "javax.jdo.query.SQL",
-                            "SELECT toma.\"ID_EID\" FROM \"TASK\" t JOIN \"TASK_OBJECTMEDIAASSETS\" toma ON t.\"ID\" = toma.\"ID_OID\" WHERE t.\"ID\" = '" + taskId + "'"
-                    );
-                    q.setResultClass(Integer.class);
-                    @SuppressWarnings("unchecked")
-                    List<Integer> mediaAssetIds = (List<Integer>) q.execute();
+                if (task != null) {
+                    String message = task.getQueueResumeMessage();
 
-                    JSONObject detectObj = new JSONObject();
-                    detectObj.put("mediaAssetIds", mediaAssetIds);
-
-                    JSONObject parametersObj = task.getParameters();
-                    parametersObj.put("taskId", taskId);
-                    parametersObj.put("detect", detectObj);
-                    parametersObj.put("__context", context);
-                    parametersObj.put("__baseUrl", baseUrl);
-                    parametersObj.remove("matchingSetFilter");
-                    parametersObj.remove("ibeis.detection");
-
-                    JSONObject detectArgsObj = parametersObj.getJSONObject("detectArgs");
-                    parametersObj.put("__detect_args", detectArgsObj);
-                    parametersObj.remove("detectArgs");
-
-                    message = parametersObj.toString();
-
-                    JSONArray retriedList = new JSONArray().put(taskId);
-                    JSONObject queueResumeObj = new JSONObject().put("retriedDetection", retriedList);
-
-                    Transaction tx = pm.currentTransaction();
-
-                  try {
-                        tx.begin();
-                        SqlHelper.executeRawSql(
-                                pm,
-                                "UPDATE \"TASK\" SET \"QUEUERESUMEMESSAGE\" = '" + queueResumeObj.toString()
-                                        + "', \"MODIFIED\" = " + System.currentTimeMillis()
-                                        + " WHERE \"ID\" = '" + task.getId() + "'"
+                    if (message == null || message.isEmpty()) {
+                        String baseUrl = IA.getBaseURL(context);
+                        Query q = pm.newQuery(
+                                "javax.jdo.query.SQL",
+                                "SELECT toma.\"ID_EID\" FROM \"TASK\" t JOIN \"TASK_OBJECTMEDIAASSETS\" toma ON t.\"ID\" = toma.\"ID_OID\" WHERE t.\"ID\" = '" + taskId + "'"
                         );
-                        tx.commit();
-                    } catch (Exception e) {
-                        if (tx.isActive()) tx.rollback();
-                        failures.put(taskId, "Failed to persist queue resume message: " + e.getMessage());
-                        continue;
+                        q.setResultClass(Integer.class);
+                        List<Integer> mediaAssetIds = (List<Integer>) q.execute();
+                        JSONObject detectObj = new JSONObject();
+                        detectObj.put("mediaAssetIds", mediaAssetIds);
+
+                        JSONObject parametersObj = task.getParameters();
+                        parametersObj.put("taskId", taskId);
+                        parametersObj.put("detect", detectObj);
+                        parametersObj.put("__context", context);
+                        parametersObj.put("__baseUrl", baseUrl);
+                        parametersObj.remove("matchingSetFilter");
+                        parametersObj.remove("ibeis.detection");
+
+                        JSONObject detectArgsObj = parametersObj.getJSONObject("detectArgs");
+                        parametersObj.put("__detect_args", detectArgsObj);
+                        parametersObj.remove("detectArgs");
+
+                        message = parametersObj.toString();
+
+                        JSONArray retriedList = new JSONArray();
+                        retriedList.put(taskId);
+                        JSONObject queueResumeObj = new JSONObject();
+                        queueResumeObj.put("retriedDetection", retriedList);
+
+                        Transaction tx = pm.currentTransaction();
+
+                        try {
+                            tx.begin();
+                            SqlHelper.executeRawSql(
+                                    pm,
+                                    "UPDATE \"TASK\" SET \"QUEUERESUMEMESSAGE\" = '" + queueResumeObj.toString()
+                                            + "', \"MODIFIED\" = " + new java.util.Date().getTime()
+                                            + " WHERE \"ID\" = '" + task.getId() + "'"
+                            );
+                            tx.commit();
+                        } catch (Exception e) {
+                            if (tx.isActive()) {
+                                tx.rollback();
+                            }
+                        }
+                    } else {
+                        JSONObject messageObj = new JSONObject(message);
+                        messageObj.put("isRetriedFailedTask", true);
+
+                        message = messageObj.toString();
+
+                        task.setStatus("retried");
                     }
 
-
                     org.ecocean.servlet.IAGateway.addToQueue(context, message);
-                    retried.add(taskId);
 
-                } else {
-                    JSONObject messageObj = new JSONObject(message);
-                    messageObj.put("isRetriedFailedTask", true);
-                    message = messageObj.toString();
-
-                    task.setStatus("retried");
-                    org.ecocean.servlet.IAGateway.addToQueue(context, message);
-                    alreadyQueued.add(taskId);
+                    request.setAttribute("type", request.getParameter("type"));
+                    request.setAttribute("page", request.getParameter("page"));
+                    request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
                 }
-
-                org.ecocean.servlet.IAGateway.addToQueue(context, message);
-
-                request.setAttribute("type", request.getParameter("type"));
-                request.setAttribute("page", request.getParameter("page"));
-                request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
-                
             } catch (Exception e) {
-                failures.put(taskId, e.getClass().getSimpleName() + ": " + e.getMessage());
+                e.printStackTrace();
             } finally {
                 pm.close();
             }
-
-
-            request.setAttribute("type", request.getParameter("type"));
-            request.setAttribute("page", request.getParameter("page"));
-            request.setAttribute("retried", retried);
-            request.setAttribute("alreadyQueued", alreadyQueued);
-            request.setAttribute("failures", failures);
-            request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
         }
     }
 
