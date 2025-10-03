@@ -524,5 +524,6 @@
   "FILTER_BULK_IMPORT_FILE_NAMES": "Noms de fichiers d'importation en masse",
 "BULK_IMPORT_SEND_TO_IDENTIFICATION": "Envoyer à l’identification",
   "BULK_IMPORT_LOCATION_ID_DESC": "Plus vous sélectionnez d’options, plus l’identification prendra du temps. Soyez aussi précis que possible.",
-  "DANGER_ZONE": "Zone de danger"
+  "DANGER_ZONE": "Zone de danger",
+  "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Le bouton est désactivé si la détection ou la tâche d’identification initiale n’est pas terminée. Veuillez attendre la fin de la tâche avant d’envoyer à l’identification."
 }
