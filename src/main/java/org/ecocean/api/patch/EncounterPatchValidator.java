@@ -84,18 +84,28 @@ public class EncounterPatchValidator {
                 }
             }
             if (path.equals("acousticTag")) {
+                if (!CommonConfiguration.showAcousticTag(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
                 JSONObject jval = testJsonValue(value, new String[] { "idNumber", "serialNumber" });
                 if (jval != null)
                     value = new AcousticTag(jval.optString("serialNumber", null),
                         jval.optString("idNumber", null));
             }
             if (path.equals("satelliteTag")) {
+                if (!CommonConfiguration.showSatelliteTag(myShepherd.getContext()))
+                    throw new ApiException(path + " is not enabled",
+                            ApiException.ERROR_RETURN_CODE_INVALID);
                 JSONObject jval = testJsonValue(value,
                     new String[] { "argosPttNumber", "serialNumber", "name" });
-                if (jval != null)
-                    value = new SatelliteTag(jval.optString("name", null),
-                        jval.optString("serialNumber", null),
+                if (jval != null) {
+                    String name = jval.optString("name", "_FAIL_");
+                    if (!SatelliteTag.getValidNames(myShepherd.getContext()).contains(name))
+                        throw new ApiException(path + " has invalid name=" + name,
+                                ApiException.ERROR_RETURN_CODE_INVALID);
+                    value = new SatelliteTag(name, jval.optString("serialNumber", null),
                         jval.optString("argosPttNumber", null));
+                }
             }
             // metalTags is a list, but location field is unique so can be used as key
             // also, null value is pointless, so ignored
