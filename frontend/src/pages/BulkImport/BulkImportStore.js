@@ -1246,7 +1246,14 @@ export class BulkImportStore {
         }
 
         if (norm["Encounter.genus"] != null) {
-          const [g, s = ""] = norm["Encounter.genus"].split(" ");
+          const val = norm["Encounter.genus"].trim();
+          let g = val;
+          let s = "";
+          const i = val.indexOf(" ");
+          if (i !== -1) {
+            g = val.substring(0, i).trim();
+            s = val.substring(i + 1).trim();
+          }
           raw["Encounter.genus"] = g;
           raw["Encounter.specificEpithet"] = s;
         }
