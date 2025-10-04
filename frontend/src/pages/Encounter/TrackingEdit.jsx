@@ -3,8 +3,10 @@ import { observer } from 'mobx-react-lite';
 import TextInput from '../../components/generalInputs/TextInput';
 import { Divider } from '../../components/Divider';
 import MainButton from '../../components/MainButton';
+import SelectInput from '../../components/generalInputs/SelectInput';
 
 export const TrackingEdit = observer(({ store = {} }) => {
+
     return (
         <div>
             <h6>Metal Tags</h6>
@@ -26,7 +28,6 @@ export const TrackingEdit = observer(({ store = {} }) => {
                                             arr.push({ location, number: value });
                                         }
                                         store.setMetalTagValues(arr);
-                                        console.log('Updated Metal Tag Values:', JSON.stringify(store.metalTagValues));
                                     }
                                     }
                                 />
@@ -42,7 +43,6 @@ export const TrackingEdit = observer(({ store = {} }) => {
                 value={store.acousticTagValues?.serialNumber || ''}
                 onChange={(value) => {
                     store.setAcousticTagValues({ serialNumber: value });
-                    console.log('Updated Acoustic Tag Serial Number:', JSON.stringify(store.acousticTagValues));
                 }}
             />
             <TextInput
@@ -50,25 +50,24 @@ export const TrackingEdit = observer(({ store = {} }) => {
                 value={store.acousticTagValues?.idNumber || ''}
                 onChange={(value) => {
                     store.setAcousticTagValues({ idNumber: value });
-                    console.log('Updated Acoustic Tag ID Number:', JSON.stringify(store.acousticTagValues));
                 }}
             />
             <Divider />
             <h6>Satellite Tags</h6>
-            <TextInput
+            <SelectInput
                 label="Name"
                 value={store.satelliteTagValues?.name || ''}
+                options={store.satelliteTagNameOptions || []}
                 onChange={(value) => {
                     store.setSatelliteTagValues({ name: value });
-                    console.log('Updated Satellite Tag Name:', JSON.stringify(store.satelliteTagValues));
                 }}
+
             />
             <TextInput
                 label="Serial Number"
                 value={store.satelliteTagValues?.serialNumber || ''}
                 onChange={(value) => {
                     store.setSatelliteTagValues({ serialNumber: value });
-                    console.log('Updated Satellite Tag Serial Number:', JSON.stringify(store.satelliteTagValues));
                 }}
             />
             <TextInput
@@ -78,24 +77,7 @@ export const TrackingEdit = observer(({ store = {} }) => {
                     store.setSatelliteTagValues({ argosPttNumber: value });
                 }}
             />
-            <div
-
-            >
-                <MainButton
-                    onClick={() => {
-                        store.patchTracking();
-                        store.setEditTracking(false);
-                    }}
-                >
-                    Save
-                </MainButton>
-                <MainButton
-                    onClick={() => {
-                        store.setEditTracking(false);                    
-                    }}
-                >
-                    Cancel
-                </MainButton>
+            <div>
             </div>
         </div>)
 })

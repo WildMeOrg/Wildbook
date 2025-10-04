@@ -78,6 +78,13 @@ export const MoreDetails = observer(({
                                     <TrackingEdit 
                                         store={store}
                                     />}
+                                onSave ={() => {
+                                    store.patchTracking();
+                                    store.setEditTracking(false);
+                                }}
+                                onCancel ={() => {
+                                    store.setEditTracking(false);
+                                }}                           
 
                             />}
                         {!store.editMeasurements ?

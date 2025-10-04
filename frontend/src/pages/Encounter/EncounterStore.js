@@ -235,6 +235,8 @@ class EncounterStore {
   _measurementsAndTrackingSection = true;
   _editTracking = false;
   _editMeasurements = false;
+  _acousticTagsEnabled = false;
+  _satelliteTagsEnabled = false;
 
   _biologicalSamplesSection = false;
   _editBiologicalSamples = false;
@@ -751,6 +753,23 @@ class EncounterStore {
     this._satelliteTagValues = { ...this._satelliteTagValues, ...newValues };
   }
 
+  get metalTagsEnabled() {
+    return this.siteSettingsData?.metalTagsEnabled || false;
+  }
+  get acousticTagEnabled() {
+    return this.siteSettingsData?.acousticTagEnabled || false;
+  }
+  get satelliteTagEnabled() {
+    return this.siteSettingsData?.satelliteTagEnabled || false;
+  }
+
+  get satelliteTagNameOptions() {
+    return this._siteSettingsData?.satelliteTagName.map((name) => ({
+      value: name,
+      label: name,
+    })) || [];
+  }
+
   get algorithmOptions() {
     return this._algorithmOptions;
   }
@@ -879,17 +898,14 @@ class EncounterStore {
   buildTrackingPatchPayload() {
     const ops = [];
 
-    // Handle Metal Tags
     const originalMetalTags = this._encounterData?.metalTags || [];
     const currentMetalTags = this._metalTagValues || [];
 
-    // Add or update tags
     currentMetalTags.forEach(currentTag => {
       const originalTag = originalMetalTags.find(
         tag => tag.location === currentTag.location
       );
 
-      // If tag doesn't exist or number changed, add it
       if (!originalTag || originalTag.number !== currentTag.number) {
         ops.push({
           op: "replace",
@@ -899,22 +915,6 @@ class EncounterStore {
       }
     });
 
-    // Remove tags that no longer exist
-    // originalMetalTags.forEach(originalTag => {
-    //   const stillExists = currentMetalTags.find(
-    //     tag => tag.location === originalTag.location
-    //   );
-
-      // if (!stillExists) {
-      //   ops.push({
-      //     op: "remove",
-      //     path: "metalTags",
-      //     value: { location: originalTag.location, number: originalTag.number }
-      //   });
-      // }
-    // });
-
-    // Handle Acoustic Tag
     const originalAcoustic = this._encounterData?.acousticTag || {};
     const currentAcoustic = this._acousticTagValues || {};
 
@@ -923,27 +923,16 @@ class EncounterStore {
       currentAcoustic.idNumber !== originalAcoustic.idNumber;
 
     if (hasAcousticChanges) {
-     
-        // Has values - add/update
-        ops.push({
-          op: "replace",
-          path: "acousticTag",
-          value: {
-            ...(currentAcoustic.serialNumber && { serialNumber: currentAcoustic.serialNumber }),
-            ...(currentAcoustic.idNumber && { idNumber: currentAcoustic.idNumber })
-          }
-        });
-      } 
-      // else if (originalAcoustic.serialNumber || originalAcoustic.idNumber) {
-      //   // All fields cleared - remove
-      //   ops.push({
-      //     op: "remove",
-      //     path: "acousticTag"
-      //   });
-    
-    // }
+      ops.push({
+        op: "replace",
+        path: "acousticTag",
+        value: {
+          ...(currentAcoustic.serialNumber && { serialNumber: currentAcoustic.serialNumber }),
+          ...(currentAcoustic.idNumber && { idNumber: currentAcoustic.idNumber })
+        }
+      });
+    }
 
-    // Handle Satellite Tag
     const originalSatellite = this._encounterData?.satelliteTag || {};
     const currentSatellite = this._satelliteTagValues || {};
 
@@ -953,31 +942,22 @@ class EncounterStore {
       currentSatellite.argosPttNumber !== originalSatellite.argosPttNumber;
 
     if (hasSatelliteChanges) {
-     
-        ops.push({
-          op: "replace",
-          path: "satelliteTag",
-          value: {
-            ...(currentSatellite.name && { name: currentSatellite.name }),
-            ...(currentSatellite.serialNumber && { serialNumber: currentSatellite.serialNumber }),
-            ...(currentSatellite.argosPttNumber && { argosPttNumber: currentSatellite.argosPttNumber })
-          }
-        });
-   
-      // else if (originalSatellite.name || originalSatellite.serialNumber || originalSatellite.argosPttNumber) {
-      //   // All fields cleared - remove
-      //   ops.push({
-      //     op: "remove",
-      //     path: "satelliteTag"
-      //   });
-      // }
+
+      ops.push({
+        op: "replace",
+        path: "satelliteTag",
+        value: {
+          ...(currentSatellite.name && { name: currentSatellite.name }),
+          ...(currentSatellite.serialNumber && { serialNumber: currentSatellite.serialNumber }),
+          ...(currentSatellite.argosPttNumber && { argosPttNumber: currentSatellite.argosPttNumber })
+        }
+      });
     }
     return ops;
   }
 
   async patchTracking() {
     const ops = this.buildTrackingPatchPayload();
-    console.log("patchTracking ops:", JSON.stringify(ops));
     if (!ops.length) return;
     const resp = await axios.patch(`/api/v3/encounters/${this.encounterData.id}`, ops);
     if (resp.status === 200) {
