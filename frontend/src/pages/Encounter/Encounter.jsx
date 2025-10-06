@@ -29,6 +29,7 @@ import { MoreDetails } from "./MoreDetails";
 import EncounterHistoryModal from "./EncounterHistoryModal";
 import MatchCriteriaModal from "./MatchCriteria";
 import { EncounterStore } from './stores';
+import { setEncounterState } from './stores/helperFunctions';
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
@@ -103,7 +104,8 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
             }
             selectedOption={store.encounterData?.state || "unidentifiable"}
             onSelect={(value) => {
-              store.setEncounterState(value);
+              setEncounterState(value, store.encounterData?.id);
+              store.refreshEncounterData();
             }}
           />
         </Col>

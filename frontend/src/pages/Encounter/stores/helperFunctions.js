@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { LOCAL_FIELD_ERRORS } from "./constants";
+import axios from "axios";
 
 function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
   const errors = LOCAL_FIELD_ERRORS[sectionName] || {};
@@ -132,11 +133,93 @@ function parseYMDHM(val) {
     };
   }
 
+  function expandOperations(operations) {
+    const base = operations.slice();
+    const out = [];
+
+    for (const op of base) {
+      if (op.path === "date") {
+        const p = parseYMDHM(op.value);
+        if (!p) continue;
+        out.push({ op: "replace", path: "year", value: String(p.year) });
+        out.push({
+          op: "replace",
+          path: "month",
+          value: !!p.month ? String(p.month) : null,
+        });
+        out.push({
+          op: "replace",
+          path: "day",
+          value: !!p.day ? String(p.day) : null,
+        });
+        out.push({
+          op: "replace",
+          path: "hour",
+          value: !!p.hour ? String(p.hour) : null,
+        });
+        out.push({
+          op: "replace",
+          path: "minutes",
+          value: !!p.minutes ? String(p.minutes) : null,
+        });
+        continue;
+      }
+
+      if (op.path === "locationGeoPoint" && op.value) {
+        const v = op.value || {};
+        const lat = v.latitude ?? v.lat;
+        const lon = v.longitude ?? v.lng ?? v.lon;
+        if (lat != null)
+          out.push({ op: "replace", path: "decimalLatitude", value: lat });
+        if (lon != null)
+          out.push({ op: "replace", path: "decimalLongitude", value: lon });
+        continue;
+      }
+
+      if (op.path === "taxonomy" && op.value) {
+        const s = String(op.value).trim();
+        const [genus = "", specificEpithet = ""] = s.split(/\s+/, 2);
+        out.push({ op: "replace", path: "genus", value: genus });
+        out.push({
+          op: "replace",
+          path: "specificEpithet",
+          value: specificEpithet,
+        });
+        continue;
+      }
+
+      if (op.path === "individualID" && op.value) {
+        out.push({
+          op: "replace",
+          path: "individualId",
+          value: op.value,
+        });
+        continue;
+      }
+
+      out.push(op);
+    }
+
+    return out;
+  }
+
+  async function setEncounterState(newState, encounterId) {
+    console.log("Setting encounter state to:", newState, "for encounter ID:", encounterId);
+    const operations = [{ op: "replace", path: "state", value: newState }];
+    // this.applyPatchOperationsLocally(operations);
+    await axios.patch(
+      `/api/v3/encounters/${encounterId}`,
+      operations,
+    );
+  }
+
 
 export {  validateFieldValue,
   splitPathIntoSegments,
   getValueAtPath,
   setValueAtPath,
   deleteValueAtPath,
-  parseYMDHM
+  parseYMDHM,
+  expandOperations,
+  setEncounterState
 };
