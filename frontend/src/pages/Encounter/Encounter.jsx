@@ -30,6 +30,11 @@ import MatchCriteriaModal from "./MatchCriteria";
 import { EncounterStore } from './stores';
 import { setEncounterState } from './stores/helperFunctions';
 import { Alert } from "react-bootstrap";
+import { DateSectionReview } from "./DateSectionReview";
+import { IdentifySectionReview } from "./IdentifySectionReview";
+import { MetadataSectionReview } from "./MetadataSectionReview";
+import { LocationSectionReview } from "./LocationSectionReview";
+import { AttributesSectionReview } from "./AttributesSectionReview";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
@@ -207,17 +212,9 @@ const Encounter = observer(() => {
                 title="Date"
                 onClick={() => store.setEditDateCard(true)}
                 content={
-                  <div>
-                    <div>
-                      Encounter Date:{" "}
-                      {store.getFieldValue("date", "date") || "None"}
-                    </div>
-                    <div>
-                      Verbatim Event Date:{" "}
-                      {store.getFieldValue("date", "verbatimEventDate") ||
-                        "None"}
-                    </div>
-                  </div>
+                  <DateSectionReview 
+                    store={store}
+                  />
                 }
               />
             )}
@@ -329,20 +326,9 @@ const Encounter = observer(() => {
                 title="Identify"
                 onClick={() => store.setEditIdentifyCard(true)}
                 content={
-                  <div>
-                    <div>
-                      Identified as:{" "}
-                      {store.getFieldValue("identify", "individualDisplayName")}
-                    </div>
-                    <div>
-                      Matched by:{" "}
-                      {store.getFieldValue("identify", "identificationRemarks")}
-                    </div>
-                    <div>
-                      Alternate ID:{" "}
-                      {store.getFieldValue("identify", "otherCatalogNumbers")}
-                    </div>
-                  </div>
+                  <IdentifySectionReview
+                    store={store}
+                  />
                 }
               />
             )}
@@ -419,37 +405,9 @@ const Encounter = observer(() => {
                 title="Metadata"
                 onClick={() => store.setEditMetadataCard(true)}
                 content={
-                  <div>
-                    <div>Encounter ID: {store.encounterData?.id}</div>
-                    <div>
-                      Date Created: {store.encounterData?.dateSubmitted}
-                    </div>
-                    <div>
-                      Last Edit:{" "}
-                      {store.encounterData?.version
-                        ? new Date(store.encounterData.version).toLocaleString()
-                        : "None"}
-                    </div>
-                    <div>
-                      Imported via:{" "}
-                      {store.encounterData?.importTaskId ? (
-                        <a
-                          href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {store.encounterData.importTaskId}
-                        </a>
-                      ) : (
-                        "none"
-                      )}
-                    </div>
-                    <div>
-                      Assigned User:{" "}
-                      {store.getFieldValue("metadata", "assignedUsername") ||
-                        "None"}
-                    </div>
-                  </div>
+                  <MetadataSectionReview
+                    store={store}s
+                  />
                 }
               />
             )}
@@ -528,23 +486,9 @@ const Encounter = observer(() => {
                 title="Location"
                 onClick={() => store.setEditLocationCard(true)}
                 content={
-                  <div>
-                    <div>
-                      Location:{" "}
-                      {store.getFieldValue("location", "verbatimLocality") ||
-                        "None"}
-                    </div>
-                    <div>
-                      Location ID:{" "}
-                      {store.getFieldValue("location", "locationName") ||
-                        "None"}
-                    </div>
-                    <div>
-                      Country:{" "}
-                      {store.getFieldValue("location", "country") || "None"}
-                    </div>
-                    {/* <MapDisplay store={store} /> */}
-                  </div>
+                  <LocationSectionReview
+                    store={store}
+                  />
                 }
               />
             )}
@@ -685,39 +629,9 @@ const Encounter = observer(() => {
                 title="Attributes"
                 onClick={() => store.setEditAttributesCard(true)}
                 content={
-                  <div>
-                    <div>
-                      Taxonomy: {store.getFieldValue("attributes", "taxonomy")}
-                    </div>
-                    <div>
-                      Status:{" "}
-                      {store.getFieldValue("attributes", "livingStatus")}
-                    </div>
-                    <div>Sex: {store.getFieldValue("attributes", "sex")}</div>
-                    <div>
-                      Noticeable Scarring:{" "}
-                      {store.getFieldValue("attributes", "distinguishingScar")}
-                    </div>
-                    <div>
-                      Behavior: {store.getFieldValue("attributes", "behavior")}
-                    </div>
-                    <div>
-                      Group Role:{" "}
-                      {store.getFieldValue("attributes", "groupRole")}
-                    </div>
-                    <div>
-                      Patterning Code:{" "}
-                      {store.getFieldValue("attributes", "patterningCode")}
-                    </div>
-                    <div>
-                      Life Stage:{" "}
-                      {store.getFieldValue("attributes", "lifeStage")}
-                    </div>
-                    <div>
-                      Observation Comments:{" "}
-                      {store.getFieldValue("attributes", "occurrenceRemarks")}
-                    </div>
-                  </div>
+                  <AttributesSectionReview
+                    store={store}
+                  />
                 }
               />
             )}

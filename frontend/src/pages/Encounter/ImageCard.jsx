@@ -3,10 +3,8 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import MailIcon from "../../components/icons/MailIcon";
 import { observer } from "mobx-react-lite";
 import ImageModal from "../../components/ImageModal";
-import { useNavigate } from "react-router-dom";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
-import Flow from "@flowjs/flow.js";
 import ImageIcon from "../../components/icons/ImageIcon";
 
 const ImageCard = observer(({ store = {} }) => {
@@ -124,7 +122,7 @@ const ImageCard = observer(({ store = {} }) => {
           {store.encounterData?.mediaAssets[store.selectedImageIndex]?.userFilename || "No image selected"}
         </p>
         <p>
-          {store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length? `${store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length} tags` : ""}
+          {store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length ? `${store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length} tags` : ""}
         </p>
       </div >
 
@@ -342,18 +340,21 @@ const ImageCard = observer(({ store = {} }) => {
             id="add-more-files"
             style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}
           >
-            <div style={{
-              width: 100,
-              height: 70,
-              borderRadius: 5,
-              cursor: "pointer",
-              border: `2px dashed ${theme.primaryColors.primary500}`,
-              backgroundColor: `${theme.primaryColors.primary100}`,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "column",
-            }} >
+            <div
+              className="d-flex flex-column align-items-center justify-content-center"
+              style={{
+                width: 100,
+                height: 70,
+                borderRadius: 5,
+                cursor: "pointer",
+                border: `2px dashed ${theme.primaryColors.primary500}`,
+                backgroundColor: `${theme.primaryColors.primary50}`,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+              }} >
+              <ImageIcon />
               <FormattedMessage id="ADD_IMAGE" />
             </div>
 

@@ -71,3 +71,5 @@ export const MapDisplay = observer(
     );
   },
 );
+
+export default MapDisplay;
