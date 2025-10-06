@@ -1020,49 +1020,58 @@ public class StandardImport extends HttpServlet {
          */
 
         /*
-         * Start Submitter imports
+         * Start Submitter imports - Process multiple rows for submitters
          */
-        boolean hasSubmitters = true;
+        // Error messages for submitter validation
+        final String ERROR_SUBMITTER_ID_MISSING = "User ID doesn't exist in the system. Please check spelling or update with correct username";
+        final String ERROR_EMAIL_INCORRECT = "Email address is incorrect. Please check account profile for correct email address. for this submitter ID.";
+        
+        // Process submitter information from current row and subsequent rows
         int startIter = 0;
-        while (hasSubmitters) {
-            String colEmail = "Encounter.submitter" + startIter + ".emailAddress";
-            String val = getString(row, colEmail, colIndexMap, verbose, missingColumns,
-                unusedColumns, feedback);
-            if (val != null) {
-                boolean newUser = true;
-                if (myShepherd.getUserByEmailAddress(val.trim()) != null) {
-                    newUser = false;
-                    User thisPerson = myShepherd.getUserByEmailAddress(val.trim());
-                    if ((enc.getSubmitters() == null) ||
-                        !enc.getSubmitters().contains(thisPerson)) {
+
+        String colSubmitterID = "Encounter.submitterID";
+        String valSubmitterID = getString(row, colSubmitterID, colIndexMap, verbose, missingColumns,
+            unusedColumns, feedback);
+        
+        String colEmailId = "Encounter.submitter" + startIter + ".emailAddress";
+        String colEmalval = getString(row, colEmailId, colIndexMap, verbose, missingColumns,
+            unusedColumns, feedback);
+
+        if (colEmalval != null) {
+            User thisPerson = myShepherd.getUserByEmailAddress(colEmalval.trim());
+            if (thisPerson != null) {
+                if(valSubmitterID == null){
+                    feedback.logParseError(getColIndexFromColName(colSubmitterID, colIndexMap), 
+                        valSubmitterID, row, ERROR_SUBMITTER_ID_MISSING);
+                }
+                else if (!valSubmitterID.trim().equals(thisPerson.getUsername())) {
+                    feedback.logParseError(getColIndexFromColName(colSubmitterID, colIndexMap), 
+                        valSubmitterID, row, ERROR_SUBMITTER_ID_MISSING);
+                } else{
+                    if ((enc.getSubmitters() == null) || !enc.getSubmitters().contains(thisPerson)) {
                         if (committing) enc.addSubmitter(thisPerson);
-                        if (unusedColumns != null) unusedColumns.remove(colEmail);
+                        if (unusedColumns != null) unusedColumns.remove(colEmailId);
                     }
                 }
-                // create a new User
-                String val2 = null;
-                String val3 = null;
-                String colFullName = "Encounter.submitter" + startIter + ".fullName";
-                String colAffiliation = "Encounter.submitter" + startIter + ".affiliation";
-                if (newUser) {
-                    User thisPerson = new User(val.trim(), Util.generateUUID());
-                    if (committing) enc.addSubmitter(thisPerson);
-                    val2 = getString(row, colFullName, colIndexMap, verbose, missingColumns,
-                        unusedColumns, feedback);
-                    if (val2 != null) thisPerson.setFullName(val2.trim());
-                    val3 = getString(row, colAffiliation, colIndexMap, verbose, missingColumns,
-                        unusedColumns, feedback);
-                    if (val3 != null) thisPerson.setAffiliation(val3.trim());
-                }
-                if (unusedColumns != null) unusedColumns.remove(colEmail);
-                if (unusedColumns != null && val2 != null && !"".equals(val2))
-                    unusedColumns.remove(colFullName);
-                if (unusedColumns != null && val3 != null && !"".equals(val3))
-                    unusedColumns.remove(colAffiliation);
-            } else {
-                hasSubmitters = false;
+            } 
+            else {
+                // User doesn't exist
+                feedback.logParseError(getColIndexFromColName(colEmailId, colIndexMap), 
+                    colEmalval, row, ERROR_EMAIL_INCORRECT);
             }
-            startIter++;
+
+            String colFullName = "Encounter.submitter" + startIter + ".fullName";
+            String colAffiliation = "Encounter.submitter" + startIter + ".affiliation";
+            String val2 = getString(row, colFullName, colIndexMap, verbose, missingColumns,unusedColumns, feedback);
+            String val3 = getString(row, colAffiliation, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+            if (unusedColumns != null) unusedColumns.remove(colEmailId);
+            if (unusedColumns != null && val2 != null && !"".equals(val2))
+                unusedColumns.remove(colFullName);
+            if (unusedColumns != null && val3 != null && !"".equals(val3))
+                unusedColumns.remove(colAffiliation);
+        } else {
+            feedback.logParseError(getColIndexFromColName(colEmailId, colIndexMap), 
+                    colEmalval, row, ERROR_EMAIL_INCORRECT);
         }
         /*
          * End Submitter imports
