@@ -8,6 +8,7 @@ import Flow from "@flowjs/flow.js";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { v4 as uuidv4 } from "uuid";
 import ModalStore from "./ModalStore";
+import ErrorStore from "./ErrorStore";
 import { SECTION_FIELD_PATHS } from "./constants";
 import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, parseYMDHM } from "./helperFunctions";
 dayjs.extend(customParseFormat);
@@ -18,8 +19,7 @@ class EncounterStore {
   _siteSettingsData = null;
 
   modals;
-
-  _errors = new Map();
+  errors;
 
   _overviewActive = true;
   _editDateCard = false;
@@ -27,8 +27,6 @@ class EncounterStore {
   _editMetadataCard = false;
   _editLocationCard = false;
   _editAttributesCard = false;
-
-  _fieldErrors = new Map();
 
   _lat = null;
   _lon = null;
@@ -82,7 +80,6 @@ class EncounterStore {
   flow = null;
   imageSubmissionId = null;
   uploadProgress = 0;
-  uploadErrors = [];
 
   _matchResultClickable = false;
 
@@ -107,6 +104,7 @@ class EncounterStore {
 
   constructor() {
     this.modals = new ModalStore(this);
+    this.errors = new ErrorStore(this);
 
     makeAutoObservable(this, { flow: false,
       modal: false,
@@ -124,57 +122,6 @@ class EncounterStore {
     this._acousticTagValues = newEncounterData?.acousticTag || {};
     this._satelliteTagValues = newEncounterData?.satelliteTag || {};
     this.resetAllDrafts();
-  }
-
-  get fieldErrors() {
-    return this._fieldErrors;
-  }
-
-  getFieldError(sectionName, fieldPath) {
-    return this._fieldErrors.get(`${sectionName}.${fieldPath}`) || null;
-  }
-
-  setFieldError(sectionName, fieldPath, errorMsg) {
-    const key = `${sectionName}.${fieldPath}`;
-    if (errorMsg) {
-      this._fieldErrors.set(key, errorMsg);
-    } else {
-      this._fieldErrors.delete(key);
-    }
-  }
-
-  get errors() {
-    return this._errors;
-  }
-
-  setError(key, errorMessage) {
-    if (errorMessage) {
-      this._errors.set(key, errorMessage);
-    } else {
-      this._errors.delete(key);
-    }
-  }
-
-  setErrors(errorsObject) {
-    this._errors.clear();
-
-    if (errorsObject && typeof errorsObject === 'object') {
-      Object.entries(errorsObject).forEach(([key, value]) => {
-        this._errors.set(key, value);
-      });
-    }
-  }
-
-  clearErrors() {
-    this._errors.clear();
-  }
-
-  getError(key) {
-    return this._errors.get(key) || null;
-  }
-
-  get hasErrors() {
-    return this._errors.size > 0;
   }
 
   get overviewActive() {
@@ -467,12 +414,12 @@ class EncounterStore {
     return this._lat;
   }
   setLat(newLat) {
-    this.setFieldError("location", "latitude", null);
+    this.errors.setFieldError("location", "latitude", null);
     this._lat = newLat;
-    this.setFieldError("location", "latitude",
+    this.errors.setFieldError("location", "latitude",
       validateFieldValue("location", "latitude", newLat, { lat: newLat, lon: this._lon })
     );
-    this.setFieldError("location", "longitude",
+    this.errors.setFieldError("location", "longitude",
       validateFieldValue("location", "longitude", this._lon, { lat: newLat, lon: this._lon })
     );
   }
@@ -481,12 +428,12 @@ class EncounterStore {
     return this._lon;
   }
   setLon(newLon) {
-    this.setFieldError("location", "longitude", null);
+    this.errors.setFieldError("location", "longitude", null);
     this._lon = newLon;
-    this.setFieldError("location", "longitude",
+    this.errors.setFieldError("location", "longitude",
       validateFieldValue("location", "longitude", newLon, { lat: this._lat, lon: newLon })
     );
-    this.setFieldError("location", "latitude",
+    this.errors.setFieldError("location", "latitude",
       validateFieldValue("location", "latitude", this._lat, { lat: this._lat, lon: newLon })
     );
   }
@@ -652,7 +599,7 @@ class EncounterStore {
   }
 
   setFieldValue(sectionName, fieldPath, newValue) {
-    this.setFieldError(sectionName, fieldPath, null);
+    this.errors.setFieldError(sectionName, fieldPath, null);
     const draftForSection = { ...(this._sectionDrafts.get(sectionName) || {}) };
     draftForSection[fieldPath] = newValue;
     this._sectionDrafts.set(sectionName, draftForSection);
@@ -660,7 +607,7 @@ class EncounterStore {
     const error = validateFieldValue(sectionName, fieldPath, newValue);
     console.log("error", JSON.stringify(error));
     if (error) {
-      this.setFieldError(sectionName, fieldPath, error);
+      this.errors.setFieldError(sectionName, fieldPath, error);
     }
   }
 
@@ -885,7 +832,7 @@ class EncounterStore {
         console.error("PATCH add assets failed:", e);
       } finally {
         this.uploadProgress = 0;
-        this.uploadErrors = [];
+        this.errors.uploadErrors = [];
       }
     });
 
@@ -1125,7 +1072,7 @@ class EncounterStore {
   }
 
   async saveSection(sectionName, encounterId) {
-    this.clearErrors();
+    this.errors.clearErrors();
     const operations = this.buildPatchOperations(sectionName);
     if (operations.length === 0) {
       this.resetSectionDraft(sectionName);
@@ -1144,9 +1091,9 @@ class EncounterStore {
     } catch (error) {
       if (error.response?.data) {
         const backendErrors = error.response.data.errors || error.response.data;
-        this.setErrors(backendErrors);
+        this.errors.setErrors(backendErrors);
       } else {
-        this.setError('general', error.message || 'An error occurred while saving');
+        this.errors.setError('general', error.message || 'An error occurred while saving');
       }
       throw error;
     }
@@ -1178,7 +1125,7 @@ class EncounterStore {
   }
 
   async saveSectionAndRefresh(sectionName, encounterId) {
-    this.clearErrors();
+    this.errors.clearErrors();
     try {
       await this.saveSection(sectionName, encounterId);
 

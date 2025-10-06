@@ -32,7 +32,7 @@ import { EncounterStore } from './stores';
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
-console.log("store.error", JSON.stringify(store.errors));
+console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
   const { data: siteSettings } = useGetSiteSettings();
 
   useEffect(() => {
@@ -154,7 +154,7 @@ console.log("store.error", JSON.stringify(store.errors));
             {store.editDateCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<DateIcon />}
-                // disabled={!!store.getFieldError("date", "date")}
+                disabled={!!store.errors.getFieldError("date", "date")}
                 title="Date"
                 onSave={async () => {
                   await store.saveSection("date", encounterId);
@@ -164,7 +164,7 @@ console.log("store.error", JSON.stringify(store.errors));
                 onCancel={() => {
                   store.resetSectionDraft("date");
                   store.setEditDateCard(false);
-                  store.setFieldError("date", "date", null);
+                  store.errors.setFieldError("date", "date", null);
                 }}
                 content={
                   <div>
@@ -176,9 +176,9 @@ console.log("store.error", JSON.stringify(store.errors));
                       }}
                       className="mb-3"
                     />
-                    {store.getFieldError("date", "date") && (
+                    {store.errors.getFieldError("date", "date") && (
                       <div className="invalid-feedback d-block">
-                        {store.getFieldError("date", "date")}
+                        {store.errors.getFieldError("date", "date")}
                       </div>
                     )}
                     <TextInput
@@ -190,8 +190,8 @@ console.log("store.error", JSON.stringify(store.errors));
                         store.setFieldValue("date", "verbatimEventDate", v)
                       }
                     />
-                    {store.getError('date') && (
-                      <span className="field-error">{store.getError('date')}</span>
+                    {store.errors.getError('date') && (
+                      <span className="field-error">{store.errors.getError('date')}</span>
                     )}
                   </div>
                 }
@@ -441,7 +441,7 @@ console.log("store.error", JSON.stringify(store.errors));
             {store.editLocationCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<LocationIcon />}
-                disabled={!!store.getFieldError("location", "latitude") || !!store.getFieldError("location", "longitude")}
+                disabled={!!store.errors.getFieldError("location", "latitude") || !!store.errors.getFieldError("location", "longitude")}
                 title="Location"
                 onSave={async () => {
                   await store.saveSection("location", encounterId);
@@ -451,8 +451,8 @@ console.log("store.error", JSON.stringify(store.errors));
                 onCancel={() => {
                   store.resetSectionDraft("location");
                   store.setEditLocationCard(false);
-                  store.setFieldError("location", "latitude", null);
-                  store.setFieldError("location", "longitude", null);
+                  store.errors.setFieldError("location", "latitude", null);
+                  store.errors.setFieldError("location", "longitude", null);
                 }}
                 content={
                   <div>

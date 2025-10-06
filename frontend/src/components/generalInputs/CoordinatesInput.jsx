@@ -109,9 +109,9 @@ export const CoordinatesInput = observer(({ store }) => {
                 }
               }}
             />
-            {store.getFieldError("location", "latitude") && (
+            {store.errors.getFieldError("location", "latitude") && (
               <div className="invalid-feedback d-block">
-                {store.getFieldError("location", "latitude") || ""}
+                {store.errors.getFieldError("location", "latitude") || ""}
               </div>
             )}
           </div>
@@ -132,9 +132,9 @@ export const CoordinatesInput = observer(({ store }) => {
                 }
               }}
             />
-            {store.getFieldError("location", "longitude") && (
+            {store.errors.getFieldError("location", "longitude") && (
               <div className="invalid-feedback d-block">
-                {store.getFieldError("location", "longitude") || ""}
+                {store.errors.getFieldError("location", "longitude") || ""}
               </div>
             )}
           </div>
