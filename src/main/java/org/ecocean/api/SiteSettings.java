@@ -98,6 +98,7 @@ public class SiteSettings extends ApiBase {
                 CommonConfiguration.getIndexedPropertyValues("patterningCode", context));
             settings.put("measurement",
                 CommonConfiguration.getIndexedPropertyValues("measurement", context));
+            settings.put("measurementUnits", BulkImportUtil.getMeasurementUnits());
 
             // TODO: there was some discussion in slack about this being derived differently
             // NOTE: historically this list was generated via CommonConfiguration using
