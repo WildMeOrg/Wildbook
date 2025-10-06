@@ -14,11 +14,15 @@
         {"name": "Barents Sea", "id": "Barents Sea", "locationID":[]},
         {"name": "Beaufort Sea", "id": "Beaufort Sea", "locationID":[]},
         {"name": "Chukchi Sea", "id": "Chukchi Sea", "locationID":[]},
+        {"name": "Davis Strait", "id": "Davis Strait", "locationID":[]},
         {"name": "East Siberian Sea", "id": "East Siberian Sea", "locationID":[]},
-        {"name": "Greenland Sea", "id": "Greenland Sea", "locationID":[]},
         {"name": "Foxe Basin", "id": "Foxe Basin", "locationID":[]},
+        {"name": "Greenland Sea", "id": "Greenland Sea", "locationID":[]},
         {"name": "Hudson Bay", "id": "Hudson Bay", "locationID":[]},
-        {"name": "James Bay", "id": "James Bay", "locationID":[]}
+        {"name": "James Bay", "id": "James Bay", "locationID":[]},
+        {"name": "Labrador Sea", "id": "Labrador Sea", "locationID":[
+					{ "name": "Cumberland Sound", "id": "Cumberland Sound", "locationID":[]}
+				]},
       ], "id": "Arctic Ocean", "defaultLatitude": 90.0, "defaultLongitude":0.0},
       {"name": "Atlantic Ocean (North)", "locationID": [
         {"name":"Azores", "id":"5", "locationID":[] },
@@ -87,7 +91,6 @@
         ]},
         {"name": "Celtic Sea", "id": "Celtic Sea", "locationID":[]},
         {"name": "Chesapeake Bay", "id": "Chesapeake Bay", "locationID":[]},
-        {"name": "Davis Strait", "id": "Davis Strait", "locationID":[]},
         {"name": "Denmark Strait", "id": "Denmark Strait", "locationID":[]},
         {"name": "English Channel", "id": "English Channel", "locationID":[]},
         {"name": "Gulf of Guinea", "id": "Gulf of Guinea", "locationID":[]},
@@ -106,16 +109,17 @@
         {"name": "Irish Sea", "id": "Irish Sea", "locationID":[
           {"name": "Cardigan Bay", "id": "Cardigan Bay", "locationID":[]}  
         ]},
-        {"name": "Labrador Sea", "id": "Labrador Sea", "locationID":[
-					{ "name": "Cumberland Sound", "id": "Cumberland Sound", "locationID":[]}
-				]},
         {"name": "Marmara Sea", "id": "Marmara Sea", "locationID":[]},
         {"name": "North Sea", "id": "North Sea", "locationID":[]},
         {"name": "Norwegian Sea", "id": "Norwegian Sea", "locationID":[]},
         {"name": "SW Portugal", "id": "SW Portugal", "locationID":[
 					{"name": "Sagres", "id": "Sagres", "locationID":[]}
 				]},
-        {"name": "Scotian Shelf", "id": "Scotian Shelf", "locationID":[]},
+        {"name": "Scotian Shelf", "id": "Scotian Shelf", "locationID":[
+          {"name": "Gully MPA", "id": "Gully MPA", "locationID":[]},
+          {"name": "Haldimand Canyon", "id": "Haldimand Canyon", "locationID":[]},
+          {"name": "Shortland Canyon", "id": "Shortland Canyon", "locationID":[]}
+        ]},
         {"name": "Sargasso Sea", "id": "Sargasso Sea", "locationID":[]},
         {"name": "Sea of Azov", "id": "Sea of Azov", "locationID":[]},
         {"name": "Sea of the Hebrides", "id": "Sea of the Hebrides", "locationID":[]},
