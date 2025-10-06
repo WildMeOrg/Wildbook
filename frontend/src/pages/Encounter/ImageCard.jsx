@@ -119,6 +119,15 @@ const ImageCard = observer(({ store = {} }) => {
           Images
         </span>
       </div>
+      <div className="mb-2 d-flex flex-row align-items-center justify-content-between">
+        <p>
+          {store.encounterData?.mediaAssets[store.selectedImageIndex]?.userFilename || "No image selected"}
+        </p>
+        <p>
+          {store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length? `${store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length} tags` : ""}
+        </p>
+      </div >
+
 
       <div
         style={{
@@ -185,7 +194,7 @@ const ImageCard = observer(({ store = {} }) => {
             ""
           }
           alt="No image available"
-          style={{ width: "100%", height: "auto" }}          
+          style={{ width: "100%", height: "auto" }}
         />
       </div>
 

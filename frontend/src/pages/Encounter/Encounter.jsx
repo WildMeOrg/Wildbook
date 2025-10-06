@@ -155,7 +155,7 @@ const Encounter = observer(() => {
             {store.editDateCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<DateIcon />}
-                // disabled={!!store.errors.getFieldError("date", "date")}
+                disabled={!!store.errors.getFieldError("date", "date")}
                 title="Date"
                 onSave={async () => {
                   await store.saveSection("date", encounterId);
@@ -166,6 +166,7 @@ const Encounter = observer(() => {
                   store.resetSectionDraft("date");
                   store.setEditDateCard(false);
                   store.errors.setFieldError("date", "date", null);
+                  store.errors.clearSectionErrors("date");
                 }}
                 content={
                   <div>
@@ -233,6 +234,7 @@ const Encounter = observer(() => {
                 onCancel={() => {
                   store.resetSectionDraft("identify");
                   store.setEditIdentifyCard(false);
+                  store.errors.clearSectionErrors("identify");
                 }}
                 content={
                   <div>
@@ -357,6 +359,7 @@ const Encounter = observer(() => {
                 onCancel={() => {
                   store.resetSectionDraft("metadata");
                   store.setEditMetadataCard(false);
+                  store.errors.clearSectionErrors("metadata");
                 }}
                 content={
                   <div>
@@ -455,7 +458,7 @@ const Encounter = observer(() => {
             {store.editLocationCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<LocationIcon />}
-                // disabled={!!store.errors.getFieldError("location", "latitude") || !!store.errors.getFieldError("location", "longitude")}
+                disabled={!!store.errors.getFieldError("location", "latitude") || !!store.errors.getFieldError("location", "longitude")}
                 title="Location"
                 onSave={async () => {
                   await store.saveSection("location", encounterId);
@@ -467,6 +470,8 @@ const Encounter = observer(() => {
                   store.setEditLocationCard(false);
                   store.errors.setFieldError("location", "latitude", null);
                   store.errors.setFieldError("location", "longitude", null);
+                  store.errors.clearSectionErrors("location");
+
                 }}
                 content={
                   <div>
@@ -556,6 +561,7 @@ const Encounter = observer(() => {
                 onCancel={() => {
                   store.resetSectionDraft("attributes");
                   store.setEditAttributesCard(false);
+                  store.errors.clearSectionErrors("attributes");
                 }}
                 content={
                   <div>

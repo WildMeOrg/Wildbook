@@ -139,17 +139,53 @@ export const ImageModal = observer(({
                         className="d-flex flex-column flex-grow-1 w-100 position-relative"
                         style={{ minWidth: 0, minHeight: 0 }}
                     >
-                        <div className="w-100 d-flex flex-row align-items-center text-white p-2">
+                        <div className="w-100 d-flex flex-row align-items-center text-white p-2
+                            justify-content-between"
+                        >
 
-                            <span className="text-white-50 ms-2">{safeIndex + 1}/{assets.length}</span>
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-outline-light rounded-circle position-absolute top-0 end-0 m-2"
-                                onClick={onClose}
-                                aria-label="Close"
-                            >
-                                <i className="bi bi-x" />
-                            </button>
+                            <div className="text-white-50 ms-2">{safeIndex + 1}/{assets.length}</div>
+                            <div
+                                className="m-2"
+                                style={{
+                                    marginLeft: "auto",
+                                }}>
+                                <button
+                                    type="button"
+                                    className="btn btn-sm rounded-circle"
+                                    style={{
+                                        backgroundColor: "rgba(255, 255, 255, 0.5)",
+                                        marginRight: "8px",
+                                    }}
+                                    onClick={() => {
+                                        const cur = assets[index];
+                                        if (!cur?.url) return;
+                                        const a = document.createElement("a");
+                                        a.href = cur.url;
+                                        a.download = cur.filename || `encounter-image-${cur.id || index}.jpg`;
+                                        a.click();
+                                    }}
+                                    aria-label="Download"
+                                    title="Download"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="18" viewBox="0 0 15 18" fill="none">
+                                        <path d="M12.5783 6.5H10.9883V1.5C10.9883 0.95 10.5383 0.5 9.98828 0.5H5.98828C5.43828 0.5 4.98828 0.95 4.98828 1.5V6.5H3.39828C2.50828 6.5 2.05828 7.58 2.68828 8.21L7.27828 12.8C7.66828 13.19 8.29828 13.19 8.68828 12.8L13.2783 8.21C13.9083 7.58 13.4683 6.5 12.5783 6.5ZM0.988281 16.5C0.988281 17.05 1.43828 17.5 1.98828 17.5H13.9883C14.5383 17.5 14.9883 17.05 14.9883 16.5C14.9883 15.95 14.5383 15.5 13.9883 15.5H1.98828C1.43828 15.5 0.988281 15.95 0.988281 16.5Z" fill="white" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-sm rounded-circle"
+                                    onClick={onClose}
+                                    style={{
+                                        backgroundColor: "rgba(255, 255, 255, 0.5)",
+                                    }}
+                                    aria-label="Close"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 25 24" fill="none">
+                                        <path d="M19.288 5.70973C18.898 5.31973 18.268 5.31973 17.878 5.70973L12.988 10.5897L8.09801 5.69973C7.70801 5.30973 7.07801 5.30973 6.68801 5.69973C6.29801 6.08973 6.29801 6.71973 6.68801 7.10973L11.578 11.9997L6.68801 16.8897C6.29801 17.2797 6.29801 17.9097 6.68801 18.2997C7.07801 18.6897 7.70801 18.6897 8.09801 18.2997L12.988 13.4097L17.878 18.2997C18.268 18.6897 18.898 18.6897 19.288 18.2997C19.678 17.9097 19.678 17.2797 19.288 16.8897L14.398 11.9997L19.288 7.10973C19.668 6.72973 19.668 6.08973 19.288 5.70973Z" fill="white" />
+                                    </svg>
+                                </button>
+
+                            </div>
 
                             {/* <div className="ms-auto d-flex gap-2 me-2">
                                 <button className="btn btn-sm" onClick={onClose}>Close</button>
