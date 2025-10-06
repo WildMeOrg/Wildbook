@@ -168,6 +168,21 @@
 			]
 		},
 		{
+			"name": "Ethiopia",
+			"id": "Ethiopia",
+			"locationID": [
+				{
+					"name": "Gambella National Park",
+					"id": "Gambella National Park",
+					"geospatialInfo": {
+						"lat": 7.99673,
+						"long": 34.05911
+					},
+					"locationID": []
+				}
+			]
+		},
+		{
 			"name": "Kenya",
 			"id": "Kenya",
 			"geospatialInfo":{
