@@ -50,6 +50,17 @@
 					"locationID": []
 				},
 				{
+					"name": "Bonn",
+					"id": "Bonn",
+					"locationID": [
+						{
+							"name": "Ennert",
+							"id": "Ennert",
+							"locationID": []
+						}
+					]
+				},
+				{
 					"name": "Botanischer Garten Bielefeld",
 					"id": "Botanischer Garten Bielefeld",
 					"geospatialInfo": {
@@ -189,6 +200,11 @@
 					"name": "Reifenstein",
 					"id": "Reifenstein",
 					"locationID":[]
+				},
+				{
+					"name": "Rhein-Sieg-Kreis",
+					"id": "Rhein-Sieg-Kreis",
+					"locationID": []
 				},
 				{
 					"name": "Rochlitzer Berg",
