@@ -95,7 +95,8 @@ const ImageCard = observer(({ store = {} }) => {
       setOpenImageModal(true);
       store.setSelectedImageIndex(store.selectedImageIndex);
     } else {
-      window.location.href = `/react/encounter?number=${encounterId}`;
+      const url = `/react/encounter?number=${encounterId}`;
+      window.open(url, "_blank");
     }
   }
 
@@ -124,6 +125,7 @@ const ImageCard = observer(({ store = {} }) => {
           width: "100%",
           position: "relative",
           cursor: "pointer",
+          overflow: "hidden",
         }}
         onClick={() => setOpenImageModal(true)}
       >
@@ -253,7 +255,7 @@ const ImageCard = observer(({ store = {} }) => {
             if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
               return;
             }
-            store.setOpenMatchCriteriaModal(true);
+            store.modals.setOpenMatchCriteriaModal(true);
           }}
           style={{ cursor: "pointer" }}
         >

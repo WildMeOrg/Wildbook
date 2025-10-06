@@ -67,7 +67,7 @@ export const ContactInfoModal = observer(({
                                 data={store.encounterData?.informOthers} />
                         }
                         <MainButton
-                            onClick={() => store.setOpenAddPeopleModal(true)}
+                            onClick={() => store.modals.setOpenAddPeopleModal(true)}
                             noArrow={true}
                             backgroundColor={theme.primaryColors.primary700}
                             color="white"
@@ -75,7 +75,7 @@ export const ContactInfoModal = observer(({
                         >
                             {"Add People"}
                         </MainButton>
-                        {store.openAddPeopleModal &&
+                        {store.modals.openAddPeopleModal &&
                             <AddPeople
                                 store={store}
                             />}

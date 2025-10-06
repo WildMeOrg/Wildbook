@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { observer } from "mobx-react-lite";
-import EncounterStore from "./EncounterStore";
+// import EncounterStore from "./stores/EncounterStore";
 import { Container } from "react-bootstrap";
 import { Row, Col } from "react-bootstrap";
 import Pill from "../../components/Pill";
@@ -28,12 +28,11 @@ import ContactInfoModal from "./ContactInfoModal";
 import { MoreDetails } from "./MoreDetails";
 import EncounterHistoryModal from "./EncounterHistoryModal";
 import MatchCriteriaModal from "./MatchCriteria";
+import { EncounterStore } from './stores';
 
 const Encounter = observer(() => {
-  const store = React.useMemo(() => new EncounterStore(), []);
-  
-  console.log("match result clickable:", JSON.stringify(store.matchResultClickable));
-
+  const [store] = useState(() => new EncounterStore());
+console.log("store.error", JSON.stringify(store.errors));
   const { data: siteSettings } = useGetSiteSettings();
 
   useEffect(() => {
@@ -60,19 +59,19 @@ const Encounter = observer(() => {
   return (
     <Container style={{ padding: "20px" }}>
       <ContactInfoModal
-        isOpen={store.openContactInfoModal}
-        onClose={() => store.setOpenContactInfoModal(false)}
+        isOpen={store.modals.openContactInfoModal}
+        onClose={() => store.modals.setOpenContactInfoModal(false)}
         store={store}
       />
       <EncounterHistoryModal
-        isOpen={store.openEncounterHistoryModal}
-        onClose={() => store.setOpenEncounterHistoryModal(false)}
+        isOpen={store.modals.openEncounterHistoryModal}
+        onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
         store={store}
       />
       <MatchCriteriaModal
         store={store}
-        isOpen={store.openMatchCriteriaModal}
-        onClose={() => store.setOpenMatchCriteriaModal(false)}
+        isOpen={store.modals.openMatchCriteriaModal}
+        onClose={() => store.modals.setOpenMatchCriteriaModal(false)}
       />
       <Row>
         <Col md={6}>
@@ -134,7 +133,7 @@ const Encounter = observer(() => {
           <div
             style={{ marginRight: "10px", cursor: "pointer" }}
             onClick={() => {
-              store.setOpenContactInfoModal(true);
+              store.modals.setOpenContactInfoModal(true);
             }}
           >
             <ContactIcon />
@@ -142,7 +141,7 @@ const Encounter = observer(() => {
           <div
             style={{ marginRight: "10px", cursor: "pointer" }}
             onClick={() => {
-              store.setOpenEncounterHistoryModal(true);
+              store.modals.setOpenEncounterHistoryModal(true);
             }}
           >
             <HistoryIcon />
@@ -155,7 +154,7 @@ const Encounter = observer(() => {
             {store.editDateCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<DateIcon />}
-                disabled={!!store.getFieldError("date", "date")}
+                // disabled={!!store.getFieldError("date", "date")}
                 title="Date"
                 onSave={async () => {
                   await store.saveSection("date", encounterId);
@@ -191,6 +190,9 @@ const Encounter = observer(() => {
                         store.setFieldValue("date", "verbatimEventDate", v)
                       }
                     />
+                    {store.getError('date') && (
+                      <span className="field-error">{store.getError('date')}</span>
+                    )}
                   </div>
                 }
               />

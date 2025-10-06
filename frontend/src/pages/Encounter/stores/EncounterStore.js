@@ -1,163 +1,25 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
-import convertToTreeDataWithName from "../../utils/converToTreeData";
+import convertToTreeDataWithName from "../../../utils/converToTreeData";
 import { debounce } from "lodash";
 import { toJS } from "mobx";
 import dayjs from "dayjs";
 import Flow from "@flowjs/flow.js";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { v4 as uuidv4 } from "uuid";
+import ModalStore from "./ModalStore";
+import { SECTION_FIELD_PATHS } from "./constants";
+import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, parseYMDHM } from "./helperFunctions";
 dayjs.extend(customParseFormat);
-
-const SECTION_FIELD_PATHS = {
-  date: ["date", "verbatimEventDate"],
-  identify: [
-    "individualDisplayName",
-    "otherCatalogNumbers",
-    "identificationRemarks",
-    "sightingId",
-    "individualID",
-  ],
-  metadata: [
-    "id",
-    "submitterID",
-    "state",
-    "observationComments",
-  ],
-  location: [
-    "verbatimLocality",
-    "locationId",
-    "locationName",
-    "country",
-    "locationGeoPoint",
-  ],
-  attributes: [
-    "taxonomy",
-    "livingStatus",
-    "sex",
-    "distinguishingScar",
-    "behavior",
-    "groupRole",
-    "patterningCode",
-    "lifeStage",
-    "occurrenceRemarks",
-  ],
-};
-
-const LOCAL_FIELD_ERRORS = {
-  date: {
-    date: "invalid date"
-  },
-  location: {
-    latitude: "please enter invalid latitude and longitude",
-    longitude: "please enter invalid latitude and longitude",
-  },
-};
-
-function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
-  const errors = LOCAL_FIELD_ERRORS[sectionName] || {};
-  const errorMessage = errors[fieldPath];
-  if (!errorMessage) return null;
-
-  if (sectionName === "date") {
-    if (value == null || value === "") return null;
-    const FORMATS = [
-      "YYYY",
-      "YYYY-MM",
-      "YYYY-MM-DD",
-      "YYYY-MM-DDTHH",
-      "YYYY-MM-DDTHH:mm",
-      "YYYY-MM-DDTHH:mm[Z]",
-    ];
-    let parsed;
-    if (value instanceof Date) {
-      parsed = dayjs(value);
-    } else {
-      parsed = dayjs(String(value).trim(), FORMATS, true);
-    }
-
-    if (!parsed.isValid() || parsed.isAfter(dayjs())) {
-      return errorMessage;
-    }
-    return null;
-  }
-
-  if (sectionName === "location") {
-    const isEmpty = (v) => v === "" || v == null;
-
-    const lat = fieldPath === "latitude" ? value : ctx.lat;
-    const lon = fieldPath === "longitude" ? value : ctx.lon;
-
-    if (isEmpty(lat) && isEmpty(lon)) return null;
-
-    if (fieldPath === "latitude") {
-      if (isEmpty(value)) return errorMessage;
-      const n = Number(value);
-      if (!Number.isFinite(n) || n < -90 || n > 90) return errorMessage;
-      return null;
-    }
-
-    if (fieldPath === "longitude") {
-      if (isEmpty(value)) return errorMessage;
-      const n = Number(value);
-      if (!Number.isFinite(n) || n < -180 || n > 180) return errorMessage;
-      return null;
-    }
-  }
-
-  return null;
-}
-
-
-function splitPathIntoSegments(fieldPath) {
-  return fieldPath.replace(/\[(\d+)\]/g, ".$1").split(".");
-}
-
-function getValueAtPath(targetObject, fieldPath) {
-  const pathSegments = splitPathIntoSegments(fieldPath);
-  return pathSegments.reduce((currentValue, pathSegment) => {
-    if (currentValue == null) return undefined;
-    return currentValue[pathSegment];
-  }, targetObject);
-}
-
-function setValueAtPath(targetObject, fieldPath, newValue) {
-  const pathSegments = splitPathIntoSegments(fieldPath);
-  let cursor = targetObject;
-  for (let i = 0; i < pathSegments.length - 1; i++) {
-    const segment = pathSegments[i];
-    const nextSegment = pathSegments[i + 1];
-    const nextIsArrayIndex = /^\d+$/.test(nextSegment);
-    if (cursor[segment] == null || typeof cursor[segment] !== "object") {
-      cursor[segment] = nextIsArrayIndex ? [] : {};
-    }
-    cursor = cursor[segment];
-  }
-  const lastSegment = pathSegments[pathSegments.length - 1];
-  cursor[lastSegment] = newValue;
-}
-
-function deleteValueAtPath(targetObject, fieldPath) {
-  const pathSegments = splitPathIntoSegments(fieldPath);
-  let cursor = targetObject;
-  for (let i = 0; i < pathSegments.length - 1; i++) {
-    const segment = pathSegments[i];
-    if (cursor[segment] == null) return;
-    cursor = cursor[segment];
-  }
-  const lastSegment = pathSegments[pathSegments.length - 1];
-  const isArrayIndex = /^\d+$/.test(lastSegment);
-  if (Array.isArray(cursor) && isArrayIndex) {
-    cursor.splice(Number(lastSegment), 1);
-  } else {
-    delete cursor[lastSegment];
-  }
-}
 
 class EncounterStore {
   _encounterData = null;
 
   _siteSettingsData = null;
+
+  modals;
+
+  _errors = new Map();
 
   _overviewActive = true;
   _editDateCard = false;
@@ -172,11 +34,6 @@ class EncounterStore {
   _lon = null;
 
   _showAnnotations = true;
-
-  _openContactInfoModal = false;
-  _openEncounterHistoryModal = false;
-  _openAddPeopleModal = false;
-  _openMatchCriteriaModal = false;
 
   _newPersonName = '';
   _newPersonEmail = '';
@@ -249,7 +106,11 @@ class EncounterStore {
   );
 
   constructor() {
-    makeAutoObservable(this, { flow: false }, { autoBind: true });
+    this.modals = new ModalStore(this);
+
+    makeAutoObservable(this, { flow: false,
+      modal: false,
+     }, { autoBind: true });
   }
 
   get encounterData() {
@@ -280,6 +141,40 @@ class EncounterStore {
     } else {
       this._fieldErrors.delete(key);
     }
+  }
+
+  get errors() {
+    return this._errors;
+  }
+
+  setError(key, errorMessage) {
+    if (errorMessage) {
+      this._errors.set(key, errorMessage);
+    } else {
+      this._errors.delete(key);
+    }
+  }
+
+  setErrors(errorsObject) {
+    this._errors.clear();
+
+    if (errorsObject && typeof errorsObject === 'object') {
+      Object.entries(errorsObject).forEach(([key, value]) => {
+        this._errors.set(key, value);
+      });
+    }
+  }
+
+  clearErrors() {
+    this._errors.clear();
+  }
+
+  getError(key) {
+    return this._errors.get(key) || null;
+  }
+
+  get hasErrors() {
+    return this._errors.size > 0;
   }
 
   get overviewActive() {
@@ -399,20 +294,6 @@ class EncounterStore {
     this._newPersonRole = role;
   }
 
-  get openAddPeopleModal() {
-    return this._openAddPeopleModal;
-  }
-  setOpenAddPeopleModal(isOpen) {
-    this._openAddPeopleModal = isOpen;
-  }
-
-  get openMatchCriteriaModal() {
-    return this._openMatchCriteriaModal;
-  }
-  setOpenMatchCriteriaModal(isOpen) {
-    this._openMatchCriteriaModal = isOpen;
-  }
-
   get selectedLocation() {
     return this._selectedMatchLocation;
   }
@@ -439,7 +320,7 @@ class EncounterStore {
       { op: "add", path: this._newPersonRole, value: this._newPersonEmail },
     ]);
     if (result.status === 200) {
-      this.setOpenAddPeopleModal(false);
+      this.modals.setOpenAddPeopleModal(false);
       this._newPersonName = '';
       this._newPersonEmail = '';
       this._newPersonRole = '';
@@ -453,7 +334,7 @@ class EncounterStore {
       { op: "remove", path: type, value: uuid }]);
     if (data.status === 200) {
       this._encounterData[type] = this._encounterData[type].filter(item => item.id !== uuid);
-      this.setOpenContactInfoModal(false);
+      this.modals.setOpenContactInfoModal(false);
     } else {
       console.error("Failed to remove contact:", data);
     }
@@ -617,20 +498,6 @@ class EncounterStore {
     this._showAnnotations = show;
   }
 
-  get openContactInfoModal() {
-    return this._openContactInfoModal;
-  }
-  setOpenContactInfoModal(isOpen) {
-    this._openContactInfoModal = isOpen;
-  }
-
-  get openEncounterHistoryModal() {
-    return this._openEncounterHistoryModal;
-  }
-  setOpenEncounterHistoryModal(isOpen) {
-    this._openEncounterHistoryModal = isOpen;
-  }
-
   get tags() {
     return this._encounterData?.mediaAssets?.[this._selectedImageIndex]?.keywords || [];
   }
@@ -682,7 +549,6 @@ class EncounterStore {
   setSelectedAllowedValues(allowedValues) {
     this._selectedAllowedValues = allowedValues;
   }
-
 
   get taxonomyOptions() {
     return this._taxonomyOptions;
@@ -1052,49 +918,51 @@ class EncounterStore {
 
   }
 
-  parseYMDHM(val) {
-    if (val == null) return null;
+  // parseYMDHM(val) {
+  //   if (val == null) return null;
 
-    if (val instanceof Date && !isNaN(val)) {
-      return {
-        year: String(val.getFullYear()).padStart(4, "0"),
-        month: String(val.getMonth() + 1).padStart(2, "0"),
-        day: String(val.getDate()).padStart(2, "0"),
-        hour: String(val.getHours()).padStart(2, "0"),
-        minutes: String(val.getMinutes()).padStart(2, "0"),
-      };
-    }
+  //   if (val instanceof Date && !isNaN(val)) {
+  //     return {
+  //       year: String(val.getFullYear()).padStart(4, "0"),
+  //       month: String(val.getMonth() + 1).padStart(2, "0"),
+  //       day: String(val.getDate()).padStart(2, "0"),
+  //       hour: String(val.getHours()).padStart(2, "0"),
+  //       minutes: String(val.getMinutes()).padStart(2, "0"),
+  //     };
+  //   }
 
-    const s = String(val).trim();
+  //   const s = String(val).trim();
 
-    const re =
-      /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?(?:[T\s](\d{2}):(\d{2}))?(?:Z|[+-]\d{2}:\d{2})?$/;
-    const m = re.exec(s);
-    if (!m) return null;
+  //   const re =
+  //     /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?(?:[T\s](\d{2}):(\d{2}))?(?:Z|[+-]\d{2}:\d{2})?$/;
+  //   const m = re.exec(s);
+  //   if (!m) return null;
 
-    const [, Y, M, D, H, Min] = m;
-    return {
-      year: Y,
-      month: M ?? "",
-      day: D ?? "",
-      hour: H ?? "",
-      minutes: Min ?? "",
-    };
-  }
+  //   const [, Y, M, D, H, Min] = m;
+  //   return {
+  //     year: Y,
+  //     month: M ?? "",
+  //     day: D ?? "",
+  //     hour: H ?? "",
+  //     minutes: Min ?? "",
+  //   };
+  // }
 
 
   removeAnnotation(annotationId) {
-    return axios.post(
-      "/EncounterRemoveAnnotation",
-      {
-        annotation: String(annotationId),
-        detach: "true",
-        number: String(this._encounterData.id),
-      },
+    return axios.patch(
+      `/api/v3/encounters/${this._encounterData.id}`,
+      [
+        {
+          op: "remove",
+          path: "annotations",
+          value: annotationId,
+        },
+      ],
       {
         headers: { "Content-Type": "application/json" },
       }
-    );
+    )
   }
 
   deleteImage() {
@@ -1117,7 +985,7 @@ class EncounterStore {
 
     for (const op of base) {
       if (op.path === "date") {
-        const p = this.parseYMDHM(op.value);
+        const p = parseYMDHM(op.value);
         if (!p) continue;
         out.push({ op: "replace", path: "year", value: String(p.year) });
         out.push({
@@ -1257,6 +1125,7 @@ class EncounterStore {
   }
 
   async saveSection(sectionName, encounterId) {
+    this.clearErrors();
     const operations = this.buildPatchOperations(sectionName);
     if (operations.length === 0) {
       this.resetSectionDraft(sectionName);
@@ -1265,9 +1134,22 @@ class EncounterStore {
 
     const expanded = this.expandOperations(operations);
 
-    const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
-    // this.applyPatchOperationsLocally(operations);
-    this.resetSectionDraft(sectionName);
+    // const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
+    // // this.applyPatchOperationsLocally(operations);
+    // this.resetSectionDraft(sectionName);
+    try {
+      const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
+      this.resetSectionDraft(sectionName);
+      return result;
+    } catch (error) {
+      if (error.response?.data) {
+        const backendErrors = error.response.data.errors || error.response.data;
+        this.setErrors(backendErrors);
+      } else {
+        this.setError('general', error.message || 'An error occurred while saving');
+      }
+      throw error;
+    }
   }
 
   async refreshEncounterData() {
@@ -1296,6 +1178,7 @@ class EncounterStore {
   }
 
   async saveSectionAndRefresh(sectionName, encounterId) {
+    this.clearErrors();
     try {
       await this.saveSection(sectionName, encounterId);
 

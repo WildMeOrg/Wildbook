@@ -44,7 +44,7 @@ export const AddPeople = observer(({ store }) => {
                         store.setNewPersonName('');
                         store.setNewPersonEmail('');
                         store.setNewPersonRole('');
-                        store.setOpenAddPeopleModal(false);
+                        store.modals.setOpenAddPeopleModal(false);
                     }}
                     noArrow={true}
                     variant="secondary"

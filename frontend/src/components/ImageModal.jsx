@@ -31,10 +31,6 @@ export const ImageModal = observer(({
     const currentAnnotation = rects.filter(a => a.annotationId === store.selectedAnnotationId)?.[0] || null;
     const [editAnnotationParams, setEditAnnotationParams] = useState({});
 
-    console.log("rects", JSON.stringify(rects));
-    console.log("currentAnnotation", JSON.stringify(currentAnnotation));
-    console.log("selectedAnnotationId", JSON.stringify(store.selectedAnnotationId));
-
     useEffect(() => {
         if (!currentAnnotation) return;
         setEditAnnotationParams({
@@ -45,7 +41,6 @@ export const ImageModal = observer(({
             theta: currentAnnotation.rotation || 0,
         });
     }, [currentAnnotation]);
-    console.log("editAnnotationParams", JSON.stringify(editAnnotationParams));
 
     const annotationParam = encodeURIComponent(JSON.stringify(editAnnotationParams));
     const [tagText, setTagText] = useState("");
@@ -141,7 +136,7 @@ export const ImageModal = observer(({
                 >
                     <div
                         id="image-modal-left"
-                        className="d-flex flex-column flex-grow-1 w-100"
+                        className="d-flex flex-column flex-grow-1 w-100 position-relative"
                         style={{ minWidth: 0, minHeight: 0 }}
                     >
                         <div className="w-100 d-flex flex-row align-items-center text-white p-2">
@@ -210,7 +205,6 @@ export const ImageModal = observer(({
                                             key={index}
                                             className="position-absolute"
                                             onClick={() => {
-                                                console.log("Clicked rect:", JSON.stringify(rect.annotationId));
                                                 store.setSelectedAnnotationId(rect.annotationId);
                                             }}
                                             style={{
@@ -592,8 +586,10 @@ export const ImageModal = observer(({
                                 target={true}
                                 onClick={async () => {
                                     if (window.confirm("Are you sure you want to delete this annotation?")) {
-                                        await store.removeAnnotation(currentAnnotation?.id);
-                                        window.location.reload();
+                                        await store.removeAnnotation(currentAnnotation?.annotationId);
+                                        // window.location.reload();
+                                        store.setSelectedAnnotationId(null);
+                                        store.refreshEncounterData();
                                     }
                                 }}
                             >
