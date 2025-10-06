@@ -20,7 +20,7 @@ jobs:
         java-version: 8
 
     - name: Release
-      uses: qcastel/github-actions-maven-release@v1.12.43
+      uses: qcastel/github-actions-maven-release@v1.12.44
       env:
         JAVA_HOME: /usr/lib/jvm/zulu-8/
       with:
