@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import ModalStore from "./ModalStore";
 import ErrorStore from "./ErrorStore";
 import { SECTION_FIELD_PATHS } from "./constants";
-import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, parseYMDHM, expandOperations } from "./helperFunctions";
+import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, expandOperations } from "./helperFunctions";
 dayjs.extend(customParseFormat);
 
 class EncounterStore {
@@ -605,7 +605,6 @@ class EncounterStore {
     this._sectionDrafts.set(sectionName, draftForSection);
 
     const error = validateFieldValue(sectionName, fieldPath, newValue);
-    console.log("error", JSON.stringify(error));
     if (error) {
       this.errors.setFieldError(sectionName, fieldPath, error);
     }
@@ -979,20 +978,24 @@ class EncounterStore {
     }
 
     const expanded = expandOperations(operations);
+    if (expanded.length === 0) {
+      this.resetSectionDraft(sectionName);
+      return;
+    }    
 
     // const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
     // // this.applyPatchOperationsLocally(operations);
     // this.resetSectionDraft(sectionName);
     try {
       const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
+      this.errors.clearSectionErrors(sectionName); 
       this.resetSectionDraft(sectionName);
       return result;
     } catch (error) {
       if (error.response?.data) {
-        const backendErrors = error.response.data.errors || error.response.data;
-        this.errors.setErrors(backendErrors);
+        this.errors.setErrors(sectionName, error.response.data);
       } else {
-        this.errors.setError('general', error.message || 'An error occurred while saving');
+        this.errors.setErrors('general', error.message || 'An error occurred while saving');
       }
       throw error;
     }

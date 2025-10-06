@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { observer } from "mobx-react-lite";
-// import EncounterStore from "./stores/EncounterStore";
 import { Container } from "react-bootstrap";
 import { Row, Col } from "react-bootstrap";
 import Pill from "../../components/Pill";
@@ -30,10 +29,10 @@ import EncounterHistoryModal from "./EncounterHistoryModal";
 import MatchCriteriaModal from "./MatchCriteria";
 import { EncounterStore } from './stores';
 import { setEncounterState } from './stores/helperFunctions';
+import { Alert } from "react-bootstrap";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
-console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
   const { data: siteSettings } = useGetSiteSettings();
 
   useEffect(() => {
@@ -156,7 +155,7 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
             {store.editDateCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<DateIcon />}
-                disabled={!!store.errors.getFieldError("date", "date")}
+                // disabled={!!store.errors.getFieldError("date", "date")}
                 title="Date"
                 onSave={async () => {
                   await store.saveSection("date", encounterId);
@@ -192,9 +191,12 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
                         store.setFieldValue("date", "verbatimEventDate", v)
                       }
                     />
-                    {store.errors.getError('date') && (
-                      <span className="field-error">{store.errors.getError('date')}</span>
+                    {store.errors.hasSectionError("date") && (
+                      <Alert variant="danger">
+                        {store.errors.getSectionErrors("date").join(";")}
+                      </Alert>
                     )}
+
                   </div>
                 }
               />
@@ -311,6 +313,11 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
                       debounceMs={300}
                       minChars={2}
                     />
+                    {store.errors.hasSectionError("identify") && (
+                      <Alert variant="danger">
+                        {store.errors.getSectionErrors("identify").join(";")}
+                      </Alert>
+                    )}
                   </div>
                 }
               />
@@ -395,6 +402,11 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
                       }
                       className="mb-3"
                     />
+                    {store.errors.hasSectionError("metadata") && (
+                      <Alert variant="danger">
+                        {store.errors.getSectionErrors("metadata").join(";")}
+                      </Alert>
+                    )}
                   </div>
                 }
               />
@@ -443,7 +455,7 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
             {store.editLocationCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<LocationIcon />}
-                disabled={!!store.errors.getFieldError("location", "latitude") || !!store.errors.getFieldError("location", "longitude")}
+                // disabled={!!store.errors.getFieldError("location", "latitude") || !!store.errors.getFieldError("location", "longitude")}
                 title="Location"
                 onSave={async () => {
                   await store.saveSection("location", encounterId);
@@ -496,6 +508,12 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
                       className="mb-3"
                     />
                     <CoordinatesInput store={store} />
+                    {store.errors.hasSectionError("location") && (
+                      <Alert variant="danger">
+                        {store.errors.getSectionErrors("location").join(";")}
+                      </Alert>
+                    )}
+
                   </div>
                 }
               />
@@ -520,7 +538,7 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
                       Country:{" "}
                       {store.getFieldValue("location", "country") || "None"}
                     </div>
-                    <MapDisplay store={store} />
+                    {/* <MapDisplay store={store} /> */}
                   </div>
                 }
               />
@@ -647,6 +665,11 @@ console.log("store.error", JSON.stringify(store.errors.errors, null, 2));
                         )
                       }
                     />
+                    {store.errors.hasSectionError("attributes") && (
+                      <Alert variant="danger">
+                        {store.errors.getSectionErrors("attributes").join(";")}
+                      </Alert>
+                    )}
                   </div>
                 }
               />

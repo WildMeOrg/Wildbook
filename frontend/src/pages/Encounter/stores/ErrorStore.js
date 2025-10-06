@@ -7,14 +7,10 @@ class ErrorStore {
     _fieldErrors = new Map();
     uploadErrors = [];
 
-
-
   constructor(encounterStore) {
     this.encounterStore = encounterStore;
     makeAutoObservable(this, { encounterStore: false }, { autoBind: true });
   }
-
-
 
   get fieldErrors() {
     return this._fieldErrors;
@@ -37,37 +33,41 @@ class ErrorStore {
     return this._errors;
   }
 
-  setError(key, errorMessage) {
-    if (errorMessage) {
-      this._errors.set(key, errorMessage);
-    } else {
-      this._errors.delete(key);
-    }
+setErrors(sectionName, errorsObject) {
+  const list = Array.isArray(errorsObject?.errors) ? errorsObject.errors : [];
+  if (list.length === 0) {
+    this._errors.delete(sectionName);
+    return;
   }
 
-  setErrors(errorsObject) {
-    this._errors.clear();
+  const msgs = list.map(e => `field name: ${e.fieldName || "unknown"}, message: ${e.code || "INVALID"}, value: ${e.value || "N/A"}`);
+  this._errors.set(sectionName, msgs);
+}
 
-    if (errorsObject && typeof errorsObject === 'object') {
-      Object.entries(errorsObject).forEach(([key, value]) => {
-        this._errors.set(key, value);
-      });
-    }
-  }
+getSectionErrors(sectionName) {
+  return this._errors.get(sectionName) || [];
+}
 
-  clearErrors() {
-    this._errors.clear();
-  }
+hasSectionError(sectionName) {
+  return (this._errors.get(sectionName)?.length || 0) > 0;
+}
 
-  getError(key) {
-    return this._errors.get(key) || null;
-  }
+get sectionsWithErrors() {
+  return Array.from(this._errors.keys());
+}
 
-  get hasErrors() {
-    return this._errors.size > 0;
-  }
+clearSectionErrors(sectionName) {
+  this._errors.delete(sectionName);
+}
 
- 
+get hasErrors() {
+  return this._errors.size > 0;
+}
+
+clearErrors() {
+  this._errors.clear();
+}
+
 }
 
 export default ErrorStore;

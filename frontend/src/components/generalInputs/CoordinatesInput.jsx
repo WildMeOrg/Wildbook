@@ -28,12 +28,13 @@ export const CoordinatesInput = observer(({ store }) => {
     loader
       .load()
       .then(() => {
+        if (!mapRef.current || !mapRef.current.isConnected) return;
         const googleMap = new window.google.maps.Map(mapRef.current, {
           center: { lat: mapCenterLat, lng: mapCenterLon },
           zoom: mapZoom,
         });
 
-        googleMap.addListener("click", (e) => {
+        const clickListener = googleMap.addListener("click", (e) => {
           setPan(false);
           const lat = e.latLng.lat();
           const lng = e.latLng.lng();
@@ -51,6 +52,10 @@ export const CoordinatesInput = observer(({ store }) => {
         });
 
         setMap(googleMap);
+
+        return () => {
+          window.google.maps.removeListener(clickListener);
+        }
       })
       .catch((error) => {
         console.error("Error loading Google Maps", error);
@@ -81,8 +86,20 @@ export const CoordinatesInput = observer(({ store }) => {
   }, [store.lat, store.lon, map, pan]);
 
   useEffect(() => {
-    store.setFieldValue("location", "decimalLatitude", store.lat);
-    store.setFieldValue("location", "decimalLongitude", store.lon);
+    if (!store.lat || !store.lon) return;
+    if (store.lat) {
+      store.setFieldValue("location", "locationGeoPoint", {
+        ...store.getFieldValue("location","locationGeoPoint") || {},
+        lat: store.lat,
+      });
+    }
+
+    if (store.lon) {
+      store.setFieldValue("location", "locationGeoPoint", {
+        ...store.getFieldValue("location","locationGeoPoint") || {},
+        lon: store.lon,
+      });
+    }
   }, [store.lat, store.lon]);
 
   return (
@@ -103,10 +120,7 @@ export const CoordinatesInput = observer(({ store }) => {
               onChange={(e) => {
                 let newLat = e.target.value;
                 setPan(true);
-                store.setLat(newLat);
-                if (newLat < -90 || newLat > 90) {
-                  console.log(1);
-                }
+                store.setLat(newLat);                
               }}
             />
             {store.errors.getFieldError("location", "latitude") && (
@@ -126,10 +140,7 @@ export const CoordinatesInput = observer(({ store }) => {
               onChange={(e) => {
                 const newLon = e.target.value;
                 setPan(true);
-                store.setLon(newLon);
-                if (newLon < -180 || newLon > 180) {
-                  console.log(2);
-                }
+                store.setLon(newLon);                
               }}
             />
             {store.errors.getFieldError("location", "longitude") && (

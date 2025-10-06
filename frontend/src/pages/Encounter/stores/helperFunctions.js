@@ -9,7 +9,7 @@ function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
   if (!errorMessage) return null;
 
   if (sectionName === "date") {
-    if (value == null || value === "") return null;
+    if (value == null || value === "") return errorMessage;
     const FORMATS = [
       "YYYY",
       "YYYY-MM",
@@ -104,117 +104,112 @@ function deleteValueAtPath(targetObject, fieldPath) {
 }
 
 function parseYMDHM(val) {
-    if (val == null) return null;
+  if (val == null) return null;
 
-    if (val instanceof Date && !isNaN(val)) {
-      return {
-        year: String(val.getFullYear()).padStart(4, "0"),
-        month: String(val.getMonth() + 1).padStart(2, "0"),
-        day: String(val.getDate()).padStart(2, "0"),
-        hour: String(val.getHours()).padStart(2, "0"),
-        minutes: String(val.getMinutes()).padStart(2, "0"),
-      };
-    }
-
-    const s = String(val).trim();
-
-    const re =
-      /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?(?:[T\s](\d{2}):(\d{2}))?(?:Z|[+-]\d{2}:\d{2})?$/;
-    const m = re.exec(s);
-    if (!m) return null;
-
-    const [, Y, M, D, H, Min] = m;
+  if (val instanceof Date && !isNaN(val)) {
     return {
-      year: Y,
-      month: M ?? "",
-      day: D ?? "",
-      hour: H ?? "",
-      minutes: Min ?? "",
+      year: String(val.getFullYear()).padStart(4, "0"),
+      month: String(val.getMonth() + 1).padStart(2, "0"),
+      day: String(val.getDate()).padStart(2, "0"),
+      hour: String(val.getHours()).padStart(2, "0"),
+      minutes: String(val.getMinutes()).padStart(2, "0"),
     };
   }
 
-  function expandOperations(operations) {
-    const base = operations.slice();
-    const out = [];
+  const s = String(val).trim();
 
-    for (const op of base) {
-      if (op.path === "date") {
-        const p = parseYMDHM(op.value);
-        if (!p) continue;
-        out.push({ op: "replace", path: "year", value: String(p.year) });
-        out.push({
-          op: "replace",
-          path: "month",
-          value: !!p.month ? String(p.month) : null,
-        });
-        out.push({
-          op: "replace",
-          path: "day",
-          value: !!p.day ? String(p.day) : null,
-        });
-        out.push({
-          op: "replace",
-          path: "hour",
-          value: !!p.hour ? String(p.hour) : null,
-        });
-        out.push({
-          op: "replace",
-          path: "minutes",
-          value: !!p.minutes ? String(p.minutes) : null,
-        });
-        continue;
-      }
+  const re =
+    /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?(?:[T\s](\d{2}):(\d{2}))?(?:Z|[+-]\d{2}:\d{2})?$/;
+  const m = re.exec(s);
+  if (!m) return null;
 
-      if (op.path === "locationGeoPoint" && op.value) {
-        const v = op.value || {};
-        const lat = v.latitude ?? v.lat;
-        const lon = v.longitude ?? v.lng ?? v.lon;
-        if (lat != null)
-          out.push({ op: "replace", path: "decimalLatitude", value: lat });
-        if (lon != null)
-          out.push({ op: "replace", path: "decimalLongitude", value: lon });
-        continue;
-      }
+  const [, Y, M, D, H, Min] = m;
+  return {
+    year: Y,
+    month: M ?? "",
+    day: D ?? "",
+    hour: H ?? "",
+    minutes: Min ?? "",
+  };
+}
 
-      if (op.path === "taxonomy" && op.value) {
-        const s = String(op.value).trim();
-        const [genus = "", specificEpithet = ""] = s.split(/\s+/, 2);
-        out.push({ op: "replace", path: "genus", value: genus });
-        out.push({
-          op: "replace",
-          path: "specificEpithet",
-          value: specificEpithet,
-        });
-        continue;
-      }
+function expandOperations(operations) {
+  const base = operations.slice();
+  const out = [];
 
-      if (op.path === "individualID" && op.value) {
-        out.push({
-          op: "replace",
-          path: "individualId",
-          value: op.value,
-        });
-        continue;
-      }
-
-      out.push(op);
+  for (const op of base) {
+    if (op.path === "date") {
+      const p = parseYMDHM(op.value);
+      if (!p) continue;
+      out.push({ op: "replace", path: "year", value: String(p.year) });
+      out.push({
+        op: "replace",
+        path: "month",
+        value: !!p.month ? String(p.month) : null,
+      });
+      out.push({
+        op: "replace",
+        path: "day",
+        value: !!p.day ? String(p.day) : null,
+      });
+      out.push({
+        op: "replace",
+        path: "hour",
+        value: !!p.hour ? String(p.hour) : null,
+      });
+      out.push({
+        op: "replace",
+        path: "minutes",
+        value: !!p.minutes ? String(p.minutes) : null,
+      });
+      continue;
     }
 
-    return out;
+    if (op.path === "locationGeoPoint" && op.value) {
+      if (!op.value.lat || !op.value.lon) continue;
+      out.push({ op: "replace", path: "decimalLatitude", value: op.value.lat });
+      out.push({ op: "replace", path: "decimalLongitude", value: op.value.lon });
+      continue;
+    }      
+
+    if (op.path === "taxonomy" && op.value) {
+      const s = String(op.value).trim();
+      const [genus = "", specificEpithet = ""] = s.split(/\s+/, 2);
+      out.push({ op: "replace", path: "genus", value: genus });
+      out.push({
+        op: "replace",
+        path: "specificEpithet",
+        value: specificEpithet,
+      });
+      continue;
+    }
+
+    if (op.path === "individualID" && op.value) {
+      out.push({
+        op: "replace",
+        path: "individualId",
+        value: op.value,
+      });
+      continue;
+    }
+
+    out.push(op);
   }
 
-  async function setEncounterState(newState, encounterId) {
-    console.log("Setting encounter state to:", newState, "for encounter ID:", encounterId);
-    const operations = [{ op: "replace", path: "state", value: newState }];
-    // this.applyPatchOperationsLocally(operations);
-    await axios.patch(
-      `/api/v3/encounters/${encounterId}`,
-      operations,
-    );
-  }
+  return out;
+}
+
+async function setEncounterState(newState, encounterId) {
+  const operations = [{ op: "replace", path: "state", value: newState }];
+  await axios.patch(
+    `/api/v3/encounters/${encounterId}`,
+    operations,
+  );
+}
 
 
-export {  validateFieldValue,
+export {
+  validateFieldValue,
   splitPathIntoSegments,
   getValueAtPath,
   setValueAtPath,

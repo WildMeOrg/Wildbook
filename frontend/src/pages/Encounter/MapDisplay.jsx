@@ -23,9 +23,8 @@ export const MapDisplay = observer(
       let isMounted = true;
 
       loader.load().then(() => {
-        if (!isMounted) return;
         const el = mapElRef.current;
-        if (!el) return;
+        if (!el || !el.isConnected) return;
 
         const hasCoords = Number.isFinite(Number(store.lat)) && Number.isFinite(Number(store.lon));
         const center = hasCoords ? { lat: Number(store.lat), lng: Number(store.lon) } : fallbackCenter;
