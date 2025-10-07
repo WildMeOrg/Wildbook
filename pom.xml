@@ -7,18 +7,18 @@
   <version>10.8.1.2</version>
   <packaging>war</packaging>
 
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <datanucleus.version>4.2.0-release</datanucleus.version>
-    <datanucleus.lib.scope>compile</datanucleus.lib.scope>
-    <geotools.version>23.0</geotools.version>
-    <slf4j.version>1.7.12</slf4j.version>
-    <junit.version>5.11.0</junit.version>
-    <mockito.version>4.11.0</mockito.version>
-  </properties>
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <datanucleus.version>4.2.0-release</datanucleus.version>
+        <datanucleus.lib.scope>compile</datanucleus.lib.scope>
+        <geotools.version>23.0</geotools.version>
+        <log4j2.version>2.24.1</log4j2.version>
+        <junit.version>5.11.0</junit.version>
+        <mockito.version>4.11.0</mockito.version>
+    </properties>
 
   <repositories>
     <repository>
@@ -49,6 +49,18 @@
       </releases>
     </repository>
   </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-bom</artifactId>
+                <version>${log4j2.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -437,14 +449,16 @@
     </dependency>
 
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-layout-template-json</artifactId>
     </dependency>
 
     <dependency>
