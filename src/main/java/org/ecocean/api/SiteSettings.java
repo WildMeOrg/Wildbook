@@ -99,6 +99,10 @@ public class SiteSettings extends ApiBase {
             settings.put("measurement",
                 CommonConfiguration.getIndexedPropertyValues("measurement", context));
             settings.put("measurementUnits", BulkImportUtil.getMeasurementUnits());
+            settings.put("samplingProtocol", ccIndexedWithLabels("samplingProtocol", context));
+            // these are for future potential use
+            // settings.put("_measurement", ccIndexedWithLabels("measurement", context));
+            // settings.put("_measurementUnits", ccIndexedWithLabels("measurementUnits", context));
 
             // TODO: there was some discussion in slack about this being derived differently
             // NOTE: historically this list was generated via CommonConfiguration using
@@ -405,5 +409,41 @@ public class SiteSettings extends ApiBase {
             }
             myShepherd.closeDBTransaction();
         }
+    }
+
+/*
+    NOTE: the labels files (e.g. en/commonConfigurationLabels.properties) are frustratingly
+    inconsistent. *most* things seem to key off of VALUE.label ... and yet, samplingProtocols
+    seem to key off of the commonConfiguration key, rather than value. :(
+
+    compare:
+        :)  Salinity.label = Salinity
+        :)  WaterTemperature.label = Water Temperature
+        :(  samplingProtocol0.label=personal guess
+
+    so this makes this code way more complicated and requires potentially two calls (per lang)
+    to find the labels
+ */
+    private JSONArray ccIndexedWithLabels(String key, String context) {
+        JSONArray arr = new JSONArray();
+        int offset = 0;
+
+        for (String value : CommonConfiguration.getIndexedPropertyValues(key, context)) {
+            arr.put(ccValueAndLabel(value, key + offset, context));
+            offset++;
+        }
+        return arr;
+    }
+
+    // fallback is basically the original key plus our offset, so like: samplingProtocol5
+    // as we need to test this when lookup *via value* fails. see note above.
+    private JSONObject ccValueAndLabel(String value, String fallback, String context) {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("value", value);
+        Map<String, String> lmap = CommonConfiguration.getLangMap(value, context);
+        if (lmap == null) lmap = CommonConfiguration.getLangMap(fallback, context);
+        rtn.put("label", lmap);
+        return rtn;
     }
 }
