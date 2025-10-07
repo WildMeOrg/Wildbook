@@ -22,7 +22,8 @@ export default function CardWithSaveAndCancelButtons({
                 padding: "10px",
                 borderRadius: "10px",
                 boxShadow: `0px 0px 10px rgba(0, 0, 0, 0.2)`,
-                width: "100%"
+                width: "100%",
+                height: "auto"
             }}>
             <div className="d-flex align-items-center w-100 mb-3" style={{ fontSize: "1rem", fontWeight: "bold" }}>
                 {icon || <i className={`bi bi-${icon} me-2`}></i>}
