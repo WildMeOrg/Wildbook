@@ -11,11 +11,12 @@ import CardWithSaveAndCancelButtons from '../../components/CardWithSaveAndCancel
 import { TrackingReview } from './TrackingReview';
 import { TrackingEdit } from './TrackingEdit';
 import { ProjectsCard } from './ProjectsCard';
+import { MeasurementsEdit } from './MeasurementsEdit';
+import { MeasurementsReview } from './MeasurementsReview';
 
 export const MoreDetails = observer(({
     store = {}
 }) => {
-
     return (
         <Container style={{ padding: 0 }}>
             <Row>
@@ -36,8 +37,6 @@ export const MoreDetails = observer(({
                             store.setBiologicalSamplesSection(true)
                             store.setMeasurementsAndTrackingSection(false)
                             store.setProjectsSection(false)
-                            console.log('Biological Samples Section Clicked');
-                            // Redirect to the biological samples page
                             window.location.href = '/encounters/biologicalSamples.jsp?number=' + store.encounterData?.id;
                         }}
                         style={{ cursor: 'pointer', color: !store.biologicalSamplesSection ? 'black' : 'blue' }}
@@ -63,7 +62,7 @@ export const MoreDetails = observer(({
                             <CardWithEditButton
                                 icon={<TrackingIcon />}
                                 title="Tracking"
-                                content={<TrackingReview 
+                                content={<TrackingReview
                                     store={store}
                                 />
                                 }
@@ -75,26 +74,26 @@ export const MoreDetails = observer(({
                                 icon={<TrackingIcon />}
                                 title="Tracking"
                                 content={
-                                    <TrackingEdit 
+                                    <TrackingEdit
                                         store={store}
                                     />}
-                                onSave ={() => {
+                                onSave={() => {
                                     store.patchTracking();
                                     store.setEditTracking(false);
                                 }}
-                                onCancel ={() => {
+                                onCancel={() => {
                                     store.setEditTracking(false);
-                                }}                           
+                                }}
 
                             />}
                         {!store.editMeasurements ?
                             <CardWithEditButton
                                 icon={<MeasurementsIcon />}
                                 title="Measurements"
-                                content={<div>
-                                    <div>Measurements: {store.measurements}</div>
-                                    <div>Tracking: {store.tracking}</div>
-                                </div>
+                                content={
+                                    <MeasurementsReview
+                                        store={store}
+                                    />
                                 }
                                 onClick={() => {
                                     store.setEditMeasurements(true);
@@ -104,11 +103,22 @@ export const MoreDetails = observer(({
                                 icon={<MeasurementsIcon />}
                                 title="Measurements"
                                 content={
-                                    <div>
-                                        <div>Measurements: {store.measurements}</div>
-                                        <div>Tracking: {store.tracking}</div>
-                                    </div>
-                                }
+                                    <MeasurementsEdit
+                                        store={store}
+                                    />}
+                                onCancel={() => {
+                                    store.setEditMeasurements(false);
+                                    store.resetMeasurementValues();
+                                }}
+                                onSave={() => {
+                                    store.patchMeasurements();
+                                    store.refreshEncounterData();
+                                    store.setEditMeasurements(false);
+                                    store.resetMeasurementValues();
+                                }}
+                                disabled={!store.measurementValues ||
+                                    Object.keys(store.measurementValues).length === 0 ||
+                                    store.errors.getFieldError('measurement')?.length > 0}
                             />}
                     </Col>
                 }
@@ -145,10 +155,10 @@ export const MoreDetails = observer(({
                     </Col>
                 }
                 {store.projectsSection &&
-                    <Col md={9} sm={12}>                        
-                            <ProjectsCard
-                                store={store}
-                            />
+                    <Col md={9} sm={12}>
+                        <ProjectsCard
+                            store={store}
+                        />
                     </Col>
                 }
             </Row>

@@ -11,7 +11,7 @@ export const TrackingEdit = observer(({ store = {} }) => {
         <div>
             <h6>Metal Tags</h6>
             {
-                store.metalTagLocation && store.metalTagLocation.length > 0 &&
+                store.metalTagsEnabled && store.metalTagLocation && store.metalTagLocation.length > 0 &&
                 <div>
                     {
                         store.metalTagLocation.map((location, index) => (
@@ -37,47 +37,49 @@ export const TrackingEdit = observer(({ store = {} }) => {
                 </div>
             }
             <Divider />
-            <h6>Acoustic Tags</h6>
-            <TextInput
-                label="Serial Number"
-                value={store.acousticTagValues?.serialNumber || ''}
-                onChange={(value) => {
-                    store.setAcousticTagValues({ serialNumber: value });
-                }}
-            />
-            <TextInput
-                label="ID"
-                value={store.acousticTagValues?.idNumber || ''}
-                onChange={(value) => {
-                    store.setAcousticTagValues({ idNumber: value });
-                }}
-            />
-            <Divider />
-            <h6>Satellite Tags</h6>
-            <SelectInput
-                label="Name"
-                value={store.satelliteTagValues?.name || ''}
-                options={store.satelliteTagNameOptions || []}
-                onChange={(value) => {
-                    store.setSatelliteTagValues({ name: value });
-                }}
+            {store.acousticTagEnabled && <>
+                <h6>Acoustic Tags</h6>
+                <TextInput
+                    label="Serial Number"
+                    value={store.acousticTagValues?.serialNumber || ''}
+                    onChange={(value) => {
+                        store.setAcousticTagValues({ serialNumber: value });
+                    }}
+                />
+                <TextInput
+                    label="ID"
+                    value={store.acousticTagValues?.idNumber || ''}
+                    onChange={(value) => {
+                        store.setAcousticTagValues({ idNumber: value });
+                    }}
+                />
+                <Divider /></>}
+            {store.satelliteTagEnabled && <>
+                <h6>Satellite Tags</h6>
+                <SelectInput
+                    label="Name"
+                    value={store.satelliteTagValues?.name || ''}
+                    options={store.satelliteTagNameOptions || []}
+                    onChange={(value) => {
+                        store.setSatelliteTagValues({ name: value });
+                    }}
 
-            />
-            <TextInput
-                label="Serial Number"
-                value={store.satelliteTagValues?.serialNumber || ''}
-                onChange={(value) => {
-                    store.setSatelliteTagValues({ serialNumber: value });
-                }}
-            />
-            <TextInput
-                label="Argos PTT"
-                value={store.satelliteTagValues?.argosPttNumber || ''}
-                onChange={(value) => {
-                    store.setSatelliteTagValues({ argosPttNumber: value });
-                }}
-            />
-            <div>
-            </div>
-        </div>)
+                />
+                <TextInput
+                    label="Serial Number"
+                    value={store.satelliteTagValues?.serialNumber || ''}
+                    onChange={(value) => {
+                        store.setSatelliteTagValues({ serialNumber: value });
+                    }}
+                />
+                <TextInput
+                    label="Argos PTT"
+                    value={store.satelliteTagValues?.argosPttNumber || ''}
+                    onChange={(value) => {
+                        store.setSatelliteTagValues({ argosPttNumber: value });
+                    }}
+                />
+
+            </>}
+        </div >)
 })

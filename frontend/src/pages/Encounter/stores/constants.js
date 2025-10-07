@@ -1,3 +1,4 @@
+import { MeasurementsEdit } from "../MeasurementsEdit";
 
 
 
@@ -44,6 +45,9 @@ const LOCAL_FIELD_ERRORS = {
     latitude: "please enter invalid latitude and longitude",
     longitude: "please enter invalid latitude and longitude",
   },
+  measurements: {
+    measurements: "please enter valid values",
+  }
 };
 
 export { SECTION_FIELD_PATHS, LOCAL_FIELD_ERRORS };

@@ -72,6 +72,9 @@ class EncounterStore {
   _metalTagValues = [];
   _acousticTagValues = {};
   _satelliteTagValues = {};
+  _measurementValues = [];
+  _measurementTypes = [];
+  _measurementUnits = [];
 
   _selectedImageIndex = 0;
   _encounterAnnotations = null;
@@ -89,8 +92,6 @@ class EncounterStore {
   _measurementsAndTrackingSection = true;
   _editTracking = false;
   _editMeasurements = false;
-  _acousticTagsEnabled = false;
-  _satelliteTagsEnabled = false;
 
   _biologicalSamplesSection = false;
   _editBiologicalSamples = false;
@@ -106,9 +107,10 @@ class EncounterStore {
     this.modals = new ModalStore(this);
     this.errors = new ErrorStore(this);
 
-    makeAutoObservable(this, { flow: false,
-      modal: false,
-     }, { autoBind: true });
+    makeAutoObservable(this, {
+      flow: false,
+      modals: false,
+    }, { autoBind: true });
   }
 
   get encounterData() {
@@ -121,7 +123,26 @@ class EncounterStore {
     this._metalTagValues = newEncounterData?.metalTags || [];
     this._acousticTagValues = newEncounterData?.acousticTag || {};
     this._satelliteTagValues = newEncounterData?.satelliteTag || {};
+    this._measurementValues = (newEncounterData?.measurements ?? [])
+      .filter(m => m?.type)
+      .map(m => ({
+        type: m.type,
+        units: m.units || this.unitByType[m.type] || "",
+        value: m.value ?? "",
+        samplingProtocol: m.samplingProtocol ?? "",
+      }));
     this.resetAllDrafts();
+  }
+
+  resetMeasurementValues() {
+    this._measurementValues = (this.encounterData?.measurements ?? [])
+      .filter(m => m?.type)
+      .map(m => ({
+        type: m.type,
+        units: m.units || this.unitByType[m.type] || "",
+        value: m.value ?? "",
+        samplingProtocol: m.samplingProtocol ?? "",
+      }));
   }
 
   get overviewActive() {
@@ -566,6 +587,63 @@ class EncounterStore {
     this._satelliteTagValues = { ...this._satelliteTagValues, ...newValues };
   }
 
+  get unitByType() {
+    return Object.fromEntries(
+      (this.measurementTypes || []).map((t, i) => [t, this.measurementUnits?.[i] ?? ""])
+    );
+  }
+
+  get measurementValues() {
+    return this._measurementValues;
+  }
+
+  getMeasurement(type) {
+    const found = this.measurementValues.find(m => m.type === type);
+    if (found) return found;
+    return {
+      type,
+      units: this.unitByType[type] ?? "",
+      value: "",
+      samplingProtocol: "",
+    };
+  }
+
+  _upsertMeasurement(type, partial) {
+    const idx = this.measurementValues.findIndex(m => m.type === type);
+    const units = this.unitByType[type] ?? "";
+    if (idx === -1) {
+      this.measurementValues.push({
+        type,
+        units,
+        value: "",
+        samplingProtocol: "",
+        ...partial,
+      });
+    } else {
+      this.measurementValues[idx] = {
+        ...this.measurementValues[idx],
+        units,
+        ...partial,
+      };
+    }
+  }
+
+  setMeasurementValue(type, value) {
+    this._upsertMeasurement(type, { value });
+  }
+
+  setMeasurementSamplingProtocol(type, samplingProtocol) {
+    this._upsertMeasurement(type, { samplingProtocol });
+  }
+
+  get measurementTypes() {
+    return this.siteSettingsData?.measurement || [];
+  }
+
+  get measurementUnits() {
+    return this._siteSettingsData?.measurementUnits || [];
+  }
+
   get metalTagsEnabled() {
     return this.siteSettingsData?.metalTagsEnabled || false;
   }
@@ -574,6 +652,9 @@ class EncounterStore {
   }
   get satelliteTagEnabled() {
     return this.siteSettingsData?.satelliteTagEnabled || false;
+  }
+  get showMeasurements() {
+    return this.siteSettingsData?.showMeasurements;
   }
 
   get satelliteTagNameOptions() {
@@ -780,6 +861,25 @@ class EncounterStore {
     }
   }
 
+  async patchMeasurements() {    
+    this.measurementValues.map(async (measurement) => {
+      const payload = {
+        op: "replace",
+        path: "measurements",
+        value: {
+          type: measurement.type,
+          units: measurement.units,
+          value: measurement.value,
+          samplingProtocol: measurement.samplingProtocol,
+        },
+      };
+      const result = await axios.patch(`/api/v3/encounters/${this.encounterData.id}`, [payload], {
+        headers: { "Content-Type": "application/json" },
+      });
+    })
+
+  }
+
   initializeFlow(inputEl, maxSizeMB = 10) {
     if (this.flow) {
       if (inputEl) this.flow.assignBrowse(inputEl);
@@ -981,14 +1081,14 @@ class EncounterStore {
     if (expanded.length === 0) {
       this.resetSectionDraft(sectionName);
       return;
-    }    
+    }
 
     // const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
     // // this.applyPatchOperationsLocally(operations);
     // this.resetSectionDraft(sectionName);
     try {
       const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
-      this.errors.clearSectionErrors(sectionName); 
+      this.errors.clearSectionErrors(sectionName);
       this.resetSectionDraft(sectionName);
       return result;
     } catch (error) {

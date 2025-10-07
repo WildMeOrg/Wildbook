@@ -4,10 +4,11 @@ import { observer } from 'mobx-react-lite';
 export const AttributesSectionReview = observer(({ store }) => {
     return <div>
         <div>
-            Taxonomy: {store.getFieldValue("attributes", "taxonomy")}
+            <h6>Taxonomy:</h6>
+            {store.getFieldValue("attributes", "taxonomy")}
         </div>
         <div>
-            Status:{" "}
+            <h6>Status:{" "}</h6>
             {store.getFieldValue("attributes", "livingStatus")}
         </div>
         <div>Sex: {store.getFieldValue("attributes", "sex")}</div>
