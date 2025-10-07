@@ -229,7 +229,7 @@ public class Util {
         return CommonConfiguration.getIndexedPropertyValues(SATELLITE_TAG_NAME, context);
     }
 
-    private static String findLabel(String key, String langCode, String context) {
+    public static String findLabel(String key, String langCode, String context) {
         // System.out.println("Trying to find key: "+key+" with langCode "+langCode);
 
         Properties myProps = ShepherdProperties.getProperties(
