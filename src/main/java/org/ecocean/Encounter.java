@@ -2165,7 +2165,9 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void setSpecificEpithet(String newEpithet) {
-        if (newEpithet != null) { specificEpithet = newEpithet.replaceAll("_"," "); } else { specificEpithet = null; }
+        if (newEpithet != null) { specificEpithet = newEpithet.replaceAll("_", " "); } else {
+            specificEpithet = null;
+        }
         this.refreshAnnotationLiteTaxonomy();
     }
 
@@ -2193,7 +2195,7 @@ public class Encounter extends Base implements java.io.Serializable {
             this.specificEpithet = null;
         } else {
             this.genus = gs[0];
-            this.specificEpithet = gs[1].replaceAll("_"," ");
+            this.specificEpithet = gs[1].replaceAll("_", " ");
         }
         this.refreshAnnotationLiteTaxonomy();
     }
@@ -2207,7 +2209,7 @@ public class Encounter extends Base implements java.io.Serializable {
             this.specificEpithet = null;
         } else {
             this.genus = gs[0];
-            this.specificEpithet = gs[1].replaceAll("_"," ");
+            this.specificEpithet = gs[1].replaceAll("_", " ");
         }
         this.refreshAnnotationLiteTaxonomy();
     }
@@ -4893,6 +4895,7 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("success", true);
         rtn.put("statusCode", 200);
         this.setDWCDateLastModified();
+        this._log(resArr);
         return rtn;
     }
 
@@ -5355,5 +5358,59 @@ public class Encounter extends Base implements java.io.Serializable {
         } finally {
             myShepherd.rollbackDBTransaction();
         }
+    }
+
+/*
+    in anticipation of 10.10.0, this is a sketchy of what logging might look like
+    for a change in an Encounter via PATCH.
+
+    FIXME this should be fully replaced (or wrapped around) the more basic log functionality
+    that is yet to be written. this can serve as an idea of some things which might be
+    desirable to support in general logging. take with a grain of salt.
+ */
+    public void _log(org.json.JSONArray arr) {
+        if ((arr == null) || (arr.length() == 0)) return;
+        String actionId = Util.generateUUID();
+        for (int i = 0; i < arr.length(); i++) {
+            if (arr.optJSONObject(i) == null) continue;
+            org.json.JSONObject p = arr.getJSONObject(i).optJSONObject("_patch");
+            if (p == null) continue;
+            String op = p.optString("op", "UNKNOWN_OP");
+            String path = p.optString("path", "UNKNOWN_PATH");
+            Object value = null;
+            if (p.has("value") && !p.isNull("value")) value = p.get("value");
+            String logMessage = "modified by PATCH op=" + op + ", path " + path + " with value: " +
+                ((value == null) ? "NULL" : value.toString());
+            _log2(null, null, null, "Encounter", this.getId(), actionId, logMessage);
+            // legacy "audit log" (aka some random comment)
+            // TODO really need to add the user/who part here
+            this.addComments("<p class=\"patch\" data-action-id=\"" + actionId + "\" data-op=\"" +
+                op + "\" data-path=\"" + path + "\"><i>" + Util.prettyTimeStamp() +
+                "</i> modified <b>" + path + "</b> with operation <b>" + op + "</b>" + ((value ==
+                null) ? "" : " and value <b>" + value.toString() + "</b>") + "</p>");
+        }
+    }
+
+    // one of many dilemmas: we need a request object to get user + ip address, but dont have
+    // it at this point. so we likely need to pass it all around somehow. maybe on a shepherd or
+    // some other more common object? FIXME TODO
+    public void _log2(
+    // "standard" levels (null should be some reasonable default???)
+    String logLevel,
+    // reference to who did it, could be multiple users etc. probably should be id _and_ username?
+    String user,
+    // pretty obvious?
+    String ip,
+    // class of object acted upon
+    String objectClass,
+    // primary key
+    String objectId,
+    // for groupin multiple logs into one "action" (e.g. a PATCH on object)
+    String actionId,
+    // message
+    String message) {
+        System.out.println(String.join("\t", "[TMPLOG]",
+            new Long(System.currentTimeMillis()).toString(), user, ip, objectClass, objectId,
+            actionId, message));
     }
 }
