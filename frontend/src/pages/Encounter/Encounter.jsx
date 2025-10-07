@@ -5,7 +5,6 @@ import { Container } from "react-bootstrap";
 import { Row, Col } from "react-bootstrap";
 import Pill from "../../components/Pill";
 import CardWithSaveAndCancelButtons from "../../components/CardWithSaveAndCancelButtons";
-import TextInput from "../../components/generalInputs/TextInput";
 import DateIcon from "../../components/icons/DateIcon";
 import IdentifyIcon from "../../components/IdentifyIcon";
 import MetadataIcon from "../../components/icons/MetaDataIcon";
@@ -13,14 +12,8 @@ import LocationIcon from "../../components/icons/LocationIcon";
 import AttributesIcon from "../../components/icons/AttributesIcon";
 import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
-import SelectInput from "../../components/generalInputs/SelectInput";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import PillWithDropdown from "../../components/PillWithDropdown";
-import DateInput from "../../components/generalInputs/DateInput";
-import FreeTextAndSelectInput from "../../components/generalInputs/FreeTextAndSelectInput";
-import SearchAndSelectInput from "../../components/generalInputs/SearchAndSelectInput";
-import CoordinatesInput from "../../components/generalInputs/CoordinatesInput";
-import { MapDisplay } from "./MapDisplay";
 import ContactIcon from "../../components/icons/ContactIcon";
 import HistoryIcon from "../../components/icons/HistoryIcon";
 import ContactInfoModal from "./ContactInfoModal";
@@ -29,12 +22,16 @@ import EncounterHistoryModal from "./EncounterHistoryModal";
 import MatchCriteriaModal from "./MatchCriteria";
 import { EncounterStore } from './stores';
 import { setEncounterState } from './stores/helperFunctions';
-import { Alert } from "react-bootstrap";
 import { DateSectionReview } from "./DateSectionReview";
 import { IdentifySectionReview } from "./IdentifySectionReview";
 import { MetadataSectionReview } from "./MetadataSectionReview";
 import { LocationSectionReview } from "./LocationSectionReview";
 import { AttributesSectionReview } from "./AttributesSectionReview";
+import { DateSectionEdit } from "./DateSectionEdit";
+import { IdentifySectionEdit } from "./IdentifySectionEdit";
+import { MetadataSectionEdit } from "./MetadataSectionEdit";
+import { LocationSectionEdit } from "./LocationSectionEdit";
+import { AttributesSectionEdit } from "./AttributesSectionEdit";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
@@ -174,36 +171,9 @@ const Encounter = observer(() => {
                   store.errors.clearSectionErrors("date");
                 }}
                 content={
-                  <div>
-                    <DateInput
-                      label="Encounter Date"
-                      value={store.getFieldValue("date", "date") ?? null}
-                      onChange={(v) => {
-                        store.setFieldValue("date", "date", v);
-                      }}
-                      className="mb-3"
-                    />
-                    {store.errors.getFieldError("date", "date") && (
-                      <div className="invalid-feedback d-block">
-                        {store.errors.getFieldError("date", "date")}
-                      </div>
-                    )}
-                    <TextInput
-                      label="Verbatim Event Date"
-                      value={
-                        store.getFieldValue("date", "verbatimEventDate") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("date", "verbatimEventDate", v)
-                      }
-                    />
-                    {store.errors.hasSectionError("date") && (
-                      <Alert variant="danger">
-                        {store.errors.getSectionErrors("date").join(";")}
-                      </Alert>
-                    )}
-
-                  </div>
+                  <DateSectionEdit
+                    store={store}
+                  />
                 }
               />
             ) : (
@@ -212,7 +182,7 @@ const Encounter = observer(() => {
                 title="Date"
                 onClick={() => store.setEditDateCard(true)}
                 content={
-                  <DateSectionReview 
+                  <DateSectionReview
                     store={store}
                   />
                 }
@@ -234,90 +204,9 @@ const Encounter = observer(() => {
                   store.errors.clearSectionErrors("identify");
                 }}
                 content={
-                  <div>
-                    <SelectInput
-                      label="Matched by"
-                      value={
-                        store.getFieldValue(
-                          "identify",
-                          "identificationRemarks",
-                        ) ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue(
-                          "identify",
-                          "identificationRemarks",
-                          v,
-                        )
-                      }
-                      options={store.identificationRemarksOptions}
-                      className="mb-3"
-                    />
-
-                    <SearchAndSelectInput
-                      label="Individual ID"
-                      value={
-                        store.getFieldValue("identify", "individualID") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("identify", "individualID", v)
-                      }
-                      options={[]}
-                      loadOptions={async (q) => {
-                        const resp = await store.searchIndividualsByName(q);
-                        const options = resp.data.hits.map((it) => ({
-                          value: String(it.id),
-                          label: it.displayName,
-                        }));
-                        return options;
-                      }}
-                      debounceMs={300}
-                      minChars={2}
-                    />
-
-                    <TextInput
-                      label="Alternate ID"
-                      value={
-                        store.getFieldValue(
-                          "identify",
-                          "otherCatalogNumbers",
-                        ) ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue(
-                          "identify",
-                          "otherCatalogNumbers",
-                          v,
-                        )
-                      }
-                    />
-                    <SearchAndSelectInput
-                      label="Sighting ID"
-                      value={
-                        store.getFieldValue("identify", "occurrenceID") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("identify", "sightingId", v)
-                      }
-                      options={[]}
-                      loadOptions={async (q) => {
-                        const resp = await store.searchSightingsById(q);
-                        return (
-                          resp.data?.items?.map((it) => ({
-                            value: String(it.id),
-                            label: it.displayName,
-                          })) ?? []
-                        );
-                      }}
-                      debounceMs={300}
-                      minChars={2}
-                    />
-                    {store.errors.hasSectionError("identify") && (
-                      <Alert variant="danger">
-                        {store.errors.getSectionErrors("identify").join(";")}
-                      </Alert>
-                    )}
-                  </div>
+                  <IdentifySectionEdit
+                    store={store}
+                  />
                 }
               />
             ) : (
@@ -348,55 +237,9 @@ const Encounter = observer(() => {
                   store.errors.clearSectionErrors("metadata");
                 }}
                 content={
-                  <div>
-                    <div>Encounter ID: {store.encounterData?.id}</div>
-                    <div>Date Created: {store.encounterData?.createdAt}</div>
-                    <div>
-                      Last Edit:{" "}
-                      {store.encounterData?.version
-                        ? new Date(store.encounterData.version).toLocaleString()
-                        : "None"}
-                    </div>
-                    <div>
-                      Imported via:{" "}
-                      {store.encounterData?.importTaskId ? (
-                        <a
-                          href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {store.encounterData.importTaskId}
-                        </a>
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                    <SelectInput
-                      label="Assigned User"
-                      value={
-                        store.getFieldValue("metadata", "submitterID") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("metadata", "submitterID", v)
-                      }
-                      options={
-                        store.siteSettingsData?.users
-                          ?.filter((item) => item.username)
-                          .map((item) => {
-                            return {
-                              value: item.username,
-                              label: item.username,
-                            };
-                          }) || []
-                      }
-                      className="mb-3"
-                    />
-                    {store.errors.hasSectionError("metadata") && (
-                      <Alert variant="danger">
-                        {store.errors.getSectionErrors("metadata").join(";")}
-                      </Alert>
-                    )}
-                  </div>
+                  <MetadataSectionEdit
+                    store={store}
+                  />
                 }
               />
             ) : (
@@ -406,7 +249,7 @@ const Encounter = observer(() => {
                 onClick={() => store.setEditMetadataCard(true)}
                 content={
                   <MetadataSectionReview
-                    store={store}s
+                    store={store}
                   />
                 }
               />
@@ -432,52 +275,9 @@ const Encounter = observer(() => {
 
                 }}
                 content={
-                  <div>
-                    <TextInput
-                      label="Location"
-                      value={
-                        store.getFieldValue("location", "verbatimLocality") ??
-                        ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("location", "verbatimLocality", v)
-                      }
-                    />
-                    <SelectInput
-                      label="Location ID"
-                      value={
-                        store.getFieldValue("location", "locationId") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("location", "locationId", v)
-                      }
-                      options={store.locationIdOptions}
-                      className="mb-3"
-                    />
-                    <SelectInput
-                      label="Country"
-                      value={store.getFieldValue("location", "country") ?? ""}
-                      onChange={(v) =>
-                        store.setFieldValue("location", "country", v)
-                      }
-                      options={
-                        store.siteSettingsData?.country?.map((item) => {
-                          return {
-                            value: item,
-                            label: item,
-                          };
-                        }) || []
-                      }
-                      className="mb-3"
-                    />
-                    <CoordinatesInput store={store} />
-                    {store.errors.hasSectionError("location") && (
-                      <Alert variant="danger">
-                        {store.errors.getSectionErrors("location").join(";")}
-                      </Alert>
-                    )}
-
-                  </div>
+                  <LocationSectionEdit
+                    store={store}
+                  />
                 }
               />
             ) : (
@@ -508,119 +308,9 @@ const Encounter = observer(() => {
                   store.errors.clearSectionErrors("attributes");
                 }}
                 content={
-                  <div>
-                    <SelectInput
-                      label="Taxonomy"
-                      value={
-                        store.getFieldValue("attributes", "taxonomy") ?? ""
-                      }
-                      onChange={(v) => {
-                        store.setFieldValue("attributes", "taxonomy", v);
-                      }}
-                      options={store.taxonomyOptions}
-                      className="mb-3"
-                    />
-                    <SelectInput
-                      label="Living Status"
-                      value={
-                        store.getFieldValue("attributes", "livingStatus") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("attributes", "livingStatus", v)
-                      }
-                      options={store.livingStatusOptions}
-                      className="mb-3"
-                    />
-                    <SelectInput
-                      label="Sex"
-                      value={store.getFieldValue("attributes", "sex") ?? ""}
-                      onChange={(v) =>
-                        store.setFieldValue("attributes", "sex", v)
-                      }
-                      options={store.sexOptions}
-                      className="mb-3"
-                    />
-                    <TextInput
-                      label="Noticeable Scarring"
-                      value={
-                        store.getFieldValue(
-                          "attributes",
-                          "distinguishingScar",
-                        ) ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue(
-                          "attributes",
-                          "distinguishingScar",
-                          v,
-                        )
-                      }
-                    />
-                    <FreeTextAndSelectInput
-                      label="Behavior"
-                      value={
-                        store.getFieldValue("attributes", "behavior") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("attributes", "behavior", v)
-                      }
-                      options={store.behaviorOptions}
-                      className="mb-3"
-                    />
-                    <TextInput
-                      label="Group Role"
-                      value={
-                        store.getFieldValue("attributes", "groupRole") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("attributes", "groupRole", v)
-                      }
-                    />
-                    <SelectInput
-                      label="Patterning Code"
-                      value={
-                        store.getFieldValue("attributes", "patterningCode") ??
-                        ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("attributes", "patterningCode", v)
-                      }
-                      options={store.patterningCodeOptions}
-                      className="mb-3"
-                    />
-                    <SelectInput
-                      label="Life Stage"
-                      value={
-                        store.getFieldValue("attributes", "lifeStage") ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue("attributes", "lifeStage", v)
-                      }
-                      options={store.lifeStageOptions}
-                      className="mb-3"
-                    />
-                    <TextInput
-                      label="Observation Comments"
-                      value={
-                        store.getFieldValue(
-                          "attributes",
-                          "occurrenceRemarks",
-                        ) ?? ""
-                      }
-                      onChange={(v) =>
-                        store.setFieldValue(
-                          "attributes",
-                          "occurrenceRemarks",
-                          v,
-                        )
-                      }
-                    />
-                    {store.errors.hasSectionError("attributes") && (
-                      <Alert variant="danger">
-                        {store.errors.getSectionErrors("attributes").join(";")}
-                      </Alert>
-                    )}
-                  </div>
+                  <AttributesSectionEdit
+                    store={store}                  
+                  />
                 }
               />
             ) : (

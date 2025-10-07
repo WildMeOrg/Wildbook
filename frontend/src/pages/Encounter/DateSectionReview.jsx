@@ -5,12 +5,11 @@ export const DateSectionReview = observer(({ store }) => {
     return <div>
         <div>
             Encounter Date:{" "}
-            {store.getFieldValue("date", "date") || "None"}
+            {store.getFieldValue("date", "date")}
         </div>
         <div>
             Verbatim Event Date:{" "}
-            {store.getFieldValue("date", "verbatimEventDate") ||
-                "None"}
+            {store.getFieldValue("date", "verbatimEventDate")}
         </div>
     </div>
 })

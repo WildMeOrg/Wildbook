@@ -578,6 +578,12 @@ export const ImageModal = observer(({
                                 backgroundColor={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
+                                onClick={() => {
+                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+                                        return;
+                                    }
+                                    store.modals.setOpenMatchCriteriaModal(true);
+                                }}
                             >
                                 <FormattedMessage id="NEW_MATCH" />
                             </MainButton>

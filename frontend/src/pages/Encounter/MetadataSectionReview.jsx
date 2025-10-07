@@ -11,7 +11,7 @@ export const MetadataSectionReview = observer(({ store }) => {
             Last Edit:{" "}
             {store.encounterData?.version
                 ? new Date(store.encounterData.version).toLocaleString()
-                : "None"}
+                : ""}
         </div>
         <div>
             Imported via:{" "}
@@ -24,13 +24,13 @@ export const MetadataSectionReview = observer(({ store }) => {
                     {store.encounterData.importTaskId}
                 </a>
             ) : (
-                "none"
+                ""
             )}
         </div>
         <div>
             Assigned User:{" "}
             {store.getFieldValue("metadata", "assignedUsername") ||
-                "None"}
+                ""}
         </div>
     </div>
 })

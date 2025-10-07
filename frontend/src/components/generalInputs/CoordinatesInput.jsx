@@ -127,7 +127,7 @@ export const CoordinatesInput = observer(({ store }) => {
               <div className="invalid-feedback d-block">
                 {store.errors.getFieldError("location", "latitude") || ""}
               </div>
-            )}
+            )}            
           </div>
           <div className="w-50">
             <Form.Control
