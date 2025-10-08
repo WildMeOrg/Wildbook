@@ -1,19 +1,20 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { AttributesAndValueComponent } from '../../components/AttributesAndValueComponent';
 
 export const IdentifySectionReview = observer(({ store }) => {
     return <div>
-        <div>
-            Identified as:{" "}
-            {store.getFieldValue("identify", "individualDisplayName")}
-        </div>
-        <div>
-            Matched by:{" "}
-            {store.getFieldValue("identify", "identificationRemarks")}
-        </div>
-        <div>
-            Alternate ID:{" "}
-            {store.getFieldValue("identify", "otherCatalogNumbers")}
-        </div>
+        <AttributesAndValueComponent
+            attributeId="IDENTIFIED_AS"
+            value={store.getFieldValue("identify", "individualDisplayName")}
+        />
+        <AttributesAndValueComponent
+            attributeId="MATCHED_BY"
+            value={store.getFieldValue("identify", "identificationRemarks")}
+        />
+        <AttributesAndValueComponent
+            attributeId="ALTERNATE_ID"
+            value={store.getFieldValue("identify", "otherCatalogNumbers")}
+        />        
     </div>
 })

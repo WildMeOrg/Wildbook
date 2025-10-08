@@ -1,6 +1,3 @@
-import { MeasurementsEdit } from "../MeasurementsEdit";
-
-
 
 const SECTION_FIELD_PATHS = {
   date: ["date", "verbatimEventDate"],

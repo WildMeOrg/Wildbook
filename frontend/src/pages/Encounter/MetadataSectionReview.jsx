@@ -1,36 +1,43 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { AttributesAndValueComponent } from '../../components/AttributesAndValueComponent';
+import { FormattedMessage } from 'react-intl';
 
 export const MetadataSectionReview = observer(({ store }) => {
     return <div>
-        <div>Encounter ID: {store.encounterData?.id}</div>
         <div>
-            Date Created: {store.encounterData?.dateSubmitted}
+            <h6><FormattedMessage id="ENCOUNTER_ID" /></h6>
+            <p>{store.encounterData?.id || ""}</p>
         </div>
         <div>
-            Last Edit:{" "}
-            {store.encounterData?.version
+            <h6><FormattedMessage id="DATE_CREATED" /></h6>
+            <p>{store.encounterData?.dateSubmitted || ""}</p>
+        </div>
+        <div>
+            <h6><FormattedMessage id="LAST_EDIT" /></h6>
+            <p>{store.encounterData?.version
                 ? new Date(store.encounterData.version).toLocaleString()
-                : ""}
+                : ""}</p>
         </div>
         <div>
-            Imported via:{" "}
-            {store.encounterData?.importTaskId ? (
-                <a
-                    href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {store.encounterData.importTaskId}
-                </a>
-            ) : (
-                ""
-            )}
+            <h6><FormattedMessage id="IMPORTED_VIA" /></h6>
+            <p>
+                {store.encounterData?.importTaskId ? (
+                    <a
+                        href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {store.encounterData.importTaskId}
+                    </a>
+                ) : (
+                    ""
+                )}
+            </p>
         </div>
-        <div>
-            Assigned User:{" "}
-            {store.getFieldValue("metadata", "assignedUsername") ||
-                ""}
-        </div>
+        <AttributesAndValueComponent
+            attributeId="ASSIGNED_USER"
+            value={store.getFieldValue("metadata", "assignedUsername") || ""}
+        />
     </div>
 })

@@ -1,15 +1,16 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { AttributesAndValueComponent } from '../../components/AttributesAndValueComponent';
 
 export const DateSectionReview = observer(({ store }) => {
     return <div>
-        <div>
-            Encounter Date:{" "}
-            {store.getFieldValue("date", "date")}
-        </div>
-        <div>
-            Verbatim Event Date:{" "}
-            {store.getFieldValue("date", "verbatimEventDate")}
-        </div>
+        <AttributesAndValueComponent
+            attributeId="DATE"
+            value={store.getFieldValue("date", "date")}
+        />
+        <AttributesAndValueComponent
+            attributeId="VERBATIM_EVENT_DATE"
+            value={store.getFieldValue("date", "verbatimEventDate")}
+        />
     </div>
 })

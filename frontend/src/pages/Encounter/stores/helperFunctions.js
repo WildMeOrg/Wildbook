@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { LOCAL_FIELD_ERRORS } from "./constants";
+import { LOCAL_FIELD_ERRORS } from "../constants";
 import axios from "axios";
 
 function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {

@@ -9,7 +9,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { v4 as uuidv4 } from "uuid";
 import ModalStore from "./ModalStore";
 import ErrorStore from "./ErrorStore";
-import { SECTION_FIELD_PATHS } from "./constants";
+import { SECTION_FIELD_PATHS } from "../constants";
 import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, expandOperations } from "./helperFunctions";
 dayjs.extend(customParseFormat);
 
