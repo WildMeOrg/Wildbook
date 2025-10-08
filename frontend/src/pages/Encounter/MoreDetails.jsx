@@ -116,8 +116,8 @@ export const MoreDetails = observer(({
                                     store.setEditMeasurements(false);
                                     store.resetMeasurementValues();
                                 }}
-                                disabled={!store.measurementValues ||
-                                    Object.keys(store.measurementValues).length === 0 ||
+                                disabled={
+                                    store.measurementValues?.length === 0 ||
                                     store.errors.getFieldError('measurement')?.length > 0}
                             />}
                     </Col>

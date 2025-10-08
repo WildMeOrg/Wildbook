@@ -860,9 +860,12 @@ class EncounterStore {
       console.error("patchTracking failed:", resp);
     }
   }
-
   async patchMeasurements() {    
     this.measurementValues.map(async (measurement) => {
+      if(measurement.value === "" || measurement.value == null) {
+        this.errors.setFieldError('measurement', measurement.type, 'value cannot be empty');
+        return;
+      }
       const payload = {
         op: "replace",
         path: "measurements",
@@ -1111,13 +1114,10 @@ class EncounterStore {
       const response = await axios.get(`/api/v3/encounters/${this._encounterData.id}`);
       if (response.status === 200 && response.data) {
         const currentImageIndex = this._selectedImageIndex;
-
         this.setEncounterData(response.data);
-
         if (currentImageIndex < (response.data.mediaAssets?.length || 0)) {
           this.setSelectedImageIndex(currentImageIndex);
         }
-
         return response.data;
       }
     } catch (error) {
@@ -1130,9 +1130,7 @@ class EncounterStore {
     this.errors.clearErrors();
     try {
       await this.saveSection(sectionName, encounterId);
-
       await this.refreshEncounterData();
-
       return true;
     } catch (error) {
       console.error(`Failed to save section ${sectionName}:`, error);

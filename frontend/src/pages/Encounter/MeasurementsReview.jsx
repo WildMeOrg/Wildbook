@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 
 export const MeasurementsReview = observer(({ store }) => {
     return <div>
-        {store.showMeasurements && store.encounterData?.measurements?.length > 0 && (
+        {store.showMeasurements && (
             <>
                 {store.measurementTypes?.map((type, index) => { 
                     const measurement = store.encounterData.measurements?.find(m => m.type === type);
