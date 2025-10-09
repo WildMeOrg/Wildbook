@@ -46,11 +46,13 @@ public class MLService {
     }
 
     // there can be multiple configs (differing model_id)
-    public List<JSONObject> getConfigs(String taxonomyString)
+    public List<JSONObject> getConfigs(String passedTxStr)
     throws IAException {
         IAJsonProperties iac = getIAConfig();
 
         if (iac == null) return null;
+        if (passedTxStr == null) return null;
+        String taxonomyString = passedTxStr.replaceAll(" ", "."); // need dots, not spaces
         JSONObject txConf = (JSONObject)iac.get(taxonomyString);
         if (txConf == null)
             throw new IAException(
@@ -147,7 +149,7 @@ public class MLService {
         if (ma == null) throw new IAException("null MediaAsset passed");
         for (JSONObject conf : getConfigs(taxonomyString)) {
             JSONObject payload = createPayload(ma, conf);
-            JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/predict",
+            JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/predict/",
                 payload);
             // got results, now we try to use them
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
@@ -225,7 +227,7 @@ public class MLService {
         if (ann == null) throw new IAException("null Annotation passed");
         for (JSONObject conf : getConfigs(taxonomyString)) {
             JSONObject payload = createPayload(ann, conf);
-            JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/extract",
+            JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/extract/",
                 payload);
             // got results, now we try to use them
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
