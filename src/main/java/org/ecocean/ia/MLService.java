@@ -328,7 +328,7 @@ public class MLService {
                     "; config=" + config);
         JSONObject payload = new JSONObject(config.toString());
         payload.remove("api_endpoint");
-        payload.put("image_url", ma.webURL());
+        payload.put("image_uri", ma.webURL());
         // FIXME add embedding boolean/args
         return payload;
     }
@@ -344,7 +344,7 @@ public class MLService {
             throw new IAException("MLService.createPayload() no MediaAsset for ann=" + ann);
         JSONObject payload = new JSONObject(config.toString());
         payload.remove("api_endpoint");
-        payload.put("image_url", ma.webURL());
+        payload.put("image_uri", ma.webURL());
         payload.put("bbox", ann.getBbox());
         payload.put("theta", ann.getTheta());
         return payload;
