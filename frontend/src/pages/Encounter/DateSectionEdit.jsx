@@ -7,7 +7,7 @@ import { Alert } from "react-bootstrap";
 export const DateSectionEdit = observer(({ store }) => {
     return <div>
         <DateInput
-            label="Encounter Date"
+            label="ENCOUNTER_DATE"
             value={store.getFieldValue("date", "date") ?? null}
             onChange={(v) => {
                 store.setFieldValue("date", "date", v);
@@ -20,7 +20,7 @@ export const DateSectionEdit = observer(({ store }) => {
             </div>
         )}
         <TextInput
-            label="Verbatim Event Date"
+            label="VERBATIM_EVENT_DATE"
             value={
                 store.getFieldValue("date", "verbatimEventDate") ?? ""
             }
@@ -33,6 +33,5 @@ export const DateSectionEdit = observer(({ store }) => {
                 {store.errors.getSectionErrors("date").join(";")}
             </Alert>
         )}
-
     </div>
 })

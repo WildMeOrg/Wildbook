@@ -6,13 +6,13 @@ import CardWithEditButton from '../../components/CardWithEditButton';
 import TrackingIcon from '../../components/icons/TrackingIcon';
 import MeasurementsIcon from '../../components/icons/MeasurementsIcon';
 import { Row } from 'react-bootstrap';
-import ThemeColorContext from '../../ThemeColorProvider';
 import CardWithSaveAndCancelButtons from '../../components/CardWithSaveAndCancelButtons';
 import { TrackingReview } from './TrackingReview';
 import { TrackingEdit } from './TrackingEdit';
 import { ProjectsCard } from './ProjectsCard';
 import { MeasurementsEdit } from './MeasurementsEdit';
 import { MeasurementsReview } from './MeasurementsReview';
+import { FormattedMessage } from 'react-intl';
 
 export const MoreDetails = observer(({
     store = {}
@@ -29,7 +29,7 @@ export const MoreDetails = observer(({
                         }}
                         style={{ cursor: 'pointer', color: !store.measurementsAndTrackingSection ? 'black' : 'blue' }}
                     >
-                        <p>Measurements & Tracking</p>
+                        <p><FormattedMessage id="TRACKING_AND_MEASUREMENTS" /></p>
                         <i class="bi bi-chevron-right"></i>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-3 w-100"
@@ -41,7 +41,7 @@ export const MoreDetails = observer(({
                         }}
                         style={{ cursor: 'pointer', color: !store.biologicalSamplesSection ? 'black' : 'blue' }}
                     >
-                        <p>Biological Samples</p>
+                        <p><FormattedMessage id="BIOLOGICAL_SAMPLES" /></p>
                         <i class="bi bi-chevron-right"></i>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-3 w-100"
@@ -52,7 +52,7 @@ export const MoreDetails = observer(({
                         }}
                         style={{ cursor: 'pointer', color: !store.projectsSection ? 'black' : 'blue' }}
                     >
-                        <p>Projects</p>
+                        <p><FormattedMessage id="PROJECTS" /></p>
                         <i class="bi bi-chevron-right"></i>
                     </div>
                 </Col>
@@ -61,7 +61,7 @@ export const MoreDetails = observer(({
                         {!store.editTracking ?
                             <CardWithEditButton
                                 icon={<TrackingIcon />}
-                                title="Tracking"
+                                title="TRACKING"
                                 content={<TrackingReview
                                     store={store}
                                 />
@@ -72,7 +72,7 @@ export const MoreDetails = observer(({
                             /> :
                             <CardWithSaveAndCancelButtons
                                 icon={<TrackingIcon />}
-                                title="Tracking"
+                                title="TRACKING"
                                 content={
                                     <TrackingEdit
                                         store={store}
@@ -89,7 +89,7 @@ export const MoreDetails = observer(({
                         {!store.editMeasurements ?
                             <CardWithEditButton
                                 icon={<MeasurementsIcon />}
-                                title="Measurements"
+                                title="MEASUREMENTS"
                                 content={
                                     <MeasurementsReview
                                         store={store}
@@ -101,7 +101,7 @@ export const MoreDetails = observer(({
                             /> :
                             <CardWithSaveAndCancelButtons
                                 icon={<MeasurementsIcon />}
-                                title="Measurements"
+                                title="MEASUREMENTS"
                                 content={
                                     <MeasurementsEdit
                                         store={store}
@@ -120,38 +120,6 @@ export const MoreDetails = observer(({
                                     store.measurementValues?.length === 0 ||
                                     store.errors.getFieldError('measurement')?.length > 0}
                             />}
-                    </Col>
-                }
-                {store.biologicalSamplesSection &&
-                    <Col md={9} sm={12} >
-                        {
-                            !store.editBiologicalSamples ?
-                                <CardWithEditButton
-                                    icon={<ThemeColorContext.Consumer>
-                                        {({ themeColor }) => <i className="bi bi-flask" style={{ color: themeColor }} />}
-                                    </ThemeColorContext.Consumer>}
-                                    title="Biological Samples"
-                                    content={
-                                        <div>
-                                            <div>Samples: {store.biologicalSamples}</div>
-                                        </div>
-                                    }
-                                    onClick={() => {
-                                        store.setEditBiologicalSamples(true);
-                                    }}
-                                /> :
-                                <CardWithSaveAndCancelButtons
-                                    icon={<ThemeColorContext.Consumer>
-                                        {({ themeColor }) => <i className="bi bi-flask" style={{ color: themeColor }} />}
-                                    </ThemeColorContext.Consumer>}
-                                    title="Biological Samples"
-                                    content={
-                                        <div>
-                                            <div>Samples: {store.biologicalSamples}</div>
-                                        </div>
-                                    }
-                                />
-                        }
                     </Col>
                 }
                 {store.projectsSection &&

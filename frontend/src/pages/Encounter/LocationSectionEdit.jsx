@@ -6,6 +6,7 @@ import TextInput from '../../components/generalInputs/TextInput';
 import CoordinatesInput from '../../components/generalInputs/CoordinatesInput';
 import { Suspense, lazy } from "react";
 import convertToTreeData from "../../utils/converToTreeData";
+import { FormattedMessage } from 'react-intl';
 
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
@@ -14,7 +15,7 @@ export const LocationSectionEdit = observer(({ store }) => {
 
     return <div>
         <TextInput
-            label="Location"
+            label="LOCATION"
             value={
                 store.getFieldValue("location", "verbatimLocality") ??
                 ""
@@ -23,26 +24,12 @@ export const LocationSectionEdit = observer(({ store }) => {
                 store.setFieldValue("location", "verbatimLocality", v)
             }
         />
-        {/* <SelectInput
-            label="Location ID"
-            value={
-                store.getFieldValue("location", "locationId") ?? ""
-            }
-            onChange={(v) =>
-                store.setFieldValue("location", "locationId", v)
-            }
-            options={store.locationIdOptions}
-            className="mb-3"
-        /> */}
-        <label>Location</label>
+        <label><FormattedMessage id="LOCATION_ID"/></label>
         <Suspense fallback={<div>Loading location picker...</div>}>
             <TreeSelect
                 id="location-tree-select"
                 treeData={locationOptions}
                 value={store.getFieldValue("location", "locationId") ?? ""}
-                // treeCheckable
-                // treeCheckStrictly
-                // showCheckedStrategy="SHOW_ALL"
                 treeNodeFilterProp="value"
                 treeLine
                 showSearch
@@ -57,7 +44,7 @@ export const LocationSectionEdit = observer(({ store }) => {
             />
         </Suspense>
         <SelectInput
-            label="Country"
+            label="COUNTRY"
             value={store.getFieldValue("location", "country") ?? ""}
             onChange={(v) =>
                 store.setFieldValue("location", "country", v)

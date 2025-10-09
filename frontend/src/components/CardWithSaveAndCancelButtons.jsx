@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 import MainButton from "./MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
+import { FormattedMessage } from "react-intl";
 
 export default function CardWithSaveAndCancelButtons({
     onSave,
@@ -27,7 +28,7 @@ export default function CardWithSaveAndCancelButtons({
             }}>
             <div className="d-flex align-items-center w-100 mb-3" style={{ fontSize: "1rem", fontWeight: "bold" }}>
                 {icon || <i className={`bi bi-${icon} me-2`}></i>}
-                <span style={{ marginLeft: "10px" }}>{title}</span>
+                <span style={{ marginLeft: "10px" }}>{<FormattedMessage id={title}/>}</span>
             </div>
             <div>{content}</div>
 

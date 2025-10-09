@@ -2,19 +2,20 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import SelectInput from '../../components/generalInputs/SelectInput';
 import { Alert } from "react-bootstrap";
+import { FormattedMessage } from 'react-intl';
 
 export const MetadataSectionEdit = observer(({ store }) => {
     return <div>
-        <div>Encounter ID: {store.encounterData?.id}</div>
-        <div>Date Created: {store.encounterData?.createdAt}</div>
+        <div><FormattedMessage id="ENCOUNTER_ID"/>: {store.encounterData?.id}</div>
+        <div><FormattedMessage id="DATE_CREATED"/>: {store.encounterData?.createdAt}</div>
         <div>
-            Last Edit:{" "}
+            <FormattedMessage id="LAST_EDIT"/>:{" "}
             {store.encounterData?.version
                 ? new Date(store.encounterData.version).toLocaleString()
                 : "None"}
         </div>
         <div>
-            Imported via:{" "}
+            <FormattedMessage id="IMPORTED_VIA"/>:{" "}
             {store.encounterData?.importTaskId ? (
                 <a
                     href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
@@ -28,7 +29,7 @@ export const MetadataSectionEdit = observer(({ store }) => {
             )}
         </div>
         <SelectInput
-            label="Assigned User"
+            label="ASSIGNED_USER"
             value={
                 store.getFieldValue("metadata", "submitterID") ?? ""
             }

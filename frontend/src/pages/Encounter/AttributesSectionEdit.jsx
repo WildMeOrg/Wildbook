@@ -8,7 +8,7 @@ import FreeTextAndSelectInput from '../../components/generalInputs/FreeTextAndSe
 export const AttributesSectionEdit = observer(({ store }) => {
     return <div>
         <SelectInput
-            label="Taxonomy"
+            label="TAXONOMY"
             value={
                 store.getFieldValue("attributes", "taxonomy") ?? ""
             }
@@ -19,7 +19,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             className="mb-3"
         />
         <SelectInput
-            label="Living Status"
+            label="LIVING_STATUS"
             value={
                 store.getFieldValue("attributes", "livingStatus") ?? ""
             }
@@ -30,7 +30,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             className="mb-3"
         />
         <SelectInput
-            label="Sex"
+            label="SEX"
             value={store.getFieldValue("attributes", "sex") ?? ""}
             onChange={(v) =>
                 store.setFieldValue("attributes", "sex", v)
@@ -39,7 +39,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             className="mb-3"
         />
         <TextInput
-            label="Noticeable Scarring"
+            label="DISTINGUISHING_SCAR"
             value={
                 store.getFieldValue(
                     "attributes",
@@ -55,7 +55,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             }
         />
         <FreeTextAndSelectInput
-            label="Behavior"
+            label="BEHAVIOR"
             value={
                 store.getFieldValue("attributes", "behavior") ?? ""
             }
@@ -66,7 +66,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             className="mb-3"
         />
         <TextInput
-            label="Group Role"
+            label="GROUP_ROLE"
             value={
                 store.getFieldValue("attributes", "groupRole") ?? ""
             }
@@ -75,7 +75,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             }
         />
         <SelectInput
-            label="Patterning Code"
+            label="PATTERNING_CODE"
             value={
                 store.getFieldValue("attributes", "patterningCode") ??
                 ""
@@ -87,7 +87,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             className="mb-3"
         />
         <SelectInput
-            label="Life Stage"
+            label="LIFE_STAGE"
             value={
                 store.getFieldValue("attributes", "lifeStage") ?? ""
             }
@@ -98,7 +98,7 @@ export const AttributesSectionEdit = observer(({ store }) => {
             className="mb-3"
         />
         <TextInput
-            label="Observation Comments"
+            label="OBSERVATION_COMMENTS"
             value={
                 store.getFieldValue(
                     "attributes",

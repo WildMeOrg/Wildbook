@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { FormattedMessage } from "react-intl";
 
 export default function TextInput({
     value,
@@ -11,7 +12,7 @@ export default function TextInput({
 }) {
     return (
         <div className={`text-input-container ${className}`}>
-            {label && <h6 >{label}</h6>}
+            {label && <h6 >{<FormattedMessage id={label}/>}</h6>}
             <input
                 type="text"
                 value={value}

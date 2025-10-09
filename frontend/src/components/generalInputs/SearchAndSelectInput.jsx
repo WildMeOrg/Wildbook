@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import Form from "react-bootstrap/Form";
+import { FormattedMessage } from "react-intl";
 import CreatableSelect from "react-select/creatable";
 
 function normalizeOptions(options = []) {
@@ -113,7 +114,7 @@ export default function SearchAndSelectInput({
 
   return (
     <Form.Group className={className + " mt-2"} id={`group-${label}`}>
-      {label && <Form.Label>{label}</Form.Label>}
+      {label && <Form.Label>{<FormattedMessage id={label}/>}</Form.Label>}
       <CreatableSelect
         value={selectedOption}
         onChange={handleChange}

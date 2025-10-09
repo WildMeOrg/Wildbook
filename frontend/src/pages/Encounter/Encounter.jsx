@@ -32,6 +32,7 @@ import { IdentifySectionEdit } from "./IdentifySectionEdit";
 import { MetadataSectionEdit } from "./MetadataSectionEdit";
 import { LocationSectionEdit } from "./LocationSectionEdit";
 import { AttributesSectionEdit } from "./AttributesSectionEdit";
+import { FormattedMessage } from "react-intl";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
@@ -78,7 +79,7 @@ const Encounter = observer(() => {
       <Row>
         <Col md={6}>
           <h2>
-            Encounter{" "}
+            <FormattedMessage id="ENCOUNTER"/>{" "}
             {store.encounterData?.individualDisplayName ? (
               <a
                 href={`/individuals.jsp?id=${store.encounterData.individualId}`}
@@ -93,7 +94,7 @@ const Encounter = observer(() => {
             )}
           </h2>
 
-          <p>Encounter ID: {encounterId}</p>
+          <p><FormattedMessage id="ENCOUNTER_ID"/>: {encounterId}</p>
         </Col>
         <Col md={6} className="text-end">
           <PillWithDropdown
@@ -115,7 +116,7 @@ const Encounter = observer(() => {
       <div style={{ marginTop: "20px", display: "flex", flexDirection: "row" }}>
         <div>
           <Pill
-            text="Overview"
+            text="OVERVIEW"
             style={{ marginRight: "10px" }}
             active={store.overviewActive}
             onClick={() => {
@@ -124,7 +125,7 @@ const Encounter = observer(() => {
             }}
           />
           <Pill
-            text="More Details"
+            text="MORE_DETAILS"
             active={!store.overviewActive}
             onClick={() => {
               if (!store.overviewActive) return;
@@ -158,7 +159,7 @@ const Encounter = observer(() => {
               <CardWithSaveAndCancelButtons
                 icon={<DateIcon />}
                 disabled={!!store.errors.getFieldError("date", "date")}
-                title="Date"
+                title="DATE"
                 onSave={async () => {
                   await store.saveSection("date", encounterId);
                   store.setEditDateCard(false);
@@ -179,7 +180,7 @@ const Encounter = observer(() => {
             ) : (
               <CardWithEditButton
                 icon={<DateIcon />}
-                title="Date"
+                title="DATE"
                 onClick={() => store.setEditDateCard(true)}
                 content={
                   <DateSectionReview
@@ -192,7 +193,7 @@ const Encounter = observer(() => {
             {store.editIdentifyCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<IdentifyIcon />}
-                title="Identify"
+                title="IDENTIFY"
                 onSave={async () => {
                   await store.saveSection("identify", encounterId);
                   store.setEditIdentifyCard(false);
@@ -212,7 +213,7 @@ const Encounter = observer(() => {
             ) : (
               <CardWithEditButton
                 icon={<IdentifyIcon />}
-                title="Identify"
+                title="IDENTIFY"
                 onClick={() => store.setEditIdentifyCard(true)}
                 content={
                   <IdentifySectionReview
@@ -225,7 +226,7 @@ const Encounter = observer(() => {
             {store.editMetadataCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<MetadataIcon />}
-                title="Metadata"
+                title="METADATA"
                 onSave={async () => {
                   await store.saveSection("metadata", encounterId);
                   store.setEditMetadataCard(false);
@@ -245,7 +246,7 @@ const Encounter = observer(() => {
             ) : (
               <CardWithEditButton
                 icon={<MetadataIcon />}
-                title="Metadata"
+                title="METADATA"
                 onClick={() => store.setEditMetadataCard(true)}
                 content={
                   <MetadataSectionReview
@@ -260,7 +261,7 @@ const Encounter = observer(() => {
               <CardWithSaveAndCancelButtons
                 icon={<LocationIcon />}
                 disabled={!!store.errors.getFieldError("location", "latitude") || !!store.errors.getFieldError("location", "longitude")}
-                title="Location"
+                title="LOCATION"
                 onSave={async () => {
                   await store.saveSection("location", encounterId);
                   store.setEditLocationCard(false);
@@ -283,7 +284,7 @@ const Encounter = observer(() => {
             ) : (
               <CardWithEditButton
                 icon={<LocationIcon />}
-                title="Location"
+                title="LOCATION"
                 onClick={() => store.setEditLocationCard(true)}
                 content={
                   <LocationSectionReview
@@ -296,7 +297,7 @@ const Encounter = observer(() => {
             {store.editAttributesCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<AttributesIcon />}
-                title="Attributes"
+                title="ATTRIBUTES"
                 onSave={async () => {
                   await store.saveSection("attributes", encounterId);
                   store.setEditAttributesCard(false);
@@ -316,7 +317,7 @@ const Encounter = observer(() => {
             ) : (
               <CardWithEditButton
                 icon={<AttributesIcon />}
-                title="Attributes"
+                title="ATTRIBUTES"
                 onClick={() => store.setEditAttributesCard(true)}
                 content={
                   <AttributesSectionReview

@@ -1,5 +1,6 @@
 import React from "react";
 import ThemeColorContext from "../ThemeColorProvider";
+import { FormattedMessage } from "react-intl";
 
 export default function Pill({ text, onClick, style, active }) {
   const theme = React.useContext(ThemeColorContext);
@@ -18,7 +19,7 @@ export default function Pill({ text, onClick, style, active }) {
         ...style,
       }}
     >
-      {text}
+      {<FormattedMessage id={text}/>}
     </div>
   );
 }

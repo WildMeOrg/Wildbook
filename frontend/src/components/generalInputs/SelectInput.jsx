@@ -1,5 +1,6 @@
 import React from "react";
 import Form from "react-bootstrap/Form";
+import { FormattedMessage } from "react-intl";
 
 export default function SelectInput({
   label = "Select",
@@ -13,7 +14,7 @@ export default function SelectInput({
 }) {
   return (
     <Form.Group className={className}>
-      {label && <Form.Label>{label}</Form.Label>}
+      {label && <Form.Label>{<FormattedMessage id={label}/>}</Form.Label>}
       <Form.Select
         value={value}
         onChange={(e) => onChange?.(e.target.value)}

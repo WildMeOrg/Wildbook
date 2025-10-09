@@ -4,12 +4,13 @@ import TextInput from '../../components/generalInputs/TextInput';
 import { Divider } from '../../components/Divider';
 import MainButton from '../../components/MainButton';
 import SelectInput from '../../components/generalInputs/SelectInput';
+import { FormattedMessage } from 'react-intl';
 
 export const TrackingEdit = observer(({ store = {} }) => {
 
     return (
         <div>
-            <h6>Metal Tags</h6>
+            <h6><FormattedMessage id="METAL_TAGS"/></h6>
             {
                 store.metalTagsEnabled && store.metalTagLocation && store.metalTagLocation.length > 0 &&
                 <div>
@@ -38,9 +39,9 @@ export const TrackingEdit = observer(({ store = {} }) => {
             }
             <Divider />
             {store.acousticTagEnabled && <>
-                <h6>Acoustic Tags</h6>
+                <h6><FormattedMessage id="ACOUSTIC_TAGS"/></h6>
                 <TextInput
-                    label="Serial Number"
+                    label="SERIAL_NUMBER"
                     value={store.acousticTagValues?.serialNumber || ''}
                     onChange={(value) => {
                         store.setAcousticTagValues({ serialNumber: value });
@@ -55,9 +56,9 @@ export const TrackingEdit = observer(({ store = {} }) => {
                 />
                 <Divider /></>}
             {store.satelliteTagEnabled && <>
-                <h6>Satellite Tags</h6>
+                <h6><FormattedMessage id="SATELLITE_TAGS"/></h6>
                 <SelectInput
-                    label="Name"
+                    label="NAME"
                     value={store.satelliteTagValues?.name || ''}
                     options={store.satelliteTagNameOptions || []}
                     onChange={(value) => {
@@ -66,20 +67,19 @@ export const TrackingEdit = observer(({ store = {} }) => {
 
                 />
                 <TextInput
-                    label="Serial Number"
+                    label="SERIAL_NUMBER"
                     value={store.satelliteTagValues?.serialNumber || ''}
                     onChange={(value) => {
                         store.setSatelliteTagValues({ serialNumber: value });
                     }}
                 />
                 <TextInput
-                    label="Argos PTT"
+                    label="PTTARGOS_PTT_NUMBER"
                     value={store.satelliteTagValues?.argosPttNumber || ''}
                     onChange={(value) => {
                         store.setSatelliteTagValues({ argosPttNumber: value });
                     }}
                 />
-
             </>}
         </div >)
 })

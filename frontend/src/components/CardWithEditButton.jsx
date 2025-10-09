@@ -3,13 +3,13 @@ import PropTypes from "prop-types";
 
 import ThemeColorContext from "../ThemeColorProvider";
 import EditIcon from "./icons/EditIcon";
+import { FormattedMessage } from "react-intl";
 
 export default function CardWithEditButton({
     onClick,
     icon,
     title = "Card Title",
     content = "Card content goes here.",
-    ...props
 }) {
     const theme = React.useContext(ThemeColorContext);
     return (
@@ -23,7 +23,7 @@ export default function CardWithEditButton({
             }}>
             <div className="d-flex align-items-center w-100 mb-3" style={{ fontSize: "1rem", fontWeight: "bold" }}>
                 {icon || <i className={`bi bi-${icon} me-2`}></i>}
-                <span style={{ marginLeft: "10px" }}>{title}</span>
+                <span style={{ marginLeft: "10px" }}>{<FormattedMessage id={title}/>}</span>
             </div>
             <div>{content}</div>
             <div className="d-flex justify-content-end align-items-center w-100">

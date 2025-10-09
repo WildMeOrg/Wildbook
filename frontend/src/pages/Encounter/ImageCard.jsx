@@ -114,7 +114,7 @@ const ImageCard = observer(({ store = {} }) => {
         <span
           style={{ marginLeft: "10px", fontSize: "1rem", fontWeight: "bold" }}
         >
-          Images
+          <FormattedMessage id="IMAGES" />
         </span>
       </div>
       <div className="mb-2 d-flex flex-row align-items-center justify-content-between">
@@ -229,7 +229,7 @@ const ImageCard = observer(({ store = {} }) => {
               fill="white"
             />
           </svg>
-          <p>Match Results</p>
+          <p><FormattedMessage id="MATCH_RESULTS"/></p>
         </div>
         <div className="d-flex align-items-center justify-content-center flex-column"
           style={{ cursor: "pointer" }}
@@ -255,7 +255,7 @@ const ImageCard = observer(({ store = {} }) => {
               fill="white"
             />
           </svg>
-          <p>Visual Matcher</p>
+          <p><FormattedMessage id="VISUAL_MATCHER"/></p>
         </div>
         <div className="d-flex align-items-center justify-content-center flex-column"
           onClick={() => {
@@ -282,7 +282,7 @@ const ImageCard = observer(({ store = {} }) => {
               fill="white"
             />
           </svg>
-          <p>New Match</p>
+          <p><FormattedMessage id="NEW_MATCH"/></p>
         </div>
         <div className="d-flex align-items-center justify-content-center flex-column"
           style={{ cursor: "pointer" }}
@@ -305,7 +305,7 @@ const ImageCard = observer(({ store = {} }) => {
               fill="white"
             />
           </svg>
-          <p>Add Annotation</p>
+          <p><FormattedMessage id="ADD_ANNOTATION"/></p>
         </div>
       </div>
 

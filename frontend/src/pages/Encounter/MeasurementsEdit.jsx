@@ -34,7 +34,7 @@ export const MeasurementsEdit = observer(({ store }) => {
                                 }}
                             />
                             <SelectInput
-                                label="samplingProtocol"
+                                label="SAMPLING_PROTOCOL"
                                 value={cur.samplingProtocol ?? ''}
                                 options={samplingProtocolOptions}
                                 onChange={(samplingProtocol) => {

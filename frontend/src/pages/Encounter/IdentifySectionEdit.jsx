@@ -1,6 +1,5 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import DateInput from '../../components/generalInputs/DateInput';
 import TextInput from '../../components/generalInputs/TextInput';
 import SelectInput from '../../components/generalInputs/SelectInput';
 import SearchAndSelectInput from '../../components/generalInputs/SearchAndSelectInput';
@@ -9,7 +8,7 @@ import { Alert } from "react-bootstrap";
 export const IdentifySectionEdit = observer(({ store }) => {
     return <div>
         <SelectInput
-            label="Matched by"
+            label="MATCHED_BY"
             value={
                 store.getFieldValue(
                     "identify",
@@ -28,7 +27,7 @@ export const IdentifySectionEdit = observer(({ store }) => {
         />
 
         <SearchAndSelectInput
-            label="Individual ID"
+            label="INDIVIDUAL_ID"
             value={
                 store.getFieldValue("identify", "individualID") ?? ""
             }
@@ -49,7 +48,7 @@ export const IdentifySectionEdit = observer(({ store }) => {
         />
 
         <TextInput
-            label="Alternate ID"
+            label="ALTERNATE_ID"
             value={
                 store.getFieldValue(
                     "identify",
@@ -65,7 +64,7 @@ export const IdentifySectionEdit = observer(({ store }) => {
             }
         />
         <SearchAndSelectInput
-            label="Sighting ID"
+            label="SIGHTING_ID"
             value={
                 store.getFieldValue("identify", "occurrenceID") ?? ""
             }

@@ -348,7 +348,7 @@ export const ImageModal = observer(({
                                 onChange={(e) => store.setShowAnnotations(e.target.checked)}
                             />
                             <label className="form-check-label" htmlFor="show-annotations-switch">
-                                Show Annotations
+                                <FormattedMessage id="SHOW_ANNOTATIONS"/>
                             </label>
                         </div>
                         <div className="d-flex flex-wrap gap-2 mb-3">
@@ -376,10 +376,10 @@ export const ImageModal = observer(({
                                 onClick={async () => {
                                     store.setAddTagsFieldOpen(!store.addTagsFieldOpen);
                                 }}
-                            >+ Add Tag</button>
+                            >+ <FormattedMessage id="ADD_TAG"/></button>
                             {store.addTagsFieldOpen && (
                                 <div>
-                                    <p>Add New Keyword</p>
+                                    <p><FormattedMessage id="ADD_NEW_KEYWORD"/></p>
                                     <div className="input-group mb-3">
                                         <input
                                             type="text"
@@ -414,10 +414,12 @@ export const ImageModal = observer(({
                                                 }
                                             }}
                                         >
-                                            Add
+                                            <FormattedMessage id="ADD"/>
                                         </button>
                                     </div>
-                                    <p className="muted">Select keyword</p>
+                                    <p className="muted">
+                                        <FormattedMessage id="SELECT_KEYWORD"/>
+                                    </p>
                                     <div className="input-group mb-3">
                                         <select
                                             className="form-select"
@@ -457,10 +459,10 @@ export const ImageModal = observer(({
                                                 }
                                             }}
                                         >
-                                            Add
+                                            <FormattedMessage id="ADD"/>
                                         </button>
                                     </div>
-                                    <p>Select Labeled Keyword</p>
+                                    <p><FormattedMessage id="SELECT_LABELED_KEYWORD"/></p>
                                     <div className="mb-3" >
                                         <select
                                             className="form-select"
@@ -519,7 +521,7 @@ export const ImageModal = observer(({
                                                     }
                                                 }}
                                             >
-                                                Add
+                                                <FormattedMessage id="ADD"/>
                                             </button>
                                         </div>
                                     </div>
@@ -528,13 +530,13 @@ export const ImageModal = observer(({
                         </div>
 
                         <dl className="row g-2 mb-3">
-                            <dt className="col-5">Encounter</dt>
+                            <dt className="col-5"><FormattedMessage id="ENCOUNTER"/></dt>
                             <dd className="col-7 mb-0">{store.encounterData.id ?? "—"}</dd>
-                            <dt className="col-5">Individual ID</dt>
+                            <dt className="col-5"><FormattedMessage id="INDIVIDUAL_ID"/></dt>
                             <dd className="col-7 mb-0">{store.encounterData.individualId ?? "—"}</dd>
-                            <dt className="col-5">Location ID</dt>
+                            <dt className="col-5"><FormattedMessage id="LOCATION_ID"/></dt>
                             <dd className="col-7 mb-0">{store.encounterData.locationId ?? "—"}</dd>
-                            <dt className="col-5">Verbatim Event Date</dt>
+                            <dt className="col-5"><FormattedMessage id="VERBATIM_EVENT_DATE"/></dt>
                             <dd className="col-7 mb-0">{store.encounterData.verbatimEventDate ?? "—"}</dd>
                         </dl>
 

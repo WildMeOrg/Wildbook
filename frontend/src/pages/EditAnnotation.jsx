@@ -336,7 +336,7 @@ export default function EditAnnotation() {
             ) : (
                 <>
                     <h4 className="mt-3 mb-3">
-                        <FormattedMessage id="ADD_ANNOTATIONS" />
+                        <FormattedMessage id="EDIT_ANNOTATIONS" defaultMessage={"Edit Annotations"}/>
                     </h4>
                     <Form className="d-flex flex-row">
                         <Form.Group controlId="formBasicEmail" className="me-3">
@@ -525,18 +525,14 @@ export default function EditAnnotation() {
                                         y *= adjH;
                                         height *= adjH;
                                     }
-
-                                    await axios.post(
-                                        "/EncounterRemoveAnnotation",
-                                        {
-                                            annotation: String(annotationId),
-                                            detach: "true",
-                                            number: String(encounterId),
-                                        },
-                                        {
-                                            headers: { "Content-Type": "application/json" },
-                                        }
-                                    );
+                                    await axios.patch(
+                                        `/api/v3/encounters/${encounterId}`,
+                                        [{
+                                            "op": "remove",
+                                            "path": "annotations",
+                                            "value": annotationId,
+                                        }],
+                                    )
 
                                     await createAnnotation({
                                         encounterId,
