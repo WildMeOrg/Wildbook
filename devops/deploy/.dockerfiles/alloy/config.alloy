@@ -1,0 +1,293 @@
+// ============================================
+// LOGGING CONFIGURATION FOR ALLOY ITSELF
+// ============================================
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ============================================
+// DOCKER CONTAINER LOG DISCOVERY
+// ============================================
+// Discover all Docker containers with the 'logging=alloy' label
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+
+  filter {
+    name   = "label"
+    values = ["logging=alloy"]
+  }
+
+  refresh_interval = "5s"
+}
+
+// ============================================
+// RELABELING FOR DOCKER LOGS
+// ============================================
+// Extract metadata from Docker container labels and create Loki labels
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  // Extract container name (remove leading /)
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  // Extract service name from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_service"]
+    target_label  = "service"
+  }
+
+  // Extract environment from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_environment"]
+    target_label  = "environment"
+  }
+
+  // Extract domain from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_domain"]
+    target_label  = "domain"
+  }
+
+  // Extract log_type from container label
+  rule {
+    source_labels = ["__meta_docker_container_label_log_type"]
+    target_label  = "log_type"
+  }
+
+  // Add hostname from environment variable
+  rule {
+    replacement   = env("HOSTNAME")
+    target_label  = "host"
+  }
+}
+
+// ============================================
+// DOCKER LOG COLLECTION
+// ============================================
+loki.source.docker "docker_logs" {
+  host    = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.docker_logs.output
+
+  forward_to = [loki.process.parse_logs.receiver]
+
+  // Relabeling rules to add labels from discovery
+  relabel_rules = discovery.relabel.docker_logs.rules
+}
+
+// ============================================
+// LOG PROCESSING AND PARSING
+// ============================================
+loki.process "parse_logs" {
+  forward_to = [loki.process.add_level.receiver]
+
+  // Try to parse as JSON (for structured logs from Wildbook)
+  stage.json {
+    expressions = {
+      level     = "level",
+      logger    = "loggerName",
+      message   = "message",
+      timestamp = "timestamp",
+    }
+  }
+
+  // If JSON parsing fails, try to extract log level from plain text
+  stage.regex {
+    expression = "(?P<level>DEBUG|INFO|WARN|ERROR|FATAL)"
+  }
+
+  // Parse timestamp if available
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339"
+  }
+}
+
+// Add level as a label if it was extracted
+loki.process "add_level" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+}
+
+// ============================================
+// FILE-BASED LOG SOURCES
+// ============================================
+// Wildbook Tomcat access logs
+local.file_match "wildbook_access" {
+  path_targets = [{
+    __path__ = "/logs/wildbook/access*.log",
+    job      = "wildbook-access",
+    service  = "wildbook",
+    log_type = "access",
+    domain   = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host     = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "wildbook_access" {
+  targets    = local.file_match.wildbook_access.targets
+  forward_to = [loki.process.parse_tomcat_access.receiver]
+}
+
+loki.process "parse_tomcat_access" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // Parse Tomcat access log format
+  stage.regex {
+    expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+)"
+  }
+
+  stage.labels {
+    values = {
+      method = "",
+      status = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "time"
+    format = "02/Jan/2006:15:04:05 -0700"
+  }
+}
+
+// Nginx access logs
+local.file_match "nginx_access" {
+  path_targets = [{
+    __path__ = "/logs/nginx/access.log",
+    job      = "nginx-access",
+    service  = "nginx",
+    log_type = "access",
+    domain   = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host     = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "nginx_access" {
+  targets    = local.file_match.nginx_access.targets
+  forward_to = [loki.process.parse_nginx_access.receiver]
+}
+
+loki.process "parse_nginx_access" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // Parse nginx combined log format
+  stage.regex {
+    expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+) \"(?P<referer>[^\"]*)\" \"(?P<user_agent>[^\"]*)\""
+  }
+
+  stage.labels {
+    values = {
+      method = "",
+      status = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "time"
+    format = "02/Jan/2006:15:04:05 -0700"
+  }
+}
+
+// Nginx error logs
+local.file_match "nginx_error" {
+  path_targets = [{
+    __path__ = "/logs/nginx/error.log",
+    job      = "nginx-error",
+    service  = "nginx",
+    log_type = "error",
+    domain   = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host     = env("HOSTNAME"),
+    level    = "ERROR",
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "nginx_error" {
+  targets    = local.file_match.nginx_error.targets
+  forward_to = [loki.process.parse_nginx_error.receiver]
+}
+
+loki.process "parse_nginx_error" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  stage.regex {
+    expression = "^\\d{4}/\\d{2}/\\d{2} (?P<time>\\d{2}:\\d{2}:\\d{2}) \\[(?P<level>\\w+)\\]"
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+}
+
+// PostgreSQL logs
+local.file_match "postgresql" {
+  path_targets = [{
+    __path__ = "/logs/postgresql/*.log",
+    job      = "postgresql",
+    service  = "postgresql",
+    log_type = "database",
+    domain   = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host     = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "postgresql" {
+  targets    = local.file_match.postgresql.targets
+  forward_to = [loki.process.parse_postgresql.receiver]
+}
+
+loki.process "parse_postgresql" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // PostgreSQL log format: timestamp [pid]: [level] message
+  stage.regex {
+    expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{3} \\w+) \\[\\d+\\]: \\[(?P<level>\\w+)\\]"
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "timestamp"
+    format = "2006-01-02 15:04:05.000 MST"
+  }
+}
+
+// ============================================
+// WRITE TO LOKI
+// ============================================
+loki.write "loki_endpoint" {
+  endpoint {
+    url = env("LOKI_URL")
+  }
+
+  // Optional: Write-Ahead Log for reliability
+  // wal {
+  //   enabled = true
+  // }
+}
