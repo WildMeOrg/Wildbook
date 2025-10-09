@@ -252,8 +252,8 @@ public class MLService {
             throw new IAException("api_endpoint url error: " + urlEx);
         }
         try {
-            // throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
-            JSONObject res = RestClient.post(url, payload);
+            // throws IOException, java.net.ProtocolException
+            JSONObject res = RestClient.postJSON(url, payload, null);
             return res;
         } catch (Exception ex) {
             System.out.println("sendPayload(" + url + ") threw " + ex);
