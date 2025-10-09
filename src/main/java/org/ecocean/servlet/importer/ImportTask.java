@@ -396,21 +396,27 @@ public class ImportTask implements java.io.Serializable {
                 }
                 if (enc != null) {
                     // this is temporary storage to use to populate encounterTaskInfo later
-                    taskTmp.put(atask.getId() + ".status", status);
+                    // this status is wrong: needs to be "overall status"
+                    // taskTmp.put(atask.getId() + ".status", status);
                     taskTmp.put(atask.getId() + ".iaClass", ann.getIAClass());
                     // the logic for deciding when to add a task is based on
                     // mystical knowledge found originally in import.jsp
-                    if ((atask.getParent() != null) && (atask.getParent().getChildren().size() == 1) && (atask.getParameters() != null) && atask.getParameters().has("ibeis.identification")) {
+                    if ((atask.getParent() != null) &&
+                        (atask.getParent().getChildren().size() == 1) &&
+                        (atask.getParameters() != null) &&
+                        atask.getParameters().has("ibeis.identification")) {
                         // task with only one algorithm
                         encTasks.get(enc.getId()).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 0) && (atask.getParent() != null) && (atask.getParent().getChildren().size() <= 1)) {
+                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 0) &&
+                        (atask.getParent() != null) &&
+                        (atask.getParent().getChildren().size() <= 1)) {
                         // task with child ident tasks
                         encTasks.get(enc.getId()).add(atask);
-                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 2) && (atask.getParent() == null)) {
+                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 2) &&
+                        (atask.getParent() == null)) {
                         // task with child ident tasks (also?)
                         encTasks.get(enc.getId()).add(atask);
                     }
-
                 }
                 latestTask = false;
             }
@@ -433,7 +439,8 @@ public class ImportTask implements java.io.Serializable {
             for (Task task : tasks) {
                 JSONArray taskArr = new JSONArray();
                 taskArr.put(task.getId());
-                taskArr.put(taskTmp.get(task.getId() + ".status"));
+                // we have to compute the kind of expensive "overall status" here
+                taskArr.put(task.getOverallStatus(myShepherd));
                 taskArr.put(taskTmp.get(task.getId() + ".iaClass"));
                 tasksArr.put(taskArr);
             }

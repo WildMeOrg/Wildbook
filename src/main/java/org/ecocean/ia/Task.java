@@ -548,14 +548,6 @@ public class Task implements java.io.Serializable {
             // now, how do we report these?
             HashMap<String, Integer> resultsMap = new HashMap<String, Integer>();
             for (String key : map.values()) {
-/*
-                // overall ID results
-                if (!idStatusMap.containsKey(key)) {
-                    idStatusMap.put(key, new Integer(1));
-                } else {
-                    idStatusMap.put(key, new Integer(idStatusMap.get(key) + 1));
-                }
- */
                 // task results
                 if (!resultsMap.containsKey(key)) {
                     resultsMap.put(key, new Integer(1));
@@ -566,14 +558,6 @@ public class Task implements java.io.Serializable {
             status = resultsMap.toString();
         } else { // childless
             status = this.getStatus(myShepherd);
-/*
-                // overall ID results
-                if (!idStatusMap.containsKey(key)) {
-                    idStatusMap.put(key, new Integer(1));
-                } else {
-                    idStatusMap.put(key, new Integer(idStatusMap.get(key) + 1));
-                }
- */
         }
         return status;
     }
