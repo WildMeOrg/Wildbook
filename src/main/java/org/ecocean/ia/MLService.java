@@ -35,6 +35,12 @@ public class MLService {
         return null;
     }
 
+    public JSONObject initiateRequest(Annotation ann, String taxonomyString)
+    throws IOException {
+        addToQueue(createJobData(ann, taxonomyString));
+        return null;
+    }
+
     public IAJsonProperties getIAConfig() {
         return iaConfig;
     }
@@ -71,15 +77,6 @@ public class MLService {
 
     // i think we *must* pass taxonomyString here
     public JSONObject createJobData(MediaAsset ma, String taxonomyString) {
-/* examples from IAGateway
-        qjob.put("taskId", task.getId());
-        qjob.put("mediaAssetIds", maIds);
-        qjob.put("v2", true);
-        qjob.put("__context", context);
-        qjob.put("__baseUrl", baseUrl);
-        qjob.put("__handleBulkImport", System.currentTimeMillis());
- */
-        // TODO make this do the right thing
         JSONObject data = new JSONObject();
 
         data.put("MLService", true);
@@ -88,6 +85,18 @@ public class MLService {
         JSONArray maIds = new JSONArray();
         maIds.put(ma.getIdInt());
         data.put("mediaAssetIds", maIds);
+        return data;
+    }
+
+    public JSONObject createJobData(Annotation ann, String taxonomyString) {
+        JSONObject data = new JSONObject();
+
+        data.put("MLService", true);
+        data.put("taxonomyString", taxonomyString);
+
+        JSONArray annIds = new JSONArray();
+        annIds.put(ann.getId());
+        data.put("annotationIds", annIds);
         return data;
     }
 
@@ -100,16 +109,19 @@ public class MLService {
         FeatureType.initAll(myShepherd);
         JSONArray ids = jobData.optJSONArray("mediaAssetIds");
         try {
+            // got some asset ids
             if (ids != null) {
                 for (String maId : Util.jsonArrayToStringList(ids)) {
                     send(myShepherd.getMediaAsset(maId), jobData.optString("taxonomyString", null),
                         myShepherd);
                 }
+                // maybe annot ids?
             } else {
                 ids = jobData.optJSONArray("annotationIds");
                 if (ids != null) {
                     for (String annId : Util.jsonArrayToStringList(ids)) {
-                        send(myShepherd.getAnnotation(annId), myShepherd);
+                        send(myShepherd.getAnnotation(annId),
+                            jobData.optString("taxonomyString", null), myShepherd);
                     }
                 }
             }
@@ -135,7 +147,8 @@ public class MLService {
         if (ma == null) throw new IAException("null MediaAsset passed");
         for (JSONObject conf : getConfigs(taxonomyString)) {
             JSONObject payload = createPayload(ma, conf);
-            JSONObject res = sendPayload(conf.optString("api_endpoint", null), payload);
+            JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/predict",
+                payload);
             // got results, now we try to use them
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
                 "; RESPONSE => " + res);
@@ -207,9 +220,24 @@ public class MLService {
         return ann;
     }
 
-    public void send(Annotation ann, Shepherd myShepherd)
+    public void send(Annotation ann, String taxonomyString, Shepherd myShepherd)
     throws IAException {
-        throw new IAException("NOT YET IMPLEMENTED");
+        if (ann == null) throw new IAException("null Annotation passed");
+        for (JSONObject conf : getConfigs(taxonomyString)) {
+            JSONObject payload = createPayload(ann, conf);
+            JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/extract",
+                payload);
+            // got results, now we try to use them
+            System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
+                "; RESPONSE => " + res);
+/*
+            List<Annotation> anns = processMediaAssetResults(ma, res);
+            System.out.println("MLService.send() created " + anns.size() + " anns on " + ma + ": " +
+                anns);
+ */
+            // FIXME persist anns using myShepherd
+            // FIXME send along to ident????? (but using vectors!!!????!)
+        }
     }
 
     private JSONObject sendPayload(String endpoint, JSONObject payload)
@@ -306,9 +334,17 @@ public class MLService {
     // this only gets the embedding, from a given (manual or pre-existing) Annotation
     public JSONObject createPayload(Annotation ann, JSONObject config)
     throws IAException {
-        JSONObject payload = createPayload(ann.getMediaAsset(), config);
-
-        // TODO ann stuff
+        if ((config == null) || (ann == null))
+            throw new IAException("MLService.createPayload() configuration problem with ann=" +
+                    ann + "; config=" + config);
+        MediaAsset ma = ann.getMediaAsset();
+        if (ma == null)
+            throw new IAException("MLService.createPayload() no MediaAsset for ann=" + ann);
+        JSONObject payload = new JSONObject(config.toString());
+        payload.remove("api_endpoint");
+        payload.put("image_url", ma.webURL());
+        payload.put("bbox", ann.getBbox());
+        payload.put("theta", ann.getTheta());
         return payload;
     }
 }
