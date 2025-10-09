@@ -516,6 +516,52 @@ public class Task implements java.io.Serializable {
         return status;
     }
 
+    // this is stitched together from import.jsp. godspeed.
+    // "resumeStalledTasks" functionality was stripped from this. if needed, revisit original method in import.jsp
+    // also the original building/modification of (passed-in) idStatusMap is dropped
+    public String getOverallStatus(Shepherd myShepherd) {
+        String status = "unknown";
+
+        if (this.hasChildren()) {
+            // accumulate status across children
+            HashMap<String, String> map = new HashMap<String, String>();
+            // this should only ever be two layers deep
+            for (Task childTask : this.getChildren()) {
+                if (childTask.hasChildren()) {
+                    for (Task childTask2 : childTask.getChildren()) {
+                        if ((childTask2.getObjectAnnotations() != null) &&
+                            (childTask2.getObjectAnnotations().size() > 0) &&
+                            childTask2.getObjectAnnotations().get(0).getMatchAgainst() &&
+                            (childTask2.getObjectAnnotations().get(0).getIAClass() != null)) {
+                            map.put(childTask2.getId(), childTask2.getStatus(myShepherd));
+                        }
+                    }
+                } else {
+                    if ((childTask.getObjectAnnotations() != null) &&
+                        (childTask.getObjectAnnotations().size() > 0) &&
+                        childTask.getObjectAnnotations().get(0).getMatchAgainst() &&
+                        (childTask.getObjectAnnotations().get(0).getIAClass() != null)) {
+                        map.put(childTask.getId(), childTask.getStatus(myShepherd));
+                    }
+                }
+            }
+            // now, how do we report these?
+            HashMap<String, Integer> resultsMap = new HashMap<String, Integer>();
+            for (String key : map.values()) {
+                // task results
+                if (!resultsMap.containsKey(key)) {
+                    resultsMap.put(key, new Integer(1));
+                } else {
+                    resultsMap.put(key, new Integer(resultsMap.get(key) + 1));
+                }
+            }
+            status = resultsMap.toString();
+        } else { // childless
+            status = this.getStatus(myShepherd);
+        }
+        return status;
+    }
+
     public boolean isFastlane(Shepherd myShepherd) {
         String status = "waiting to queue";
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA",
