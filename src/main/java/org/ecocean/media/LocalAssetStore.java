@@ -12,9 +12,6 @@ import java.nio.file.Paths;
 import org.ecocean.Util;
 import org.json.JSONObject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * LocalAssetStore references MediaAssets on the current host's filesystem.
  *
@@ -30,8 +27,7 @@ import org.slf4j.LoggerFactory;
 public class LocalAssetStore extends AssetStore {
     private static final String KEY_ROOT = "root";
     private static final String KEY_WEB_ROOT = "webroot";
-    private static final Logger logger = LoggerFactory.getLogger(
-        org.ecocean.media.LocalAssetStore.class);
+//    private static final Logger logger = LoggerFactory.getLogger(org.ecocean.media.LocalAssetStore.class);
     private Path root;
     transient private String webRoot;
 

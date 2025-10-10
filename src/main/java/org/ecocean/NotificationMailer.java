@@ -17,8 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Sends out an email notification. This class in designed to run on an independent thread, so can be scheduled for background operation.
@@ -106,8 +104,6 @@ import org.slf4j.LoggerFactory;
  * @author Giles Winstanley
  */
 public final class NotificationMailer implements Runnable {
-    /** SLF4J logger instance for writing log entries. */
-    private static final Logger log = LoggerFactory.getLogger(NotificationMailer.class);
     /** Charset for plain text email. */
     private static final Charset CHARSET_PLAIN = Charset.forName("UTF-8");
     /** Charset for HTML text email. */
@@ -247,7 +243,7 @@ public final class NotificationMailer implements Runnable {
         } catch (IOException ex) {
             // Logged/flagged as error to avoid interrupting client code processing.
             ex.printStackTrace();
-            log.error(ex.getMessage(), ex);
+//            log.error(ex.getMessage(), ex);
             failedSetup = true;
         }
     }
@@ -394,8 +390,7 @@ public final class NotificationMailer implements Runnable {
             throw new FileNotFoundException(String.format(
                     "Failed to find core plain text email template: %s.txt", BASE_TEMPLATE_ROOT));
         if (fBase[1] == null || !fBase[1].isFile()) {
-            log.trace(String.format("Failed to find core HTML text email template: %s.html",
-                BASE_TEMPLATE_ROOT));
+//            log.trace(String.format("Failed to find core HTML text email template: %s.html", BASE_TEMPLATE_ROOT));
             fBase[1] = null;
         }
         EmailTemplate template = EmailTemplate.load(fBase[0], fBase[1], CHARSET_PLAIN,
@@ -407,7 +402,7 @@ public final class NotificationMailer implements Runnable {
                 throw new FileNotFoundException(String.format(
                         "Failed to find plain text email template: %s.txt", type));
             if (fCont[1] == null || !fCont[1].isFile()) {
-                log.trace(String.format("Failed to find HTML text email template: %s.html", type));
+//                log.trace(String.format("Failed to find HTML text email template: %s.html", type));
                 fCont[1] = null;
                 template.removeHtmlText();
             }
@@ -523,7 +518,7 @@ public final class NotificationMailer implements Runnable {
 
     @Override public void run() {
         if (failedSetup) {
-            log.info("*** Not processing email as setup failed; see previous error log. ***");
+//            log.info("*** Not processing email as setup failed; see previous error log. ***");
             return;
         }
         if (CommonConfiguration.sendEmailNotifications(context)) {
@@ -531,13 +526,13 @@ public final class NotificationMailer implements Runnable {
                 try {
                     mailer.sendSingle(sender, recipients);
                     // log it
-                    log.info("Sending email of type(s) " + types.toString() + " from " + sender +
+//                    log.info("Sending email of type(s) " + types.toString() + " from " + sender +
                         " to: " + recipients);
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    log.error("Error sending notification email", ex);
-                    log.error("     from: " + sender);
-                    log.error("     to  : " + EmailTemplate.join(",", recipients));
+//                    log.error("Error sending notification email", ex);
+//                    log.error("     from: " + sender);
+//                    log.error("     to  : " + EmailTemplate.join(",", recipients));
                 }
             }
         }

@@ -12,12 +12,8 @@ import java.io.*;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class IAGlobals extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(IAGlobals.class);
+//    public static Logger log = LoggerFactory.getLogger(IAGlobals.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -59,7 +55,7 @@ public class IAGlobals extends HttpServlet {
             }
         } catch (Exception edel) {
             locked = true;
-            log.warn("Failed to get globals! Error. ", edel);
+//            log.warn("Failed to get globals! Error. ", edel);
             edel.printStackTrace();
             myShepherd.rollbackDBTransaction();
         }

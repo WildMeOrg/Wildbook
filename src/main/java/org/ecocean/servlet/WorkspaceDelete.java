@@ -11,12 +11,9 @@ import javax.servlet.ServletException;
 import java.io.*;
 
 import org.ecocean.shepherd.core.Shepherd;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WorkspaceDelete extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(WorkspaceDelete.class);
+//    public static Logger log = LoggerFactory.getLogger(WorkspaceDelete.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -74,7 +71,7 @@ public class WorkspaceDelete extends HttpServlet {
             }
         } catch (Exception edel) {
             locked = true;
-            log.warn("Failed to serialize encounter: " + request.getParameter("id"), edel);
+//            log.warn("Failed to serialize encounter: " + request.getParameter("id"), edel);
             edel.printStackTrace();
             myShepherd.rollbackDBTransaction();
         }
@@ -82,7 +79,7 @@ public class WorkspaceDelete extends HttpServlet {
             myShepherd.commitDBTransaction();
 
             // log it
-            Logger log = LoggerFactory.getLogger(EncounterDelete.class);
+//            Logger log = LoggerFactory.getLogger(EncounterDelete.class);
 
             out.println("{status: deleted, originalWorkspaceQuery: " + originalWorkspaceQuery +
                 "}");

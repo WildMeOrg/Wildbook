@@ -33,8 +33,6 @@ import javax.mail.SendFailedException;
 import javax.mail.Session;
 import javax.mail.Transport;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <p>Convenience template mechanism for sending emails using JavaMail. It provides support for both plain text and HTML emails, although HTML emails
@@ -49,8 +47,6 @@ import org.slf4j.LoggerFactory;
  * @see <a href="https://javamail.java.net/">JavaMail API project on Java.net</a>
  */
 public final class EmailTemplate {
-    /** SLF4J logger instance for writing log entries. */
-    private static final Logger log = LoggerFactory.getLogger(EmailTemplate.class);
     /** Default character set encoding for email body texts. */
     private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
     /** Template for message subject. */
@@ -364,7 +360,7 @@ public final class EmailTemplate {
                 transport.connect();
             return true;
         } catch (MessagingException me) {
-            log.debug(me.getMessage(), me);
+//            log.debug(me.getMessage(), me);
             return false;
         }
     }
@@ -379,7 +375,7 @@ public final class EmailTemplate {
             transport.close();
             return true;
         } catch (MessagingException me) {
-            log.debug(me.getMessage(), me);
+//            log.debug(me.getMessage(), me);
             return false;
         }
     }
@@ -503,7 +499,7 @@ public final class EmailTemplate {
             Address[] vsa = sfe.getValidSentAddresses();
             return (vsa != null) ? vsa.length : 0;
         } catch (MessagingException me) {
-            log.debug(me.getMessage(), me);
+//            log.debug(me.getMessage(), me);
             return 0;
         }
     }
@@ -522,10 +518,10 @@ public final class EmailTemplate {
             try {
                 if (s != null && !"".equals(s.trim()))
                     list.add(new InternetAddress(s.trim()));
-                else
-                    log.warn("Invalid email address; ignoring: " + s);
+//                else
+//                    log.warn("Invalid email address; ignoring: " + s);
             } catch (AddressException ex) {
-                log.warn("Failed to convert email address: " + s);
+//                log.warn("Failed to convert email address: " + s);
             }
         }
         return list.toArray(new Address[list.size()]);
@@ -583,12 +579,12 @@ public final class EmailTemplate {
             boolean ok = openSession(from);
             if (ok)
                 transport.sendMessage(m, m.getAllRecipients());
-            if (debugOS != null)
-                log.debug(debugOS.toString());
+//            if (debugOS != null)
+//                log.debug(debugOS.toString());
             return true;
         } catch (MessagingException me) {
-            log.debug("Error sending email to: " + to);
-            log.debug(me.getMessage(), me);
+//            log.debug("Error sending email to: " + to);
+//            log.debug(me.getMessage(), me);
             return false;
         } finally {
             closeSession();
@@ -743,10 +739,10 @@ public final class EmailTemplate {
                     Matcher m = pat.matcher(s);
                     if (m.find()) {
                         String cs = m.group(1).trim();
-                        if (!cs.equalsIgnoreCase(csH.name())) {
-                            log.warn(String.format(
-                                "Found HTML charset mismatch; %s (page specifies: %s): %s",
-                                csH.name(), cs, fH.getCanonicalPath()));
+//                        if (!cs.equalsIgnoreCase(csH.name())) {
+//                            log.warn(String.format(
+//                                "Found HTML charset mismatch; %s (page specifies: %s): %s",
+//                                csH.name(), cs, fH.getCanonicalPath()));
                         }
                     }
                 }
@@ -764,7 +760,7 @@ public final class EmailTemplate {
      * @return two-element array of subject line and remaining text (subject may be null of not found)
      */
     static String[] extractSubjectLine(String text) {
-        log.trace(text);
+//        log.trace(text);
         final Pattern p = Pattern.compile("^SUBJECT:(.*)$",
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
         Matcher m = p.matcher(text);
