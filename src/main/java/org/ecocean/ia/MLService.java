@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ecocean.Annotation;
+import org.ecocean.Embedding;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
@@ -232,14 +233,43 @@ public class MLService {
             // got results, now we try to use them
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
                 "; RESPONSE => " + res);
-/*
-            List<Annotation> anns = processMediaAssetResults(ma, res);
-            System.out.println("MLService.send() created " + anns.size() + " anns on " + ma + ": " +
-                anns);
- */
-            // FIXME persist anns using myShepherd
-            // FIXME send along to ident????? (but using vectors!!!????!)
+            processAnnotationResults(ann, res, myShepherd);
+            System.out.println("MLService.send() process results on " + ann);
         }
+    }
+
+    // not sure what (if anything) we need to return here
+    public void processAnnotationResults(Annotation ann, JSONObject res, Shepherd myShepherd)
+    throws IAException {
+        if (res == null) throw new IAException("empty results");
+        if (ann == null) throw new IAException("null Annotation");
+        // res has everything we sent (bbox, model_id, etc) plus "embeddings_shape"(?) and:
+        JSONArray embs = res.optJSONArray("embeddings");
+        if (embs == null) throw new IAException("results has no embeddings array: " + res);
+        // in our case we should have one embedding in there
+        if ((embs.length() < 1) || (embs.optJSONArray(0) == null))
+            throw new IAException("results has no embeddings array[0]: " + res);
+        JSONArray vecArr = embs.getJSONArray(0);
+        String method = res.optString("model_id", null);
+        String methodVersion = null;
+        // kinda hack version splitting here but...
+        if ((method != null) && method.contains("-")) {
+            String[] parts = method.split("\\-");
+            method = parts[0];
+            methodVersion = parts[1];
+        }
+        Embedding emb = new Embedding(ann, method, methodVersion, vecArr);
+        // maybe this is unwise? could 2 embeddings *from different methods* have same vectors? TODO
+        Embedding exists = ann.findEmbeddingByVector(emb);
+        if (exists != null) {
+            System.out.println("[WARNING] MLService.processAnnotationResults(): skipping; " + ann +
+                " already has: " + exists);
+            return;
+        }
+        ann.addEmbedding(emb);
+        // FIXME persist or whatever????
+        System.out.println("[DEBUG] MLService.processAnnotationResults(): added " + emb + " to " +
+            ann);
     }
 
     private JSONObject sendPayload(String endpoint, JSONObject payload)
@@ -273,52 +303,6 @@ public class MLService {
                     true, true);
         }
     }
-
-/*
-        if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
-            JSONObject res = new JSONObject("{\"success\": false}");
-            res.put("taskId", jobj.getString("taskId"));
-            String context = jobj.optString("__context", "context0");
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("IAGateway.processQueueMessage.detect");
-            myShepherd.beginDBTransaction();
-            String baseUrl = jobj.optString("__baseUrl", null);
-            try {
-                JSONObject rtn = _doDetect(jobj, res, myShepherd, baseUrl);
-                System.out.println(
-                    "INFO: IAGateway.processQueueMessage() 'detect' successful --> " +
-                    rtn.toString());
-                if (!rtn.optBoolean("success", false)) {
-                    requeueIncrement = true;
-                    requeue = true;
-                    myShepherd.rollbackDBTransaction();
-                } else {
-                    myShepherd.commitDBTransaction();
-                }
-            } catch (Exception ex) {
-                System.out.println(
-                    "ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " +
-                    ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) {
-                    requeueIncrement = true;
-                    requeue = true;
-                }
-                // error - don't requeue
-                else if (ex.toString().contains("HTTP error code : 502")) {
-                    requeueIncrement = true;
-                    requeue = true;
-                }
-                // error - don't requeue
-                else if (ex.toString().contains("HTTP error code : 608")) {
-                    requeue = false;
-                } else {
-                    requeueIncrement = true;
-                    requeue = true;
-                }
-                myShepherd.rollbackDBTransaction();
-            }
-            myShepherd.closeDBTransaction();
- */
 
     // this is to request detection find an annotation and (optionally) return embedding as well
     public JSONObject createPayload(MediaAsset ma, JSONObject config)
