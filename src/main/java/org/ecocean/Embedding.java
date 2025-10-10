@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import com.pgvector.PGvector;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.jdo.Query;
@@ -183,6 +184,12 @@ public class Embedding implements java.io.Serializable {
     // TODO: (1) configurable?  (2) exceptions when vector length differs?
     public static int getVectorDimension() {
         return 2152;
+    }
+
+    // compare vectors of two Embeddings
+    public boolean hasEqualVector(Embedding emb) {
+        if (emb == null) return false;
+        return Arrays.equals(this.vectorFloatArray, emb.vectorFloatArray);
     }
 
     public String toString() {
