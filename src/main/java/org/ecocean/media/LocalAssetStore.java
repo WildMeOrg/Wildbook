@@ -77,7 +77,7 @@ public class LocalAssetStore extends AssetStore {
     public Path root() {
         if (root == null) {
             root = config.getPath(KEY_ROOT);
-            logger.info("Asset Store [" + name + "] using root [" + root + "]");
+//            logger.info("Asset Store [" + name + "] using root [" + root + "]");
         }
         return root;
     }
@@ -86,7 +86,7 @@ public class LocalAssetStore extends AssetStore {
     public String webRoot() {
         if (webRoot == null) {
             webRoot = config.getString(KEY_WEB_ROOT);
-            logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
+//            logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
         }
         return webRoot;
     }
@@ -107,7 +107,7 @@ public class LocalAssetStore extends AssetStore {
         try {
             return new MediaAsset(this, params);
         } catch (IllegalArgumentException e) {
-            logger.warn("Bad path", e);
+//            logger.warn("Bad path", e);
             return null;
         }
     }
@@ -141,7 +141,7 @@ public class LocalAssetStore extends AssetStore {
         if (params == null) throw new IllegalArgumentException("null path");
         Object p = getParameter(params, "path");
         if (p == null) {
-            logger.warn("pathFromParameters(): Invalid parameters");
+//            logger.warn("pathFromParameters(): Invalid parameters");
             throw new IllegalArgumentException("null path");
         }
         Path passed = Paths.get(p.toString());
@@ -162,7 +162,7 @@ public class LocalAssetStore extends AssetStore {
         if (subpath == null) throw new IOException("no path passed in parameters");
         Path fullpath = root().resolve(subpath);
         fullpath.getParent().toFile().mkdirs();
-        logger.debug("copying from " + file + " to " + fullpath);
+//        logger.debug("copying from " + file + " to " + fullpath);
         Files.copy(file.toPath(), fullpath, REPLACE_EXISTING);
         params.put("path", subpath.toString()); // always store it relative, not absolute (in case it was passed in as such)
         if (!createMediaAsset) return null;
@@ -249,10 +249,10 @@ public class LocalAssetStore extends AssetStore {
             } else {
                 url = new URL(webRoot() + path.toString());
             }
-            logger.debug("url: " + url.toString());
+//            logger.debug("url: " + url.toString());
             return url;
         } catch (MalformedURLException e) {
-            logger.warn("Can't construct web path", e);
+//            logger.warn("Can't construct web path", e);
             return null;
         }
     }

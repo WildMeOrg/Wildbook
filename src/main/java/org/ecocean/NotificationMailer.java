@@ -526,8 +526,7 @@ public final class NotificationMailer implements Runnable {
                 try {
                     mailer.sendSingle(sender, recipients);
                     // log it
-//                    log.info("Sending email of type(s) " + types.toString() + " from " + sender +
-                        " to: " + recipients);
+//                    log.info("Sending email of type(s) " + types.toString() + " from " + sender + " to: " + recipients);
                 } catch (Exception ex) {
                     ex.printStackTrace();
 //                    log.error("Error sending notification email", ex);

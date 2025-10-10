@@ -743,7 +743,7 @@ public final class EmailTemplate {
 //                            log.warn(String.format(
 //                                "Found HTML charset mismatch; %s (page specifies: %s): %s",
 //                                csH.name(), cs, fH.getCanonicalPath()));
-                        }
+//                        }
                     }
                 }
                 break;
@@ -939,8 +939,8 @@ public final class EmailTemplate {
         if (useAuth) {
             props.setProperty("mail.smtp.auth", "true");
             auth = new SMTPAuthenticator(username, password);
-            if (isDebug())
-                log.debug(String.format("Setup SMTP Authentication for username: %s", username));
+//            if (isDebug())
+//                log.debug(String.format("Setup SMTP Authentication for username: %s", username));
         } else {
             props.remove("mail.smtp.auth");
             auth = null;
@@ -998,8 +998,8 @@ public final class EmailTemplate {
         Matcher m = Pattern.compile("^(.+):(\\d+)$").matcher(host);
         if (m.matches()) {
             try {
-                if (isDebug())
-                    log.debug(String.format("Setting host: %s:%d", host, port));
+//                if (isDebug())
+//                    log.debug(String.format("Setting host: %s:%d", host, port));
                 host = m.group(1);
                 port = Integer.parseInt(m.group(2));
             } catch (NumberFormatException nfx) {
