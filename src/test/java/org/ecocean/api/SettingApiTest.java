@@ -243,7 +243,7 @@ class SettingApiTest {
                     JSONObject jout = new JSONObject(responseOut.toString());
                     // kinda meek test of results, but a decent start?
                     assertTrue(jout.has("users")); // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 49);
+                    assertEquals(jout.keySet().size(), 50);
                 }
             }
         }
@@ -267,7 +267,7 @@ class SettingApiTest {
                     JSONObject jout = new JSONObject(responseOut.toString());
                     // kinda meek test of results, but a decent start?
                     assertFalse(jout.has("users")); // only shown to logged in user
-                    assertEquals(jout.keySet().size(), 47);
+                    assertEquals(jout.keySet().size(), 48);
                 }
             }
         }

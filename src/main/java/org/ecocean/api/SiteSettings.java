@@ -30,6 +30,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.Setting;
+import org.ecocean.Taxonomy;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
@@ -116,12 +117,34 @@ public class SiteSettings extends ApiBase {
             settings.put("iaClass", iac);
 
             JSONObject iaForTx = new JSONObject();
+            JSONObject iaConfigJson = new JSONObject();
             for (String sn : sciNames) {
                 String snSpaces = sn.replaceAll("_", " ");
-                iaForTx.put(snSpaces,
-                    iaConfig.getValidIAClassesIgnoreRedirects(new org.ecocean.Taxonomy(snSpaces)));
+                Taxonomy tx = new Taxonomy(snSpaces);
+                iaForTx.put(snSpaces, iaConfig.getValidIAClassesIgnoreRedirects(tx));
+                // this part is for iaConfig
+                Map<String, JSONObject> identConfigs = new HashMap<String, JSONObject>();
+                try {
+                    for (String iaClass : iaConfig.getValidIAClasses(tx)) {
+                        for (JSONObject idOpt : iaConfig.identOpts(tx, iaClass)) {
+                            String key = idOpt.toString();
+                            if (identConfigs.containsKey(key)) {
+                                identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+                            } else {
+                                JSONArray iacls = new JSONArray();
+                                iacls.put(iaClass);
+                                idOpt.put("_iaClasses", iacls);
+                                identConfigs.put(key, idOpt);
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                iaConfigJson.put(snSpaces, identConfigs.values());
             }
             settings.put("iaClassesForTaxonomy", iaForTx);
+            settings.put("iaConfig", iaConfigJson);
 
             List<String> behavs = myShepherd.getAllBehaviors();
             behavs.remove(null);
