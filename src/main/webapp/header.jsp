@@ -31,8 +31,7 @@
              java.util.Properties,
              org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
-             org.ecocean.ContextConfiguration,
-             org.slf4j.Logger,org.slf4j.LoggerFactory
+             org.ecocean.ContextConfiguration
               "
 %>
 
@@ -42,12 +41,12 @@
         response.setHeader("Cache-Control", "no-cache"); 
         response.setHeader("Cache-Control", "no-store"); 
         response.setDateHeader("Expires", 0); 
-        response.setHeader("Pragma", "no-cache"); 
+        response.setHeader("Pragma", "no-cache");
 
-        Logger log = LoggerFactory.getLogger(getClass());
+//        Logger log = LoggerFactory.getLogger(getClass());
 
         if (request.getRemoteUser() != null) {
-            log.info(request.getRemoteUser() + " logged out.");
+//            log.info(request.getRemoteUser() + " logged out.");
         }
         session.invalidate();
 
