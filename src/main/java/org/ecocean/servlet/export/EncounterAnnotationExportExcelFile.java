@@ -414,9 +414,9 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
                         boolean keywordFound = false;
                         for (MediaAsset ma : mas) {
                             for (Keyword kw : ma.getKeywordsStrict()) {
-                                if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
-                                    exportCol.writeLabel(kw, row, sheet);
-                                    keywordFound = true;
+                                if (kw != null && kw.getReadableName().equalsIgnoreCase(REFERENCE_KEYWORD)) {
+                                   exportCol.writeLabel(kw, row, sheet);;
+                                   keywordFound = true;
                                     break;
                                 }
                             }
