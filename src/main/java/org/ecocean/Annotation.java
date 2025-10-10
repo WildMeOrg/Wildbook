@@ -1796,6 +1796,18 @@ public class Annotation extends Base implements java.io.Serializable {
         return null;
     }
 
+    // this will match only vector (not other properties)
+    public Embedding findEmbeddingByVector(Embedding find) {
+        if (find == null) return null;
+        if (numberEmbeddings() < 1) return null;
+        Iterator it = embeddings.iterator();
+        while (it.hasNext()) {
+            Embedding emb = (Embedding)it.next();
+            if (emb.hasEqualVector(find)) return emb;
+        }
+        return null;
+    }
+
 /*
     public void loadEmbeddingVectors(Shepherd myShepherd) {
         if (embeddings == null) return;
