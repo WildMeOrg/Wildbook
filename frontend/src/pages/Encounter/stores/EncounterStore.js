@@ -12,6 +12,7 @@ import ErrorStore from "./ErrorStore";
 import { SECTION_FIELD_PATHS } from "../constants";
 import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, expandOperations } from "./helperFunctions";
 import NewMatchStore from "./NewMatchStore";
+import ImageModalStore from "./ImageModalStore";
 dayjs.extend(customParseFormat);
 
 class EncounterStore {
@@ -22,6 +23,7 @@ class EncounterStore {
   modals;
   errors;
   newMatch;
+  imageModal;
 
   _overviewActive = true;
   _editDateCard = false;
@@ -33,7 +35,7 @@ class EncounterStore {
   _lat = null;
   _lon = null;
 
-  _showAnnotations = true;
+  // _showAnnotations = true;
 
   _newPersonName = '';
   _newPersonEmail = '';
@@ -46,15 +48,15 @@ class EncounterStore {
   _sightingSearchResults = [];
   _sightingSearchInput = "";
 
-  _tags = [];
-  _addTagsFieldOpen = false;
-  _availableKeywords = [];
-  _availableKeywordsId = [];
-  _selectedKeyword = null;
-  _availabelLabeledKeywords = [];
-  _labeledKeywordAllowedValues = [];
-  _selectedLabeledKeyword = null;
-  _selectedAllowedValues = [];
+  // _tags = [];
+  // _addTagsFieldOpen = false;
+  // _availableKeywords = [];
+  // _availableKeywordsId = [];
+  // _selectedKeyword = null;
+  // _availabelLabeledKeywords = [];
+  // _labeledKeywordAllowedValues = [];
+  // _selectedLabeledKeyword = null;
+  // _selectedAllowedValues = [];
 
   _taxonomyOptions = [];
   _livingStatusOptions = [];
@@ -105,12 +107,14 @@ class EncounterStore {
     this.modals = new ModalStore(this);
     this.errors = new ErrorStore(this);
     this.newMatch = new NewMatchStore(this);
+    this.imageModal = new ImageModalStore(this);
 
     makeAutoObservable(this, {
       flow: false,
       modals: false,
       errors: false,
       newMatch: false,
+      imageModal: false,
     }, { autoBind: true });
   }
 
@@ -460,64 +464,64 @@ class EncounterStore {
     );
   }
 
-  get showAnnotations() {
-    return this._showAnnotations;
-  }
-  setShowAnnotations(show) {
-    this._showAnnotations = show;
-  }
+  // get showAnnotations() {
+  //   return this._showAnnotations;
+  // }
+  // setShowAnnotations(show) {
+  //   this._showAnnotations = show;
+  // }
 
-  get tags() {
-    return this._encounterData?.mediaAssets?.[this._selectedImageIndex]?.keywords || [];
-  }
-  setTags(newTags) {
-    this._tags = newTags;
-  }
+  // get tags() {
+  //   return this._encounterData?.mediaAssets?.[this._selectedImageIndex]?.keywords || [];
+  // }
+  // setTags(newTags) {
+  //   this._tags = newTags;
+  // }
 
-  get addTagsFieldOpen() {
-    return this._addTagsFieldOpen;
-  }
-  setAddTagsFieldOpen(add) {
-    this._addTagsFieldOpen = add;
-  }
+  // get addTagsFieldOpen() {
+  //   return this._addTagsFieldOpen;
+  // }
+  // setAddTagsFieldOpen(add) {
+  //   this._addTagsFieldOpen = add;
+  // }
 
-  get availableKeywords() {
-    return this._siteSettingsData?.keyword || [];
-  }
+  // get availableKeywords() {
+  //   return this._siteSettingsData?.keyword || [];
+  // }
 
-  get availableKeywordsId() {
-    return this._siteSettingsData?.keywordId || [];
-  }
+  // get availableKeywordsId() {
+  //   return this._siteSettingsData?.keywordId || [];
+  // }
 
-  get selectedKeyword() {
-    return this._selectedKeyword;
-  }
-  setSelectedKeyword(keyword) {
-    this._selectedKeyword = keyword;
-  }
+  // get selectedKeyword() {
+  //   return this._selectedKeyword;
+  // }
+  // setSelectedKeyword(keyword) {
+  //   this._selectedKeyword = keyword;
+  // }
 
-  get availabelLabeledKeywords() {
-    return Object.keys(this._siteSettingsData?.labeledKeyword) || [];
-  }
+  // get availabelLabeledKeywords() {
+  //   return Object.keys(this._siteSettingsData?.labeledKeyword) || [];
+  // }
 
-  get labeledKeywordAllowedValues() {
-    return this._siteSettingsData?.labeledKeywordAllowedValues[this.selectedLabeledKeyword] || [];
-  }
+  // get labeledKeywordAllowedValues() {
+  //   return this._siteSettingsData?.labeledKeywordAllowedValues[this.selectedLabeledKeyword] || [];
+  // }
 
-  get selectedLabeledKeyword() {
-    return this._selectedLabeledKeyword;
-  }
-  setSelectedLabeledKeyword(keyword) {
-    this._selectedLabeledKeyword = keyword;
-  }
+  // get selectedLabeledKeyword() {
+  //   return this._selectedLabeledKeyword;
+  // }
+  // setSelectedLabeledKeyword(keyword) {
+  //   this._selectedLabeledKeyword = keyword;
+  // }
 
-  get selectedAllowedValues() {
-    return this._selectedAllowedValues;
-  }
+  // get selectedAllowedValues() {
+  //   return this._selectedAllowedValues;
+  // }
 
-  setSelectedAllowedValues(allowedValues) {
-    this._selectedAllowedValues = allowedValues;
-  }
+  // setSelectedAllowedValues(allowedValues) {
+  //   this._selectedAllowedValues = allowedValues;
+  // }
 
   get taxonomyOptions() {
     return this._taxonomyOptions;
@@ -961,35 +965,35 @@ class EncounterStore {
 
   }
 
-  removeAnnotation(annotationId) {
-    return axios.patch(
-      `/api/v3/encounters/${this._encounterData.id}`,
-      [
-        {
-          op: "remove",
-          path: "annotations",
-          value: annotationId,
-        },
-      ],
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    )
-  }
+  // removeAnnotation(annotationId) {
+  //   return axios.patch(
+  //     `/api/v3/encounters/${this._encounterData.id}`,
+  //     [
+  //       {
+  //         op: "remove",
+  //         path: "annotations",
+  //         value: annotationId,
+  //       },
+  //     ],
+  //     {
+  //       headers: { "Content-Type": "application/json" },
+  //     }
+  //   )
+  // }
 
-  deleteImage(encounterId, mediaAssetId) {
-    return axios.post(
-      "/MediaAssetAttach",
-      {
-        detach: "true",
-        EncounterID: this._encounterData.id,
-        MediaAssetID: this._encounterData.mediaAssets[this._selectedImageIndex].id,
-      },
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
+  // deleteImage(encounterId, mediaAssetId) {
+  //   return axios.post(
+  //     "/MediaAssetAttach",
+  //     {
+  //       detach: "true",
+  //       EncounterID: this._encounterData.id,
+  //       MediaAssetID: this._encounterData.mediaAssets[this._selectedImageIndex].id,
+  //     },
+  //     {
+  //       headers: { "Content-Type": "application/json" },
+  //     }
+  //   );
+  // }
 
   async searchIndividualsByName(inputValue) {
 

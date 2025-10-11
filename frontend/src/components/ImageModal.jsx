@@ -22,6 +22,7 @@ export const ImageModal = observer(({
     rects = [],
     store = {},
 }) => {
+    const imageStore = store.imageModal;
     const themeColor = React.useContext(ThemeColorContext);
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
@@ -30,7 +31,7 @@ export const ImageModal = observer(({
 
     const currentAnnotation = rects.filter(a => a.annotationId === store.selectedAnnotationId)?.[0] || null;
     const [editAnnotationParams, setEditAnnotationParams] = useState({});
-
+    
     useEffect(() => {
         if (!currentAnnotation) return;
         setEditAnnotationParams({
@@ -234,7 +235,7 @@ export const ImageModal = observer(({
                                         setScaleY((assets[safeIndex]?.height || ih) / ih);
                                     }}
                                 />
-                                {store.showAnnotations && rects.length > 0 && (
+                                {imageStore.showAnnotations && rects.length > 0 && (
                                     rects.map((rect, index) => (
 
                                         <div
@@ -328,10 +329,10 @@ export const ImageModal = observer(({
                             <div>
                                 <div className="fw-semibold">
                                     Encounter{" "}
-                                    {store.encounterData?.individualDisplayName
-                                        ? `of ${store.encounterData?.individualDisplayName}`
+                                    {imageStore.encounterData?.individualDisplayName
+                                        ? `of ${imageStore.encounterData?.individualDisplayName}`
                                         : "Unassigned "}
-                                    {store.encounterData?.date}
+                                    {imageStore.encounterData?.date}
                                 </div>
                                 <div className="text-muted small">{a.date ?? ""}</div>
                             </div>
@@ -344,20 +345,20 @@ export const ImageModal = observer(({
                                 className="form-check-input"
                                 type="checkbox"
                                 id="show-annotations-switch"
-                                checked={store.showAnnotations}
-                                onChange={(e) => store.setShowAnnotations(e.target.checked)}
+                                checked={imageStore.showAnnotations}
+                                onChange={(e) => imageStore.setShowAnnotations(e.target.checked)}
                             />
                             <label className="form-check-label" htmlFor="show-annotations-switch">
                                 <FormattedMessage id="SHOW_ANNOTATIONS"/>
                             </label>
                         </div>
                         <div className="d-flex flex-wrap gap-2 mb-3">
-                            {(store.tags ?? []).map((tag) =>
+                            {(imageStore.tags ?? []).map((tag) =>
                                 <PillWithButton
                                     key={tag.id}
                                     text={tag.displayName || tag.name}
                                     onClose={async () => {
-                                        const data = await removeKeyword(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tag.id);
+                                        const data = await removeKeyword(imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]?.id, tag.id);
                                         if (data?.success === true) {
                                             await store.refreshEncounterData();
                                         } else {
@@ -374,10 +375,10 @@ export const ImageModal = observer(({
                                     borderRadius: "20px",
                                 }}
                                 onClick={async () => {
-                                    store.setAddTagsFieldOpen(!store.addTagsFieldOpen);
+                                    imageStore.setAddTagsFieldOpen(!imageStore.addTagsFieldOpen);
                                 }}
                             >+ <FormattedMessage id="ADD_TAG"/></button>
-                            {store.addTagsFieldOpen && (
+                            {imageStore.addTagsFieldOpen && (
                                 <div>
                                     <p><FormattedMessage id="ADD_NEW_KEYWORD"/></p>
                                     <div className="input-group mb-3">
@@ -401,12 +402,12 @@ export const ImageModal = observer(({
                                             }}
                                             onClick={async (e) => {
                                                 if (tagText) {
-                                                    const result = await addNewKeywordText(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, tagText);
+                                                    const result = await addNewKeywordText(imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]?.id, tagText);
                                                     if (result?.success === true) {
-                                                        store.setAddTagsFieldOpen(false);
+                                                        imageStore.setAddTagsFieldOpen(false);
                                                         setTagText("");
-                                                        store.setSelectedKeyword(null);
-                                                        store.setAddTagsFieldOpen(false);
+                                                        imageStore.setSelectedKeyword(null);
+                                                        imageStore.setAddTagsFieldOpen(false);
                                                         await store.refreshEncounterData();
                                                     } else {
                                                         console.error("Failed to add new tag:", result);
@@ -425,33 +426,33 @@ export const ImageModal = observer(({
                                             className="form-select"
                                             onChange={async (e) => {
                                                 const selectedValue = e.target.value;
-                                                store.setSelectedKeyword(selectedValue);
+                                                imageStore.setSelectedKeyword(selectedValue);
                                             }}
-                                            value={store.selectedKeyword || ""}
+                                            value={imageStore.selectedKeyword || ""}
                                         >
                                             <option value="" disabled>Select existing keyword...</option>
-                                            {(store.availableKeywords || []).map((keyword, index) => (
-                                                <option key={index} value={store.availableKeywordsId[index]}>
+                                            {(imageStore.availableKeywords || []).map((keyword, index) => (
+                                                <option key={index} value={imageStore.availableKeywordsId[index]}>
                                                     {keyword}
                                                 </option>
                                             ))}
                                         </select>
                                         <button
                                             className="btn"
-                                            disabled={!store.selectedKeyword}
+                                            disabled={!imageStore.selectedKeyword}
                                             style={{
                                                 cursor: "pointer",
-                                                backgroundColor: store.selectedKeyword ? themeColor?.wildMeColors?.cyan700 : "lightgray",
-                                                color: store.selectedKeyword ? "white" : "black",
+                                                backgroundColor: imageStore.selectedKeyword ? themeColor?.wildMeColors?.cyan700 : "lightgray",
+                                                color: imageStore.selectedKeyword ? "white" : "black",
                                             }}
                                             onClick={async (e) => {
-                                                if (store.selectedKeyword) {
-                                                    const result = await addExistingKeyword(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, store.selectedKeyword);
+                                                if (imageStore.selectedKeyword) {
+                                                    const result = await addExistingKeyword(imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]?.id, imageStore.selectedKeyword);
                                                     if (result?.success === true) {
-                                                        store.setAddTagsFieldOpen(false);
-                                                        store.setSelectedKeyword(null);
+                                                        imageStore.setAddTagsFieldOpen(false);
+                                                        imageStore.setSelectedKeyword(null);
                                                         setTagText("");
-                                                        store.setAddTagsFieldOpen(false);
+                                                        imageStore.setAddTagsFieldOpen(false);
                                                         await store.refreshEncounterData();
                                                     } else {
                                                         console.error("Failed to add existing tag:", result);
@@ -468,12 +469,12 @@ export const ImageModal = observer(({
                                             className="form-select"
                                             onChange={async (e) => {
                                                 const selectedValue = e.target.value;
-                                                store.setSelectedLabeledKeyword(selectedValue);
+                                                imageStore.setSelectedLabeledKeyword(selectedValue);
                                             }}
-                                            value={store.selectedLabeledKeyword || ""}
+                                            value={imageStore.selectedLabeledKeyword || ""}
                                         >
                                             <option value="" disabled>Select existing labeled keyword...</option>
-                                            {(store.availabelLabeledKeywords || []).map((keyword) => (
+                                            {(imageStore.availabelLabeledKeywords || []).map((keyword) => (
                                                 <option key={keyword} value={keyword}>
                                                     {keyword}
                                                 </option>
@@ -484,13 +485,13 @@ export const ImageModal = observer(({
                                                 className="form-select"
                                                 onChange={async (e) => {
                                                     const selectedValue = e.target.value;
-                                                    store.setSelectedAllowedValues(selectedValue);
+                                                    imageStore.setSelectedAllowedValues(selectedValue);
                                                 }}
                                                 defaultValue=""
-                                                value={store.selectedAllowedValues || ""}
+                                                value={imageStore.selectedAllowedValues || ""}
                                             >
                                                 <option value="" disabled>Select Allowed Valus...</option>
-                                                {(store.labeledKeywordAllowedValues || []).map((keyword) => (
+                                                {(imageStore.labeledKeywordAllowedValues || []).map((keyword) => (
                                                     <option key={keyword} value={keyword}>
                                                         {keyword}
                                                     </option>
@@ -498,22 +499,22 @@ export const ImageModal = observer(({
                                             </select>
                                             <button
                                                 className="btn"
-                                                disabled={!store.selectedLabeledKeyword || !store.selectedAllowedValues}
+                                                disabled={!imageStore.selectedLabeledKeyword || !imageStore.selectedAllowedValues}
                                                 style={{
                                                     cursor: "pointer",
-                                                    backgroundColor: (store.setSelectedLabeledKeyword && store.selectedAllowedValues) ? themeColor?.wildMeColors?.cyan700 : "lightgray",
-                                                    color: store.selectedKeyword ? "white" : "black",
+                                                    backgroundColor: (imageStore.setSelectedLabeledKeyword && imageStore.selectedAllowedValues) ? themeColor?.wildMeColors?.cyan700 : "lightgray",
+                                                    color: imageStore.selectedKeyword ? "white" : "black",
                                                 }}
                                                 onClick={async (e) => {
-                                                    if (store.setSelectedLabeledKeyword && store.selectedAllowedValues) {
-                                                        const result = await addExistingLabeledKeyword(store.encounterData?.mediaAssets[store.selectedImageIndex]?.id, store.selectedLabeledKeyword, store.selectedAllowedValues);
+                                                    if (imageStore.setSelectedLabeledKeyword && imageStore.selectedAllowedValues) {
+                                                        const result = await addExistingLabeledKeyword(imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]?.id, imageStore.selectedLabeledKeyword, imageStore.selectedAllowedValues);
                                                         if (result?.success === true) {
-                                                            store.setAddTagsFieldOpen(false);
-                                                            store.setSelectedLabeledKeyword(null);
-                                                            store.setSelectedAllowedValues(null);
+                                                            imageStore.setAddTagsFieldOpen(false);
+                                                            imageStore.setSelectedLabeledKeyword(null);
+                                                            imageStore.setSelectedAllowedValues(null);
                                                             setTagText("");
-                                                            store.setSelectedKeyword(null);
-                                                            store.setAddTagsFieldOpen(false);
+                                                            imageStore.setSelectedKeyword(null);
+                                                            imageStore.setAddTagsFieldOpen(false);
                                                             await store.refreshEncounterData();
                                                         } else {
                                                             console.error("Failed to add existing tag:", result);
@@ -531,13 +532,13 @@ export const ImageModal = observer(({
 
                         <dl className="row g-2 mb-3">
                             <dt className="col-5"><FormattedMessage id="ENCOUNTER"/></dt>
-                            <dd className="col-7 mb-0">{store.encounterData.id ?? "—"}</dd>
+                            <dd className="col-7 mb-0">{imageStore.encounterData.id ?? "—"}</dd>
                             <dt className="col-5"><FormattedMessage id="INDIVIDUAL_ID"/></dt>
-                            <dd className="col-7 mb-0">{store.encounterData.individualId ?? "—"}</dd>
+                            <dd className="col-7 mb-0">{imageStore.encounterData.individualId ?? "—"}</dd>
                             <dt className="col-5"><FormattedMessage id="LOCATION_ID"/></dt>
-                            <dd className="col-7 mb-0">{store.encounterData.locationId ?? "—"}</dd>
+                            <dd className="col-7 mb-0">{imageStore.encounterData.locationId ?? "—"}</dd>
                             <dt className="col-5"><FormattedMessage id="VERBATIM_EVENT_DATE"/></dt>
-                            <dd className="col-7 mb-0">{store.encounterData.verbatimEventDate ?? "—"}</dd>
+                            <dd className="col-7 mb-0">{imageStore.encounterData.verbatimEventDate ?? "—"}</dd>
                         </dl>
 
                         <div className="d-grid gap-2">
@@ -547,7 +548,7 @@ export const ImageModal = observer(({
                                 backgroundColor={themeColor?.wildMeColors?.cyan700}
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
-                                disabled={!store.matchResultClickable}
+                                disabled={!imageStore.matchResultClickable}
                                 onClick={() => {
                                     window.open(`/iaResults.jsp?taskId=${currentAnnotation?.iaTaskId}`, "_blank");
                                 }}
@@ -562,11 +563,11 @@ export const ImageModal = observer(({
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                                 onClick={() => {
-                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+                                    if (!imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]) {
                                         return;
                                     }
-                                    const number = store.encounterData?.id;
-                                    const mediaAssetId = store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
+                                    const number = imageStore.encounterData?.id;
+                                    const mediaAssetId = imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]?.id;
                                     const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
                                     window.open(url, "_blank");
                                 }}
@@ -581,10 +582,10 @@ export const ImageModal = observer(({
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                                 onClick={() => {
-                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+                                    if (!imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]) {
                                         return;
                                     }
-                                    store.modals.setOpenMatchCriteriaModal(true);
+                                    imageStore.modals.setOpenMatchCriteriaModal(true);
                                 }}
                             >
                                 <FormattedMessage id="NEW_MATCH" />
@@ -597,10 +598,10 @@ export const ImageModal = observer(({
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                                 onClick={() => {
-                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+                                    if (!imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex]) {
                                         return;
                                     }
-                                    window.open(`/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}`, "_blank");
+                                    window.open(`/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}`, "_blank");
                                 }}
                             >
                                 <FormattedMessage id="ADD_ANNOTATION" />
@@ -613,10 +614,10 @@ export const ImageModal = observer(({
                                 borderColor={themeColor?.wildMeColors?.cyan700}
                                 target={true}
                                 onClick={() => {
-                                    if (!store.encounterData?.mediaAssets[store.selectedImageIndex] || !annotationParam || !assets[index]?.id) {
+                                    if (!imageStore.encounterData?.mediaAssets[imageStore.selectedImageIndex] || !annotationParam || !assets[index]?.id) {
                                         return;
                                     }
-                                    window.open(`/react/edit-annotation?encounterId=${store.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.annotationId}`, "_blank");
+                                    window.open(`/react/edit-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.annotationId}`, "_blank");
                                 }}
                             >
                                 <FormattedMessage id="EDIT_ANNOTATION" />
@@ -630,7 +631,7 @@ export const ImageModal = observer(({
                                 target={true}
                                 onClick={async () => {
                                     if (window.confirm("Are you sure you want to delete this annotation?")) {
-                                        await store.removeAnnotation(currentAnnotation?.annotationId);
+                                        await imageStore.removeAnnotation(currentAnnotation?.annotationId);
                                         // window.location.reload();
                                         store.setSelectedAnnotationId(null);
                                         store.refreshEncounterData();
@@ -645,7 +646,7 @@ export const ImageModal = observer(({
                             <MainButton
                                 onClick={async () => {
                                     if (window.confirm("Are you sure you want to delete this image?")) {
-                                        await store.deleteImage();
+                                        await imageStore.deleteImage();
                                         window.location.reload();
                                     }
                                 }}
