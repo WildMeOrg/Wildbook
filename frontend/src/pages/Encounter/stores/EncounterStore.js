@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
-import convertToTreeDataWithName from "../../../utils/converToTreeData";
+import convertToTreeDataWithName from "../../../utils/convertToTreeDataWithName";
 import { debounce } from "lodash";
 import { toJS } from "mobx";
 import dayjs from "dayjs";
@@ -11,6 +11,7 @@ import ModalStore from "./ModalStore";
 import ErrorStore from "./ErrorStore";
 import { SECTION_FIELD_PATHS } from "../constants";
 import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, expandOperations } from "./helperFunctions";
+import NewMatchStore from "./NewMatchStore";
 dayjs.extend(customParseFormat);
 
 class EncounterStore {
@@ -20,6 +21,7 @@ class EncounterStore {
 
   modals;
   errors;
+  newMatch;
 
   _overviewActive = true;
   _editDateCard = false;
@@ -63,11 +65,7 @@ class EncounterStore {
   _patterningCodeOptions = [];
   _locationIdOptions = [];
   _identificationRemarksOptions = [];
-  // Algorithm options for matching
-  _algorithmOptions = [
-    { label: "MiewID Matcher", value: "MiewID Matcher" },
-    { label: "HotSpotter Pattern Matcher", value: "HotSpotter Pattern Matcher" },
-  ];
+
   _metalTagLocation = [];
   _metalTagValues = [];
   _acousticTagValues = {};
@@ -106,10 +104,13 @@ class EncounterStore {
   constructor() {
     this.modals = new ModalStore(this);
     this.errors = new ErrorStore(this);
+    this.newMatch = new NewMatchStore(this);
 
     makeAutoObservable(this, {
       flow: false,
       modals: false,
+      errors: false,
+      newMatch: false,
     }, { autoBind: true });
   }
 
@@ -662,13 +663,6 @@ class EncounterStore {
       value: name,
       label: name,
     })) || [];
-  }
-
-  get algorithmOptions() {
-    return this._algorithmOptions;
-  }
-  setAlgorithmOptions(algorithmOptions) {
-    this._algorithmOptions = algorithmOptions;
   }
 
   getFieldValue(sectionName, fieldPath) {
