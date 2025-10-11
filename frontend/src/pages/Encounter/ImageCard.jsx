@@ -9,6 +9,7 @@ import MatchResultIcon from "../../components/icons/MatchResultIcon";
 import RefreshIcon from "../../components/icons/RefreshIcon";
 import PencilIcon from "../../components/icons/PencilAnnotation";
 import EyeIcon from "../../components/icons/EyeIcon";
+import Tooltip from "../../components/ToolTip";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -19,6 +20,15 @@ const ImageCard = observer(({ store = {} }) => {
   const fileInputRef = useRef(null);
   const maxSize = 10;
   const theme = useContext(ThemeColorContext);
+  const boxRef = React.useRef(null);
+  const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
+
+  const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
+  const handleMove = (e) => {
+    const r = boxRef.current.getBoundingClientRect();
+    setTip((s) => ({ ...s, x: e.clientX - r.left, y: e.clientY - r.top }));
+  };
+  const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
 
   useEffect(() => {
     if (
@@ -42,6 +52,8 @@ const ImageCard = observer(({ store = {} }) => {
               rotation: a.theta || 0,
               annotationId: a.id,
               encounterId: a.encounterId,
+              viewpoint: a.viewpoint,
+              iaClass: a.iaClass,
             })),
         );
       } else {
@@ -115,7 +127,7 @@ const ImageCard = observer(({ store = {} }) => {
         height: "auto",
       }}
     >
-      <div className="mb-3 ms-1 d-flex flex-col align-items-center">
+      <div className="mb-3 ms-1 d-flex flex-row">
         <MailIcon />
         <span
           style={{ marginLeft: "10px", fontSize: "1rem", fontWeight: "bold" }}
@@ -126,7 +138,7 @@ const ImageCard = observer(({ store = {} }) => {
       <div className="mb-2 d-flex flex-row align-items-center justify-content-between">
         <p>
           {store.encounterData?.mediaAssets[store.selectedImageIndex]
-            ?.userFilename || "No image selected"}
+            ?.userFilename || ""}
         </p>
         <p>
           {store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords
@@ -136,6 +148,7 @@ const ImageCard = observer(({ store = {} }) => {
         </p>
       </div>
       <div
+        ref={boxRef}
         style={{
           width: "100%",
           position: "relative",
@@ -180,6 +193,13 @@ const ImageCard = observer(({ store = {} }) => {
               <div
                 id={`rect-${index}`}
                 key={index}
+                onMouseEnter={() =>
+                  handleEnter(
+                    `Viewpoint: ${rect.viewpoint}\nIA Class: ${rect.iaClass}`,
+                  )
+                }
+                onMouseMove={handleMove}
+                onMouseLeave={handleLeave}
                 style={{
                   position: "absolute",
                   top: newRect.y,
@@ -199,13 +219,14 @@ const ImageCard = observer(({ store = {} }) => {
                       ? "rgba(240, 11, 11, 0.5)"
                       : "transparent",
                 }}
-                onClick={() =>
+                onClick={(e) => {
+                  e.stopPropagation();
                   handleClick(
                     newRect.encounterId,
                     store.encounterData.id,
                     newRect.annotationId,
-                  )
-                }
+                  );
+                }}
               ></div>
             );
           })}
@@ -219,6 +240,9 @@ const ImageCard = observer(({ store = {} }) => {
           alt="No image available"
           style={{ width: "100%", height: "auto" }}
         />
+        <Tooltip show={tip.show} x={tip.x} y={tip.y}>
+          {tip.text}
+        </Tooltip>
       </div>
 
       <div
@@ -253,6 +277,7 @@ const ImageCard = observer(({ store = {} }) => {
           style={{ cursor: "pointer", paddingTop: "20px" }}
           onClick={() => {
             if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              alert("No image selected.");
               return;
             }
             const number = store.encounterData?.id;
@@ -271,6 +296,7 @@ const ImageCard = observer(({ store = {} }) => {
           className="d-flex align-items-center justify-content-center flex-column"
           onClick={() => {
             if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              alert("No image selected.");
               return;
             }
             store.modals.setOpenMatchCriteriaModal(true);
@@ -287,6 +313,7 @@ const ImageCard = observer(({ store = {} }) => {
           style={{ cursor: "pointer", paddingTop: "20px" }}
           onClick={() => {
             if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              alert("No image selected.");
               return;
             }
             window.open(
@@ -326,7 +353,6 @@ const ImageCard = observer(({ store = {} }) => {
         <div id="add-more-files" onClick={() => fileInputRef.current.click()}>
           <label
             htmlFor={"add-more-files-input"}
-            id="add-more-files"
             style={{
               cursor: "pointer",
               display: "inline-flex",
