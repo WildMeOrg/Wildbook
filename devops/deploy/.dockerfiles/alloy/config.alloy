@@ -75,7 +75,6 @@ loki.source.docker "docker_logs" {
 
   forward_to = [loki.process.parse_logs.receiver]
 
-  // Relabeling rules to add labels from discovery
   relabel_rules = discovery.relabel.docker_logs.rules
 }
 
@@ -83,54 +82,65 @@ loki.source.docker "docker_logs" {
 // LOG PROCESSING AND PARSING
 // ============================================
 loki.process "parse_logs" {
-  forward_to = [loki.process.add_level.receiver]
+  forward_to = [loki.write.loki_endpoint.receiver]
 
-  // Try to parse as JSON (for structured logs from Wildbook)
+  // Parse JSON logs (from Log4j2 JsonLayout)
   stage.json {
     expressions = {
       level     = "level",
       logger    = "loggerName",
       message   = "message",
       timestamp = "timestamp",
+      thread    = "thread",
     }
   }
 
-  // If JSON parsing fails, try to extract log level from plain text
-  stage.regex {
-    expression = "(?P<level>DEBUG|INFO|WARN|ERROR|FATAL)"
-  }
-
-  // Parse timestamp if available
+  // If JSON parsing succeeded and we have a timestamp, use it
   stage.timestamp {
     source = "timestamp"
     format = "RFC3339"
   }
-}
 
-// Add level as a label if it was extracted
-loki.process "add_level" {
-  forward_to = [loki.write.loki_endpoint.receiver]
+  // If JSON parsing fails or level not found, try regex extraction
+  // This handles non-JSON logs from nginx, postgresql, etc.
+  stage.regex {
+    expression = "(?i)(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|SEVERE)"
+  }
 
+  // CRITICAL: Add level as a Loki label for filtering
+  // This makes {level="ERROR"} queries work in Grafana
   stage.labels {
     values = {
-      level = "",
+      level = "",  // Empty string uses the extracted value
     }
   }
+
+  // Optional: Drop debug logs in production to save storage
+  // Uncomment if you want to filter out debug logs
+  // stage.match {
+  //   selector = "{environment=\"production\"}"
+  //   stage.drop {
+  //     source = "level"
+  //     value  = "DEBUG"
+  //     drop_counter_reason = "debug_in_prod"
+  //   }
+  // }
 }
 
 // ============================================
 // FILE-BASED LOG SOURCES
 // ============================================
+
 // Wildbook Tomcat access logs
 local.file_match "wildbook_access" {
   path_targets = [{
-    __path__ = "/logs/wildbook/access*.log",
-    job      = "wildbook-access",
-    service  = "wildbook",
-    log_type = "access",
-    domain   = env("DOMAIN_NAME"),
+    __path__    = "/logs/wildbook/access*.log",
+    job         = "wildbook-access",
+    service     = "wildbook",
+    log_type    = "access",
+    domain      = env("DOMAIN_NAME"),
     environment = env("ENVIRONMENT"),
-    host     = env("HOSTNAME"),
+    host        = env("HOSTNAME"),
   }]
 
   sync_period = "5s"
@@ -149,6 +159,7 @@ loki.process "parse_tomcat_access" {
     expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+)"
   }
 
+  // Add HTTP method and status as labels for easy filtering
   stage.labels {
     values = {
       method = "",
@@ -156,6 +167,7 @@ loki.process "parse_tomcat_access" {
     }
   }
 
+  // Use the log's timestamp
   stage.timestamp {
     source = "time"
     format = "02/Jan/2006:15:04:05 -0700"
@@ -165,13 +177,13 @@ loki.process "parse_tomcat_access" {
 // Nginx access logs
 local.file_match "nginx_access" {
   path_targets = [{
-    __path__ = "/logs/nginx/access.log",
-    job      = "nginx-access",
-    service  = "nginx",
-    log_type = "access",
-    domain   = env("DOMAIN_NAME"),
+    __path__    = "/logs/nginx/access.log",
+    job         = "nginx-access",
+    service     = "nginx",
+    log_type    = "access",
+    domain      = env("DOMAIN_NAME"),
     environment = env("ENVIRONMENT"),
-    host     = env("HOSTNAME"),
+    host        = env("HOSTNAME"),
   }]
 
   sync_period = "5s"
@@ -190,6 +202,7 @@ loki.process "parse_nginx_access" {
     expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+) \"(?P<referer>[^\"]*)\" \"(?P<user_agent>[^\"]*)\""
   }
 
+  // Add HTTP method and status as labels
   stage.labels {
     values = {
       method = "",
@@ -206,14 +219,13 @@ loki.process "parse_nginx_access" {
 // Nginx error logs
 local.file_match "nginx_error" {
   path_targets = [{
-    __path__ = "/logs/nginx/error.log",
-    job      = "nginx-error",
-    service  = "nginx",
-    log_type = "error",
-    domain   = env("DOMAIN_NAME"),
+    __path__    = "/logs/nginx/error.log",
+    job         = "nginx-error",
+    service     = "nginx",
+    log_type    = "error",
+    domain      = env("DOMAIN_NAME"),
     environment = env("ENVIRONMENT"),
-    host     = env("HOSTNAME"),
-    level    = "ERROR",
+    host        = env("HOSTNAME"),
   }]
 
   sync_period = "5s"
@@ -231,23 +243,29 @@ loki.process "parse_nginx_error" {
     expression = "^\\d{4}/\\d{2}/\\d{2} (?P<time>\\d{2}:\\d{2}:\\d{2}) \\[(?P<level>\\w+)\\]"
   }
 
+  // Add level as label
   stage.labels {
     values = {
       level = "",
     }
+  }
+
+  stage.timestamp {
+    source = "time"
+    format = "2006-01-02 15:04:05"
   }
 }
 
 // PostgreSQL logs
 local.file_match "postgresql" {
   path_targets = [{
-    __path__ = "/logs/postgresql/*.log",
-    job      = "postgresql",
-    service  = "postgresql",
-    log_type = "database",
-    domain   = env("DOMAIN_NAME"),
+    __path__    = "/logs/postgresql/*.log",
+    job         = "postgresql",
+    service     = "postgresql",
+    log_type    = "database",
+    domain      = env("DOMAIN_NAME"),
     environment = env("ENVIRONMENT"),
-    host     = env("HOSTNAME"),
+    host        = env("HOSTNAME"),
   }]
 
   sync_period = "5s"
@@ -266,6 +284,7 @@ loki.process "parse_postgresql" {
     expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{3} \\w+) \\[\\d+\\]: \\[(?P<level>\\w+)\\]"
   }
 
+  // Add level as label
   stage.labels {
     values = {
       level = "",
@@ -284,10 +303,15 @@ loki.process "parse_postgresql" {
 loki.write "loki_endpoint" {
   endpoint {
     url = env("LOKI_URL")
+
+    // Optional: Configure retry behavior
+    // max_backoff_period  = "5m"
+    // min_backoff_period  = "500ms"
+    // max_backoff_retries = 10
   }
 
-  // Optional: Write-Ahead Log for reliability
-  // wal {
-  //   enabled = true
+  // Optional: External labels applied to all logs
+  // external_labels = {
+  //   cluster = "dev-cluster",
   // }
 }

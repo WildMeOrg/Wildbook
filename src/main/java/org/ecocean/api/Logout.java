@@ -9,11 +9,16 @@ import javax.servlet.ServletException;
 
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.SecurityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.MapMessage;
 
 public class Logout extends ApiBase {
     public Logout() {
         super();
     }
+
+    private static final Logger logger = LogManager.getLogger(Logout.class);
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
@@ -22,6 +27,8 @@ public class Logout extends ApiBase {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        logger.error(new MapMessage()
+                .with("action", "logout_dopost_getsubject-test-error"));
         Subject subject = SecurityUtils.getSubject();
 
         if (subject != null) subject.logout();

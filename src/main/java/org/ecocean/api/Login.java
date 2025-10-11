@@ -19,6 +19,9 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.web.util.SavedRequest;
 import org.apache.shiro.web.util.WebUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.MapMessage;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
@@ -29,6 +32,8 @@ public class Login extends ApiBase {
         super();
     }
 
+    private static final Logger logger = LogManager.getLogger(Login.class);
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         doPost(request, response);
@@ -36,6 +41,9 @@ public class Login extends ApiBase {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+
+        logger.info(new MapMessage()
+            .with("action", "login_dopost_started"));
         JSONObject loginData = ServletUtilities.jsonFromHttpServletRequest(request);
         boolean success = false;
         User user = null;
@@ -51,6 +59,9 @@ public class Login extends ApiBase {
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("api.Login");
             myShepherd.beginDBTransaction();
+            logger.info(new MapMessage()
+                    .with("action", "login_dopost_getuser")
+                    .with("username", username));
             try {
                 user = myShepherd.getUser(username);
                 salt = user.getSalt();
@@ -80,27 +91,51 @@ public class Login extends ApiBase {
                     if (saved != null) {
                         results.put("redirectUrl", saved.getRequestUrl());
                     }
+                    logger.info(new MapMessage()
+                            .with("action", "login_dopost_userauthenticated")
+                            .with("username", username));
                 } catch (UnknownAccountException ex) {
                     // username not found
-                    ex.printStackTrace();
+                    // ex.printStackTrace();
                     // results.put("error", ex.getMessage());
+                    logger.error(new MapMessage()
+                            .with("action", "login_dopost_failed")
+                            .with("username", username)
+                            .with("error_type", ex.getClass().getSimpleName())
+                            .with("error_message", ex.getMessage()), ex);
                     results.put("error", "invalid_credentials");
                 } catch (IncorrectCredentialsException ex) {
                     // wrong password
-                    ex.printStackTrace();
+                    // ex.printStackTrace();
                     // results.put("error", ex.getMessage());
+                    logger.error(new MapMessage()
+                            .with("action", "login_dopost_failed")
+                            .with("username", username)
+                            .with("error_type", ex.getClass().getSimpleName())
+                            .with("error_message", ex.getMessage()), ex);
                     results.put("error", "invalid_credentials");
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    // ex.printStackTrace();
                     // results.put("error", "unknown error");
+                    logger.error(new MapMessage()
+                            .with("action", "login_dopost_failed")
+                            .with("username", username)
+                            .with("error_type", ex.getClass().getSimpleName())
+                            .with("error_message", ex.getMessage()), ex);
                     results.put("error", "invalid_credentials");
                 } finally {
                     myShepherd.rollbackDBTransaction();
                     myShepherd.closeDBTransaction();
                 }
             }
+            // log this !(user != null) condition?
             if (myShepherd.isDBTransactionActive()) myShepherd.rollbackAndClose();
+            logger.info(new MapMessage()
+                    .with("action", "login_dopost_setstausandreturn")
+                    .with("username", username)
+                    .with("status", success));
         }
+
         if (success) {
             response.setStatus(200);
         } else {
@@ -108,5 +143,15 @@ public class Login extends ApiBase {
         }
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(results.toString());
+    }
+
+    private String getEnvironment() {
+        return System.getenv("ENVIRONMENT") != null ?
+                System.getenv("ENVIRONMENT") : "production";
+    }
+
+    private String getDomainName() {
+        return System.getenv("DOMAIN_NAME") != null ?
+                System.getenv("DOMAIN_NAME") : "unknown";
     }
 }
