@@ -400,7 +400,7 @@ const ImageCard = observer(({ store = {} }) => {
               (data) => data.encounterId === store.encounterData?.id,
             ) || []
           }
-          store={store}
+          imageStore={store.imageModal}
         />
       )}
     </div>
