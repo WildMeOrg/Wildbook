@@ -1271,6 +1271,7 @@ public class Annotation extends Base implements java.io.Serializable {
         Feature ft = new Feature("org.ecocean.boundingBox", fparams);
         Annotation ann = new Annotation(null, ft, iaClass);
         ann.setViewpoint(viewpoint);
+		ann.setTheta(theta);
         ma.addFeature(ft);
         ma.setDetectionStatus("complete");
         myShepherd.getPM().makePersistent(ft);
