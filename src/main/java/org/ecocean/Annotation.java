@@ -299,9 +299,8 @@ public class Annotation extends Base implements java.io.Serializable {
         return features;
     }
 
-    // gets first, cuz you are a trusting individual
     public Feature getFeature() {
-        if (features == null) return null;
+        if (Util.collectionSize(features) < 1) return null;
         return features.get(0);
     }
 
@@ -407,14 +406,21 @@ public class Annotation extends Base implements java.io.Serializable {
                    (getHeight() == (int)ma.getHeight()));
     }
 
+// .theta property on Annotation usage is deprecated, instead we get
+// the value from the Feature [ and likewise deprecate setTheta() ]
     public double getTheta() {
-        return theta;
+        Feature ft = getFeature();
+
+        if (ft == null) return 0.0d;
+        if (ft.getParameters() == null) return 0.0d;
+        return ft.getParameters().optDouble("theta", 0.0d);
     }
 
+/*
     public void setTheta(double t) {
         theta = t;
     }
-
+ */
     public boolean isIAReady() {
         MediaAsset ma = this.getMediaAsset();
 
