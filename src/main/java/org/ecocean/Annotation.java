@@ -365,7 +365,7 @@ public class Annotation extends Base implements java.io.Serializable {
     }
 
 // .theta property on Annotation usage is deprecated, instead we get
-// the value from the Feature [and likewise deprecate setTheta)]
+// the value from the Feature [ and likewise deprecate setTheta() ]
     public double getTheta() {
         Feature ft = getFeature();
 
