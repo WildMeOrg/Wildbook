@@ -13,7 +13,7 @@ import { get } from "lodash-es";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
 import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
-import { globalEncounterFormStore as store } from "./encounterFormStore";
+import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
 
 export default function EncounterSearch() {

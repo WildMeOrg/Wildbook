@@ -1,18 +1,26 @@
 import { makeAutoObservable } from "mobx";
 import { isValid, parseISO, getWeek } from "date-fns";
 import { chain, range } from 'lodash-es'
+import ImageModalStore from "./ImageModalStore";
 
 class EncounterFormStore {
   _formFilters;
-  _activeStep = 0;
+  _activeStep = 0;  
+  
   _hasFetchedAllEncounters = false;
   _searchResultsAll = [];
   _loadingAll = false;
   _imageCoundPerPage = 20;
 
+  imageModalStore;
+
   constructor() {
     this.formFilters = [];
-    makeAutoObservable(this);
+    this.imageModalStore = new ImageModalStore(this);
+    
+    makeAutoObservable(this, {      
+      imageModal: false,
+    }, { autoBind: true });
   }
 
   get formFilters() {
