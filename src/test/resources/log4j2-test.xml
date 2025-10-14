@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Appenders>
+        <!-- Simple console appender for tests -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <!-- JSON appender for tests (synchronous, not async) -->
+        <Console name="JsonConsole" target="SYSTEM_OUT">
+            <JsonTemplateLayout eventTemplateUri="classpath:EcsLayout.json"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <!-- Reduce noise during tests -->
+        <Logger name="org.opensearch" level="WARN"/>
+        <Logger name="org.apache.http" level="WARN"/>
+        <Logger name="org.datanucleus" level="WARN"/>
+        <Logger name="DataNucleus" level="WARN"/>
+        <Logger name="com.amazonaws" level="WARN"/>
+
+        <!-- Application logs -->
+        <Logger name="org.ecocean" level="DEBUG"/>
+
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

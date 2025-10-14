@@ -84,47 +84,51 @@ loki.source.docker "docker_logs" {
 loki.process "parse_logs" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  // Parse JSON logs (from Log4j2 JsonLayout)
+  // Parse JSON logs (from Log4j2 JsonTemplateLayout)
+  // Extract common fields that should be present in ECS-formatted logs
   stage.json {
     expressions = {
-      level     = "level",
-      logger    = "loggerName",
+      level     = "log.level",
+      logger    = "log.logger",
       message   = "message",
       timestamp = "timestamp",
-      thread    = "thread",
+      thread    = "process.thread.name",
     }
   }
 
-  // If JSON parsing succeeded and we have a timestamp, use it
+  // Extract custom application fields (these are at root level in your MapMessage logs)
+  // Only extract if they exist - Alloy will skip if field is not present
+  stage.json {
+    expressions = {
+      action       = "action",
+      username     = "username",
+      user_id      = "user_id",
+      client_ip    = "client_ip",
+      session_id   = "session_id",
+      encounter_id = "encounter_id",
+      duration_ms  = "duration_ms",
+      error_type   = "error_type",
+      error_message = "error_message",
+    }
+  }
+
+  // Use the timestamp from the log if available
   stage.timestamp {
     source = "timestamp"
     format = "RFC3339"
   }
 
-  // If JSON parsing fails or level not found, try regex extraction
-  // This handles non-JSON logs from nginx, postgresql, etc.
+  // Fallback: If JSON parsing fails, try regex extraction for plain text logs
   stage.regex {
     expression = "(?i)(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|SEVERE)"
   }
 
-  // CRITICAL: Add level as a Loki label for filtering
-  // This makes {level="ERROR"} queries work in Grafana
+  // Add level as a Loki label for filtering
   stage.labels {
     values = {
-      level = "",  // Empty string uses the extracted value
+      level = "",
     }
   }
-
-  // Optional: Drop debug logs in production to save storage
-  // Uncomment if you want to filter out debug logs
-  // stage.match {
-  //   selector = "{environment=\"production\"}"
-  //   stage.drop {
-  //     source = "level"
-  //     value  = "DEBUG"
-  //     drop_counter_reason = "debug_in_prod"
-  //   }
-  // }
 }
 
 // ============================================
@@ -154,12 +158,10 @@ loki.source.file "wildbook_access" {
 loki.process "parse_tomcat_access" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  // Parse Tomcat access log format
   stage.regex {
     expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+)"
   }
 
-  // Add HTTP method and status as labels for easy filtering
   stage.labels {
     values = {
       method = "",
@@ -167,7 +169,6 @@ loki.process "parse_tomcat_access" {
     }
   }
 
-  // Use the log's timestamp
   stage.timestamp {
     source = "time"
     format = "02/Jan/2006:15:04:05 -0700"
@@ -197,12 +198,10 @@ loki.source.file "nginx_access" {
 loki.process "parse_nginx_access" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  // Parse nginx combined log format
   stage.regex {
     expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+) \"(?P<referer>[^\"]*)\" \"(?P<user_agent>[^\"]*)\""
   }
 
-  // Add HTTP method and status as labels
   stage.labels {
     values = {
       method = "",
@@ -243,7 +242,6 @@ loki.process "parse_nginx_error" {
     expression = "^\\d{4}/\\d{2}/\\d{2} (?P<time>\\d{2}:\\d{2}:\\d{2}) \\[(?P<level>\\w+)\\]"
   }
 
-  // Add level as label
   stage.labels {
     values = {
       level = "",
@@ -279,12 +277,10 @@ loki.source.file "postgresql" {
 loki.process "parse_postgresql" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  // PostgreSQL log format: timestamp [pid]: [level] message
   stage.regex {
     expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{3} \\w+) \\[\\d+\\]: \\[(?P<level>\\w+)\\]"
   }
 
-  // Add level as label
   stage.labels {
     values = {
       level = "",
@@ -303,15 +299,5 @@ loki.process "parse_postgresql" {
 loki.write "loki_endpoint" {
   endpoint {
     url = env("LOKI_URL")
-
-    // Optional: Configure retry behavior
-    // max_backoff_period  = "5m"
-    // min_backoff_period  = "500ms"
-    // max_backoff_retries = 10
   }
-
-  // Optional: External labels applied to all logs
-  // external_labels = {
-  //   cluster = "dev-cluster",
-  // }
 }

@@ -1,7 +1,5 @@
 package org.ecocean.api;
 
-// generally built from servlet/LoginUser.java
-
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +19,7 @@ import org.apache.shiro.web.util.SavedRequest;
 import org.apache.shiro.web.util.WebUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.message.MapMessage;
 
 import org.ecocean.servlet.ServletUtilities;
@@ -42,116 +41,215 @@ public class Login extends ApiBase {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
 
-        logger.info(new MapMessage()
-            .with("action", "login_dopost_started"));
-        JSONObject loginData = ServletUtilities.jsonFromHttpServletRequest(request);
+        long startTime = System.currentTimeMillis();
+        String requestId = java.util.UUID.randomUUID().toString();
+        String context = ServletUtilities.getContext(request);
+        String clientIp = getClientIpAddress(request);
+        String userAgent = request.getHeader("User-Agent");
+
+        // Set thread context for all logs in this request
+        ThreadContext.put("request_id", requestId);
+        ThreadContext.put("endpoint", "/api/login");
+        ThreadContext.put("http_method", request.getMethod());
+        ThreadContext.put("client_ip", clientIp);
+        ThreadContext.put("domain", context);
+
+        JSONObject loginData = null;
+        String username = null;
         boolean success = false;
         User user = null;
         JSONObject results = new JSONObject();
+        Shepherd myShepherd = null;
 
-        results.put("error", "login_empty_data");
-        results.put("success", false);
-        if (loginData != null) {
-            String username = loginData.optString("username", null);
+        try {
+            logger.info(new MapMessage()
+                    .with("action", "login_started")
+                    .with("client_ip", clientIp)
+                    .with("user_agent", userAgent));
+
+            loginData = ServletUtilities.jsonFromHttpServletRequest(request);
+
+            if (loginData == null || loginData.isEmpty()) {
+                logger.warn(new MapMessage()
+                        .with("action", "login_failed")
+                        .with("error_type", "empty_payload")
+                        .with("client_ip", clientIp));
+                results.put("error", "login_empty_data");
+                results.put("success", false);
+                response.setStatus(400);
+                return;
+            }
+
+            username = loginData.optString("username", null);
             String password = loginData.optString("password", null);
-            String salt = null;
-            String context = ServletUtilities.getContext(request);
-            Shepherd myShepherd = new Shepherd(context);
+
+            // Validate input
+            if (username == null || username.trim().isEmpty()) {
+                logger.warn(new MapMessage()
+                        .with("action", "login_failed")
+                        .with("error_type", "missing_username")
+                        .with("client_ip", clientIp));
+                results.put("error", "missing_username");
+                results.put("success", false);
+                response.setStatus(400);
+                return;
+            }
+
+            if (password == null || password.isEmpty()) {
+                logger.warn(new MapMessage()
+                        .with("action", "login_failed")
+                        .with("username", username)
+                        .with("error_type", "missing_password")
+                        .with("client_ip", clientIp));
+                results.put("error", "missing_password");
+                results.put("success", false);
+                response.setStatus(400);
+                return;
+            }
+
+            ThreadContext.put("username", username);
+
+            myShepherd = new Shepherd(context);
             myShepherd.setAction("api.Login");
             myShepherd.beginDBTransaction();
-            logger.info(new MapMessage()
-                    .with("action", "login_dopost_getuser")
+            logger.debug(new MapMessage()
+                    .with("action", "login_fetching_user")
                     .with("username", username));
+
             try {
                 user = myShepherd.getUser(username);
-                salt = user.getSalt();
-                // user.setAcceptedUserAgreement(true);
-                // myShepherd.commitDBTransaction();
-            } catch (Exception ex) {
-                myShepherd.rollbackAndClose();
-                results.put("error", "invalid_credentials");
-            }
-            if (user != null) {
+
+                if (user == null) {
+                    logger.warn(new MapMessage()
+                            .with("action", "login_failed")
+                            .with("username", username)
+                            .with("error_type", "user_not_found")
+                            .with("client_ip", clientIp));
+                    results.put("error", "invalid_credentials");
+                    results.put("success", false);
+                    response.setStatus(401);
+                    return;
+                }
+
+                String salt = user.getSalt();
                 String hashedPassword = ServletUtilities.hashAndSaltPassword(password, salt);
                 UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
-                try {
-                    // get the user (aka subject) associated with this request.
-                    Subject subject = SecurityUtils.getSubject();
-                    Session session = subject.getSession();
-                    subject.login(token);
-                    user.setLastLogin((new Date()).getTime());
-                    myShepherd.commitDBTransaction();
-                    token.clear();
-                    success = true;
-                    results = user.infoJSONObject(myShepherd, true);
-                    results.put("success", true);
 
-                    // check for redirect URL
-                    SavedRequest saved = WebUtils.getAndClearSavedRequest(request);
-                    if (saved != null) {
-                        results.put("redirectUrl", saved.getRequestUrl());
+
+                // Get the subject and attempt login
+                Subject subject = SecurityUtils.getSubject();
+                Session session = subject.getSession();
+                String sessionId = session.getId().toString();
+
+                ThreadContext.put("session_id", sessionId);
+                ThreadContext.put("user_id", user.getUsername());
+
+                logger.debug(new MapMessage()
+                        .with("action", "login_attempting_authentication")
+                        .with("username", username)
+                        .with("session_id", sessionId));
+
+                subject.login(token);
+
+                // Login successful
+                user.setLastLogin((new Date()).getTime());
+                myShepherd.commitDBTransaction();
+                token.clear();
+
+                success = true;
+                results = user.infoJSONObject(myShepherd, true);
+                results.put("success", true);
+
+                // Check for redirect URL
+                SavedRequest saved = WebUtils.getAndClearSavedRequest(request);
+                String redirectUrl = null;
+                if (saved != null) {
+                    redirectUrl = saved.getRequestUrl();
+                    results.put("redirectUrl", redirectUrl);
+                }
+
+                long duration = System.currentTimeMillis() - startTime;
+                logger.info(new MapMessage()
+                        .with("action", "login_success")
+                        .with("username", username)
+                        .with("user_id", user.getUsername())
+                        .with("session_id", sessionId)
+                        .with("client_ip", clientIp)
+                        .with("has_redirect", redirectUrl != null)
+                        .with("duration_ms", duration));
+            } catch (UnknownAccountException ex) {
+                logger.warn(new MapMessage()
+                        .with("action", "login_failed")
+                        .with("username", username)
+                        .with("error_type", "unknown_account")
+                        .with("client_ip", clientIp)
+                        .with("duration_ms", System.currentTimeMillis() - startTime), ex);
+                results.put("error", "invalid_credentials");
+                results.put("success", false);
+
+            } catch (IncorrectCredentialsException ex) {
+                logger.warn(new MapMessage()
+                        .with("action", "login_failed")
+                        .with("username", username)
+                        .with("error_type", "incorrect_password")
+                        .with("client_ip", clientIp)
+                        .with("duration_ms", System.currentTimeMillis() - startTime), ex);
+                results.put("error", "invalid_credentials");
+                results.put("success", false);
+
+            } catch (Exception ex) {
+                logger.error(new MapMessage()
+                        .with("action", "login_failed")
+                        .with("username", username)
+                        .with("error_type", ex.getClass().getSimpleName())
+                        .with("error_message", ex.getMessage())
+                        .with("client_ip", clientIp)
+                        .with("duration_ms", System.currentTimeMillis() - startTime), ex);
+                results.put("error", "authentication_error");
+                results.put("success", false);
+
+            } finally {
+                if (myShepherd != null) {
+                    if (!success && myShepherd.isDBTransactionActive()) {
+                        myShepherd.rollbackDBTransaction();
                     }
-                    logger.info(new MapMessage()
-                            .with("action", "login_dopost_userauthenticated")
-                            .with("username", username));
-                } catch (UnknownAccountException ex) {
-                    // username not found
-                    // ex.printStackTrace();
-                    // results.put("error", ex.getMessage());
-                    logger.error(new MapMessage()
-                            .with("action", "login_dopost_failed")
-                            .with("username", username)
-                            .with("error_type", ex.getClass().getSimpleName())
-                            .with("error_message", ex.getMessage()), ex);
-                    results.put("error", "invalid_credentials");
-                } catch (IncorrectCredentialsException ex) {
-                    // wrong password
-                    // ex.printStackTrace();
-                    // results.put("error", ex.getMessage());
-                    logger.error(new MapMessage()
-                            .with("action", "login_dopost_failed")
-                            .with("username", username)
-                            .with("error_type", ex.getClass().getSimpleName())
-                            .with("error_message", ex.getMessage()), ex);
-                    results.put("error", "invalid_credentials");
-                } catch (Exception ex) {
-                    // ex.printStackTrace();
-                    // results.put("error", "unknown error");
-                    logger.error(new MapMessage()
-                            .with("action", "login_dopost_failed")
-                            .with("username", username)
-                            .with("error_type", ex.getClass().getSimpleName())
-                            .with("error_message", ex.getMessage()), ex);
-                    results.put("error", "invalid_credentials");
-                } finally {
-                    myShepherd.rollbackDBTransaction();
                     myShepherd.closeDBTransaction();
                 }
             }
-            // log this !(user != null) condition?
-            if (myShepherd.isDBTransactionActive()) myShepherd.rollbackAndClose();
-            logger.info(new MapMessage()
-                    .with("action", "login_dopost_setstausandreturn")
-                    .with("username", username)
-                    .with("status", success));
-        }
+        } finally {
+            // Final response
+            int statusCode = success ? 200 : (results.has("error") ? 401 : 500);
+            response.setStatus(statusCode);
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write(results.toString());
 
-        if (success) {
-            response.setStatus(200);
-        } else {
-            response.setStatus(401);
+            // Final log with summary
+            long totalDuration = System.currentTimeMillis() - startTime;
+            if (!success && username != null) {
+                logger.info(new MapMessage()
+                        .with("action", "login_completed")
+                        .with("username", username)
+                        .with("success", false)
+                        .with("status_code", statusCode)
+                        .with("duration_ms", totalDuration));
+            }
+            // Clear thread context
+            ThreadContext.clearAll();
         }
-        response.setHeader("Content-Type", "application/json");
-        response.getWriter().write(results.toString());
     }
 
-    private String getEnvironment() {
-        return System.getenv("ENVIRONMENT") != null ?
-                System.getenv("ENVIRONMENT") : "production";
-    }
-
-    private String getDomainName() {
-        return System.getenv("DOMAIN_NAME") != null ?
-                System.getenv("DOMAIN_NAME") : "unknown";
+    private String getClientIpAddress(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // If multiple IPs in X-Forwarded-For, take the first one
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip != null ? ip : "unknown";
     }
 }
