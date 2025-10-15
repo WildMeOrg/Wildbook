@@ -1411,7 +1411,9 @@ public class IBEISIA {
                 for detection, we have to check if we have generated any Annotations, which we then pass on to IA.intake() for identification ... BUT
              * only after we commit* (below) !! since ident stuff is queue-based
              */
-            newAnns = dres.optJSONObject("annotations");
+            System.out.println(
+                ">>>>>>>>>>>>>>>>>>>>>>>>>> SHORT-CIRCUIT of detection-to-identification <<<<<<<<<<<<<<<<<<<<<<<<");
+            /* newAnns = dres.optJSONObject("annotations"); */
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
             rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context, rootDir));
@@ -1683,15 +1685,22 @@ public class IBEISIA {
                     "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 task.setStatus("completed");
-                task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                task.setCompletionDateInMilliseconds();
                 // first we set the state here (before the updateDBTransaction)
                 for (Annotation ann : allAnns) {
                     ann.setIdentificationStatus(STATUS_PROCESSING_MLSERVICE);
                 }
                 myShepherd.updateDBTransaction();
                 // this will queue up annots to have embeddings extracted and set on annot
-                for (Annotation ann : allAnns) {
-                    ann.queueForEmbeddingExtraction(myShepherd);
+                if (allAnns.size() > 0) {
+                    Task embedTask = new Task(task);
+                    embedTask.setObjectAnnotations(allAnns);
+                    embedTask.setStatus("initiated");
+                    myShepherd.getPM().makePersistent(embedTask);
+                    myShepherd.updateDBTransaction();
+                    for (Annotation ann : allAnns) {
+                        ann.queueForEmbeddingExtraction(embedTask, myShepherd);
+                    }
                 }
                 if (amap.length() > 0) rtn.put("annotations", amap); // needed to kick off ident jobs with return value
 
@@ -1849,7 +1858,7 @@ public class IBEISIA {
         Task task = myShepherd.getTask(taskID);
         if (task != null) {
             task.setStatus("completed");
-            task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+            task.setCompletionDateInMilliseconds();
         }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();

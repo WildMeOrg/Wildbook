@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.ecocean.Annotation;
 import org.ecocean.Embedding;
+import org.ecocean.ia.Task;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
@@ -32,13 +33,18 @@ public class MLService {
 
     public JSONObject initiateRequest(MediaAsset ma, String taxonomyString)
     throws IOException {
-        addToQueue(createJobData(ma, taxonomyString));
+        addToQueue(createJobData(ma, taxonomyString), null);
         return null;
     }
 
     public JSONObject initiateRequest(Annotation ann, String taxonomyString)
     throws IOException {
-        addToQueue(createJobData(ann, taxonomyString));
+        return initiateRequest(ann, taxonomyString, null);
+    }
+
+    public JSONObject initiateRequest(Annotation ann, String taxonomyString, Task task)
+    throws IOException {
+        addToQueue(createJobData(ann, taxonomyString), task);
         return null;
     }
 
@@ -72,9 +78,10 @@ public class MLService {
         return configs;
     }
 
-    public void addToQueue(JSONObject jobData)
+    public void addToQueue(JSONObject jobData, Task task)
     throws IOException {
         if (jobData == null) return;
+        if (task != null) jobData.put("taskId", task.getId());
         IAGateway.addToDetectionQueue("context0", jobData.toString());
     }
 
@@ -110,11 +117,14 @@ public class MLService {
         myShepherd.setAction("MLService.processQueueJob");
         myShepherd.beginDBTransaction();
         FeatureType.initAll(myShepherd);
+        Task task = myShepherd.getTask(jobData.optString("taskId", null));
         JSONArray ids = jobData.optJSONArray("mediaAssetIds");
         try {
             // got some asset ids
             if (ids != null) {
                 for (String maId : Util.jsonArrayToStringList(ids)) {
+                    System.out.println("[DEBUG] MLService.processQueueJob() maId=" + maId + " [" +
+                        task + "]");
                     send(myShepherd.getMediaAsset(maId), jobData.optString("taxonomyString", null),
                         myShepherd);
                 }
@@ -123,16 +133,22 @@ public class MLService {
                 ids = jobData.optJSONArray("annotationIds");
                 if (ids != null) {
                     for (String annId : Util.jsonArrayToStringList(ids)) {
+                        System.out.println("[DEBUG] MLService.processQueueJob() annId=" + annId +
+                            " [" + task + "]");
                         send(myShepherd.getAnnotation(annId),
                             jobData.optString("taxonomyString", null), myShepherd);
                     }
                 }
             }
+            if (task != null) task.setStatus("completed");
         } catch (IAException iaex) {
-            System.out.println("processQueueJob() threw " + iaex + " with jobData=" + jobData);
+            System.out.println("MLService.processQueueJob() threw " + iaex + " with jobData=" +
+                jobData);
             iaex.printStackTrace();
+            if (task != null) task.setStatus("error");
             if (iaex.shouldRequeue()) requeueJob(jobData, iaex.shouldIncrement());
         } finally {
+            if (task != null) task.setCompletionDateInMilliseconds();
             myShepherd.commitDBTransaction();
             myShepherd.closeDBTransaction();
         }
@@ -231,6 +247,11 @@ public class MLService {
             JSONObject res = sendPayload(conf.optString("api_endpoint", null) + "/extract/",
                 payload);
             // got results, now we try to use them
+            JSONObject logRes = new JSONObject(res.toString());
+            if (logRes.optJSONArray("embeddings") != null)
+                logRes.put("embeddings",
+                    "TRUNCATED [length=" + logRes.getJSONArray("embeddings").toString().length() +
+                    "]");
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
                 "; RESPONSE => " + res);
             processAnnotationResults(ann, res, myShepherd);

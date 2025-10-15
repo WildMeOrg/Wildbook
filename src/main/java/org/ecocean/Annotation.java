@@ -1541,11 +1541,11 @@ public class Annotation extends Base implements java.io.Serializable {
         return ann;
     }
 
-    public void queueForEmbeddingExtraction(Shepherd myShepherd) {
+    public void queueForEmbeddingExtraction(Task task, Shepherd myShepherd) {
         MLService mlserv = new MLService();
 
         try {
-            mlserv.initiateRequest(this, this.getSpecies(myShepherd));
+            mlserv.initiateRequest(this, this.getSpecies(myShepherd), task);
         } catch (IOException ex) {
             System.out.println("[ERROR] queueForEmbeddingExtraction() failed on " + this + ": " +
                 ex);
