@@ -62,7 +62,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 // date time
 
-
 public class IBEISIA {
     // move this ish to its own class asap!
     private static final Map<String, String[]> speciesMap;
@@ -76,6 +75,7 @@ public class IBEISIA {
     public static String STATUS_PENDING = "pending"; // pending review (needs action by user)
     public static String STATUS_COMPLETE = "complete"; // process is done
     public static String STATUS_PROCESSING = "processing"; // off at IA, awaiting results
+    public static String STATUS_PROCESSING_MLSERVICE = "processing-mlservice"; // off at ml-service, awaiting results
     public static String STATUS_INITIATED = "initiated"; // initiated on our side but may or may not be processing on IA side
     public static String STATUS_ERROR = "error";
     public static final String IA_UNKNOWN_NAME = "____";
@@ -413,7 +413,7 @@ public class IBEISIA {
         JSONArray uuidList = new JSONArray();
 
         for (MediaAsset ma : mas) {
-        	if(ma.getAcmId()!=null)uuidList.put(toFancyUUID(ma.getAcmId()));
+            if (ma.getAcmId() != null) uuidList.put(toFancyUUID(ma.getAcmId()));
         }
         return uuidList;
     }
@@ -1493,8 +1493,7 @@ public class IBEISIA {
                     subParentTask.setParameters(taskParameters);
                     myShepherd2.storeNewTask(subParentTask);
                     myShepherd2.updateDBTransaction();
-                    
-                    
+
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
                     myShepherd2.storeNewTask(childTask);
@@ -1574,7 +1573,8 @@ public class IBEISIA {
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue; // was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getIdInt())) {
+                        if (ma.getAcmId().equals(iuuid) &&
+                            !alreadyDetected.contains(ma.getIdInt())) {
                             alreadyDetected.add(ma.getIdInt());
                             asset = ma;
                             break;
@@ -1684,7 +1684,15 @@ public class IBEISIA {
                 rtn.put("success", true);
                 task.setStatus("completed");
                 task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                // first we set the state here (before the updateDBTransaction)
+                for (Annotation ann : allAnns) {
+                    ann.setIdentificationStatus(STATUS_PROCESSING_MLSERVICE);
+                }
                 myShepherd.updateDBTransaction();
+                // this will queue up annots to have embeddings extracted and set on annot
+                for (Annotation ann : allAnns) {
+                    ann.queueForEmbeddingExtraction(myShepherd);
+                }
                 if (amap.length() > 0) rtn.put("annotations", amap); // needed to kick off ident jobs with return value
 
                 JSONObject jlog = new JSONObject();

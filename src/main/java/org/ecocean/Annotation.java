@@ -20,6 +20,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
@@ -1538,6 +1539,18 @@ public class Annotation extends Base implements java.io.Serializable {
             IBEISIA.sendAnnotationsNew(anns, context, myShepherd);
         } catch (Exception ex) {} // silently fail; they will be synced up later
         return ann;
+    }
+
+    public void queueForEmbeddingExtraction(Shepherd myShepherd) {
+        MLService mlserv = new MLService();
+
+        try {
+            mlserv.initiateRequest(this, this.getSpecies(myShepherd));
+        } catch (IOException ex) {
+            System.out.println("[ERROR] queueForEmbeddingExtraction() failed on " + this + ": " +
+                ex);
+            ex.printStackTrace();
+        }
     }
 
     public static Object validateFieldValue(String fieldName, JSONObject data)
