@@ -111,17 +111,18 @@ public class TaskRetry extends HttpServlet {
                     }
 
                     org.ecocean.servlet.IAGateway.addToQueue(context, message);
-
-                    request.setAttribute("type", request.getParameter("type"));
-                    request.setAttribute("page", request.getParameter("page"));
-                    request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 pm.close();
             }
+
         }
+
+        request.setAttribute("type", request.getParameter("type"));
+        request.setAttribute("page", request.getParameter("page"));
+        request.getRequestDispatcher("/taskManagerRetry.jsp").forward(request, response);
     }
 
     private void getPMF(HttpServletRequest req, String servletID) {
