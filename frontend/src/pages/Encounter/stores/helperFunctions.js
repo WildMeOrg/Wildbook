@@ -133,7 +133,7 @@ function parseYMDHM(val) {
   };
 }
 
-function expandOperations(operations) {
+function expandOperations(operations, individualOptions = []) {
   const base = operations.slice();
   const out = [];
 
@@ -184,11 +184,15 @@ function expandOperations(operations) {
       continue;
     }
 
-    if (op.path === "individualDisplayName" && op.value) {
+    if (op.path === "individualDisplayName" && op.value) {     
+      console.log("individualDisplayName", JSON.stringify(op.value), JSON.stringify(individualOptions));
+      const value = individualOptions.find((opt) => opt.label === op.value)?.value;
+      console.log("individualDisplayName value", JSON.stringify(value));
+      if (!value) continue;      
       out.push({
         op: "replace",
         path: "individualId",
-        value: op.value,
+        value: value,
       });
       continue;
     }

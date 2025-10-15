@@ -6,7 +6,6 @@ import SearchAndSelectInput from '../../components/generalInputs/SearchAndSelect
 import { Alert } from "react-bootstrap";
 
 export const IdentifySectionEdit = observer(({ store }) => {
-    const [options, setOptions] = React.useState([]);
     return <div>
         <SelectInput
             label="MATCHED_BY"
@@ -33,9 +32,8 @@ export const IdentifySectionEdit = observer(({ store }) => {
                 store.getFieldValue("identify", "individualDisplayName") ?? ""
             }
             onChange={(v) => {
-                console.log("set individualDisplayName", v)
-                const label = options.find((opt) => opt.value === v)?.label;
-                store.setFieldValue("identify", "individualDisplayName", label)
+                const label = store.individualOptions.find((opt) => opt.value === v)?.label;
+                store.setFieldValue("identify", "individualDisplayName", label);
             }
             }
             options={[]}
@@ -45,7 +43,7 @@ export const IdentifySectionEdit = observer(({ store }) => {
                     value: String(it.id),
                     label: it.displayName,
                 }));
-                setOptions(options);                
+                store.setIndividualOptions(options);
                 return options;
             }}
             debounceMs={300}

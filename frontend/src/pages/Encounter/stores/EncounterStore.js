@@ -46,6 +46,7 @@ class EncounterStore {
   _sightingSearchResults = [];
   _sightingSearchInput = "";
 
+  _individualOptions = [];
   _taxonomyOptions = [];
   _livingStatusOptions = [];
   _sexOptions = [];
@@ -274,6 +275,14 @@ class EncounterStore {
   }
   setselectedAlgorithm(algorithm) {
     this._selectedAlgorithm = algorithm;
+  }
+
+  get individualOptions() { 
+    return this._individualOptions || []; 
+  }
+
+  setIndividualOptions(options) {
+    this._individualOptions = options;
   }
 
   async addNewPerson() {
@@ -977,7 +986,7 @@ class EncounterStore {
       return;
     }
 
-    const expanded = expandOperations(operations);
+    const expanded = expandOperations(operations, this.individualOptions);
     if (expanded.length === 0) {
       this.resetSectionDraft(sectionName);
       return;
