@@ -5,6 +5,7 @@ import ImageModal from "../../components/ImageModal";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
 import ImageIcon from "../../components/icons/ImageIcon";
+import FullscreenIcon from "../../components/icons/FullscreenIcon";
 import MatchResultIcon from "../../components/icons/MatchResultIcon";
 import RefreshIcon from "../../components/icons/RefreshIcon";
 import PencilIcon from "../../components/icons/PencilIcon";
@@ -254,9 +255,9 @@ const ImageCard = observer(({ store = {} }) => {
                 }}
               >
                 {newRect.annotationId === clickedAnnotation?.id &&
-
-                  (newRect.encounterId === store.encounterData.id ?
-                    <div className="d-flex flex-column"
+                  (newRect.encounterId === store.encounterData.id ? (
+                    <div
+                      className="d-flex flex-column"
                       style={{
                         position: "absolute",
                         top: 0,
@@ -265,7 +266,8 @@ const ImageCard = observer(({ store = {} }) => {
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="d-flex align-items-center justify-content-center"
+                      <div
+                        className="d-flex align-items-center justify-content-center"
                         style={{
                           width: "18px",
                           height: "18px",
@@ -276,26 +278,41 @@ const ImageCard = observer(({ store = {} }) => {
                         onClick={() => {
                           if (
                             !store.imageModal.encounterData?.mediaAssets[
-                            store.imageModal.selectedImageIndex
+                              store.imageModal.selectedImageIndex
                             ] ||
                             !annotationParam
                           ) {
                             return;
                           }
-                          const assetId = store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
+                          const assetId =
+                            store.encounterData?.mediaAssets[
+                              store.selectedImageIndex
+                            ]?.id;
                           window.open(
                             `/react/edit-annotation?encounterId=${newRect.encounterId}&assetId=${assetId}&annotation=${annotationParam}&annotationId=${newRect?.annotationId}`,
                             "_blank",
                           );
                         }}
                       >
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M2.49896 17.501H5.62396L14.8406 8.28438L11.7156 5.15938L2.49896 14.376V17.501ZM4.16563 15.0677L11.7156 7.51771L12.4823 8.28438L4.9323 15.8344H4.16563V15.0677Z" fill="white" />
-                          <path d="M15.3073 2.74271C14.9823 2.41771 14.4573 2.41771 14.1323 2.74271L12.6073 4.26771L15.7323 7.39271L17.2573 5.86771C17.5823 5.54271 17.5823 5.01771 17.2573 4.69271L15.3073 2.74271Z" fill="white" />
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M2.49896 17.501H5.62396L14.8406 8.28438L11.7156 5.15938L2.49896 14.376V17.501ZM4.16563 15.0677L11.7156 7.51771L12.4823 8.28438L4.9323 15.8344H4.16563V15.0677Z"
+                            fill="white"
+                          />
+                          <path
+                            d="M15.3073 2.74271C14.9823 2.41771 14.4573 2.41771 14.1323 2.74271L12.6073 4.26771L15.7323 7.39271L17.2573 5.86771C17.5823 5.54271 17.5823 5.01771 17.2573 4.69271L15.3073 2.74271Z"
+                            fill="white"
+                          />
                         </svg>
-
                       </div>
-                      <div className="d-flex align-items-center justify-content-center"
+                      <div
+                        className="d-flex align-items-center justify-content-center"
                         style={{
                           width: "18px",
                           height: "18px",
@@ -317,14 +334,23 @@ const ImageCard = observer(({ store = {} }) => {
                           }
                         }}
                       >
-                        <svg width="12" height="16" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9.33335 5.5V13.8333H2.66669V5.5H9.33335ZM8.08335 0.5H3.91669L3.08335 1.33333H0.166687V3H11.8334V1.33333H8.91669L8.08335 0.5ZM11 3.83333H1.00002V13.8333C1.00002 14.75 1.75002 15.5 2.66669 15.5H9.33335C10.25 15.5 11 14.75 11 13.8333V3.83333Z" fill="white" />
+                        <svg
+                          width="12"
+                          height="16"
+                          viewBox="0 0 12 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9.33335 5.5V13.8333H2.66669V5.5H9.33335ZM8.08335 0.5H3.91669L3.08335 1.33333H0.166687V3H11.8334V1.33333H8.91669L8.08335 0.5ZM11 3.83333H1.00002V13.8333C1.00002 14.75 1.75002 15.5 2.66669 15.5H9.33335C10.25 15.5 11 14.75 11 13.8333V3.83333Z"
+                            fill="white"
+                          />
                         </svg>
-
                       </div>
                     </div>
-                    :
-                    <div className="d-flex"
+                  ) : (
+                    <div
+                      className="d-flex"
                       style={{
                         position: "absolute",
                         top: 0,
@@ -333,7 +359,8 @@ const ImageCard = observer(({ store = {} }) => {
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="d-flex align-items-center justify-content-center"
+                      <div
+                        className="d-flex align-items-center justify-content-center"
                         style={{
                           width: "18px",
                           height: "18px",
@@ -346,14 +373,22 @@ const ImageCard = observer(({ store = {} }) => {
                           window.open(url, "_blank");
                         }}
                       >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M13.8333 13.8333H2.16667V2.16667H8V0.5H2.16667C1.24167 0.5 0.5 1.25 0.5 2.16667V13.8333C0.5 14.75 1.24167 15.5 2.16667 15.5H13.8333C14.75 15.5 15.5 14.75 15.5 13.8333V8H13.8333V13.8333ZM9.66667 0.5V2.16667H12.6583L4.46667 10.3583L5.64167 11.5333L13.8333 3.34167V6.33333H15.5V0.5H9.66667Z" fill="white" />
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M13.8333 13.8333H2.16667V2.16667H8V0.5H2.16667C1.24167 0.5 0.5 1.25 0.5 2.16667V13.8333C0.5 14.75 1.24167 15.5 2.16667 15.5H13.8333C14.75 15.5 15.5 14.75 15.5 13.8333V8H13.8333V13.8333ZM9.66667 0.5V2.16667H12.6583L4.46667 10.3583L5.64167 11.5333L13.8333 3.34167V6.33333H15.5V0.5H9.66667Z"
+                            fill="white"
+                          />
                         </svg>
                       </div>
-                    </div>)
-                }
+                    </div>
+                  ))}
               </div>
-
             );
           })}
 
@@ -369,6 +404,9 @@ const ImageCard = observer(({ store = {} }) => {
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
+        <div style={{ position: "absolute", top: 5, right: 5 }}>
+          <FullscreenIcon />
+        </div>
       </div>
 
       <div
@@ -388,20 +426,34 @@ const ImageCard = observer(({ store = {} }) => {
               const taskId = currentAnnotation?.iaTaskId;
               const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
               window.open(url, "_blank", "noopener,noreferrer");
-            } else if (clickedAnnotation && clickedAnnotation.encounterId !== store.encounterData?.id) {
+            } else if (
+              clickedAnnotation &&
+              clickedAnnotation.encounterId !== store.encounterData?.id
+            ) {
               const encounterId = clickedAnnotation.encounterId;
-              const result = await axios.get(`/api/v3/encounters/${encounterId}`);
+              const result = await axios.get(
+                `/api/v3/encounters/${encounterId}`,
+              );
               const encounterData = result.data;
-              const allAnnotations = (encounterData.mediaAssets || []).flatMap(a => a.annotations || []);
+              const allAnnotations = (encounterData.mediaAssets || []).flatMap(
+                (a) => a.annotations || [],
+              );
               const selectedAnnotation = allAnnotations.find(
                 (annotation) => annotation.id === clickedAnnotation?.id,
               );
-              const mediaAsset = encounterData.mediaAssets.find(data => Array.isArray(data.annotations) && data.annotations.some(a => a.id === clickedAnnotation?.id));
+              const mediaAsset = encounterData.mediaAssets.find(
+                (data) =>
+                  Array.isArray(data.annotations) &&
+                  data.annotations.some((a) => a.id === clickedAnnotation?.id),
+              );
               const iaTaskId = !!selectedAnnotation?.iaTaskId;
               const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
               const identActive = iaTaskId && !skipId;
-              const detectionComplete = mediaAsset?.detectionStatus === "complete";
-              const identificationStatus = selectedAnnotation?.identificationStatus === "complete" || selectedAnnotation?.identificationStatus === "pending";
+              const detectionComplete =
+                mediaAsset?.detectionStatus === "complete";
+              const identificationStatus =
+                selectedAnnotation?.identificationStatus === "complete" ||
+                selectedAnnotation?.identificationStatus === "pending";
 
               if (identActive && (detectionComplete || identificationStatus)) {
                 const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
