@@ -159,7 +159,9 @@ public class WildbookIAM extends IAPlugin {
             throw new MalformedURLException(
                       "WildbookIAM configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
-        int batchSize = 30;
+        // Reduced batch size to respect DynamoDB throughput limits (15 writes/sec)
+        // With 10 items per batch and 1 second delay, we stay well under the limit
+        int batchSize = 10;
         int numBatches = Math.round(mas.size() / batchSize + 1);
 
         // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
@@ -218,6 +220,17 @@ public class WildbookIAM extends IAPlugin {
                             " MediaAsset(s) acmId(s) via rectifyMediaAssetIds()");
                     }
                     bres.put(rtn);
+                    
+                    // Add delay between batches to respect DynamoDB throughput limits
+                   
+                    try {
+                        Thread.sleep(1000); // 1 second delay to stay under 15 writes/sec limit
+                        IA.log("INFO: WildbookIAM.sendMediaAssets() waiting 1 second before next batch to respect DynamoDB throughput limits");
+                    } catch (InterruptedException e) {
+                        IA.log("WARNING: WildbookIAM.sendMediaAssets() sleep interrupted: " + e.getMessage());
+                    }
+                    
+                    
                     // initialize for next batch (if any)
                     map.put("image_uri_list", new ArrayList<JSONObject>());
                     map.put("image_unixtime_list", new ArrayList<Integer>());
@@ -233,6 +246,7 @@ public class WildbookIAM extends IAPlugin {
         allRtn.put("batchResults", bres);
         return allRtn;
     }
+
 
     public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst,
         Shepherd myShepherd)
