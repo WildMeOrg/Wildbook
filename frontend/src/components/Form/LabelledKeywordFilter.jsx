@@ -183,12 +183,12 @@ export default function LabelledKeywordFilter({ data, store }) {
             </Form.Label>
             <Select
               isMulti
-              options={(data?.labeledKeyword[pair.labelledKeyword] || []).map(
-                (item) => ({
-                  value: item,
-                  label: item,
-                }),
-              )}
+              options={(
+                data?.labeledKeywordAllowedValues[pair.labelledKeyword] || []
+              ).map((item) => ({
+                value: item,
+                label: item,
+              }))}
               styles={colourStyles}
               menuPlacement="auto"
               menuPortalTarget={document.body}
