@@ -11,6 +11,7 @@ import java.util.List;
 import org.ecocean.Annotation;
 import org.ecocean.Embedding;
 import org.ecocean.ia.Task;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.Feature;
 import org.ecocean.media.FeatureType;
@@ -151,6 +152,14 @@ public class MLService {
             if (task != null) task.setCompletionDateInMilliseconds();
             myShepherd.commitDBTransaction();
             myShepherd.closeDBTransaction();
+
+            // now we are done we can fake a callback to initiate identification
+            JSONObject fakeResp = new JSONObject();
+            fakeResp.put("embeddingExtraction", true);
+            // FIXME build out this map:  newAnns = resp.optJSONObject("annotationMap");
+            JSONObject cbRes = IBEISIA.processCallback(((task == null) ? null : task.getId()),
+                fakeResp, myShepherd.getContext(), null);
+            System.out.println("[DEBUG] MLService.processQueueJob() cbRes=" + cbRes);
         }
     }
 
@@ -253,7 +262,7 @@ public class MLService {
                     "TRUNCATED [length=" + logRes.getJSONArray("embeddings").toString().length() +
                     "]");
             System.out.println("MLService.send() conf=" + conf + "; payload=" + payload +
-                "; RESPONSE => " + res);
+                "; RESPONSE => " + logRes);
             processAnnotationResults(ann, res, myShepherd);
             System.out.println("MLService.send() process results on " + ann);
         }

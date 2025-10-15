@@ -1343,6 +1343,7 @@ public class IBEISIA {
     }
 
     public static String getTaskType(ArrayList<IdentityServiceLog> logs) {
+        if (logs == null) return null;
         for (IdentityServiceLog l : logs) {
             JSONObject j = l.getStatusJson();
             if ((j == null) || j.optString("_action").equals("")) continue;
@@ -1413,10 +1414,16 @@ public class IBEISIA {
              */
             System.out.println(
                 ">>>>>>>>>>>>>>>>>>>>>>>>>> SHORT-CIRCUIT of detection-to-identification <<<<<<<<<<<<<<<<<<<<<<<<");
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " +
+                dres.optJSONObject("annotations"));
             /* newAnns = dres.optJSONObject("annotations"); */
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
             rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context, rootDir));
+        } else if (resp.optBoolean("embeddingExtraction", false)) {
+            System.out.println("[DEBUG] IBEISIA.processCallback() [embeddingExtraction] taskID=" +
+                taskID + "; resp=>" + resp);
+            newAnns = resp.optJSONObject("annotationMap");
         } else {
             rtn.put("error", "unknown task action type " + type);
         }
@@ -1695,6 +1702,10 @@ public class IBEISIA {
                 if (allAnns.size() > 0) {
                     Task embedTask = new Task(task);
                     embedTask.setObjectAnnotations(allAnns);
+                    if (embedTask.getParameters() == null)
+                        embedTask.setParameters(new JSONObject());
+                    embedTask.getParameters().remove("ibeis.detection");
+                    embedTask.getParameters().put("embeddingExtraction", true);
                     embedTask.setStatus("initiated");
                     myShepherd.getPM().makePersistent(embedTask);
                     myShepherd.updateDBTransaction();
