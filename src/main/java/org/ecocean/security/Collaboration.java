@@ -183,9 +183,9 @@ public class Collaboration implements java.io.Serializable {
         ArrayList<Collaboration> returnMe = new ArrayList<Collaboration>(c);
         query.closeAll();
 
-        returnMe = (ArrayList<Collaboration>) addAssumedOrgAdminCollaborations(returnMe,
-                myShepherd,
-                username);
+        // returnMe = (ArrayList<Collaboration>) addAssumedOrgAdminCollaborations(returnMe,
+        //         myShepherd,
+        //         username);
 
         return returnMe;
     }
@@ -211,7 +211,7 @@ public class Collaboration implements java.io.Serializable {
             returnMe = myShepherd.getAllOccurrences(query);
             query.closeAll();
 
-            returnMe = addAssumedOrgAdminCollaborations(returnMe, myShepherd, username);
+            // returnMe = addAssumedOrgAdminCollaborations(returnMe, myShepherd, username);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -262,19 +262,19 @@ public class Collaboration implements java.io.Serializable {
             // username1 is who we need to reconcile and might be an orgAdmin
             // this is consistent with the current method calling this function
             // if username 1 is an orgAdmin then look for assumed Collaborations
-            if (myShepherd.doesUserHaveRole(username1, "orgAdmin", myShepherd.getContext())) {
-                // this is a superset of collabs for username1
-                ArrayList<Collaboration> tempResults = new ArrayList<Collaboration>();
-                List<Collaboration> orgAdminCollabs = addAssumedOrgAdminCollaborations(tempResults,
-                        myShepherd, username1);
-                for (Collaboration c : orgAdminCollabs) {
-                    if (c.getUsername2().equals(username2)) {
-                        results.add(0, c);
-                        System.out.println("adding derived collab: " + c.toString());
-                    }
-                }
-                // System.out.println(" yState now: "+results.toString());
-            }
+            // if (myShepherd.doesUserHaveRole(username1, "orgAdmin", myShepherd.getContext())) {
+            //     // this is a superset of collabs for username1
+            //     ArrayList<Collaboration> tempResults = new ArrayList<Collaboration>();
+            //     List<Collaboration> orgAdminCollabs = addAssumedOrgAdminCollaborations(tempResults,
+            //             myShepherd, username1);
+            //     for (Collaboration c : orgAdminCollabs) {
+            //         if (c.getUsername2().equals(username2)) {
+            //             results.add(0, c);
+            //             System.out.println("adding derived collab: " + c.toString());
+            //         }
+            //     }
+            //     // System.out.println(" yState now: "+results.toString());
+            // }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
