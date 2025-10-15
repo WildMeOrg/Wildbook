@@ -92,7 +92,7 @@ class ImageModalStore {
     const siteSettings = this.encounterStore.siteSettingsData;
     return (
       siteSettings?.labeledKeywordAllowedValues?.[
-        this._selectedLabeledKeyword
+      this._selectedLabeledKeyword
       ] || []
     );
   }
@@ -111,26 +111,31 @@ class ImageModalStore {
     this._selectedAllowedValues = allowedValues;
   }
 
+  setOpenMatchCriteriaModal(isOpen) {
+    this.encounterStore.modals.setOpenMatchCriteriaModal(isOpen);
+  }
+
   get matchResultClickable() {
-    const selectedAnnotation = this.encounterAnnotations.find(
-      (annotation) => annotation.id === this.selectedAnnotationId,
-    );
+    // const selectedAnnotation = this.encounterAnnotations.find(
+    //   (annotation) => annotation.id === this.selectedAnnotationId,
+    // );
 
-    if (!selectedAnnotation) return false;
+    // if (!selectedAnnotation) return false;
 
-    const iaTaskId = !!selectedAnnotation?.iaTaskId;
-    const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
-    const identActive = iaTaskId && !skipId;
+    // const iaTaskId = !!selectedAnnotation?.iaTaskId;
+    // const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
+    // const identActive = iaTaskId && !skipId;
 
-    const encounterData = this.encounterStore.encounterData;
-    const detectionComplete =
-      encounterData?.mediaAssets?.[this.selectedImageIndex]?.detectionStatus ===
-      "complete";
-    const identificationStatus =
-      selectedAnnotation?.identificationStatus === "complete" ||
-      selectedAnnotation?.identificationStatus === "pending";
+    // const encounterData = this.encounterStore.encounterData;
+    // const detectionComplete =
+    //   encounterData?.mediaAssets?.[this.selectedImageIndex]?.detectionStatus ===
+    //   "complete";
+    // const identificationStatus =
+    //   selectedAnnotation?.identificationStatus === "complete" ||
+    //   selectedAnnotation?.identificationStatus === "pending";
 
-    return identActive && (detectionComplete || identificationStatus);
+    // return identActive && (detectionComplete || identificationStatus);
+    return this.encounterStore.matchResultClickable;
   }
 
   get currentMediaAsset() {
@@ -142,9 +147,9 @@ class ImageModalStore {
     return this.encounterStore.encounterData;
   }
 
-  get modals() {
-    return this.encounterStore.modals;
-  }
+  // get modals() {
+  //   return this.encounterStore.modals;
+  // }
 
   async removeAnnotation(annotationId) {
     const encounterData = this.encounterStore.encounterData;

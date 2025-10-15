@@ -94,9 +94,18 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
                 (store.newMatch.algorithms?.length ?? 0) === 0 ||
                 (store.newMatch.annotationIds?.length ?? 0) === 0
               }
-              onClick={() => {
-                store.newMatch.buildNewMatchPayload();
-                store.setMatchCriteriaModalOpen(false);
+              onClick={async () => {
+                const result = await store.newMatch.buildNewMatchPayload();
+                console.log(JSON.stringify(result, null, 2));
+                if (result.status === 200) {
+                  const url = `/iaResults.jsp?taskId=${result?.data?.taskId}`
+                  window.open(url, "_blank");
+                  store.modals.setOpenMatchCriteriaModal(false);
+                } else {
+                  alert(
+                    "There was an error creating the match. Please try again."
+                  );
+                }                
               }}
             >
               <FormattedMessage id="MATCH" />

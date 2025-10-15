@@ -61,7 +61,7 @@ export const MapDisplay = observer(
         className="mt-3 mb-3"
         style={{
           width: "100%",
-          height: 400,
+          height: 200,
           borderRadius: 15,
           overflow: "hidden",
         }}

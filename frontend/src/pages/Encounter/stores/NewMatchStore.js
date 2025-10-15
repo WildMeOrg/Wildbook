@@ -152,12 +152,10 @@ class NewMatchStore {
       fastlane: this._fastlane,
     };
 
-    return axios
-      .post("/ia", payload, {
-        headers: { "Content-Type": "application/json" },
-      })
-      .then((res) => console.log("Match created successfully", res.data))
-      .catch((err) => console.error("Error creating match", err));
+    const response = await axios.post("/ia", payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response;
   }
 }
 

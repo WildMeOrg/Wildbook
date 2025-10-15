@@ -7,7 +7,7 @@ import { FormattedMessage } from "react-intl";
 import ImageIcon from "../../components/icons/ImageIcon";
 import MatchResultIcon from "../../components/icons/MatchResultIcon";
 import RefreshIcon from "../../components/icons/RefreshIcon";
-import PencilIcon from "../../components/icons/PencilAnnotation";
+import PencilIcon from "../../components/icons/PencilIcon";
 import EyeIcon from "../../components/icons/EyeIcon";
 import Tooltip from "../../components/ToolTip";
 
@@ -22,6 +22,28 @@ const ImageCard = observer(({ store = {} }) => {
   const theme = useContext(ThemeColorContext);
   const boxRef = React.useRef(null);
   const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
+  const [clickedAnnotation, setClickedAnnotation] = useState(null);
+  const [editAnnotationParams, setEditAnnotationParams] = useState({});
+
+  const currentAnnotation =
+    store.encounterAnnotations.filter(
+      (a) => a.id === store.imageModal.selectedAnnotationId,
+    )?.[0] || null;
+
+  useEffect(() => {
+    if (!currentAnnotation) return;
+    setEditAnnotationParams({
+      x: currentAnnotation.boundingBox[0] || 0,
+      y: currentAnnotation.boundingBox[1] || 0,
+      width: currentAnnotation.boundingBox[2] || 0,
+      height: currentAnnotation.boundingBox[3] || 0,
+      theta: currentAnnotation.theta || 0,
+    });
+  }, [currentAnnotation]);
+
+  const annotationParam = encodeURIComponent(
+    JSON.stringify(editAnnotationParams),
+  );
 
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
@@ -106,13 +128,12 @@ const ImageCard = observer(({ store = {} }) => {
   }, [store, maxSize]);
 
   const handleClick = (encounterId, storeEncounterId, annotationId) => {
+    setClickedAnnotation(annotationId);
     if (encounterId === storeEncounterId) {
       store.setSelectedAnnotationId(annotationId);
-      setOpenImageModal(true);
       store.setSelectedImageIndex(store.selectedImageIndex);
-    } else {
-      const url = `/react/encounter?number=${encounterId}`;
-      window.open(url, "_blank");
+    }else {
+      store.setSelectedAnnotationId(null);
     }
   };
 
@@ -195,7 +216,7 @@ const ImageCard = observer(({ store = {} }) => {
                 key={index}
                 onMouseEnter={() =>
                   handleEnter(
-                    `Viewpoint: ${rect.viewpoint}\nIA Class: ${rect.iaClass}`,
+                    `${newRect.encounterId === store.encounterData.id ? "this encounter" : `encounter ${newRect.encounterId}`}\nViewpoint: ${newRect.viewpoint}\nIA Class: ${newRect.iaClass}`,
                   )
                 }
                 onMouseMove={handleMove}
@@ -209,14 +230,14 @@ const ImageCard = observer(({ store = {} }) => {
                   border:
                     newRect.encounterId === store.encounterData.id
                       ? "2px solid red"
-                      : "2px solid yellow",
+                      : "2px dotted red",
                   transform: `rotate(${(newRect.rotation * 180) / Math.PI}deg)`,
                   transformOrigin: "center",
                   cursor: "pointer",
                   zIndex: 10,
                   backgroundColor:
-                    newRect.annotationId === store.selectedAnnotationId
-                      ? "rgba(240, 11, 11, 0.5)"
+                    newRect.annotationId === clickedAnnotation
+                      ? "rgba(240, 11, 11, 0.3)"
                       : "transparent",
                 }}
                 onClick={(e) => {
@@ -227,7 +248,108 @@ const ImageCard = observer(({ store = {} }) => {
                     newRect.annotationId,
                   );
                 }}
-              ></div>
+              >
+                {newRect.annotationId === clickedAnnotation &&
+
+                  (newRect.encounterId === store.encounterData.id ?
+                    <div className="d-flex flex-column"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        zIndex: 20,
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="d-flex align-items-center justify-content-center"
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          backgroundColor: "red",
+                          cursor: "pointer",
+                          color: "white",
+                        }}
+                        onClick={() => {
+                          if (
+                            !store.imageModal.encounterData?.mediaAssets[
+                            store.imageModal.selectedImageIndex
+                            ] ||
+                            !annotationParam
+                          ) {
+                            return;
+                          }
+                          const assetId = store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
+                          window.open(
+                            `/react/edit-annotation?encounterId=${newRect.encounterId}&assetId=${assetId}&annotation=${annotationParam}&annotationId=${newRect?.annotationId}`,
+                            "_blank",
+                          );
+                        }}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M2.49896 17.501H5.62396L14.8406 8.28438L11.7156 5.15938L2.49896 14.376V17.501ZM4.16563 15.0677L11.7156 7.51771L12.4823 8.28438L4.9323 15.8344H4.16563V15.0677Z" fill="white" />
+                          <path d="M15.3073 2.74271C14.9823 2.41771 14.4573 2.41771 14.1323 2.74271L12.6073 4.26771L15.7323 7.39271L17.2573 5.86771C17.5823 5.54271 17.5823 5.01771 17.2573 4.69271L15.3073 2.74271Z" fill="white" />
+                        </svg>
+
+                      </div>
+                      <div className="d-flex align-items-center justify-content-center"
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          backgroundColor: "red",
+                          cursor: "pointer",
+                          color: "white",
+                        }}
+                        onClick={async () => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this annotation?",
+                            )
+                          ) {
+                            await store.imageModal.removeAnnotation(
+                              newRect.annotationId,
+                            );
+                            store.imageModal.setSelectedAnnotationId(null);
+                            store.imageModal.refreshEncounterData();
+                          }
+                        }}
+                      >
+                        <svg width="12" height="16" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9.33335 5.5V13.8333H2.66669V5.5H9.33335ZM8.08335 0.5H3.91669L3.08335 1.33333H0.166687V3H11.8334V1.33333H8.91669L8.08335 0.5ZM11 3.83333H1.00002V13.8333C1.00002 14.75 1.75002 15.5 2.66669 15.5H9.33335C10.25 15.5 11 14.75 11 13.8333V3.83333Z" fill="white" />
+                        </svg>
+
+                      </div>
+                    </div>
+                    :
+                    <div className="d-flex"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: -2,
+                        zIndex: 20,
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="d-flex align-items-center justify-content-center"
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          backgroundColor: "red",
+                          cursor: "pointer",
+                          color: "white",
+                        }}
+                        onClick={() => {
+                          const url = `/react/encounter?number=${newRect.encounterId}`;
+                          window.open(url, "_blank");
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.8333 13.8333H2.16667V2.16667H8V0.5H2.16667C1.24167 0.5 0.5 1.25 0.5 2.16667V13.8333C0.5 14.75 1.24167 15.5 2.16667 15.5H13.8333C14.75 15.5 15.5 14.75 15.5 13.8333V8H13.8333V13.8333ZM9.66667 0.5V2.16667H12.6583L4.46667 10.3583L5.64167 11.5333L13.8333 3.34167V6.33333H15.5V0.5H9.66667Z" fill="white" />
+                        </svg>
+                      </div>
+                    </div>)
+                }
+              </div>
+
             );
           })}
 
@@ -237,7 +359,7 @@ const ImageCard = observer(({ store = {} }) => {
             store.encounterData?.mediaAssets[store.selectedImageIndex]?.url ||
             ""
           }
-          alt="No image available"
+          alt="encounter image"
           style={{ width: "100%", height: "auto" }}
         />
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
@@ -258,8 +380,8 @@ const ImageCard = observer(({ store = {} }) => {
           className="d-flex align-items-center justify-content-center flex-column"
           style={{ cursor: "pointer", paddingTop: "20px" }}
           onClick={() => {
-            if (store.selectedAnnotationId && store.matchResultClickable) {
-              const taskId = store.selectedAnnotationId?.iaTaskId;
+            if (store.matchResultClickable) {
+              const taskId = currentAnnotation?.iaTaskId;
               const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
               window.open(url, "_blank", "noopener,noreferrer");
             } else {

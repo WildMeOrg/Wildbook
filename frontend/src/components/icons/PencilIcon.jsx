@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function PencilIcon() {
+export default function PencilIcon({styles = {}}) {
   return (
     <div
       style={{
@@ -9,6 +9,7 @@ export default function PencilIcon() {
         height: " 25px",
         justifyContent: "center",
         alignItems: "center",
+        ...styles
       }}
     >
       <svg

@@ -728,7 +728,7 @@ export const ImageModal = observer(
                     ) {
                       return;
                     }
-                    imageStore.modals.setOpenMatchCriteriaModal(true);
+                    imageStore.setOpenMatchCriteriaModal(true);
                   }}
                 >
                   <FormattedMessage id="NEW_MATCH" />

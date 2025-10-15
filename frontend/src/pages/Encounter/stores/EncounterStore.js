@@ -48,16 +48,6 @@ class EncounterStore {
   _sightingSearchResults = [];
   _sightingSearchInput = "";
 
-  // _tags = [];
-  // _addTagsFieldOpen = false;
-  // _availableKeywords = [];
-  // _availableKeywordsId = [];
-  // _selectedKeyword = null;
-  // _availabelLabeledKeywords = [];
-  // _labeledKeywordAllowedValues = [];
-  // _selectedLabeledKeyword = null;
-  // _selectedAllowedValues = [];
-
   _taxonomyOptions = [];
   _livingStatusOptions = [];
   _sexOptions = [];
