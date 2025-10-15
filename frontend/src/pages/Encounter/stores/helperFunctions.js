@@ -184,10 +184,19 @@ function expandOperations(operations) {
       continue;
     }
 
-    if (op.path === "individualID" && op.value) {
+    if (op.path === "individualDisplayName" && op.value) {
       out.push({
         op: "replace",
         path: "individualId",
+        value: op.value,
+      });
+      continue;
+    }
+
+    if (op.path === "occurrenceId" && op.value) {
+      out.push({
+        op: "replace",
+        path: "sightingId",
         value: op.value,
       });
       continue;

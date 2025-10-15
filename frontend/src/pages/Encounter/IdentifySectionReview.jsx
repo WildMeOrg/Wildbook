@@ -15,6 +15,10 @@ export const IdentifySectionReview = observer(({ store }) => {
         <AttributesAndValueComponent
             attributeId="ALTERNATE_ID"
             value={store.getFieldValue("identify", "otherCatalogNumbers")}
+        />  
+        <AttributesAndValueComponent
+            attributeId="SIGHTING_ID"
+            value={store.getFieldValue("identify", "occurrenceId")}
         />        
     </div>
 })

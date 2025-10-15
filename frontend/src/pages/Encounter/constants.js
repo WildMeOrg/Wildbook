@@ -5,6 +5,7 @@ const SECTION_FIELD_PATHS = {
     "individualDisplayName",
     "otherCatalogNumbers",
     "identificationRemarks",
+    "occurrenceId",
     "sightingId",
     "individualID",
   ],

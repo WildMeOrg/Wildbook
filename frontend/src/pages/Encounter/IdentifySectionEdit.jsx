@@ -6,6 +6,7 @@ import SearchAndSelectInput from '../../components/generalInputs/SearchAndSelect
 import { Alert } from "react-bootstrap";
 
 export const IdentifySectionEdit = observer(({ store }) => {
+    const [options, setOptions] = React.useState([]);
     return <div>
         <SelectInput
             label="MATCHED_BY"
@@ -29,10 +30,13 @@ export const IdentifySectionEdit = observer(({ store }) => {
         <SearchAndSelectInput
             label="INDIVIDUAL_ID"
             value={
-                store.getFieldValue("identify", "individualID") ?? ""
+                store.getFieldValue("identify", "individualDisplayName") ?? ""
             }
-            onChange={(v) =>
-                store.setFieldValue("identify", "individualID", v)
+            onChange={(v) => {
+                console.log("set individualDisplayName", v)
+                const label = options.find((opt) => opt.value === v)?.label;
+                store.setFieldValue("identify", "individualDisplayName", label)
+            }
             }
             options={[]}
             loadOptions={async (q) => {
@@ -41,6 +45,7 @@ export const IdentifySectionEdit = observer(({ store }) => {
                     value: String(it.id),
                     label: it.displayName,
                 }));
+                setOptions(options);                
                 return options;
             }}
             debounceMs={300}
@@ -66,10 +71,10 @@ export const IdentifySectionEdit = observer(({ store }) => {
         <SearchAndSelectInput
             label="SIGHTING_ID"
             value={
-                store.getFieldValue("identify", "occurrenceID") ?? ""
+                store.getFieldValue("identify", "occurrenceId") ?? ""
             }
             onChange={(v) =>
-                store.setFieldValue("identify", "sightingId", v)
+                store.setFieldValue("identify", "occurrenceId", v)
             }
             options={[]}
             loadOptions={async (q) => {
