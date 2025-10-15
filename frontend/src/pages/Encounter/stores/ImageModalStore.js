@@ -116,25 +116,6 @@ class ImageModalStore {
   }
 
   get matchResultClickable() {
-    // const selectedAnnotation = this.encounterAnnotations.find(
-    //   (annotation) => annotation.id === this.selectedAnnotationId,
-    // );
-
-    // if (!selectedAnnotation) return false;
-
-    // const iaTaskId = !!selectedAnnotation?.iaTaskId;
-    // const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
-    // const identActive = iaTaskId && !skipId;
-
-    // const encounterData = this.encounterStore.encounterData;
-    // const detectionComplete =
-    //   encounterData?.mediaAssets?.[this.selectedImageIndex]?.detectionStatus ===
-    //   "complete";
-    // const identificationStatus =
-    //   selectedAnnotation?.identificationStatus === "complete" ||
-    //   selectedAnnotation?.identificationStatus === "pending";
-
-    // return identActive && (detectionComplete || identificationStatus);
     return this.encounterStore.matchResultClickable;
   }
 
@@ -146,10 +127,6 @@ class ImageModalStore {
   get encounterData() {
     return this.encounterStore.encounterData;
   }
-
-  // get modals() {
-  //   return this.encounterStore.modals;
-  // }
 
   async removeAnnotation(annotationId) {
     const encounterData = this.encounterStore.encounterData;

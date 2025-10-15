@@ -10,6 +10,7 @@ import RefreshIcon from "../../components/icons/RefreshIcon";
 import PencilIcon from "../../components/icons/PencilIcon";
 import EyeIcon from "../../components/icons/EyeIcon";
 import Tooltip from "../../components/ToolTip";
+import axios from "axios";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -128,11 +129,14 @@ const ImageCard = observer(({ store = {} }) => {
   }, [store, maxSize]);
 
   const handleClick = (encounterId, storeEncounterId, annotationId) => {
-    setClickedAnnotation(annotationId);
+    setClickedAnnotation({
+      encounterId,
+      id: annotationId,
+    });
     if (encounterId === storeEncounterId) {
       store.setSelectedAnnotationId(annotationId);
       store.setSelectedImageIndex(store.selectedImageIndex);
-    }else {
+    } else {
       store.setSelectedAnnotationId(null);
     }
   };
@@ -236,7 +240,7 @@ const ImageCard = observer(({ store = {} }) => {
                   cursor: "pointer",
                   zIndex: 10,
                   backgroundColor:
-                    newRect.annotationId === clickedAnnotation
+                    newRect.annotationId === clickedAnnotation?.id
                       ? "rgba(240, 11, 11, 0.3)"
                       : "transparent",
                 }}
@@ -249,7 +253,7 @@ const ImageCard = observer(({ store = {} }) => {
                   );
                 }}
               >
-                {newRect.annotationId === clickedAnnotation &&
+                {newRect.annotationId === clickedAnnotation?.id &&
 
                   (newRect.encounterId === store.encounterData.id ?
                     <div className="d-flex flex-column"
@@ -379,13 +383,36 @@ const ImageCard = observer(({ store = {} }) => {
         <div
           className="d-flex align-items-center justify-content-center flex-column"
           style={{ cursor: "pointer", paddingTop: "20px" }}
-          onClick={() => {
+          onClick={async () => {
             if (store.matchResultClickable) {
               const taskId = currentAnnotation?.iaTaskId;
               const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
               window.open(url, "_blank", "noopener,noreferrer");
+            } else if (clickedAnnotation && clickedAnnotation.encounterId !== store.encounterData?.id) {
+              const encounterId = clickedAnnotation.encounterId;
+              const result = await axios.get(`/api/v3/encounters/${encounterId}`);
+              const encounterData = result.data;
+              const allAnnotations = (encounterData.mediaAssets || []).flatMap(a => a.annotations || []);
+              const selectedAnnotation = allAnnotations.find(
+                (annotation) => annotation.id === clickedAnnotation?.id,
+              );
+              const mediaAsset = encounterData.mediaAssets.find(data => Array.isArray(data.annotations) && data.annotations.some(a => a.id === clickedAnnotation?.id));
+              const iaTaskId = !!selectedAnnotation?.iaTaskId;
+              const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
+              const identActive = iaTaskId && !skipId;
+              const detectionComplete = mediaAsset?.detectionStatus === "complete";
+              const identificationStatus = selectedAnnotation?.identificationStatus === "complete" || selectedAnnotation?.identificationStatus === "pending";
+
+              if (identActive && (detectionComplete || identificationStatus)) {
+                const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
+                window.open(url, "_blank", "noopener,noreferrer");
+              } else {
+                alert("No match results available for this annotation.");
+              }
+            } else if (clickedAnnotation?.id) {
+              alert("No match results available for this annotation.");
             } else {
-              alert("Please select an annotation to view match results.");
+              alert("Select an annotation to view match results.");
             }
           }}
         >

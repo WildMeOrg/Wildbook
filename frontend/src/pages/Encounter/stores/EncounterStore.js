@@ -35,8 +35,6 @@ class EncounterStore {
   _lat = null;
   _lon = null;
 
-  // _showAnnotations = true;
-
   _newPersonName = '';
   _newPersonEmail = '';
   _newPersonRole = '';
@@ -454,65 +452,6 @@ class EncounterStore {
     );
   }
 
-  // get showAnnotations() {
-  //   return this._showAnnotations;
-  // }
-  // setShowAnnotations(show) {
-  //   this._showAnnotations = show;
-  // }
-
-  // get tags() {
-  //   return this._encounterData?.mediaAssets?.[this._selectedImageIndex]?.keywords || [];
-  // }
-  // setTags(newTags) {
-  //   this._tags = newTags;
-  // }
-
-  // get addTagsFieldOpen() {
-  //   return this._addTagsFieldOpen;
-  // }
-  // setAddTagsFieldOpen(add) {
-  //   this._addTagsFieldOpen = add;
-  // }
-
-  // get availableKeywords() {
-  //   return this._siteSettingsData?.keyword || [];
-  // }
-
-  // get availableKeywordsId() {
-  //   return this._siteSettingsData?.keywordId || [];
-  // }
-
-  // get selectedKeyword() {
-  //   return this._selectedKeyword;
-  // }
-  // setSelectedKeyword(keyword) {
-  //   this._selectedKeyword = keyword;
-  // }
-
-  // get availabelLabeledKeywords() {
-  //   return Object.keys(this._siteSettingsData?.labeledKeyword) || [];
-  // }
-
-  // get labeledKeywordAllowedValues() {
-  //   return this._siteSettingsData?.labeledKeywordAllowedValues[this.selectedLabeledKeyword] || [];
-  // }
-
-  // get selectedLabeledKeyword() {
-  //   return this._selectedLabeledKeyword;
-  // }
-  // setSelectedLabeledKeyword(keyword) {
-  //   this._selectedLabeledKeyword = keyword;
-  // }
-
-  // get selectedAllowedValues() {
-  //   return this._selectedAllowedValues;
-  // }
-
-  // setSelectedAllowedValues(allowedValues) {
-  //   this._selectedAllowedValues = allowedValues;
-  // }
-
   get taxonomyOptions() {
     return this._taxonomyOptions;
   }
@@ -848,9 +787,9 @@ class EncounterStore {
       console.error("patchTracking failed:", resp);
     }
   }
-  async patchMeasurements() {    
+  async patchMeasurements() {
     this.measurementValues.map(async (measurement) => {
-      if(measurement.value === "" || measurement.value == null) {
+      if (measurement.value === "" || measurement.value == null) {
         this.errors.setFieldError('measurement', measurement.type, 'value cannot be empty');
         return;
       }
@@ -903,7 +842,7 @@ class EncounterStore {
       flow.upload();
     });
 
-    flow.on("fileSuccess", async (file, message) => {
+    flow.on("fileSuccess", async (file) => {
       try {
         const op = {
           op: "add",
@@ -954,36 +893,6 @@ class EncounterStore {
     this._encounterData = nextEncounter;
 
   }
-
-  // removeAnnotation(annotationId) {
-  //   return axios.patch(
-  //     `/api/v3/encounters/${this._encounterData.id}`,
-  //     [
-  //       {
-  //         op: "remove",
-  //         path: "annotations",
-  //         value: annotationId,
-  //       },
-  //     ],
-  //     {
-  //       headers: { "Content-Type": "application/json" },
-  //     }
-  //   )
-  // }
-
-  // deleteImage(encounterId, mediaAssetId) {
-  //   return axios.post(
-  //     "/MediaAssetAttach",
-  //     {
-  //       detach: "true",
-  //       EncounterID: this._encounterData.id,
-  //       MediaAssetID: this._encounterData.mediaAssets[this._selectedImageIndex].id,
-  //     },
-  //     {
-  //       headers: { "Content-Type": "application/json" },
-  //     }
-  //   );
-  // }
 
   async searchIndividualsByName(inputValue) {
 
