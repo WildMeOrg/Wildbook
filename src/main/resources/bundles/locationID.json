@@ -88,9 +88,9 @@
  			 },
 			"locationID": [
 				{
-					"name": "BeNP",
-					"id": "BeNP",
-					"description": "Bénoué National Park",
+					"name": "Benoue National Park",
+					"id": "Benoue National Park",
+					"description": "Benoue National Park",
 					"prefix": "BeNP",
 					"prefixDigitPadding": 4,
 					"geospatialInfo":{
@@ -565,6 +565,11 @@
 						{
 							"name": "Ol Chorro Conservancy",
 							"id": "Ol Chorro Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Ol Derkesi Conservancy",
+							"id": "Ol Derkesi Conservancy",
 							"locationID": []
 						},
 						{
@@ -1167,8 +1172,22 @@
 				"locationID":[]
 			}
 		]
-	},
-		
+	    },
+		{
+			"name": "Nigeria",
+			"id": "Nigeria",
+			"locationID": [
+				{
+                "name": "Sumu Wildlife Park",
+				"id": "Sumu Wildlife Park",
+				"geospatialInfo": {
+					"lat": 10.64000,
+					"long": 9.65843
+				},
+				"locationID": []
+				}
+			]
+		},
 		{
 			"name": "Rwanda",
 			"id": "Rwanda",
@@ -1329,8 +1348,8 @@
 			"id": "Tanzania",
 			"locationID": [
 				{
-					"name": "ANP",
-					"id": "ANP",
+					"name": "Arusha National Park",
+					"id": "Arusha National Park",
 					"description": "Arusha National Park",
 					"geospatialInfo":{
 		 			 	"lat":-3.2,
@@ -1339,8 +1358,8 @@
 					  "locationID":[]
 				},
 				{
-					"name": "RNP",
-					"id": "RNP",
+					"name": "Ruaha National Park",
+					"id": "Ruaha National Park",
 					"description": "Ruaha National Park",
 					"geospatialInfo":{
 		 			 	"lat":-7.5,
@@ -1358,8 +1377,8 @@
 					"locationID": []
 				},
 				{
-					"name": "SGR",
-					"id": "SGR",
+					"name": "Selous Game Reserve",
+					"id": "Selous Game Reserve",
 					"description": "Selous Game Reserve",
 					"geospatialInfo":{
 		 			 	"lat":-9.0,
