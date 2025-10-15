@@ -364,7 +364,8 @@ public class Annotation extends Base implements java.io.Serializable {
                    (getHeight() == (int)ma.getHeight()));
     }
 
-// theta has been stored in Feature for forever
+// .theta property on Annotation usage is deprecated, instead we get
+// the value from the Feature [ and likewise deprecate setTheta() ]
     public double getTheta() {
         Feature ft = getFeature();
 
