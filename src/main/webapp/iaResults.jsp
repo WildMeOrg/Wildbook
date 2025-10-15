@@ -318,7 +318,15 @@ h4.intro.accordion .rotate-chevron.down {
 						locationIds.add(locationIdsJson.getString(i));
 					}
 				} catch (Exception e) {
-					// pass
+					// Try singular locationId as fallback
+					try {
+						String locationId = matchingSetFilter.getString("locationId");
+						if (locationId != null && !locationId.trim().isEmpty()) {
+							locationIds.add(locationId);
+						}
+					} catch (Exception e2) {
+						// pass
+					}
 				}
 			%>
 			<p><strong>Matching criteria selected:</strong></p>
