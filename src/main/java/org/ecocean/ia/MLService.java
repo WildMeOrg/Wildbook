@@ -158,7 +158,16 @@ public class MLService {
                 // now we are done we can fake a callback to initiate identification
                 JSONObject fakeResp = new JSONObject();
                 fakeResp.put("embeddingExtraction", true);
-                // FIXME build out this map:  newAnns = resp.optJSONObject("annotationMap");
+                // taskComplete is only true if we have *some* annots
+                JSONObject annMap = new JSONObject();
+                for (Annotation ann : task.getObjectAnnotations()) {
+                    MediaAsset ma = ann.getMediaAsset();
+                    if (ma == null) continue; // snh
+                    if (!annMap.has(ma.getId())) annMap.put(ma.getId(), new JSONArray());
+                    annMap.getJSONArray(ma.getId()).put(ann.getId());
+                }
+                System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + annMap);
+                fakeResp.put("_____annotationMap", annMap);
                 JSONObject cbRes = IBEISIA.processCallback(task.getId(), fakeResp,
                     myShepherd.getContext(), null);
                 System.out.println("[DEBUG] MLService.processQueueJob() [" + task +
@@ -173,13 +182,16 @@ public class MLService {
         List<Annotation> anns = task.getObjectAnnotations();
         // we return false here because there is no reason to send to ident in this case
         if (Util.collectionIsEmptyOrNull(anns)) return false;
-        boolean done = false;
-        System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " + task);
+        // we iterate over annotations and only return false if we find one explicitly still
+        // in processing state. this means *any* other (complete, error, etc) get counted as "done"
         for (Annotation ann : anns) {
-            System.out.println("??????? extracted? [" + ann.getIdentificationStatus() + "] <= " +
-                ann);
+            if (IBEISIA.STATUS_PROCESSING_MLSERVICE.equals(ann.getIdentificationStatus()))
+                return false;
         }
-        return done;
+        System.out.println(
+            "[DEBUG] MLService.areAllEmbeddingsExtracted() fell thru (aka true) on " + anns.size() +
+            " annots for " + task);
+        return true;
     }
 
     public void requeueJob(JSONObject jobData, boolean increment) {
