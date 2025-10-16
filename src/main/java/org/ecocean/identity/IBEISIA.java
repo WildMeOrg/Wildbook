@@ -1402,7 +1402,7 @@ public class IBEISIA {
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA",
             myShepherd);
         rtn.put("_logs", logs);
-        if ((logs == null) || (logs.size() < 1)) return rtn;
+        if (((logs == null) || (logs.size() < 1)) && !fromEmbeddingExtraction) return rtn;
         JSONObject newAnns = null;
         String type = getTaskType(logs);
         System.out.println("**** type ---------------> [" + type + "]");
