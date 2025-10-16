@@ -153,7 +153,6 @@ public class MLService {
             boolean taskComplete = areAllEmbeddingsExtracted(task);
             if (taskComplete) task.setCompletionDateInMilliseconds();
             myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
             if (taskComplete) {
                 // now we are done we can fake a callback to initiate identification
                 JSONObject fakeResp = new JSONObject();
@@ -166,13 +165,13 @@ public class MLService {
                     if (!annMap.has(ma.getId())) annMap.put(ma.getId(), new JSONArray());
                     annMap.getJSONArray(ma.getId()).put(ann.getId());
                 }
-                System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + annMap);
                 fakeResp.put("_____annotationMap", annMap);
                 JSONObject cbRes = IBEISIA.processCallback(task.getId(), fakeResp,
                     myShepherd.getContext(), null);
                 System.out.println("[DEBUG] MLService.processQueueJob() [" + task +
                     " complete] cbRes=" + cbRes);
             }
+            myShepherd.closeDBTransaction();
         }
     }
 
