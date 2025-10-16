@@ -165,7 +165,7 @@ public class MLService {
                     if (!annMap.has(ma.getId())) annMap.put(ma.getId(), new JSONArray());
                     annMap.getJSONArray(ma.getId()).put(ann.getId());
                 }
-                fakeResp.put("_____annotationMap", annMap);
+                fakeResp.put("annotationMap", annMap);
                 JSONObject cbRes = IBEISIA.processCallback(task.getId(), fakeResp,
                     myShepherd.getContext(), null);
                 System.out.println("[DEBUG] MLService.processQueueJob() [" + task +
