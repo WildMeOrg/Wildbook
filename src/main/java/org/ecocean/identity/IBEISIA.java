@@ -4828,9 +4828,14 @@ public class IBEISIA {
             
                 int batchSize = 10;
                 int totalAnnotations = annsToSend.size();
+                int totalBatches = (int) Math.ceil((double) totalAnnotations / batchSize);
+                int currentBatch = 1;
+                
                 for (int i = 0; i < totalAnnotations; i += batchSize) {
                     int end = Math.min(i + batchSize, totalAnnotations);
                     ArrayList<Annotation> batch = new ArrayList<>(annsToSend.subList(i, end));
+                    
+                    System.out.println("Processing batch " + currentBatch + " of " + totalBatches + " (annotations " + (i + 1) + "-" + end + " of " + totalAnnotations + ")");
             
                     try {
                         JSONObject batchResult = plugin.sendAnnotations(batch, false, myShepherd);
@@ -4854,6 +4859,7 @@ public class IBEISIA {
                         //     }
                         // }
                     }
+                    currentBatch++;
                 }
             
                 rtn.put("sendAnnotations", mergedResults);

@@ -243,10 +243,10 @@ public class WildbookIAM extends IAPlugin {
                 batchCt++;
                 
                 // TESTING: Break after 10 batches
-                if (batchCt > 10) {
-                    IA.log("INFO: WildbookIAM.sendMediaAssets() TESTING: Breaking after 10 batches");
-                    break;
-                }
+                // if (batchCt > 10) {
+                //     IA.log("INFO: WildbookIAM.sendMediaAssets() TESTING: Breaking after 10 batches");
+                //     break;
+                // }
             }
         }
         allRtn.put("batchResults", bres);
