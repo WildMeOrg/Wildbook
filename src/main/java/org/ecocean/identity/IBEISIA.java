@@ -74,6 +74,7 @@ public class IBEISIA {
 
     public static String STATUS_PENDING = "pending"; // pending review (needs action by user)
     public static String STATUS_COMPLETE = "complete"; // process is done
+    public static String STATUS_COMPLETE_MLSERVICE = "complete-mlservice"; // ml-service is done (e.g. embeddings added)
     public static String STATUS_PROCESSING = "processing"; // off at IA, awaiting results
     public static String STATUS_PROCESSING_MLSERVICE = "processing-mlservice"; // off at ml-service, awaiting results
     public static String STATUS_INITIATED = "initiated"; // initiated on our side but may or may not be processing on IA side
@@ -1390,6 +1391,8 @@ public class IBEISIA {
     public static JSONObject processCallback(String taskID, JSONObject resp, String context,
         String rootDir) {
         logCallback(taskID, resp);
+        boolean fromEmbeddingExtraction = ((resp != null) && resp.optBoolean("embeddingExtraction",
+            false));
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
@@ -1420,7 +1423,7 @@ public class IBEISIA {
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
             rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context, rootDir));
-        } else if (resp.optBoolean("embeddingExtraction", false)) {
+        } else if (fromEmbeddingExtraction) {
             System.out.println("[DEBUG] IBEISIA.processCallback() [embeddingExtraction] taskID=" +
                 taskID + "; resp=>" + resp);
             newAnns = resp.optJSONObject("annotationMap");
@@ -1700,12 +1703,12 @@ public class IBEISIA {
                 myShepherd.updateDBTransaction();
                 // this will queue up annots to have embeddings extracted and set on annot
                 if (allAnns.size() > 0) {
-                    Task embedTask = new Task(task);
+                    Task embedTask = new Task(task); // this should copy task's parameters
+                    JSONObject params = embedTask.getParameters(); // but we need to modify them
+                    params.remove("ibeis.detection");
+                    params.put("embeddingExtraction", true);
+                    embedTask.setParameters(params);
                     embedTask.setObjectAnnotations(allAnns);
-                    if (embedTask.getParameters() == null)
-                        embedTask.setParameters(new JSONObject());
-                    embedTask.getParameters().remove("ibeis.detection");
-                    embedTask.getParameters().put("embeddingExtraction", true);
                     embedTask.setStatus("initiated");
                     myShepherd.getPM().makePersistent(embedTask);
                     myShepherd.updateDBTransaction();

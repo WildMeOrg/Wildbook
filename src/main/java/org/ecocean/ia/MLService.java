@@ -149,18 +149,37 @@ public class MLService {
             if (task != null) task.setStatus("error");
             if (iaex.shouldRequeue()) requeueJob(jobData, iaex.shouldIncrement());
         } finally {
-            if (task != null) task.setCompletionDateInMilliseconds();
+            // we end up here after *each* annotation, so we are "done" when all annotations have been processed
+            boolean taskComplete = areAllEmbeddingsExtracted(task);
+            if (taskComplete) task.setCompletionDateInMilliseconds();
             myShepherd.commitDBTransaction();
             myShepherd.closeDBTransaction();
-
-            // now we are done we can fake a callback to initiate identification
-            JSONObject fakeResp = new JSONObject();
-            fakeResp.put("embeddingExtraction", true);
-            // FIXME build out this map:  newAnns = resp.optJSONObject("annotationMap");
-            JSONObject cbRes = IBEISIA.processCallback(((task == null) ? null : task.getId()),
-                fakeResp, myShepherd.getContext(), null);
-            System.out.println("[DEBUG] MLService.processQueueJob() cbRes=" + cbRes);
+            if (taskComplete) {
+                // now we are done we can fake a callback to initiate identification
+                JSONObject fakeResp = new JSONObject();
+                fakeResp.put("embeddingExtraction", true);
+                // FIXME build out this map:  newAnns = resp.optJSONObject("annotationMap");
+                JSONObject cbRes = IBEISIA.processCallback(task.getId(), fakeResp,
+                    myShepherd.getContext(), null);
+                System.out.println("[DEBUG] MLService.processQueueJob() [" + task +
+                    " complete] cbRes=" + cbRes);
+            }
         }
+    }
+
+    // true if all annotations "are done" from (trying to) extract embeddings
+    private boolean areAllEmbeddingsExtracted(Task task) {
+        if (task == null) return false;
+        List<Annotation> anns = task.getObjectAnnotations();
+        // we return false here because there is no reason to send to ident in this case
+        if (Util.collectionIsEmptyOrNull(anns)) return false;
+        boolean done = false;
+        System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " + task);
+        for (Annotation ann : anns) {
+            System.out.println("??????? extracted? [" + ann.getIdentificationStatus() + "] <= " +
+                ann);
+        }
+        return done;
     }
 
     public void requeueJob(JSONObject jobData, boolean increment) {
@@ -273,6 +292,7 @@ public class MLService {
     throws IAException {
         if (res == null) throw new IAException("empty results");
         if (ann == null) throw new IAException("null Annotation");
+        ann.setIdentificationStatus(IBEISIA.STATUS_COMPLETE_MLSERVICE);
         // res has everything we sent (bbox, model_id, etc) plus "embeddings_shape"(?) and:
         JSONArray embs = res.optJSONArray("embeddings");
         if (embs == null) throw new IAException("results has no embeddings array: " + res);
