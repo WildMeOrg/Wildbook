@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { isValid, parseISO, getWeek } from "date-fns";
-import { chain, range } from 'lodash-es'
+import { chain, range } from "lodash-es";
 import ImageModalStore from "./ImageModalStore";
 
 class EncounterFormStore {
@@ -17,7 +17,7 @@ class EncounterFormStore {
   _totalItems = 0;
   _totalPages = 0;
   _currentPage = 1;
-  _pageSize = 1;
+  _pageSize = 10;
 
   _showAnnotations = true;
 
@@ -29,15 +29,21 @@ class EncounterFormStore {
     this.formFilters = [];
     this.imageModalStore = new ImageModalStore(this);
 
-    makeAutoObservable(this, {
-      imageModal: false,
-    }, { autoBind: true });
+    makeAutoObservable(
+      this,
+      {
+        imageModal: false,
+      },
+      { autoBind: true },
+    );
   }
 
   get encounterData() {
     const selectedImageIndex = this.imageModalStore.selectedImageIndex;
     const encounterId = this.currentPageItems[selectedImageIndex]?.encounterId;
-    return this.searchResultsAll.filter(item => item.id === encounterId)[0] || null;
+    return (
+      this.searchResultsAll.filter((item) => item.id === encounterId)[0] || null
+    );
   }
 
   get formFilters() {
@@ -129,7 +135,10 @@ class EncounterFormStore {
   }
 
   get currentPageItems() {
-    return this.allMediaAssets.slice(this.start, this.start + this.imageCountPerPage);
+    return this.allMediaAssets.slice(
+      this.start,
+      this.start + this.imageCountPerPage,
+    );
   }
 
   addFilter(filterId, clause, query, filterKey, path = "") {
@@ -160,14 +169,14 @@ class EncounterFormStore {
   }
 
   removeFilterByFilterKey(filterKey) {
-    this.formFilters = this.formFilters.filter((f) => f.filterKey !== filterKey);
+    this.formFilters = this.formFilters.filter(
+      (f) => f.filterKey !== filterKey,
+    );
   }
 
   resetFilters() {
     this.formFilters = [];
   }
-
-
 
   weekKey = (date) => {
     const d = parseISO(date);
@@ -176,15 +185,15 @@ class EncounterFormStore {
       return null;
     }
     return String(getWeek(d));
-  }
+  };
 
   calculateWeeklyDates(dates) {
     if (!Array.isArray(dates)) return [];
-    const validDates = dates.filter(d => typeof d === 'string' && d.trim());
+    const validDates = dates.filter((d) => typeof d === "string" && d.trim());
 
     const countsByWeek = chain(validDates)
       .map(this.weekKey)
-      .filter(w => w !== null)
+      .filter((w) => w !== null)
       .countBy()
       .value();
 
