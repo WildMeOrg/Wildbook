@@ -45,6 +45,15 @@
 					"locationID": []
 				},
 				{
+					"name": "NG29",
+					"id": "NG29",
+					"geospatialInfo": {
+						"lat": -19.8083,
+						"long": 22.7662
+					},
+					"locationID": []
+				},
+				{
 					"name": "Nxai Pan National Park",
 					"id": "Nxai Pan National Park",
 					"geospatialInfo": {
@@ -255,6 +264,31 @@
 							"id": "Mwambi Hill Conservancy",
 							"description": "Mwambi Hill Conservancy",
 							"locationID":[]
+						},
+						{
+							"name": "Noldupai",
+							"id": "Noldupai",
+							"locationID": []
+						},
+						{
+							"name": "Noosidan",
+							"id": "Noosidan",
+							"locationID": []
+						},
+						{
+							"name": "Oltiyiani Conservancy",
+							"id": "Oltiyiani Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Olerai Conservancy",
+							"id": "Olerai Conservancy",
+							"locationID": []
+						},
+						{
+							"name": "Oserian Wildlife Corridor",
+							"id": "Oserian Wildlife Corridor",
+							"locationID": []
 						},
 						{
 							"name": "Swara Plains Conservancy",
