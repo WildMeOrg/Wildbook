@@ -20,7 +20,7 @@ class ImageModalStore {
     makeAutoObservable(
       this,
       {
-        encounterData: false,
+        encounterStore: false,
       },
       { autoBind: true },
     );
@@ -138,12 +138,6 @@ class ImageModalStore {
       selectedAnnotation?.identificationStatus === "pending";
 
     return identActive && (detectionComplete || identificationStatus);
-  }
-
-  get currentMediaAsset() {
-    return 
-    // const encounterData = this.encounterData;
-    // return encounterData?.mediaAssets?.[this.selectedImageIndex];
   }
 
   get modals() {
