@@ -746,6 +746,10 @@ public class Annotation extends Base implements java.io.Serializable {
         return this.sanitizeMedia(request, false);
     }
 
+    public boolean isPart() {
+        return ((this.iaClass != null) && this.iaClass.contains("+"));
+    }
+
     public String getPartIfPresent() {
         String thisPart = "";
 
@@ -1296,11 +1300,11 @@ public class Annotation extends Base implements java.io.Serializable {
         }
  */
         // NOTE: manualAnnotation.jsp once allowed featureId to be passed; that functionality is not handled here
-        //
-        // we replace trivial if applicable; otherwise this logic determines if we should
-        // clone the encounter (based off historic logic in manualAnnotation.jsp)
-        if (enc != null) {
+        if (enc != null) { // note: we currently *require* enc, so this should always be true
             ann.setMatchAgainst(true);
+            // !NOTE! this first set of logic to set cloneEncounter is copied from manualAnnotation.jsp
+            // i believe this logic is flawed! it is left for reference/research/consideration
+            // please see instead the block following this where new logic is applied  -jon 2025-10-17
             boolean cloneEncounter = false;
             // we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
             if ((annots.size() > 1) && (iaClass != null)) {
@@ -1326,6 +1330,23 @@ public class Annotation extends Base implements java.io.Serializable {
                 Annotation annot1 = annots.get(0);
                 if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
                     System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [4]");
+                    cloneEncounter = true;
+                }
+            }
+            // here is the new logic. this will hopefully side-step the problem where the enc was getting
+            // cloned far more often than it should. i believe this was due to the fact that annots was
+            // from the media asset and therefore could be pointing to all kinds of *other* encounters,
+            // rather than just focusing on the connection between ma and enc
+            cloneEncounter = false; // start over
+            if (!ann.isPart()) { // we can skip this whole thing if we are adding a part
+                List<Annotation> encAnnots = enc.getAnnotations(ma);
+                System.out.println("DEBUG Annotation.createFromApi(): encAnnots = " + encAnnots);
+                // we see if we have a non-part annot, which would force us to clone (parts we ignore)
+                for (Annotation eann : encAnnots) {
+                    if (eann.isPart()) continue;
+                    System.out.println(
+                        "DEBUG Annotation.createFromApi(): cloneEncounter [5] forcing cloneEncounter due to "
+                        + eann);
                     cloneEncounter = true;
                 }
             }
