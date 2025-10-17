@@ -184,17 +184,6 @@ function expandOperations(operations, individualOptions = []) {
       continue;
     }
 
-    if (op.path === "individualDisplayName" && op.value) {     
-      const value = individualOptions.find((opt) => opt.label === op.value)?.value;
-      if (!value) continue;      
-      out.push({
-        op: "replace",
-        path: "individualId",
-        value: value,
-      });
-      continue;
-    }
-
     if (op.path === "occurrenceId" && op.value) {
       out.push({
         op: "replace",

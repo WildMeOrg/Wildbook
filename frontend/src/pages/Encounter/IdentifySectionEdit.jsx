@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import TextInput from '../../components/generalInputs/TextInput';
 import SelectInput from '../../components/generalInputs/SelectInput';
@@ -6,6 +6,20 @@ import SearchAndSelectInput from '../../components/generalInputs/SearchAndSelect
 import { Alert } from "react-bootstrap";
 
 export const IdentifySectionEdit = observer(({ store }) => {
+    useEffect(() => {
+        const id = store.getFieldValue("identify", "individualId");
+        const name = store.getFieldValue("identify", "individualDisplayName");
+        if (!id) return;
+
+        const exists = store.individualOptions?.some(o => o.value === String(id));
+        if (!exists) {
+            store.setIndividualOptions([
+                { value: String(id), label: name || String(id).slice(0, 8) },
+                ...(store.individualOptions || []),
+            ]);
+        }
+    }, [store]);
+    
     return <div>
         <SelectInput
             label="MATCHED_BY"
@@ -28,18 +42,12 @@ export const IdentifySectionEdit = observer(({ store }) => {
 
         <SearchAndSelectInput
             label="INDIVIDUAL_ID"
-            value={
-                store.getFieldValue("identify", "individualDisplayName") ?? ""
-            }
-            onChange={(v) => {
-                const label = store.individualOptions.find((opt) => opt.value === v)?.label;
-                store.setFieldValue("identify", "individualDisplayName", label);
-            }
-            }
-            options={[]}
+            value={store.getFieldValue("identify", "individualId") ?? ""}
+            onChange={(v) => store.setFieldValue("identify", "individualId", v)}
+            options={store.individualOptions}
             loadOptions={async (q) => {
                 const resp = await store.searchIndividualsByName(q);
-                const options = resp.data.hits.map((it) => ({
+                const options = (resp.data.hits || []).map(it => ({
                     value: String(it.id),
                     label: it.displayName,
                 }));
