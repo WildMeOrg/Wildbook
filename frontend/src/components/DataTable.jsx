@@ -262,7 +262,6 @@ const MyDataTable = observer(
       store.setLoadingAll(true);
       refetchAll()
         .then(({ data }) => {
-          console.log("Refetched all data:", JSON.stringify(data));
           store.setSearchResultsAll(data?.data?.hits || []);
         })
         .finally(() => {

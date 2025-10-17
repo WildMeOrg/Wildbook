@@ -26,9 +26,7 @@ const CalendarTab = observer(({ store }) => {
       setEvents([]);
       return;
     }
-
-    console.log("searchResultsAll", JSON.stringify(store.searchResultsAll));
-
+    
     const parsed = store?.searchResultsAll?.map((item) => {
       const dateStrLocal = item?.date?.replace(/Z$/, "");
       const d = new Date(dateStrLocal);

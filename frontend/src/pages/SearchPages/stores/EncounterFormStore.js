@@ -5,66 +5,131 @@ import ImageModalStore from "./ImageModalStore";
 
 class EncounterFormStore {
   _formFilters;
-  _activeStep = 0;  
-  
+  _activeStep = 0;
+
   _hasFetchedAllEncounters = false;
   _searchResultsAll = [];
   _loadingAll = false;
   _imageCoundPerPage = 20;
+
+  _allMediaAssets = [];
+  _pageItems = [];
+  _totalItems = 0;
+  _totalPages = 0;
+  _currentPage = 1;
+  _pageSize = 1;
+
+  _showAnnotations = true;
+
+  _encounterData = null;
 
   imageModalStore;
 
   constructor() {
     this.formFilters = [];
     this.imageModalStore = new ImageModalStore(this);
-    
-    makeAutoObservable(this, {      
+
+    makeAutoObservable(this, {
       imageModal: false,
     }, { autoBind: true });
+  }
+
+  get encounterData() {
+    const selectedImageIndex = this.imageModalStore.selectedImageIndex;
+    const encounterId = this.currentPageItems[selectedImageIndex]?.encounterId;
+    return this.searchResultsAll.filter(item => item.id === encounterId)[0] || null;
   }
 
   get formFilters() {
     return this._formFilters;
   }
+  set formFilters(newFilters) {
+    this._formFilters = newFilters;
+  }
 
   get activeStep() {
     return this._activeStep;
+  }
+  setActiveStep(step) {
+    this._activeStep = step;
   }
 
   get searchResultsAll() {
     return this._searchResultsAll;
   }
+  setSearchResultsAll(data) {
+    this._searchResultsAll = data;
+  }
 
   get hasFetchedAllEncounters() {
     return this._hasFetchedAllEncounters;
+  }
+  setHasFetchedAllEncounters(value) {
+    this._hasFetchedAllEncounters = value;
   }
 
   get loadingAll() {
     return this._loadingAll;
   }
-
-  get imageCountPerPage() {
-    return this._imageCoundPerPage;
-  }
-
-  set formFilters(newFilters) {
-    this._formFilters = newFilters;
-  }
-
-  setHasFetchedAllEncounters(value) {
-    this._hasFetchedAllEncounters = value;
-  }
-
   setLoadingAll(value) {
     this._loadingAll = value;
   }
 
-  setActiveStep(step) {
-    this._activeStep = step;
+  get imageCountPerPage() {
+    return this._imageCoundPerPage;
   }
-
   setimageCountPerPage(count) {
     this._imageCoundPerPage = count;
+  }
+
+  get pageSize() {
+    return this._pageSize;
+  }
+  setPageSize(size) {
+    this._pageSize = size;
+  }
+
+  get currentPage() {
+    return this._currentPage;
+  }
+  setCurrentPage(page) {
+    this._currentPage = page;
+  }
+
+  get start() {
+    return (this._currentPage - 1) * this.imageCountPerPage;
+  }
+
+  get allMediaAssets() {
+    const src = this._searchResultsAll ?? [];
+    return src
+      .filter(
+        (item) =>
+          Array.isArray(item.mediaAssets) && item.mediaAssets.length > 0,
+      )
+      .flatMap((item) =>
+        item.mediaAssets.map((a, idx) => ({
+          ...a,
+          __k: `${a.uuid ?? a.id ?? "na"}-${idx}`,
+          encounterId: item.id,
+          individualId: item.individualId,
+          date: item.date,
+          individualDisplayName: item.individualDisplayName,
+          verbatimDate: item.verbatimDate,
+        })),
+      );
+  }
+
+  get totalItems() {
+    return this.allMediaAssets.length;
+  }
+
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.totalItems / this.imageCountPerPage));
+  }
+
+  get currentPageItems() {
+    return this.allMediaAssets.slice(this.start, this.start + this.imageCountPerPage);
   }
 
   addFilter(filterId, clause, query, filterKey, path = "") {
@@ -102,9 +167,7 @@ class EncounterFormStore {
     this.formFilters = [];
   }
 
-  setSearchResultsAll(data) {
-    this._searchResultsAll = data;
-  }
+
 
   weekKey = (date) => {
     const d = parseISO(date);

@@ -1,7 +1,10 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 
-class ImageModalStore { 
+class ImageModalStore {
+  encounterFormStore;
+
+  _encounterData = null;
 
   _selectedImageIndex = 0;
   _selectedAnnotationId = null;
@@ -12,29 +15,39 @@ class ImageModalStore {
   _selectedLabeledKeyword = null;
   _selectedAllowedValues = null;
 
-  constructor() {
+  constructor(encounterFormStore) {
+    this.encounterStore = encounterFormStore;
     makeAutoObservable(
-      this,      
+      this,
+      {
+        encounterData: false,
+      },
       { autoBind: true },
     );
   }
 
+  get encounterData() {
+    return this.encounterStore.encounterData;
+  }
+
   get selectedImageIndex() {
-    return this.selectedImageIndex || 0;
+    return this._selectedImageIndex || 0;
   }
   setSelectedImageIndex(index) {
-    return this.setSelectedImageIndex(index);
+    this._selectedImageIndex = index;
   }
 
   get encounterAnnotations() {
-    return this.encounterAnnotations;
+    return (this.encounterData?.mediaAssets || []).flatMap(
+      (asset) => asset.annotations || [],
+    ) || [];
   }
 
   get selectedAnnotationId() {
-    return this.selectedAnnotationId;
+    return this._selectedAnnotationId;
   }
   setSelectedAnnotationId(annotationId) {
-    this.setSelectedAnnotationId(annotationId);
+    this._selectedAnnotationId = annotationId;
   }
 
   get currentAnnotation() {
@@ -48,10 +61,9 @@ class ImageModalStore {
     this._showAnnotations = show;
   }
 
-  get tags() {
-    const encounterData = this.encounterData;
+  get tags() {    
     return (
-      encounterData?.mediaAssets?.[this.selectedImageIndex]?.keywords || []
+      this.encounterStore.currentPageItems?.[this.selectedImageIndex]?.mediaAssetKeywords || []
     );
   }
 
@@ -87,7 +99,7 @@ class ImageModalStore {
     const siteSettings = this.siteSettingsData;
     return (
       siteSettings?.labeledKeywordAllowedValues?.[
-        this._selectedLabeledKeyword
+      this._selectedLabeledKeyword
       ] || []
     );
   }
@@ -129,22 +141,18 @@ class ImageModalStore {
   }
 
   get currentMediaAsset() {
-    const encounterData = this.encounterData;
-    return encounterData?.mediaAssets?.[this.selectedImageIndex];
-  }
-
-  get encounterData() {
-    return this.encounterData;
+    return 
+    // const encounterData = this.encounterData;
+    // return encounterData?.mediaAssets?.[this.selectedImageIndex];
   }
 
   get modals() {
     return this.modals;
   }
 
-  async removeAnnotation(annotationId) {
-    const encounterData = this.encounterData;
+  async removeAnnotation(annotationId, encounterId) {
     const result = await axios.patch(
-      `/api/v3/encounters/${encounterData.id}`,
+      `/api/v3/encounters/${encounterId}`,
       [
         {
           op: "remove",
@@ -165,9 +173,13 @@ class ImageModalStore {
     return result;
   }
 
+  setOpenMatchCriteriaModal(isOpen) {
+    // this.encounterStore.modals.setOpenMatchCriteriaModal(isOpen);
+  }
+
   async deleteImage() {
     const encounterData = this.encounterData;
-    const mediaAssetId = this.currentMediaAsset?.id;
+    const mediaAssetId = this.currentPageItems[this.selectedImageIndex]?.id;
 
     if (!mediaAssetId) {
       throw new Error("No media asset selected");
@@ -187,7 +199,23 @@ class ImageModalStore {
   }
 
   async refreshEncounterData() {
-    return this.refreshEncounterData();
+    const encounterId = this.encounterData?.id;
+
+    try {
+      const response = await axios.get(`/api/v3/encounters/${encounterId}`);
+      if (response.status === 200 && response.data) {
+        const currentImageIndex = this._selectedImageIndex;
+        //re fretch the encounter data
+        // this.setEncounterData(response.data);
+        if (currentImageIndex < (response.data.mediaAssets?.length || 0)) {
+          this.setSelectedImageIndex(currentImageIndex);
+        }
+        return response.data;
+      }
+    } catch (error) {
+      console.error('Failed to refresh encounter data:', error);
+      throw error;
+    }
   }
 
   reset() {
@@ -200,3 +228,4 @@ class ImageModalStore {
 }
 
 export default ImageModalStore;
+
