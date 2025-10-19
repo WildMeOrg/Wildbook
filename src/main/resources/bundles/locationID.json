@@ -1,114 +1,89 @@
 {
-	"description": "Hierarchical Encounter.locationID list in Wildbook",
-	"source": "http://en.wikipedia.org/wiki/List_of_seas",
-	"locationID": [
-		{
-			"name": "Klufterbach",
-			"id": "KB",
-			"geospatialInfo": {
-				"lat": 50.686688,
-				"long": 7.127002
-			},
-			"locationID": []
-		},
-		{
-			"name": "Venner Bach",
-			"id": "VB",
-			"geospatialInfo": {
-				"lat": 50.670721,
-				"long": 7.129955
-			},
-			"locationID": []
-		},
-		{
-			"name": "Katzenlochbach/Villiper Bach",
-			"id": "KOB",
-			"geospatialInfo": {
-				"lat": 50.667533,
-				"long": 7.083178
-			},
-			"locationID": []
-		},
-		{
-			"name": "Marienforster Bach/Keltersbaumbach",
-			"id": "MB",
-			"geospatialInfo": {
-				"lat": 50.675925,
-				"long": 7.136618
-			},
-			"locationID": []
-		},
-		{
-			"name": "Annaberger Bach",
-			"id": "AB",
-			"geospatialInfo": {
-				"lat": 50.684203,
-				"long": 7.116158
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpel KoVK",
-			"id": "KoVK",
-			"geospatialInfo": {
-				"lat": 50.660984,
-				"long": 7.034919
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpelgraben TG",
-			"id": "TG",
-			"geospatialInfo": {
-				"lat": 50.681499,
-				"long": 7.118652
-			},
-			"locationID": []
-		},
-		{
-			"name": "Seitengraben SG",
-			"id": "SG",
-			"geospatialInfo": {
-				"lat": 50.682431,
-				"long": 7.116877
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpel TT",
-			"id": "TT",
-			"geospatialInfo": {
-				"lat": 50.681057,
-				"long": 7.121233
-			},
-			"locationID": []
-		},
-		{
-			"name": "Schutzhütte",
-			"id": "hut",
-			"geospatialInfo": {
-				"lat": 50.682028,
-				"long": 7.118937
-			},
-			"locationID": []
-		},
-		{
-			"name": "Kernlebensraum",
-			"id": "KLR",
-			"geospatialInfo": {
-				"lat": 51.923413,
-				"long": 8.872099
-			},
-			"locationID": []
-		},
-		{
-			"name": "Paderborner Dorf",
-			"id": "PD",
-			"geospatialInfo": {
-				"lat": 51.917119,
-				"long": 8.880677
-			},
-			"locationID": []
-		}
-	]
+  "description": "Hierarchical Encounter.locationID list in Wildbook",
+  "source": "http://en.wikipedia.org/wiki/List_of_seas",
+  "locationID": [
+
+	{"name": "Africa - All", "id":"Africa", "locationID":[
+
+		{"name": "Africa - South", "id": "Africa - South", "locationID":[
+		
+			{"name": "Great Limpopo TFCA", "id": "Great Limpopo TFCA", "locationID":[]},
+			{"name": "KAZA TFCA", "id": "KAZA TFCA", "locationID":[]},
+
+			{"name": "Angola", "id":"Angola", "locationID":[]},
+			{"name": "Botswana", "id":"Botswana", "locationID":[
+				{"name": "Kgalagadi", "id": "Kgalagadi", "locationID":[]}
+			]},
+			{"name": "Eswatini", "id": "Eswatini", "locationID":[]},
+			{"name": "Lesotho", "id":"Lesotho", "locationID":[]},
+			{"name": "Malawi", "id":"Malawi", "locationID":[]},
+			{"name": "Mozambique", "id":"Mozambique", "locationID":[]},
+			{"name": "Namibia", "id":"Namibia", "locationID":[]},
+			{"name": "South Africa", "id": "South Africa", "locationID":[
+				{"name": "Eastern Cape", "id":"Eastern Cape", "locationID":[]},
+				{"name": "Free State", "id":"Free State", "locationID":[]},
+				{"name": "Gauteng", "id": "Gauteng", "locationID":[]},
+				{"name": "Kwazulu-Natal", "id": "Kwazulu-Natal", "locationID":[]},
+				{"name": "Limpopo","id": "Limpopo", "locationID":[]},
+				{"name": "Lowveld", "id":"Lowveld", "locationID":[]},
+				{"name": "Mpumalanga", "id": "Mpumalanga", "locationID":[]},
+				{"name": "North West","id": "North West", "locationID":[]},
+				{"name": "Northern Cape","id": "Northern Cape", "locationID":[]},
+				{"name": "Western Cape","id": "Western Cape", "locationID":[]}
+
+			]},
+			{"name": "Zambia", "id": "Zambia", "locationID":[]},
+			{"name": "Zimbabwe", "id": "Zimbabwe", "locationID":[]}
+		
+		]},
+
+		{"name": "Africa - East", "id": "Africa - East", "locationID":[
+			{"name": "Burundi", "id": "Burundi", "locationID":[]},
+			{"name": "Djibouti", "id": "Djibouti", "locationID":[]},
+			{"name": "Eritrea", "id":"Eritrea", "locationID":[]},
+			{"name": "Ethiopia", "id": "Ethiopia", "locationID":[]},
+			{"name": "Kenya", "id": "Kenya", "locationID":[]},
+			{"name": "Rwanda", "id": "Rwanda", "locationID":[]},
+			{"name": "Somalia", "id": "Somalia", "locationID":[]},
+			{"name": "Somaliland", "id": "Somaliland", "locationID":[]},
+			{"name": "South Sudan", "id": "South Sudan", "locationID":[]},
+			{"name": "Sudan", "id": "Sudan", "locationID":[]},
+			{"name": "Tanzania", "id": "Tanzania", "locationID":[]},
+			{"name": "Uganda", "id": "Uganda", "locationID":[]}
+
+		]},
+		
+		{"name": "Africa - Central", "id": "Africa - Central", "locationID":[
+			{"name": "Cameroon", "id": "Cameroon", "locationID":[]},
+			{"name": "Chad", "id": "Chad", "locationID":[]},
+			{"name": "Congo", "id": "Congo", "locationID":[]},
+			{"name": "Democratic Republic of the Congo ", "id": "DRC", "locationID":[]},
+			{"name": "Equatorial Guinea", "id": "Equatorial Guinea", "locationID":[]},
+			{"name": "Gabon", "id": "Gabon", "locationID":[]},
+			{"name": "Central African Republic", "id": "CAR", "locationID":[]}
+
+		]},
+
+		{"name": "Africa - West", "id": "Africa - West", "locationID":[
+			{"name": "Benin", "id": "Benin", "locationID":[]},
+			{"name": "Burkina Faso", "id": "Burkina Faso", "locationID":[]},
+			{"name": "Cote d’Ivoire", "id": "Cote d’Ivoire", "locationID":[]},
+			{"name": "Ghana", "id": "Ghana", "locationID":[]},
+			{"name": "Guinea", "id": "Guinea", "locationID":[]},
+			{"name": "Guinea Bissau", "id": "Guinea Bissau", "locationID":[]},
+			{"name": "Liberia", "id": "Liberia", "locationID":[]},
+			{"name": "Nigeria", "id": "Nigeria", "locationID":[]},
+			{"name": "Senegal", "id": "Senegal", "locationID":[]},
+			{"name": "Sierra Leone", "id": "Sierra Leone", "locationID":[]},
+			{"name": "The Gambia", "id": "Gambia", "locationID":[]},
+			{"name": "Togo", "id": "Togo", "locationID":[]}
+
+		]},
+		
+		{"name": "Africa - North", "id": "Africa - North", "locationID":[
+			
+		]}
+
+	]}
+  ]
 }
