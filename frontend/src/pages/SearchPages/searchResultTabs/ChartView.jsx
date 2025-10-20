@@ -41,10 +41,6 @@ const ChartView = observer(({ store }) => {
     value: count,
   }));
 
-  const haploTypesDistributionData = processData(
-    store.searchResultsAll.map((item) => item.haplotype).filter(haplo => haplo),
-  );
-
   const assignedUserDistributionData = processData(
     store.searchResultsAll.map((item) => item.assignedUsername).filter(user => user),
   );
@@ -52,6 +48,11 @@ const ChartView = observer(({ store }) => {
   const stateDistributionData = processData(
     store.searchResultsAll.map((item) => item.state).filter(state => state),
   );
+
+  const yearSubmissionData =  processData(store.searchResultsAll.map(
+    (item) => item.date ? new Date(item.date).getFullYear() : null,
+  ).filter(year => year)
+  ).sort((a, b) => a.name - b.name);
 
   return (
     <div
@@ -77,12 +78,6 @@ const ChartView = observer(({ store }) => {
             data={stateDistributionData}
           />
         </Col>
-        <Col xs={12} md={6}>
-          <Piechart
-            title="SEARCH_RESULTS_HAPLO_TYPES_DISTRIBUTION"
-            data={haploTypesDistributionData}
-          />
-        </Col>
       </Row>
       <VerticalBarChart data={countryDistributionData} />
       <Row className="g-4">
@@ -101,7 +96,7 @@ const ChartView = observer(({ store }) => {
       </Row>
       <VerticalBarChart data={assignedUserDistributionData} />
       <HorizontalBarChart
-        title="SEARCH_RESULTS_MEASUREMENTS"
+        title="weekly_encounter_dates"
         data={weeklyEncounterDates}
       />
       <Linechart />

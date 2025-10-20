@@ -220,7 +220,7 @@ export default function EncounterSearch() {
           window.open(url, "_blank");
         }}
         onSelectedRowsChange={(selectedRows) => {
-          console.log("Selected Rows: ", selectedRows);
+          store.setSelectedRows(selectedRows?.selectedRows || []);
         }}
       />
       <SideBar
@@ -230,7 +230,6 @@ export default function EncounterSearch() {
         store={store}
         tempFormFilters={tempFormFilters}
       />
-      {/* <Calendar /> */}
     </div>
   );
 }

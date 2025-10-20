@@ -23,8 +23,8 @@ export const ImageGalleryModal = observer(
       if (!s || s.destroyed) return;
       const target = Math.max(0, Math.min(index - 1, assets.length - 1));
       s.slideTo(target, 250);
-      const naturalWidth = assets[index]?.width;
-      const naturalHeight = assets[index]?.height;
+      const naturalWidth = assets[safeIndex]?.width;
+      const naturalHeight = assets[safeIndex]?.height;
       const displayWidth = imgRef.current.clientWidth;
       const displayHeight = imgRef.current.clientHeight;
 
@@ -113,7 +113,7 @@ export const ImageGalleryModal = observer(
                       marginRight: "8px",
                     }}
                     onClick={() => {
-                      const cur = assets[index];
+                      const cur = assets[safeIndex];
                       if (!cur?.url) return;
                       const a = document.createElement("a");
                       a.href = cur.url;
@@ -258,7 +258,7 @@ export const ImageGalleryModal = observer(
                     className="rounded-circle"
                     width={36}
                     height={36}
-                    style={{ objectFit: "cover", overFlow: "hidden" }}
+                    style={{ objectFit: "cover", overflow: "hidden" }}
                   />
                 ) : (
                   <div
@@ -310,7 +310,7 @@ export const ImageGalleryModal = observer(
                   <FormattedMessage id="INDIVIDUAL_ID" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {imageStore.encounterData?.individualId ?? "—1"}
+                  {imageStore.encounterData?.individualId ?? "—"}
                 </dd>
                 <dt className="col-5">
                   <FormattedMessage id="LOCATION_ID" />

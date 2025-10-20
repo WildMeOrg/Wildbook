@@ -12,6 +12,9 @@ import { observer } from "mobx-react-lite";
 import ChartView from "../pages/SearchPages/searchResultTabs/ChartView";
 import { MapView } from "../pages/SearchPages/searchResultTabs/MapView";
 import GalleryView from "../pages/SearchPages/searchResultTabs/GalleryView";
+import Select from "react-select";
+import MainButton from "./MainButton";
+import useGetSiteSettings from "../models/useGetSiteSettings";
 
 const customStyles = {
   rows: {
@@ -40,8 +43,8 @@ const MyDataTable = observer(
     tabs = [],
     isLoading = false,
     extraStyles = [],
-    onSelectedRowsChange = () => {},
-    onRowClicked = () => {},
+    onSelectedRowsChange = () => { },
+    onRowClicked = () => { },
   }) => {
     const [data, setData] = useState([]);
     const [filterText, setFilterText] = useState("");
@@ -186,6 +189,22 @@ const MyDataTable = observer(
     );
 
     useEffect(() => {
+      if (store.projectBannerStatusCode === 0 || store.projectBannerStatusCode === 1) {
+        const target = store.selectedRows.length > 0 ? 1 : 0;
+        if (store.projectBannerStatusCode !== target) {
+          store.setprojectBannerStatusCode(target);
+        }
+      }
+    }, [store.selectedRows.length, store.projectBannerStatusCode]);
+
+    const { data: siteSettingsData } = useGetSiteSettings();
+    useEffect(() => {
+      if (siteSettingsData) {
+        store.setSiteSettingsData(siteSettingsData);
+      }
+    }, [siteSettingsData]);
+
+    useEffect(() => {
       setData(tableData.map((row, index) => ({ tableID: index, ...row })));
     }, [tableData]);
 
@@ -222,6 +241,9 @@ const MyDataTable = observer(
     const clearFilterResult = () => {
       setFilterText("");
     };
+
+    const projectOptions = Object.entries(store?.siteSettingsData?.projectsForUser ?? {}).map(
+      ([value, label]) => ({ value, label }))
 
     const handleSort = (column, sortDirection) => {
       const columnName =
@@ -299,7 +321,7 @@ const MyDataTable = observer(
               />
             </Button>
             <Button
-              key={"calendar"}
+              key={"gallery"}
               variant="outline-tertiary"
               className="me-1"
               onClick={() => {
@@ -374,7 +396,7 @@ const MyDataTable = observer(
                 defaultMessage={"Calendar View"}
               />
             </Button>
-            
+
             {tabs.map((tab, index) => {
               return (
                 <Button
@@ -460,6 +482,76 @@ const MyDataTable = observer(
           </InputGroup>
           <br />
         </div>
+        <div className="d-flex flex-row align-items-center mt-2 mb-2"
+        >
+          {store.projectBannerStatusCode === 1 && <div 
+            className="d-flex flex-row align-items-center gap-2"
+          style={{ color: "white" }}          >
+            <div><FormattedMessage id="ADD_TO_PROJECT" /></div>
+            <Select
+              isMulti={true}
+              options={projectOptions}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              menuPlacement="auto"
+              menuPortalTarget={document.body}
+              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+              value={projectOptions.filter(option => store.selectedProjects.includes(option.value))}
+              getOptionLabel={(option) => option.label}
+              placeholder={intl.formatMessage({ id: "SELECT_PROJECTS" })
+              }
+              onChange={(selected) =>
+                store.setSelectedProjects((selected || []).map(opt => opt.value))
+              }
+              closeMenuOnSelect={false}
+            />
+            <MainButton
+              color="white"
+              noArrow
+              backgroundColor={theme?.wildMeColors?.cyan700}
+              borderColor="#007bff"
+              disabled={!store.selectedProjects || store.selectedProjects.length === 0}
+              onClick={() => {
+                store.addEncountersToProject();
+              }}
+            >
+              <FormattedMessage id="ADD" />
+            </MainButton>
+          </div>}
+          {store.projectBannerStatusCode === 2 && (
+            <div className="d-flex align-items-center"
+              style={{
+                backgroundColor: theme?.primaryColors?.primary100,
+                borderRadius: "5px", padding: "5px",
+                color: theme?.wildMeColors?.green700,
+              }}
+            >
+              <i className="bi bi-info-circle"></i>
+              <FormattedMessage id="ADDING_TO_PROJECT" />
+              <i className="bi bi-arrow-repeat ms-2" style={{ fontSize: "1.5em", color: theme?.wildMeColors?.cyan700 }}></i>
+            </div>
+          )}
+          {store.projectBannerStatusCode === 3 && (
+            <div className="d-flex align-items-center" style={{
+              backgroundColor: theme?.primaryColors?.primary100,
+              borderRadius: "5px", padding: "5px", color: theme?.wildMeColors?.green700,
+            }}>
+              <i class="bi bi-info-circle"></i>
+              <FormattedMessage id="ADDED_TO_PROJECT" />
+              <i className="bi bi-check-circle ms-2" style={{ fontSize: "1.5em", color: theme?.wildMeColors?.green700 }}></i>
+            </div>
+          )}
+          {store.projectBannerStatusCode === 4 && (
+            <div className="d-flex align-items-center" style={{
+              backgroundColor: theme?.statusColors?.red100,
+              borderRadius: "5px", padding: "5px", color: theme?.wildMeColors?.green700,
+            }}>
+              <i class="bi bi-info-circle"></i>
+              <FormattedMessage id="FAILED_TO_ADD_TO_PROJECT" />
+              <i className="bi bi-x-circle ms-2" style={{ fontSize: "1.5em", color: theme?.wildMeColors?.red700 }}></i>
+            </div>
+          )}
+        </div>
         <div
           className="w-100 mt-1"
           style={{
@@ -484,6 +576,8 @@ const MyDataTable = observer(
               selectableRowsHighlight
               progressPending={isLoading}
               onSort={handleSort}
+              selectableRows
+              clearSelectedRows={store.clearSelectedRows}
             />
           </div>
           {filteredData.length === 0 && !isLoading ? (

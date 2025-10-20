@@ -2,14 +2,23 @@ import { makeAutoObservable } from "mobx";
 import { isValid, parseISO, getWeek } from "date-fns";
 import { chain, range } from "lodash-es";
 import ImageModalStore from "./ImageModalStore";
+import { toJS } from "mobx";
+import axios from "axios";
 
 class EncounterFormStore {
   _formFilters;
   _activeStep = 0;
 
+  _siteSettingsData = null;
+
   _hasFetchedAllEncounters = false;
   _searchResultsAll = [];
   _loadingAll = false;
+  _selectedRows = [];
+  _selectedProjects = [];
+  //0: hide, 1: show select 2: show adding 3: show success 4: show error
+  _projectBannerStatusCode = 0;
+  _clearSelectedRows = false;
   _imageCoundPerPage = 20;
 
   _allMediaAssets = [];
@@ -46,6 +55,13 @@ class EncounterFormStore {
     );
   }
 
+  get siteSettingsData() {
+    return this._siteSettingsData;
+  }
+  setSiteSettingsData(data) {
+    this._siteSettingsData = data;
+  }
+
   get formFilters() {
     return this._formFilters;
   }
@@ -79,6 +95,34 @@ class EncounterFormStore {
   }
   setLoadingAll(value) {
     this._loadingAll = value;
+  }
+
+  get selectedRows() {
+    return this._selectedRows || [];
+  }
+  setSelectedRows(rows) {
+    this._selectedRows = rows;
+  }
+
+  get selectedProjects() {
+    return this._selectedProjects || [];
+  }
+  setSelectedProjects(projects) {
+    this._selectedProjects = projects || [];
+  }
+
+  get projectBannerStatusCode() {
+    return this._projectBannerStatusCode;
+  }
+  setprojectBannerStatusCode(code) {
+    this._projectBannerStatusCode = code;
+  }
+
+  get clearSelectedRows() {
+    return this._clearSelectedRows;
+  }
+  setClearSelectedRows(value) {
+    this._clearSelectedRows = value;
   }
 
   get imageCountPerPage() {
@@ -206,6 +250,40 @@ class EncounterFormStore {
       };
     });
     return result;
+  }
+
+  async addEncountersToProject() {
+    if (!this._selectedRows || this._selectedRows.length === 0 || !this._selectedProjects || this._selectedProjects.length === 0) {
+      console.error("No project selected to add the encounter to.");
+      return;
+    }
+    this.setprojectBannerStatusCode(2);
+    const payload = {
+      projects: toJS(this._selectedProjects.map(project => ({
+        id: project,
+        encountersToAdd: this.selectedRows.map(row => row.id),
+      })))
+    };
+    try {
+      const result = await axios.post("/ProjectUpdate", payload, {
+        headers: { "Content-Type": "application/json" },
+      })
+      if (result.status === 200) {
+        this.setSelectedProjects([]);
+        this.setSelectedRows([]);
+        this.setprojectBannerStatusCode(3);
+        this.setClearSelectedRows(!this._clearSelectedRows);
+        setTimeout(() => {
+          if (this.selectedRows.length === 0 && this.projectBannerStatusCode === 3) {
+            this.setprojectBannerStatusCode(0);
+          }
+        }, 2500);
+      } else {
+        this.setprojectBannerStatusCode(4);
+      }
+    } catch (error) {
+      this.setprojectBannerStatusCode(4);
+    }
   }
 }
 
