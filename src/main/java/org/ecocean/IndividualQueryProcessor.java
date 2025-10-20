@@ -974,7 +974,10 @@ public class IndividualQueryProcessor extends QueryProcessor {
             StringTokenizer tokenizer = new StringTokenizer(genusSpecies, " ");
             if (tokenizer.countTokens() == 2) {
                 genus = tokenizer.nextToken();
-                specificEpithet = tokenizer.nextToken();
+                while(tokenizer.hasMoreTokens()) {
+                	specificEpithet+=tokenizer.nextToken()+" ";
+                }
+                specificEpithet=specificEpithet.trim();
 
                 filter = filterWithCondition(filter, " enc.genus == '" + genus + "' ");
                 filter = filterWithCondition(filter,
