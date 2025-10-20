@@ -174,8 +174,24 @@ public class WildbookIAM extends IAPlugin {
                 continue;
             }
             if (!validMediaAsset(ma)) {
-                IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
-                continue;
+                try{
+                    Shepherd myShepherd = new Shepherd(context);
+                    myShepherd.setAction("WildbookIAM.prime");
+                    myShepherd.beginDBTransaction();
+                    ma.setMetadata();
+                    ma.updateStandardChildren(myShepherd);
+                    myShepherd.commitDBTransaction();
+                }
+                catch (Exception e){
+                IA.log("WARNING: setMetadata issue in updating metadata " + ma);
+               
+                }
+
+                if (!validMediaAsset(ma)){
+                     IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
+                    continue;
+                }
+
             }
             acmList.add(ma);
             map.get("image_uri_list").add(mediaAssetToUri(ma));
