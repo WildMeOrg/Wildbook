@@ -2,214 +2,236 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-		{"name": "Afghanistan", "id": "Afghanistan", "locationID":[
+
+		{"name":"Asia","id":"Asia","locationID":[
 		
-			{ "name":"C10_Avgarch", "id":"C10_Avgarch", "locationID":[] },
+			{"name": "Afghanistan", "id": "Afghanistan", "locationID":[
+			
+				{ "name":"C10_Avgarch", "id":"C10_Avgarch", "locationID":[] },
 
-			{ "name":"C12_Sast", "id":"C12_Sast", "locationID":[] },
+				{ "name":"C12_Sast", "id":"C12_Sast", "locationID":[] },
 
-			{ "name":"C14_Pikut", "id":"C14_Pikut", "locationID":[] },
+				{ "name":"C14_Pikut", "id":"C14_Pikut", "locationID":[] },
 
-			{ "name":"C15_Pigish", "id":"C15_Pigish", "locationID":[] },
+				{ "name":"C15_Pigish", "id":"C15_Pigish", "locationID":[] },
 
-			{ "name":"C16_Ishmorgh", "id":"C16_Ishmorgh", "locationID":[] },
+				{ "name":"C16_Ishmorgh", "id":"C16_Ishmorgh", "locationID":[] },
 
-			{ "name":"C17_Yzirk", "id":"C17_Yzirk", "locationID":[] },
+				{ "name":"C17_Yzirk", "id":"C17_Yzirk", "locationID":[] },
 
-			{ "name":"C18_Khundud", "id":"C18_Khundud", "locationID":[] },
+				{ "name":"C18_Khundud", "id":"C18_Khundud", "locationID":[] },
 
-			{ "name":"C19_Khundud", "id":"C19_Khundud", "locationID":[] },
+				{ "name":"C19_Khundud", "id":"C19_Khundud", "locationID":[] },
 
-			{ "name":"C1_Avgarch", "id":"C1_Avgarch", "locationID":[] },
+				{ "name":"C1_Avgarch", "id":"C1_Avgarch", "locationID":[] },
 
-			{ "name":"C20_Yamit", "id":"C20_Yamit", "locationID":[] },
+				{ "name":"C20_Yamit", "id":"C20_Yamit", "locationID":[] },
 
-			{ "name":"C21_Yamit", "id":"C21_Yamit", "locationID":[] },
+				{ "name":"C21_Yamit", "id":"C21_Yamit", "locationID":[] },
 
-			{ "name":"C22_Pigish", "id":"C22_Pigish", "locationID":[] },
+				{ "name":"C22_Pigish", "id":"C22_Pigish", "locationID":[] },
 
-			{ "name":"C23_Pigish", "id":"C23_Pigish", "locationID":[] },
+				{ "name":"C23_Pigish", "id":"C23_Pigish", "locationID":[] },
 
-			{ "name":"C24_Ragi_Jurem", "id":"C24_Ragi_Jurem", "locationID":[] },
+				{ "name":"C24_Ragi_Jurem", "id":"C24_Ragi_Jurem", "locationID":[] },
 
-			{ "name":"C25_Pigish", "id":"C25_Pigish", "locationID":[] },
+				{ "name":"C25_Pigish", "id":"C25_Pigish", "locationID":[] },
 
-			{ "name":"C26_Pak", "id":"C26_Pak", "locationID":[] },
+				{ "name":"C26_Pak", "id":"C26_Pak", "locationID":[] },
 
-			{ "name":"C26_Wargand_Payan", "id":"C26_Wargand_Payan", "locationID":[] },
+				{ "name":"C26_Wargand_Payan", "id":"C26_Wargand_Payan", "locationID":[] },
 
-			{ "name":"C27_Ragi_Jurem", "id":"C27_Ragi_Jurem", "locationID":[] },
+				{ "name":"C27_Ragi_Jurem", "id":"C27_Ragi_Jurem", "locationID":[] },
 
-			{ "name":"C28_Ragi_Jurem", "id":"C28_Ragi_Jurem", "locationID":[] },
+				{ "name":"C28_Ragi_Jurem", "id":"C28_Ragi_Jurem", "locationID":[] },
 
-			{ "name":"C28_Wargand", "id":"C28_Wargand", "locationID":[] },
+				{ "name":"C28_Wargand", "id":"C28_Wargand", "locationID":[] },
 
-			{ "name":"C29_Ragi_Jurem", "id":"C29_Ragi_Jurem", "locationID":[] },
+				{ "name":"C29_Ragi_Jurem", "id":"C29_Ragi_Jurem", "locationID":[] },
 
-			{ "name":"C2_Sast", "id":"C2_Sast", "locationID":[] },
+				{ "name":"C2_Sast", "id":"C2_Sast", "locationID":[] },
 
-			{ "name":"C30_Wargand_Payan", "id":"C30_Wargand_Payan", "locationID":[] },
+				{ "name":"C30_Wargand_Payan", "id":"C30_Wargand_Payan", "locationID":[] },
 
-			{ "name":"C31_Wargand_Payan", "id":"C31_Wargand_Payan", "locationID":[] },
+				{ "name":"C31_Wargand_Payan", "id":"C31_Wargand_Payan", "locationID":[] },
 
-			{ "name":"C32_Wargand_Bala", "id":"C32_Wargand_Bala", "locationID":[] },
+				{ "name":"C32_Wargand_Bala", "id":"C32_Wargand_Bala", "locationID":[] },
 
-			{ "name":"C33_Wargand_Bala", "id":"C33_Wargand_Bala", "locationID":[] },
+				{ "name":"C33_Wargand_Bala", "id":"C33_Wargand_Bala", "locationID":[] },
 
-			{ "name":"C35_Avgarch", "id":"C35_Avgarch", "locationID":[] },
+				{ "name":"C35_Avgarch", "id":"C35_Avgarch", "locationID":[] },
 
-			{ "name":"C38_Paquoy", "id":"C38_Paquoy", "locationID":[] },
+				{ "name":"C38_Paquoy", "id":"C38_Paquoy", "locationID":[] },
 
-			{ "name":"C3_Sarkand", "id":"C3_Sarkand", "locationID":[] },
+				{ "name":"C3_Sarkand", "id":"C3_Sarkand", "locationID":[] },
 
-			{ "name":"C40_Ragi_Jurem", "id":"C40_Ragi_Jurem", "locationID":[] },
+				{ "name":"C40_Ragi_Jurem", "id":"C40_Ragi_Jurem", "locationID":[] },
 
-			{ "name":"C41_Pak", "id":"C41_Pak", "locationID":[] },
+				{ "name":"C41_Pak", "id":"C41_Pak", "locationID":[] },
 
-			{ "name":"C42_Pikut", "id":"C42_Pikut", "locationID":[] },
+				{ "name":"C42_Pikut", "id":"C42_Pikut", "locationID":[] },
 
-			{ "name":"C45_Avgach", "id":"C45_Avgach", "locationID":[] },
+				{ "name":"C45_Avgach", "id":"C45_Avgach", "locationID":[] },
 
-			{ "name":"C46_Pak", "id":"C46_Pak", "locationID":[] },
+				{ "name":"C46_Pak", "id":"C46_Pak", "locationID":[] },
 
-			{ "name":"C4_Paquoy", "id":"C4_Paquoy", "locationID":[] },
+				{ "name":"C4_Paquoy", "id":"C4_Paquoy", "locationID":[] },
 
-			{ "name":"C4_Paquoy_Shoopk", "id":"C4_Paquoy_Shoopk", "locationID":[] },
+				{ "name":"C4_Paquoy_Shoopk", "id":"C4_Paquoy_Shoopk", "locationID":[] },
 
-			{ "name":"C5_Ishmorgh", "id":"C5_Ishmorgh", "locationID":[] },
+				{ "name":"C5_Ishmorgh", "id":"C5_Ishmorgh", "locationID":[] },
 
-			{ "name":"C6_Sast", "id":"C6_Sast", "locationID":[] },
+				{ "name":"C6_Sast", "id":"C6_Sast", "locationID":[] },
 
-			{ "name":"C7_Ishmorgh", "id":"C7_Ishmorgh", "locationID":[] },
+				{ "name":"C7_Ishmorgh", "id":"C7_Ishmorgh", "locationID":[] },
 
-			{ "name":"C8_Ishmorgh", "id":"C8_Ishmorgh", "locationID":[] },
-			{ "name":"CT_104_Shew Praga", "id":"CT_104_Shew Praga", "locationID":[] },
+				{ "name":"C8_Ishmorgh", "id":"C8_Ishmorgh", "locationID":[] },
+				{ "name":"CT_104_Shew Praga", "id":"CT_104_Shew Praga", "locationID":[] },
 
-			{ "name":"CT_105_Ayloc Sokhtah", "id":"CT_105_Ayloc Sokhtah", "locationID":[] },
+				{ "name":"CT_105_Ayloc Sokhtah", "id":"CT_105_Ayloc Sokhtah", "locationID":[] },
 
-			{ "name":"CT_106_Jungle Sar", "id":"CT_106_Jungle Sar", "locationID":[] },
+				{ "name":"CT_106_Jungle Sar", "id":"CT_106_Jungle Sar", "locationID":[] },
 
-			{ "name":"CT_10_Avgarch Sar", "id":"CT_10_Avgarch Sar", "locationID":[] },
+				{ "name":"CT_10_Avgarch Sar", "id":"CT_10_Avgarch Sar", "locationID":[] },
 
-			{ "name":"CT_12_Coompeer Kook", "id":"CT_12_Coompeer Kook", "locationID":[] },
+				{ "name":"CT_12_Coompeer Kook", "id":"CT_12_Coompeer Kook", "locationID":[] },
 
-			{ "name":"CT_14_Ayloc Sar", "id":"CT_14_Ayloc Sar", "locationID":[] },
+				{ "name":"CT_14_Ayloc Sar", "id":"CT_14_Ayloc Sar", "locationID":[] },
 
-			{ "name":"CT_14_Pikut Jerav Kishtgah", "id":"CT_14_Pikut Jerav Kishtgah", "locationID":[] },
+				{ "name":"CT_14_Pikut Jerav Kishtgah", "id":"CT_14_Pikut Jerav Kishtgah", "locationID":[] },
 
-			{ "name":"CT_152_Zhighargag", "id":"CT_152_Zhighargag", "locationID":[] },
+				{ "name":"CT_152_Zhighargag", "id":"CT_152_Zhighargag", "locationID":[] },
 
-			{ "name":"CT_154_Pikut Sar", "id":"CT_154_Pikut Sar", "locationID":[] },
+				{ "name":"CT_154_Pikut Sar", "id":"CT_154_Pikut Sar", "locationID":[] },
 
-			{ "name":"CT_16_Koi Rahmat", "id":"CT_16_Koi Rahmat", "locationID":[] },
+				{ "name":"CT_16_Koi Rahmat", "id":"CT_16_Koi Rahmat", "locationID":[] },
 
-			{ "name":"CT_16_Yarzif", "id":"CT_16_Yarzif", "locationID":[] },
+				{ "name":"CT_16_Yarzif", "id":"CT_16_Yarzif", "locationID":[] },
 
-			{ "name":"CT_17_Pikut Jerav", "id":"CT_17_Pikut Jerav", "locationID":[] },
+				{ "name":"CT_17_Pikut Jerav", "id":"CT_17_Pikut Jerav", "locationID":[] },
 
-			{ "name":"CT_197_Chat Wooduk", "id":"CT_197_Chat Wooduk", "locationID":[] },
+				{ "name":"CT_197_Chat Wooduk", "id":"CT_197_Chat Wooduk", "locationID":[] },
 
-			{ "name":"CT_198_Shach", "id":"CT_198_Shach", "locationID":[] },
+				{ "name":"CT_198_Shach", "id":"CT_198_Shach", "locationID":[] },
 
-			{ "name":"CT_19_Teer Gash", "id":"CT_19_Teer Gash", "locationID":[] },
+				{ "name":"CT_19_Teer Gash", "id":"CT_19_Teer Gash", "locationID":[] },
 
-			{ "name":"CT_200_Oh Jera Jerav", "id":"CT_200_Oh Jera Jerav", "locationID":[] },
+				{ "name":"CT_200_Oh Jera Jerav", "id":"CT_200_Oh Jera Jerav", "locationID":[] },
 
-			{ "name":"CT_201_Shoni Midiganz", "id":"CT_201_Shoni Midiganz", "locationID":[] },
+				{ "name":"CT_201_Shoni Midiganz", "id":"CT_201_Shoni Midiganz", "locationID":[] },
 
-			{ "name":"CT_20_Shoni Midiganz Thoor", "id":"CT_20_Shoni Midiganz Thoor", "locationID":[] },
+				{ "name":"CT_20_Shoni Midiganz Thoor", "id":"CT_20_Shoni Midiganz Thoor", "locationID":[] },
 
-			{ "name":"CT_212_48_Sar Jungle Sokhtah", "id":"CT_212_48_Sar Jungle Sokhtah", "locationID":[] },
+				{ "name":"CT_212_48_Sar Jungle Sokhtah", "id":"CT_212_48_Sar Jungle Sokhtah", "locationID":[] },
 
-			{ "name":"CT_218_6_Kishtgah Sar", "id":"CT_218_6_Kishtgah Sar", "locationID":[] },
+				{ "name":"CT_218_6_Kishtgah Sar", "id":"CT_218_6_Kishtgah Sar", "locationID":[] },
 
-			{ "name":"CT_23_Singow Thoor", "id":"CT_23_Singow Thoor", "locationID":[] },
+				{ "name":"CT_23_Singow Thoor", "id":"CT_23_Singow Thoor", "locationID":[] },
 
-			{ "name":"CT_25_Shergah Kook", "id":"CT_25_Shergah Kook", "locationID":[] },
+				{ "name":"CT_25_Shergah Kook", "id":"CT_25_Shergah Kook", "locationID":[] },
 
-			{ "name":"CT_268_Qalachah", "id":"CT_268_Qalachah", "locationID":[] },
+				{ "name":"CT_268_Qalachah", "id":"CT_268_Qalachah", "locationID":[] },
 
-			{ "name":"CT_27_Amal Wurdth", "id":"CT_27_Amal Wurdth", "locationID":[] },
+				{ "name":"CT_27_Amal Wurdth", "id":"CT_27_Amal Wurdth", "locationID":[] },
 
-			{ "name":"CT_28_Khundud Jerav", "id":"CT_28_Khundud Jerav", "locationID":[] },
+				{ "name":"CT_28_Khundud Jerav", "id":"CT_28_Khundud Jerav", "locationID":[] },
 
-			{ "name":"CT_2_Wust Koo", "id":"CT_2_Wust Koo", "locationID":[] },
+				{ "name":"CT_2_Wust Koo", "id":"CT_2_Wust Koo", "locationID":[] },
 
-			{ "name":"CT_30_Gharf Ghets", "id":"CT_30_Gharf Ghets", "locationID":[] },
+				{ "name":"CT_30_Gharf Ghets", "id":"CT_30_Gharf Ghets", "locationID":[] },
 
-			{ "name":"CT_318_Qalat Sar", "id":"CT_318_Qalat Sar", "locationID":[] },
+				{ "name":"CT_318_Qalat Sar", "id":"CT_318_Qalat Sar", "locationID":[] },
 
-			{ "name":"CT_33_Khadog Sar", "id":"CT_33_Khadog Sar", "locationID":[] },
+				{ "name":"CT_33_Khadog Sar", "id":"CT_33_Khadog Sar", "locationID":[] },
 
-			{ "name":"CT_34_Saman", "id":"CT_34_Saman", "locationID":[] },
+				{ "name":"CT_34_Saman", "id":"CT_34_Saman", "locationID":[] },
 
-			{ "name":"CT_35_Rukhun Sil", "id":"CT_35_Rukhun Sil", "locationID":[] },
+				{ "name":"CT_35_Rukhun Sil", "id":"CT_35_Rukhun Sil", "locationID":[] },
 
-			{ "name":"CT_37_Bajgardan", "id":"CT_37_Bajgardan", "locationID":[] },
+				{ "name":"CT_37_Bajgardan", "id":"CT_37_Bajgardan", "locationID":[] },
 
-			{ "name":"CT_38_Chat Wooduk", "id":"CT_38_Chat Wooduk", "locationID":[] },
+				{ "name":"CT_38_Chat Wooduk", "id":"CT_38_Chat Wooduk", "locationID":[] },
 
-			{ "name":"CT_3_Arak Door", "id":"CT_3_Arak Door", "locationID":[] },
+				{ "name":"CT_3_Arak Door", "id":"CT_3_Arak Door", "locationID":[] },
 
-			{ "name":"CT_42_Hascht Bund", "id":"CT_42_Hascht Bund", "locationID":[] },
+				{ "name":"CT_42_Hascht Bund", "id":"CT_42_Hascht Bund", "locationID":[] },
 
-			{ "name":"CT_44_Kalacha", "id":"CT_44_Kalacha", "locationID":[] },
+				{ "name":"CT_44_Kalacha", "id":"CT_44_Kalacha", "locationID":[] },
 
-			{ "name":"CT_44_Teer Gash", "id":"CT_44_Teer Gash", "locationID":[] },
+				{ "name":"CT_44_Teer Gash", "id":"CT_44_Teer Gash", "locationID":[] },
 
-			{ "name":"CT46_157_Yokshkut", "id":"CT46_157_Yokshkut", "locationID":[] },
+				{ "name":"CT46_157_Yokshkut", "id":"CT46_157_Yokshkut", "locationID":[] },
 
-			{ "name":"CT_46_Sheer Goz", "id":"CT_46_Sheer Goz", "locationID":[] },
+				{ "name":"CT_46_Sheer Goz", "id":"CT_46_Sheer Goz", "locationID":[] },
 
-			{ "name":"CT_46_Yenj Sar", "id":"CT_46_Yenj Sar", "locationID":[] },
+				{ "name":"CT_46_Yenj Sar", "id":"CT_46_Yenj Sar", "locationID":[] },
 
-			{ "name":"CT_48_49_Wust Koo", "id":"CT_48_49_Wust Koo", "locationID":[] },
+				{ "name":"CT_48_49_Wust Koo", "id":"CT_48_49_Wust Koo", "locationID":[] },
 
-			{ "name":"CT_49_51_Qalat Sar", "id":"CT_49_51_Qalat Sar", "locationID":[] },
+				{ "name":"CT_49_51_Qalat Sar", "id":"CT_49_51_Qalat Sar", "locationID":[] },
 
-			{ "name":"CT_4_Sast Jerav", "id":"CT_4_Sast Jerav", "locationID":[] },
+				{ "name":"CT_4_Sast Jerav", "id":"CT_4_Sast Jerav", "locationID":[] },
 
-			{ "name":"CT_50_Pagish Sar", "id":"CT_50_Pagish Sar", "locationID":[] },
+				{ "name":"CT_50_Pagish Sar", "id":"CT_50_Pagish Sar", "locationID":[] },
 
-			{ "name":"CT_51_Chockoristan", "id":"CT_51_Chockoristan", "locationID":[] },
+				{ "name":"CT_51_Chockoristan", "id":"CT_51_Chockoristan", "locationID":[] },
 
-			{ "name":"CT_52_196_Shah Sar", "id":"CT_52_196_Shah Sar", "locationID":[] },
+				{ "name":"CT_52_196_Shah Sar", "id":"CT_52_196_Shah Sar", "locationID":[] },
 
-			{ "name":"CT_52_Shabt Yakt", "id":"CT_52_Shabt Yakt", "locationID":[] },
+				{ "name":"CT_52_Shabt Yakt", "id":"CT_52_Shabt Yakt", "locationID":[] },
 
-			{ "name":"CT_52_Sheld Hill Sar", "id":"CT_52_Sheld Hill Sar", "locationID":[] },
+				{ "name":"CT_52_Sheld Hill Sar", "id":"CT_52_Sheld Hill Sar", "locationID":[] },
 
-			{ "name":"CT_53_Ghalbil Gaz", "id":"CT_53_Ghalbil Gaz", "locationID":[] },
+				{ "name":"CT_53_Ghalbil Gaz", "id":"CT_53_Ghalbil Gaz", "locationID":[] },
 
-			{ "name":"CT_54_Arak Door", "id":"CT_54_Arak Door", "locationID":[] },
+				{ "name":"CT_54_Arak Door", "id":"CT_54_Arak Door", "locationID":[] },
 
-			{ "name":"CT_54_Sheer Goz", "id":"CT_54_Sheer Goz", "locationID":[] },
+				{ "name":"CT_54_Sheer Goz", "id":"CT_54_Sheer Goz", "locationID":[] },
 
-			{ "name":"CT_55_Pak Saman", "id":"CT_55_Pak Saman", "locationID":[] },
+				{ "name":"CT_55_Pak Saman", "id":"CT_55_Pak Saman", "locationID":[] },
 
-			{ "name":"CT_56_153_Chokoristan", "id":"CT_56_153_Chokoristan", "locationID":[] },
+				{ "name":"CT_56_153_Chokoristan", "id":"CT_56_153_Chokoristan", "locationID":[] },
 
-			{ "name":"CT_56_Kook Serv Sar", "id":"CT_56_Kook Serv Sar", "locationID":[] },
+				{ "name":"CT_56_Kook Serv Sar", "id":"CT_56_Kook Serv Sar", "locationID":[] },
 
-			{ "name":"CT_57_Dasht Sar", "id":"CT_57_Dasht Sar", "locationID":[] },
+				{ "name":"CT_57_Dasht Sar", "id":"CT_57_Dasht Sar", "locationID":[] },
 
-			{ "name":"CT_57_Pagish Sar", "id":"CT_57_Pagish Sar", "locationID":[] },
+				{ "name":"CT_57_Pagish Sar", "id":"CT_57_Pagish Sar", "locationID":[] },
 
-			{ "name":"CT_58_Devfk", "id":"CT_58_Devfk", "locationID":[] },
+				{ "name":"CT_58_Devfk", "id":"CT_58_Devfk", "locationID":[] },
 
-			{ "name":"CT_59_ Singaw Sar", "id":"CT_59_ Singaw Sar", "locationID":[] },
+				{ "name":"CT_59_ Singaw Sar", "id":"CT_59_ Singaw Sar", "locationID":[] },
 
-			{ "name":"CT_5_Yoopk Nearsk Hill", "id":"CT_5_Yoopk Nearsk Hill", "locationID":[] },
+				{ "name":"CT_5_Yoopk Nearsk Hill", "id":"CT_5_Yoopk Nearsk Hill", "locationID":[] },
 
-			{ "name":"CT_65_Ghabil Gaz", "id":"CT_65_Ghabil Gaz", "locationID":[] },
+				{ "name":"CT_65_Ghabil Gaz", "id":"CT_65_Ghabil Gaz", "locationID":[] },
 
-			{ "name":"CT_66_Koi Rahmat", "id":"CT_66_Koi Rahmat", "locationID":[] },
+				{ "name":"CT_66_Koi Rahmat", "id":"CT_66_Koi Rahmat", "locationID":[] },
 
-			{ "name":"CT_67_Devfk", "id":"CT_67_Devfk", "locationID":[] },
+				{ "name":"CT_67_Devfk", "id":"CT_67_Devfk", "locationID":[] },
 
-			{ "name":"CT_7_Singow", "id":"CT_7_Singow", "locationID":[] }
+				{ "name":"CT_7_Singow", "id":"CT_7_Singow", "locationID":[] }
+			
+			] },
+			{"name": "China", "id": "China", "locationID":[] },
+			{"name": "India", "id": "India", "locationID":[
+				{"name": "Jhalana Reserve Forest", "id": "Jhalana Reserve Forest", "locationID":[] }
+			] },
+			{"name": "Iran", "id": "Iran", "locationID":[] },
+			{"name": "Kazakhstan", "id": "Kazakhstan", "locationID":[] },
+			{"name": "Kyrgyzstan", "id": "Kyrgyzstan", "locationID":[
+			
+				{ "name":"Anshan", "id":"Anshan", "locationID":[] }
+			
+			] },
+			{"name": "Mongolia", "id": "Mongolia", "locationID":[] },
+			{"name": "Nepal", "id": "Nepal", "locationID":[] },
+			{"name": "Pakistan", "id": "Pakistan", "locationID":[] },
+			{"name": "Turkmenistan", "id": "Turkmenistan", "locationID":[] },
+			{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] }
 		
-		] },
+		]},
+		
 		{ "name": "North America", "id": "North America", "locationID":[
 			{"name": "Canada", "id": "Canada", "locationID":[] },
 			{"name": "Mexico", "id": "Mexico", "locationID":[
@@ -237,310 +259,312 @@
 				{ "name":"Mexico - Southeast", "id":"Mexico - Southeast", "locationID":[] }
 			] },
 			{"name": "USA", "id": "USA", "locationID":[
+				
+				{"name": "California", "id": "California", "locationID":[] },
+				{"name":"Oregon","id":"Oregon","locationID":[
 			
-			{"name":"Oregon","id":"Oregon","locationID":[
-		
-				{
-				   "name": "081090", 
-				   "id": "081090" 
-				}
-				,
-				{
-				   "name": "128101", 
-				   "id": "128101" 
-				}
-				,
-				{
-				   "name": "129276", 
-				   "id": "129276" 
-				}
-				,
-				{
-				   "name": "130102", 
-				   "id": "130102" 
-				}
-				,
-				{
-				   "name": "146764", 
-				   "id": "146764" 
-				}
-				,
-				{
-				   "name": "155365", 
-				   "id": "155365" 
-				}
-				,
-				{
-				   "name": "161191", 
-				   "id": "161191" 
-				}
-				,
-				{
-				   "name": "179439", 
-				   "id": "179439" 
-				}
-				,
-				{
-				   "name": "217961", 
-				   "id": "217961" 
-				}
-				,
-				{
-				   "name": "257002", 
-				   "id": "257002" 
-				}
-				,
-				{
-				   "name": "286789", 
-				   "id": "286789" 
-				}
-				,
-				{
-				   "name": "364070", 
-				   "id": "364070" 
-				}
-				,
-				{
-				   "name": "400605", 
-				   "id": "400605" 
-				}
-				,
-				{
-				   "name": "544292", 
-				   "id": "544292" 
-				}
-				,
-				{
-				   "name": "593665", 
-				   "id": "593665" 
-				}
-				,
-				{
-				   "name": "594580", 
-				   "id": "594580" 
-				}
-				,
-				{
-				   "name": "650846", 
-				   "id": "650846" 
-				}
-				,
-				{
-				   "name": "HOBO-014", 
-				   "id": "HOBO-014" 
-				}
-				,
-				{
-				   "name": "HOBO-016", 
-				   "id": "HOBO-016" 
-				}
-				,
-				{
-				   "name": "HOBO-032", 
-				   "id": "HOBO-032" 
-				}
-				,
-				{
-				   "name": "HOBO-036", 
-				   "id": "HOBO-036" 
-				}
-				,
-				{
-				   "name": "HOBO-040", 
-				   "id": "HOBO-040" 
-				}
-				,
-				{
-				   "name": "HOBO-053", 
-				   "id": "HOBO-053" 
-				}
-				,
-				{
-				   "name": "HOBO-060", 
-				   "id": "HOBO-060" 
-				}
-				,
-				{
-				   "name": "HOBO-200", 
-				   "id": "HOBO-200" 
-				}
-				,
-				{
-				   "name": "HOBO-204", 
-				   "id": "HOBO-204" 
-				}
-				,
-				{
-				   "name": "HOBO-207", 
-				   "id": "HOBO-207" 
-				}
-				,
-				{
-				   "name": "HOBO-209", 
-				   "id": "HOBO-209" 
-				}
-				,
-				{
-				   "name": "HOBO-211", 
-				   "id": "HOBO-211" 
-				}
-				,
-				{
-				   "name": "HOBO-216", 
-				   "id": "HOBO-216" 
-				}
-				,
-				{
-				   "name": "HOBO-233", 
-				   "id": "HOBO-233" 
-				}
-				,
-				{
-				   "name": "HOBO-242", 
-				   "id": "HOBO-242" 
-				}
-				,
-				{
-				   "name": "HOBO-244", 
-				   "id": "HOBO-244" 
-				}
-				,
-				{
-				   "name": "HOBO-246", 
-				   "id": "HOBO-246" 
-				}
-				,
-				{
-				   "name": "HOBO-248", 
-				   "id": "HOBO-248" 
-				}
-				,
-				{
-				   "name": "HOBO-250", 
-				   "id": "HOBO-250" 
-				}
-				,
-				{
-				   "name": "HOBO-265", 
-				   "id": "HOBO-265" 
-				}
-				,
-				{
-				   "name": "HOBO-302", 
-				   "id": "HOBO-302" 
-				}
-				,
-				{
-				   "name": "HOBO-304", 
-				   "id": "HOBO-304" 
-				}
-				,
-				{
-				   "name": "HOBO-308", 
-				   "id": "HOBO-308" 
-				}
-				,
-				{
-				   "name": "HOBO-310", 
-				   "id": "HOBO-310" 
-				}
-				,
-				{
-				   "name": "HOBO-312", 
-				   "id": "HOBO-312" 
-				}
-				,
-				{
-				   "name": "HOBO-315", 
-				   "id": "HOBO-315" 
-				}
-				,
-				{
-				   "name": "HOBO-317", 
-				   "id": "HOBO-317" 
-				}
-				,
-				{
-				   "name": "HOBO-331", 
-				   "id": "HOBO-331" 
-				}
-				,
-				{
-				   "name": "HOBO-335", 
-				   "id": "HOBO-335" 
-				}
-				,
-				{
-				   "name": "HOBO-337", 
-				   "id": "HOBO-337" 
-				}
-				,
-				{
-				   "name": "HOBO-341", 
-				   "id": "HOBO-341" 
-				}
-				,
-				{
-				   "name": "HOBO-345", 
-				   "id": "HOBO-345" 
-				}
-				,
-				{
-				   "name": "HOBO-347", 
-				   "id": "HOBO-347" 
-				}
-				,
-				{
-				   "name": "HOBO-349", 
-				   "id": "HOBO-349" 
-				}
-				,
-				{
-				   "name": "HOBO-351", 
-				   "id": "HOBO-351" 
-				}
-				,
-				{
-				   "name": "HOBO-353", 
-				   "id": "HOBO-353" 
-				}
-				,
-				{
-				   "name": "HOBO-357", 
-				   "id": "HOBO-357" 
-				}
-				,
-				{
-				   "name": "SM-02", 
-				   "id": "SM-02" 
-				}
-				,
-				{
-				   "name": "SM-03", 
-				   "id": "SM-03" 
-				}
-				,
-				{
-				   "name": "SM-04", 
-				   "id": "SM-04" 
-				}
-				,
-				{
-				   "name": "SM-06", 
-				   "id": "SM-06" 
-				}
-				,
-				{
-				   "name": "SM-09", 
-				   "id": "SM-09" 
-				}
-				,
-				{
-				   "name": "SM-PG", 
-				   "id": "SM-PG" 
-				}
+					{
+					   "name": "081090", 
+					   "id": "081090" 
+					}
+					,
+					{
+					   "name": "128101", 
+					   "id": "128101" 
+					}
+					,
+					{
+					   "name": "129276", 
+					   "id": "129276" 
+					}
+					,
+					{
+					   "name": "130102", 
+					   "id": "130102" 
+					}
+					,
+					{
+					   "name": "146764", 
+					   "id": "146764" 
+					}
+					,
+					{
+					   "name": "155365", 
+					   "id": "155365" 
+					}
+					,
+					{
+					   "name": "161191", 
+					   "id": "161191" 
+					}
+					,
+					{
+					   "name": "179439", 
+					   "id": "179439" 
+					}
+					,
+					{
+					   "name": "217961", 
+					   "id": "217961" 
+					}
+					,
+					{
+					   "name": "257002", 
+					   "id": "257002" 
+					}
+					,
+					{
+					   "name": "286789", 
+					   "id": "286789" 
+					}
+					,
+					{
+					   "name": "364070", 
+					   "id": "364070" 
+					}
+					,
+					{
+					   "name": "400605", 
+					   "id": "400605" 
+					}
+					,
+					{
+					   "name": "544292", 
+					   "id": "544292" 
+					}
+					,
+					{
+					   "name": "593665", 
+					   "id": "593665" 
+					}
+					,
+					{
+					   "name": "594580", 
+					   "id": "594580" 
+					}
+					,
+					{
+					   "name": "650846", 
+					   "id": "650846" 
+					}
+					,
+					{
+					   "name": "HOBO-014", 
+					   "id": "HOBO-014" 
+					}
+					,
+					{
+					   "name": "HOBO-016", 
+					   "id": "HOBO-016" 
+					}
+					,
+					{
+					   "name": "HOBO-032", 
+					   "id": "HOBO-032" 
+					}
+					,
+					{
+					   "name": "HOBO-036", 
+					   "id": "HOBO-036" 
+					}
+					,
+					{
+					   "name": "HOBO-040", 
+					   "id": "HOBO-040" 
+					}
+					,
+					{
+					   "name": "HOBO-053", 
+					   "id": "HOBO-053" 
+					}
+					,
+					{
+					   "name": "HOBO-060", 
+					   "id": "HOBO-060" 
+					}
+					,
+					{
+					   "name": "HOBO-200", 
+					   "id": "HOBO-200" 
+					}
+					,
+					{
+					   "name": "HOBO-204", 
+					   "id": "HOBO-204" 
+					}
+					,
+					{
+					   "name": "HOBO-207", 
+					   "id": "HOBO-207" 
+					}
+					,
+					{
+					   "name": "HOBO-209", 
+					   "id": "HOBO-209" 
+					}
+					,
+					{
+					   "name": "HOBO-211", 
+					   "id": "HOBO-211" 
+					}
+					,
+					{
+					   "name": "HOBO-216", 
+					   "id": "HOBO-216" 
+					}
+					,
+					{
+					   "name": "HOBO-233", 
+					   "id": "HOBO-233" 
+					}
+					,
+					{
+					   "name": "HOBO-242", 
+					   "id": "HOBO-242" 
+					}
+					,
+					{
+					   "name": "HOBO-244", 
+					   "id": "HOBO-244" 
+					}
+					,
+					{
+					   "name": "HOBO-246", 
+					   "id": "HOBO-246" 
+					}
+					,
+					{
+					   "name": "HOBO-248", 
+					   "id": "HOBO-248" 
+					}
+					,
+					{
+					   "name": "HOBO-250", 
+					   "id": "HOBO-250" 
+					}
+					,
+					{
+					   "name": "HOBO-265", 
+					   "id": "HOBO-265" 
+					}
+					,
+					{
+					   "name": "HOBO-302", 
+					   "id": "HOBO-302" 
+					}
+					,
+					{
+					   "name": "HOBO-304", 
+					   "id": "HOBO-304" 
+					}
+					,
+					{
+					   "name": "HOBO-308", 
+					   "id": "HOBO-308" 
+					}
+					,
+					{
+					   "name": "HOBO-310", 
+					   "id": "HOBO-310" 
+					}
+					,
+					{
+					   "name": "HOBO-312", 
+					   "id": "HOBO-312" 
+					}
+					,
+					{
+					   "name": "HOBO-315", 
+					   "id": "HOBO-315" 
+					}
+					,
+					{
+					   "name": "HOBO-317", 
+					   "id": "HOBO-317" 
+					}
+					,
+					{
+					   "name": "HOBO-331", 
+					   "id": "HOBO-331" 
+					}
+					,
+					{
+					   "name": "HOBO-335", 
+					   "id": "HOBO-335" 
+					}
+					,
+					{
+					   "name": "HOBO-337", 
+					   "id": "HOBO-337" 
+					}
+					,
+					{
+					   "name": "HOBO-341", 
+					   "id": "HOBO-341" 
+					}
+					,
+					{
+					   "name": "HOBO-345", 
+					   "id": "HOBO-345" 
+					}
+					,
+					{
+					   "name": "HOBO-347", 
+					   "id": "HOBO-347" 
+					}
+					,
+					{
+					   "name": "HOBO-349", 
+					   "id": "HOBO-349" 
+					}
+					,
+					{
+					   "name": "HOBO-351", 
+					   "id": "HOBO-351" 
+					}
+					,
+					{
+					   "name": "HOBO-353", 
+					   "id": "HOBO-353" 
+					}
+					,
+					{
+					   "name": "HOBO-357", 
+					   "id": "HOBO-357" 
+					}
+					,
+					{
+					   "name": "SM-02", 
+					   "id": "SM-02" 
+					}
+					,
+					{
+					   "name": "SM-03", 
+					   "id": "SM-03" 
+					}
+					,
+					{
+					   "name": "SM-04", 
+					   "id": "SM-04" 
+					}
+					,
+					{
+					   "name": "SM-06", 
+					   "id": "SM-06" 
+					}
+					,
+					{
+					   "name": "SM-09", 
+					   "id": "SM-09" 
+					}
+					,
+					{
+					   "name": "SM-PG", 
+					   "id": "SM-PG" 
+					}
 
-			  ]}
+				  ]},
+				  {"name": "Washington", "id": "Washington", "locationID":[] }
 			
 			
 			] }
@@ -626,21 +650,8 @@
 			{"name": "Italy", "id": "Italy", "locationID":[] },
 			{"name": "Luxembourg", "id": "Luxembourg", "locationID":[] },
 			{"name": "Switzerland", "id": "Switzerland", "locationID":[] }
-		] },
+		] }
 		
-		{"name": "India", "id": "India", "locationID":[
-			{"name": "Jhalana Reserve Forest", "id": "Jhalana Reserve Forest", "locationID":[] }
-		] },
-		{"name": "Iran", "id": "Iran", "locationID":[] },
-		{"name": "Kazakhstan", "id": "Kazakhstan", "locationID":[] },
-		{"name": "Kyrgyzstan", "id": "Kyrgyzstan", "locationID":[
-		
-			{ "name":"Anshan", "id":"Anshan", "locationID":[] }
-		
-		] },
-		{"name": "Nepal", "id": "Nepal", "locationID":[] },
-		{"name": "Pakistan", "id": "Pakistan", "locationID":[] },
-		{"name": "Turkmenistan", "id": "Turkmenistan", "locationID":[] },
-		{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] }
+
  		]
 }
