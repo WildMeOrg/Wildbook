@@ -4727,6 +4727,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 maj.put("uuid", ma.getUUID());
                 maj.put("mimeTypeMajor", ma.getMimeTypeMajor());
                 maj.put("mimeTypeMinor", ma.getMimeTypeMinor());
+                maj.put("rotationInfo", ma.getRotationInfo());
                 try {
                     // historic data might throw IllegalArgumentException: Path not under given root
                     java.net.URL url = ma.safeURL(myShepherd, null, "mid");
@@ -4749,6 +4750,8 @@ public class Encounter extends Base implements java.io.Serializable {
                                 ma.getDetectionStatus());
                             rtn.getJSONArray("mediaAssets").getJSONObject(i).put("userFilename",
                                 ma.getUserFilename());
+                            rtn.getJSONArray("mediaAssets").getJSONObject(i).put("rotationInfo",
+                                ma.getRotationInfo());
                         }
                         // now we cram some stuff into each annotation as well
                         if (rtn.getJSONArray("mediaAssets").getJSONObject(i).optJSONArray(
