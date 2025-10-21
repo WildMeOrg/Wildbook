@@ -59,7 +59,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
   const [activeSection, setActiveSection] = useState("encounters");
   const [includeLocale, setIncludeLocale] = useState(false);
   const [timeline, setTimeline] = useState(false);
-  const [numberSessions, setNumberSessions] = useState(null);
+  const [numberSessions, setNumberSessions] = useState(3);
   const [includeQueryComments, setIncludeQueryComments] = useState(false);
   const [includeIndividialId, setIncludeIndividialId] = useState(false);
 
@@ -457,7 +457,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 includeIndividialId
                                   ? "&includeIndividialId=true"
                                   : "";
-                              const url = `/EncounterSearchExportMarkRecapture?searchQueryId=${searchQueryId}&regularQuery=true${numberSessionsParam}${includeQueryCommentsParam}${includeIndividialIdParam}`;
+                              const url = `/SimpleCMRSpecifySessions.jsp?searchQueryId=${searchQueryId}&regularQuery=true&encounterExport=true${numberSessionsParam}${includeQueryCommentsParam}${includeIndividialIdParam}`;
                               window.open(url, "_blank");
                             }}
                           >
