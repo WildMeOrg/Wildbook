@@ -27,6 +27,16 @@
     background-color: #e9f2ff;
 }
 
+.btn-outline-primary {
+    color: #007599;
+    border-color: #007599;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007599;
+    color: white;
+}
+
 @media (min-width: 992px) {
     .search-bar {
         width: 15%;

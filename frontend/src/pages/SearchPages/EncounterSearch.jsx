@@ -231,7 +231,7 @@ export default function EncounterSearch() {
       <ExportModal
         open={exportModalOpen}
         setOpen={setExportModalOpen}
-        store={store}
+        searchQueryId={searchQueryId}
       />
     </div>
   );
