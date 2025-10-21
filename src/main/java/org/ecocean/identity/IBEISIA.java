@@ -3868,7 +3868,7 @@ public class IBEISIA {
    System.out.println(tanns);
    System.out.println(allAnns);
  */
-            results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()), myShepherd);
+            results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext(), myShepherd));
             results.put("sendAnnotations",
                 sendAnnotationsNew(allAnns, myShepherd.getContext(), myShepherd));
 
