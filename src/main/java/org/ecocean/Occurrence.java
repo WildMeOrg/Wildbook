@@ -1391,6 +1391,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         // (ints, dates, etc are all sortable)
         // note: "id" is done in Base.java
         map.put("taxonomies", keywordType);
+        map.put("submitterId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("groupBehavior", keywordNormalType);
@@ -1431,6 +1432,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         }
         jgen.writeEndArray();
 
+        jgen.writeStringField("submitterId", this.getSubmitterID());
         jgen.writeStringField("groupBehavior", this.getGroupBehavior());
         jgen.writeStringField("groupComposition", this.getGroupComposition());
         jgen.writeStringField("initialCue", this.getInitialCue());
