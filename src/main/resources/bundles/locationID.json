@@ -3,6 +3,11 @@
 	"source": "http://en.wikipedia.org/wiki/List_of_seas",
 	"locationID": [
 		{
+			"name": "Australia",
+			"id": "Australia",
+			"locationID": []
+		},
+		{
 			"name": "France",
 			"id": "France",
 			"locationID": [
@@ -823,6 +828,21 @@
 							"locationID": []
 						}
 					]
+				}
+			]
+		},
+		{
+			"name": "Switzerland",
+			"id": "Switzerland",
+			"locationID": [
+				{
+					"name": "Valais",
+					"id": "Valais",
+					"geospatialInfo": {
+						"lat": 46.30844,
+						"long": 7.59047
+					},
+					"locationID": []
 				}
 			]
 		},
