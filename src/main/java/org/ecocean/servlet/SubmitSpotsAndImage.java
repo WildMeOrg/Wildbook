@@ -144,7 +144,7 @@ public class SubmitSpotsAndImage extends HttpServlet {
         annList.add(ann);
         try {
             System.out.println("    + sending asset to IA");
-            IBEISIA.sendMediaAssetsNew(maList, context);
+            IBEISIA.sendMediaAssetsNew(maList, context, myShepherd);
             myShepherd.updateDBTransaction();
             System.out.println("    + asset sent, sending annot");
             IBEISIA.sendAnnotationsNew(annList, context, myShepherd);

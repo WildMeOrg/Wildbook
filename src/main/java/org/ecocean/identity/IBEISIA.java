@@ -3868,7 +3868,7 @@ public class IBEISIA {
    System.out.println(tanns);
    System.out.println(allAnns);
  */
-            results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
+            results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()), myShepherd);
             results.put("sendAnnotations",
                 sendAnnotationsNew(allAnns, myShepherd.getContext(), myShepherd));
 
@@ -4727,12 +4727,12 @@ public class IBEISIA {
         return (WildbookIAM)p;
     }
 
-    public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context)
+    public static JSONObject sendMediaAssetsNew(ArrayList<MediaAsset> mas, String context, Shepherd myShepherd)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
 
-        return plugin.sendMediaAssets(mas, true);
+        return plugin.sendMediaAssets(mas, true, myShepherd);
     }
 
     public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context,
@@ -4780,7 +4780,7 @@ public class IBEISIA {
         rtn.put("numAssetsToSend", Util.collectionSize(masToSend));
         try {
             if (!Util.collectionIsEmptyOrNull(masToSend))
-                rtn.put("sendMediaAssets", plugin.sendMediaAssets(masToSend, false));
+                rtn.put("sendMediaAssets", plugin.sendMediaAssets(masToSend, false, myShepherd));
             Util.mark("sendAnnotationsAsNeeded 4 ", tt);
             if (!Util.collectionIsEmptyOrNull(annsToSend)) {
                 JSONArray mergedResults = new JSONArray();

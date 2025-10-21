@@ -2837,7 +2837,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                         System.out.println("About to send " + assets.size() + " assets to IA! On " +
                             count + "/" + numEncs);
                         myShepherd.updateDBTransaction();
-                        IBEISIA.sendMediaAssetsNew(assets, context);
+                        IBEISIA.sendMediaAssetsNew(assets, context, myShepherd);
                         IBEISIA.sendAnnotationsAsNeeded(annotations, myShepherd);
                         assets = new ArrayList<MediaAsset>();
                         myShepherd.updateDBTransaction();
@@ -2845,7 +2845,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                 }
                 if (assets.size() > 0) {
                     myShepherd.updateDBTransaction();
-                    IBEISIA.sendMediaAssetsNew(assets, context);
+                    IBEISIA.sendMediaAssetsNew(assets, context, myShepherd);
                 }
             }
         } catch (Exception e) {

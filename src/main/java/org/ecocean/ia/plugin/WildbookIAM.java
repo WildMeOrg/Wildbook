@@ -110,7 +110,7 @@ public class WildbookIAM extends IAPlugin {
                     " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
                 try {
                     // think we can checkFirst on both of these -- no need to re-send anything during priming
-                    sendMediaAssets(mas, true);
+                    sendMediaAssets(mas, true, myShepherd);
                     sendAnnotations(sendAnns, true, myShepherd);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
@@ -137,7 +137,7 @@ public class WildbookIAM extends IAPlugin {
  * timeout* in the POST, this *will not happen*.  and it is a lengthy process on the IA side: as IA must grab the image over the network and
        generate the acmId from it!  hence, batchSize... which we kind of guestimate and cross our fingers.
  */
-    public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst)
+    public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst, Shepherd myShepherd )
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
@@ -175,8 +175,6 @@ public class WildbookIAM extends IAPlugin {
             }
             if (!validMediaAsset(ma)) {
                 try{
-                    Shepherd myShepherd = new Shepherd(context);
-                    myShepherd.setAction("WildbookIAM.prime");
                     myShepherd.beginDBTransaction();
                     ma.setMetadata();
                     ma.updateStandardChildren(myShepherd);

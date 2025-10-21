@@ -246,7 +246,7 @@ public class IAGateway extends HttpServlet {
                 detArgString);
 
             try {
-                res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas, context));
+                res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas, context, myShepherd));
                 JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd, detectArgs,
                     detectUrl);
                 // JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
