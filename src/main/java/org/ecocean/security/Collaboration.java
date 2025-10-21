@@ -413,6 +413,10 @@ public class Collaboration implements java.io.Serializable {
 
     public static boolean canUserViewOwnedObject(User viewer, User owner,
         HttpServletRequest request) {
+        return canUserViewOwnedObject(viewer, owner, ServletUtilities.getContext(request));
+    }
+
+    public static boolean canUserViewOwnedObject(User viewer, User owner, String context) {
         // if they own it
         if (viewer != null && owner != null && viewer.getUUID() != null &&
             viewer.getUUID().equals(owner.getUUID())) return true;                                                                  // should really be user .equals() method
@@ -420,7 +424,7 @@ public class Collaboration implements java.io.Serializable {
         if (((viewer != null && viewer.hasSharing() && (owner == null || owner.hasSharing()))))
             return true; // just based on sharing
         // if they have a collaboration
-        return canCollaborate(viewer, owner, ServletUtilities.getContext(request));
+        return canCollaborate(viewer, owner, context);
     }
 
     public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
@@ -437,6 +441,18 @@ public class Collaboration implements java.io.Serializable {
         return canCollaborate(context, username, ownerName);
     }
 
+    public static boolean canUserAccessOwnedObject(User user, String ownerName,
+        Shepherd myShepherd) {
+        String context = myShepherd.getContext();
+
+        if (!securityEnabled(context)) return true;
+        if ((user != null) && user.isAdmin(myShepherd)) return true;
+        if (User.isUsernameAnonymous(ownerName)) return true; // anon-owned is "fair game" to anyone
+        if (user == null) return canCollaborate(context, ownerName, "public");
+        // user will not be null:
+        return canCollaborate(context, user.getUsername(), ownerName);
+    }
+
     public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
         if (enc != null && enc.getSubmitterID() == null) return true;
         // System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
@@ -451,12 +467,35 @@ public class Collaboration implements java.io.Serializable {
         return canCollaborate(context, username, owner);
     }
 
+    public static boolean canUserViewOccurrence(Occurrence occ, User user, Shepherd myShepherd) {
+        if ((user == null) || (occ == null)) return false;
+        if (canUserViewOwnedObject(user, myShepherd.getUser(occ.getSubmitterID()),
+            myShepherd.getContext())) return true;
+        if (occ.getNumberEncounters() < 1) return true; // meh?
+        for (Encounter enc : occ.getEncounters()) {
+            if (enc.canUserView(user, myShepherd)) return true;
+        }
+        return false;
+    }
+
     public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
         if (canUserAccessOwnedObject(occ.getSubmitterID(), request)) return true;
         ArrayList<Encounter> all = occ.getEncounters();
         if ((all == null) || (all.size() < 1)) return true;
         for (Encounter enc : all) {
             if (canUserAccessEncounter(enc, request)) return true; // one is good enough (either owner or in collab or no security etc)
+        }
+        return false;
+    }
+
+    public static boolean canUserAccessOccurrence(Occurrence occ, User user, Shepherd myShepherd) {
+        if ((user == null) || (occ == null)) return false;
+        if (canUserAccessOwnedObject(user, occ.getSubmitterID(), myShepherd)) return true;
+        ArrayList<Encounter> all = occ.getEncounters();
+        if ((all == null) || (all.size() < 1)) return true;
+        for (Encounter enc : all) {
+            if (canUserAccessEncounter(enc, myShepherd.getContext(), user.getUsername()))
+                return true; // one is good enough (either owner or in collab or no security etc)
         }
         return false;
     }
