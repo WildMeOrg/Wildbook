@@ -17,7 +17,7 @@ function formatError(response) {
   }
 }
 
-export default function useFetch({
+export function useFetchManual({
   queryKey,
   url,
   data,
@@ -28,10 +28,9 @@ export default function useFetch({
   queryOptions = {},
   responseType = "json",
 }) {
-  console.log("useFetchManual called");
   const [displayedError, setDisplayedError] = useState(null);
-  const { enabled = true } = queryOptions;
-  const [displayedLoading, setDisplayedLoading] = useState(enabled);
+  // const { enabled = true } = queryOptions;
+  const [displayedLoading, setDisplayedLoading] = useState(false);
 
   const apiUrl = `/api/v3${url}`;
   const result = useQuery(
@@ -51,7 +50,8 @@ export default function useFetch({
     {
       staleTime: Infinity,
       cacheTime: Infinity,
-      refetchOnMount: "false",
+      refetchOnMount: false,
+      enabled: false,
       ...queryOptions,
     },
   );

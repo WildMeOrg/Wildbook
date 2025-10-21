@@ -1,5 +1,5 @@
 import { get, partition } from "lodash-es";
-import useFetchManual from "../../hooks/useFetchManual";
+import { useFetchManual } from "../../hooks/useFetchManual";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
 function buildQuery(queries) {
@@ -65,10 +65,6 @@ export default function useFilterEncountersAll({ queries, params = {} }) {
         ),
         success: get(result, ["data", "data", "success"], false),
       };
-    },
-    queryOptions: {
-      retry: 2,
-      enable: false,
     },
   });
 }

@@ -43,8 +43,9 @@ const MyDataTable = observer(
     tabs = [],
     isLoading = false,
     extraStyles = [],
-    onSelectedRowsChange = () => { },
-    onRowClicked = () => { },
+    onSelectedRowsChange = () => {},
+    onRowClicked = () => {},
+    setExportModalOpen = () => {},
   }) => {
     const [data, setData] = useState([]);
     const [filterText, setFilterText] = useState("");
@@ -189,7 +190,10 @@ const MyDataTable = observer(
     );
 
     useEffect(() => {
-      if (store.projectBannerStatusCode === 0 || store.projectBannerStatusCode === 1) {
+      if (
+        store.projectBannerStatusCode === 0 ||
+        store.projectBannerStatusCode === 1
+      ) {
         const target = store.selectedRows.length > 0 ? 1 : 0;
         if (store.projectBannerStatusCode !== target) {
           store.setprojectBannerStatusCode(target);
@@ -242,8 +246,9 @@ const MyDataTable = observer(
       setFilterText("");
     };
 
-    const projectOptions = Object.entries(store?.siteSettingsData?.projectsForUser ?? {}).map(
-      ([value, label]) => ({ value, label }))
+    const projectOptions = Object.entries(
+      store?.siteSettingsData?.projectsForUser ?? {},
+    ).map(([value, label]) => ({ value, label }));
 
     const handleSort = (column, sortDirection) => {
       const columnName =
@@ -252,13 +257,15 @@ const MyDataTable = observer(
       setSort({ sortname: columnName, sortorder: sortDirection });
     };
 
-    const filteredData = data.filter((item) =>
-      Object.values(item).some(
-        (value) =>
-          value &&
-          value.toString().toLowerCase().includes(filterText.toLowerCase()),
-      ),
-    );
+    const filteredData = React.useMemo(() => {
+      if (!filterText) return data;
+      const needle = filterText.toLowerCase();
+      return data.filter((item) =>
+        Object.values(item).some(
+          (v) => v != null && String(v).toLowerCase().includes(needle),
+        ),
+      );
+    }, [data, filterText]);
 
     const theme = React.useContext(ThemeColorContext);
 
@@ -280,15 +287,15 @@ const MyDataTable = observer(
       color: "white",
     };
 
-    const refetchAllData = () => {
+    const refetchAllData = async () => {
       store.setLoadingAll(true);
-      refetchAll()
-        .then(({ data }) => {
-          store.setSearchResultsAll(data?.data?.hits || []);
-        })
-        .finally(() => {
-          store.setLoadingAll(false);
-        });
+      try {
+        const data = await refetchAll();
+        store.setSearchResultsAll(data?.data?.hits || []);
+      } catch (error) {
+        console.error("Error fetching all encounters:", error);
+      }
+      store.setLoadingAll(false);
       store.setHasFetchedAllEncounters(true);
     };
 
@@ -479,76 +486,129 @@ const MyDataTable = observer(
                 <i className="bi bi-x-lg"></i>
               </Button>
             )}
+            <button
+              className="btn btn-outline-secondary ms-2 me-2"
+              style={{
+                backgroundColor: "transparent",
+                color: "white",
+                border: "1px solid white",
+                borderRadius: "5px",
+              }}
+              onClick={() => {
+                setExportModalOpen(true);
+              }}
+            >
+              <FormattedMessage id="EXPORT" />
+            </button>
           </InputGroup>
           <br />
         </div>
-        <div className="d-flex flex-row align-items-center mt-2 mb-2"
-        >
-          {store.projectBannerStatusCode === 1 && <div 
-            className="d-flex flex-row align-items-center gap-2"
-          style={{ color: "white" }}          >
-            <div><FormattedMessage id="ADD_TO_PROJECT" /></div>
-            <Select
-              isMulti={true}
-              options={projectOptions}
-              className="basic-multi-select"
-              classNamePrefix="select"
-              menuPlacement="auto"
-              menuPortalTarget={document.body}
-              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-              value={projectOptions.filter(option => store.selectedProjects.includes(option.value))}
-              getOptionLabel={(option) => option.label}
-              placeholder={intl.formatMessage({ id: "SELECT_PROJECTS" })
-              }
-              onChange={(selected) =>
-                store.setSelectedProjects((selected || []).map(opt => opt.value))
-              }
-              closeMenuOnSelect={false}
-            />
-            <MainButton
-              color="white"
-              noArrow
-              backgroundColor={theme?.wildMeColors?.cyan700}
-              borderColor="#007bff"
-              disabled={!store.selectedProjects || store.selectedProjects.length === 0}
-              onClick={() => {
-                store.addEncountersToProject();
-              }}
+        <div className="d-flex flex-row align-items-center mt-2 mb-2">
+          {store.projectBannerStatusCode === 1 && (
+            <div
+              className="d-flex flex-row align-items-center gap-2"
+              style={{ color: "white" }}
             >
-              <FormattedMessage id="ADD" />
-            </MainButton>
-          </div>}
+              <div>
+                <FormattedMessage id="ADD_TO_PROJECT" />
+              </div>
+              <Select
+                isMulti={true}
+                options={projectOptions}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                menuPlacement="auto"
+                menuPortalTarget={document.body}
+                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                value={projectOptions.filter((option) =>
+                  store.selectedProjects.includes(option.value),
+                )}
+                getOptionLabel={(option) => option.label}
+                placeholder={intl.formatMessage({ id: "SELECT_PROJECTS" })}
+                onChange={(selected) =>
+                  store.setSelectedProjects(
+                    (selected || []).map((opt) => opt.value),
+                  )
+                }
+                closeMenuOnSelect={false}
+              />
+              <MainButton
+                color="white"
+                noArrow
+                backgroundColor={theme?.wildMeColors?.cyan700}
+                borderColor="#007bff"
+                disabled={
+                  !store.selectedProjects || store.selectedProjects.length === 0
+                }
+                onClick={() => {
+                  store.addEncountersToProject();
+                }}
+              >
+                <FormattedMessage id="ADD" />
+              </MainButton>
+            </div>
+          )}
           {store.projectBannerStatusCode === 2 && (
-            <div className="d-flex align-items-center"
+            <div
+              className="d-flex align-items-center"
               style={{
                 backgroundColor: theme?.primaryColors?.primary100,
-                borderRadius: "5px", padding: "5px",
+                borderRadius: "5px",
+                padding: "5px",
                 color: theme?.wildMeColors?.green700,
               }}
             >
               <i className="bi bi-info-circle"></i>
               <FormattedMessage id="ADDING_TO_PROJECT" />
-              <i className="bi bi-arrow-repeat ms-2" style={{ fontSize: "1.5em", color: theme?.wildMeColors?.cyan700 }}></i>
+              <i
+                className="bi bi-arrow-repeat ms-2"
+                style={{
+                  fontSize: "1.5em",
+                  color: theme?.wildMeColors?.cyan700,
+                }}
+              ></i>
             </div>
           )}
           {store.projectBannerStatusCode === 3 && (
-            <div className="d-flex align-items-center" style={{
-              backgroundColor: theme?.primaryColors?.primary100,
-              borderRadius: "5px", padding: "5px", color: theme?.wildMeColors?.green700,
-            }}>
-              <i class="bi bi-info-circle"></i>
+            <div
+              className="d-flex align-items-center"
+              style={{
+                backgroundColor: theme?.primaryColors?.primary100,
+                borderRadius: "5px",
+                padding: "5px",
+                color: theme?.wildMeColors?.green700,
+              }}
+            >
+              <i className="bi bi-info-circle"></i>
               <FormattedMessage id="ADDED_TO_PROJECT" />
-              <i className="bi bi-check-circle ms-2" style={{ fontSize: "1.5em", color: theme?.wildMeColors?.green700 }}></i>
+              <i
+                className="bi bi-check-circle ms-2"
+                style={{
+                  fontSize: "1.5em",
+                  color: theme?.wildMeColors?.green700,
+                }}
+              ></i>
             </div>
           )}
           {store.projectBannerStatusCode === 4 && (
-            <div className="d-flex align-items-center" style={{
-              backgroundColor: theme?.statusColors?.red100,
-              borderRadius: "5px", padding: "5px", color: theme?.wildMeColors?.green700,
-            }}>
-              <i class="bi bi-info-circle"></i>
+            <div
+              className="d-flex align-items-center"
+              style={{
+                backgroundColor: theme?.statusColors?.red100,
+                borderRadius: "5px",
+                padding: "5px",
+                color: theme?.wildMeColors?.green700,
+              }}
+            >
+              <i className="bi bi-info-circle"></i>
               <FormattedMessage id="FAILED_TO_ADD_TO_PROJECT" />
-              <i className="bi bi-x-circle ms-2" style={{ fontSize: "1.5em", color: theme?.wildMeColors?.red700 }}></i>
+              <i
+                className="bi bi-x-circle ms-2"
+                style={{
+                  fontSize: "1.5em",
+                  color: theme?.wildMeColors?.red700,
+                }}
+              ></i>
             </div>
           )}
         </div>
