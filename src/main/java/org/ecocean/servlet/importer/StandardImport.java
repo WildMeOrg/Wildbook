@@ -2837,7 +2837,7 @@ public class StandardImport extends HttpServlet {
                         itask.setStatus("Registering image assets for " + count + "/" + numEncs +
                             " encounters.");
                         myShepherd.updateDBTransaction();
-                        IBEISIA.sendMediaAssetsNew(assets, context);
+                        IBEISIA.sendMediaAssetsNew(assets, context, myShepherd);
                         assets = new ArrayList<MediaAsset>();
                     }
                 }
@@ -2845,7 +2845,7 @@ public class StandardImport extends HttpServlet {
                     itask.setStatus("Registering image assets for " + count + "/" + numEncs +
                         " encounters.");
                     myShepherd.updateDBTransaction();
-                    IBEISIA.sendMediaAssetsNew(assets, context);
+                    IBEISIA.sendMediaAssetsNew(assets, context, myShepherd);
                 }
             }
         } catch (Exception e) {

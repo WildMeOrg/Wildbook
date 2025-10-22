@@ -508,7 +508,7 @@ try{
 	    if(ma.getAcmId()==null){
 	    	ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
 	    	mas.add(ma);
-	    	IBEISIA.sendMediaAssetsNew(mas, context);
+	    	IBEISIA.sendMediaAssetsNew(mas, context, myShepherd);
 	    	myShepherd.updateDBTransaction();
 	    }
 	    

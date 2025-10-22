@@ -114,7 +114,7 @@ public class WildbookIAM extends IAPlugin {
                     " annots (of " + matchingSet.size() + ") and " + mas.size() + " images");
                 try {
                     // think we can checkFirst on both of these -- no need to re-send anything during priming
-                    sendMediaAssets(mas, true);
+                    sendMediaAssets(mas, true, myShepherd);
                     sendAnnotations(sendAnns, true, myShepherd);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
@@ -141,7 +141,7 @@ public class WildbookIAM extends IAPlugin {
  * timeout* in the POST, this *will not happen*.  and it is a lengthy process on the IA side: as IA must grab the image over the network and
        generate the acmId from it!  hence, batchSize... which we kind of guestimate and cross our fingers.
  */
-    public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst)
+    public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst, Shepherd myShepherd )
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
         String u = null;
@@ -189,8 +189,22 @@ public class WildbookIAM extends IAPlugin {
                 continue;
             }
             if (!validMediaAsset(ma)) {
-                IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
-                continue;
+                try{
+                    myShepherd.beginDBTransaction();
+                    ma.setMetadata();
+                    ma.updateStandardChildren(myShepherd);
+                    myShepherd.commitDBTransaction();
+                }
+                catch (Exception e){
+                IA.log("WARNING: setMetadata issue in updating metadata " + ma);
+               
+                }
+
+                if (!validMediaAsset(ma)){
+                     IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
+                    continue;
+                }
+
             }
             acmList.add(ma);
             map.get("image_uri_list").add(mediaAssetToUri(ma));

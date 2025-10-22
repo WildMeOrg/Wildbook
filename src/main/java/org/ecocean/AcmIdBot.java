@@ -71,7 +71,7 @@ public class AcmIdBot {
             }
 
             try{
-                IBEISIA.sendMediaAssetsNew(fixMe, context);
+                IBEISIA.sendMediaAssetsNew(fixMe, context, myShepherd);
 
             } catch (Exception e) {
                 System.out.println("Exception in AcmIdBot.fixFeats");

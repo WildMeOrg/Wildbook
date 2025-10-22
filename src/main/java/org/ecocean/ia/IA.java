@@ -230,7 +230,7 @@ public class IA {
                                                               // any of this
                         try {
                             IBEISIA.sendMediaAssetsNew(assetsWithMissingAcmids,
-                                myShepherd.getContext());
+                                myShepherd.getContext(), myShepherd);
                         } catch (Exception e) {
                             System.out.println(
                                 "Error sending media asset to IA in handleMissingAcmids method in IA.java");
