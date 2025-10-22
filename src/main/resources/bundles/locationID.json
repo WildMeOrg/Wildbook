@@ -105,7 +105,6 @@
         ]},
         {"name": "Gulf of St. Lawrence", "id": "Gulf of St. Lawrence", "locationID":[]},
         {"name": "Gulf of Venezuela", "id": "Gulf of Venezuela", "locationID":[]},
-        {"name":"Gully MPA", "id":"Gully MPA", "locationID":[]},
         {"name": "Irish Sea", "id": "Irish Sea", "locationID":[
           {"name": "Cardigan Bay", "id": "Cardigan Bay", "locationID":[]}  
         ]},
