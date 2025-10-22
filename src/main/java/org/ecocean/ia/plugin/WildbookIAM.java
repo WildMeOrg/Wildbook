@@ -147,7 +147,7 @@ public class WildbookIAM extends IAPlugin {
         String u = null;
         Taxonomy taxy = null;
         try {
-            Shepherd myShepherd = new Shepherd(context);
+            // Shepherd myShepherd = new Shepherd(context);
             taxy = mas.get(0).getTaxonomy(myShepherd);
             String architecture = iaJsonProperties.getDetectionConfig(taxy).getString("architecture");
             u = iaJsonProperties.getJson().getJSONObject(architecture).getString("add_images");
@@ -257,10 +257,10 @@ public class WildbookIAM extends IAPlugin {
                 batchCt++;
                 
                 // TESTING: Break after 10 batches
-                // if (batchCt > 10) {
-                //     IA.log("INFO: WildbookIAM.sendMediaAssets() TESTING: Breaking after 10 batches");
-                //     break;
-                // }
+                if (batchCt > 10) {
+                    IA.log("INFO: WildbookIAM.sendMediaAssets() TESTING: Breaking after 10 batches");
+                    break;
+                }
             }
         }
         allRtn.put("batchResults", bres);
