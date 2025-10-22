@@ -12,6 +12,7 @@ import PencilIcon from "../../components/icons/PencilIcon";
 import EyeIcon from "../../components/icons/EyeIcon";
 import Tooltip from "../../components/ToolTip";
 import axios from "axios";
+import { useIntl } from "react-intl";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -26,6 +27,11 @@ const ImageCard = observer(({ store = {} }) => {
   const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
   const [clickedAnnotation, setClickedAnnotation] = useState(null);
   const [editAnnotationParams, setEditAnnotationParams] = useState({});
+  const intl = useIntl();
+
+  useEffect(() => {
+    store.setIntl(intl);
+  }, [store, intl]);
 
   const currentAnnotation =
     store.encounterAnnotations.filter(

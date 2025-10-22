@@ -28,6 +28,8 @@ class EncounterStore {
 
   _siteSettingsData = null;
 
+  _intl = null;
+
   modals;
   errors;
   newMatch;
@@ -119,6 +121,10 @@ class EncounterStore {
       },
       { autoBind: true },
     );
+  }
+
+  setIntl(intl) {
+    this._intl = intl;
   }
 
   get encounterData() {
@@ -307,13 +313,21 @@ class EncounterStore {
       );
       if (result.status === 200) {
         this.modals.setOpenAddPeopleModal(false);
-        toast.success("Person added successfully!");
+        const message = this._intl.formatMessage({
+          id: "ENCOUNTER_ADD_PERSON_SUCCESS",
+          defaultMessage: "Person added successfully!",
+        });
+        toast.success(message);
         this._newPersonName = "";
         this._newPersonEmail = "";
         this._newPersonRole = "";
       }
     } catch (error) {
-      toast.error("Failed to add person");
+      const message = this._intl.formatMessage({
+        id: "ENCOUNTER_ADD_PERSON_ERROR",
+        defaultMessage: "Failed to add person",
+      });
+      toast.error(message);
       throw error;
     }
   }
