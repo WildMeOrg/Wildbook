@@ -1,5 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 class ImageModalStore {
   encounterStore;
@@ -92,7 +93,7 @@ class ImageModalStore {
     const siteSettings = this.encounterStore.siteSettingsData;
     return (
       siteSettings?.labeledKeywordAllowedValues?.[
-      this._selectedLabeledKeyword
+        this._selectedLabeledKeyword
       ] || []
     );
   }
@@ -130,26 +131,32 @@ class ImageModalStore {
 
   async removeAnnotation(annotationId) {
     const encounterData = this.encounterStore.encounterData;
-    const result = await axios.patch(
-      `/api/v3/encounters/${encounterData.id}`,
-      [
+    try {
+      const result = await axios.patch(
+        `/api/v3/encounters/${encounterData.id}`,
+        [
+          {
+            op: "remove",
+            path: "annotations",
+            value: annotationId,
+          },
+        ],
         {
-          op: "remove",
-          path: "annotations",
-          value: annotationId,
+          headers: { "Content-Type": "application/json" },
         },
-      ],
-      {
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+      );
 
-    if (result.status === 200) {
-      this.setSelectedAnnotationId(null);
-      await this.refreshEncounterData();
+      if (result.status === 200) {
+        this.setSelectedAnnotationId(null);
+        toast.success("Annotation removed successfully");
+        await this.refreshEncounterData();
+      }
+
+      return result;
+    } catch (error) {
+      toast.error("Failed to remove annotation");
+      throw error;
     }
-
-    return result;
   }
 
   async deleteImage() {
@@ -159,18 +166,26 @@ class ImageModalStore {
     if (!mediaAssetId) {
       throw new Error("No media asset selected");
     }
-
-    return axios.post(
-      "/MediaAssetAttach",
-      {
-        detach: "true",
-        EncounterID: encounterData.id,
-        MediaAssetID: mediaAssetId,
-      },
-      {
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    try {
+      const result = await axios.post(
+        "/MediaAssetAttach",
+        {
+          detach: "true",
+          EncounterID: encounterData.id,
+          MediaAssetID: mediaAssetId,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      if (result.status === 200) {
+        toast.success("Image deleted successfully");
+        await this.refreshEncounterData();
+      }
+    } catch (error) {
+      toast.error("Failed to delete image");
+      throw error;
+    }
   }
 
   async refreshEncounterData() {

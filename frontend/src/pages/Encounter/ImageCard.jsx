@@ -555,9 +555,10 @@ const ImageCard = observer(({ store = {} }) => {
           <label
             htmlFor={"add-more-files-input"}
             style={{
-              cursor: "pointer",
+              cursor: store.isUploading ? "not-allowed" : "pointer",
               display: "inline-flex",
               alignItems: "center",
+              opacity: store.isUploading ? 0.6 : 1,
             }}
           >
             <div
@@ -575,8 +576,25 @@ const ImageCard = observer(({ store = {} }) => {
                 flexDirection: "column",
               }}
             >
-              <ImageIcon />
-              <FormattedMessage id="ADD_IMAGE" />
+              {store.isUploading ? (
+                <>
+                  <div
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                    style={{ color: theme.primaryColors.primary500 }}
+                  >
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <small style={{ marginTop: 5 }}>
+                    {store.uploadProgress}%
+                  </small>
+                </>
+              ) : (
+                <>
+                  <ImageIcon />
+                  <FormattedMessage id="ADD_IMAGE" />
+                </>
+              )}
             </div>
           </label>
 

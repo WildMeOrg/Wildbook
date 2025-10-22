@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import ModalStore from "./ModalStore";
 import ErrorStore from "./ErrorStore";
 import { SECTION_FIELD_PATHS } from "../constants";
+import { toast } from "react-toastify";
 import {
   validateFieldValue,
   getValueAtPath,
@@ -19,6 +20,7 @@ import {
 } from "./helperFunctions";
 import NewMatchStore from "./NewMatchStore";
 import ImageModalStore from "./ImageModalStore";
+import { Toast } from "react-bootstrap";
 dayjs.extend(customParseFormat);
 
 class EncounterStore {
@@ -78,6 +80,8 @@ class EncounterStore {
   flow = null;
   imageSubmissionId = null;
   uploadProgress = 0;
+  _isUploading = false;
+  _uploadToastId = null;
 
   _matchResultClickable = false;
 
@@ -303,14 +307,13 @@ class EncounterStore {
       );
       if (result.status === 200) {
         this.modals.setOpenAddPeopleModal(false);
+        toast.success("Person added successfully!");
         this._newPersonName = "";
         this._newPersonEmail = "";
         this._newPersonRole = "";
-      } else {
-        console.error("Failed to add new person:", result);
       }
     } catch (error) {
-      console.error("Error adding new person:", error);
+      toast.error("Failed to add person");
       throw error;
     }
   }
@@ -327,18 +330,17 @@ class EncounterStore {
           (item) => item.id !== uuid,
         );
         this.modals.setOpenContactInfoModal(false);
-      } else {
-        console.error("Failed to remove contact:", data);
+        toast.success("Contact removed successfully!");
       }
     } catch (error) {
-      console.error("Error removing contact:", error);
+      toast.error("Failed to remove contact");
       throw error;
     }
   }
 
   async addEncounterToProject() {
     if (!this._selectedProjects) {
-      console.error("No project selected to add the encounter to.");
+      Toast.error("No project selected to add the encounter to.");
       return;
     }
     const payload = {
@@ -355,12 +357,11 @@ class EncounterStore {
         headers: { "Content-Type": "application/json" },
       });
       if (result.status === 200) {
-        this.refreshEncounterData();
-      } else {
-        console.error("Failed to add encounter to project:", result);
+        await this.refreshEncounterData();
+        toast.success("Encounter added to project successfully!");
       }
     } catch (error) {
-      console.error("Error adding encounter to project:", error);
+      toast.error("Failed to add encounter to project");
       throw error;
     }
   }
@@ -379,12 +380,11 @@ class EncounterStore {
         headers: { "Content-Type": "application/json" },
       });
       if (result.status === 200) {
-        this.refreshEncounterData();
-      } else {
-        console.error("Failed to add encounter to project:", result);
+        await this.refreshEncounterData();
+        toast.success("Project removed from encounter successfully!");
       }
     } catch (error) {
-      console.error("Error removing project from encounter:", error);
+      toast.error("Failed to remove project from encounter");
       throw error;
     }
   }
@@ -434,8 +434,8 @@ class EncounterStore {
   get selectedProjects() {
     return this._selectedProjects;
   }
-  setSelectedProjects(projectId) {
-    this._selectedProjects = projectId;
+  setSelectedProjects(projectIds) {
+    this._selectedProjects = projectIds;
   }
 
   get selectedImageIndex() {
@@ -460,6 +460,10 @@ class EncounterStore {
   }
   setSelectedAnnotationId(annotationId) {
     this._selectedAnnotationId = annotationId;
+  }
+
+  get isUploading() {
+    return this._isUploading;
   }
 
   get matchResultClickable() {
@@ -874,51 +878,61 @@ class EncounterStore {
       if (resp.status === 200) {
         await this.refreshEncounterData();
         this.setEditTracking?.(false);
-      } else {
-        console.error("patchTracking failed:", resp);
+        toast.success("Tracking data saved!");
       }
     } catch (error) {
-      console.error("Error patching tracking data:", error);
+      toast.error("Failed to save tracking data");
       throw error;
     }
   }
+
   async patchMeasurements() {
-    this.measurementValues.map(async (measurement) => {
-      if (measurement.value === "" || measurement.value == null) {
+    const tasks = [];
+    let hasErrors = false;
+    for (const m of this.measurementValues) {
+      if (m.value == null || m.value === "") {
         this.errors.setFieldError(
           "measurement",
-          measurement.type,
+          m.type,
           "value cannot be empty",
         );
-        return;
+        continue;
       }
       const payload = {
         op: "replace",
         path: "measurements",
         value: {
-          type: measurement.type,
-          units: measurement.units,
-          value: measurement.value,
-          samplingProtocol: measurement.samplingProtocol,
+          type: m.type,
+          units: m.units,
+          value: m.value,
+          samplingProtocol: m.samplingProtocol,
         },
       };
-      try {
-        await axios.patch(
-          `/api/v3/encounters/${this.encounterData.id}`,
-          [payload],
-          {
+      tasks.push(
+        axios
+          .patch(`/api/v3/encounters/${this.encounterData.id}`, [payload], {
             headers: { "Content-Type": "application/json" },
-          },
-        );
-      } catch (error) {
-        console.error("Error patching measurements:", error);
-        this.errors.setFieldError(
-          "measurement",
-          measurement.type,
-          "Failed to save measurement",
-        );
-      }
-    });
+          })
+          .catch((err) => {
+            hasErrors = true;
+            this.errors.setFieldError(
+              "measurement",
+              m.type,
+              "Failed to save measurement",
+            );
+            throw err;
+          }),
+      );
+    }
+    if (tasks.length > 0) {
+      await Promise.allSettled(tasks);
+    }
+
+    if (hasErrors) {
+      toast.error("Some measurements failed to save");
+    } else if (tasks.length > 0) {
+      toast.success("Measurements saved successfully!");
+    }
   }
 
   initializeFlow(inputEl, maxSizeMB = 10) {
@@ -955,7 +969,21 @@ class EncounterStore {
     });
 
     flow.on("filesSubmitted", () => {
+      this._isUploading = true;
+      this._uploadToastId = toast.loading("Uploading image...");
       flow.upload();
+    });
+
+    flow.on("progress", () => {
+      const progress = Math.floor(flow.progress() * 100);
+      this.uploadProgress = progress;
+
+      if (this._uploadToastId) {
+        toast.update(this._uploadToastId, {
+          render: `Uploading... ${progress}%`,
+          isLoading: true,
+        });
+      }
     });
 
     flow.on("fileSuccess", async (file) => {
@@ -975,18 +1003,45 @@ class EncounterStore {
             headers: { "Content-Type": "application/json" },
           },
         );
-        alert("Image uploaded successfully, page will be reloaded!");
-        window.location.reload();
+        if (this._uploadToastId) {
+          toast.update(this._uploadToastId, {
+            render:
+              "Image uploaded successfully! Please refresh to see changes.",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        }
       } catch (e) {
-        console.error("PATCH add assets failed:", e);
+        if (this._uploadToastId) {
+          toast.update(this._uploadToastId, {
+            render: "Failed to upload image",
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        }
+        throw e;
       } finally {
+        this._isUploading = false;
         this.uploadProgress = 0;
         this.errors.uploadErrors = [];
+        this._uploadToastId = null;
       }
     });
 
-    flow.on("fileError", (_file, msg) => {
-      console.error("Upload failed:", msg);
+    flow.on("fileError", (_file) => {
+      if (this._uploadToastId) {
+        toast.update(this._uploadToastId, {
+          render: "Upload failed",
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+      }
+      this._isUploading = false;
+      this._uploadToastId = null;
+      this.uploadProgress = 0;
     });
 
     this.flow = flow;
@@ -1043,27 +1098,23 @@ class EncounterStore {
         },
       };
 
-      try {
-        const resp = axios.post(
-          "/api/v3/search/individual?size=20&from=0",
-          searchQuery,
-        );
-        return resp;
-      } catch (error) {
-        console.error("Failed to search individuals:", error);
-        this._individualSearchResults = [];
-      }
+      const resp = await axios.post(
+        "/api/v3/search/individual?size=20&from=0",
+        searchQuery,
+      );
+      this._individualSearchResults = resp?.data?.hits ?? [];
+      return resp;
     } catch (error) {
-      console.error("Failed to search individuals:", error);
+      toast.error("Failed to search individuals");
       this._individualSearchResults = [];
+      throw error;
     } finally {
       this._searchingIndividuals = false;
     }
   }
 
   async searchSightingsById(inputValue) {
-    this._searchingIndividuals = true;
-
+    this._searchingSightings = true;
     try {
       const searchQuery = {
         query: {
@@ -1081,23 +1132,19 @@ class EncounterStore {
           },
         },
       };
-      try {
-        const response = await axios.post(
-          "/api/v3/search/occurrence?size=20&from=0",
-          searchQuery,
-        );
-        return response;
-      } catch (error) {
-        console.error("Failed to search sightings:", error);
-        this._sightingSearchResults = [];
-      }
+      const response = await axios.post(
+        "/api/v3/search/occurrence?size=20&from=0",
+        searchQuery,
+      );
+      this._sightingSearchResults = response?.data?.hits ?? [];
+      return response;
     } catch (error) {
-      console.error("Failed to search sightings:", error);
+      toast.error("Failed to search sightings");
       this._sightingSearchResults = [];
+      throw error;
     } finally {
       this._searchingSightings = false;
     }
-    return [];
   }
 
   clearSightingSearchResults() {
@@ -1118,9 +1165,6 @@ class EncounterStore {
       return;
     }
 
-    // const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
-    // // this.applyPatchOperationsLocally(operations);
-    // this.resetSectionDraft(sectionName);
     try {
       const result = await axios.patch(
         `/api/v3/encounters/${encounterId}`,
@@ -1128,6 +1172,7 @@ class EncounterStore {
       );
       this.errors.clearSectionErrors(sectionName);
       this.resetSectionDraft(sectionName);
+      toast.success("Changes saved successfully!");
       return result;
     } catch (error) {
       if (error.response?.data) {
@@ -1138,6 +1183,7 @@ class EncounterStore {
           error.message || "An error occurred while saving",
         );
       }
+      toast.error("Failed to save changes");
       throw error;
     }
   }
@@ -1161,7 +1207,7 @@ class EncounterStore {
         return response.data;
       }
     } catch (error) {
-      console.error("Failed to refresh encounter data:", error);
+      toast.error("Failed to refresh encounter data");
       throw error;
     }
   }
@@ -1173,7 +1219,7 @@ class EncounterStore {
       await this.refreshEncounterData();
       return true;
     } catch (error) {
-      console.error(`Failed to save section ${sectionName}:`, error);
+      toast.error("Failed to save data");
       throw error;
     }
   }
