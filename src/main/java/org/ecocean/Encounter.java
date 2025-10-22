@@ -4878,15 +4878,37 @@ public class Encounter extends Base implements java.io.Serializable {
         return enc;
     }
 
-    public org.json.JSONObject processPatch(org.json.JSONArray patchArr, Shepherd myShepherd)
+    // user should already have been validated -- via obj.canUserEdit() -- in api/BaseObject, so this
+    // does not need to be tested here. however, more detailed checks may require user (e.g. can user
+    // also alter another object, such as Occurrence)
+    public org.json.JSONObject processPatch(org.json.JSONArray patchArr, User user,
+        Shepherd myShepherd)
     throws ApiException {
         if (patchArr == null)
             throw new ApiException("null patch array", ApiException.ERROR_RETURN_CODE_REQUIRED);
         org.json.JSONArray resArr = new org.json.JSONArray();
+        Set<Occurrence> occNeedPruning = new HashSet<Occurrence>();
+        Set<MarkedIndividual> indivNeedPruning = new HashSet<MarkedIndividual>();
         for (int i = 0; i < patchArr.length(); i++) {
             System.out.println("applied patch at [i=" + i + "]: " + patchArr.optJSONObject(i));
             org.json.JSONObject patchRes = EncounterPatchValidator.applyPatch(this,
-                patchArr.optJSONObject(i), myShepherd);
+                patchArr.optJSONObject(i), user, myShepherd);
+            System.out.println(
+                "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! _mayNeedPruning: " +
+                patchRes.get("_mayNeedPruning"));
+            for (int j = 0; j < patchRes.getJSONArray("_mayNeedPruning").length(); j++) {
+                Object p = patchRes.getJSONArray("_mayNeedPruning").get(j);
+                if (p instanceof Occurrence) {
+                    occNeedPruning.add((Occurrence)p);
+                } else if (p instanceof MarkedIndividual) {
+                    indivNeedPruning.add((MarkedIndividual)p);
+                }
+            }
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! occ=" +
+                occNeedPruning);
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! indiv=" +
+                indivNeedPruning);
+            patchRes.remove("_mayNeedPruning");
             System.out.println("patch returned at [i=" + i + "]: " + patchRes);
             resArr.put(patchRes);
         }
@@ -4894,6 +4916,10 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("patchResults", resArr);
         // after applying each patch, make sure nothing is wrong
         EncounterPatchValidator.finalValidation(this, myShepherd);
+
+        // now we need to look at modified objects which may be empty (and thus need pruning)
+        // FIXME .................
+
         // no exceptions means success
         rtn.put("success", true);
         rtn.put("statusCode", 200);
@@ -4906,7 +4932,7 @@ public class Encounter extends Base implements java.io.Serializable {
     // Base.applyPatchOp()
     public Object applyPatchOp(String fieldName, Object value, String op)
     throws ApiException {
-        System.out.println("+++++++++++++++++++++++++++ " + op + " " + fieldName + "=>" + value +
+        System.out.println("[DEBUG] applyPatchOp(): " + op + " " + fieldName + "=>" + value +
             " on: " + this);
         if (op == null)
             throw new ApiException("op is required", ApiException.ERROR_RETURN_CODE_REQUIRED);
@@ -5106,6 +5132,23 @@ public class Encounter extends Base implements java.io.Serializable {
                 System.out.println("enc.applyPatchOp() added " + this + " to " + indiv);
             }
             break;
+        // value should be an Occurrence here (already validated and permission-checked)
+        case "occurrenceId":
+            // if EncounterPatchValidator let thru null value, we do nothing
+            System.out.println("ZZZZZZZZZZZZ value=" + value);
+            if (value == null) break;
+            Occurrence occ = (Occurrence)value;
+            System.out.println("ZZZZZZZZZZZZ occ=" + occ);
+            if ("remove".equals(op)) {
+                // in remove case, we are given occ to remove from
+                occ.removeEncounter(this);
+                System.out.println("AAAAAA " + this + " removed from " + occ);
+            } else {
+                // otherwise it is occ we add to
+                occ.addEncounterAndUpdateIt(this);
+                System.out.println("BBBBBB " + this + " added to from " + occ);
+            }
+            break;
         case "assets":
             if ("add".equals(op) && (value != null)) {
                 MediaAsset ma = (MediaAsset)value;
@@ -5169,7 +5212,6 @@ public class Encounter extends Base implements java.io.Serializable {
         if (current == null) return null;
         current.removeEncounter(this);
         setIndividual(null);
-        // FIXME if individual is empty -- kill it? but how: no shepherd
         return current;
     }
 

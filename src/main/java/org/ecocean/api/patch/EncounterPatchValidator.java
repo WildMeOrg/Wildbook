@@ -9,6 +9,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.Occurrence;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.tag.*;
 import org.ecocean.User;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class EncounterPatchValidator {
@@ -37,7 +39,8 @@ public class EncounterPatchValidator {
     public static final Set<String> PATHS_REMOVE_NEEDS_USER_VALUE = new HashSet<>(Arrays.asList(
         "photographers", "informOthers", "submitters"));
 
-    public static JSONObject applyPatch(Encounter enc, JSONObject patch, Shepherd myShepherd)
+    public static JSONObject applyPatch(Encounter enc, JSONObject patch, User user,
+        Shepherd myShepherd)
     throws ApiException {
         if (enc == null)
             throw new ApiException("null encounter", ApiException.ERROR_RETURN_CODE_REQUIRED);
@@ -48,6 +51,7 @@ public class EncounterPatchValidator {
             throw new ApiException("invalid op: " + op, ERROR_INVALID_OP);
         JSONObject rtn = new JSONObject();
         rtn.put("_patch", patch);
+        JSONArray mayNeedPruning = new JSONArray();
         String path = patch.optString("path", null);
         if (path == null)
             throw new ApiException("empty path", ERROR_INVALID_PATH);
@@ -70,9 +74,18 @@ public class EncounterPatchValidator {
                 System.out.println("**** BV!! **** " + bv);
                 value = bv.getValue();
             }
+            // we set this if we need to remove encounter from it (if added to another successfully)
+            Occurrence currentOcc = null;
             if (path.equals("individualId") && (value != null)) {
+                MarkedIndividual currentIndiv = enc.getIndividual();
+                if (currentIndiv != null) mayNeedPruning.put(currentIndiv);
                 value = getOrCreateMarkedIndividual(value.toString(), myShepherd);
                 System.out.println("applyPatch() path=individualId using " + value);
+            }
+            if (path.equals("occurrenceId") && (value != null)) {
+                currentOcc = enc.getOccurrence(myShepherd);
+                value = getOrCreateOccurrence(value.toString(), user, myShepherd);
+                System.out.println("applyPatch() path=occurrenceId using " + value);
             }
             if (path.equals("assets") && (value != null)) {
                 if (value instanceof JSONObject) {
@@ -177,6 +190,11 @@ public class EncounterPatchValidator {
             // if we get through to here, value should be cleared to do actual patch
             // but this will throw exception if bad path
             enc.applyPatchOp(path, value, op);
+            if (currentOcc != null) { // means we added to another occurrence successfully, so:
+                System.out.println("applyPatch() removing enc from currentOcc=" + currentOcc);
+                currentOcc.removeEncounter(enc);
+                mayNeedPruning.put(currentOcc);
+            }
         } else if (op.equals("remove")) {
             if (PATHS_REQUIRED.contains(path))
                 throw new ApiException(path + " is a required value, cannot remove",
@@ -218,6 +236,34 @@ public class EncounterPatchValidator {
                 enc.removeAnnotation(ann);
                 myShepherd.getPM().deletePersistent(ann);
                 value = ann;
+            } else if (path.equals("occurrenceId")) {
+                // this may be overkill. *technically* an Encounter should be contained in (at most) ONE Occurrence
+                // so a value should be unnecessary here. but the data structure does not explicitly disallow this,
+                // so the assumption is there may be an encounter in > 1 occurrence.  however, i will make this
+                // value *optional* for now
+                Occurrence occ = null;
+                if (value != null) { // explicit one to try removing from
+                    occ = myShepherd.getOccurrence(value.toString());
+                    if (occ == null)
+                        throw new ApiException("id " + value + " does not exist",
+                                ApiException.ERROR_RETURN_CODE_REQUIRED);
+                    // exists, but user cannot change
+                    if (!occ.canUserAccess(user, myShepherd))
+                        throw new ApiException("user cannot modify " + occ,
+                                ApiException.ERROR_RETURN_CODE_FORBIDDEN);
+                    if (!occ.hasEncounter(enc))
+                        throw new ApiException("encounter is not in occurrence " + value,
+                                ApiException.ERROR_RETURN_CODE_REQUIRED);
+                } else {
+                    occ = enc.getOccurrence(myShepherd);
+                    if (occ == null)
+                        throw new ApiException("encounter has no occurrence to remove from",
+                                ApiException.ERROR_RETURN_CODE_REQUIRED);
+                    // should not need to check canUserAccess() as user can modify encounter
+                    // (which is inside occurrence, thus giving user access)
+                }
+                mayNeedPruning.put(occ);
+                enc.applyPatchOp(path, occ, op);
             } else {
                 enc.applyPatchOp(path, null, op);
             }
@@ -227,6 +273,7 @@ public class EncounterPatchValidator {
         String errorMsg = rtn.optString("error", null);
         if (errorMsg != null)
             throw new ApiException(errorMsg, ApiException.ERROR_RETURN_CODE_INVALID);
+        rtn.put("_mayNeedPruning", mayNeedPruning);
         return rtn;
     }
 
@@ -287,6 +334,22 @@ public class EncounterPatchValidator {
         // other properties like taxonomy set during actual patchOp
         myShepherd.getPM().makePersistent(indiv);
         return indiv;
+    }
+
+    private static Occurrence getOrCreateOccurrence(String id, User user, Shepherd myShepherd)
+    throws ApiException {
+        Occurrence occ = myShepherd.getOccurrence(id);
+
+        if (occ != null) {
+            if (!occ.canUserAccess(user, myShepherd))
+                throw new ApiException("user cannot modify " + occ,
+                        ApiException.ERROR_RETURN_CODE_FORBIDDEN);
+            return occ;
+        }
+        occ = new Occurrence(id);
+        occ.setSubmitter(user);
+        myShepherd.getPM().makePersistent(occ);
+        return occ;
     }
 
     private static MediaAsset createMediaAsset(JSONObject data, String targetSubdir,
