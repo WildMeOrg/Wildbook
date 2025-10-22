@@ -49,6 +49,7 @@ export const ImageModal = observer(
       JSON.stringify(editAnnotationParams),
     );
     const [tagText, setTagText] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
       const s = thumbsRef.current;
@@ -269,29 +270,65 @@ export const ImageModal = observer(
                   />
                   {imageStore.showAnnotations &&
                     rects.length > 0 &&
-                    rects.map((rect, index) => (
-                      <div
-                        key={index}
-                        className="position-absolute"
-                        onClick={() => {
-                          imageStore.setSelectedAnnotationId(rect.annotationId);
-                        }}
-                        style={{
-                          left: rect.x / scaleX,
-                          top: rect.y / scaleY,
+                    rects.map((rect, index) => {
+                      let newRect = { ...rect };
+                      if (
+                        imageStore.encounterData?.mediaAssets[
+                          imageStore.selectedImageIndex
+                        ]?.rotationInfo
+                      ) {
+                        const imgW =
+                          imageStore.encounterData?.mediaAssets[
+                            imageStore.selectedImageIndex
+                          ]?.width;
+                        const imgH =
+                          imageStore.encounterData?.mediaAssets[
+                            imageStore.selectedImageIndex
+                          ]?.height;
+                        const adjW = imgH / imgW;
+                        const adjH = imgW / imgH;
+                        newRect = {
+                          ...rect,
+                          x: rect.x / scaleX / adjW,
+                          width: rect.width / scaleX / adjW,
+                          y: rect.y / scaleY / adjH,
+                          height: rect.height / scaleY / adjH,
+                        };
+                      } else {
+                        newRect = {
+                          ...rect,
+                          x: rect.x / scaleX,
+                          y: rect.y / scaleY,
                           width: rect.width / scaleX,
                           height: rect.height / scaleY,
-                          border: "2px solid red",
-                          transform: `rotate(${rect.rotation}rad)`,
-                          cursor: "pointer",
-                          backgroundColor:
-                            rect.annotationId ===
-                            imageStore.selectedAnnotationId
-                              ? "rgba(240, 11, 11, 0.5)"
-                              : "transparent",
-                        }}
-                      />
-                    ))}
+                        };
+                      }
+                      return (
+                        <div
+                          key={index}
+                          className="position-absolute"
+                          onClick={() => {
+                            imageStore.setSelectedAnnotationId(
+                              rect.annotationId,
+                            );
+                          }}
+                          style={{
+                            left: newRect.x,
+                            top: newRect.y,
+                            width: newRect.width,
+                            height: newRect.height,
+                            border: "2px solid red",
+                            transform: `rotate(${rect.rotation}rad)`,
+                            cursor: "pointer",
+                            backgroundColor:
+                              rect.annotationId ===
+                              imageStore.selectedAnnotationId
+                                ? "rgba(240, 11, 11, 0.5)"
+                                : "transparent",
+                          }}
+                        />
+                      );
+                    })}
                 </div>
 
                 {/* <button
@@ -399,6 +436,9 @@ export const ImageModal = observer(
                 </label>
               </div>
               <div className="d-flex flex-wrap gap-2 mb-3">
+                <div className="alert alert-danger" role="alert">
+                  {errorMsg}
+                </div>
                 {(imageStore.tags ?? []).map((tag) => (
                   <PillWithButton
                     key={tag.id}
@@ -413,7 +453,7 @@ export const ImageModal = observer(
                       if (data?.success === true) {
                         await imageStore.refreshEncounterData();
                       } else {
-                        console.error("Failed to remove tag:", data);
+                        setErrorMsg("Failed to remove tag:");
                       }
                     }}
                   />
@@ -475,7 +515,7 @@ export const ImageModal = observer(
                               imageStore.setAddTagsFieldOpen(false);
                               await imageStore.refreshEncounterData();
                             } else {
-                              console.error("Failed to add new tag:", result);
+                              setErrorMsg("Failed to add new tag");
                             }
                           }
                         }}
@@ -534,10 +574,7 @@ export const ImageModal = observer(
                               imageStore.setAddTagsFieldOpen(false);
                               await imageStore.refreshEncounterData();
                             } else {
-                              console.error(
-                                "Failed to add existing tag:",
-                                result,
-                              );
+                              setErrorMsg("Failed to add existing tag:");
                             }
                           }
                         }}
@@ -627,10 +664,7 @@ export const ImageModal = observer(
                                 imageStore.setAddTagsFieldOpen(false);
                                 await imageStore.refreshEncounterData();
                               } else {
-                                console.error(
-                                  "Failed to add existing tag:",
-                                  result,
-                                );
+                                setErrorMsg("Failed to add existing tag:");
                               }
                             }
                           }}

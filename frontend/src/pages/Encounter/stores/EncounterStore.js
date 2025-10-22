@@ -10,7 +10,13 @@ import { v4 as uuidv4 } from "uuid";
 import ModalStore from "./ModalStore";
 import ErrorStore from "./ErrorStore";
 import { SECTION_FIELD_PATHS } from "../constants";
-import { validateFieldValue, getValueAtPath, setValueAtPath, deleteValueAtPath, expandOperations } from "./helperFunctions";
+import {
+  validateFieldValue,
+  getValueAtPath,
+  setValueAtPath,
+  deleteValueAtPath,
+  expandOperations,
+} from "./helperFunctions";
 import NewMatchStore from "./NewMatchStore";
 import ImageModalStore from "./ImageModalStore";
 dayjs.extend(customParseFormat);
@@ -35,9 +41,9 @@ class EncounterStore {
   _lat = null;
   _lon = null;
 
-  _newPersonName = '';
-  _newPersonEmail = '';
-  _newPersonRole = '';
+  _newPersonName = "";
+  _newPersonEmail = "";
+  _newPersonRole = "";
 
   _individualSearchInput = "";
   _searchingIndividuals = false;
@@ -98,13 +104,17 @@ class EncounterStore {
     this.newMatch = new NewMatchStore(this);
     this.imageModal = new ImageModalStore(this);
 
-    makeAutoObservable(this, {
-      flow: false,
-      modals: false,
-      errors: false,
-      newMatch: false,
-      imageModal: false,
-    }, { autoBind: true });
+    makeAutoObservable(
+      this,
+      {
+        flow: false,
+        modals: false,
+        errors: false,
+        newMatch: false,
+        imageModal: false,
+      },
+      { autoBind: true },
+    );
   }
 
   get encounterData() {
@@ -118,8 +128,8 @@ class EncounterStore {
     this._acousticTagValues = newEncounterData?.acousticTag || {};
     this._satelliteTagValues = newEncounterData?.satelliteTag || {};
     this._measurementValues = (newEncounterData?.measurements ?? [])
-      .filter(m => m?.type)
-      .map(m => ({
+      .filter((m) => m?.type)
+      .map((m) => ({
         type: m.type,
         units: m.units || this.unitByType[m.type] || "",
         value: m.value ?? "",
@@ -130,8 +140,8 @@ class EncounterStore {
 
   resetMeasurementValues() {
     this._measurementValues = (this.encounterData?.measurements ?? [])
-      .filter(m => m?.type)
-      .map(m => ({
+      .filter((m) => m?.type)
+      .map((m) => ({
         type: m.type,
         units: m.units || this.unitByType[m.type] || "",
         value: m.value ?? "",
@@ -260,7 +270,7 @@ class EncounterStore {
     return this._selectedMatchLocation;
   }
   setSelectedLocation(location) {
-    this._selectedMatchLocation = location
+    this._selectedMatchLocation = location;
   }
 
   get owner() {
@@ -277,8 +287,8 @@ class EncounterStore {
     this._selectedAlgorithm = algorithm;
   }
 
-  get individualOptions() { 
-    return this._individualOptions || []; 
+  get individualOptions() {
+    return this._individualOptions || [];
   }
 
   setIndividualOptions(options) {
@@ -286,27 +296,43 @@ class EncounterStore {
   }
 
   async addNewPerson() {
-    const result = await axios.patch(`/api/v3/encounters/${this._encounterData.id}`, [
-      { op: "add", path: this._newPersonRole, value: this._newPersonEmail },
-    ]);
-    if (result.status === 200) {
-      this.modals.setOpenAddPeopleModal(false);
-      this._newPersonName = '';
-      this._newPersonEmail = '';
-      this._newPersonRole = '';
-    } else {
-      console.error("Failed to add new person:", result);
+    try {
+      const result = await axios.patch(
+        `/api/v3/encounters/${this._encounterData.id}`,
+        [{ op: "add", path: this._newPersonRole, value: this._newPersonEmail }],
+      );
+      if (result.status === 200) {
+        this.modals.setOpenAddPeopleModal(false);
+        this._newPersonName = "";
+        this._newPersonEmail = "";
+        this._newPersonRole = "";
+      } else {
+        console.error("Failed to add new person:", result);
+      }
+    } catch (error) {
+      console.error("Error adding new person:", error);
+      throw error;
     }
   }
 
   async removeContact(type, uuid) {
-    const data = await axios.patch(`/api/v3/encounters/${this._encounterData.id}`, [
-      { op: "remove", path: type, value: uuid }]);
-    if (data.status === 200) {
-      this._encounterData[type] = this._encounterData[type].filter(item => item.id !== uuid);
-      this.modals.setOpenContactInfoModal(false);
-    } else {
-      console.error("Failed to remove contact:", data);
+    if (!type || !uuid) return;
+    try {
+      const data = await axios.patch(
+        `/api/v3/encounters/${this._encounterData.id}`,
+        [{ op: "remove", path: type, value: uuid }],
+      );
+      if (data.status === 200) {
+        this._encounterData[type] = this._encounterData[type].filter(
+          (item) => item.id !== uuid,
+        );
+        this.modals.setOpenContactInfoModal(false);
+      } else {
+        console.error("Failed to remove contact:", data);
+      }
+    } catch (error) {
+      console.error("Error removing contact:", error);
+      throw error;
     }
   }
 
@@ -316,20 +342,26 @@ class EncounterStore {
       return;
     }
     const payload = {
-      projects: toJS(this._selectedProjects.map(project => ({
-        id: project.id,
-        encountersToAdd: [this._encounterData.id],
-      })))
+      projects: toJS(
+        this._selectedProjects.map((project) => ({
+          id: project.id,
+          encountersToAdd: [this._encounterData.id],
+        })),
+      ),
     };
 
-    const result = await axios.post("/ProjectUpdate", payload, {
-      headers: { "Content-Type": "application/json" },
-    })
-    if (result.status === 200) {
-      this.refreshEncounterData();
-    }
-    else {
-      console.error("Failed to add encounter to project:", result);
+    try {
+      const result = await axios.post("/ProjectUpdate", payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (result.status === 200) {
+        this.refreshEncounterData();
+      } else {
+        console.error("Failed to add encounter to project:", result);
+      }
+    } catch (error) {
+      console.error("Error adding encounter to project:", error);
+      throw error;
     }
   }
 
@@ -339,17 +371,21 @@ class EncounterStore {
         {
           id: projectId,
           encountersToRemove: [this._encounterData.id],
-        }
-      ]
-    }
-    const result = await axios.post("/ProjectUpdate", payload, {
-      headers: { "Content-Type": "application/json" },
-    })
-    if (result.status === 200) {
-      this.refreshEncounterData();
-    }
-    else {
-      console.error("Failed to add encounter to project:", result);
+        },
+      ],
+    };
+    try {
+      const result = await axios.post("/ProjectUpdate", payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (result.status === 200) {
+        this.refreshEncounterData();
+      } else {
+        console.error("Failed to add encounter to project:", result);
+      }
+    } catch (error) {
+      console.error("Error removing project from encounter:", error);
+      throw error;
     }
   }
 
@@ -410,7 +446,13 @@ class EncounterStore {
   }
 
   get encounterAnnotations() {
-    return this.encounterData?.mediaAssets?.[this._selectedImageIndex]?.annotations?.filter(data => data.encounterId === this.encounterData.id) || [];
+    return (
+      this.encounterData?.mediaAssets?.[
+        this._selectedImageIndex
+      ]?.annotations?.filter(
+        (data) => data.encounterId === this.encounterData.id,
+      ) || []
+    );
   }
 
   get selectedAnnotationId() {
@@ -421,14 +463,19 @@ class EncounterStore {
   }
 
   get matchResultClickable() {
-    const selectedAnnotation = this.encounterAnnotations?.find(
-      (annotation) => annotation.id === this.selectedAnnotationId
-    ) || [];
+    const selectedAnnotation =
+      this.encounterAnnotations?.find(
+        (annotation) => annotation.id === this.selectedAnnotationId,
+      ) || [];
     const iaTaskId = !!selectedAnnotation?.iaTaskId;
     const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
     const identActive = iaTaskId && !skipId;
-    const detectionComplete = this.encounterData?.mediaAssets?.[this._selectedImageIndex]?.detectionStatus === "complete";
-    const identificationStatus = selectedAnnotation?.identificationStatus === "complete" || selectedAnnotation?.identificationStatus === "pending";
+    const detectionComplete =
+      this.encounterData?.mediaAssets?.[this._selectedImageIndex]
+        ?.detectionStatus === "complete";
+    const identificationStatus =
+      selectedAnnotation?.identificationStatus === "complete" ||
+      selectedAnnotation?.identificationStatus === "pending";
 
     return identActive && (detectionComplete || identificationStatus);
   }
@@ -439,11 +486,21 @@ class EncounterStore {
   setLat(newLat) {
     this.errors.setFieldError("location", "latitude", null);
     this._lat = newLat;
-    this.errors.setFieldError("location", "latitude",
-      validateFieldValue("location", "latitude", newLat, { lat: newLat, lon: this._lon })
+    this.errors.setFieldError(
+      "location",
+      "latitude",
+      validateFieldValue("location", "latitude", newLat, {
+        lat: newLat,
+        lon: this._lon,
+      }),
     );
-    this.errors.setFieldError("location", "longitude",
-      validateFieldValue("location", "longitude", this._lon, { lat: newLat, lon: this._lon })
+    this.errors.setFieldError(
+      "location",
+      "longitude",
+      validateFieldValue("location", "longitude", this._lon, {
+        lat: newLat,
+        lon: this._lon,
+      }),
     );
   }
 
@@ -453,11 +510,21 @@ class EncounterStore {
   setLon(newLon) {
     this.errors.setFieldError("location", "longitude", null);
     this._lon = newLon;
-    this.errors.setFieldError("location", "longitude",
-      validateFieldValue("location", "longitude", newLon, { lat: this._lat, lon: newLon })
+    this.errors.setFieldError(
+      "location",
+      "longitude",
+      validateFieldValue("location", "longitude", newLon, {
+        lat: this._lat,
+        lon: newLon,
+      }),
     );
-    this.errors.setFieldError("location", "latitude",
-      validateFieldValue("location", "latitude", this._lat, { lat: this._lat, lon: newLon })
+    this.errors.setFieldError(
+      "location",
+      "latitude",
+      validateFieldValue("location", "latitude", this._lat, {
+        lat: this._lat,
+        lon: newLon,
+      }),
     );
   }
 
@@ -494,12 +561,11 @@ class EncounterStore {
 
   get identificationRemarksOptions() {
     if (this._siteSettingsData?.identificationRemarks) {
-      this._identificationRemarksOptions = this._siteSettingsData.identificationRemarks.map(
-        (data) => ({
+      this._identificationRemarksOptions =
+        this._siteSettingsData.identificationRemarks.map((data) => ({
           value: data,
           label: data,
-        }),
-      );
+        }));
       return this._identificationRemarksOptions;
     }
     return [];
@@ -532,7 +598,10 @@ class EncounterStore {
 
   get unitByType() {
     return Object.fromEntries(
-      (this.measurementTypes || []).map((t, i) => [t, this.measurementUnits?.[i] ?? ""])
+      (this.measurementTypes || []).map((t, i) => [
+        t,
+        this.measurementUnits?.[i] ?? "",
+      ]),
     );
   }
 
@@ -541,7 +610,7 @@ class EncounterStore {
   }
 
   getMeasurement(type) {
-    const found = this.measurementValues.find(m => m.type === type);
+    const found = this.measurementValues.find((m) => m.type === type);
     if (found) return found;
     return {
       type,
@@ -552,7 +621,7 @@ class EncounterStore {
   }
 
   _upsertMeasurement(type, partial) {
-    const idx = this.measurementValues.findIndex(m => m.type === type);
+    const idx = this.measurementValues.findIndex((m) => m.type === type);
     const units = this.unitByType[type] ?? "";
     if (idx === -1) {
       this.measurementValues.push({
@@ -601,10 +670,12 @@ class EncounterStore {
   }
 
   get satelliteTagNameOptions() {
-    return this._siteSettingsData?.satelliteTagName.map((name) => ({
-      value: name,
-      label: name,
-    })) || [];
+    return (
+      this._siteSettingsData?.satelliteTagName.map((name) => ({
+        value: name,
+        label: name,
+      })) || []
+    );
   }
 
   getFieldValue(sectionName, fieldPath) {
@@ -730,16 +801,16 @@ class EncounterStore {
     const originalMetalTags = this._encounterData?.metalTags || [];
     const currentMetalTags = this._metalTagValues || [];
 
-    currentMetalTags.forEach(currentTag => {
+    currentMetalTags.forEach((currentTag) => {
       const originalTag = originalMetalTags.find(
-        tag => tag.location === currentTag.location
+        (tag) => tag.location === currentTag.location,
       );
 
       if (!originalTag || originalTag.number !== currentTag.number) {
         ops.push({
           op: "replace",
           path: "metalTags",
-          value: { location: currentTag.location, number: currentTag.number }
+          value: { location: currentTag.location, number: currentTag.number },
         });
       }
     });
@@ -756,9 +827,13 @@ class EncounterStore {
         op: "replace",
         path: "acousticTag",
         value: {
-          ...(currentAcoustic.serialNumber && { serialNumber: currentAcoustic.serialNumber }),
-          ...(currentAcoustic.idNumber && { idNumber: currentAcoustic.idNumber })
-        }
+          ...(currentAcoustic.serialNumber && {
+            serialNumber: currentAcoustic.serialNumber,
+          }),
+          ...(currentAcoustic.idNumber && {
+            idNumber: currentAcoustic.idNumber,
+          }),
+        },
       });
     }
 
@@ -771,15 +846,18 @@ class EncounterStore {
       currentSatellite.argosPttNumber !== originalSatellite.argosPttNumber;
 
     if (hasSatelliteChanges) {
-
       ops.push({
         op: "replace",
         path: "satelliteTag",
         value: {
           ...(currentSatellite.name && { name: currentSatellite.name }),
-          ...(currentSatellite.serialNumber && { serialNumber: currentSatellite.serialNumber }),
-          ...(currentSatellite.argosPttNumber && { argosPttNumber: currentSatellite.argosPttNumber })
-        }
+          ...(currentSatellite.serialNumber && {
+            serialNumber: currentSatellite.serialNumber,
+          }),
+          ...(currentSatellite.argosPttNumber && {
+            argosPttNumber: currentSatellite.argosPttNumber,
+          }),
+        },
       });
     }
     return ops;
@@ -788,18 +866,30 @@ class EncounterStore {
   async patchTracking() {
     const ops = this.buildTrackingPatchPayload();
     if (!ops.length) return;
-    const resp = await axios.patch(`/api/v3/encounters/${this.encounterData.id}`, ops);
-    if (resp.status === 200) {
-      await this.refreshEncounterData();
-      this.setEditTracking?.(false);
-    } else {
-      console.error("patchTracking failed:", resp);
+    try {
+      const resp = await axios.patch(
+        `/api/v3/encounters/${this.encounterData.id}`,
+        ops,
+      );
+      if (resp.status === 200) {
+        await this.refreshEncounterData();
+        this.setEditTracking?.(false);
+      } else {
+        console.error("patchTracking failed:", resp);
+      }
+    } catch (error) {
+      console.error("Error patching tracking data:", error);
+      throw error;
     }
   }
   async patchMeasurements() {
     this.measurementValues.map(async (measurement) => {
       if (measurement.value === "" || measurement.value == null) {
-        this.errors.setFieldError('measurement', measurement.type, 'value cannot be empty');
+        this.errors.setFieldError(
+          "measurement",
+          measurement.type,
+          "value cannot be empty",
+        );
         return;
       }
       const payload = {
@@ -812,11 +902,23 @@ class EncounterStore {
           samplingProtocol: measurement.samplingProtocol,
         },
       };
-      const result = await axios.patch(`/api/v3/encounters/${this.encounterData.id}`, [payload], {
-        headers: { "Content-Type": "application/json" },
-      });
-    })
-
+      try {
+        await axios.patch(
+          `/api/v3/encounters/${this.encounterData.id}`,
+          [payload],
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      } catch (error) {
+        console.error("Error patching measurements:", error);
+        this.errors.setFieldError(
+          "measurement",
+          measurement.type,
+          "Failed to save measurement",
+        );
+      }
+    });
   }
 
   initializeFlow(inputEl, maxSizeMB = 10) {
@@ -838,7 +940,12 @@ class EncounterStore {
 
     if (inputEl) flow.assignBrowse(inputEl);
 
-    const supported = new Set(["image/jpeg", "image/jpg", "image/png", "image/bmp"]);
+    const supported = new Set([
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/bmp",
+    ]);
     const maxBytes = maxSizeMB * 1024 * 1024;
 
     flow.on("fileAdded", (file) => {
@@ -861,9 +968,13 @@ class EncounterStore {
             filename: file?.file?.name || file?.name || "upload.jpg",
           },
         };
-        await axios.patch(`/api/v3/encounters/${this._encounterData.id}`, [op], {
-          headers: { "Content-Type": "application/json" },
-        });
+        await axios.patch(
+          `/api/v3/encounters/${this._encounterData.id}`,
+          [op],
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        );
         alert("Image uploaded successfully, page will be reloaded!");
         window.location.reload();
       } catch (e) {
@@ -900,11 +1011,9 @@ class EncounterStore {
       }
     }
     this._encounterData = nextEncounter;
-
   }
 
   async searchIndividualsByName(inputValue) {
-
     this._searchingIndividuals = true;
 
     try {
@@ -912,29 +1021,40 @@ class EncounterStore {
         query: {
           bool: {
             filter: [
-              ...(this._encounterData?.taxonomy ? [{
-                match: {
-                  taxonomy: this._encounterData.taxonomy
-                }
-              }] : []),
+              ...(this._encounterData?.taxonomy
+                ? [
+                    {
+                      match: {
+                        taxonomy: this._encounterData.taxonomy,
+                      },
+                    },
+                  ]
+                : []),
               {
                 wildcard: {
                   names: {
                     value: `*${inputValue}*`,
-                    case_insensitive: true
-                  }
-                }
-              }
-            ]
-          }
+                    case_insensitive: true,
+                  },
+                },
+              },
+            ],
+          },
         },
       };
 
-      const resp = axios.post('/api/v3/search/individual?size=20&from=0', searchQuery);
-      return resp;
-
+      try {
+        const resp = axios.post(
+          "/api/v3/search/individual?size=20&from=0",
+          searchQuery,
+        );
+        return resp;
+      } catch (error) {
+        console.error("Failed to search individuals:", error);
+        this._individualSearchResults = [];
+      }
     } catch (error) {
-      console.error('Failed to search individuals:', error);
+      console.error("Failed to search individuals:", error);
       this._individualSearchResults = [];
     } finally {
       this._searchingIndividuals = false;
@@ -953,20 +1073,26 @@ class EncounterStore {
                 wildcard: {
                   id: {
                     value: `*${inputValue}*`,
-                    case_insensitive: true
-                  }
-                }
-              }
-            ]
-          }
+                    case_insensitive: true,
+                  },
+                },
+              },
+            ],
+          },
         },
       };
-
-      const response = await axios.post('/api/v3/search/occurrence?size=20&from=0', searchQuery);
-      return response;
-
+      try {
+        const response = await axios.post(
+          "/api/v3/search/occurrence?size=20&from=0",
+          searchQuery,
+        );
+        return response;
+      } catch (error) {
+        console.error("Failed to search sightings:", error);
+        this._sightingSearchResults = [];
+      }
     } catch (error) {
-      console.error('Failed to search sightings:', error);
+      console.error("Failed to search sightings:", error);
       this._sightingSearchResults = [];
     } finally {
       this._searchingSightings = false;
@@ -996,7 +1122,10 @@ class EncounterStore {
     // // this.applyPatchOperationsLocally(operations);
     // this.resetSectionDraft(sectionName);
     try {
-      const result = await axios.patch(`/api/v3/encounters/${encounterId}`, expanded);
+      const result = await axios.patch(
+        `/api/v3/encounters/${encounterId}`,
+        expanded,
+      );
       this.errors.clearSectionErrors(sectionName);
       this.resetSectionDraft(sectionName);
       return result;
@@ -1004,7 +1133,10 @@ class EncounterStore {
       if (error.response?.data) {
         this.errors.setErrors(sectionName, error.response.data);
       } else {
-        this.errors.setErrors('general', error.message || 'An error occurred while saving');
+        this.errors.setErrors(
+          "general",
+          error.message || "An error occurred while saving",
+        );
       }
       throw error;
     }
@@ -1012,12 +1144,14 @@ class EncounterStore {
 
   async refreshEncounterData() {
     if (!this._encounterData?.id) {
-      console.warn('No encounter ID available for refresh');
+      console.warn("No encounter ID available for refresh");
       return;
     }
 
     try {
-      const response = await axios.get(`/api/v3/encounters/${this._encounterData.id}`);
+      const response = await axios.get(
+        `/api/v3/encounters/${this._encounterData.id}`,
+      );
       if (response.status === 200 && response.data) {
         const currentImageIndex = this._selectedImageIndex;
         this.setEncounterData(response.data);
@@ -1027,7 +1161,7 @@ class EncounterStore {
         return response.data;
       }
     } catch (error) {
-      console.error('Failed to refresh encounter data:', error);
+      console.error("Failed to refresh encounter data:", error);
       throw error;
     }
   }

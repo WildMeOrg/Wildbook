@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import { LOCAL_FIELD_ERRORS } from "../constants";
 import axios from "axios";
 
@@ -56,7 +55,6 @@ function validateFieldValue(sectionName, fieldPath, value, ctx = {}) {
 
   return null;
 }
-
 
 function splitPathIntoSegments(fieldPath) {
   return fieldPath.replace(/\[(\d+)\]/g, ".$1").split(".");
@@ -133,7 +131,7 @@ function parseYMDHM(val) {
   };
 }
 
-function expandOperations(operations, individualOptions = []) {
+function expandOperations(operations) {
   const base = operations.slice();
   const out = [];
 
@@ -145,22 +143,22 @@ function expandOperations(operations, individualOptions = []) {
       out.push({
         op: "replace",
         path: "month",
-        value: !!p.month ? String(p.month) : null,
+        value: p.month ? String(p.month) : null,
       });
       out.push({
         op: "replace",
         path: "day",
-        value: !!p.day ? String(p.day) : null,
+        value: p.day ? String(p.day) : null,
       });
       out.push({
         op: "replace",
         path: "hour",
-        value: !!p.hour ? String(p.hour) : null,
+        value: p.hour ? String(p.hour) : null,
       });
       out.push({
         op: "replace",
         path: "minutes",
-        value: !!p.minutes ? String(p.minutes) : null,
+        value: p.minutes ? String(p.minutes) : null,
       });
       continue;
     }
@@ -168,9 +166,13 @@ function expandOperations(operations, individualOptions = []) {
     if (op.path === "locationGeoPoint" && op.value) {
       if (!op.value.lat || !op.value.lon) continue;
       out.push({ op: "replace", path: "decimalLatitude", value: op.value.lat });
-      out.push({ op: "replace", path: "decimalLongitude", value: op.value.lon });
+      out.push({
+        op: "replace",
+        path: "decimalLongitude",
+        value: op.value.lon,
+      });
       continue;
-    }      
+    }
 
     if (op.path === "taxonomy" && op.value) {
       const s = String(op.value).trim();
@@ -183,16 +185,6 @@ function expandOperations(operations, individualOptions = []) {
       });
       continue;
     }
-
-    if (op.path === "occurrenceId" && op.value) {
-      out.push({
-        op: "replace",
-        path: "sightingId",
-        value: op.value,
-      });
-      continue;
-    }
-
     out.push(op);
   }
 
@@ -201,12 +193,13 @@ function expandOperations(operations, individualOptions = []) {
 
 async function setEncounterState(newState, encounterId) {
   const operations = [{ op: "replace", path: "state", value: newState }];
-  await axios.patch(
-    `/api/v3/encounters/${encounterId}`,
-    operations,
-  );
+  try {
+    await axios.patch(`/api/v3/encounters/${encounterId}`, operations);
+  } catch (error) {
+    console.error("Error setting encounter state:", error);
+    throw error;
+  }
 }
-
 
 export {
   validateFieldValue,
@@ -216,5 +209,5 @@ export {
   deleteValueAtPath,
   parseYMDHM,
   expandOperations,
-  setEncounterState
+  setEncounterState,
 };
