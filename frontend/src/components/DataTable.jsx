@@ -290,8 +290,8 @@ const MyDataTable = observer(
     const refetchAllData = async () => {
       store.setLoadingAll(true);
       try {
-        const data = await refetchAll();
-        store.setSearchResultsAll(data?.data?.hits || []);
+        const response = await refetchAll();
+        store.setSearchResultsAll(response?.data?.data?.hits || []);
       } catch (error) {
         console.error("Error fetching all encounters:", error);
       }

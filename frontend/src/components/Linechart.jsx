@@ -10,21 +10,10 @@ import {
   Label,
 } from 'recharts';
 
-const data = [
-  { encounters:   0, count:   0 },
-  { encounters:  50, count:  35 },
-  { encounters: 100, count:  60 },
-  { encounters: 150, count: 160 },
-  { encounters: 200, count: 230 },
-  { encounters: 250, count: 200 },
-  { encounters: 300, count: 300 },
-  { encounters: 350, count: 250 },
-  { encounters: 400, count: 270 },
-  { encounters: 450, count: 120 },
-  { encounters: 500, count: 175 },
-];
-
-export default function DiscoveryLineChart() {
+export default function DiscoveryLineChart({
+  data = [],
+  label = "Discovery Line Chart",
+}) {
   return (
     <div style={{
       width: '100%',
@@ -46,7 +35,7 @@ export default function DiscoveryLineChart() {
             axisLine={false}
           >
             <Label
-              value="Number of Encounters at New Individual Discoveries"
+              value={label}
               position="insideBottom"
               offset={-10}
               style={{ fill: '#ccc', fontSize: 12 }}
