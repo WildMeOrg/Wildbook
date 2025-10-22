@@ -188,7 +188,7 @@ const ImageCard = observer(({ store = {} }) => {
             let newRect = { ...rect };
             if (
               store.encounterData?.mediaAssets[store.selectedImageIndex]
-                ?.rotation
+                ?.rotationInfo
             ) {
               const imgW =
                 store.encounterData?.mediaAssets[store.selectedImageIndex]
@@ -200,10 +200,10 @@ const ImageCard = observer(({ store = {} }) => {
               const adjH = imgW / imgH;
               newRect = {
                 ...rect,
-                x: (rect.x / scaleX) * adjW,
-                width: (rect.width / scaleX) * adjW,
-                y: (rect.y / scaleY) * adjH,
-                height: (rect.height / scaleY) * adjH,
+                x: rect.x / scaleX / adjW,
+                width: rect.width / scaleX / adjW,
+                y: rect.y / scaleY / adjH,
+                height: rect.height / scaleY / adjH,
               };
             } else {
               newRect = {
