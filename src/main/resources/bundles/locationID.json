@@ -80,6 +80,7 @@
           {"name": "Guadeloupe", "id": "Guadeloupe", "locationID": []},
           {"name": "Martinique", "id": "Martinique", "locationID": []},
           {"name": "Montserrat", "id": "Montserrat", "locationID": []},
+          {"name": "Puerto Rico", "id": "Puerto Rico", "locationID": []},
           {"name": "Saba", "id": "Saba", "locationID": []},
           {"name": "St Barthélemy", "id": "St Barthélemy", "locationID": []},
           {"name": "St Eustatius", "id": "St Eustatius", "locationID": []},
