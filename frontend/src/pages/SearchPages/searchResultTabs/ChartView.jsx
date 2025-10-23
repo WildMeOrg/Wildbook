@@ -7,6 +7,7 @@ import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Row, Col } from "react-bootstrap";
 import FullScreenLoader from "../../../components/FullScreenLoader";
+import { PieChart } from "recharts";
 
 const processData = (data) => {
   const counts = data.reduce((acc, curr) => {
@@ -241,6 +242,7 @@ const ChartView = observer(({ store }) => {
         data={topTaggers}
       />
     </div>
+
   );
 });
 
