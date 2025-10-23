@@ -1,0 +1,22 @@
+.rbc-event {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.rbc-event a {
+  color: #007bff;
+  text-decoration: underline;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+/* 
+.rbc-header {
+  background-color: #E5F6FF;
+}
+
+.rbc-btn-group {
+  background-color: #E5F6FF;
+  border-radius: 4px;
+} */

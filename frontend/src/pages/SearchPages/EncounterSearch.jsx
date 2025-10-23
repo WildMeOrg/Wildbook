@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
+import useFilterEncountersAll from "../../models/encounters/useFilterEncountersAll";
 import FilterPanel from "../../components/FilterPanel";
 import useEncounterSearchSchemas from "../../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../../components/filterFields/SideBar";
@@ -12,8 +13,9 @@ import { get } from "lodash-es";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
 import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
-import { globalEncounterFormStore as store } from "./encounterFormStore";
+import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
+import ExportModal from "./components/ExportModal";
 
 export default function EncounterSearch() {
   const columns = encounterSearchColumns;
@@ -42,6 +44,7 @@ export default function EncounterSearch() {
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
   const [tempFormFilters, setTempFormFilters] = useState([]);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
     helperFunction(searchParams, store, setFilterPanel, setTempFormFilters);
@@ -71,22 +74,25 @@ export default function EncounterSearch() {
     },
   });
 
+  const { refetch: refetchAll } = useFilterEncountersAll({
+    queries: store.formFilters,
+    params: { sort: encounterSortName, sortOrder: encounterSortOrder },
+  });
+
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
 
-  const sortedEncounters = encounters.sort((a, b) => {
-    if (!a[sortname] || !b[sortname]) return 0;
-
-    const valueA = a[sortname];
-    const valueB = b[sortname];
-
-    if (sortorder === "asc") {
-      return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
-    } else if (sortorder === "desc") {
-      return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
-    } else {
-      return 0; // Default to no sorting if sortorder is invalid
-    }
-  });
+  const sortedEncounters = React.useMemo(() => {
+    const list = (encounters || []).slice();
+    if (!sortname || !sortorder) return list;
+    return list.sort((a, b) => {
+      const va = a?.[sortname],
+        vb = b?.[sortname];
+      if (va == null || vb == null) return 0;
+      if (sortorder === "asc") return va > vb ? 1 : va < vb ? -1 : 0;
+      if (sortorder === "desc") return va < vb ? 1 : va > vb ? -1 : 0;
+      return 0;
+    });
+  }, [encounters, sortname, sortorder]);
 
   const totalEncounters = encounterData?.resultCount || 0;
   const searchQueryId = encounterData?.searchQueryId || "";
@@ -172,6 +178,8 @@ export default function EncounterSearch() {
         store={store}
       />
       <DataTable
+        store={store}
+        refetchAll={refetchAll}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",
@@ -193,6 +201,7 @@ export default function EncounterSearch() {
         onPerPageChange={queryID ? setSearchIdResultPerPage1 : setPerPage}
         setSort={setSort}
         loading={false}
+        setExportModalOpen={setExportModalOpen}
         extraStyles={[
           {
             when: (row) => row.access === "none",
@@ -209,7 +218,7 @@ export default function EncounterSearch() {
           window.open(url, "_blank");
         }}
         onSelectedRowsChange={(selectedRows) => {
-          console.log("Selected Rows: ", selectedRows);
+          store.setSelectedRows(selectedRows?.selectedRows || []);
         }}
       />
       <SideBar
@@ -218,6 +227,11 @@ export default function EncounterSearch() {
         queryID={false}
         store={store}
         tempFormFilters={tempFormFilters}
+      />
+      <ExportModal
+        open={exportModalOpen}
+        setOpen={setExportModalOpen}
+        searchQueryId={searchQueryId}
       />
     </div>
   );
