@@ -327,7 +327,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
             (!occurrenceID.trim().equals(""))) {
             prettyPrint.append("occurrence ID contains the following: ");
 
-            String locIDFilter = " occurrenceID == \"" + occurrenceID + "\"";
+            // Case-insensitive substring match, and exclude nulls
+            String locIDFilter = " (occurrenceID != null && occurrenceID.toLowerCase().indexOf('" +
+                occurrenceID.toLowerCase() + "') != -1) ";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
             } else { filter += (" && " + locIDFilter); }
