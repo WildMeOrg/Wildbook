@@ -191,7 +191,7 @@ const GalleryView = observer(({ store }) => {
         open={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
         assets={store.currentPageItems}
-        index={currentIndex}
+        index={store.imageModalStore.selectedImageIndex}
         setIndex={setCurrentIndex}
         imageStore={store.imageModalStore}
         rects={rects}
