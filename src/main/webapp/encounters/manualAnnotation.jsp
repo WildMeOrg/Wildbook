@@ -428,6 +428,7 @@ try{
 	    fparams.put("height", xywh[3]);
       fparams.put("totalWidth", xywh[4]);
 	    fparams.put("_manualAnnotation", System.currentTimeMillis());
+	    if (viewpoint != null) fparams.put("viewpoint", viewpoint);
 	    ft = new Feature("org.ecocean.boundingBox", fparams);
 	    ma.addFeature(ft);
 	    ma.setDetectionStatus("complete");
