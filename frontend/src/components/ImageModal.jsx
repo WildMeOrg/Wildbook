@@ -16,7 +16,6 @@ import { useIntl } from "react-intl";
 
 export const ImageModal = observer(
   ({
-    open,
     onClose,
     assets = [],
     index = 0,
@@ -45,6 +44,24 @@ export const ImageModal = observer(
       )?.[0] || null;
     const [editAnnotationParams, setEditAnnotationParams] = useState({});
 
+    const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
+    const a = assets[safeIndex] || {};
+    const [zoom, setZoom] = useState(1);
+
+    const canPrev = safeIndex > 0;
+    const canNext = safeIndex < assets.length - 1;
+    const goPrev = () => {
+      setIndex?.(safeIndex - 1);
+    };
+    const goNext = () => {
+      setIndex?.(safeIndex + 1);
+    };
+    const annotationParam = encodeURIComponent(
+      JSON.stringify(editAnnotationParams),
+    );
+    const [tagText, setTagText] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");
+
     useEffect(() => {
       if (!currentAnnotation) return;
       setEditAnnotationParams({
@@ -55,12 +72,6 @@ export const ImageModal = observer(
         theta: currentAnnotation.rotation || 0,
       });
     }, [currentAnnotation]);
-
-    const annotationParam = encodeURIComponent(
-      JSON.stringify(editAnnotationParams),
-    );
-    const [tagText, setTagText] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
       const s = thumbsRef.current;
@@ -75,54 +86,6 @@ export const ImageModal = observer(
       setScaleX(naturalWidth / displayWidth);
       setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
-
-    useEffect(() => {
-      if (!open) return;
-
-      const onKey = (e) => {
-        if (e.key === "Escape") onClose?.();
-        if (e.key === "ArrowLeft")
-          setIndex?.((p) =>
-            Math.max(0, (typeof p === "number" ? p : index) - 1),
-          );
-        if (e.key === "ArrowRight")
-          setIndex?.((p) =>
-            Math.min(
-              assets.length - 1,
-              (typeof p === "number" ? p : index) + 1,
-            ),
-          );
-      };
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      window.addEventListener("keydown", onKey);
-      return () => {
-        document.body.style.overflow = prevOverflow || "";
-        window.removeEventListener("keydown", onKey);
-      };
-    }, [open, onClose, setIndex, index, assets.length]);
-
-    if (!open || !assets.length) return null;
-
-    const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
-    const a = assets[safeIndex] || {};
-
-    // const canPrev = safeIndex > 0;
-    // const canNext = safeIndex < assets.length - 1;
-
-    // const goPrev = () => {
-    //     setIndex?.((p) => {
-    //         const cur = typeof p === "number" ? p : safeIndex;
-    //         return Math.max(0, cur - 1);
-    //     });
-    // };
-
-    // const goNext = () => {
-    //     setIndex?.((p) => {
-    //         const cur = typeof p === "number" ? p : safeIndex;
-    //         return Math.min(assets.length - 1, cur + 1);
-    //     });
-    // };
 
     return (
       <div
@@ -143,16 +106,6 @@ export const ImageModal = observer(
           className="container-fluid h-100 d-flex flex-column"
           style={{ minHeight: 0 }}
         >
-          {/* <div
-                    className="d-flex align-items-center text-white"
-                    style={{ flex: "0 0 56px" }}
-                >
-                    <span className="text-white-50 ms-2">{safeIndex + 1}/{assets.length}</span>
-                    <div className="ms-auto d-flex gap-2 me-2">
-                        <button className="btn btn-sm" onClick={onClose}>Close</button>
-                    </div>
-                </div> */}
-
           <div
             id="image-modal-body"
             className="d-flex"
@@ -176,6 +129,34 @@ export const ImageModal = observer(
                     marginLeft: "auto",
                   }}
                 >
+                  <button
+                    type="button"
+                    className="btn btn-sm rounded-circle"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.5)",
+                      marginRight: "8px",
+                      color: "white",
+                    }}
+                    onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+                    title="Zoom In"
+                  >
+                    <i className="bi bi-zoom-in"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm rounded-circle"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.5)",
+                      marginRight: "8px",
+                      color: "white",
+                    }}
+                    onClick={() => setZoom(1)}
+                    title="Reset Zoom"
+                  >
+                    <i className="bi bi-zoom-out"></i>
+                  </button>
+
                   <button
                     type="button"
                     className="btn btn-sm rounded-circle"
@@ -234,8 +215,8 @@ export const ImageModal = observer(
                 </div>
 
                 {/* <div className="ms-auto d-flex gap-2 me-2">
-                                <button className="btn btn-sm" onClick={onClose}>Close</button>
-                            </div> */}
+                  <button className="btn btn-sm" onClick={onClose}>Close</button>
+                </div> */}
               </div>
 
               <div
@@ -243,115 +224,136 @@ export const ImageModal = observer(
                 className="d-flex justify-content-center position-relative overflow-hidden"
                 style={{ flex: "1 1 auto", minHeight: 0 }}
               >
-                {/* <button
-                                type="button"
-                                aria-label="Previous image"
-                                className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ${canPrev ? "" : "opacity-50 pe-none"}`}
-                                onClick={(e) => { e.stopPropagation(); goPrev(); }}
-                                onMouseDown={(e) => e.preventDefault()}
-                                disabled={!canPrev}
-                            >
-                                <i className="bi bi-chevron-left" />
-                            </button> */}
-                <div
-                  className="position-relative"
-                  style={{ maxWidth: "90vw", maxHeight: "80vh" }}
+                <button
+                  type="button"
+                  aria-label="Previous image"
+                  className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ${canPrev ? "" : "opacity-50 pe-none"}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goPrev();
+                  }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  disabled={!canPrev}
                 >
-                  <img
-                    id="image-modal-main-image"
-                    src={a.url}
-                    ref={imgRef}
-                    alt={`asset-${a.id ?? safeIndex}`}
-                    className="img-fluid"
+                  <i className="bi bi-chevron-left" />
+                </button>
+                <div
+                  className="position-relative d-flex justify-content-center align-items-center"
+                  style={{
+                    maxWidth: "100vw",
+                    maxHeight: "100vh",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
                     style={{
-                      display: "block",
-                      maxWidth: "100%",
-                      maxHeight: "80vh",
-                      width: "auto",
-                      height: "auto",
-                      objectFit: "contain",
-                      margin: "0 auto",
+                      transform: `scale(${zoom})`,
+                      transformOrigin: "center center",
+                      transition: "transform 0.2s ease",
+                      position: "relative",
+                      display: "inline-block",
                     }}
-                    onLoad={() => {
-                      const iw = imgRef.current?.clientWidth || 1;
-                      const ih = imgRef.current?.clientHeight || 1;
-                      setScaleX((assets[safeIndex]?.width || iw) / iw);
-                      setScaleY((assets[safeIndex]?.height || ih) / ih);
-                    }}
-                  />
-                  {imageStore.showAnnotations &&
-                    rects.length > 0 &&
-                    rects.map((rect, index) => {
-                      let newRect = { ...rect };
-                      if (
-                        imageStore.encounterData?.mediaAssets[
-                          imageStore.selectedImageIndex
-                        ]?.rotationInfo
-                      ) {
-                        const imgW =
+                  >
+                    <img
+                      id="image-modal-main-image"
+                      src={a.url}
+                      ref={imgRef}
+                      alt={`asset-${a.id ?? safeIndex}`}
+                      className="img-fluid"
+                      style={{
+                        display: "block",
+                        maxWidth: "100%",
+                        maxHeight: "80vh",
+                        width: "auto",
+                        height: "auto",
+                        objectFit: "contain",
+                        margin: "0 auto",
+                      }}
+                      onLoad={() => {
+                        const iw = imgRef.current?.clientWidth || 1;
+                        const ih = imgRef.current?.clientHeight || 1;
+                        setScaleX((assets[safeIndex]?.width || iw) / iw);
+                        setScaleY((assets[safeIndex]?.height || ih) / ih);
+                      }}
+                    />
+
+                    {imageStore.showAnnotations &&
+                      rects.length > 0 &&
+                      rects.map((rect, index) => {
+                        let newRect = { ...rect };
+                        if (
                           imageStore.encounterData?.mediaAssets[
                             imageStore.selectedImageIndex
-                          ]?.width;
-                        const imgH =
-                          imageStore.encounterData?.mediaAssets[
-                            imageStore.selectedImageIndex
-                          ]?.height;
-                        const adjW = imgH / imgW;
-                        const adjH = imgW / imgH;
-                        newRect = {
-                          ...rect,
-                          x: rect.x / scaleX / adjW,
-                          width: rect.width / scaleX / adjW,
-                          y: rect.y / scaleY / adjH,
-                          height: rect.height / scaleY / adjH,
-                        };
-                      } else {
-                        newRect = {
-                          ...rect,
-                          x: rect.x / scaleX,
-                          y: rect.y / scaleY,
-                          width: rect.width / scaleX,
-                          height: rect.height / scaleY,
-                        };
-                      }
-                      return (
-                        <div
-                          key={index}
-                          className="position-absolute"
-                          onClick={() => {
-                            imageStore.setSelectedAnnotationId(
-                              rect.annotationId,
-                            );
-                          }}
-                          style={{
-                            left: newRect.x,
-                            top: newRect.y,
-                            width: newRect.width,
-                            height: newRect.height,
-                            border: "2px solid red",
-                            transform: `rotate(${rect.rotation}rad)`,
-                            cursor: "pointer",
-                            backgroundColor:
-                              rect.annotationId ===
-                              imageStore.selectedAnnotationId
-                                ? "rgba(240, 11, 11, 0.5)"
-                                : "transparent",
-                          }}
-                        />
-                      );
-                    })}
+                          ]?.rotationInfo
+                        ) {
+                          const imgW =
+                            imageStore.encounterData?.mediaAssets[
+                              imageStore.selectedImageIndex
+                            ]?.width;
+                          const imgH =
+                            imageStore.encounterData?.mediaAssets[
+                              imageStore.selectedImageIndex
+                            ]?.height;
+                          const adjW = imgH / imgW;
+                          const adjH = imgW / imgH;
+                          newRect = {
+                            ...rect,
+                            x: rect.x / scaleX / adjW,
+                            width: rect.width / scaleX / adjW,
+                            y: rect.y / scaleY / adjH,
+                            height: rect.height / scaleY / adjH,
+                          };
+                        } else {
+                          newRect = {
+                            ...rect,
+                            x: rect.x / scaleX,
+                            y: rect.y / scaleY,
+                            width: rect.width / scaleX,
+                            height: rect.height / scaleY,
+                          };
+                        }
+                        return (
+                          <div
+                            key={index}
+                            className="position-absolute"
+                            onClick={() => {
+                              imageStore.setSelectedAnnotationId(
+                                rect.annotationId,
+                              );
+                            }}
+                            style={{
+                              left: newRect.x,
+                              top: newRect.y,
+                              width: newRect.width,
+                              height: newRect.height,
+                              border: "2px solid red",
+                              transform: `rotate(${rect.rotation}rad)`,
+                              cursor: "pointer",
+                              backgroundColor:
+                                rect.annotationId ===
+                                imageStore.selectedAnnotationId
+                                  ? "rgba(240, 11, 11, 0.5)"
+                                  : "transparent",
+                            }}
+                          />
+                        );
+                      })}
+                  </div>
                 </div>
 
-                {/* <button
-                                type="button"
-                                aria-label="Next image"
-                                className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 ${canNext ? "" : "opacity-50 pe-none"}`}
-                                onClick={(e) => { e.stopPropagation(); goNext(); }}
-                                onMouseDown={(e) => e.preventDefault()}
-                                disabled={!canNext}
-                            >
-                                <i className="bi bi-chevron-right" />
-                            </button> */}
+                <button
+                  type="button"
+                  aria-label="Next image"
+                  className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 ${canNext ? "" : "opacity-50 pe-none"}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goNext();
+                  }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  disabled={!canNext}
+                >
+                  <i className="bi bi-chevron-right" />
+                </button>
               </div>
 
               <div style={{ flex: "0 0 110px" }}>

@@ -412,9 +412,11 @@ const ImageCard = observer(({ store = {} }) => {
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
-        <div style={{ position: "absolute", top: 5, right: 5 }}>
-          <FullscreenIcon />
-        </div>
+        {store.encounterData?.mediaAssets.length > 0 && (
+          <div style={{ position: "absolute", top: 5, right: 5 }}>
+            <FullscreenIcon />
+          </div>
+        )}
       </div>
 
       <div

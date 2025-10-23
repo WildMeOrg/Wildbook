@@ -1165,6 +1165,54 @@ class EncounterStore {
     this._sightingSearchResults = [];
   }
 
+  async removeIndividualFromEncounter() {
+    if (!this.encounterData?.individualId) return;
+    const ops = [
+      {
+        op: "remove",
+        path: "individualId",
+        value: this.encounterData?.individualId,
+      },
+    ];
+    try {
+      const result = await axios.patch(
+        `/api/v3/encounters/${this._encounterData.id}`,
+        ops,
+      );
+      if (result.status === 200) {
+        await this.refreshEncounterData();
+        toast.success("Individual removed successfully!");
+      }
+    } catch (error) {
+      toast.error("Failed to remove individual from encounter");
+      throw error;
+    }
+  }
+
+  async removeOccurrenceIdFromEncounter() {
+    if (!this.encounterData?.occurrenceId) return;
+    const ops = [
+      {
+        op: "remove",
+        path: "occurrenceId",
+        value: this.encounterData?.occurrenceId,
+      },
+    ];
+    try {
+      const result = await axios.patch(
+        `/api/v3/encounters/${this._encounterData.id}`,
+        ops,
+      );
+      if (result.status === 200) {
+        await this.refreshEncounterData();
+        toast.success("Occurrence ID removed successfully!");
+      }
+    } catch (error) {
+      toast.error("Failed to remove occurrence ID from encounter");
+      throw error;
+    }
+  }
+
   async saveSection(sectionName, encounterId) {
     this.errors.clearErrors();
     const operations = this.buildPatchOperations(sectionName);

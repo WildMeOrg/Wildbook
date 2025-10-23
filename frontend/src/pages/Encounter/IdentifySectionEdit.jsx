@@ -32,6 +32,13 @@ export const IdentifySectionEdit = observer(({ store }) => {
         className="mb-3"
       />
 
+      <button
+        className="btn btn-sm btn-info mb-3 mt-3"
+        onClick={() => store.removeIndividualFromEncounter()}
+        title="remove individual"
+      >
+        Remove from individual
+      </button>
       <SearchAndSelectInput
         label="INDIVIDUAL_ID"
         value={store.getFieldValue("identify", "individualId") ?? ""}
@@ -57,6 +64,13 @@ export const IdentifySectionEdit = observer(({ store }) => {
           store.setFieldValue("identify", "otherCatalogNumbers", v)
         }
       />
+      <button
+        className="btn btn-info btn-sm mb-3 mt-3"
+        onClick={() => store.removeOccurrenceIdFromEncounter()}
+        title="remove occurrence"
+      >
+        Remove from sighting
+      </button>
       <SearchAndSelectInput
         label="SIGHTING_ID"
         value={store.getFieldValue("identify", "occurrenceId") ?? ""}
