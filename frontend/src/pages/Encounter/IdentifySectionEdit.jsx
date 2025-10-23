@@ -34,7 +34,10 @@ export const IdentifySectionEdit = observer(({ store }) => {
 
       <button
         className="btn btn-sm btn-info mb-3 mt-3"
-        onClick={() => store.removeIndividualFromEncounter()}
+        onClick={() => {
+          store.setEditIdentifyCard(false);
+          store.removeIndividualFromEncounter();
+        }}
         title="remove individual"
       >
         Remove from individual
@@ -66,7 +69,10 @@ export const IdentifySectionEdit = observer(({ store }) => {
       />
       <button
         className="btn btn-info btn-sm mb-3 mt-3"
-        onClick={() => store.removeOccurrenceIdFromEncounter()}
+        onClick={() => {
+          store.removeOccurrenceIdFromEncounter();
+          store.setEditIdentifyCard(false);
+        }}
         title="remove occurrence"
       >
         Remove from sighting

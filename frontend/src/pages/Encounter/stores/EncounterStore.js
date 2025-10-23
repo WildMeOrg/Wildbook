@@ -344,17 +344,26 @@ class EncounterStore {
           (item) => item.id !== uuid,
         );
         this.modals.setOpenContactInfoModal(false);
-        toast.success("Contact removed successfully!");
+        const message = this._intl.formatMessage({
+          id: "CONTACT_REMOVE_SUCCESS",
+        });
+        toast.success(message);
       }
     } catch (error) {
-      toast.error("Failed to remove contact");
+      const message = this._intl.formatMessage({
+        id: "CONTACT_REMOVE_FAILURE",
+      });
+      toast.error(message);
       throw error;
     }
   }
 
   async addEncounterToProject() {
     if (!this._selectedProjects) {
-      Toast.error("No project selected to add the encounter to.");
+      const message = this._intl.formatMessage({
+        id: "NO_PROJECT_SELECTED",
+      });
+      Toast.error(message);
       return;
     }
     const payload = {
@@ -372,10 +381,16 @@ class EncounterStore {
       });
       if (result.status === 200) {
         await this.refreshEncounterData();
-        toast.success("Encounter added to project successfully!");
+        const message = this._intl.formatMessage({
+          id: "ENCOUNTER_ADDED_TO_PROJECT",
+        });
+        toast.success(message);
       }
     } catch (error) {
-      toast.error("Failed to add encounter to project");
+      const message = this._intl.formatMessage({
+        id: "ENCOUNTER_ADD_PROJECT_ERROR",
+      });
+      toast.error(message);
       throw error;
     }
   }
@@ -395,10 +410,16 @@ class EncounterStore {
       });
       if (result.status === 200) {
         await this.refreshEncounterData();
-        toast.success("Project removed from encounter successfully!");
+        const message = this._intl.formatMessage({
+          id: "ENCOUNTER_REMOVED_FROM_PROJECT",
+        });
+        toast.success(message);
       }
     } catch (error) {
-      toast.error("Failed to remove project from encounter");
+      const message = this._intl.formatMessage({
+        id: "ENCOUNTER_REMOVED_FROM_PROJECT",
+      });
+      toast.error(message);
       throw error;
     }
   }
@@ -892,10 +913,17 @@ class EncounterStore {
       if (resp.status === 200) {
         await this.refreshEncounterData();
         this.setEditTracking?.(false);
-        toast.success("Tracking data saved!");
+        const message = this._intl.formatMessage({
+          id: "TRACKING_DATA_SAVED",
+        });
+        toast.success(message);
       }
     } catch (error) {
-      toast.error("Failed to save tracking data");
+      const message = this._intl.formatMessage({
+        id: "TRACKING_DATA_SAVE_ERROR",
+      });
+      toast.error(message);
+      this.errors.setFieldError("tracking", "general", message);
       throw error;
     }
   }
@@ -943,9 +971,15 @@ class EncounterStore {
     }
 
     if (hasErrors) {
-      toast.error("Some measurements failed to save");
+      const message = this._intl.formatMessage({
+        id: "MEASUREMENTS_SAVE_ERROR",
+      });
+      toast.error(message);
     } else if (tasks.length > 0) {
-      toast.success("Measurements saved successfully!");
+      const message = this._intl.formatMessage({
+        id: "MEASUREMENTS_SAVE_SUCCESS",
+      });
+      toast.success(message);
     }
   }
 
@@ -984,7 +1018,10 @@ class EncounterStore {
 
     flow.on("filesSubmitted", () => {
       this._isUploading = true;
-      this._uploadToastId = toast.loading("Uploading image...");
+      const message = this._intl.formatMessage({
+        id: "UPLOADING_IMAGE",
+      });
+      this._uploadToastId = toast.loading(message);
       flow.upload();
     });
 
@@ -1119,7 +1156,10 @@ class EncounterStore {
       this._individualSearchResults = resp?.data?.hits ?? [];
       return resp;
     } catch (error) {
-      toast.error("Failed to search individuals");
+      const message = this._intl.formatMessage({
+        id: "INDIVIDUAL_SEARCH_ERROR",
+      });
+      toast.error(message);
       this._individualSearchResults = [];
       throw error;
     } finally {
@@ -1153,7 +1193,10 @@ class EncounterStore {
       this._sightingSearchResults = response?.data?.hits ?? [];
       return response;
     } catch (error) {
-      toast.error("Failed to search sightings");
+      const message = this._intl.formatMessage({
+        id: "SIGHTING_SEARCH_ERROR",
+      });
+      toast.error(message);
       this._sightingSearchResults = [];
       throw error;
     } finally {
@@ -1181,6 +1224,7 @@ class EncounterStore {
       );
       if (result.status === 200) {
         await this.refreshEncounterData();
+
         toast.success("Individual removed successfully!");
       }
     } catch (error) {

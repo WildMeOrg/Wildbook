@@ -356,7 +356,7 @@ URLCodec urlCodec = new URLCodec();
 
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
-
+</div>
   <%-- START RIGHT COLUMN --%>
   <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
@@ -630,9 +630,9 @@ if ((isOwner || encounterCanBeEditedByAnyLoggedInUser)  && CommonConfiguration.i
 //setup the javascript to handle displaying an edit tissue sample dialog box
 if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
 %>
-<script>
+<!-- <script>
 dlgSample.dialog("open");
-</script>
+</script> -->
 
 <%
 }
@@ -784,7 +784,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 <%
 }
 %>
-				</td></tr></li>
+				</td></tr>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("SexAnalysis")){
@@ -2065,5 +2065,5 @@ String pswipedir = urlLoc+"/photoswipe";
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
-
+</div>
 <jsp:include page="../footer.jsp" flush="true"/>
