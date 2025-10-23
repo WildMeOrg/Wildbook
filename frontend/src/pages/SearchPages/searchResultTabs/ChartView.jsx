@@ -7,7 +7,6 @@ import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Row, Col } from "react-bootstrap";
 import FullScreenLoader from "../../../components/FullScreenLoader";
-import { PieChart } from "recharts";
 
 const processData = (data) => {
   const counts = data.reduce((acc, curr) => {
@@ -80,18 +79,18 @@ const buildDiscoveryBars = (results) => {
     }
     bars.push({ name: String(i + 1), value: seen.size });
   }
-  return sampleMax(bars, 50); 
+  return sampleMax(bars, 50);
 };
 
 const buildYearlyCumulativeHumanTotals = (results) => {
-  const countsByYear = new Map(); 
+  const countsByYear = new Map();
   let minYear = Infinity;
   let maxYear = -Infinity;
 
   for (const item of results) {
     const y = getYear(item);
     if (!y) continue;
-    if (isAI(item)) continue; 
+    if (isAI(item)) continue;
     countsByYear.set(y, (countsByYear.get(y) || 0) + 1);
     if (y < minYear) minYear = y;
     if (y > maxYear) maxYear = y;
@@ -177,6 +176,7 @@ const ChartView = observer(({ store }) => {
   );
   const topTaggers = buildTopTaggers(store.searchResultsAll);
 
+
   return (
     <div
       className="container mt-1"
@@ -203,12 +203,15 @@ const ChartView = observer(({ store }) => {
         </Col>
         <Col xs={12} md={6}>
           <Piechart
-            title="Assigned User Distribution"
-            data={assignedUserDistributionData}
+            title="user type distribution"
+            data={userTypeDistributionData}
           />
         </Col>
+
       </Row>
-      <VerticalBarChart data={countryDistributionData} />
+      <VerticalBarChart
+        title="SEARCH_RESULTS_COUNTRY_DISTRIBUTION"
+        data={countryDistributionData} />
       <Row className="g-4">
         <Col xs={12} md={6}>
           <Piechart
@@ -216,9 +219,14 @@ const ChartView = observer(({ store }) => {
             data={sexDistributionData}
           />
         </Col>
-        <VerticalBarChart data={speciesDistributionData} />
+        <VerticalBarChart 
+          title="SEARCH_RESULTS_ASSIGNED_USER_DISTRIBUTION"
+        data={speciesDistributionData} />
       </Row>
-      <VerticalBarChart data={userTypeDistributionData} />
+
+      <VerticalBarChart 
+        title="SEARCH_RESULTS_SPECIES_DISTRIBUTION"
+        data={assignedUserDistributionData} />
       <HorizontalBarChart
         title="weekly_encounter_dates"
         data={weeklyEncounterDates}

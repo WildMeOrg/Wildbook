@@ -30,7 +30,9 @@ export default function HorizontalBarChart({
   }
 
   return (
-    <div style={{ width: '100%', height: 400 }}>
+    <div
+      className="horizontal-bar-chart mb-3 mt-2 ms-2 me-2 p-3"
+      style={{ width: '100%', height: 400 }}>
       <p><FormattedMessage id={title} /></p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
