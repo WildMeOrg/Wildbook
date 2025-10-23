@@ -156,6 +156,7 @@ export default function FilterPanel({
                   );
                   setFilterPanel(false);
                   handleSearch();
+                  store.setActiveStep(0);
                 }}
                 noArrow={true}
                 style={{

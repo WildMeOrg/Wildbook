@@ -16,8 +16,9 @@ import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
 import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
 import ExportModal from "./components/ExportModal";
+import { observer } from "mobx-react-lite";
 
-export default function EncounterSearch() {
+const EncounterSearch = observer(() => {
   const columns = encounterSearchColumns;
   const tabs = encounterSearchPagetabs;
   const intl = useIntl();
@@ -235,4 +236,6 @@ export default function EncounterSearch() {
       />
     </div>
   );
-}
+});
+
+export default EncounterSearch;
