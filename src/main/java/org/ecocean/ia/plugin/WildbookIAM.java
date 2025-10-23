@@ -315,7 +315,28 @@ public class WildbookIAM extends IAPlugin {
         System.out.println("sendAnnotationsForceId(): data -->\n" + map);
         JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
         System.out.println("sendAnnotationsForceId() -> " + rtn);
+        checkForcedIds(map.get("annot_uuid_list"), rtn.optJSONArray("response"));
         return rtn;
+    }
+
+    private static void checkForcedIds(List<String> sentIds, JSONArray respArr)
+    throws IOException {
+        if ((sentIds == null) || (respArr == null))
+            throw new IOException("null arg(s) passed: " + sentIds + ", " + respArr);
+        if (sentIds.size() != respArr.length())
+            throw new IOException("args diff length: " + sentIds.size() + " != " +
+                    respArr.length());
+        for (int i = 0; i < sentIds.size(); i++) {
+            System.out.println(">>>>>>>>>>>>>>>>> sentId = " + sentIds.get(i));
+            JSONObject jid = respArr.optJSONObject(i);
+            if (jid == null) throw new IOException("no JSONObject at respArr[" + i + "]");
+            String respId = fromFancyUUID(jid);
+            if (respId == null) throw new IOException("bad respId at i=" + i + "; jid=" + jid);
+            System.out.println(">>>>>>>>>>>>>>>>> respId = " + respId);
+            if (!respId.equals(sentIds.get(i)))
+                throw new IOException("mismatch of ids at i=" + i + ": sentId=" + sentIds.get(i) +
+                        "; respId=" + respId);
+        }
     }
 
     public static List<String> acmIdsFromResponse(JSONObject rtn) {
