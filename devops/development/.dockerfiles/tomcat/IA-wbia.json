@@ -378,7 +378,7 @@
         }
       ],
       "hyaena": {
-        "_save_as": "spotted_hyena",
+        "_save_as": "spotted_hyaena",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -396,7 +396,7 @@
           }
         ]
       },
-      "spotted_hyena": {
+      "spotted_hyaena": {
         "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
       }
     }
@@ -416,6 +416,7 @@
         }
       ],
       "hyaena": {
+        "_save_as": "striped_hyaena",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -432,6 +433,9 @@
             "default": false
           }
         ]
+      },
+      "striped_hyaena": {
+        "_id_conf": "@Hyaena.hyaena.hyaena._id_conf"
       }
     }
   },
@@ -450,7 +454,7 @@
         }
       ],
       "hyaena": {
-        "_save_as": "hyaena_brown",
+        "_save_as": "brown_hyaena",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -468,7 +472,7 @@
           }
         ]
       },
-      "hyaena_brown": {
+      "brown_hyaena": {
         "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
       }
     }
