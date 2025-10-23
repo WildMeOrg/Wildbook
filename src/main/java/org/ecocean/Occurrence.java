@@ -1321,6 +1321,14 @@ public class Occurrence extends Base implements java.io.Serializable {
         }
     }
 
+    public boolean pruneIfNeeded(Shepherd myShepherd) {
+        if (this.getNumberEncounters() > 0) return false;
+        System.out.println("[INFO] pruneIfNeeded() deleting " + this);
+        // this also removes from opensearch index
+        myShepherd.throwAwayOccurrence(this);
+        return true;
+    }
+
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         jobj.put("_sanitized", true);
