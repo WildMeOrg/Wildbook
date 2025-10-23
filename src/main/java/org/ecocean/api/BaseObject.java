@@ -17,6 +17,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.Annotation;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
@@ -41,6 +42,11 @@ public class BaseObject extends ApiBase {
         doPost(request, response);
     }
 
+    protected void doPatch(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        doPost(request, response);
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String uri = request.getRequestURI();
@@ -50,11 +56,15 @@ public class BaseObject extends ApiBase {
         // System.out.println("args => " + java.util.Arrays.toString(args));
 
         JSONObject payload = null;
+        JSONArray payloadArray = null;
         String requestMethod = request.getMethod();
         if (requestMethod.equals("POST")) {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
+        } else if (requestMethod.equals("PATCH")) {
+            payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
         }
-        if (!ReCAPTCHA.sessionIsHuman(request)) {
+        // GET is allowed through without user/captcha
+        if (!requestMethod.equals("GET") && !ReCAPTCHA.sessionIsHuman(request)) {
             response.setStatus(401);
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write("{\"success\": false}");
@@ -64,11 +74,12 @@ public class BaseObject extends ApiBase {
         if (!(args[0].equals("encounters") || args[0].equals("individuals") || args[0].equals("occurrences")))
             throw new ServletException("Bad class");
  */
-        payload.put("_class", args[0]);
-
+        if (payload != null) payload.put("_class", args[0]);
         JSONObject rtn = null;
         if (requestMethod.equals("POST")) {
             rtn = processPost(request, args, payload);
+        } else if (requestMethod.equals("PATCH")) {
+            rtn = processPatch(request, args, payloadArray);
         } else if (requestMethod.equals("GET")) {
             rtn = processGet(request, args);
         } else {
@@ -229,6 +240,103 @@ public class BaseObject extends ApiBase {
     throws ServletException, IOException {
         JSONObject rtn = new JSONObject();
 
+        rtn.put("success", false);
+        rtn.put("statusCode", 500);
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.BaseObject.processGet");
+        myShepherd.beginDBTransaction();
+
+        try {
+            User currentUser = myShepherd.getUser(request);
+            Base obj = null;
+            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if (obj == null) {
+                rtn.put("statusCode", 404);
+                rtn.put("error", "not found");
+/*
+    we now let jsonForApiGet() handle this, as some objects non-logged-in users can see
+    part of. therefore, jsonForApiGet() must set statusCode/error as needed.
+
+            } else if (!obj.canUserView(currentUser, myShepherd)) {
+                rtn.put("statusCode", 401);
+                rtn.put("error", "access denied");
+ */
+            } else {
+                rtn = obj.jsonForApiGet(myShepherd, currentUser);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            rtn.put("error", ex.toString());
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
+        return rtn;
+    }
+
+    protected JSONObject processPatch(HttpServletRequest request, String[] args,
+        JSONArray payloadArray)
+    throws ServletException, IOException {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("success", false);
+        rtn.put("statusCode", 500);
+        // handle this silly case without bothering all the rest
+        if ((payloadArray == null) || (payloadArray.length() == 0)) {
+            rtn.put("statusCode", 400);
+            rtn.put("error", "empty payload array");
+            return rtn;
+        }
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.BaseObject.processPatch");
+        myShepherd.beginDBTransaction();
+
+        Base obj = null;
+        try {
+            User currentUser = myShepherd.getUser(request);
+            obj = null;
+            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if (obj == null) {
+                rtn.put("statusCode", 404);
+                rtn.put("error", "not found");
+            } else if (!obj.canUserEdit(currentUser, myShepherd)) {
+                rtn.put("statusCode", 401);
+                rtn.put("error", "access denied");
+            } else {
+                rtn = obj.processPatch(payloadArray, currentUser, myShepherd);
+                rtn.put("statusCode", 200);
+                rtn.put("success", true);
+            }
+        } catch (ApiException bve) {
+            // these are the typical 400 error that comes with invalid op/path/value etc
+            rtn.put("statusCode", 400);
+            JSONArray errors = bve.getErrors();
+            // the price we pay for recycling these validations :(
+            // we have to truncate the fieldname from bulk-flavor
+            if (bve instanceof BulkValidatorException) {
+                for (int i = 0; i < errors.length(); i++) {
+                    try {
+                        String fname = errors.getJSONObject(i).getString("fieldName");
+                        int dot = fname.indexOf(".");
+                        if (dot > -1)
+                            errors.getJSONObject(i).put("fieldName", fname.substring(dot + 1));
+                    } catch (org.json.JSONException jex) {}
+                }
+            }
+            rtn.put("errors", errors);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            rtn.put("error", ex.toString());
+        } finally {
+            if (rtn.optInt("statusCode", 500) == 200) {
+                myShepherd.commitDBTransaction();
+                if (obj != null) rtn.put("_afterPatch", obj.afterPatch(myShepherd));
+                myShepherd.closeDBTransaction();
+            } else {
+                myShepherd.rollbackAndClose();
+            }
+        }
         return rtn;
     }
 

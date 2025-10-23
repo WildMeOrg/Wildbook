@@ -229,7 +229,7 @@ public class Util {
         return CommonConfiguration.getIndexedPropertyValues(SATELLITE_TAG_NAME, context);
     }
 
-    private static String findLabel(String key, String langCode, String context) {
+    public static String findLabel(String key, String langCode, String context) {
         // System.out.println("Trying to find key: "+key+" with langCode "+langCode);
 
         Properties myProps = ShepherdProperties.getProperties(
@@ -1231,5 +1231,10 @@ public class Util {
         }
         Collections.sort(cnames);
         return cnames;
+    }
+
+    // TODO could be read from config in future, if desired
+    public static List<String> getIdentificationRemarksValues() {
+        return Arrays.asList("Unmatched first encounter", "Visual inspection", "Pattern match");
     }
 }

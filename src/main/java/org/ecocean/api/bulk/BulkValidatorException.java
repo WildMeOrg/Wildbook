@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 public class BulkValidatorException extends ApiException {
     // type is kind of a BulkValidation specificity beyond just the
-    // ApiException.code value, added to errors via addTypeToErrors()
+    // ApiException.code value, added to errors via addToErrors()
     public static String TYPE_UNKNOWN_FIELDNAME = "UNKNOWN_FIELDNAME";
     public static String TYPE_INVALID_VALUE = "INVALID_VALUE";
     public static String TYPE_REQUIRED_VALUE = "REQUIRED_VALUE";
@@ -13,21 +13,29 @@ public class BulkValidatorException extends ApiException {
     public static String TYPE_INVALID_DUPLICATE = "INVALID_DUPLICATE";
 
     private String type = TYPE_INVALID_VALUE;
+    private String fieldName = null;
 
     public BulkValidatorException() {
         super("unknown");
-        addTypeToErrors();
+        addToErrors();
     }
 
     public BulkValidatorException(String message, String errorCode) {
         super(message, errorCode);
-        addTypeToErrors();
+        addToErrors();
     }
 
     public BulkValidatorException(String message, String errorCode, String type) {
         super(message, errorCode);
         this.type = type;
-        addTypeToErrors();
+        addToErrors();
+    }
+
+    public BulkValidatorException(String message, String errorCode, String type, String fieldName) {
+        super(message, errorCode);
+        this.type = type;
+        this.fieldName = fieldName;
+        addToErrors();
     }
 
     public String getType() {
@@ -44,11 +52,14 @@ public class BulkValidatorException extends ApiException {
         return false;
     }
 
-    public void addTypeToErrors() {
+    public void addToErrors() {
         if (this.errors == null) return;
         for (int i = 0; i < this.errors.length(); i++) {
-            if (this.errors.optJSONObject(i) != null)
+            if (this.errors.optJSONObject(i) != null) {
                 this.errors.getJSONObject(i).put("type", this.type);
+                if (this.fieldName != null)
+                    this.errors.getJSONObject(i).put("fieldName", this.fieldName);
+            }
         }
     }
 }
