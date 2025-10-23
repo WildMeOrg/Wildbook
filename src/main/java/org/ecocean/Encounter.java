@@ -4893,9 +4893,6 @@ public class Encounter extends Base implements java.io.Serializable {
             System.out.println("applied patch at [i=" + i + "]: " + patchArr.optJSONObject(i));
             org.json.JSONObject patchRes = EncounterPatchValidator.applyPatch(this,
                 patchArr.optJSONObject(i), user, myShepherd);
-            System.out.println(
-                "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! _mayNeedPruning: " +
-                patchRes.get("_mayNeedPruning"));
             for (int j = 0; j < patchRes.getJSONArray("_mayNeedPruning").length(); j++) {
                 Object p = patchRes.getJSONArray("_mayNeedPruning").get(j);
                 if (p instanceof Occurrence) {
@@ -4904,10 +4901,6 @@ public class Encounter extends Base implements java.io.Serializable {
                     indivNeedPruning.add((MarkedIndividual)p);
                 }
             }
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! occ=" +
-                occNeedPruning);
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! indiv=" +
-                indivNeedPruning);
             patchRes.remove("_mayNeedPruning");
             System.out.println("patch returned at [i=" + i + "]: " + patchRes);
             resArr.put(patchRes);
@@ -4916,10 +4909,13 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("patchResults", resArr);
         // after applying each patch, make sure nothing is wrong
         EncounterPatchValidator.finalValidation(this, myShepherd);
-
         // now we need to look at modified objects which may be empty (and thus need pruning)
-        // FIXME .................
-
+        for (Occurrence occ : occNeedPruning) {
+            occ.pruneIfNeeded(myShepherd);
+        }
+        for (MarkedIndividual indiv : indivNeedPruning) {
+            indiv.pruneIfNeeded(myShepherd);
+        }
         // no exceptions means success
         rtn.put("success", true);
         rtn.put("statusCode", 200);
@@ -5135,19 +5131,15 @@ public class Encounter extends Base implements java.io.Serializable {
         // value should be an Occurrence here (already validated and permission-checked)
         case "occurrenceId":
             // if EncounterPatchValidator let thru null value, we do nothing
-            System.out.println("ZZZZZZZZZZZZ value=" + value);
             if (value == null) break;
             Occurrence occ = (Occurrence)value;
-            System.out.println("ZZZZZZZZZZZZ occ=" + occ);
             if ("remove".equals(op)) {
                 // in remove case, we are given occ to remove from
                 occ.removeEncounter(this);
                 this.occurrenceID = null;
-                System.out.println("AAAAAA " + this + " removed from " + occ);
             } else {
                 // otherwise it is occ we add to
                 occ.addEncounterAndUpdateIt(this);
-                System.out.println("BBBBBB " + this + " added to from " + occ);
             }
             break;
         case "assets":
