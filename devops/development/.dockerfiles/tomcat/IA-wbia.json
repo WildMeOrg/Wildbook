@@ -337,7 +337,7 @@
         }
       ],
       "hyaena": {
-        "_save_as": "spotted_hyena",
+        "_save_as": "spotted_hyaena",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -355,7 +355,7 @@
           }
         ]
       },
-      "spotted_hyena": {
+      "spotted_hyaena": {
         "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
       }
     }
@@ -373,39 +373,7 @@
         }
       ],
       "hyaena": {
-        "_id_conf": [
-          {
-            "query_config_dict": {
-              "pipeline_root": "MiewId"
-            },
-            "description": "MiewID Matcher",
-            "default": true
-          },
-          {
-            "query_config_dict": {
-              "sv_on": true
-            },
-            "description": "HotSpotter pattern-matcher",
-            "default": false
-          }
-        ]
-      }
-    }
-  },
-  "Parahyaena": {
-    "brunnea": {
-      "_detect_conf": [
-        {
-          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
-          "labeler_algo": "densenet",
-          "model_tag": "hyaena_v0",
-          "labeler_model_tag": "hyaena_v0",
-          "sensitivity": 0.74,
-          "nms_thresh": 0.4
-        }
-      ],
-      "hyaena": {
-        "_save_as": "hyaena_brown",
+        "_save_as": "striped_hyaena",
         "_id_conf": [
           {
             "query_config_dict": {
@@ -423,7 +391,43 @@
           }
         ]
       },
-      "hyaena_brown": {
+      "striped_hyaena": {
+        "_id_conf": "@Hyaena.hyaena.hyaena._id_conf"
+      }
+    }
+  },
+  "Parahyaena": {
+    "brunnea": {
+      "_detect_conf": [
+        {
+          "start_detect": "http://172.31.26.160:5000/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "model_tag": "hyaena_v0",
+          "labeler_model_tag": "hyaena_v0",
+          "sensitivity": 0.74,
+          "nms_thresh": 0.4
+        }
+      ],
+      "hyaena": {
+        "_save_as": "brown_hyaena",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "brown_hyaena": {
         "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
       }
     }
