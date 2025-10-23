@@ -31,15 +31,10 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
           style={{
             padding: "10px",
           }}
-        >
-          {/* <p>Adding someone here won't send them emails by default. "Send Updates"
-                        only applied to this encounter, and they can opt out anytime.
-                        
-                    </p> */}
-        </div>
+        ></div>
         {Object.keys(store.encounterData?.submitterInfo).length > 0 && (
           <ContactInfoCard
-            title="Managing Researcher"
+            title="MANAGING_RESEARCHER"
             type="submitters"
             data={[store.encounterData?.submitterInfo]}
             store={store}
@@ -47,7 +42,7 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
         )}
         {store.encounterData?.submitters.length > 0 && (
           <ContactInfoCard
-            title="submitter"
+            title="SUBMITTER"
             type="submitters"
             data={store.encounterData?.submitters}
             store={store}
@@ -55,7 +50,7 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
         )}
         {store.encounterData?.photographers.length > 0 && (
           <ContactInfoCard
-            title="photographer"
+            title="PHOTOGRAPHER"
             type="photographers"
             store={store}
             data={store.encounterData?.photographers}
@@ -63,7 +58,7 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
         )}
         {store.encounterData?.informOthers.length > 0 && (
           <ContactInfoCard
-            title="other users to inform"
+            title="INFORM_OTHERS"
             type="informOthers"
             store={store}
             data={store.encounterData?.informOthers}
@@ -76,7 +71,7 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
           color="white"
           style={{ marginLeft: 0, marginTop: "20px" }}
         >
-          {"Add People"}
+          {<FormattedMessage id="ADD_PEOPLE" />}
         </MainButton>
         {store.modals.openAddPeopleModal && <AddPeople store={store} />}
       </Modal.Body>

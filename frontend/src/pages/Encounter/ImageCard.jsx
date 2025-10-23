@@ -227,7 +227,7 @@ const ImageCard = observer(({ store = {} }) => {
                 key={index}
                 onMouseEnter={() =>
                   handleEnter(
-                    `${newRect.encounterId === store.encounterData.id ? "this encounter" : `encounter ${newRect.encounterId}`}\nViewpoint: ${newRect.viewpoint}\nIA Class: ${newRect.iaClass}`,
+                    `${newRect.encounterId === store.encounterData.id ? `${intl.formatMessage({ id: "THIS_ENCOUNTER" })}` : `encounter ${newRect.encounterId}`}\nViewpoint: ${newRect.viewpoint}\nIA Class: ${newRect.iaClass}`,
                   )
                 }
                 onMouseMove={handleMove}
@@ -329,7 +329,9 @@ const ImageCard = observer(({ store = {} }) => {
                         onClick={async () => {
                           if (
                             window.confirm(
-                              "Are you sure you want to delete this annotation?",
+                              intl.formatMessage({
+                                id: "CONFIRM_DELETE_ANNOTATION",
+                              }),
                             )
                           ) {
                             await store.imageModal.removeAnnotation(

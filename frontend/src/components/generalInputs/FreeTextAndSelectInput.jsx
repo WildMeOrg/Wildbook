@@ -1,13 +1,13 @@
-
 import React, { useMemo } from "react";
 import Form from "react-bootstrap/Form";
 import CreatableSelect from "react-select/creatable";
+import { FormattedMessage } from "react-intl";
 
 function normalizeOptions(options = []) {
   return options.map((opt) =>
     typeof opt === "string"
       ? { value: opt, label: opt }
-      : { value: String(opt.value), label: opt.label }
+      : { value: String(opt.value), label: opt.label },
   );
 }
 
@@ -27,7 +27,7 @@ export default function FreeTextAndSelectInput({
   const selectedOption = useMemo(() => {
     const found = normalizedOptions.find((o) => o.value === value);
     if (found) return found;
-    if (value) return { value, label: value }; 
+    if (value) return { value, label: value };
     return null;
   }, [normalizedOptions, value]);
 
@@ -36,16 +36,22 @@ export default function FreeTextAndSelectInput({
   };
 
   const handleCreate = (inputValue) => {
-    onChange?.(inputValue); 
+    onChange?.(inputValue);
   };
 
   const controlHeights = { sm: 31, md: 38, lg: 49 };
   const minHeight =
-    size === "sm" ? controlHeights.sm : size === "lg" ? controlHeights.lg : controlHeights.md;
+    size === "sm"
+      ? controlHeights.sm
+      : size === "lg"
+        ? controlHeights.lg
+        : controlHeights.md;
 
   return (
     <Form.Group className={className + " mt-2"}>
-      {label && <Form.Label>{label}</Form.Label>}
+      {label && (
+        <h6 className="mt-2 mb-2">{<FormattedMessage id={label} />}</h6>
+      )}
       <CreatableSelect
         value={selectedOption}
         onChange={handleChange}
@@ -53,7 +59,9 @@ export default function FreeTextAndSelectInput({
         options={normalizedOptions}
         placeholder={placeholder}
         isClearable={isClearable}
-        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+        menuPortalTarget={
+          typeof document !== "undefined" ? document.body : null
+        }
         styles={{
           menuPortal: (base) => ({ ...base, zIndex: 9999 }),
           control: (base, state) => ({

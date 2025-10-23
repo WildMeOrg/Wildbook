@@ -14,7 +14,9 @@ export default function SelectInput({
 }) {
   return (
     <Form.Group className={className}>
-      {label && <Form.Label>{<FormattedMessage id={label}/>}</Form.Label>}
+      {label && (
+        <h6 className="mt-2 mb-2">{<FormattedMessage id={label} />}</h6>
+      )}
       <Form.Select
         value={value}
         onChange={(e) => onChange?.(e.target.value)}

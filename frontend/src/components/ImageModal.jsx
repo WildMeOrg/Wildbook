@@ -12,6 +12,7 @@ import PillWithButton from "./PillWithButton";
 import { FormattedMessage } from "react-intl";
 import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
+import { useIntl } from "react-intl";
 
 export const ImageModal = observer(
   ({
@@ -23,6 +24,16 @@ export const ImageModal = observer(
     rects = [],
     imageStore = {},
   }) => {
+    if (!assets || !assets.length) return null;
+    const intl = useIntl();
+    const deleteAnnotationConfirmMsg = intl.formatMessage({
+      id: "CONFIRM_DELETE_ANNOTATION",
+      defaultMessage: "Are you sure you want to delete this annotation?",
+    });
+    const deleteImageConfirmMsg = intl.formatMessage({
+      id: "CONFIRM_DELETE_IMAGE",
+      defaultMessage: "Are you sure you want to delete this image?",
+    });
     const themeColor = React.useContext(ThemeColorContext);
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
@@ -436,9 +447,12 @@ export const ImageModal = observer(
                 </label>
               </div>
               <div className="d-flex flex-wrap gap-2 mb-3">
-                <div className="alert alert-danger" role="alert">
-                  {errorMsg}
-                </div>
+                {errorMsg && (
+                  <div className="alert alert-danger" role="alert">
+                    {errorMsg}
+                  </div>
+                )}
+
                 {(imageStore.tags ?? []).map((tag) => (
                   <PillWithButton
                     key={tag.id}
@@ -536,7 +550,7 @@ export const ImageModal = observer(
                         value={imageStore.selectedKeyword || ""}
                       >
                         <option value="" disabled>
-                          Select existing keyword...
+                          <FormattedMessage id="SELECT_EXISTING_KEYWORD" />
                         </option>
                         {(imageStore.availableKeywords || []).map(
                           (keyword, index) => (
@@ -595,7 +609,7 @@ export const ImageModal = observer(
                         value={imageStore.selectedLabeledKeyword || ""}
                       >
                         <option value="" disabled>
-                          Select existing labeled keyword...
+                          <FormattedMessage id="SELECT_EXISTING_LABELED_KEYWORD" />
                         </option>
                         {(imageStore.availabelLabeledKeywords || []).map(
                           (keyword) => (
@@ -616,7 +630,7 @@ export const ImageModal = observer(
                           value={imageStore.selectedAllowedValues || ""}
                         >
                           <option value="" disabled>
-                            Select Allowed Valus...
+                            <FormattedMessage id="SELECT_ALLOWED_VALUES" />
                           </option>
                           {(imageStore.labeledKeywordAllowedValues || []).map(
                             (keyword) => (
@@ -823,11 +837,7 @@ export const ImageModal = observer(
                   borderColor={themeColor?.wildMeColors?.cyan700}
                   target={true}
                   onClick={async () => {
-                    if (
-                      window.confirm(
-                        "Are you sure you want to delete this annotation?",
-                      )
-                    ) {
+                    if (window.confirm(deleteAnnotationConfirmMsg)) {
                       await imageStore.removeAnnotation(
                         currentAnnotation?.annotationId,
                       );
@@ -844,11 +854,7 @@ export const ImageModal = observer(
                 </h5>
                 <MainButton
                   onClick={async () => {
-                    if (
-                      window.confirm(
-                        "Are you sure you want to delete this image?",
-                      )
-                    ) {
+                    if (window.confirm(deleteImageConfirmMsg)) {
                       await imageStore.deleteImage();
                       window.location.reload();
                     }

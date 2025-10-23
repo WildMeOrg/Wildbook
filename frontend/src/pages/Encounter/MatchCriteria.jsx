@@ -12,7 +12,7 @@ const TreeSelect = lazy(() => import("antd/es/tree-select"));
 export const MatchCriteriaModal = observer(function MatchCriteriaModal({
   store = {},
   isOpen = false,
-  onClose = () => { },
+  onClose = () => {},
 }) {
   const theme = React.useContext(ThemeColorContext);
   return (
@@ -25,17 +25,21 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
       style={{ zIndex: 2000 }}
     >
       <Modal.Header closeButton>
-        <Modal.Title><FormattedMessage id="MATCH_CRITERIA" /></Modal.Title>
+        <Modal.Title>
+          <FormattedMessage id="MATCH_CRITERIA" />
+        </Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         <div className="match-criteria">
           <FormattedMessage id="MATCH_DESC_1" />
-
+          {/* 
           <h6><FormattedMessage id="FILTER_MATCH_RESULTS" /></h6>
-          <FormattedMessage id="MATCH_DESC_2" />
+          <FormattedMessage id="MATCH_DESC_2" /> */}
 
-          <p className="mt-3"><FormattedMessage id="LOCATION_ID" /></p>
+          <p className="mt-3">
+            <FormattedMessage id="LOCATION_ID" />
+          </p>
           <Suspense fallback={<div>Loading location picker...</div>}>
             <TreeSelect
               id="location-tree-select"
@@ -53,8 +57,8 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
               placeholder="Select locations"
               dropdownStyle={{ maxHeight: 500, zIndex: 9999 }}
               onChange={(vals, labels, extra) => {
-                store.newMatch.handleStrictChange(vals, labels, extra)                
-              }}               
+                store.newMatch.handleStrictChange(vals, labels, extra);
+              }}
             />
           </Suspense>
 
@@ -65,7 +69,9 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
             onChange={(v) => store.newMatch.setOwner(v)}
           />
 
-          <p><FormattedMessage id="SELECT_ALGORITHM" /></p>
+          <p>
+            <FormattedMessage id="SELECT_ALGORITHM" />
+          </p>
           <Select
             isMulti
             options={store?.newMatch?.algorithmOptions ?? []}
@@ -74,13 +80,11 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
             menuPlacement="auto"
             menuPortalTarget={document.body}
             styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-            value={
-              (store.newMatch.algorithmOptions ?? []).filter(o =>
-                (store.newMatch.algorithms ?? []).includes(o.value)
-              )
-            }
+            value={(store.newMatch.algorithmOptions ?? []).filter((o) =>
+              (store.newMatch.algorithms ?? []).includes(o.value),
+            )}
             onChange={(newValue) =>
-              store.newMatch.setAlgorithm((newValue ?? []).map(o => o.value))
+              store.newMatch.setAlgorithm((newValue ?? []).map((o) => o.value))
             }
             closeMenuOnSelect={false}
           />
@@ -98,14 +102,14 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
                 const result = await store.newMatch.buildNewMatchPayload();
                 console.log(JSON.stringify(result, null, 2));
                 if (result.status === 200) {
-                  const url = `/iaResults.jsp?taskId=${result?.data?.taskId}`
+                  const url = `/iaResults.jsp?taskId=${result?.data?.taskId}`;
                   window.open(url, "_blank");
                   store.modals.setOpenMatchCriteriaModal(false);
                 } else {
                   alert(
-                    "There was an error creating the match. Please try again."
+                    "There was an error creating the match. Please try again.",
                   );
-                }                
+                }
               }}
             >
               <FormattedMessage id="MATCH" />
@@ -129,4 +133,3 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
 });
 
 export default MatchCriteriaModal;
-

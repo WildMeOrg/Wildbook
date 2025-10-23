@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { FormattedMessage } from "react-intl";
 
 export default function CardWithoutEditButton({
   icon,
@@ -21,7 +22,9 @@ export default function CardWithoutEditButton({
         style={{ fontSize: "1rem", fontWeight: "bold" }}
       >
         {icon || <i className={`bi bi-${icon} me-2`}></i>}
-        <span style={{ marginLeft: "10px" }}>{title}</span>
+        <span style={{ marginLeft: "10px" }}>
+          {<FormattedMessage id={title} />}
+        </span>
       </div>
       <div>{content}</div>
       <div className="d-flex justify-content-end align-items-center w-100"></div>

@@ -1,4 +1,10 @@
-import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
+import React, {
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import Form from "react-bootstrap/Form";
 import { FormattedMessage } from "react-intl";
 import CreatableSelect from "react-select/creatable";
@@ -7,18 +13,23 @@ function normalizeOptions(options = []) {
   return options.map((opt) =>
     typeof opt === "string"
       ? { value: opt, label: opt }
-      : { value: String(opt.value), label: opt.label }
+      : { value: String(opt.value), label: opt.label },
   );
 }
 
 function useDebouncedCallback(fn, delay) {
   const timer = useRef(null);
   const fnRef = useRef(fn);
-  useEffect(() => { fnRef.current = fn; }, [fn]);
-  return useCallback((...args) => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => fnRef.current(...args), delay);
-  }, [delay]);
+  useEffect(() => {
+    fnRef.current = fn;
+  }, [fn]);
+  return useCallback(
+    (...args) => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => fnRef.current(...args), delay);
+    },
+    [delay],
+  );
 }
 
 export default function SearchAndSelectInput({
@@ -44,7 +55,10 @@ export default function SearchAndSelectInput({
   const reqSeq = useRef(0);
 
   const normalizedStatic = useMemo(() => normalizeOptions(options), [options]);
-  const normalizedAsync = useMemo(() => normalizeOptions(asyncOptions), [asyncOptions]);
+  const normalizedAsync = useMemo(
+    () => normalizeOptions(asyncOptions),
+    [asyncOptions],
+  );
   const mergedOptions = useMemo(() => {
     const map = new Map();
     [...normalizedStatic, ...normalizedAsync].forEach((o) => {
@@ -58,7 +72,8 @@ export default function SearchAndSelectInput({
   const selectedOption = useMemo(() => {
     const found = mergedOptions.find((o) => o.value === normalizedValue);
     if (found) return found;
-    if (normalizedValue) return { value: normalizedValue, label: normalizedValue };
+    if (normalizedValue)
+      return { value: normalizedValue, label: normalizedValue };
     return null;
   }, [mergedOptions, normalizedValue]);
 
@@ -110,11 +125,17 @@ export default function SearchAndSelectInput({
 
   const controlHeights = { sm: 31, md: 38, lg: 49 };
   const minHeight =
-    size === "sm" ? controlHeights.sm : size === "lg" ? controlHeights.lg : controlHeights.md;
+    size === "sm"
+      ? controlHeights.sm
+      : size === "lg"
+        ? controlHeights.lg
+        : controlHeights.md;
 
   return (
     <Form.Group className={className + " mt-2"} id={`group-${label}`}>
-      {label && <Form.Label>{<FormattedMessage id={label}/>}</Form.Label>}
+      {label && (
+        <h6 className="mt-2 mb-2">{<FormattedMessage id={label} />}</h6>
+      )}
       <CreatableSelect
         value={selectedOption}
         onChange={handleChange}
@@ -130,7 +151,9 @@ export default function SearchAndSelectInput({
         openMenuOnClick
         menuIsOpen={Boolean(inputValue?.length >= minChars || isLoading)}
         filterOption={null}
-        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+        menuPortalTarget={
+          typeof document !== "undefined" ? document.body : null
+        }
         styles={{
           menuPortal: (base) => ({ ...base, zIndex: 9999 }),
           control: (base, state) => ({

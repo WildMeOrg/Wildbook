@@ -22,7 +22,9 @@ export default function EncounterPageViewOnly() {
       .then((res) => {
         if (!cancelled) setData(res.data);
       })
-      .catch((err) => console.error("fetch encounter error:", err));
+      .catch((err) => {
+        throw err;
+      });
     return () => {
       cancelled = true;
     };
