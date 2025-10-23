@@ -1411,11 +1411,11 @@ if (hasTags) {
         if(request.getRemoteUser()!=null){
         %>
 
-        <div class="form-group">
+        <!-- <div class="form-group">
           <label class="control-label"><%=props.getProperty("otherEmails") %></label>
           <input class="form-control" name="informothers" type="text" id="informothers" size="75">
           <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
-        </div>
+        </div> -->
 
         <%
       }
