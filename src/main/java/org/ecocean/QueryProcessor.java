@@ -24,7 +24,7 @@ public abstract class QueryProcessor {
         return (filter.trim().endsWith("&&"));
     }
 
-    protected static String removeTrailingAmpersands(String filter) {
+    public static String removeTrailingAmpersands(String filter) {
         if (!endsWithAmpersands(filter)) return filter;
         String ret = filter.trim();
         return ret.substring(0, ret.length() - 2);
