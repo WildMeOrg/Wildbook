@@ -196,6 +196,7 @@ public class WildbookIAM extends IAPlugin {
         List<Annotation> acmList = new ArrayList<Annotation>(); // for rectifyAnnotationIds below
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
+            if (iaAnnotIds.contains(ann.getId())) continue;
             if (ann.getMediaAsset() == null) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann +
                     "; skipping!");
@@ -248,6 +249,72 @@ public class WildbookIAM extends IAPlugin {
             IA.log("INFO: WildbookIAM.sendAnnotations() updated " + numChanged +
                 " Annotation(s) acmId(s) via rectifyAnnotationIds()");
         }
+        return rtn;
+    }
+
+    public JSONObject sendAnnotationsForceId(ArrayList<Annotation> anns, boolean checkFirst,
+        Shepherd myShepherd)
+    throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
+        InvalidKeyException {
+        String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
+
+        if (u == null)
+            throw new MalformedURLException(
+                      "WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
+        URL url = new URL(u);
+        int ct = 0;
+        // may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
+        // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
+        List<String> iaAnnotIds = new ArrayList<String>();
+        if (checkFirst) iaAnnotIds = iaAnnotationIds();
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uuid_list", new ArrayList<String>());
+        map.put("annot_uuid_list", new ArrayList<String>());
+        map.put("annot_species_list", new ArrayList<String>());
+        map.put("annot_bbox_list", new ArrayList<int[]>());
+        map.put("annot_name_list", new ArrayList<String>());
+        map.put("annot_theta_list", new ArrayList<Double>());
+        for (Annotation ann : anns) {
+            if (iaAnnotIds.contains(ann.getAcmId())) continue;
+            if (iaAnnotIds.contains(ann.getId())) continue;
+            if (ann.getMediaAsset() == null) {
+                IA.log("WARNING: WildbookIAM.sendAnnotationsForceId() unable to find asset for " +
+                    ann + "; skipping!");
+                continue;
+            }
+            if (!IBEISIA.validForIdentification(ann)) {
+                IA.log("WARNING: WildbookIAM.sendAnnotationsForceId() skipping invalid " + ann);
+                continue;
+            }
+            JSONObject iid = toFancyUUID(ann.getMediaAsset().getAcmId());
+            if (iid == null) {
+                IA.log(
+                    "WARNING: WildbookIAM.sendAnnotationsForceId() unable to find asset.acmId for "
+                    + ann.getMediaAsset() + " on " + ann + "; skipping!");
+                continue;
+            }
+            map.get("image_uuid_list").add(iid);
+            JSONObject aid = toFancyUUID(ann.getId());
+            map.get("annot_uuid_list").add(aid);
+            int[] bbox = ann.getBbox();
+            map.get("annot_bbox_list").add(bbox);
+            // yuck - IA class is not species
+            // map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
+            // better
+            map.get("annot_species_list").add(ann.getIAClass());
+
+            map.get("annot_theta_list").add(ann.getTheta());
+            String name = ann.findIndividualId(myShepherd);
+            map.get("annot_name_list").add((name == null) ? "____" : name);
+            ct++;
+        }
+        // myShepherd.rollbackDBTransaction();
+
+        IA.log("INFO: WildbookIAM.sendAnnotationsForceId() is sending " + ct);
+        if (ct < 1) return null; // null for "none to send" ?  is this cool?
+        System.out.println("sendAnnotationsForceId(): data -->\n" + map);
+        JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+        System.out.println("sendAnnotationsForceId() -> " + rtn);
         return rtn;
     }
 
