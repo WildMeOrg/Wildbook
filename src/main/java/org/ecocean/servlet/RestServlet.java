@@ -28,6 +28,7 @@ import java.util.HashMap;
 
 
 import org.ecocean.Encounter;
+import org.ecocean.QueryProcessor;
 import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
 import org.ecocean.security.Collaboration;
@@ -240,6 +241,9 @@ public class RestServlet extends HttpServlet {
                     pm.currentTransaction().begin();
                     ShepherdPMF.setShepherdState("RestServlet.class" + "_" + servletID, "begin");
 
+                    // make sure no trailing ampersands
+                    queryString = QueryProcessor.removeTrailingAmpersands(queryString);
+                    
                     Query query = pm.newQuery("JDOQL", queryString);
                     if (fetchParams != null) {
                         int numParams = fetchParams.length;
@@ -257,6 +261,7 @@ public class RestServlet extends HttpServlet {
                         long t1 = System.currentTimeMillis();
 
 
+                    
                     Object result = filterResult(query.execute());
                     System.out.println("Query time: " + (System.currentTimeMillis() - t1) + " ms");
                     if (result instanceof Collection) {
