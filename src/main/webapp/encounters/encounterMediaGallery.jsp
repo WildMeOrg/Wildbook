@@ -1045,7 +1045,7 @@ function enhancerDisplayAnnots(el, opt) {
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i, ma.id);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i, ma.id, ma.annotation);
     }
 }
 
@@ -1068,7 +1068,7 @@ function featureSortOrder(feat) {
     return rtn;
 }
 
-function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
+function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId, annotation) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
     //TODO other than boundingBox
@@ -1103,7 +1103,9 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.addClass('image-enhancer-feature-aoi');
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
-    if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
+    // Check feature parameters first, then fall back to annotation object for backward compatibility
+    var viewpoint = feat.parameters.viewpoint || (annotation && annotation.viewpoint);
+    if (viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + viewpoint + '</b></i>';
     if (feat.iaClass) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">IA class: <b>' + feat.iaClass + '</b></i>';
 
     if (focused) {
