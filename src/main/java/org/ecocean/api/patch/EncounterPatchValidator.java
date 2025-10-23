@@ -264,6 +264,12 @@ public class EncounterPatchValidator {
                 }
                 mayNeedPruning.put(occ);
                 enc.applyPatchOp(path, occ, op);
+            } else if (path.equals("individualId")) {
+                // in this case, we dont need to do as much occurrenceId, but we do need
+                // to handle pruning case:
+                MarkedIndividual currentIndiv = enc.getIndividual();
+                if (currentIndiv != null) mayNeedPruning.put(currentIndiv);
+                enc.applyPatchOp(path, null, op);
             } else {
                 enc.applyPatchOp(path, null, op);
             }
