@@ -5142,6 +5142,7 @@ public class Encounter extends Base implements java.io.Serializable {
             if ("remove".equals(op)) {
                 // in remove case, we are given occ to remove from
                 occ.removeEncounter(this);
+                this.occurrenceID = null;
                 System.out.println("AAAAAA " + this + " removed from " + occ);
             } else {
                 // otherwise it is occ we add to
