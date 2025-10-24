@@ -626,5 +626,17 @@
   "TOP_TEN_TAGGERS": "Top 10 Markierer (Forscher mit den meisten identifizierten Tieren)",
   "PAGINATION_TOTAL_ITEMS": "Insgesamt {n} Elemente",
   "UNASSIGN_INDIVIDUAL": "Zuordnung der Individuums aufheben",
-  "REMOVE_FROM_SIGHTING": "Aus der Sichtung entfernen"
+  "REMOVE_FROM_SIGHTING": "Aus der Sichtung entfernen",
+  "EXPORT_ENCOUNTER_RECORDS": "Begegnungsdatensätze exportieren",
+  "ENCOUNTER_RECORDS": "Begegnungsdatensätze",
+  "MARK_RECAPTURE_DATA": "Markierungs- und Wiederfangdaten",
+  "STANDARD_FORMAT": "Standardformat",
+  "EXPORTING": "Exportieren läuft",
+  "EXPORT_EXCEL_FILE": "Excel-Datei exportieren",
+  "ENCOUNTER_ANNOTATIONS": "Begegnungsannotationen",
+  "OBIS_FORMAT": "OBIS-Format",
+  "DATA_CONTRIBUTOR_EMAIL": "E-Mail des Datenbeitragers",
+  "GOOGLE_EARTH_FILE": "Google Earth-Datei",
+  "GIS_SHAPEFILE": "GIS-Shapefile",
+  "CONFIGURE_SESSIONS_FOR_EXPORT": "Sitzungen für den Export konfigurieren"
 }

@@ -624,5 +624,17 @@
   "TOP_TEN_TAGGERS": "Los 10 principales etiquetadores (investigadores que más identifican animales)",
   "PAGINATION_TOTAL_ITEMS": "Total {n} elementos",
   "UNASSIGN_INDIVIDUAL": "Desasignar individuo",
-  "REMOVE_FROM_SIGHTING": "Eliminar del avistamiento"
+  "REMOVE_FROM_SIGHTING": "Eliminar del avistamiento",
+  "EXPORT_ENCOUNTER_RECORDS": "Exportar registros de encuentros",
+  "ENCOUNTER_RECORDS": "Registros de encuentros",
+  "MARK_RECAPTURE_DATA": "Datos de marcaje y recaptura",
+  "STANDARD_FORMAT": "Formato estándar",
+  "EXPORTING": "Exportando",
+  "EXPORT_EXCEL_FILE": "Exportar archivo de Excel",
+  "ENCOUNTER_ANNOTATIONS": "Anotaciones de encuentros",
+  "OBIS_FORMAT": "Formato OBIS",
+  "DATA_CONTRIBUTOR_EMAIL": "Correo electrónico del contribuidor de datos",
+  "GOOGLE_EARTH_FILE": "Archivo de Google Earth",
+  "GIS_SHAPEFILE": "Archivo Shapefile GIS",
+  "CONFIGURE_SESSIONS_FOR_EXPORT": "Configurar sesiones para exportación"
 }
