@@ -44,8 +44,8 @@ export default function useFilterEncountersAll({ queries, params = {} }) {
     url: "/search/encounter",
     data: compositeQuery,
     params: {
-      sort: sort?.sortname,
-      sortOrder: sort?.sortorder,
+      sort: sort?.sortname || "date",
+      sortOrder: sort?.sortorder || "desc",
       size: 10000, // Default size to 10000
       from: 0, // Default from to 0
     },
