@@ -2,7 +2,6 @@ import React from "react";
 import HorizontalBarChart from "../../../components/HorizontalBarChart";
 import VerticalBarChart from "../../../components/VerticalBarChart";
 import Piechart from "../../../components/Piechart";
-import Linechart from "../../../components/Linechart";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Row, Col } from "react-bootstrap";
@@ -169,12 +168,12 @@ const pickNumericByKeyCI = (obj, key) => {
         typeof v === "number"
           ? v
           : typeof v === "string"
-          ? Number(v)
-          : typeof v?.value === "number"
-          ? v.value
-          : typeof v?.value === "string"
-          ? Number(v.value)
-          : undefined;
+            ? Number(v)
+            : typeof v?.value === "number"
+              ? v.value
+              : typeof v?.value === "string"
+                ? Number(v.value)
+                : undefined;
       return Number.isFinite(num) ? num : undefined;
     }
   }
@@ -207,13 +206,13 @@ const lower = (s) => (typeof s === "string" ? s.trim().toLowerCase() : "");
 
 const userKeyResearch = (u) => {
   if (u && typeof u === "object" && u.username) return lower(u.username);
-  if (typeof u === "string") return ""; 
+  if (typeof u === "string") return "";
   return "";
 };
 
 const userKeyPublic = (u) => {
   if (u && typeof u === "object") {
-    if (u.username) return ""; 
+    if (u.username) return "";
     if (u.email) return lower(u.email);
     if (u.id) return lower(u.id);
     if (u.uuid) return lower(u.uuid);
@@ -228,7 +227,7 @@ const userKeyPublic = (u) => {
   return "";
 };
 
-const accumulateContributorsLikeJsp = (rows) => {
+const accumulateContributors = (rows) => {
   const research = new Set();
   const pub = new Set();
 
@@ -270,7 +269,6 @@ const ChartView = observer(({ store }) => {
   const assignedUsers = store.searchResultsAll
     .map((item) => item.assignedUsername)
     .filter((user) => user && user.trim() !== "");
-  const label = "Number of Encounters at New Individual Discoveries";
   const assignedUserDistributionData = processData(assignedUsers);
 
   const stateDistributionData = processData(store.searchResultsAll.map((item) => item.state).filter((state) => state));
@@ -303,7 +301,7 @@ const ChartView = observer(({ store }) => {
 
     const numberAnnotations = rows.reduce((acc, it) => acc + countAnnotations(it), 0);
 
-    const { total: numberContributors, researchCount, publicCount } = accumulateContributorsLikeJsp(rows);
+    const { total: numberContributors, researchCount, publicCount } = accumulateContributors(rows);
 
     const wtVals = collectMeasurement(rows, "WaterTemperature", "measurements");
     const salVals = collectMeasurement(rows, "Salinity", "measurements");
@@ -346,25 +344,28 @@ const ChartView = observer(({ store }) => {
     <div
       className="container mt-1"
       style={{
-        padding: "1rem",
+        padding: "30px",
         background: "rgba(255, 255, 255, 0.1)",
         backdropFilter: "blur(2px)",
         WebkitBackdropFilter: "blur(2px)",
         color: "white",
         position: "relative",
+        borderRadius: "8px",
       }}
     >
       {store.loadingAll && <FullScreenLoader />}
-
+      <h2>
+        <FormattedMessage id="CHART_VIEW" />
+      </h2>
       <div className="mb-4" style={{ lineHeight: 1.6 }}>
-        <h3 className="mb-2">Summary</h3>
-        <p>Number matching encounters: {textStats.numberMatching}</p>
-        <p>Number identified: {textStats.numberIdentified}</p>
-        <p>Number Marked Individuals: {textStats.numberMarkedIndividuals}</p>
-        <p>Number media assets (photos, videos, etc.) collected: {textStats.numberMediaAssets}</p>
-        <p>Number annotations from machine learning: {textStats.numberAnnotations}</p>
-        <p>Number data contributors: {textStats.numberContributors}</p>
-{/* 
+        <h3 className="mb-2"><FormattedMessage id="SUMMARY"/></h3>
+        <p><FormattedMessage id="NUMBER_MATCHING_ENCOUNTERS"/>: {textStats.numberMatching}</p>
+        <p><FormattedMessage id="NUMBER_IDENTIFIED"/>: {textStats.numberIdentified}</p>
+        <p><FormattedMessage id="NUMBER_MARKED_INDIVIDUALS"/>: {textStats.numberMarkedIndividuals}</p>        
+        <p><FormattedMessage id="NUMBER_MEDIAASSETS"/>: {textStats.numberMediaAssets}</p>
+        <p><FormattedMessage id="NUMBER_ANNOTATION_FROM_MACHINE_LEARNING"/>: {textStats.numberAnnotations}</p>
+        <p><FormattedMessage id="NUMBER_DATE_CONTRIBUTORS"/>: {textStats.numberContributors}</p>
+        {/* 
         <h4 className="mt-3">Measurements</h4>
         <p>{fmtLine("Mean WaterTemperature", textStats.wt)}</p>
         <p>{fmtLine("Mean Salinity", textStats.sal)}</p>
@@ -375,40 +376,69 @@ const ChartView = observer(({ store }) => {
         <p>{fmtLine("Mean 34S", textStats.s34)}</p> */}
       </div>
 
-      <h2>
-        <FormattedMessage id="CHART_VIEW" />
-      </h2>
-
       <Row className="g-4">
         <Col xs={12} md={6}>
-          <Piechart title="SEARCH_RESULTS_STATE_DISTRIBUTION" data={stateDistributionData} />
+          <Piechart title="STATE_DISTRIBUTION" data={stateDistributionData} />
         </Col>
         <Col xs={12} md={6}>
-          <Piechart title="user type distribution" data={userTypeDistributionData} />
+          <Piechart title="USER_TYPE_DISTRIBUTION" data={userTypeDistributionData} />
         </Col>
       </Row>
 
-      <VerticalBarChart title="SEARCH_RESULTS_COUNTRY_DISTRIBUTION" data={countryDistributionData} />
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <VerticalBarChart title="SEARCH_RESULTS_COUNTRY_DISTRIBUTION" data={countryDistributionData} />
+        </Col>
+      </Row>
 
-      <Row className="g-4">
-        <Col xs={12} md={6}>
+      <Row className="g-4 my-2">
+        <Col xs={12}>
           <Piechart title="SEARCH_RESULTS_SEX_DISTRIBUTION" data={sexDistributionData} />
         </Col>
-        <VerticalBarChart title="SEARCH_RESULTS_ASSIGNED_USER_DISTRIBUTION" data={speciesDistributionData} />
       </Row>
 
-      <VerticalBarChart title="SEARCH_RESULTS_SPECIES_DISTRIBUTION" data={assignedUserDistributionData} />
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <VerticalBarChart title="SEARCH_RESULTS_ASSIGNED_USER_DISTRIBUTION" data={speciesDistributionData} />
+        </Col>
+      </Row>
 
-      <HorizontalBarChart title="weekly_encounter_dates" data={weeklyEncounterDates} />
-      <HorizontalBarChart title="Encounters by year submitted" data={yearSubmissionData} />
-      <HorizontalBarChart
-        title="Curve of marked individual (cumulative unique individuals by encounter order)"
-        data={discoveryBars}
-      />
-      <HorizontalBarChart title="Overall totals by year (human-only cumulative)" data={yearlyCumulativeHumanTotals} />
-      <HorizontalBarChart title="Top 10 taggers (unique individuals)" data={topTaggers} />
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <VerticalBarChart title="SEARCH_RESULTS_SPECIES_DISTRIBUTION" data={assignedUserDistributionData} />
+        </Col>
+      </Row>
+
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <HorizontalBarChart title="WEEKELY_ENCOUNTER_DATES" data={weeklyEncounterDates} />
+        </Col>
+      </Row>
+
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <HorizontalBarChart title="ENCOUNTER_BY_YEAR_SUBMITTED" data={yearSubmissionData} />
+        </Col>
+      </Row>
+
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <HorizontalBarChart title="CURVE_MARKED_INDIVIDUALS_DISCOVERED" data={discoveryBars} />
+        </Col>
+      </Row>
+
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <HorizontalBarChart title="OVERALL_TOTALS_BY_YEAR" data={yearlyCumulativeHumanTotals} />
+        </Col>
+      </Row>
+
+      <Row className="g-4 my-2">
+        <Col xs={12}>
+          <HorizontalBarChart title="TOP_TEN_TAGGERS" data={topTaggers} />
+        </Col>
+      </Row>
     </div>
   );
 });
-
 export default ChartView;
