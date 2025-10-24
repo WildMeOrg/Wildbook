@@ -26,8 +26,6 @@ export const ProjectsCard = observer(({ store = {} }) => {
     label: project.name,
   }));
 
-  console.log("selectedProjects:", store.selectedProjects);
-
   return (
     <div
       className="d-flex flex-column justify-content-between mt-3 mb-3"
@@ -42,7 +40,7 @@ export const ProjectsCard = observer(({ store = {} }) => {
         <div className="d-flex flex-row align-items-center mb-3">
           <ProjectsIcon style={{ marginRight: "10px" }} />
           <h6>
-            <FormattedMessage id="Projects" />
+            <FormattedMessage id="PROJECTS" />
           </h6>
         </div>
       </div>
