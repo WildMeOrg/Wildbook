@@ -547,7 +547,7 @@ const ImageCard = observer(({ store = {} }) => {
           <img
             key={index}
             src={asset.url}
-            alt={`${asset.url} ${index}`}
+            alt={`media-${index}`}
             style={{
               width: 100,
               height: "auto",
