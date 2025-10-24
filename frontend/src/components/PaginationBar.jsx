@@ -4,10 +4,10 @@ import { FormattedMessage } from "react-intl";
 
 export default function PaginationBar({
   totalItems,
-  page,                 
-  pageSize,             
-  onPageChange,         
-  onPageSizeChange,     
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
   className = "",
   pageSizeOptions = [10, 20, 30, 50],
   pageRangeDisplayed = 2,
@@ -15,7 +15,7 @@ export default function PaginationBar({
 }) {
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil((totalItems || 0) / (pageSize || 10))),
-    [totalItems, pageSize]
+    [totalItems, pageSize],
   );
 
   const [gotoInput, setGotoInput] = useState("");
@@ -26,7 +26,7 @@ export default function PaginationBar({
     >
       <div className="fw-semibold">
         <FormattedMessage
-          id="pagination.total"
+          id="PAGINATION_TOTAL_ITEMS"
           defaultMessage="Total {n} items"
           values={{ n: totalItems }}
         />
@@ -34,7 +34,7 @@ export default function PaginationBar({
 
       <ReactPaginate
         pageCount={totalPages}
-        forcePage={(page || 1) - 1}               
+        forcePage={(page || 1) - 1}
         onPageChange={(e) => onPageChange?.(e.selected + 1)}
         previousLabel="‹"
         nextLabel="›"
@@ -63,7 +63,7 @@ export default function PaginationBar({
         >
           {pageSizeOptions.map((n) => (
             <option key={n} value={n}>
-              {n} / page
+              {n} / <FormattedMessage id="PAGE" />
             </option>
           ))}
         </select>
@@ -80,7 +80,7 @@ export default function PaginationBar({
               if (e.key === "Enter") {
                 const v = Math.max(
                   1,
-                  Math.min(totalPages, Number(gotoInput) || 1)
+                  Math.min(totalPages, Number(gotoInput) || 1),
                 );
                 onPageChange?.(v);
                 setGotoInput("");

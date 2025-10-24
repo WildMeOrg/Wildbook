@@ -4,15 +4,7 @@ import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 
 export const ImageGalleryModal = observer(
-  ({
-    open,
-    onClose,
-    assets = [],
-    index = 0,
-    setIndex,
-    rects = [],
-    imageStore = {},
-  }) => {
+  ({ open, onClose, assets = [], index = 0, rects = [], imageStore = {} }) => {
     const thumbsRef = useRef(null);
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
@@ -31,32 +23,6 @@ export const ImageGalleryModal = observer(
       setScaleX(naturalWidth / displayWidth);
       setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
-
-    useEffect(() => {
-      if (!open) return;
-
-      const onKey = (e) => {
-        if (e.key === "Escape") onClose?.();
-        if (e.key === "ArrowLeft")
-          setIndex?.((p) =>
-            Math.max(0, (typeof p === "number" ? p : index) - 1),
-          );
-        if (e.key === "ArrowRight")
-          setIndex?.((p) =>
-            Math.min(
-              assets.length - 1,
-              (typeof p === "number" ? p : index) + 1,
-            ),
-          );
-      };
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      window.addEventListener("keydown", onKey);
-      return () => {
-        document.body.style.overflow = prevOverflow || "";
-        window.removeEventListener("keydown", onKey);
-      };
-    }, [open, onClose, setIndex, index, assets.length]);
 
     if (!open || !assets.length) return null;
 
@@ -214,28 +180,30 @@ export const ImageGalleryModal = observer(
                         }}
                       >
                         <div
+                          className="d-flex"
                           style={{
                             position: "absolute",
                             top: 0,
-                            right: 0,
-                            color: "white",
-                            fontSize: "1.5rem",
-                            cursor: "pointer",
-                            backgroundColor: "rgba(240, 11, 11, 0.5)",
-                            padding: 0,
-                            width: "16px",
-                            height: "16px",
+                            right: -2,
+                            zIndex: 20,
                           }}
-                          onClick={() => {
-                            if (!rect.encounterId) return;
-                            console.log(
-                              `Opening encounter ${JSON.stringify(rect.encounterId)}`,
-                            );
-                            const url = `/react/encounter?number=${rect.encounterId}`;
-                            window.open(url, "_blank");
-                          }}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          {rect.encounterId && (
+                          <div
+                            className="d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "18px",
+                              height: "18px",
+                              backgroundColor: "red",
+                              cursor: "pointer",
+                              color: "white",
+                            }}
+                            onClick={() => {
+                              if (!rect.encounterId) return;
+                              const url = `/react/encounter?number=${rect.encounterId}`;
+                              window.open(url, "_blank");
+                            }}
+                          >
                             <svg
                               width="16"
                               height="16"
@@ -248,7 +216,7 @@ export const ImageGalleryModal = observer(
                                 fill="white"
                               />
                             </svg>
-                          )}
+                          </div>
                         </div>
                       </div>
                     ))}

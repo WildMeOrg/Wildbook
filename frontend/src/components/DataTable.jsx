@@ -322,10 +322,7 @@ const MyDataTable = observer(
                 ...(store.activeStep === 0 ? activeStyle : inactiveStyle),
               }}
             >
-              <FormattedMessage
-                id="RESULTS_TABLE"
-                defaultMessage={"Results Table"}
-              />
+              <FormattedMessage id="RESULTS_TABLE" />
             </Button>
             <Button
               key={"gallery"}
@@ -341,10 +338,7 @@ const MyDataTable = observer(
                 ...(store.activeStep === 1 ? activeStyle : inactiveStyle),
               }}
             >
-              <FormattedMessage
-                id="SEARCH_RESULTS_TABLE_GALLERY_VIEW"
-                defaultMessage={"Gallery View"}
-              />
+              <FormattedMessage id="GALLERY_VIEW" />
             </Button>
             <Button
               key={"map"}
@@ -360,10 +354,7 @@ const MyDataTable = observer(
                 ...(store.activeStep === 2 ? activeStyle : inactiveStyle),
               }}
             >
-              <FormattedMessage
-                id="SEARCH_RESULTS_TABLE_MAP_VIEW"
-                defaultMessage={"Map View"}
-              />
+              <FormattedMessage id="MAP_VIEW" defaultMessage={"Map View"} />
             </Button>
             <Button
               key={"chart"}
@@ -379,10 +370,7 @@ const MyDataTable = observer(
                 ...(store.activeStep === 3 ? activeStyle : inactiveStyle),
               }}
             >
-              <FormattedMessage
-                id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
-                defaultMessage={"Chart View"}
-              />
+              <FormattedMessage id="CHART_VIEW" />
             </Button>
             <Button
               key={"calendar"}
@@ -398,10 +386,7 @@ const MyDataTable = observer(
                 ...(store.activeStep === 4 ? activeStyle : inactiveStyle),
               }}
             >
-              <FormattedMessage
-                id="SEARCH_RESULTS_TABLE_CALENDAR_VIEW"
-                defaultMessage={"Calendar View"}
-              />
+              <FormattedMessage id="CALENDAR_VIEW" />
             </Button>
 
             {tabs.map((tab, index) => {
@@ -442,7 +427,6 @@ const MyDataTable = observer(
               minWidth: "120px",
               height: "30px",
               whiteSpace: "nowrap",
-              // maxWidth: "20%",
             }}
           >
             <Form.Control
