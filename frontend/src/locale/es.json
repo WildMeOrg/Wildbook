@@ -579,9 +579,9 @@
   "ADD_TAG": "Agregar etiqueta",
   "ADD_NEW_KEYWORD": "Agregar nueva palabra clave",
   "SELECT_KEYWORD": "Seleccionar palabra clave",
-  "SELECT_LABELLED_KEYWORD": "Seleccionar palabra clave etiquetada",
+  "SELECT_LABELED_KEYWORD": "Seleccionar palabra clave etiquetada",
   "SELECT_EXISTING_KEYWORD": "Seleccionar palabra clave existente",
-  "SELECT_EXISTING_LABELLED_KEYWORD": "Seleccionar palabra clave etiquetada existente",
+  "SELECT_EXISTING_LABELED_KEYWORD": "Seleccionar palabra clave etiquetada existente",
   "SELECT_ALLOWED_VALUES": "Seleccionar valores permitidos",
   "ADD": "Agregar",
   "SEARCH_PROJECT": "Buscar proyecto",
@@ -622,5 +622,7 @@
   "CURVE_MARKED_INDIVIDUALS_DISCOVERED": "Curva de descubrimiento de individuos marcados (n=2)",
   "OVERALL_TOTALS_BY_YEAR": "Totales generales de encuentros por año",
   "TOP_TEN_TAGGERS": "Los 10 principales etiquetadores (investigadores que más identifican animales)",
-  "PAGINATION_TOTAL_ITEMS": "Total {n} elementos"
+  "PAGINATION_TOTAL_ITEMS": "Total {n} elementos",
+  "UNASSIGN_INDIVIDUAL": "Desasignar individuo",
+  "REMOVE_FROM_SIGHTING": "Eliminar del avistamiento"
 }

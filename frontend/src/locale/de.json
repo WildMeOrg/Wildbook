@@ -1,5 +1,3 @@
-
-
 {
   "ENCOUNTERS": "Begegnungen",
   "ANNOTATIONS": "Annotationen",
@@ -583,9 +581,9 @@
   "ADD_TAG": "Tag hinzufügen",
   "ADD_NEW_KEYWORD": "Neues Stichwort hinzufügen",
   "SELECT_KEYWORD": "Stichwort auswählen",
-  "SELECT_LABELLED_KEYWORD": "Beschriftetes Stichwort auswählen",
+  "SELECT_LABELED_KEYWORD": "Beschriftetes Stichwort auswählen",
   "SELECT_EXISTING_KEYWORD": "Vorhandenes Stichwort auswählen",
-  "SELECT_EXISTING_LABELLED_KEYWORD": "Vorhandenes beschriftetes Stichwort auswählen",
+  "SELECT_EXISTING_LABELED_KEYWORD": "Vorhandenes beschriftetes Stichwort auswählen",
   "SELECT_ALLOWED_VALUES": "Zulässige Werte auswählen",
   "ADD": "Hinzufügen",
   "SEARCH_PROJECT": "Projekt suchen",
@@ -626,5 +624,7 @@
   "CURVE_MARKED_INDIVIDUALS_DISCOVERED": "Entdeckungskurve markierter Individuen (n=2)",
   "OVERALL_TOTALS_BY_YEAR": "Gesamtsummen der Begegnungen pro Jahr",
   "TOP_TEN_TAGGERS": "Top 10 Markierer (Forscher mit den meisten identifizierten Tieren)",
-  "PAGINATION_TOTAL_ITEMS": "Insgesamt {n} Elemente"
+  "PAGINATION_TOTAL_ITEMS": "Insgesamt {n} Elemente",
+  "UNASSIGN_INDIVIDUAL": "Zuordnung der Individuums aufheben",
+  "REMOVE_FROM_SIGHTING": "Aus der Sichtung entfernen"
 }

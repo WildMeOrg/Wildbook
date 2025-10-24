@@ -580,9 +580,9 @@
     "ADD_TAG": "Add Tag",
     "ADD_NEW_KEYWORD": "Add New Keyword",
     "SELECT_KEYWORD": "Select Keyword",
-    "SELECT_LABELLED_KEYWORD": "Select Labelled Keyword",
+    "SELECT_LABELED_KEYWORD": "Select Labeled Keyword",
     "SELECT_EXISTING_KEYWORD": "Select Existing Keyword",
-    "SELECT_EXISTING_LABELLED_KEYWORD": "Select Existing Labelled Keyword",
+    "SELECT_EXISTING_LABELLED_KEYWORD": "Select Existing Labeled Keyword",
     "SELECT_ALLOWED_VALUES" : "Select Allowed Values",
     "ADD": "Add",
     "SEARCH_PROJECT": "Search Project",
@@ -623,5 +623,7 @@
     "CURVE_MARKED_INDIVIDUALS_DISCOVERED": "Discovery Curve of Marked Individuals (n=2)",
     "OVERALL_TOTALS_BY_YEAR": "Encounter Overall Totals by Year",
     "TOP_TEN_TAGGERS": "Top 10 Taggers (Researchers Tagging the Most Individual Animals)",
-    "PAGINATION_TOTAL_ITEMS": "Total {n} items"
+    "PAGINATION_TOTAL_ITEMS": "Total {n} items",
+    "UNASSIGN_INDIVIDUAL": "Unassign Individual",
+    "REMOVE_FROM_SIGHTING": "Remove from Sighting"
 }
