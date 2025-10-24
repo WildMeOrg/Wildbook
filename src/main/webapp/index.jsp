@@ -117,13 +117,13 @@ finally{
     // Define the hero images to rotate through
     // Add new images to the heroes folder and list them here
     var heroImages = [
-        'cust/mantamatcher/img/heroes/hero_manta.jpg'
+        'cust/mantamatcher/img/heroes/jaguar.jpg',
         // Add more images here as they become available:
-        //'cust/mantamatcher/img/heroes/africanElephant.jpg',
-        //'cust/mantamatcher/img/heroes/ocelot.jpg',
-        //'cust/mantamatcher/img/heroes/sandCat.jpg',
-        //'cust/mantamatcher/img/heroes/stripedHyena.jpg',
-		//'cust/mantamatcher/img/heroes/wolverine.jpg'
+        'cust/mantamatcher/img/heroes/africanElephant.jpg',
+        'cust/mantamatcher/img/heroes/ocelot.jpg',
+        'cust/mantamatcher/img/heroes/sandCat.jpg',
+        'cust/mantamatcher/img/heroes/stripedHyena.jpg',
+		'cust/mantamatcher/img/heroes/wolverine.jpg'
     ];
 
     // Only run carousel if there are multiple images
