@@ -147,7 +147,7 @@ class EncounterFormStore {
   }
 
   get start() {
-    return (this._currentPage - 1) * this.imageCountPerPage;
+    return (this._currentPage - 1) * this.pageSize;
   }
 
   get allMediaAssets() {
@@ -160,7 +160,7 @@ class EncounterFormStore {
       .flatMap((item) =>
         item.mediaAssets.map((a, idx) => ({
           ...a,
-          __k: `${a.uuid ?? a.id ?? "na"}-${idx}`,
+          __k: `${item.id}-${idx}-${a.uuid ?? a.id ?? ""}`,
           encounterId: item.id,
           individualId: item.individualId,
           date: item.date,
@@ -175,14 +175,11 @@ class EncounterFormStore {
   }
 
   get totalPages() {
-    return Math.max(1, Math.ceil(this.totalItems / this.imageCountPerPage));
+    return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
   }
 
   get currentPageItems() {
-    return this.allMediaAssets.slice(
-      this.start,
-      this.start + this.imageCountPerPage,
-    );
+    return this.allMediaAssets.slice(this.start, this.start + this.pageSize);
   }
 
   addFilter(filterId, clause, query, filterKey, path = "") {
@@ -253,28 +250,38 @@ class EncounterFormStore {
   }
 
   async addEncountersToProject() {
-    if (!this._selectedRows || this._selectedRows.length === 0 || !this._selectedProjects || this._selectedProjects.length === 0) {
+    if (
+      !this._selectedRows ||
+      this._selectedRows.length === 0 ||
+      !this._selectedProjects ||
+      this._selectedProjects.length === 0
+    ) {
       console.error("No project selected to add the encounter to.");
       return;
     }
     this.setprojectBannerStatusCode(2);
     const payload = {
-      projects: toJS(this._selectedProjects.map(project => ({
-        id: project,
-        encountersToAdd: this.selectedRows.map(row => row.id),
-      })))
+      projects: toJS(
+        this._selectedProjects.map((project) => ({
+          id: project,
+          encountersToAdd: this.selectedRows.map((row) => row.id),
+        })),
+      ),
     };
     try {
       const result = await axios.post("/ProjectUpdate", payload, {
         headers: { "Content-Type": "application/json" },
-      })
+      });
       if (result.status === 200) {
         this.setSelectedProjects([]);
         this.setSelectedRows([]);
         this.setprojectBannerStatusCode(3);
         this.setClearSelectedRows(!this._clearSelectedRows);
         setTimeout(() => {
-          if (this.selectedRows.length === 0 && this.projectBannerStatusCode === 3) {
+          if (
+            this.selectedRows.length === 0 &&
+            this.projectBannerStatusCode === 3
+          ) {
             this.setprojectBannerStatusCode(0);
           }
         }, 2500);
@@ -283,6 +290,7 @@ class EncounterFormStore {
       }
     } catch (error) {
       this.setprojectBannerStatusCode(4);
+      throw error;
     }
   }
 }
