@@ -75,4 +75,9 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
         }
         return paramValues;
     }
+
+    public String toString() {
+        return super.toString() + " [sampleID:" + sampleID + "; enc:" +
+                   correspondingEncounterNumber + "] analysisType:" + analysisType;
+    }
 }

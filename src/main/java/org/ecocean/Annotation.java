@@ -198,7 +198,8 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
-        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
+        return
+                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
@@ -254,6 +255,11 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public ArrayList<Feature> getFeatures() {
         return features;
+    }
+
+    public Feature getFeature() {
+        if (Util.collectionSize(features) < 1) return null;
+        return features.get(0);
     }
 
     public void setFeatures(ArrayList<Feature> f) {
@@ -358,14 +364,21 @@ public class Annotation extends Base implements java.io.Serializable {
                    (getHeight() == (int)ma.getHeight()));
     }
 
+// .theta property on Annotation usage is deprecated, instead we get
+// the value from the Feature [ and likewise deprecate setTheta() ]
     public double getTheta() {
-        return theta;
+        Feature ft = getFeature();
+
+        if (ft == null) return 0.0d;
+        if (ft.getParameters() == null) return 0.0d;
+        return ft.getParameters().optDouble("theta", 0.0d);
     }
 
+/*
     public void setTheta(double t) {
         theta = t;
     }
-
+ */
     public boolean isIAReady() {
         MediaAsset ma = this.getMediaAsset();
 
@@ -785,20 +798,19 @@ public class Annotation extends Base implements java.io.Serializable {
                 "ignoreViewpointMatching", this.getTaxonomy(myShepherd)))) {
                 String[] viewpoints = this.getViewpointAndNeighbors();
                 if (viewpoints != null) {
-
-	                arg = new JSONObject();
-	                arg.put("viewpoint", new JSONArray(viewpoints));
-	                wrapper = new JSONObject();
-	                wrapper.put("terms", arg);
-	                // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
-	                // to handle allowing null viewpoint, opensearch query gets messy!
-	                JSONArray should = new JSONArray(
-	                    "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
-	                should.put(wrapper);
-	                JSONObject bool = new JSONObject("{\"bool\": {}}");
-	                bool.getJSONObject("bool").put("should", should);
-	                query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(bool);
-
+                    arg = new JSONObject();
+                    arg.put("viewpoint", new JSONArray(viewpoints));
+                    wrapper = new JSONObject();
+                    wrapper.put("terms", arg);
+                    // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+                    // to handle allowing null viewpoint, opensearch query gets messy!
+                    JSONArray should = new JSONArray(
+                        "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
+                    should.put(wrapper);
+                    JSONObject bool = new JSONObject("{\"bool\": {}}");
+                    bool.getJSONObject("bool").put("should", should);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        bool);
                 }
             }
             // this does either/or part/iaClass - unsure if this is correct
@@ -1576,15 +1588,14 @@ public class Annotation extends Base implements java.io.Serializable {
         System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
         if (nonTrivial.size() < 1) return false;
         if (nonTrivial.size() == 1) return true;
-        //if they're a body and a part, consider them contiguous
+        // if they're a body and a part, consider them contiguous
         if (nonTrivial.size() == 2) {
-        	String iaClass0=nonTrivial.get(0).getIAClass();
-        	String iaClass1=nonTrivial.get(1).getIAClass();
-        	if(iaClass0!=null && iaClass1!=null) {
-        		if(iaClass0.indexOf("+")>-1&&iaClass1.indexOf("+")==-1) return true;
-        		if(iaClass1.indexOf("+")>-1&&iaClass0.indexOf("+")==-1) return true;
-        	}
-        	
+            String iaClass0 = nonTrivial.get(0).getIAClass();
+            String iaClass1 = nonTrivial.get(1).getIAClass();
+            if (iaClass0 != null && iaClass1 != null) {
+                if (iaClass0.indexOf("+") > -1 && iaClass1.indexOf("+") == -1) return true;
+                if (iaClass1.indexOf("+") > -1 && iaClass0.indexOf("+") == -1) return true;
+            }
         }
         Annotation first = nonTrivial.remove(0);
         return (first.intersectsAtLeastOne(nonTrivial) && areContiguous(nonTrivial)); // yay recursion!
