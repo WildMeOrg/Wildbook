@@ -13,7 +13,6 @@ import org.apache.shiro.session.Session;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
-import org.apache.logging.log4j.message.MapMessage;
 
 import org.ecocean.servlet.ServletUtilities;
 
@@ -64,35 +63,27 @@ public class Logout extends ApiBase {
                     ThreadContext.put("session_id", sessionId);
                 }
 
-                logger.info(new MapMessage()
-                        .with("action", "logout_started")
-                        .with("username", username)
-                        .with("session_id", sessionId)
-                        .with("client_ip", clientIp));
+                ThreadContext.put("action", "logout_started");
+                logger.info("Logout started");
 
                 // Perform logout
                 subject.logout();
 
-                logger.info(new MapMessage()
-                        .with("action", "logout_success")
-                        .with("username", username)
-                        .with("session_id", sessionId)
-                        .with("client_ip", clientIp)
-                        .with("duration_ms", System.currentTimeMillis() - startTime));
+                ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
+                ThreadContext.put("action", "logout_success");
+                logger.info("Logout successful");
 
             } else {
-                logger.debug(new MapMessage()
-                        .with("action", "logout_no_active_session")
-                        .with("client_ip", clientIp));
+                ThreadContext.put("action", "logout_no_active_session");
+                logger.debug("Logout attempt without active session");
             }
 
             // Invalidate HTTP session
             HttpSession httpSession = request.getSession(false);
             if (httpSession != null) {
                 httpSession.invalidate();
-                logger.debug(new MapMessage()
-                        .with("action", "logout_http_session_invalidated")
-                        .with("username", username));
+                ThreadContext.put("action", "logout_http_session_invalidated");
+                logger.debug("Logout attempt with http session invalidated");
             }
 
             response.setStatus(200);
@@ -100,13 +91,11 @@ public class Logout extends ApiBase {
             response.getWriter().write("{\"success\": true}");
 
         } catch (Exception ex) {
-            logger.error(new MapMessage()
-                    .with("action", "logout_error")
-                    .with("username", username)
-                    .with("error_type", ex.getClass().getSimpleName())
-                    .with("error_message", ex.getMessage())
-                    .with("client_ip", clientIp)
-                    .with("duration_ms", System.currentTimeMillis() - startTime), ex);
+            ThreadContext.put("error_type", ex.getClass().getSimpleName());
+            ThreadContext.put("error_message", ex.getMessage());
+            ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
+            ThreadContext.put("action", "logout_error");
+            logger.error("Logout error");
 
             response.setStatus(500);
             response.setHeader("Content-Type", "application/json");

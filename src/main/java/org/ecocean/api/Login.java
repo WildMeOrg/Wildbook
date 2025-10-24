@@ -20,7 +20,6 @@ import org.apache.shiro.web.util.WebUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
-import org.apache.logging.log4j.message.MapMessage;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
@@ -62,18 +61,16 @@ public class Login extends ApiBase {
         Shepherd myShepherd = null;
 
         try {
-            logger.info(new MapMessage()
-                    .with("action", "login_started")
-                    .with("client_ip", clientIp)
-                    .with("user_agent", userAgent));
+            ThreadContext.put("action", "login_started");
+            ThreadContext.put("user_agent", userAgent);
+            logger.info("Login started");
 
             loginData = ServletUtilities.jsonFromHttpServletRequest(request);
 
             if (loginData == null || loginData.isEmpty()) {
-                logger.warn(new MapMessage()
-                        .with("action", "login_failed")
-                        .with("error_type", "empty_payload")
-                        .with("client_ip", clientIp));
+                ThreadContext.put("action", "login_failed");
+                ThreadContext.put("error_type", "empty_payload");
+                logger.warn("Login attempt with empty payload");
                 results.put("error", "login_empty_data");
                 results.put("success", false);
                 response.setStatus(400);
@@ -81,14 +78,14 @@ public class Login extends ApiBase {
             }
 
             username = loginData.optString("username", null);
+            ThreadContext.put("username", username != null ? username : "unknown");
             String password = loginData.optString("password", null);
 
             // Validate input
             if (username == null || username.trim().isEmpty()) {
-                logger.warn(new MapMessage()
-                        .with("action", "login_failed")
-                        .with("error_type", "missing_username")
-                        .with("client_ip", clientIp));
+                ThreadContext.put("action", "login_failed");
+                ThreadContext.put("error_type", "missing_username");
+                logger.warn("Login attempt with missing username");
                 results.put("error", "missing_username");
                 results.put("success", false);
                 response.setStatus(400);
@@ -96,11 +93,9 @@ public class Login extends ApiBase {
             }
 
             if (password == null || password.isEmpty()) {
-                logger.warn(new MapMessage()
-                        .with("action", "login_failed")
-                        .with("username", username)
-                        .with("error_type", "missing_password")
-                        .with("client_ip", clientIp));
+                ThreadContext.put("action", "login_failed");
+                ThreadContext.put("error_type", "missing_password");
+                logger.warn("Login attempt with missing password");
                 results.put("error", "missing_password");
                 results.put("success", false);
                 response.setStatus(400);
@@ -108,23 +103,19 @@ public class Login extends ApiBase {
             }
 
             ThreadContext.put("username", username);
-
             myShepherd = new Shepherd(context);
             myShepherd.setAction("api.Login");
             myShepherd.beginDBTransaction();
-            logger.debug(new MapMessage()
-                    .with("action", "login_fetching_user")
-                    .with("username", username));
+            ThreadContext.put("action", "login_fetching_user");
+            logger.debug("Fetching user");
 
             try {
                 user = myShepherd.getUser(username);
 
                 if (user == null) {
-                    logger.warn(new MapMessage()
-                            .with("action", "login_failed")
-                            .with("username", username)
-                            .with("error_type", "user_not_found")
-                            .with("client_ip", clientIp));
+                    ThreadContext.put("action", "login_failed");
+                    ThreadContext.put("error_type", "invalid_credentials");
+                    logger.warn("Login attempt - invalid credentials");
                     results.put("error", "invalid_credentials");
                     results.put("success", false);
                     response.setStatus(401);
@@ -143,11 +134,8 @@ public class Login extends ApiBase {
 
                 ThreadContext.put("session_id", sessionId);
                 ThreadContext.put("user_id", user.getUsername());
-
-                logger.debug(new MapMessage()
-                        .with("action", "login_attempting_authentication")
-                        .with("username", username)
-                        .with("session_id", sessionId));
+                ThreadContext.put("action", "login_attempting_authentication");
+                logger.debug("Attempting authentication");
 
                 subject.login(token);
 
@@ -169,45 +157,33 @@ public class Login extends ApiBase {
                 }
 
                 long duration = System.currentTimeMillis() - startTime;
-                logger.info(new MapMessage()
-                        .with("action", "login_success")
-                        .with("username", username)
-                        .with("user_id", user.getUsername())
-                        .with("session_id", sessionId)
-                        .with("client_ip", clientIp)
-                        .with("has_redirect", redirectUrl != null)
-                        .with("duration_ms", duration));
+                ThreadContext.put("has_redirect", String.valueOf(redirectUrl != null));
+                ThreadContext.put("duration_ms", String.valueOf(duration));
+                ThreadContext.put("action", "login_success");
+                logger.info("Login success");
             } catch (UnknownAccountException ex) {
-                logger.warn(new MapMessage()
-                        .with("action", "login_failed")
-                        .with("username", username)
-                        .with("error_type", "unknown_account")
-                        .with("client_ip", clientIp)
-                        .with("duration_ms", System.currentTimeMillis() - startTime), ex);
-                results.put("error", "invalid_credentials");
+                ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
+                ThreadContext.put("error_type", "unknown_account");
+                ThreadContext.put("action", "login_failed");
+                logger.warn("Login failed - unknown account");
+                results.put("error", "unknown_account");
                 results.put("success", false);
 
             } catch (IncorrectCredentialsException ex) {
-                logger.warn(new MapMessage()
-                        .with("action", "login_failed")
-                        .with("username", username)
-                        .with("error_type", "incorrect_password")
-                        .with("client_ip", clientIp)
-                        .with("duration_ms", System.currentTimeMillis() - startTime), ex);
-                results.put("error", "invalid_credentials");
+                ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
+                ThreadContext.put("error_type", "incorrect_password");
+                ThreadContext.put("action", "login_failed");
+                logger.warn("Login failed - incorrect password");
+                results.put("error", "incorrect_password");
                 results.put("success", false);
-
             } catch (Exception ex) {
-                logger.error(new MapMessage()
-                        .with("action", "login_failed")
-                        .with("username", username)
-                        .with("error_type", ex.getClass().getSimpleName())
-                        .with("error_message", ex.getMessage())
-                        .with("client_ip", clientIp)
-                        .with("duration_ms", System.currentTimeMillis() - startTime), ex);
+                ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
+                ThreadContext.put("error_type", ex.getClass().getSimpleName());
+                ThreadContext.put("error_message", ex.getMessage());
+                ThreadContext.put("action", "login_failed");
+                logger.warn("Login failed - authentication error");
                 results.put("error", "authentication_error");
                 results.put("success", false);
-
             } finally {
                 if (myShepherd != null) {
                     if (!success && myShepherd.isDBTransactionActive()) {
@@ -226,12 +202,10 @@ public class Login extends ApiBase {
             // Final log with summary
             long totalDuration = System.currentTimeMillis() - startTime;
             if (!success && username != null) {
-                logger.info(new MapMessage()
-                        .with("action", "login_completed")
-                        .with("username", username)
-                        .with("success", false)
-                        .with("status_code", statusCode)
-                        .with("duration_ms", totalDuration));
+                ThreadContext.put("duration_ms", String.valueOf(totalDuration));
+                ThreadContext.put("status_code", String.valueOf(statusCode));
+                ThreadContext.put("action", "login_completed");
+                logger.info("Login completed");
             }
             // Clear thread context
             ThreadContext.clearAll();
