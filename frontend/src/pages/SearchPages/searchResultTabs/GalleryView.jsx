@@ -16,6 +16,10 @@ const GalleryView = observer(({ store }) => {
       store.setCurrentPage(store.totalPages);
   }, [store.currentPage, store.totalPages]);
 
+  useEffect(() => {
+    store.imageModalStore.setSelectedImageIndex(0);
+  }, [store.currentPage]);
+
   const [imgDims, setImgDims] = useState({});
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -45,6 +49,10 @@ const GalleryView = observer(({ store }) => {
       setCurrentIndex(Math.max(0, store.currentPageItems.length - 1));
     }
   }, [store.currentPageItems.length, imageModalOpen, currentIndex]);
+
+  useEffect(() => {
+    setImgDims({});
+  }, [store.currentPage]);
 
   return (
     <div
@@ -86,10 +94,6 @@ const GalleryView = observer(({ store }) => {
                   iaClass: a.iaClass,
                 })) || [];
 
-            if (!asset.__k) {
-              asset.__k = `${asset.id}-${asset.uuid}`;
-            }
-
             const dims = imgDims[asset.__k];
             const scaleX = dims ? dims.nw / dims.dw : 1;
             const scaleY = dims ? dims.nh / dims.dh : 1;
@@ -103,6 +107,7 @@ const GalleryView = observer(({ store }) => {
                   display: "inline-block",
                   width: dims?.dw,
                   height: dims?.dh,
+                  overflow: "hidden",
                 }}
               >
                 <img
