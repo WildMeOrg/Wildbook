@@ -625,5 +625,17 @@
     "TOP_TEN_TAGGERS": "Top 10 Taggers (Researchers Tagging the Most Individual Animals)",
     "PAGINATION_TOTAL_ITEMS": "Total {n} items",
     "UNASSIGN_INDIVIDUAL": "Unassign Individual",
-    "REMOVE_FROM_SIGHTING": "Remove from Sighting"
+    "REMOVE_FROM_SIGHTING": "Remove from Sighting",
+    "EXPORT_ENCOUNTER_RECORDS": "Export Encounter Records",
+    "ENCOUNTER_RECORDS": "Encounter Records",
+    "MARK_RECAPTURE_DATA": "Mark Recapture Data",
+    "STANDARD_FORMAT": "Standard Format",
+    "EXPORTING": "Exporting",
+    "EXPORT_EXCEL_FILE": "Export Excel File",
+    "ENCOUNTER_ANNOTATIONS": "Encounter Annotations",
+    "OBIS_FORMAT": "OBIS Format",
+    "DATA_CONTRIBUTOR_EMAIL": "Data Contributor Email",
+    "GOOGLE_EARTH_FILE": "Google Earth File",
+    "GIS_SHAPEFILE": "GIS Shapefile",
+    "CONFIGURE_SESSIONS_FOR_EXPORT": "Configure Sessions for Export"
 }
