@@ -4,6 +4,8 @@ import TextInput from "../../components/generalInputs/TextInput";
 import SelectInput from "../../components/generalInputs/SelectInput";
 import SearchAndSelectInput from "../../components/generalInputs/SearchAndSelectInput";
 import { Alert } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
+import MainButton from "../../components/MainButton";
 
 export const IdentifySectionEdit = observer(({ store }) => {
   useEffect(() => {
@@ -31,17 +33,22 @@ export const IdentifySectionEdit = observer(({ store }) => {
         options={store.identificationRemarksOptions}
         className="mb-3"
       />
-
-      <button
-        className="btn btn-sm btn-info mb-3 mt-3"
-        onClick={() => {
-          store.setEditIdentifyCard(false);
-          store.removeIndividualFromEncounter();
-        }}
-        title="remove individual"
-      >
-        Remove from individual
-      </button>
+      {store.encounterData?.individualId && (
+        <MainButton
+          noArrow={true}
+          style={{ marginLeft: 0 }}
+          color="red"
+          backgroundColor="white"
+          borderColor="red"
+          shadowColor="red"
+          onClick={() => {
+            store.setEditIdentifyCard(false);
+            store.removeIndividualFromEncounter();
+          }}
+        >
+          <FormattedMessage id="UNASSIGN_INDIVIDUAL" />
+        </MainButton>
+      )}
       <SearchAndSelectInput
         label="INDIVIDUAL_ID"
         value={store.getFieldValue("identify", "individualId") ?? ""}
@@ -67,16 +74,23 @@ export const IdentifySectionEdit = observer(({ store }) => {
           store.setFieldValue("identify", "otherCatalogNumbers", v)
         }
       />
-      <button
-        className="btn btn-info btn-sm mb-3 mt-3"
-        onClick={() => {
-          store.removeOccurrenceIdFromEncounter();
-          store.setEditIdentifyCard(false);
-        }}
-        title="remove occurrence"
-      >
-        Remove from sighting
-      </button>
+      {store.encounterData?.occurrenceId && (
+        <MainButton
+          noArrow={true}
+          style={{ marginLeft: 0 }}
+          onClick={() => {
+            store.removeOccurrenceIdFromEncounter();
+            store.setEditIdentifyCard(false);
+          }}
+          color="red"
+          backgroundColor="white"
+          borderColor="red"
+          shadowColor="red"
+        >
+          <FormattedMessage id="REMOVE_FROM_SIGHTING" />
+        </MainButton>
+      )}
+
       <SearchAndSelectInput
         label="SIGHTING_ID"
         value={store.getFieldValue("identify", "occurrenceId") ?? ""}

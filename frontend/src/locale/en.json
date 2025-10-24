@@ -623,5 +623,7 @@
     "CURVE_MARKED_INDIVIDUALS_DISCOVERED": "Discovery Curve of Marked Individuals (n=2)",
     "OVERALL_TOTALS_BY_YEAR": "Encounter Overall Totals by Year",
     "TOP_TEN_TAGGERS": "Top 10 Taggers (Researchers Tagging the Most Individual Animals)",
-    "PAGINATION_TOTAL_ITEMS": "Total {n} items"
+    "PAGINATION_TOTAL_ITEMS": "Total {n} items",
+    "UNASSIGN_INDIVIDUAL": "Unassign Individual",
+    "REMOVE_FROM_SIGHTING": "Remove from Sighting"
 }

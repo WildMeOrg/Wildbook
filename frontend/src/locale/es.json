@@ -622,5 +622,7 @@
   "CURVE_MARKED_INDIVIDUALS_DISCOVERED": "Curva de descubrimiento de individuos marcados (n=2)",
   "OVERALL_TOTALS_BY_YEAR": "Totales generales de encuentros por año",
   "TOP_TEN_TAGGERS": "Los 10 principales etiquetadores (investigadores que más identifican animales)",
-  "PAGINATION_TOTAL_ITEMS": "Total {n} elementos"
+  "PAGINATION_TOTAL_ITEMS": "Total {n} elementos",
+  "UNASSIGN_INDIVIDUAL": "Desasignar individuo",
+  "REMOVE_FROM_SIGHTING": "Eliminar del avistamiento"
 }
