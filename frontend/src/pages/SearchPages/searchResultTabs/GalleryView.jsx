@@ -46,8 +46,6 @@ const GalleryView = observer(({ store }) => {
     }
   }, [store.currentPageItems.length, imageModalOpen, currentIndex]);
 
-  // const listKey = `${store.currentPage}-${pageSize}-${totalItems}`;
-
   return (
     <div
       className="container mt-1 mb-5"
@@ -55,12 +53,8 @@ const GalleryView = observer(({ store }) => {
     >
       {store.loadingAll && <FullScreenLoader />}
       <h1>
-        <FormattedMessage
-          id="galleryView.title"
-          defaultMessage="Gallery View"
-        />
+        <FormattedMessage id="GALLERY_VIEW" />
       </h1>
-
       <PaginationBar
         totalItems={store.totalItems}
         page={store.currentPage}
@@ -74,10 +68,7 @@ const GalleryView = observer(({ store }) => {
         className="mb-3"
       />
 
-      <div
-        // key={listKey}
-        style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}
-      >
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {store.currentPageItems.length > 0 ? (
           store.currentPageItems.map((asset, i) => {
             const rects =
