@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
@@ -48,7 +49,7 @@ const EncounterSearch = observer(() => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
-    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters);
+    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters, encounterData);
   }, [searchParams]);
 
   useEffect(() => {
