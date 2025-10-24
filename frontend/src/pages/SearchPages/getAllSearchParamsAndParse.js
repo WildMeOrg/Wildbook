@@ -1,14 +1,19 @@
-const helperFunction = (
+
+const helperFunction = async (
   searchParams,
   store,
   setFilterPanel,
-  setTempFormFilters = () => {},
+  setTempFormFilters = () => { },
+  encounterData = {},
 ) => {
   const params = Object.fromEntries(searchParams.entries()) || {};
   if (Object.keys(params).length === 0) {
     return;
   }
-  Object.entries(params).forEach(([key, _]) => {
+  console.log("Search params:", JSON.stringify(params));
+
+  for (const [key, _] of Object.entries(params)) {
+    console.log("Adding filter for key:", key);
     if (key === "username") {
       store.addFilter(
         "assignedUsername",
@@ -36,9 +41,32 @@ const helperFunction = (
     if (key === "searchQueryId") {
       store.formFilters = JSON.parse(sessionStorage.getItem("formData")) || [];
     }
-    setTempFormFilters([...store.formFilters]);
-  });
+    if (key === "individualIDExact") {
+      store.addFilter(
+        "individualId",
+        "filter",
+        {
+          terms: {
+            individualId: [params.individualIDExact],
+          },
+        },
+        "Individual ID",
+      );
+      // console.log("=========>")
+      // console.log("Encounter data:", JSON.stringify(encounterData));
+      // store.setLoadingAll(true);
+      // if (encounterData && encounterData.results) {
+      //   console.log("encounterData:", JSON.stringify(encounterData));
+      //   store.setSearchResultsAll(encounterData.results);
+      //   store.setSearchResultsAll(encounterData);
+      //   store.setHasFetchedAllEncounters(true);
+      //   store.setActiveStep(1);
+      // }
+    }
+  };
+  setTempFormFilters([...store.formFilters]);
   setFilterPanel(false);
+  return;
 };
 
 export { helperFunction };
