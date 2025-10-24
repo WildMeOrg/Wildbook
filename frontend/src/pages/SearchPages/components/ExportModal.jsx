@@ -12,6 +12,7 @@ import {
   Alert,
 } from "react-bootstrap";
 import { useState } from "react";
+import { FormattedMessage } from "react-intl";
 
 const downloadFunction = async (url, setLoading) => {
   setLoading(true);
@@ -106,7 +107,9 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
       unmountOnExit
     >
       <Modal.Header closeButton>
-        <Modal.Title>Export Encounter Records</Modal.Title>
+        <Modal.Title>
+          <FormattedMessage id="EXPORT_ENCOUNTER_RECORDS" />
+        </Modal.Title>
       </Modal.Header>
 
       <Modal.Body style={{ minHeight: "500px" }}>
@@ -130,7 +133,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                   onClick={() => scrollToSection("encounters")}
                   style={{ cursor: "pointer" }}
                 >
-                  Encounter Records
+                  <FormattedMessage id="ENCOUNTER_RECORDS" />
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
@@ -139,7 +142,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                   onClick={() => scrollToSection("gis")}
                   style={{ cursor: "pointer" }}
                 >
-                  GIS Data
+                  <FormattedMessage id="GIS_DATA" />
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
@@ -148,7 +151,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                   onClick={() => scrollToSection("markrecapture")}
                   style={{ cursor: "pointer" }}
                 >
-                  Mark Recapture Data
+                  <FormattedMessage id="MARK_RECAPTURE_DATA" />
                 </Nav.Link>
               </Nav.Item>
             </Nav>
@@ -157,18 +160,18 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
           <Col xs={12} md={9}>
             <Stack gap={4}>
               <div id="encounters">
-                <h5 className="mb-3">Encounter Records</h5>
+                <h5 className="mb-3">
+                  <FormattedMessage id="ENCOUNTER_RECORDS" />
+                </h5>
                 <Stack gap={3}>
                   <Card className="shadow-sm">
                     <Card.Body>
                       <Card.Title as="h6" className="mb-1">
-                        Standard Format
+                        <FormattedMessage id="STANDARD_FORMAT" />
                       </Card.Title>
-                      <Card.Text className="text-muted mb-3">
-                        Ideal for reporting and analysis.
-                      </Card.Text>
                       <div className="d-flex gap-2">
                         <Button
+                          className="my-3"
                           variant="outline-primary"
                           size="sm"
                           onClick={() =>
@@ -189,10 +192,10 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              Exporting...
+                              <FormattedMessage id="EXPORTING" />
                             </>
                           ) : (
-                            "Export Excel File"
+                            <FormattedMessage id="EXPORT_EXCEL_FILE" />
                           )}
                         </Button>
                       </div>
@@ -202,13 +205,11 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                   <Card className="shadow-sm">
                     <Card.Body>
                       <Card.Title as="h6" className="mb-1">
-                        Encounter Annotation
+                        <FormattedMessage id="ENCOUNTER_ANNOTATION" />
                       </Card.Title>
-                      <Card.Text className="text-muted mb-3">
-                        Ideal for reporting and analysis.
-                      </Card.Text>
                       <div className="d-flex gap-2">
                         <Button
+                          className="my-3"
                           variant="outline-primary"
                           size="sm"
                           onClick={() =>
@@ -229,10 +230,10 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              Exporting...
+                              <FormattedMessage id="EXPORTING" />
                             </>
                           ) : (
-                            "Export Excel File"
+                            <FormattedMessage id="EXPORT_EXCEL_FILE" />
                           )}
                         </Button>
                       </div>
@@ -242,11 +243,8 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                   <Card className="shadow-sm">
                     <Card.Body>
                       <Card.Title as="h6" className="mb-1">
-                        OBIS Format
+                        <FormattedMessage id="OBIS_FORMAT" />
                       </Card.Title>
-                      <Card.Text className="text-muted mb-3">
-                        Export with detailed annotations as Excel (.xls) or CSV.
-                      </Card.Text>
                       <Form.Check
                         type="checkbox"
                         id="includeLocale"
@@ -256,6 +254,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                       />
                       <div className="d-flex gap-2">
                         <Button
+                          className="my-3"
                           variant="outline-primary"
                           size="sm"
                           onClick={() => {
@@ -276,10 +275,10 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              Exporting...
+                              <FormattedMessage id="EXPORTING" />
                             </>
                           ) : (
-                            "Export Excel File"
+                            <FormattedMessage id="EXPORT_EXCEL_FILE" />
                           )}
                         </Button>
                       </div>
@@ -289,13 +288,11 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                   <Card className="shadow-sm">
                     <Card.Body>
                       <Card.Title as="h6" className="mb-1">
-                        Data Contributor Email
+                        <FormattedMessage id="DATA_CONTRIBUTOR_EMAIL" />
                       </Card.Title>
-                      <Card.Text className="text-muted mb-2">
-                        Export data in OBIS format for biodiversity reporting.
-                      </Card.Text>
                       <div className="d-flex gap-2">
                         <Button
+                          className="my-3"
                           variant="outline-primary"
                           size="sm"
                           onClick={() =>
@@ -316,10 +313,10 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              Exporting...
+                              <FormattedMessage id="EXPORTING" />
                             </>
                           ) : (
-                            "Export Excel File"
+                            <FormattedMessage id="EXPORT_EXCEL_FILE" />
                           )}
                         </Button>
                       </div>
@@ -329,16 +326,15 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
               </div>
 
               <div id="gis">
-                <h5 className="mb-3">GIS Data</h5>
+                <h5 className="mb-3">
+                  <FormattedMessage id="GIS_DATA" />
+                </h5>
                 <Stack gap={3}>
                   <Card className="shadow-sm">
                     <Card.Body>
                       <Card.Title as="h6" className="mb-1">
-                        Google Earth File
+                        <FormattedMessage id="GOOGLE_EARTH_FILE" />
                       </Card.Title>
-                      <Card.Text className="text-muted mb-3">
-                        Ideal for reporting and analysis.
-                      </Card.Text>
                       <Form.Check
                         type="checkbox"
                         id="timeline"
@@ -348,6 +344,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                       />
                       <div className="d-flex gap-2">
                         <Button
+                          className="my-3"
                           variant="outline-primary"
                           size="sm"
                           onClick={() => {
@@ -368,10 +365,10 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              Exporting...
+                              <FormattedMessage id="EXPORTING" />
                             </>
                           ) : (
-                            "Export KML File"
+                            <FormattedMessage id="EXPORT_EXCEL_FILE" />
                           )}
                         </Button>
                       </div>
@@ -381,13 +378,11 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                   <Card className="shadow-sm">
                     <Card.Body>
                       <Card.Title as="h6" className="mb-1">
-                        GIS Shapefile
+                        <FormattedMessage id="GIS_SHAPEFILE" />
                       </Card.Title>
-                      <Card.Text className="text-muted mb-3">
-                        Ideal for reporting and analysis.
-                      </Card.Text>
                       <div className="d-flex gap-2">
                         <Button
+                          className="my-3"
                           variant="outline-primary"
                           size="sm"
                           onClick={() =>
@@ -408,10 +403,10 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                                 aria-hidden="true"
                                 className="me-2"
                               />
-                              Exporting...
+                              <FormattedMessage id="EXPORTING" />
                             </>
                           ) : (
-                            "Export Shapefile"
+                            <FormattedMessage id="EXPORT_EXCEL_FILE" />
                           )}
                         </Button>
                       </div>
@@ -421,15 +416,14 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
               </div>
 
               <div id="markrecapture">
-                <h5 className="mb-3">Mark Recapture Data</h5>
+                <h5 className="mb-3">
+                  <FormattedMessage id="MARK_RECAPTURE_DATA" />
+                </h5>
                 <Card className="shadow-sm">
                   <Card.Body>
                     <Card.Title as="h6" className="mb-1">
-                      Mark Recapture Data
+                      <FormattedMessage id="MARK_RECAPTURE_DATA" />
                     </Card.Title>
-                    <Card.Text className="text-muted mb-3">
-                      Ideal for reporting and analysis.
-                    </Card.Text>
                     <Stack gap={2}>
                       <Row>
                         <Col xs={12} md={6}>
@@ -462,7 +456,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                             }}
                           >
                             {" "}
-                            configure sessions for export
+                            <FormattedMessage id="CONFIGURE_SESSIONS_FOR_EXPORT" />
                           </Button>
                         </Col>
                       </Row>
