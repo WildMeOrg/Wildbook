@@ -93,7 +93,7 @@ finally{
 }
 %>
 
-<section class="hero container-fluid main-section relative">
+<section class="hero container-fluid main-section relative" id="hero-section">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h2><%= props.getProperty("mainSplash") %></h2>
@@ -110,6 +110,46 @@ finally{
 
 	</div>
 </section>
+
+<script type="text/javascript">
+// Hero Image Carousel
+(function() {
+    // Define the hero images to rotate through
+    // Add new images to the heroes folder and list them here
+    var heroImages = [
+        'cust/mantamatcher/img/heroes/hero_manta.jpg'
+        // Add more images here as they become available:
+        //'cust/mantamatcher/img/heroes/africanElephant.jpg',
+        //'cust/mantamatcher/img/heroes/ocelot.jpg',
+        //'cust/mantamatcher/img/heroes/sandCat.jpg',
+        //'cust/mantamatcher/img/heroes/stripedHyena.jpg',
+		//'cust/mantamatcher/img/heroes/wolverine.jpg'
+    ];
+
+    // Only run carousel if there are multiple images
+    if (heroImages.length > 1) {
+        var currentIndex = 0;
+        var heroSection = document.getElementById('hero-section');
+        var dataSection = document.querySelector('.data-section');
+
+        // Function to change the background image
+        function rotateHeroImage() {
+            currentIndex = (currentIndex + 1) % heroImages.length;
+            var imageUrl = 'url("' + heroImages[currentIndex] + '")';
+
+            if (heroSection) {
+                heroSection.style.backgroundImage = imageUrl;
+            }
+            if (dataSection) {
+                dataSection.style.backgroundImage = imageUrl;
+            }
+        }
+
+        // Rotate images every 6 seconds
+        setInterval(rotateHeroImage, 6000);
+    }
+})();
+</script>
 
 <!-- usedta be the carousel -->
 <!-- add different tints for the divs and a litttle bold and color to the headers -->
