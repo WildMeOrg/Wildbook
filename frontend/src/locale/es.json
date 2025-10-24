@@ -636,5 +636,7 @@
   "DATA_CONTRIBUTOR_EMAIL": "Correo electrónico del contribuidor de datos",
   "GOOGLE_EARTH_FILE": "Archivo de Google Earth",
   "GIS_SHAPEFILE": "Archivo Shapefile GIS",
-  "CONFIGURE_SESSIONS_FOR_EXPORT": "Configurar sesiones para exportación"
+  "CONFIGURE_SESSIONS_FOR_EXPORT": "Configurar sesiones para exportación",
+  "GIS_DATA": "Datos GIS",
+  "ENCOUNTER_ANNOTATION": "Anotación de encuentro"
 }
