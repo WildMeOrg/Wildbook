@@ -41,7 +41,7 @@ import org.ecocean.Util;
 // note: this is for use on any Base object (MarkedIndividual, Encounter, Occurrence)
 public class BaseObject extends ApiBase {
 
-    private static final Logger logger = LogManager.getLogger(Login.class);
+    private static final Logger logger = LogManager.getLogger(BaseObject.class);
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
@@ -168,8 +168,8 @@ public class BaseObject extends ApiBase {
         // for background child assets, which has to be after all persisted
         List<Integer> maIds = new ArrayList<Integer>();
         Base obj = null;
+        String cls = payload.optString("_class");
         try {
-            String cls = payload.optString("_class");
             switch (cls) {
             case "encounters":
                 // we need to know the id ahead of time for the file structure
@@ -266,19 +266,19 @@ public class BaseObject extends ApiBase {
                 rtn.put("success", true);
             }
         } catch (ApiException apiEx) {
-            ThreadContext.put("action", "api_validation_error");
+            ThreadContext.put("action", payload.optString("_class") + "_creation_failed");
             ThreadContext.put("error_type", "ApiException");
             ThreadContext.put("error_message", apiEx.getMessage());
-            logger.warn("API validation exception", apiEx);
+            logger.warn("API validation exception for class: " + payload.optString("_class"), apiEx);
 
             rtn.put("statusCode", 400);
             rtn.put("errors", apiEx.getErrors());
             rtn.put("debug", apiEx.toString());
         }
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
+            ThreadContext.put("action", cls + "_creation_success");
             ThreadContext.put("object_id", obj.getId());
-            logger.info("Successfully created object, class: {}, id: {}",
-                    obj.getClass().getSimpleName(), obj.getId());
+            logger.info("Successfully created object, class: {}, id: {}", cls, obj.getId());
 
             if (encounterForIA != null) { // encounter-specific needs
                 OpenSearch.setPermissionsNeeded(myShepherd, true);
@@ -353,8 +353,12 @@ public class BaseObject extends ApiBase {
         AssetStore astore = AssetStore.getDefault(myShepherd);
 
         for (File file : files) {
+            long assetStartTime = System.currentTimeMillis();
             if (!AssetStore.isValidImage(file)) {
-                System.out.println("BaseObject.makeMediaAssets() failed isValidImage() on " + file);
+                ThreadContext.put("action", "media_asset_invalid");
+                ThreadContext.put("filename", file.getName());
+                ThreadContext.put("reason", "invalid_image_format");
+                logger.warn("Media asset processing failed: invalid image file");
                 results.put(file, null);
                 continue;
             }
@@ -370,15 +374,31 @@ public class BaseObject extends ApiBase {
                 ma.copyIn(file);
                 valid = ma.validateSourceImage();
                 ma.updateMetadata();
+
+                long assetDuration = System.currentTimeMillis() - assetStartTime;
+                ThreadContext.put("action", "media_asset_created");
+                ThreadContext.put("filename", ma.getFilename());
+                ThreadContext.put("file_size_bytes", String.valueOf(file.length()));
+                ThreadContext.put("media_asset_uuid", ma.getUUID());
+                ThreadContext.put("duration_ms", String.valueOf(assetDuration));
+                logger.info("Media asset created");
+
                 results.put(file, ma);
             } catch (IOException ioe) {
-                System.out.println("BaseObject.makeMediaAssets() failed on " + file + ": " + ioe);
-                ioe.printStackTrace();
+                ThreadContext.put("action", "media_asset_invalid");
+                ThreadContext.put("filename", file.getName());
+                ThreadContext.put("reason", "io_exception");
+                ThreadContext.put("error_message", ioe.getMessage());
+                logger.warn("Media asset processing failed: copyIn failed", ioe);
+
                 results.put(file, null);
             }
             if (!valid) {
-                System.out.println("BaseObject.makeMediaAssets() failed on " + file +
-                    ": failed validateSourceImage()");
+                ThreadContext.put("action", "media_asset_invalid");
+                ThreadContext.put("filename", file.getName());
+                ThreadContext.put("reason", "validation_failed");
+                logger.warn("Media asset processing failed: validateSourceImage failed");
+
                 results.put(file, null);
             }
         }

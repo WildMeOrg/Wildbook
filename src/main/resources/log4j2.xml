@@ -20,7 +20,6 @@
             <JsonTemplateLayout eventTemplateUri="classpath:EcsLayout.json">
                 <EventTemplateAdditionalField key="service" value="${SERVICE_NAME}"/>
                 <EventTemplateAdditionalField key="environment" value="${ENVIRONMENT}"/>
-                <EventTemplateAdditionalField key="domain" value="${DOMAIN_NAME}"/>
                 <EventTemplateAdditionalField key="host" value="${HOSTNAME}"/>
             </JsonTemplateLayout>
         </Console>
