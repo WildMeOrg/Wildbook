@@ -84,31 +84,31 @@ loki.source.docker "docker_logs" {
 loki.process "parse_logs" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  // Parse JSON logs (from Log4j2 JsonTemplateLayout)
-  // Extract common fields that should be present in ECS-formatted logs
+  // Parse all fields from the JSON log line in one stage
   stage.json {
     expressions = {
-      level     = "log.level",
-      logger    = "log.logger",
-      message   = "message",
-      timestamp = "timestamp",
-      thread    = "process.thread.name",
-    }
-  }
+      // ECS fields - keys with special chars (like '.' or '@') must be quoted
+      level       = "\"log.level\"",
+      logger      = "\"log.logger\"",
+      message     = "message",
+      timestamp   = "\"@timestamp\"",
+      thread      = "\"process.thread.name\"",
 
-  // Extract custom application fields (these are at root level in your MapMessage logs)
-  // Only extract if they exist - Alloy will skip if field is not present
-  stage.json {
-    expressions = {
-      action       = "action",
-      username     = "username",
-      user_id      = "user_id",
-      client_ip    = "client_ip",
-      session_id   = "session_id",
-      encounter_id = "encounter_id",
-      duration_ms  = "duration_ms",
-      error_type   = "error_type",
+      // Custom app fields
+      action      = "action",
+      username    = "username",
+      user_id     = "user_id",
+      client_ip   = "client_ip",
+      session_id  = "session_id",
+      duration_ms = "duration_ms",
+      error_type  = "error_type",
       error_message = "error_message",
+      request_id  = "request_id",
+      endpoint    = "endpoint",
+      http_method = "http_method",
+      status_code = "status_code",
+      user_agent  = "user_agent",
+      domain      = "domain",
     }
   }
 
@@ -123,11 +123,15 @@ loki.process "parse_logs" {
     expression = "(?i)(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|SEVERE)"
   }
 
-  // Add level as a Loki label for filtering
+  // Promote critical, low-cardinality fields to labels for fast querying
   stage.labels {
-    values = {
-      level = "",
-    }
+      values = {
+        level       = "",
+        action      = "",
+        endpoint    = "",
+        status_code = "",
+        domain      = "",
+      }
   }
 }
 

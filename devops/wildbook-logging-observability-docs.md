@@ -57,30 +57,30 @@ This document describes the centralized logging and observability infrastructure
 The complete configuration files for this infrastructure are located in the repository:
 
 ```
-wildbook/
+Wildbook/
 ├── src/main/resources/
-│   └── log4j2.xml                              # Log4j2 configuration
-├── docker/
-│   ├── docker-compose.yml                      # Main application stack
-│   ├── docker-compose.observability.yml        # Observability stack
-│   └── .env.example                            # Environment variables template
-├── config/
-│   ├── alloy/
-│   │   └── config.alloy                        # Grafana Alloy configuration
-│   └── observability/
-│       ├── loki/
-│       │   └── loki-config.yaml               # Loki configuration
-│       ├── grafana/
-│       │   └── provisioning/
-│       │       ├── datasources/
-│       │       │   └── datasources.yml        # Grafana data sources
-│       │       └── dashboards/
-│       │           ├── dashboards.yml         # Dashboard provisioning
-│       │           └── json/
-│       │               ├── wildbook-logs.json # Log analysis dashboard
-│       │               └── user-activity.json # User activity dashboard
-│       └── prometheus/
-│           └── prometheus.yml                 # Prometheus configuration (optional)
+│   └── log4j2.xml                                          # Log4j2 configuration
+├── devops/
+│   ├── deploy/
+│   │   ├── docker-compose.yml                             # Main application stack
+│   │   ├── _env.template                                  # Environment variables template
+│   │   └── .dockerfiles/
+│   │       └── alloy/
+│   │           └── config.alloy                           # Grafana Alloy configuration
+│   └── development/
+│       ├── docker-compose.observability.yml               # Observability stack
+│       └── .dockerfiles/
+│           ├── loki/
+│           │   └── loki-config.yaml                       # Loki configuration
+│           └── grafana/
+│               └── provisioning/
+│                   ├── datasources/
+│                   │   └── datasources.yml                # Grafana data sources
+│                   └── dashboards/
+│                       ├── dashboards.yml                 # Dashboard provisioning
+│                       └── json/
+│                           ├── wildbook-logs.json        # Log analysis dashboard
+│                           └── user-activity.json        # User activity dashboard
 ```
 
 ## Component Configuration
@@ -109,7 +109,7 @@ Add these to your `pom.xml`:
 
 ### 2. Grafana Alloy Configuration
 
-**Configuration File**: `config/alloy/config.alloy`
+**Configuration File**: `devops/deploy/.dockerfiles/alloy/config.alloy`
 
 #### Key Considerations
 
@@ -129,9 +129,9 @@ Add these to your `pom.xml`:
 ### 3. Docker Compose Configuration
 
 **Configuration Files**:
-- Application stack: `docker/docker-compose.yml`
-- Observability stack: `docker/docker-compose.observability.yml`
-- Environment template: `docker/.env.example`
+- Application stack: `devops/deploy/docker-compose.yml`
+- Observability stack: `devops/development/docker-compose.observability.yml`
+- Environment template: `devops/deploy/_env.template`
 
 #### Key Considerations
 
@@ -143,7 +143,7 @@ Add these to your `pom.xml`:
 
 #### Required Environment Variables
 
-See `docker/.env.example` for a complete template. Key variables:
+See `devops/deploy/_env.template` for a complete template. Key variables:
 
 - `DOMAIN_NAME`: Identifies the Wildbook instance (e.g., flukebook, mantamatcher)
 - `HOSTNAME`: VM or container host identifier
@@ -152,7 +152,7 @@ See `docker/.env.example` for a complete template. Key variables:
 
 ### 4. Loki Configuration
 
-**Configuration File**: `config/observability/loki/loki-config.yaml`
+**Configuration File**: `devops/development/.dockerfiles/loki/loki-config.yaml`
 
 #### Key Considerations
 
@@ -172,21 +172,21 @@ For production deployments:
 ### 5. Grafana Configuration
 
 **Configuration Files**:
-- Data sources: `config/observability/grafana/provisioning/datasources/datasources.yml`
-- Dashboard provisioning: `config/observability/grafana/provisioning/dashboards/dashboards.yml`
-- Dashboard JSON files: `config/observability/grafana/provisioning/dashboards/json/*.json`
+- Data sources: `devops/development/.dockerfiles/grafana/provisioning/datasources/datasources.yml`
+- Dashboard provisioning: `devops/development/.dockerfiles/grafana/provisioning/dashboards/dashboards.yml`
+- Dashboard JSON files: `devops/development/.dockerfiles/grafana/provisioning/dashboards/json/*.json`
 
 #### Pre-configured Dashboards
 
 1. **Wildbook Logs Dashboard** (`wildbook-logs.json`)
-   - Service health overview
-   - Error rate trends
-   - Log volume by service
+    - Service health overview
+    - Error rate trends
+    - Log volume by service
 
 2. **User Activity Dashboard** (`user-activity.json`)
-   - Login success/failure rates
-   - Active users over time
-   - User action tracking
+    - Login success/failure rates
+    - Active users over time
+    - User action tracking
 
 ## Application Integration
 
@@ -296,23 +296,22 @@ public class EncounterProcessor {
 1. **Deploy Central Monitoring Server**
    ```bash
    # On central monitoring server
-   cd /opt/monitoring
+   cd /opt/wildbook/devops/development
    docker-compose -f docker-compose.observability.yml up -d
    ```
 
 2. **Deploy Alloy on Each VM**
    ```bash
    # On each domain VM
-   cd /opt/wildbook
+   cd /opt/wildbook/devops/deploy
    docker-compose up -d alloy
    ```
 
 3. **Configure Environment Variables**
    ```bash
-   # .env file for each domain
-   DOMAIN_NAME=flukebook
-   HOSTNAME=vm-prod-01
-   LOKI_URL=http://monitoring.example.com:3100/loki/api/v1/push
+   # Copy template and edit
+   cp _env.template .env
+   # Edit .env with domain-specific values
    ```
 
 4. **Update Application Containers**
@@ -327,9 +326,11 @@ For local development, run both stacks on the same machine:
 
 ```bash
 # Start observability stack
+cd devops/development
 docker-compose -f docker-compose.observability.yml up -d
 
 # Start application with Alloy
+cd ../deploy
 docker-compose up -d
 ```
 
@@ -376,24 +377,24 @@ topk(10,
 Create dashboards with the following panels:
 
 1. **Service Health Overview**
-   - Log volume by service
-   - Error rate trends
-   - Response time percentiles
+    - Log volume by service
+    - Error rate trends
+    - Response time percentiles
 
 2. **User Activity Dashboard**
-   - Login success/failure rates
-   - Active users over time
-   - Geographic distribution of users
+    - Login success/failure rates
+    - Active users over time
+    - Geographic distribution of users
 
 3. **Encounter Processing Dashboard**
-   - Processing times by stage
-   - Species distribution
-   - Match success rates
+    - Processing times by stage
+    - Species distribution
+    - Match success rates
 
 4. **Infrastructure Dashboard**
-   - Container resource usage
-   - Network traffic
-   - Database query performance
+    - Container resource usage
+    - Network traffic
+    - Database query performance
 
 ## Monitoring and Alerting
 
@@ -447,24 +448,24 @@ groups:
 ### Common Issues and Solutions
 
 1. **Logs not appearing in Loki**
-   - Verify Alloy is running: `docker logs alloy`
-   - Check network connectivity: `docker exec alloy wget -O- http://loki:3100/ready`
-   - Ensure containers have `logging=alloy` label
+    - Verify Alloy is running: `docker logs alloy`
+    - Check network connectivity: `docker exec alloy wget -O- http://loki:3100/ready`
+    - Ensure containers have `logging=alloy` label
 
 2. **JSON parsing errors**
-   - Verify Log4j2 configuration is producing valid JSON
-   - Check with: `docker logs wildbook | jq`
-   - Review Alloy logs for parsing errors
+    - Verify Log4j2 configuration is producing valid JSON
+    - Check with: `docker logs wildbook | jq`
+    - Review Alloy logs for parsing errors
 
 3. **High memory usage**
-   - Adjust Loki retention period
-   - Implement log sampling for high-volume services
-   - Configure appropriate cache sizes
+    - Adjust Loki retention period
+    - Implement log sampling for high-volume services
+    - Configure appropriate cache sizes
 
 4. **Missing labels in queries**
-   - Verify Docker labels are properly set
-   - Check Alloy label extraction configuration
-   - Ensure JSON fields are being extracted correctly
+    - Verify Docker labels are properly set
+    - Check Alloy label extraction configuration
+    - Ensure JSON fields are being extracted correctly
 
 ### Performance Optimization
 
@@ -480,14 +481,14 @@ groups:
    ```
 
 2. **Optimize Queries**
-   - Use label selectors before line filters
-   - Limit time ranges appropriately
-   - Use recording rules for frequently-used queries
+    - Use label selectors before line filters
+    - Limit time ranges appropriately
+    - Use recording rules for frequently-used queries
 
 3. **Resource Allocation**
-   - Loki: 4GB RAM minimum, 8GB recommended
-   - Alloy: 256MB RAM per instance
-   - Grafana: 2GB RAM minimum
+    - Loki: 4GB RAM minimum, 8GB recommended
+    - Alloy: 256MB RAM per instance
+    - Grafana: 2GB RAM minimum
 
 ## Future Enhancements
 

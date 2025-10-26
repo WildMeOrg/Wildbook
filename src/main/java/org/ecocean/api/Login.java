@@ -199,14 +199,19 @@ public class Login extends ApiBase {
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write(results.toString());
 
-            // Final log with summary
+            // Log one final "completed" event
             long totalDuration = System.currentTimeMillis() - startTime;
-            if (!success && username != null) {
-                ThreadContext.put("duration_ms", String.valueOf(totalDuration));
-                ThreadContext.put("status_code", String.valueOf(statusCode));
-                ThreadContext.put("action", "login_completed");
-                logger.info("Login completed");
+            ThreadContext.put("duration_ms", String.valueOf(totalDuration));
+            ThreadContext.put("status_code", String.valueOf(statusCode));
+            ThreadContext.put("action", "api_request_completed");
+
+            if (success) {
+                logger.info("API request completed");
+            } else {
+                // Already logged a specific failure, but this ensures duration/status are captured
+                logger.warn("API request completed");
             }
+
             // Clear thread context
             ThreadContext.clearAll();
         }

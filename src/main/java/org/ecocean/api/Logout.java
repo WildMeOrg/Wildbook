@@ -43,14 +43,13 @@ public class Logout extends ApiBase {
         ThreadContext.put("domain", context);
 
         String username = "unknown";
-        String sessionId = "unknown";
-        boolean hadActiveSession = false;
+        int statusCode = 500; // Default to error
+        boolean success = false;
 
         try {
             Subject subject = SecurityUtils.getSubject();
 
             if (subject != null && subject.isAuthenticated()) {
-                hadActiveSession = true;
                 Object principal = subject.getPrincipal();
                 if (principal != null) {
                     username = principal.toString();
@@ -59,8 +58,7 @@ public class Logout extends ApiBase {
 
                 Session session = subject.getSession(false);
                 if (session != null) {
-                    sessionId = session.getId().toString();
-                    ThreadContext.put("session_id", sessionId);
+                    ThreadContext.put("session_id", session.getId().toString());
                 }
 
                 ThreadContext.put("action", "logout_started");
@@ -86,22 +84,36 @@ public class Logout extends ApiBase {
                 logger.debug("Logout attempt with http session invalidated");
             }
 
-            response.setStatus(200);
+            statusCode = 200;
+            success = true;
+            response.setStatus(statusCode);
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write("{\"success\": true}");
 
         } catch (Exception ex) {
             ThreadContext.put("error_type", ex.getClass().getSimpleName());
             ThreadContext.put("error_message", ex.getMessage());
-            ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
             ThreadContext.put("action", "logout_error");
             logger.error("Logout error");
 
-            response.setStatus(500);
+            statusCode = 500;
+            success = false;
+            response.setStatus(statusCode);
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write("{\"success\": false, \"error\": \"logout_error\"}");
 
         } finally {
+            long totalDuration = System.currentTimeMillis() - startTime;
+            ThreadContext.put("duration_ms", String.valueOf(totalDuration));
+            ThreadContext.put("status_code", String.valueOf(statusCode));
+            ThreadContext.put("action", "api_request_completed");
+
+            if (success) {
+                logger.info("API request completed");
+            } else {
+                logger.warn("API request completed");
+            }
+
             ThreadContext.clearAll();
         }
     }

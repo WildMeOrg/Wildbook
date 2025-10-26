@@ -41,9 +41,6 @@
                         key="environment"
                         value="${ENVIRONMENT}"/>
                 <EventTemplateAdditionalField
-                        key="domain"
-                        value="${DOMAIN_NAME}"/>
-                <EventTemplateAdditionalField
                         key="host"
                         value="${HOSTNAME}"/>
             </JsonTemplateLayout>
