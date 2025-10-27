@@ -638,5 +638,6 @@
   "GIS_SHAPEFILE": "Archivo Shapefile GIS",
   "CONFIGURE_SESSIONS_FOR_EXPORT": "Configurar sesiones para exportación",
   "GIS_DATA": "Datos GIS",
-  "ENCOUNTER_ANNOTATION": "Anotación de encuentro"
+  "ENCOUNTER_ANNOTATION": "Anotación de encuentro",
+  "THIS_ENCOUNTER": "Este encuentro"
 }
