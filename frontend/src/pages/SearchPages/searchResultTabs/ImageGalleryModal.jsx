@@ -172,9 +172,9 @@ export const ImageGalleryModal = observer(
                           width: rect.width / scaleX,
                           height: rect.height / scaleY,
                           border:
-                            rect.encounterId === imageStore.encounterData?.id
-                              ? "2px solid red"
-                              : "2px dotted red",
+                            // rect.encounterId === imageStore.encounterData?.id
+                            //   ? "2px solid red"
+                            "2px dotted red",
                           transform: `rotate(${rect.rotation}rad)`,
                           cursor: "pointer",
                         }}
