@@ -55,7 +55,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"media_asset_created\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"media_asset_created\"}[24h]))",
           "refId": "A"
         }
       ],
@@ -113,7 +113,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"media_asset_invalid\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"media_asset_invalid\"}[24h]))",
           "refId": "A"
         }
       ],
@@ -168,7 +168,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service=\"wildbook\"} | json | action=\"media_asset_created\" | unwrap duration_ms [1h])",
+          "expr": "avg_over_time({service=\"wildbook\", action=\"media_asset_created\"} | unwrap duration_ms [1h])",
           "refId": "A"
         }
       ],
@@ -223,7 +223,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service=\"wildbook\"} | json | action=\"media_asset_created\" | unwrap file_size_bytes [1h])",
+          "expr": "avg_over_time({service=\"wildbook\", action=\"media_asset_created\"} | unwrap file_size_bytes [1h])",
           "refId": "A"
         }
       ],
@@ -339,7 +339,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (action) (rate({service=\"wildbook\"} | json | action=~\"media_asset.*\"[5m]))",
+          "expr": "sum by (action) (rate({service=\"wildbook\", action=~\"media_asset.*\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{action}}"
         }
@@ -425,7 +425,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service=\"wildbook\"} | json | action=\"media_asset_created\" | unwrap duration_ms [5m])",
+          "expr": "quantile_over_time(0.95, {service=\"wildbook\"} | {action=\"media_asset_created\"} | unwrap duration_ms [5m])",
           "refId": "A",
           "legendFormat": "P95"
         },
@@ -434,7 +434,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.50, {service=\"wildbook\"} | json | action=\"media_asset_created\" | unwrap duration_ms [5m])",
+          "expr": "quantile_over_time(0.50, {service=\"wildbook\"} | {action=\"media_asset_created\"}| unwrap duration_ms [5m])",
           "refId": "B",
           "legendFormat": "P50"
         },
@@ -443,7 +443,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service=\"wildbook\"} | json | action=\"media_asset_created\" | unwrap duration_ms [5m])",
+          "expr": "avg_over_time({service=\"wildbook\"} | {action=\"media_asset_created\"} | unwrap duration_ms [5m])",
           "refId": "C",
           "legendFormat": "Average"
         }
@@ -561,7 +561,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=\"wildbook\"} | json | action=\"media_asset_created\" | duration_ms > 3000 | line_format \"{{.filename}}|{{.encounter_id}}|{{.file_size_bytes}}|{{.duration_ms}}\"",
+          "expr": "{service=\"wildbook\", action=\"media_asset_created\"} | json | duration_ms > 3000 | line_format \"{{.filename}}|{{.encounter_id}}|{{.file_size_bytes}}|{{.duration_ms}}\"",
           "refId": "A"
         }
       ],
@@ -690,7 +690,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "topk(20, sum by (reason) (count_over_time({service=\"wildbook\"} | json | action=\"media_asset_invalid\"[24h])))",
+          "expr": "topk(20, sum by (reason) (count_over_time({service=\"wildbook\", action=\"media_asset_invalid\"} | json [24h])))",
           "refId": "A",
           "legendFormat": "{{reason}}"
         }
@@ -797,7 +797,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(sum_over_time({service=\"wildbook\"} | json | action=\"media_asset_created\" | unwrap file_size_bytes [5m]))",
+          "expr": "sum(sum_over_time({service=\"wildbook\", action=\"media_asset_created\"} | unwrap file_size_bytes [5m]))",
           "refId": "A",
           "legendFormat": "Total Processed"
         }
@@ -833,7 +833,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=\"wildbook\"} | json | action=~\"media_asset_invalid|media_asset_creation_failed\" | line_format \"{{.timestamp}} | {{.encounter_id}} | {{.filename}} | {{.reason}} | {{.error_message}}\"",
+          "expr": "{service=\"wildbook\", action=~\"media_asset_invalid|media_asset_creation_failed\"} | json | line_format \"{{.timestamp}} | {{.encounter_id}} | {{.filename}} | {{.reason}} | {{.error_message}}\"",
           "refId": "A"
         }
       ],

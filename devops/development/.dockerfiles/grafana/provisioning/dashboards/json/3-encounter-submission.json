@@ -55,7 +55,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_success\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"encounters_creation_success\"}[24h]))",
           "refId": "A"
         }
       ],
@@ -113,7 +113,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_failed\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"encounters_creation_failed\"}[24h]))",
           "refId": "A"
         }
       ],
@@ -168,7 +168,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_success\" | unwrap duration_ms [1h])",
+          "expr": "avg_over_time({service=\"wildbook\", action=\"encounters_creation_success\"} | unwrap duration_ms [1h])",
           "refId": "A"
         }
       ],
@@ -222,7 +222,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_started\" | is_authenticated=\"false\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"api-encounter-processing\"} | json | username=\"unknown\" [24h]))",
           "refId": "A"
         }
       ],
@@ -338,7 +338,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (action) (rate({service=\"wildbook\"} | json | action=~\"encounter_creation.*\"[5m]))",
+          "expr": "sum by (action) (rate({service=\"wildbook\", action=~\"encounters_creation.*\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{action}}"
         }
@@ -424,7 +424,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service=\"wildbook\"} | json | action=\"encounter_creation_success\" | unwrap duration_ms [5m])",
+          "expr": "quantile_over_time(0.95, {service=\"wildbook\"} | {action=\"encounters_creation_success\"} | unwrap duration_ms [5m])",
           "refId": "A",
           "legendFormat": "P95"
         },
@@ -433,7 +433,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.50, {service=\"wildbook\"} | json | action=\"encounter_creation_success\" | unwrap duration_ms [5m])",
+          "expr": "quantile_over_time(0.50, {service=\"wildbook\"} | {action=\"encounters_creation_success\"} | unwrap duration_ms [5m])",
           "refId": "B",
           "legendFormat": "P50 (Median)"
         },
@@ -442,7 +442,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_success\" | unwrap duration_ms [5m])",
+          "expr": "avg_over_time({service=\"wildbook\"} | {action=\"encounters_creation_success\"} | unwrap duration_ms [5m])",
           "refId": "C",
           "legendFormat": "Average"
         }
@@ -496,7 +496,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "topk(10, sum by (username) (count_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_success\" | username!=\"anonymous\"[24h])))",
+          "expr": "topk(10, sum by (username) (count_over_time({service=\"wildbook\", action=\"encounters_creation_success\"} | json | username!=\"anonymous\"[24h])))",
           "refId": "A",
           "legendFormat": "{{username}}"
         }
@@ -550,7 +550,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "topk(10, sum by (taxonomy) (count_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_success\" | taxonomy!=\"\"[24h])))",
+          "expr": "topk(10, sum by (taxonomyString) (count_over_time({service=\"wildbook\", action=\"encounters_creation_success\"} | json | taxonomyString!=\"\"[24h])))",
           "refId": "A",
           "legendFormat": "{{taxonomy}}"
         }
@@ -656,7 +656,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=\"wildbook\"} | json | action=\"encounter_creation_success\" | line_format \"{{.encounter_id}}|{{.username}}|{{.taxonomy}}|{{.location}}|{{.asset_count}}|{{.duration_ms}}\"",
+          "expr": "{service=\"wildbook\", action=\"encounters_creation_success\"} | json | line_format \"{{.encounter_id}}|{{.username}}|{{.taxonomy}}|{{.location}}|{{.asset_count}}|{{.duration_ms}}\"",
           "refId": "A"
         }
       ],

@@ -57,7 +57,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"login_success\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"login_success\"}[24h]))",
           "refId": "A"
         }
       ],
@@ -111,7 +111,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"encounter_creation_success\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"encounters_creation_success\"}[24h]))",
           "refId": "A"
         }
       ],
@@ -279,7 +279,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service=\"wildbook\"} | json | action=\"api_request_completed\" | unwrap duration_ms [5m])",
+          "expr": "avg_over_time({service=\"wildbook\", action=\"api_request_completed\"} | unwrap duration_ms [5m])",
           "refId": "A"
         }
       ],
@@ -333,7 +333,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"media_asset_created\"[24h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"media_asset_created\"}[24h]))",
           "refId": "A"
         }
       ],
@@ -551,7 +551,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (action) (rate({service=\"wildbook\"} | json | action=~\".*_success\"[1m]))",
+          "expr": "sum by (action) (rate({service=\"wildbook\", action=~\".*_success\"}[1m]))",
           "refId": "A",
           "legendFormat": "{{action}}"
         }

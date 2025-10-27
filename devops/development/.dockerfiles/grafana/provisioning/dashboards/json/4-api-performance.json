@@ -86,7 +86,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service=\"wildbook\"} | json | action=\"api_request_completed\" | unwrap duration_ms [1m]) by (endpoint)",
+          "expr": "avg_over_time({service=\"wildbook\", action=\"api_request_completed\"} | unwrap duration_ms [1m]) by (endpoint)",
           "refId": "A",
           "legendFormat": "{{endpoint}}"
         }
@@ -171,7 +171,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (endpoint) (rate({service=\"wildbook\"} | json | action=\"api_request_completed\"[1m]))",
+          "expr": "sum by (endpoint) (rate({service=\"wildbook\", action=\"api_request_completed\"}[1m]))",
           "refId": "A",
           "legendFormat": "{{endpoint}}"
         }
@@ -318,7 +318,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (status_code) (count_over_time({service=\"wildbook\"} | json | action=\"api_request_completed\"[5m]))",
+          "expr": "sum by (status_code) (count_over_time({service=\"wildbook\", action=\"api_request_completed\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{status_code}}"
         }
@@ -424,7 +424,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=\"wildbook\"} | json | action=\"api_request_completed\" | duration_ms > 3000 | line_format \"{{.endpoint}}|{{.object_class}}|{{.method}}|{{.duration_ms}}\"",
+          "expr": "{service=\"wildbook\", action=\"api_request_completed\"} | json | duration_ms > 3000 | line_format \"{{.endpoint}}|{{.object_class}}|{{.method}}|{{.duration_ms}}\"",
           "refId": "A"
         }
       ],
@@ -487,7 +487,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=\"wildbook\"} | json | action=\"api_request_error\"",
+          "expr": "{service=\"wildbook\", action=\"api_request_error\"}",
           "refId": "A"
         }
       ],

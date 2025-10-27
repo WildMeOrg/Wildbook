@@ -65,7 +65,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"login_failed\"[1h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"login_failed\"}[1h]))",
           "refId": "A"
         }
       ],
@@ -129,7 +129,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=~\".*_denied\"[1h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=~\".*_denied\"}[1h]))",
           "refId": "A"
         }
       ],
@@ -193,7 +193,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "count(sum by (client_ip) (count_over_time({service=\"wildbook\"} | json | action=\"login_failed\"[10m])) > 5)",
+          "expr": "count(sum by (client_ip) (count_over_time({service=\"wildbook\", action=\"login_failed\"} | json [10m])) > 5)",
           "refId": "A"
         }
       ],
@@ -249,7 +249,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service=\"wildbook\"} | json | action=\"api_request_blocked\"[1h]))",
+          "expr": "sum(count_over_time({service=\"wildbook\", action=\"api_request_blocked\"}[1h]))",
           "refId": "A"
         }
       ],
@@ -353,7 +353,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (action) (rate({service=\"wildbook\"} | json | action=~\"login_failed|.*_denied|api_request_blocked\"[5m]))",
+          "expr": "sum by (action) (rate({service=\"wildbook\", action=~\"login_failed|.*_denied|api_request_blocked\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{action}}"
         }
@@ -457,7 +457,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "topk(20, sum by (client_ip) (count_over_time({service=\"wildbook\"} | json | action=\"login_failed\"[1h])))",
+          "expr": "topk(20, sum by (client_ip) (count_over_time({service=\"wildbook\", action=\"login_failed\"} | json [1h])))",
           "refId": "A",
           "legendFormat": "{{client_ip}}"
         }
@@ -584,7 +584,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "topk(20, sum by (username) (count_over_time({service=\"wildbook\"} | json | action=~\".*_denied\"[24h])))",
+          "expr": "topk(20, sum by (username) (count_over_time({service=\"wildbook\", action=~\".*_denied\"} | json [24h])))",
           "refId": "A",
           "legendFormat": "{{username}}"
         }
@@ -663,7 +663,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (error_type) (count_over_time({service=\"wildbook\"} | json | action=\"login_failed\" | error_type!=\"\"[6h]))",
+          "expr": "sum by (error_type) (count_over_time({service=\"wildbook\", action=\"login_failed\"} | json | error_type!=\"\"[6h]))",
           "refId": "A",
           "legendFormat": "{{error_type}}"
         }
@@ -699,7 +699,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=\"wildbook\"} | json | action=~\"login_failed|.*_denied|api_request_blocked\" | line_format \"{{.timestamp}} | {{.action}} | User: {{.username}} | IP: {{.client_ip}} | {{.error_type}}\"",
+          "expr": "{service=\"wildbook\", action=~\"login_failed|.*_denied|api_request_blocked\"} | json | line_format \"{{.timestamp}} | {{.action}} | User: {{.username}} | IP: {{.client_ip}} | {{.error_type}}\"",
           "refId": "A"
         }
       ],

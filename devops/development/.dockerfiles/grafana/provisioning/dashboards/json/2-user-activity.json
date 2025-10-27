@@ -132,7 +132,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (action) (count_over_time({service=\"wildbook\"} | json | action=~\"login.*|logout.*\"[5m]))",
+          "expr": "sum by (action) (count_over_time({service=\"wildbook\", action=~\"login.*|logout.*\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{action}}"
         }
@@ -374,7 +374,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "topk(20, sum by (username) (count_over_time({service=\"wildbook\"} | json | action=\"login_failed\"[6h])))",
+          "expr": "topk(20, sum by (username) (count_over_time({service=\"wildbook\", action=\"login_failed\"} | json [6h])))",
           "refId": "A",
           "legendFormat": "{{username}}"
         }
@@ -431,7 +431,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{service=\"wildbook\"} | json | action=~\"login.*|logout.*\" | line_format \"{{.timestamp}} | {{.username}} | {{.action}} | {{.client_ip}}\"",
+          "expr": "{service=\"wildbook\", action=~\"login.*|logout.*\"} | json | line_format \"{{.timestamp}} | {{.username}} | {{.action}} | {{.client_ip}}\"",
           "refId": "A"
         }
       ],
