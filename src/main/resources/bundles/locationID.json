@@ -81,7 +81,7 @@
 		]},
 		
 		{"name": "Africa - North", "id": "Africa - North", "locationID":[
-			
+			{"name": "Algeria", "id": "Algeria", "locationID":[]}
 		]}
 
 	]}
