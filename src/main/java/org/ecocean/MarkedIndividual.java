@@ -2586,12 +2586,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex,
         String genus, String specificEpithet) {
-        // int idLimit = 2000; // this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
+        int idLimit = 2000; // this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
 
         System.out.println("findByNames regex: " + regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+        // if (NAMES_CACHE == null) return rtn; // snh
         if (regex == null) return rtn;
-        List<String> nameIds = findNameIds(myShepherd, regex, genus, specificEpithet);
+        List<String> nameIds = findNameIds(regex);
         // if (nameIds.size() > idLimit) {
         //     System.out.println(
         //         "WARNING: MarkedIndividual.findByNames() found too many names; failing (" +
@@ -2600,11 +2601,17 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         // }
         // System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
-        
-        // Simplified query since taxonomy filtering is now handled in findNameIds
+        // System.out.println("findByNames: "+genus+" "+specificEpithet);
+        String taxonomyStringFilter = "";
+        if ((genus != null) && (specificEpithet != null)) {
+            genus = genus.trim();
+            specificEpithet = specificEpithet.trim();
+            taxonomyStringFilter = " && enc.genus == '" + genus + "' && enc.specificEpithet == '" +
+                specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
+        }
         String jdoql =
-            "SELECT FROM org.ecocean.MarkedIndividual WHERE names.id == "
-            + String.join(" || names.id == ", nameIds);
+            "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (names.id == "
+            + String.join(" || names.id == ", nameIds) + ")" + taxonomyStringFilter;
         System.out.println("findByNames jdoql: " + jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         Collection c = (Collection)(query.execute());
@@ -2627,7 +2634,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // exact case-insensitive version of above func that returns 1 or 0 individuals
     public static MarkedIndividual withName(Shepherd myShepherd, String name, String genus,
         String specificEpithet) {
-        String regex = "(^|.*;)" + name + "(;.*|$)";
+        String regex = ".*" + name + ".*";
 
         System.out.println("withName: " + genus + " " + specificEpithet);
         List<MarkedIndividual> inds = findByNames(myShepherd, regex, genus, specificEpithet);
@@ -2640,41 +2647,42 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // used above, but also used in IndividualQueryProcessor, for example
-    public static List<String> findNameIds(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
-        Set<String> nameIdsSet = new HashSet<String>();
-        if (regex == null) return new ArrayList<String>();
+    public static List<String> findNameIds(String regex) {
+        List<String> nameIds = new ArrayList<String>();
+        if (regex == null) return nameIds;
         
-        // Build the query with optional genus/species filtering directly on MarkedIndividual
-        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names != null";
-        String taxonomyFilter = "";
-        
-        if ((genus != null) && (specificEpithet != null)) {
-            genus = genus.trim();
-            specificEpithet = specificEpithet.trim();
-            taxonomyFilter = " && this.genus == '" + genus + "' && this.specificEpithet == '" + specificEpithet + "'";
-        }
-        
-        jdoql += taxonomyFilter;
-        
-        Query query = myShepherd.getPM().newQuery(jdoql);
-        Collection<MarkedIndividual> individuals = (Collection<MarkedIndividual>) query.execute();
-        
-        for (MarkedIndividual ind : individuals) {
-            if (ind.names == null) continue;
-            // Recreate the cache format for matching (same as original cache)
-            String allNames = ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase();
-            if (allNames.matches(regex.toLowerCase())) {
-                nameIdsSet.add(Integer.toString(ind.names.getId()));
+        Shepherd myShepherd = new Shepherd("findNameIds");
+        try {
+            // Query MultiValue records directly with JSON-compatible regex
+            String filter = "SELECT FROM org.ecocean.MultiValue WHERE valuesAsString.toLowerCase().matches(\"" + regex.toLowerCase() + "\")";
+            System.out.println("findNameIds filter: " + filter);
+            Query  query = myShepherd.getPM().newQuery(filter);
+            System.out.println("About to execute query...");
+            Collection c;
+            try {
+                c = (Collection)(query.execute());
+                System.out.println("Query executed successfully!");
+            } catch (Exception e) {
+                System.out.println("Query execution failed: " + e.getMessage());
+                e.printStackTrace();
+                return nameIds; // Return empty list on error
             }
+            
+            System.out.println("findNameIds: Found " + c.size() + " matching MultiValue records");
+            
+            for (Object m : c) {
+                MultiValue mv = (MultiValue)m;
+                if (mv == null) continue;
+                nameIds.add(Integer.toString(mv.getId()));
+            }
+            query.closeAll();
+        } finally {
+            myShepherd.closeDBTransaction();
         }
         
-        query.closeAll();
-        return new ArrayList<String>(nameIdsSet);
-    }
-
-    // Backward-compatible overloaded method
-    public static List<String> findNameIds(Shepherd myShepherd, String regex) {
-        return findNameIds(myShepherd, regex, null, null);
+        System.out.println("findNameIds: Returning " + nameIds.size() + " matching IDs");
+        
+        return nameIds;
     }
 
     // returns next integer-based value that follows pattern PREnnn (where 'nnn' is one-or-more digits!)
