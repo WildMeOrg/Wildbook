@@ -157,9 +157,9 @@ const GalleryView = observer(({ store }) => {
                         width: rect.width / scaleX,
                         height: rect.height / scaleY,
                         border:
-                          rect.encounterId === store.encounterData?.id
-                            ? "2px solid red"
-                            : "2px dotted red",
+                          // rect.encounterId === store.encounterData?.id
+                          //   ? "2px solid red"
+                          "2px dotted red",
                         transform: `rotate(${rect.rotation}rad)`,
                         cursor: "pointer",
                         backgroundColor:
