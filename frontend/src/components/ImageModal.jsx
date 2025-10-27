@@ -729,10 +729,10 @@ export const ImageModal = observer(
                   target={true}
                   disabled={!imageStore.matchResultClickable}
                   onClick={() => {
-                    window.open(
-                      `/iaResults.jsp?taskId=${currentAnnotation?.iaTaskId}`,
-                      "_blank",
-                    );
+                    const taskId = imageStore.encounterAnnotations.filter(
+                      (a) => a.id === imageStore.selectedAnnotationId,
+                    )?.[0]?.iaTaskId;
+                    window.open(`/iaResults.jsp?taskId=${taskId}`, "_blank");
                   }}
                 >
                   <FormattedMessage id="MATCH_RESULTS" />
