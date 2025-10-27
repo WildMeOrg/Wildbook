@@ -170,6 +170,17 @@
 			"long": 151.266615
 		}
 	},
+	{
+		"name": "NSW-Sydney-Mona Vale",
+		"id": "NSW-Sydney-Mona Vale",
+		"locationID": [],
+		"prefix": "NSW-",
+		"prefixDigitPadding": 4,
+		"geospatialInfo":{
+			"lat": -33.68176717219504,
+			"long": 151.324745772792
+		}
+	},
 	{ 
 		"name": "NSW-Sydney-Oak Park", 
 		"id": "NSW-Sydney-Oak Park", 
