@@ -9,6 +9,7 @@ import javax.servlet.ServletException;
 import org.ecocean.api.BaseObject;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.MarkedIndividual;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
@@ -730,6 +731,87 @@ class ApiPatchTest {
                     verify(mockResponse).setStatus(200);
                     assertTrue(jout.getBoolean("success"));
                     assertEquals(enc.getInformOthers().size(), 0);
+                }
+            }
+        }
+    }
+
+    // this is basically impossible to fail as it only finds existing indiv
+    // or will just create a new one
+    @Test void apiIndividualAddExistingSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String indivId = "existing-indiv-id";
+        MarkedIndividual indiv = mock(MarkedIndividual.class);
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("add", "individualId", indivId).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getMarkedIndividual(indivId)).thenReturn(indiv);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals(indiv, enc.getIndividual());
+                }
+            }
+        }
+    }
+
+    // no real failure case here either, as it just silently ignores no indiv
+    @Test void apiIndividualRemoveExistingSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        MarkedIndividual indiv = mock(MarkedIndividual.class);
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        enc.setIndividual(indiv);
+        assertTrue(enc.hasMarkedIndividual());
+        String payload = patchPayload("remove", "individualId", null).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertFalse(enc.hasMarkedIndividual());
                 }
             }
         }
