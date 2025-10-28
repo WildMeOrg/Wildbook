@@ -639,5 +639,6 @@
   "CONFIGURE_SESSIONS_FOR_EXPORT": "Configurer les sessions pour l’exportation",
   "GIS_DATA": "Données SIG",
   "ENCOUNTER_ANNOTATION": "Annotation de rencontre",
-  "THIS_ENCOUNTER": "Cette rencontre"
+  "THIS_ENCOUNTER": "Cette rencontre",
+  "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Cliquez sur l’annotation pour voir les résultats de correspondance"
 }
