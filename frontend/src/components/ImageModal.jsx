@@ -13,6 +13,7 @@ import { FormattedMessage } from "react-intl";
 import MainButton from "../components/MainButton";
 import ThemeColorContext from "../ThemeColorProvider";
 import { useIntl } from "react-intl";
+import Tooltip from "../components/ToolTip";
 
 export const ImageModal = observer(
   ({
@@ -86,6 +87,18 @@ export const ImageModal = observer(
       setScaleX(naturalWidth / displayWidth);
       setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
+    const boxRef = React.useRef(null);
+    const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
+    const handleMove = (e) => {
+      const el = boxRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const relX = e.clientX - r.left;
+      const relY = e.clientY - r.top;
+      setTip((s) => ({ ...s, x: relX / zoom, y: relY / zoom }));
+    };
+    const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
+    const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
 
     return (
       <div
@@ -104,7 +117,7 @@ export const ImageModal = observer(
         <div
           id="image-modal-content"
           className="container-fluid h-100 d-flex flex-column"
-          style={{ minHeight: 0 }}
+          style={{ minHeight: 0, padding: 0 }}
         >
           <div
             id="image-modal-body"
@@ -213,12 +226,7 @@ export const ImageModal = observer(
                     </svg>
                   </button>
                 </div>
-
-                {/* <div className="ms-auto d-flex gap-2 me-2">
-                  <button className="btn btn-sm" onClick={onClose}>Close</button>
-                </div> */}
               </div>
-
               <div
                 id="image-modal-image"
                 className="d-flex justify-content-center position-relative overflow-hidden"
@@ -246,6 +254,7 @@ export const ImageModal = observer(
                   }}
                 >
                   <div
+                    ref={boxRef}
                     style={{
                       transform: `scale(${zoom})`,
                       transformOrigin: "center center",
@@ -276,7 +285,9 @@ export const ImageModal = observer(
                         setScaleY((assets[safeIndex]?.height || ih) / ih);
                       }}
                     />
-
+                    <Tooltip show={tip.show} x={tip.x} y={tip.y}>
+                      {tip.text}
+                    </Tooltip>
                     {imageStore.showAnnotations &&
                       rects.length > 0 &&
                       rects.map((rect, index) => {
@@ -315,6 +326,13 @@ export const ImageModal = observer(
                         return (
                           <div
                             key={index}
+                            onMouseEnter={() =>
+                              handleEnter(
+                                `${newRect.encounterId === imageStore.encounterData.id ? `${intl.formatMessage({ id: "THIS_ENCOUNTER" })}` : `encounter ${newRect.encounterId}`}\nViewpoint: ${newRect.viewpoint}\nIA Class: ${newRect.iaClass}`,
+                              )
+                            }
+                            onMouseMove={handleMove}
+                            onMouseLeave={handleLeave}
                             className="position-absolute"
                             onClick={() => {
                               imageStore.setSelectedAnnotationId(
@@ -332,10 +350,98 @@ export const ImageModal = observer(
                               backgroundColor:
                                 rect.annotationId ===
                                 imageStore.selectedAnnotationId
-                                  ? "rgba(240, 11, 11, 0.5)"
+                                  ? "rgba(240, 11, 11, 0.2)"
                                   : "transparent",
                             }}
-                          />
+                          >
+                            <div
+                              className="d-flex flex-column"
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                right: 0,
+                                zIndex: 20,
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div
+                                className="d-flex align-items-center justify-content-center"
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  backgroundColor: "red",
+                                  cursor: "pointer",
+                                  color: "white",
+                                }}
+                                onClick={() => {
+                                  if (
+                                    !imageStore.encounterData?.mediaAssets[
+                                      imageStore.selectedImageIndex
+                                    ] ||
+                                    !annotationParam ||
+                                    !assets[index]?.id
+                                  ) {
+                                    return;
+                                  }
+                                  window.open(
+                                    `/react/edit-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.annotationId}`,
+                                    "_blank",
+                                  );
+                                }}
+                              >
+                                <svg
+                                  width="20"
+                                  height="20"
+                                  viewBox="0 0 20 20"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M2.49896 17.501H5.62396L14.8406 8.28438L11.7156 5.15938L2.49896 14.376V17.501ZM4.16563 15.0677L11.7156 7.51771L12.4823 8.28438L4.9323 15.8344H4.16563V15.0677Z"
+                                    fill="white"
+                                  />
+                                  <path
+                                    d="M15.3073 2.74271C14.9823 2.41771 14.4573 2.41771 14.1323 2.74271L12.6073 4.26771L15.7323 7.39271L17.2573 5.86771C17.5823 5.54271 17.5823 5.01771 17.2573 4.69271L15.3073 2.74271Z"
+                                    fill="white"
+                                  />
+                                </svg>
+                              </div>
+                              <div
+                                className="d-flex align-items-center justify-content-center"
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  backgroundColor: "red",
+                                  cursor: "pointer",
+                                  color: "white",
+                                }}
+                                onClick={async () => {
+                                  if (
+                                    window.confirm(deleteAnnotationConfirmMsg)
+                                  ) {
+                                    await imageStore.removeAnnotation(
+                                      currentAnnotation?.annotationId,
+                                    );
+                                    imageStore.setSelectedAnnotationId(null);
+                                    imageStore.refreshEncounterData();
+                                  }
+                                }}
+                              >
+                                <svg
+                                  width="12"
+                                  height="16"
+                                  viewBox="0 0 12 16"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M9.33335 5.5V13.8333H2.66669V5.5H9.33335ZM8.08335 0.5H3.91669L3.08335 1.33333H0.166687V3H11.8334V1.33333H8.91669L8.08335 0.5ZM11 3.83333H1.00002V13.8333C1.00002 14.75 1.75002 15.5 2.66669 15.5H9.33335C10.25 15.5 11 14.75 11 13.8333V3.83333Z"
+                                    fill="white"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
                         );
                       })}
                   </div>
@@ -395,13 +501,8 @@ export const ImageModal = observer(
 
             <aside
               id="image-modal-right"
-              className="bg-white text-black ps-3 pe-3 pt-2"
-              style={{
-                flex: "0 0 360px",
-                minHeight: 0,
-                overflowY: "auto",
-                overflowX: "auto",
-              }}
+              className="bg-white text-black ps-3 pe-3 pt-2 d-flex flex-column h-100"
+              style={{ flex: "0 0 360px", minHeight: 0 }}
             >
               <div className="d-flex align-items-center gap-2 mb-2">
                 {a.url ? (
@@ -411,7 +512,7 @@ export const ImageModal = observer(
                     className="rounded-circle"
                     width={36}
                     height={36}
-                    style={{ objectFit: "cover", overFlow: "hidden" }}
+                    style={{ objectFit: "cover", overflow: "hidden" }}
                   />
                 ) : (
                   <div
@@ -651,7 +752,7 @@ export const ImageModal = observer(
                           style={{
                             cursor: "pointer",
                             backgroundColor:
-                              imageStore.setSelectedLabeledKeyword &&
+                              imageStore.selectedLabeledKeyword &&
                               imageStore.selectedAllowedValues
                                 ? themeColor?.wildMeColors?.cyan700
                                 : "lightgray",
@@ -661,7 +762,7 @@ export const ImageModal = observer(
                           }}
                           onClick={async () => {
                             if (
-                              imageStore.setSelectedLabeledKeyword &&
+                              imageStore.selectedLabeledKeyword &&
                               imageStore.selectedAllowedValues
                             ) {
                               const result = await addExistingLabeledKeyword(
@@ -720,7 +821,22 @@ export const ImageModal = observer(
                 </dd>
               </dl>
 
-              <div className="d-grid gap-2">
+              <div className="d-grid mt-auto pt-2 pb-3">
+                <div
+                  className="alert alert-warning mb-2 d-flex align-items-start gap-2"
+                  role="alert"
+                >
+                  <i
+                    className="bi bi-exclamation-triangle"
+                    aria-hidden="true"
+                  />
+                  <span>
+                    <FormattedMessage
+                      id="CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS"
+                      defaultMessage="Click on an annotation to view its match results."
+                    />
+                  </span>
+                </div>
                 <MainButton
                   noArrow={true}
                   color="white"
@@ -734,11 +850,17 @@ export const ImageModal = observer(
                     )?.[0]?.iaTaskId;
                     window.open(`/iaResults.jsp?taskId=${taskId}`, "_blank");
                   }}
+                  style={{
+                    margin: "5px 0",
+                  }}
                 >
                   <FormattedMessage id="MATCH_RESULTS" />
                 </MainButton>
 
                 <MainButton
+                  style={{
+                    margin: "5px 0",
+                  }}
                   noArrow={true}
                   color="white"
                   backgroundColor={themeColor?.wildMeColors?.cyan700}
@@ -765,6 +887,9 @@ export const ImageModal = observer(
                 </MainButton>
 
                 <MainButton
+                  style={{
+                    margin: "5px 0",
+                  }}
                   noArrow={true}
                   color="white"
                   backgroundColor={themeColor?.wildMeColors?.cyan700}
@@ -785,6 +910,9 @@ export const ImageModal = observer(
                 </MainButton>
 
                 <MainButton
+                  style={{
+                    margin: "5px 0",
+                  }}
                   noArrow={true}
                   backgroundColor="white"
                   color={themeColor?.wildMeColors?.cyan700}
@@ -806,7 +934,10 @@ export const ImageModal = observer(
                 >
                   <FormattedMessage id="ADD_ANNOTATION" />
                 </MainButton>
-                <MainButton
+                {/* <MainButton
+                style={{
+                    margin: "1rem 0",
+                  }}
                   noArrow={true}
                   disabled={!currentAnnotation?.annotationId}
                   backgroundColor="white"
@@ -832,6 +963,9 @@ export const ImageModal = observer(
                   <FormattedMessage id="EDIT_ANNOTATION" />
                 </MainButton>
                 <MainButton
+                style={{
+                    margin: "1rem 0",
+                  }}
                   noArrow={true}
                   backgroundColor="white"
                   disabled={!currentAnnotation?.annotationId}
@@ -850,7 +984,7 @@ export const ImageModal = observer(
                   }}
                 >
                   <FormattedMessage id="DELETE_ANNOTATION" />
-                </MainButton>
+                </MainButton> */}
                 <h5 className="text-danger mt-3">
                   <FormattedMessage id="DANGER_ZONE" />
                 </h5>

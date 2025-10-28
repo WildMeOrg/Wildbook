@@ -641,5 +641,6 @@
   "CONFIGURE_SESSIONS_FOR_EXPORT": "Sitzungen für den Export konfigurieren",
   "GIS_DATA": "GIS-Daten",
   "ENCOUNTER_ANNOTATION": "Begegnungsanmerkung",
-  "THIS_ENCOUNTER": "Diese Begegnung"
+  "THIS_ENCOUNTER": "Diese Begegnung",
+  "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Klicken Sie auf eine Anmerkung, um die Übereinstimmungsergebnisse zu sehen."
 }

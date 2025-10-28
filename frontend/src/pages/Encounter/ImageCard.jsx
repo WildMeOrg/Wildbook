@@ -275,8 +275,8 @@ const ImageCard = observer(({ store = {} }) => {
                       <div
                         className="d-flex align-items-center justify-content-center"
                         style={{
-                          width: "18px",
-                          height: "18px",
+                          width: "20px",
+                          height: "20px",
                           backgroundColor: "red",
                           cursor: "pointer",
                           color: "white",
@@ -320,8 +320,8 @@ const ImageCard = observer(({ store = {} }) => {
                       <div
                         className="d-flex align-items-center justify-content-center"
                         style={{
-                          width: "18px",
-                          height: "18px",
+                          width: "20px",
+                          height: "20px",
                           backgroundColor: "red",
                           cursor: "pointer",
                           color: "white",

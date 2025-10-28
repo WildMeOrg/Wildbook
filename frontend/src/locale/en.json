@@ -640,5 +640,6 @@
     "CONFIGURE_SESSIONS_FOR_EXPORT": "Configure Sessions for Export",
     "GIS_DATA": "GIS Data",
     "ENCOUNTER_ANNOTATION": "Encounter Annotation",
-    "THIS_ENCOUNTER": "This Encounter"
+    "THIS_ENCOUNTER": "This Encounter",
+    "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Click on an annotation to view match results"
 }
