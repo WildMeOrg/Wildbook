@@ -331,7 +331,7 @@ h4.intro.accordion .rotate-chevron.down {
 			%>
 			<p><strong>Matching criteria selected:</strong></p>
 			<p>Data owner: <% for (String dataOwner: dataOwners) { %>[<%= dataOwner %>] <% } %></p>
-			<p>
+			<p class="location-display">
 				Location ID(s):
 					<% for (String locationId: locationIds.size() > 3 ? locationIds.subList(0, 3) : locationIds) { %>
 						[<%= locationId %>] 
@@ -346,7 +346,9 @@ h4.intro.accordion .rotate-chevron.down {
 
 			<div class="ia-match-filter-dialog">
 				<h2>Location ID(s)</h2>
-				<p><% for (String locationId: locationIds) { %>[<%= locationId %>] <% } %></p>
+				<p id="dialog-location-content">
+					<% for (String locationId: locationIds) { %>[<%= locationId %>] <% } %>
+				</p>
 
 				<div class="ia-match-filter-section">
 					<input type="button" value="Okay" onClick="$('.ia-match-filter-dialog').hide()" />
@@ -547,6 +549,68 @@ function tryTaskId(tid) {
 function getCachedTask(tid) {
     return tasks[tid];
 }
+
+function updateLocationInfoFromTasks() {
+    console.log("DEBUG: Updating location info from tasks object");
+    console.log("DEBUG: tasks object =", tasks);
+    
+    var locationIds = [];
+    
+    // Check all tasks for matchingSetFilter
+    for (var taskId in tasks) {
+        var task = tasks[taskId];
+        console.log("DEBUG: Checking task " + taskId + ":", task);
+        
+        if (task && task.parameters && task.parameters.matchingSetFilter) {
+            var matchingSetFilter = task.parameters.matchingSetFilter;
+            console.log("DEBUG: Found matchingSetFilter in task " + taskId + ":", matchingSetFilter);
+            
+            // Check for locationId
+            if (matchingSetFilter.locationId) {
+                console.log("DEBUG: Found locationId:", matchingSetFilter.locationId);
+                locationIds.push(matchingSetFilter.locationId);
+            }
+            
+            // Check for locationIds array
+            if (matchingSetFilter.locationIds && Array.isArray(matchingSetFilter.locationIds)) {
+                console.log("DEBUG: Found locationIds array:", matchingSetFilter.locationIds);
+                locationIds = locationIds.concat(matchingSetFilter.locationIds);
+            }
+        }
+    }
+    
+    // Remove duplicates
+    var uniqueLocationIds = [...new Set(locationIds)];
+    console.log("DEBUG: Final locationIds (after removing duplicates):", uniqueLocationIds);
+    
+    // Update the page display
+    if (uniqueLocationIds.length > 0) {
+        // Show only first 3 locations in main display
+        var displayLocations = uniqueLocationIds.slice(0, 3);
+        var locationDisplay = displayLocations.map(function(id) { 
+            return '[' + id + ']'; 
+        }).join(' ');
+        
+        var html = 'Location ID(s): ' + locationDisplay;
+        
+        // Add "show more" link if there are more than 3
+        if (uniqueLocationIds.length > 3) {
+            html += ' <a href="#" onClick="event.preventDefault(); $(\'.ia-match-filter-dialog\').show();">[+' + (uniqueLocationIds.length - 3) + ' more]</a>';
+        }
+        
+        $('.location-display').html(html);
+        
+        // Update dialog content with all location IDs
+        var dialogContent = uniqueLocationIds.map(function(id) { 
+            return '[' + id + ']'; 
+        }).join(' ');
+        $('#dialog-location-content').html(dialogContent);
+    } else {
+        $('.location-display').html('Location ID(s): [No location filters applied]');
+        $('#dialog-location-content').html('[No location filters applied]');
+    }
+}
+
 function cacheTaskAndChildren(task) {
     if (!task || !task.id || tasks[task.id]) return;
     tasks[task.id] = task;
@@ -559,6 +623,9 @@ function cacheTaskAndChildren(task) {
 function processTask(task) {
     //first we populate tasks hash (for use later via getCachedTask()
     cacheTaskAndChildren(task);
+
+    // Extract location information from tasks and update the page
+    updateLocationInfoFromTasks();
 
     //now we get the DOM element
     //  note: this recurses, so our "one" element should have nested children element for child task(s)
