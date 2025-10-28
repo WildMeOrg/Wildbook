@@ -1,0 +1,200 @@
+# Tempo configuration for single-binary mode (development)
+# This configuration runs all Tempo services in a single process
+
+# Server configuration
+server:
+  http_listen_port: 3200
+  log_level: info
+
+# Distributor - receives spans from clients
+distributor:
+  receivers:
+    # Jaeger receiver configuration
+    jaeger:
+      protocols:
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+        grpc:
+          endpoint: 0.0.0.0:14250
+        thrift_binary:
+          endpoint: 0.0.0.0:6831
+        thrift_compact:
+          endpoint: 0.0.0.0:6832
+    
+    # Zipkin receiver
+    zipkin:
+      endpoint: 0.0.0.0:9411
+    
+    # OpenTelemetry Protocol receiver
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    
+    # OpenCensus receiver (optional)
+    opencensus:
+      endpoint: 0.0.0.0:55678
+
+# Ingester configuration
+ingester:
+  # Time to wait before considering a trace complete
+  trace_idle_period: 10s
+  # Maximum size of a head block before cutting it
+  max_block_bytes: 1_000_000
+  # Maximum duration of a head block before cutting it
+  max_block_duration: 5m
+  # Complete block configuration
+  complete_block_timeout: 15m
+
+# Compactor configuration
+compactor:
+  compaction:
+    # Time window for compacting blocks together
+    compaction_window: 1h
+    # Maximum size of compacted blocks
+    max_block_bytes: 100_000_000
+    # How long to keep blocks
+    block_retention: 24h
+    # How long to keep compacted blocks
+    compacted_block_retention: 1h
+
+# Metrics generator configuration (optional - creates metrics from traces)
+metrics_generator:
+  # Registry configuration for Prometheus metrics
+  registry:
+    collection_interval: 5s
+    external_labels:
+      source: tempo
+      cluster: docker-compose
+  
+  # Storage configuration for metrics generator
+  storage:
+    path: /var/tempo/generator/wal
+    # Uncomment to enable remote write to Prometheus
+    # remote_write:
+    #   - url: http://prometheus:9090/api/v1/write
+    #     send_exemplars: true
+  
+  # Processor configuration
+  processor:
+    # Service graphs processor
+    service_graphs:
+      # Enable service graph metrics
+      dimensions:
+        - service.name
+        - service.namespace
+        - service.version
+      # Histogram buckets for latency
+      histogram_buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+    
+    # Span metrics processor
+    span_metrics:
+      # Dimensions to extract from spans
+      dimensions:
+        - service.name
+        - span.name
+        - span.kind
+        - status.code
+      # Histogram buckets for duration
+      histogram_buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.024, 2.048, 4.096]
+
+# Storage configuration
+storage:
+  trace:
+    # Backend type - local for development
+    backend: local
+    
+    # Write Ahead Log configuration
+    wal:
+      path: /var/tempo/wal
+      
+    # Local storage configuration
+    local:
+      path: /var/tempo/blocks
+    
+    # Block configuration
+    block:
+      # Bloom filter false positive rate
+      bloom_filter_false_positive: 0.05
+      # Index downsample ratio
+      index_downsample_bytes: 1000
+      # Encoding type
+      encoding: zstd
+    
+    # Pool configuration for querying
+    pool:
+      max_workers: 100
+      queue_depth: 10000
+
+# Querier configuration
+querier:
+  # Max concurrent queries
+  max_concurrent_queries: 20
+  # Search configuration
+  search:
+    # Query timeout
+    query_timeout: 30s
+    # Prefer self for queries (since this is single-binary)
+    prefer_self: 10
+    # External endpoints (not needed for single-binary)
+    external_endpoints: []
+  
+  # Frontend worker configuration (not used in single-binary)
+  frontend_worker:
+    frontend_address: 127.0.0.1:9095
+
+# Query frontend configuration
+query_frontend:
+  # Search configuration
+  search:
+    # Maximum duration for searches
+    max_duration: 0
+    # Default result limit
+    default_result_limit: 20
+    # Maximum result limit
+    max_result_limit: 0
+    # Concurrent jobs
+    concurrent_jobs: 1000
+  
+  # Trace by ID configuration
+  trace_by_id:
+    # Query shards
+    query_shards: 50
+
+# Overrides for per-tenant limits
+overrides:
+  defaults:
+    # Ingestion limits
+    ingestion:
+      # Rate limit (bytes per second) - 0 = unlimited
+      rate_limit_bytes: 15000000
+      # Burst size (bytes)
+      burst_size_bytes: 20000000
+      # Maximum traces per user
+      max_traces_per_user: 10000
+    
+    # Maximum bytes per trace
+    max_bytes_per_trace: 50000000
+    
+    # Maximum search duration
+    max_search_duration: 0
+    
+    # Block retention (can be overridden per tenant)
+    block_retention: 24h
+    
+    # Metrics generator configuration
+    metrics_generator:
+      # Processors to enable
+      processors: [service-graphs, span-metrics]
+      # Maximum active series
+      max_active_series: 100000
+      # Collection interval
+      collection_interval: 5s
+      # Disable collection (set to true to disable)
+      disable_collection: false
+
+# Additional configuration for observability
+usage_report:
+  reporting_enabled: false

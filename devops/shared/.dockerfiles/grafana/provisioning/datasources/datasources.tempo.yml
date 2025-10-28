@@ -1,0 +1,105 @@
+# Grafana datasources configuration including Tempo
+apiVersion: 1
+
+# Remove any existing datasources with these names to avoid conflicts
+deleteDatasources:
+  - name: Loki
+  - name: Tempo
+  - name: Prometheus
+
+datasources:
+  # ============================================
+  # Loki - Log Aggregation
+  # ============================================
+  - name: Loki
+    type: loki
+    access: proxy
+    orgId: 1
+    url: http://loki:3100
+    basicAuth: false
+    isDefault: true
+    version: 1
+    editable: true
+    jsonData:
+      # Maximum lines to return
+      maxLines: 1000
+      # Timeout for queries
+      timeout: 60
+      # Derived fields for trace correlation
+      derivedFields:
+        - name: TraceID
+          matcherRegex: '"trace_id":"([^"]+)"'
+          url: '$${__value.raw}'
+          datasourceUid: tempo
+        - name: TraceID-otel
+          matcherRegex: 'trace_id=(\w+)'
+          url: '$${__value.raw}'
+          datasourceUid: tempo
+
+  # ============================================
+  # Tempo - Distributed Tracing
+  # ============================================
+  - name: Tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    uid: tempo
+    url: http://tempo:3200
+    basicAuth: false
+    isDefault: false
+    version: 1
+    editable: true
+    jsonData:
+      # Enable Node Graph
+      nodeGraph:
+        enabled: true
+      # Enable search
+      search:
+        hide: false
+      # Enable Loki search for trace to logs
+      lokiSearch:
+        datasourceUid: loki
+      # Enable trace to logs
+      tracesToLogs:
+        datasourceUid: loki
+        # Map trace ID to log query
+        mapTagNamesEnabled: true
+        mappedTags:
+          - key: service.name
+            value: service
+        filterByTraceID: true
+        filterBySpanID: false
+        lokiSearch: true
+      # Enable service graph
+      serviceMap:
+        datasourceUid: prometheus
+      # Span bar settings
+      spanBar:
+        type: "Tag"
+        tag: "http.status_code"
+
+  # ============================================
+  # Prometheus - Metrics (Optional - for exemplars)
+  # ============================================
+  # Uncomment if you enable Prometheus in docker-compose
+  # - name: Prometheus
+  #   type: prometheus
+  #   access: proxy
+  #   orgId: 1
+  #   uid: prometheus
+  #   url: http://prometheus:9090
+  #   basicAuth: false
+  #   isDefault: false
+  #   version: 1
+  #   editable: true
+  #   jsonData:
+  #     # HTTP method to use for queries
+  #     httpMethod: POST
+  #     # Enable exemplar support
+  #     exemplarTraceIdDestinations:
+  #       - name: trace_id
+  #         datasourceUid: tempo
+  #     # Timeout for queries
+  #     timeout: 60
+  #     # Custom query parameters
+  #     customQueryParameters: ""

@@ -1,4 +1,4 @@
-# Development observability stack
+# Development observability stack with Tempo for distributed tracing
 services:
   # ============================================
   # LOKI - Log Aggregation
@@ -17,6 +17,31 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # TEMPO - Distributed Tracing
+  # ============================================
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo-dev
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - .dockerfiles/tempo/tempo.yaml:/etc/tempo.yaml
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo API
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "14268:14268" # Jaeger ingest (Thrift HTTP)
+      - "9411:9411"   # Zipkin
+    networks:
+      - observability-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3200/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,6 +66,8 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       # Enable explore by default
       - GF_EXPLORE_ENABLED=true
+      # Enable correlation features
+      - GF_FEATURE_TOGGLES_ENABLE=traceToLogs,traceToMetrics,correlations
     volumes:
       - grafana-data:/var/lib/grafana
       - .dockerfiles/grafana/provisioning:/etc/grafana/provisioning
@@ -49,12 +76,34 @@ services:
     depends_on:
       loki:
         condition: service_healthy
+      tempo:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ============================================
+  # Optional: Prometheus for Metrics (if needed for exemplars)
+  # ============================================
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus-dev
+  #   command:
+  #     - --config.file=/etc/prometheus.yaml
+  #     - --web.enable-remote-write-receiver
+  #     - --enable-feature=exemplar-storage
+  #     - --enable-feature=native-histograms
+  #   volumes:
+  #     - .dockerfiles/prometheus/prometheus.yaml:/etc/prometheus.yaml
+  #     - prometheus-data:/prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - observability-network
+  #   restart: unless-stopped
 
 networks:
   observability-network:
@@ -64,5 +113,9 @@ networks:
 volumes:
   loki-data:
     name: loki-dev-data
+  tempo-data:
+    name: tempo-dev-data
   grafana-data:
     name: grafana-dev-data
+  # prometheus-data:
+  #   name: prometheus-dev-data
