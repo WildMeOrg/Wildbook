@@ -9,39 +9,42 @@ import {
 } from "recharts";
 import { FormattedMessage } from "react-intl";
 
-function generateHslColors(count) {
-  return Array.from({ length: count }, (_, i) => {
-    const hue = (215 + (i * 360) / count) % 360; // Start from blue color
-    return `hsl(${hue}, 70%, 50%)`;
-  });
-}
+const PALETTE = ["#99D7FF", "#00A70B", "#0B619E"];
 
 export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
   const colors = React.useMemo(
-    () => generateHslColors(data.length),
-    [data.length],
+    () => data.map((_, i) => PALETTE[i % PALETTE.length]),
+    [data],
   );
 
+  const legendPayload = React.useMemo(
+    () =>
+      data.map((d, i) => ({
+        id: String(d?.name ?? i),
+        value: String(d?.name ?? i),
+        type: "circle",
+        color: colors[i],
+      })),
+    [data, colors],
+  );
 
   if (!data || data.length === 0) {
     return (
-      <div style={{ width: '100%', height: 300 }}>
-        <p><FormattedMessage id={title} /></p>
+      <div style={{ width: "100%", height: 300 }}>
+        <p>
+          <FormattedMessage id={title} />
+        </p>
         <p>No data available</p>
       </div>
     );
-  }  
+  }
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "450px",
-      }}
-    >
-      <p><FormattedMessage id={title} /></p>
+    <div style={{ width: "100%", height: "450px" }}>
+      <p>
+        <FormattedMessage id={title} />
+      </p>
       <ResponsiveContainer width="100%" height="100%">
-
         <PieChart margin={{ top: 0, right: 0, bottom: 80, left: 0 }}>
           <Pie
             data={data}
@@ -55,7 +58,7 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
             label={({ percent }) => `${(percent * 100).toFixed(2)}%`}
           >
             {data.map((entry, idx) => (
-              <Cell key={entry.name} fill={colors[idx]} />
+              <Cell key={entry?.name ?? idx} fill={colors[idx]} />
             ))}
           </Pie>
 
@@ -71,6 +74,7 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
           />
 
           <Legend
+            payload={legendPayload}
             layout="horizontal"
             verticalAlign="bottom"
             align="center"

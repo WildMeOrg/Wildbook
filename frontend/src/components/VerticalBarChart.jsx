@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -8,31 +8,37 @@ import {
   Tooltip,
   CartesianGrid,
   LabelList,
-} from 'recharts';
-import { FormattedMessage } from 'react-intl';
+} from "recharts";
+import { FormattedMessage } from "react-intl";
 
 export default function HorizontalBarChart({
   data = [],
   title = "VERTICAL_BAR_CHART",
 }) {
   const total = React.useMemo(
-    () => data.length ? data.reduce((sum, item) => sum + item.value, 0) : 0,
-    [data]
+    () => (data.length ? data.reduce((sum, item) => sum + item.value, 0) : 0),
+    [data],
   );
 
   if (!data || data.length === 0) {
     return (
-      <div style={{ width: '100%', height: 300 }}>
-        <p><FormattedMessage id={title} /></p>
+      <div style={{ width: "100%", height: 300 }}>
+        <p>
+          <FormattedMessage id={title} />
+        </p>
         <p>No data available</p>
       </div>
     );
   }
 
   return (
-    <div className="horizontal-bar-chart my-3"
-      style={{ width: '100%', height: 400 }}>
-      <p><FormattedMessage id={title} /></p>
+    <div
+      className="horizontal-bar-chart"
+      style={{ width: "100%", height: 400 }}
+    >
+      <p>
+        <FormattedMessage id={title} />
+      </p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={data}
@@ -56,14 +62,19 @@ export default function HorizontalBarChart({
             axisLine={false}
           />
           <Tooltip
-            formatter={v => v}
-            cursor={{ fill: 'rgba(255,255,255,0.1)' }}
+            formatter={(value, _name, { payload }) => [value, payload.name]}
+            cursor={{ fill: "rgba(255,255,255,0.1)" }}
           />
-          <Bar dataKey="value" fill="#74c0fc" barSize={20} radius={[0, 10, 10, 0]}>
+          <Bar
+            dataKey="value"
+            fill="#74c0fc"
+            barSize={20}
+            radius={[0, 10, 10, 0]}
+          >
             <LabelList
-              dataKey="value"
+              dataKey={"value"}
               position="right"
-              formatter={v => `${(v / total * 100).toFixed(2)}%`}
+              formatter={(v) => `${((v / total) * 100).toFixed(2)}%`}
               fill="#fff"
               fontSize={12}
             />

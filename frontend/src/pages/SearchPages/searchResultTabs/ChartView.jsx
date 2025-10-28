@@ -4,7 +4,6 @@ import VerticalBarChart from "../../../components/VerticalBarChart";
 import Piechart from "../../../components/Piechart";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
-import { Row, Col } from "react-bootstrap";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import {
   buildMeasurementStats,
@@ -20,7 +19,7 @@ import {
   accumulateContributors,
 } from "../buildChartsFunctions";
 
-const Wrapper = ({ children }) => {
+const Wrapper = ({ style, children }) => {
   return (
     <div
       className="my-3"
@@ -31,7 +30,8 @@ const Wrapper = ({ children }) => {
         WebkitBackdropFilter: "blur(2px)",
         color: "white",
         position: "relative",
-        borderRadius: "8px",
+        borderRadius: "20px",
+        ...style,
       }}
     >
       {children}
@@ -146,7 +146,10 @@ const ChartView = observer(({ store }) => {
     >
       {store.loadingAll && <FullScreenLoader />}
 
-      <div className="d-flex flex-row justify-content-between gap-3">
+      <div
+        className="d-grid"
+        style={{ gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
+      >
         <Wrapper>
           <>
             <h3 className="mb-2">
@@ -181,7 +184,7 @@ const ChartView = observer(({ store }) => {
                 <div className="mt-4">
                   <h4 className="mb-2">Biochemical Measurements</h4>
                   {bioMeasurementStats.map((row) => (
-                    <div key={row.type} className="mb-4">
+                    <div key={row.type} className="mb-2">
                       <p>{`Mean ${row.type}  ${fmt(row.overall, row.units)}`}</p>
                       <ul style={{ marginLeft: "1.2rem" }}>
                         <li>{`Mean for males: ${fmt(row.males, row.units)}`}</li>
@@ -198,124 +201,87 @@ const ChartView = observer(({ store }) => {
         </Wrapper>
         <Wrapper>
           <div>
-            {measurementStats.length > 0 && (
-              <div className="mt-4">
-                <h4 className="mb-2">
-                  <FormattedMessage id="MEASUREMENTS" />
-                </h4>
-                {measurementStats.map((row) => (
-                  <div key={row.type} className="mb-4">
+            <h4 className="mb-2">
+              <FormattedMessage id="MEASUREMENTS" />
+            </h4>
+            {measurementStats.length
+              ? measurementStats.map((row) => (
+                  <div key={row.type} className="mb-2">
                     <p>{`Mean ${row.type}  ${fmt(row.overall, row.units)}`}</p>
                     <ul style={{ marginLeft: "1.2rem" }}>
                       <li>{`Mean for males: ${fmt(row.males, row.units)}`}</li>
                       <li>{`Mean for females: ${fmt(row.females, row.units)}`}</li>
                     </ul>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              : "no measurements data found"}
           </div>
         </Wrapper>
       </div>
-      <Wrapper>
-        <Row className="g-4">
-          <Col xs={12} md={6}>
-            <Piechart title="STATE_DISTRIBUTION" data={stateDistributionData} />
-          </Col>
-          <Col xs={12} md={6}>
-            <Piechart
-              title="USER_TYPE_DISTRIBUTION"
-              data={userTypeDistributionData}
-            />
-          </Col>
-        </Row>
+      <div
+        className="d-grid"
+        style={{ gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
+      >
+        <Wrapper>
+          <Piechart title="STATE_DISTRIBUTION" data={stateDistributionData} />
+        </Wrapper>
+        <Wrapper>
+          <Piechart
+            title="USER_TYPE_DISTRIBUTION"
+            data={userTypeDistributionData}
+          />
+        </Wrapper>
+      </div>
+      <Wrapper style={{ marginBottom: "2rem" }}>
+        <VerticalBarChart
+          title="SEARCH_RESULTS_COUNTRY_DISTRIBUTION"
+          data={countryDistributionData}
+        />
+      </Wrapper>
+      <Wrapper style={{ marginBottom: "2rem" }}>
+        <Piechart
+          title="SEARCH_RESULTS_SEX_DISTRIBUTION"
+          data={sexDistributionData}
+        />
+      </Wrapper>
+      <Wrapper style={{ marginBottom: "2rem" }}>
+        <VerticalBarChart
+          title="SEARCH_RESULTS_ASSIGNED_USER_DISTRIBUTION"
+          data={speciesDistributionData}
+        />
+      </Wrapper>
+      <Wrapper style={{ marginBottom: "2rem" }}>
+        <VerticalBarChart
+          title="SEARCH_RESULTS_SPECIES_DISTRIBUTION"
+          data={assignedUserDistributionData}
+        />
+      </Wrapper>
+      <Wrapper style={{ marginBottom: "2rem" }}>
+        <HorizontalBarChart
+          title="WEEKELY_ENCOUNTER_DATES"
+          data={weeklyEncounterDates}
+        />
+      </Wrapper>
+      <Wrapper style={{ marginBottom: "2rem" }}>
+        <HorizontalBarChart
+          title="ENCOUNTER_BY_YEAR_SUBMITTED"
+          data={yearSubmissionData}
+        />
       </Wrapper>
       <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <VerticalBarChart
-              title="SEARCH_RESULTS_COUNTRY_DISTRIBUTION"
-              data={countryDistributionData}
-            />
-          </Col>
-        </Row>
+        <HorizontalBarChart
+          title="CURVE_MARKED_INDIVIDUALS_DISCOVERED"
+          data={discoveryBars}
+        />
+      </Wrapper>
+      <Wrapper style={{ marginBottom: "2rem" }}>
+        <HorizontalBarChart
+          title="OVERALL_TOTALS_BY_YEAR"
+          data={yearlyCumulativeHumanTotals}
+        />
       </Wrapper>
       <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <Piechart
-              title="SEARCH_RESULTS_SEX_DISTRIBUTION"
-              data={sexDistributionData}
-            />
-          </Col>
-        </Row>
-      </Wrapper>
-      <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <VerticalBarChart
-              title="SEARCH_RESULTS_ASSIGNED_USER_DISTRIBUTION"
-              data={speciesDistributionData}
-            />
-          </Col>
-        </Row>
-      </Wrapper>
-      <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <VerticalBarChart
-              title="SEARCH_RESULTS_SPECIES_DISTRIBUTION"
-              data={assignedUserDistributionData}
-            />
-          </Col>
-        </Row>
-      </Wrapper>
-      <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <HorizontalBarChart
-              title="WEEKELY_ENCOUNTER_DATES"
-              data={weeklyEncounterDates}
-            />
-          </Col>
-        </Row>
-      </Wrapper>
-      <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <HorizontalBarChart
-              title="ENCOUNTER_BY_YEAR_SUBMITTED"
-              data={yearSubmissionData}
-            />
-          </Col>
-        </Row>
-      </Wrapper>
-      <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <HorizontalBarChart
-              title="CURVE_MARKED_INDIVIDUALS_DISCOVERED"
-              data={discoveryBars}
-            />
-          </Col>
-        </Row>
-      </Wrapper>
-      <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <HorizontalBarChart
-              title="OVERALL_TOTALS_BY_YEAR"
-              data={yearlyCumulativeHumanTotals}
-            />
-          </Col>
-        </Row>
-      </Wrapper>
-      <Wrapper>
-        <Row className="g-4 my-3">
-          <Col xs={12}>
-            <HorizontalBarChart title="TOP_TEN_TAGGERS" data={topTaggers} />
-          </Col>
-        </Row>
+        <HorizontalBarChart title="TOP_TEN_TAGGERS" data={topTaggers} />
       </Wrapper>
     </div>
   );
