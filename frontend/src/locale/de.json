@@ -642,5 +642,7 @@
   "GIS_DATA": "GIS-Daten",
   "ENCOUNTER_ANNOTATION": "Begegnungsanmerkung",
   "THIS_ENCOUNTER": "Diese Begegnung",
-  "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Klicken Sie auf eine Anmerkung, um die Übereinstimmungsergebnisse zu sehen."
+  "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Klicken Sie auf eine Anmerkung, um die Übereinstimmungsergebnisse zu sehen.",
+  "ADD_TO_PROJECT": "Zum Projekt hinzufügen",
+  "SELECT_PROJECTS" : "Projekte auswählen"
 }

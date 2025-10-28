@@ -641,5 +641,7 @@
   "GIS_DATA": "Dati GIS",
   "ENCOUNTER_ANNOTATION": "Annotazione dell'incontro",
   "THIS_ENCOUNTER": "Questo incontro",
-  "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Clicca sull'annotazione per vedere i risultati della corrispondenza"
+  "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Clicca sull'annotazione per vedere i risultati della corrispondenza",
+  "ADD_TO_PROJECT": "Aggiungi al progetto",
+  "SELECT_PROJECTS": "Seleziona progetti"
 }
