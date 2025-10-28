@@ -644,5 +644,8 @@
   "THIS_ENCOUNTER": "Diese Begegnung",
   "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Klicken Sie auf eine Anmerkung, um die Übereinstimmungsergebnisse zu sehen.",
   "ADD_TO_PROJECT": "Zum Projekt hinzufügen",
-  "SELECT_PROJECTS" : "Projekte auswählen"
+  "SELECT_PROJECTS": "Projekte auswählen",
+  "ADDED_TO_PROJECT": "Begegnungen wurden erfolgreich zu den Projekten hinzugefügt",
+  "FAILED_TO_ADD_TO_PROJECT": "Fehler beim Hinzufügen der Begegnungen zum Projekt, bitte versuche es erneut.",
+  "ADDING_TO_PROJECTS": "Begegnungen werden zu Projekten hinzugefügt..."
 }

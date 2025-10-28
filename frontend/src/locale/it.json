@@ -643,5 +643,8 @@
   "THIS_ENCOUNTER": "Questo incontro",
   "CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS": "Clicca sull'annotazione per vedere i risultati della corrispondenza",
   "ADD_TO_PROJECT": "Aggiungi al progetto",
-  "SELECT_PROJECTS": "Seleziona progetti"
+  "SELECT_PROJECTS": "Seleziona progetti",
+  "ADDED_TO_PROJECT": "Incontri aggiunti con successo ai progetti",
+  "FAILED_TO_ADD_TO_PROJECT": "Impossibile aggiungere gli incontri al progetto, riprova.",
+  "ADDING_TO_PROJECTS": "Aggiunta agli incontri nei progetti in corso..."
 }
