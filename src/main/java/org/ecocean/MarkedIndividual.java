@@ -2590,15 +2590,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
         System.out.println("findByNames regex: " + regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
-        if (NAMES_CACHE == null) return rtn; // snh
+        // if (NAMES_CACHE == null) return rtn; // snh
         if (regex == null) return rtn;
-        List<String> nameIds = findNameIds(regex);
-        if (nameIds.size() > idLimit) {
-            System.out.println(
-                "WARNING: MarkedIndividual.findByNames() found too many names; failing (" +
-                nameIds.size() + " > " + idLimit + ")");
-            return rtn;
-        }
+        List<String> nameIds = findNameIds(myShepherd, regex, genus, specificEpithet);
+        // if (nameIds.size() > idLimit) {
+        //     System.out.println(
+        //         "WARNING: MarkedIndividual.findByNames() found too many names; failing (" +
+        //         nameIds.size() + " > " + idLimit + ")");
+        //     return rtn;
+        // }
         // System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
         // System.out.println("findByNames: "+genus+" "+specificEpithet);
@@ -2647,16 +2647,36 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     // used above, but also used in IndividualQueryProcessor, for example
-    public static List<String> findNameIds(String regex) {
-        List<String> nameIds = new ArrayList<String>();
-
-        if (NAMES_CACHE == null) return nameIds;
-        if (regex == null) return nameIds;
-        for (Integer nid : NAMES_CACHE.keySet()) {
-            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase()))
-                nameIds.add(Integer.toString(nid));
+    public static List<String> findNameIds(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
+        Set<String> nameIdsSet = new HashSet<String>();
+        if (regex == null) return new ArrayList<String>();
+        
+        // Build the query with optional genus/species filtering directly on MarkedIndividual
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE names != null";
+        String taxonomyFilter = "";
+        
+        if ((genus != null) && (specificEpithet != null)) {
+            genus = genus.trim();
+            specificEpithet = specificEpithet.trim();
+            taxonomyFilter = " && this.genus == '" + genus + "' && this.specificEpithet == '" + specificEpithet + "'";
         }
-        return nameIds;
+        
+        jdoql += taxonomyFilter;
+        
+        Query query = myShepherd.getPM().newQuery(jdoql);
+        Collection<MarkedIndividual> individuals = (Collection<MarkedIndividual>) query.execute();
+        
+        for (MarkedIndividual ind : individuals) {
+            if (ind.names == null) continue;
+            // Recreate the cache format for matching (same as original cache)
+            String allNames = ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase();
+            if (allNames.matches(regex.toLowerCase())) {
+                nameIdsSet.add(Integer.toString(ind.names.getId()));
+            }
+        }
+        
+        query.closeAll();
+        return new ArrayList<String>(nameIdsSet);
     }
 
     // returns next integer-based value that follows pattern PREnnn (where 'nnn' is one-or-more digits!)

@@ -1610,7 +1610,7 @@ else {
         %>
   	<br /><strong><%=encprops.getProperty("username")%></strong><br />
         <select multiple size="5" name="username" id="username">
-          <option value="None"></option>
+          <!-- <option value="None"></option> -->
           <%
             List<User> sortedUsers = User.sortUsersByFullnameDefaultUsername(users);
             for (int n = 0; n < numUsers; n++) {

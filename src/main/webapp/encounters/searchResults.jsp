@@ -565,6 +565,10 @@ $(document).ready(function () {
         success: function () {
           let baseEncounters = encs.models;
 
+		  searchResults = baseEncounters;
+		  doTable();
+		  return;
+
           // If no collaborators, just render user's results
           if (collaboratorUsernames.length === 0) {
             searchResults = baseEncounters;
@@ -578,7 +582,7 @@ $(document).ready(function () {
 			whereClause += ' && state == "' + stateParam + '"';
 		  }
 
-          const params = new URLSearchParams(window.location.search);
+		  const params = new URLSearchParams(window.location.search);
           if (params.size > 2) {
             let filter = `<%= filter%>`;
             const match = filter.match(new RegExp(`where`, 'i'));
@@ -595,10 +599,20 @@ $(document).ready(function () {
   			noSanitize: true,
   			jdoql: encodeURIComponent(collabJdoql),
             success: function () {
-              const allEncounters = [...new Set([...baseEncounters, ...collabFetch.models])];
-              console.log("Merged encounters:", allEncounters.length);
+              // Properly deduplicate encounters by ID
+              const allEncounters = [...baseEncounters, ...collabFetch.models];
+              const uniqueEncounters = [];
+              const seenIds = new Set();
+              
+              for (const encounter of allEncounters) {
+                const encounterId = encounter.id;
+                if (!seenIds.has(encounterId)) {
+                  seenIds.add(encounterId);
+                  uniqueEncounters.push(encounter);
+                }
+              }
 
-              searchResults = allEncounters;
+              searchResults = uniqueEncounters;
               doTable();
             },
             error: function () {
