@@ -30,7 +30,7 @@ export default function Piechart({ title = "Sample Pie Chart", data = [] }) {
 
   if (!data || data.length === 0) {
     return (
-      <div style={{ width: "100%", height: 300 }}>
+      <div style={{ width: "100%", height: 100 }}>
         <p>
           <FormattedMessage id={title} />
         </p>

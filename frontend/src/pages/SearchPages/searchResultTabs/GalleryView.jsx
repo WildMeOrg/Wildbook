@@ -60,9 +60,6 @@ const GalleryView = observer(({ store }) => {
       style={{ position: "relative", color: "white" }}
     >
       {store.loadingAll && <FullScreenLoader />}
-      <h1>
-        <FormattedMessage id="GALLERY_VIEW" />
-      </h1>
       <PaginationBar
         totalItems={store.totalItems}
         page={store.currentPage}

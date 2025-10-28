@@ -18,7 +18,7 @@ export default function HorizontalBarChart({
     return (
       <div
         className="d-flex align-items-center justify-content-center "
-        style={{ width: "100%", height: 300 }}
+        style={{ width: "100%", height: 100 }}
       >
         <p>
           <FormattedMessage id={title} />

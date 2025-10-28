@@ -2,6 +2,7 @@ import React from "react";
 import HorizontalBarChart from "../../../components/HorizontalBarChart";
 import VerticalBarChart from "../../../components/VerticalBarChart";
 import Piechart from "../../../components/Piechart";
+import LineChart from "../../../components/LineChart";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import FullScreenLoader from "../../../components/FullScreenLoader";
@@ -269,7 +270,11 @@ const ChartView = observer(({ store }) => {
         />
       </Wrapper>
       <Wrapper>
-        <HorizontalBarChart
+        {/* <HorizontalBarChart
+          title="CURVE_MARKED_INDIVIDUALS_DISCOVERED"
+          data={discoveryBars}
+        /> */}
+        <LineChart
           title="CURVE_MARKED_INDIVIDUALS_DISCOVERED"
           data={discoveryBars}
         />
