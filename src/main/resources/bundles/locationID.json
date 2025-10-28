@@ -22,7 +22,7 @@
         {"name": "James Bay", "id": "James Bay", "locationID":[]},
         {"name": "Labrador Sea", "id": "Labrador Sea", "locationID":[
 					{ "name": "Cumberland Sound", "id": "Cumberland Sound", "locationID":[]}
-				]},
+				]}
       ], "id": "Arctic Ocean", "defaultLatitude": 90.0, "defaultLongitude":0.0},
       {"name": "Atlantic Ocean (North)", "locationID": [
         {"name":"Azores", "id":"5", "locationID":[] },
@@ -498,6 +498,12 @@
           {"name":"Mexico","id":"Mexico","locationID":[
             {"name":"Bahia barra de Potosi", "id":"Bahia barra de Potosi", "locationID":[]},
             {"name":"Bahía de Banderas", "id":"Bahía de Banderas", "locationID":[]},
+            {"name": "Baja California Sur", "id": "Baja California Sur", "locationID":[
+              {"name": "Bahía Almejas", "id":"Bahía Almejas", "geospatialInfo": {"lat": 24.511580, "long":-111.833967}, "prefix": "BA", "prefixDigitPadding": 4, "locationID":[]},
+              {"name": "Bahía Magdalena", "id": "Bahía Magdalena", "geospatialInfo": {"lat": 24.805062, "long": -112.147811}, "prefix": "BMA", "prefixDigitPadding": 4, "locationID":[]},
+              {"name": "Bahía Santa María", "id": "Bahía Santa María", "geospatialInfo": {"lat": 24.727210, "long": -112.210763}, "locationID":[]},
+              {"name": "Canal López Mateos", "id": "Canal López Mateos", "geospatialInfo": {"lat": 24.805062, "long": -112.147811}, "prefix": "LPZ", "prefixDigitPadding": 4, "locationID":[]}
+            ]},
             {"name":"Guamilule", "id":"Guamilule", "locationID":[]},
             {"name":"Ixtapa", "id":"Ixtapa", "locationID":[]},
             {"name":"Laguna San Ignacio", "id":"Laguna San Ignacio", "locationID":[]},
@@ -514,13 +520,7 @@
               {"name":"Bahía de la Paz", "id":"Bahía de la Paz", "locationID":[]},
               {"name": "Baja California", "id":"Baja California", "locationID":[
                 {"name":"Northern Baja California", "id":"Northern Baja California", "locationID":[]},
-                {"name":"Southern Baja California", "id":"Southern Baja California", "locationID":[
-                ]}
-              ]},
-              {"name": "Baja California Sur", "id": "Baja California Sur", "locationID":[
-                {"name":"Bahía Almejas", "id":"Bahía Almejas", "geospatialInfo": {"lat": 24.511580, "long":-111.833967}, "prefix": "BA", "prefixDigitPadding": 4, "locationID":[]},
-                {"name": "Bahía Magdalena", "id": "Bahía Magdalena", "geospatialInfo": {"lat": 24.805062, "long": -112.147811}, "prefix": "BMA", "prefixDigitPadding": 4, "locationID":[]},
-                {"name": "Canal López Mateos", "id": "Canal López Mateos", "geospatialInfo": {"lat": 24.805062, "long": -112.147811}, "prefix": "LPZ", "prefixDigitPadding": 4, "locationID":[]}
+                {"name":"Southern Baja California", "id":"Southern Baja California", "locationID":[]}
               ]}
             ]},
             {"name":"Troncones", "id":"Troncones", "locationID":[]},
