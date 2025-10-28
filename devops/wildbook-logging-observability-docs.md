@@ -67,7 +67,7 @@ Wildbook/
 │   │   └── .dockerfiles/
 │   │       └── alloy/
 │   │           └── config.alloy                           # Grafana Alloy configuration
-│   └── development/
+│   └── shared/
 │       ├── docker-compose.observability.yml               # Observability stack
 │       └── .dockerfiles/
 │           ├── loki/
@@ -79,8 +79,9 @@ Wildbook/
 │                   └── dashboards/
 │                       ├── dashboards.yml                 # Dashboard provisioning
 │                       └── json/
-│                           ├── wildbook-logs.json        # Log analysis dashboard
-│                           └── user-activity.json        # User activity dashboard
+│                           ├── 1-wildbook-overview.json  # Log overview dashboard
+│                           └── 2-user-activity.json      # User activity dashboard
+│                           └── ...                       # Other dashboards
 ```
 
 ## Component Configuration
@@ -130,7 +131,7 @@ Add these to your `pom.xml`:
 
 **Configuration Files**:
 - Application stack: `devops/deploy/docker-compose.yml`
-- Observability stack: `devops/development/docker-compose.observability.yml`
+- Observability stack: `devops/shared/docker-compose.observability.yml`
 - Environment template: `devops/deploy/_env.template`
 
 #### Key Considerations
@@ -152,7 +153,7 @@ See `devops/deploy/_env.template` for a complete template. Key variables:
 
 ### 4. Loki Configuration
 
-**Configuration File**: `devops/development/.dockerfiles/loki/loki-config.yaml`
+**Configuration File**: `devops/shared/.dockerfiles/loki/loki-config.yaml`
 
 #### Key Considerations
 
@@ -172,9 +173,9 @@ For production deployments:
 ### 5. Grafana Configuration
 
 **Configuration Files**:
-- Data sources: `devops/development/.dockerfiles/grafana/provisioning/datasources/datasources.yml`
-- Dashboard provisioning: `devops/development/.dockerfiles/grafana/provisioning/dashboards/dashboards.yml`
-- Dashboard JSON files: `devops/development/.dockerfiles/grafana/provisioning/dashboards/json/*.json`
+- Data sources: `devops/shared/.dockerfiles/grafana/provisioning/datasources/datasources.yml`
+- Dashboard provisioning: `devops/shared/.dockerfiles/grafana/provisioning/dashboards/dashboards.yml`
+- Dashboard JSON files: `devops/shared/.dockerfiles/grafana/provisioning/dashboards/json/*.json`
 
 #### Pre-configured Dashboards
 
@@ -296,7 +297,7 @@ public class EncounterProcessor {
 1. **Deploy Central Monitoring Server**
    ```bash
    # On central monitoring server
-   cd /opt/wildbook/devops/development
+   cd /opt/wildbook/devops/shared
    docker-compose -f docker-compose.observability.yml up -d
    ```
 
@@ -326,7 +327,7 @@ For local development, run both stacks on the same machine:
 
 ```bash
 # Start observability stack
-cd devops/development
+cd devops/shared
 docker-compose -f docker-compose.observability.yml up -d
 
 # Start application with Alloy
