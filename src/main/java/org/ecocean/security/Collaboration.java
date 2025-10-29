@@ -292,7 +292,7 @@ public class Collaboration implements java.io.Serializable {
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
         // System.out.println("canCollaborate(String context, String u1, String u2)");
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV))
             return true;
         return false;
