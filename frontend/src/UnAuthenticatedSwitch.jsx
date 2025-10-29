@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Footer from "./components/Footer";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
-import EncounterPageViewOnly from "./pages/Encounter/EngcounterPageViewOnly";
+import EncounterPageViewOnly from "./pages/Encounter/EncounterPageViewOnly";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
