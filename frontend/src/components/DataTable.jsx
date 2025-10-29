@@ -21,6 +21,7 @@ const customStyles = {
     style: {
       border: "none !important",
       borderRadius: "5px",
+      fontSize: "1rem",
     },
   },
 };
@@ -496,26 +497,28 @@ const MyDataTable = observer(
               <div>
                 <FormattedMessage id="ADD_TO_PROJECT" />
               </div>
-              <Select
-                isMulti={true}
-                options={projectOptions}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                menuPlacement="auto"
-                menuPortalTarget={document.body}
-                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-                value={projectOptions.filter((option) =>
-                  store.selectedProjects.includes(option.value),
-                )}
-                getOptionLabel={(option) => option.label}
-                placeholder={intl.formatMessage({ id: "SELECT_PROJECTS" })}
-                onChange={(selected) =>
-                  store.setSelectedProjects(
-                    (selected || []).map((opt) => opt.value),
-                  )
-                }
-                closeMenuOnSelect={false}
-              />
+              <div style={{ width: "350px" }}>
+                <Select
+                  isMulti={true}
+                  options={projectOptions}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                  menuPlacement="auto"
+                  menuPortalTarget={document.body}
+                  styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                  value={projectOptions.filter((option) =>
+                    store.selectedProjects.includes(option.value),
+                  )}
+                  getOptionLabel={(option) => option.label}
+                  placeholder={intl.formatMessage({ id: "SELECT_PROJECTS" })}
+                  onChange={(selected) =>
+                    store.setSelectedProjects(
+                      (selected || []).map((opt) => opt.value),
+                    )
+                  }
+                  closeMenuOnSelect={false}
+                />
+              </div>
               <MainButton
                 color="white"
                 noArrow
