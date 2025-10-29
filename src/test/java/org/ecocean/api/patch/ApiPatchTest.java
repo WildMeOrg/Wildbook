@@ -9,6 +9,8 @@ import javax.servlet.ServletException;
 import org.ecocean.api.BaseObject;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
@@ -735,13 +737,371 @@ class ApiPatchTest {
         }
     }
 
-/*
-          "errors": [{
-                    "code": "INVALID",
-                    "details": "invalid op: failOp",
-                    "type": "INVALID_OP"
-          }],
- */
+    // this is basically impossible to fail as it only finds existing indiv
+    // or will just create a new one
+    @Test void apiIndividualAddExistingSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String indivId = "existing-indiv-id";
+        MarkedIndividual indiv = mock(MarkedIndividual.class);
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("add", "individualId", indivId).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getMarkedIndividual(indivId)).thenReturn(indiv);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertEquals(indiv, enc.getIndividual());
+                }
+            }
+        }
+    }
+
+    // no real failure case here either, as it just silently ignores no indiv
+    @Test void apiIndividualRemoveExistingSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        MarkedIndividual indiv = mock(MarkedIndividual.class);
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        enc.setIndividual(indiv);
+        assertTrue(enc.hasMarkedIndividual());
+        String payload = patchPayload("remove", "individualId", null).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                    assertFalse(enc.hasMarkedIndividual());
+                }
+            }
+        }
+    }
+
+    // an explicit occurrence id passed but user cannot add to it
+    @Test void apiOccurrenceAddFailure()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String occId = "existing-occur-id";
+        Occurrence occ = mock(Occurrence.class);
+
+        when(occ.canUserAccess(any(User.class), any(Shepherd.class))).thenReturn(false);
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("add", "occurrenceId", occId).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getOccurrence(occId)).thenReturn(occ);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "FORBIDDEN"));
+                }
+            }
+        }
+    }
+
+    @Test void apiOccurrenceAddExistingSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String occId = "existing-occur-id";
+        Occurrence occ = mock(Occurrence.class);
+
+        when(occ.canUserAccess(any(User.class), any(Shepherd.class))).thenReturn(true);
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        // when(enc.getOccurrence(any(Shepherd.class))).thenReturn(occ);
+        String payload = patchPayload("add", "occurrenceId", occId).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getOccurrence(occId)).thenReturn(occ);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                }
+            }
+        }
+    }
+
+    // explicit occId returns null
+    @Test void apiOccurrenceRemoveExplicitFailure1()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String occId = "existing-occur-id";
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("remove", "occurrenceId", occId).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getOccurrence(occId)).thenReturn(null);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "REQUIRED"));
+                    assertTrue(gotErrorsValue(jout, "details", "id " + occId + " does not exist"));
+                }
+            }
+        }
+    }
+
+    // explicit occId returns forbidden
+    @Test void apiOccurrenceRemoveExplicitFailure2()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String occId = "existing-occur-id";
+        Occurrence occ = mock(Occurrence.class);
+
+        when(occ.canUserAccess(any(User.class), any(Shepherd.class))).thenReturn(false);
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("remove", "occurrenceId", occId).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getOccurrence(occId)).thenReturn(occ);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "FORBIDDEN"));
+                }
+            }
+        }
+    }
+
+    // explicit occId but enc not in that occ
+    @Test void apiOccurrenceRemoveExplicitFailure3()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        String occId = "existing-occur-id";
+        Occurrence occ = mock(Occurrence.class);
+
+        when(occ.canUserAccess(any(User.class), any(Shepherd.class))).thenReturn(true);
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("remove", "occurrenceId", occId).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getOccurrence(occId)).thenReturn(occ);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "REQUIRED"));
+                    assertTrue(gotErrorsValue(jout, "details",
+                        "encounter is not in occurrence " + occId));
+                }
+            }
+        }
+    }
+
+    // remove (no explicit id) but enc not in occurrence
+    @Test void apiOccurrenceRemoveFailure()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+
+        // Occurrence occ = mock(Occurrence.class);
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("remove", "occurrenceId", null).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getOccurrence(any(Encounter.class))).thenReturn(null);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(400);
+                    assertFalse(jout.getBoolean("success"));
+                    assertTrue(gotErrorsValue(jout, "code", "REQUIRED"));
+                    assertTrue(gotErrorsValue(jout, "details",
+                        "encounter has no occurrence to remove from"));
+                }
+            }
+        }
+    }
+
+    @Test void apiOccurrenceRemoveSuccess()
+    throws ServletException, IOException {
+        User owner = mock(User.class);
+        Occurrence occ = mock(Occurrence.class);
+
+        when(owner.getUsername()).thenReturn("ownerUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("ownerUser");
+        String payload = patchPayload("remove", "occurrenceId", null).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getOccurrence(any(Encounter.class))).thenReturn(occ);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(owner);
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    apiServlet.doPatch(mockRequest, mockResponse);
+                    responseOut.flush();
+                    JSONObject jout = new JSONObject(responseOut.toString());
+                    verify(mockResponse).setStatus(200);
+                    assertTrue(jout.getBoolean("success"));
+                }
+            }
+        }
+    }
+
     private static boolean gotErrorsValue(JSONObject rtn, String key, Object value) {
         if (rtn == null) return false;
         JSONArray errArr = rtn.optJSONArray("errors");
