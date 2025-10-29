@@ -27,7 +27,7 @@ export const MapView = observer(({ store }) => {
         fontSize: 12,
         background: "#2e8ebaff",
         padding: "5px 8px",
-        borderRadius: 12,
+        borderRadius: 20,
         marginRight: 10,
         marginBottom: 8,
         marginTop: 8,
