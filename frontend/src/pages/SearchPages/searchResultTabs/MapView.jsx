@@ -5,6 +5,7 @@ import useGetSiteSettings from "../../../models/useGetSiteSettings";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { FormattedMessage } from "react-intl";
 import FullScreenLoader from "../../../components/FullScreenLoader";
+import ThemeColorContext from "../../../ThemeColorProvider";
 
 const PALETTE = ["#99D7FF", "#00A70B", "#0B619E"];
 
@@ -19,13 +20,17 @@ export const MapView = observer(({ store }) => {
   const markersRef = useRef([]);
   const clustererRef = useRef(null);
   const [locationData, setLocationData] = useState([]);
-  const [mode, setMode] = useState("species");
+  const [mode, setMode] = useState("position");
+  const theme = React.useContext(ThemeColorContext);
 
   const pill = (title) => (
     <span
       style={{
         fontSize: 12,
-        background: "#2e8ebaff",
+        background:
+          title.toLowerCase() === mode
+            ? theme.primaryColors.primary700
+            : theme.primaryColors.primary50,
         padding: "5px 8px",
         borderRadius: 20,
         marginRight: 10,
@@ -33,7 +38,7 @@ export const MapView = observer(({ store }) => {
         marginTop: 8,
         display: "inline-block",
         cursor: "pointer",
-        color: "#ffffff",
+        color: title.toLowerCase() === mode ? "white" : "#303336",
       }}
       onClick={() => {
         setMode(title.toLowerCase());
