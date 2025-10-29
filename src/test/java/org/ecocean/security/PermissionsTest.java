@@ -82,12 +82,66 @@ class PermissionsTest {
                 org.mockito.Answers.CALLS_REAL_METHODS)) {
             mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
                 any(String.class), any(String.class))).thenReturn(null);
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                true);
             // public owned should be view=true
             enc.setSubmitterID("public");
             assertTrue(Collaboration.canUserViewOccurrence(occ, user, myShepherd));
+            assertTrue(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
             // not public owned should be view=false
             enc.setSubmitterID("not-public");
             assertFalse(Collaboration.canUserViewOccurrence(occ, user, myShepherd));
+            // but access/edit is false
+            assertFalse(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
+            // but now let them collaborate
+            Collaboration collab = new Collaboration();
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(collab);
+            // first with a non-edit collab (fails)
+            assertFalse(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
+            // now make it edit-approved
+            collab.setState(Collaboration.STATE_EDIT_PRIV);
+            assertTrue(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
+        }
+    }
+
+    @Test void occurrenceOwnedTest()
+    throws ServletException, IOException {
+        User user = new User("test-user", null, null);
+        User other = new User("someone-else", null, null);
+
+        other.setSharing(false);
+        Occurrence occ = new Occurrence();
+        occ.setSubmitterID(other.getUsername());
+        Encounter enc = new Encounter();
+        occ.addEncounter(enc);
+        Shepherd myShepherd = mock(Shepherd.class);
+        when(myShepherd.getUser(other.getUsername())).thenReturn(other);
+        when(myShepherd.getContext()).thenReturn("context0");
+
+        // mock static of only collaborationBetweenUsers() to be none; but canUserViewOccurrence() is still real method (to test)
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(null);
+            mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                true);
+            enc.setSubmitterID("random-user");
+            // two diff users, both fail
+            assertFalse(Collaboration.canUserViewOccurrence(occ, user, myShepherd));
+            assertFalse(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
+            // set owned by user
+            enc.setSubmitterID(user.getUsername());
+            assertTrue(Collaboration.canUserViewOccurrence(occ, user, myShepherd));
+            assertTrue(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
+            // two diff users but collab
+            enc.setSubmitterID(other.getUsername());
+            Collaboration collab = new Collaboration();
+            collab.setState(Collaboration.STATE_APPROVED);
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(collab);
+            assertTrue(Collaboration.canUserViewOccurrence(occ, user, myShepherd));
+            assertTrue(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
         }
     }
 }
