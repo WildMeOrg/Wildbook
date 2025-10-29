@@ -247,13 +247,13 @@ const ChartView = observer(({ store }) => {
       </Wrapper>
       <Wrapper style={{ marginBottom: "2rem" }}>
         <VerticalBarChart
-          title="SEARCH_RESULTS_ASSIGNED_USER_DISTRIBUTION"
+          title="SEARCH_RESULTS_SPECIES_DISTRIBUTION"
           data={speciesDistributionData}
         />
       </Wrapper>
       <Wrapper style={{ marginBottom: "2rem" }}>
-        <VerticalBarChart
-          title="SEARCH_RESULTS_SPECIES_DISTRIBUTION"
+        <HorizontalBarChart
+          title="SEARCH_RESULTS_ASSIGNED_USER_DISTRIBUTION"
           data={assignedUserDistributionData}
         />
       </Wrapper>
@@ -270,10 +270,6 @@ const ChartView = observer(({ store }) => {
         />
       </Wrapper>
       <Wrapper>
-        {/* <HorizontalBarChart
-          title="CURVE_MARKED_INDIVIDUALS_DISCOVERED"
-          data={discoveryBars}
-        /> */}
         <LineChart
           title="CURVE_MARKED_INDIVIDUALS_DISCOVERED"
           data={discoveryBars}
@@ -286,7 +282,7 @@ const ChartView = observer(({ store }) => {
         />
       </Wrapper>
       <Wrapper>
-        <HorizontalBarChart title="TOP_TEN_TAGGERS" data={topTaggers} />
+        <VerticalBarChart title="TOP_TEN_TAGGERS" data={topTaggers} />
       </Wrapper>
     </div>
   );
