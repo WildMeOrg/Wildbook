@@ -156,10 +156,7 @@ export const MapView = observer(({ store }) => {
   }, [mode, categoryColorMap]);
 
   return (
-    <div
-      className="d-flex flex-row mt-1"
-      style={{ position: "relative", color: "white" }}
-    >
+    <div className="d-flex flex-row mt-1" style={{ position: "relative" }}>
       {store.loadingAll && <FullScreenLoader />}
       <div
         className="mt-2 me-4"
