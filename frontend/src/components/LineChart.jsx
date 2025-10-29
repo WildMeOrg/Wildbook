@@ -27,6 +27,9 @@ export default function DiscoveryLineChart({
   }
   return (
     <div style={{ width: "100%", height: 300 }}>
+      <p>
+        <FormattedMessage id={title} />
+      </p>
       <ResponsiveContainer>
         <LineChart
           data={data}
