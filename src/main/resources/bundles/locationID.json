@@ -301,6 +301,8 @@
 				{"name": "Jhalana Reserve Forest", "id": "Jhalana Reserve Forest", "locationID":[] }
 			] },
 			{"name": "Iran", "id": "Iran", "locationID":[] },
+			{"name": "Iraq", "id": "Iraq", "locationID":[] },
+			{"name": "Israel", "id": "Israel", "locationID":[] },
 			{"name": "Kazakhstan", "id": "Kazakhstan", "locationID":[] },
 			{"name": "Kyrgyzstan", "id": "Kyrgyzstan", "locationID":[
 			
@@ -310,6 +312,7 @@
 			{"name": "Mongolia", "id": "Mongolia", "locationID":[] },
 			{"name": "Nepal", "id": "Nepal", "locationID":[] },
 			{"name": "Pakistan", "id": "Pakistan", "locationID":[] },
+			{"name": "Tajikistan", "id": "Tajikistan", "locationID":[] },
 			{"name": "Turkmenistan", "id": "Turkmenistan", "locationID":[] },
 			{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] }
 		
