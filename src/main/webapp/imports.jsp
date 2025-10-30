@@ -208,20 +208,24 @@ try{
     int end = start + pageSize;
 	
     String uclause = "";
-    if (request.getParameter("showAll")==null) {
+    if (!adminMode) {
     	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
     }
 
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
-	query.setRange(start, end);
+	// query.setRange(start, end);  // REMOVED: This was causing double pagination
 
     Collection c = (Collection) (query.execute());
     List<ImportTask> tasks = new ArrayList<ImportTask>(c);
     query.closeAll();
 
-	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+	// Get only active collaborations (EDIT_PRIV and APPROVED states)
+	List<Collaboration> collabs = new ArrayList<>();
+	collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_EDIT_PRIV));
+	collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_APPROVED));
+	
 	Set<String> collaboratorUsernames = new HashSet<>();
 	String currentUsername = user.getUsername();
 
@@ -295,58 +299,79 @@ try{
 	// Sort combined list by created DESC
 	combinedTasks.sort((a, b) -> b.getCreated().compareTo(a.getCreated()));
 
+	// DEBUG: Print out what we have
+	System.out.println("DEBUG: tasks.size() = " + tasks.size());
+	System.out.println("DEBUG: collaboratorTasks.size() = " + collaboratorTasks.size());
+	System.out.println("DEBUG: combinedTasks.size() = " + combinedTasks.size());
+	
+	// Check for duplicates in combinedTasks
+	Set<String> taskIds = new HashSet<>();
+	for (ImportTask t : combinedTasks) {
+		if (!taskIds.add(t.getId())) {
+			System.out.println("DEBUG: DUPLICATE FOUND: " + t.getId());
+		}
+	}
+	System.out.println("DEBUG: Unique task IDs in combinedTasks: " + taskIds.size());
+
 	// Apply pagination AFTER merging and sorting
 	int startIndex = pageIndex * pageSize;
 	int endIndex = Math.min(startIndex + pageSize, combinedTasks.size());
 	List<ImportTask> paginatedTasks = new ArrayList<>();
 
-	if (pageIndex != 1) {
+	if (pageIndex >= 0) {
 		paginatedTasks = combinedTasks.subList(startIndex, endIndex);
 	}
+
+	// DEBUG: Print pagination info
+	System.out.println("DEBUG: pageIndex = " + pageIndex + ", pageSize = " + pageSize);
+	System.out.println("DEBUG: startIndex = " + startIndex + ", endIndex = " + endIndex);
+	System.out.println("DEBUG: paginatedTasks.size() = " + paginatedTasks.size());
 
 	// Build the JSON object
 	JSONArray jsonobj = new JSONArray();
 
-	for (ImportTask task : paginatedTasks) {
-		if (adminMode || ServletUtilities.isUserAuthorizedForImportTask(task, request, myShepherd)) {
-			int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
-			String taskID = task.getId();
-			User tu = task.getCreator();
-			String uname = "(guest)";
-			if (tu != null) {
-				uname = tu.getFullName();
-				if (uname == null) uname = tu.getUsername();
-				if (uname == null) uname = tu.getUUID();
-				if (uname == null) uname = Long.toString(tu.getUserID());
-			}
-
-			int numEncs = getNumEncountersForTask(task.getId(), myShepherd);
-			String created = task.getCreated().toString().substring(0, 10);
-
-			int numMediaAssets = getNumMediaAssetsForTask(task.getId(), myShepherd);
-			String iaStatusString = "";
-
-			if (task.getIATask() != null) {
-				iaStatusString = task.iaTaskRequestedIdentification() ? "identification" : "detection";
-			}
-
-			String status = task.getStatus();
-
-			JSONObject jobj = new JSONObject();
-			jobj.put("iaStatus", iaStatusString);
-			jobj.put("numMediaAssets", numMediaAssets);
-			jobj.put("numEncs", numEncs);
-			jobj.put("created", created);
-			jobj.put("uname", uname);
-			jobj.put("taskID", taskID);
-			jobj.put("indivCount", indivCount);
-			jobj.put("status", status);
-			if (task.getParameters() != null) {
-				jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-			}
-
-			jsonobj.put(jobj);
+	System.out.println("DEBUG: Starting JSON building loop with " + paginatedTasks.size() + " tasks");
+	System.out.println("DEBUG: adminMode = " + adminMode);
+	System.out.println("DEBUG: Current user = " + (user != null ? user.getUsername() : "null"));
+	int authorizedCount = 0;
+	for (ImportTask task : paginatedTasks) {		
+		int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
+		String taskID = task.getId();
+		User tu = task.getCreator();
+		String uname = "(guest)";
+		if (tu != null) {
+			uname = tu.getFullName();
+			if (uname == null) uname = tu.getUsername();
+			if (uname == null) uname = tu.getUUID();
+			if (uname == null) uname = Long.toString(tu.getUserID());
 		}
+
+		int numEncs = getNumEncountersForTask(task.getId(), myShepherd);
+		String created = task.getCreated().toString().substring(0, 10);
+
+		int numMediaAssets = getNumMediaAssetsForTask(task.getId(), myShepherd);
+		String iaStatusString = "";
+
+		if (task.getIATask() != null) {
+			iaStatusString = task.iaTaskRequestedIdentification() ? "identification" : "detection";
+		}
+
+		String status = task.getStatus();
+
+		JSONObject jobj = new JSONObject();
+		jobj.put("iaStatus", iaStatusString);
+		jobj.put("numMediaAssets", numMediaAssets);
+		jobj.put("numEncs", numEncs);
+		jobj.put("created", created);
+		jobj.put("uname", uname);
+		jobj.put("taskID", taskID);
+		jobj.put("indivCount", indivCount);
+		jobj.put("status", status);
+		if (task.getParameters() != null) {
+			jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+		}
+
+		jsonobj.put(jobj);
 	}
  	//end for loop of tasks
     
