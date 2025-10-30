@@ -126,12 +126,14 @@ if (user == null) {
     return;
 }
 boolean adminMode = request.isUserInRole("admin");
+boolean showAll = "true".equalsIgnoreCase(request.getParameter("showAll"));
+String keepShowAll = showAll ? "&showAll=true" : "";
 
-  //handle some cache-related security
-  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+//handle some cache-related security
+response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
 
 %>
@@ -208,145 +210,104 @@ try{
     int end = start + pageSize;
 	
     String uclause = "";
-    if (request.getParameter("showAll")==null) {
-    	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
+    if (!(adminMode && "true".equalsIgnoreCase(request.getParameter("showAll")))) {
+        // Limit to own UUID plus active collaborators
+        Set<String> allowedUUIDs = new HashSet<String>();
+        if (user != null && user.getUUID() != null) allowedUUIDs.add(user.getUUID());
+
+        List<Collaboration> collabs = new ArrayList<Collaboration>();
+        collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_EDIT_PRIV));
+        collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_APPROVED));
+        String currentUsername = user.getUsername();
+
+        Set<String> collaboratorUsernames = new HashSet<String>();
+        for (Collaboration collab : collabs) {
+            String username1 = collab.getUsername1();
+            String username2 = collab.getUsername2();
+            if (username2 != null && username2.equals(currentUsername) && username1 != null) {
+                collaboratorUsernames.add(username1);
+            } else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
+                collaboratorUsernames.add(username2);
+            }
+        }
+
+        if (!collaboratorUsernames.isEmpty()) {
+            StringBuilder jdoqlUser = new StringBuilder("SELECT FROM " + User.class.getName() + " WHERE ");
+            int count = 0;
+            for (String username : collaboratorUsernames) {
+                if (count > 0) jdoqlUser.append(" || ");
+                jdoqlUser.append("username == \"").append(username).append("\"");
+                count++;
+            }
+            Query userQuery = myShepherd.getPM().newQuery(jdoqlUser.toString());
+            Collection result = (Collection) userQuery.execute();
+            for (Object o : result) {
+                User u = (User) o;
+                if (u.getUUID() != null) allowedUUIDs.add(u.getUUID());
+            }
+            userQuery.closeAll();
+        }
+
+        if (!allowedUUIDs.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            int cind = 0;
+            for (String uuid : allowedUUIDs) {
+                if (cind++ > 0) sb.append(" || ");
+                sb.append("creator.uuid == \"").append(uuid).append("\"");
+            }
+            uclause = " && (" + sb.toString() + ")";
+        }
     }
 
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
-	query.setRange(start, end);
-
+    query.setRange(start, end);
     Collection c = (Collection) (query.execute());
     List<ImportTask> tasks = new ArrayList<ImportTask>(c);
     query.closeAll();
 
-	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
-	Set<String> collaboratorUsernames = new HashSet<>();
-	String currentUsername = user.getUsername();
-
-	for (Collaboration collab : collabs) {
-		String username1 = collab.getUsername1();
-		String username2 = collab.getUsername2();
-
-		if (username2 != null && username2.equals(currentUsername) && username1 != null) {
-			collaboratorUsernames.add(username1);
-		} else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
-			collaboratorUsernames.add(username2);
-		}
-	}
-
-	Set<String> collaboratorUUIDs = new HashSet<>();
-
-	if (!collaboratorUsernames.isEmpty()) {
-		StringBuilder jdoqlUser = new StringBuilder("SELECT FROM " + User.class.getName() + " WHERE ");
-		int count = 0;
-
-		for (String username : collaboratorUsernames) {
-			if (count > 0) jdoqlUser.append(" || ");
-			jdoqlUser.append("username == \"" + username + "\"");
-			count++;
-		}
-
-		Query userQuery = myShepherd.getPM().newQuery(jdoqlUser.toString());
-		Collection result = (Collection) userQuery.execute();
-		for (Object o : result) {
-			User u = (User) o;
-			if (u.getUUID() != null) {
-				collaboratorUUIDs.add(u.getUUID());
-			}
-		}
-		userQuery.closeAll();
-	}
-
-	List<ImportTask> collaboratorTasks = new ArrayList<>();
-
-	if (!collaboratorUUIDs.isEmpty()) {
-		String uuidFilter = collaboratorUUIDs.stream()
-			.map(uuid -> "creator.uuid == \"" + uuid + "\"")
-			.collect(Collectors.joining(" || "));
-
-		String jdoqlCollabTasks = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null && (" + uuidFilter + ")";
-		
-		Query collabTaskQuery = myShepherd.getPM().newQuery(jdoqlCollabTasks);
-		collabTaskQuery.setOrdering("created desc");
-
-		Collection collabResults = (Collection) collabTaskQuery.execute();
-		collaboratorTasks.addAll(collabResults);
-
-		collabTaskQuery.closeAll();
-	}
-    
-    // Merge both task lists
-	Set<String> seenTaskIds = new HashSet<>();
-	List<ImportTask> combinedTasks = new ArrayList<>();
-
-	for (ImportTask t : tasks) {
-		if (seenTaskIds.add(t.getId())) {
-			combinedTasks.add(t);
-		}
-	}
-	for (ImportTask t : collaboratorTasks) {
-		if (seenTaskIds.add(t.getId())) {
-			combinedTasks.add(t);
-		}
-	}
-
-	// Sort combined list by created DESC
-	combinedTasks.sort((a, b) -> b.getCreated().compareTo(a.getCreated()));
-
-	// Apply pagination AFTER merging and sorting
-	int startIndex = pageIndex * pageSize;
-	int endIndex = Math.min(startIndex + pageSize, combinedTasks.size());
-	List<ImportTask> paginatedTasks = new ArrayList<>();
-
-	if (pageIndex != 1) {
-		paginatedTasks = combinedTasks.subList(startIndex, endIndex);
-	}
-
 	// Build the JSON object
 	JSONArray jsonobj = new JSONArray();
 
-	for (ImportTask task : paginatedTasks) {
-		if (adminMode || ServletUtilities.isUserAuthorizedForImportTask(task, request, myShepherd)) {
-			int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
-			String taskID = task.getId();
-			User tu = task.getCreator();
-			String uname = "(guest)";
-			if (tu != null) {
-				uname = tu.getFullName();
-				if (uname == null) uname = tu.getUsername();
-				if (uname == null) uname = tu.getUUID();
-				if (uname == null) uname = Long.toString(tu.getUserID());
-			}
-
-			int numEncs = getNumEncountersForTask(task.getId(), myShepherd);
-			String created = task.getCreated().toString().substring(0, 10);
-
-			int numMediaAssets = getNumMediaAssetsForTask(task.getId(), myShepherd);
-			String iaStatusString = "";
-
-			if (task.getIATask() != null) {
-				iaStatusString = task.iaTaskRequestedIdentification() ? "identification" : "detection";
-			}
-
-			String status = task.getStatus();
-
-			JSONObject jobj = new JSONObject();
-			jobj.put("iaStatus", iaStatusString);
-			jobj.put("numMediaAssets", numMediaAssets);
-			jobj.put("numEncs", numEncs);
-			jobj.put("created", created);
-			jobj.put("uname", uname);
-			jobj.put("taskID", taskID);
-			jobj.put("indivCount", indivCount);
-			jobj.put("status", status);
-			if (task.getParameters() != null) {
-				jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-			}
-
-			jsonobj.put(jobj);
+    for (ImportTask task : tasks) {        
+		int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
+		String taskID = task.getId();
+		User tu = task.getCreator();
+		String uname = "(guest)";
+		if (tu != null) {
+			uname = tu.getFullName();
+			if (uname == null) uname = tu.getUsername();
+			if (uname == null) uname = tu.getUUID();
+			if (uname == null) uname = Long.toString(tu.getUserID());
 		}
+
+		int numEncs = getNumEncountersForTask(task.getId(), myShepherd);
+		String created = task.getCreated().toString().substring(0, 10);
+
+		int numMediaAssets = getNumMediaAssetsForTask(task.getId(), myShepherd);
+		String iaStatusString = "";
+
+		if (task.getIATask() != null) {
+			iaStatusString = task.iaTaskRequestedIdentification() ? "identification" : "detection";
+		}
+
+		String status = task.getStatus();
+
+		JSONObject jobj = new JSONObject();
+		jobj.put("iaStatus", iaStatusString);
+		jobj.put("numMediaAssets", numMediaAssets);
+		jobj.put("numEncs", numEncs);
+		jobj.put("created", created);
+		jobj.put("uname", uname);
+		jobj.put("taskID", taskID);
+		jobj.put("indivCount", indivCount);
+		jobj.put("status", status);
+		if (task.getParameters() != null) {
+			jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+		}
+
+		jsonobj.put(jobj);
 	}
  	//end for loop of tasks
     
@@ -359,14 +320,14 @@ try{
 	
 	</script>
 
-	<div class="pagination">
-		<% int previousPage = pageIndex - 1;
-		   int nextPage = pageIndex + 1;
-		   if (previousPage >= 0) { %>
-			<a href="?page=<%= previousPage %>">&laquo; Previous</a>
-		<% } %>
-		<a href="?page=<%= nextPage %>">Next &raquo;</a>
-	</div>
+<div class="pagination">
+  <% int previousPage = pageIndex - 1;
+     int nextPage = pageIndex + 1;
+     if (previousPage >= 0) { %>
+    <a href="?page=<%= previousPage %><%= keepShowAll %>">&laquo; Previous</a>
+  <% } %>
+  <a href="?page=<%= nextPage %><%= keepShowAll %>">Next &raquo;</a>
+</div>
 	
     
     	<script type="text/javascript">
