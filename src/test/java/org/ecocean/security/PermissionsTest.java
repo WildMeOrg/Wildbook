@@ -144,4 +144,40 @@ class PermissionsTest {
             assertTrue(Collaboration.canUserAccessOccurrence(occ, user, myShepherd));
         }
     }
+
+    @Test void encounterEditTest() {
+        User user = new User("test-user", null, null);
+        Encounter enc = new Encounter();
+        Shepherd myShepherd = mock(Shepherd.class);
+
+        when(myShepherd.getContext()).thenReturn("context0");
+        assertFalse(enc.canUserEdit(null, myShepherd));
+
+        enc.setSubmitterID(user.getUsername());
+        assertTrue(enc.canUserEdit(user, myShepherd));
+
+        User adminUser = mock(User.class);
+        when(adminUser.isAdmin(any(Shepherd.class))).thenReturn(true);
+        assertTrue(enc.canUserEdit(adminUser, myShepherd));
+
+        User user2 = new User("test-user-2", null, null);
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            // no collab
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(null);
+            assertFalse(enc.canUserEdit(user2, myShepherd));
+
+            // collab between, but no edit
+            Collaboration collab = new Collaboration();
+            collab.setState(Collaboration.STATE_APPROVED);
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(any(String.class),
+                any(String.class), any(String.class))).thenReturn(collab);
+            assertFalse(enc.canUserEdit(user2, myShepherd));
+
+            // but now can edit
+            collab.setState(Collaboration.STATE_EDIT_PRIV);
+            assertTrue(enc.canUserEdit(user2, myShepherd));
+        }
+    }
 }
