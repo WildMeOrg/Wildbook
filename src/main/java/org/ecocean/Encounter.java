@@ -2193,7 +2193,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void setSpeciesOnly(String species) {
-        this.specificEpithet = species;
+        setSpecificEpithet(species);
         this.refreshAnnotationLiteTaxonomy();
     }
 
@@ -2202,7 +2202,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void setSpecificEpithet(String newEpithet) {
-        if (newEpithet != null) { specificEpithet = newEpithet; } else { specificEpithet = null; }
+        if (newEpithet != null) { specificEpithet = newEpithet.replaceAll("_"," "); } else { specificEpithet = null; }
         this.refreshAnnotationLiteTaxonomy();
     }
 
@@ -2230,7 +2230,7 @@ public class Encounter extends Base implements java.io.Serializable {
             this.specificEpithet = null;
         } else {
             this.genus = gs[0];
-            this.specificEpithet = gs[1];
+            this.specificEpithet = gs[1].replaceAll("_"," ");
         }
         this.refreshAnnotationLiteTaxonomy();
     }
@@ -2244,7 +2244,7 @@ public class Encounter extends Base implements java.io.Serializable {
             this.specificEpithet = null;
         } else {
             this.genus = gs[0];
-            this.specificEpithet = gs[1];
+            this.specificEpithet = gs[1].replaceAll("_"," ");
         }
         this.refreshAnnotationLiteTaxonomy();
     }

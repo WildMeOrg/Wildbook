@@ -2,6 +2,8 @@ package org.ecocean.servlet.importer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -355,15 +357,25 @@ public class ImportTask implements java.io.Serializable {
 
     public JSONObject statsAnnotations(Shepherd myShepherd) {
         JSONObject sa = new JSONObject();
+        // List<Task> is ordered 'created desc'
         Map<Annotation, List<Task> > atm = this.getAnnotationTaskMap(myShepherd);
         int numTasks = 0;
-        JSONObject encData = new JSONObject();
+        int numLatestTasks = 0;
+        Map<String, Set<Task> > encTasks = new HashMap<String, Set<Task> >();
+        Map<String, String> taskTmp = new HashMap<String, String>();
 
         for (Annotation ann : atm.keySet()) {
             Encounter enc = ann.findEncounter(myShepherd);
-            if ((enc != null) && !encData.has(enc.getId()))
-                encData.put(enc.getId(), new JSONArray());
+            if ((enc != null) && !encTasks.containsKey(enc.getId()))
+                encTasks.put(enc.getId(), new HashSet<Task>());
+            // trivial annots will not be sent correctly to ident (no iaClass etc)
+            // so we skip them in counts as if not sent
+            if (ann.isTrivial()) {
+                sa.put(ann.getId(), 0);
+                continue;
+            }
             sa.put(ann.getId(), Util.collectionSize(atm.get(ann)));
+            boolean latestTask = true; // only for first (most recent) task
             for (Task atask : atm.get(ann)) {
                 String status = atask.getStatus(myShepherd);
                 if (sa.has(status)) {
@@ -372,17 +384,69 @@ public class ImportTask implements java.io.Serializable {
                     sa.put(status, 1);
                 }
                 numTasks++;
-                if (enc != null) {
-                    JSONArray arr = new JSONArray();
-                    arr.put(atask.getId());
-                    arr.put(status);
-                    arr.put(ann.getIAClass());
-                    encData.getJSONArray(enc.getId()).put(arr);
+                // this records only most recent task statuses like: numLatestTask_complete
+                if (latestTask) {
+                    String latestStatus = "numLatestTask_" + atask.getStatus(myShepherd);
+                    if (sa.has(latestStatus)) {
+                        sa.put(latestStatus, sa.optInt(latestStatus, 0) + 1);
+                    } else {
+                        sa.put(latestStatus, 1);
+                    }
+                    numLatestTasks++;
                 }
+                if (enc != null) {
+                    // this is temporary storage to use to populate encounterTaskInfo later
+                    // this status is wrong: needs to be "overall status"
+                    // taskTmp.put(atask.getId() + ".status", status);
+                    taskTmp.put(atask.getId() + ".iaClass", ann.getIAClass());
+                    // the logic for deciding when to add a task is based on
+                    // mystical knowledge found originally in import.jsp
+                    if ((atask.getParent() != null) &&
+                        (atask.getParent().getChildren().size() == 1) &&
+                        (atask.getParameters() != null) &&
+                        atask.getParameters().has("ibeis.identification")) {
+                        // task with only one algorithm
+                        encTasks.get(enc.getId()).add(atask);
+                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 0) &&
+                        (atask.getParent() != null) &&
+                        (atask.getParent().getChildren().size() <= 1)) {
+                        // task with child ident tasks
+                        encTasks.get(enc.getId()).add(atask);
+                    } else if ((atask.getChildren() != null) && (atask.getChildren().size() > 2) &&
+                        (atask.getParent() == null)) {
+                        // task with child ident tasks (also?)
+                        encTasks.get(enc.getId()).add(atask);
+                    }
+                }
+                latestTask = false;
             }
         }
-        sa.put("encounterTaskInfo", encData);
         sa.put("numTasks", numTasks);
+        sa.put("numLatestTasks", numLatestTasks);
+
+        // now we do the work to create encounterTaskInfo
+        JSONObject encData = new JSONObject();
+        for (String encId : encTasks.keySet()) {
+            List<Task> tasks = new ArrayList<Task>();
+            tasks.addAll(encTasks.get(encId));
+            // order to put newest on top
+            Collections.sort(tasks, new Comparator<Task>() {
+                @Override public int compare(Task taskA, Task taskB) {
+                    return Long.compare(taskB.getCreatedLong(), taskA.getCreatedLong());
+                }
+            });
+            JSONArray tasksArr = new JSONArray();
+            for (Task task : tasks) {
+                JSONArray taskArr = new JSONArray();
+                taskArr.put(task.getId());
+                // we have to compute the kind of expensive "overall status" here
+                taskArr.put(task.getOverallStatus(myShepherd));
+                taskArr.put(taskTmp.get(task.getId() + ".iaClass"));
+                tasksArr.put(taskArr);
+            }
+            encData.put(encId, tasksArr);
+        }
+        sa.put("encounterTaskInfo", encData);
         return sa;
     }
 
@@ -553,12 +617,12 @@ public class ImportTask implements java.io.Serializable {
                 int numIdentificationComplete = 0;
                 int numIdentificationTotal = 0;
                 // getOverallStatus() in imports.jsp is a nightmare. attempt to replicate here.
-                if (statsAnn.optInt("numTasks", -1) >= 0)
-                    numIdentificationTotal = statsAnn.optInt("numTasks");
+                if (statsAnn.optInt("numLatestTasks", -1) >= 0)
+                    numIdentificationTotal = statsAnn.optInt("numLatestTasks");
                 // who is the genius who made this be 'completed' versus the (seemingly universal?) 'complete'
                 // (it may well have been me)
-                if (statsAnn.optInt("completed", -1) >= 0)
-                    numIdentificationComplete = statsAnn.optInt("completed");
+                if (statsAnn.optInt("numLatestTask_completed", -1) >= 0)
+                    numIdentificationComplete = statsAnn.optInt("numLatestTask_completed");
                 // TODO do we have to deal with errors as "completed" somehow?
                 pj.put("identificationNumberComplete", numIdentificationComplete);
                 pj.put("identificationNumTotal", numIdentificationTotal);
