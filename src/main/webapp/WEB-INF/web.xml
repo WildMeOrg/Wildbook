@@ -84,7 +84,7 @@
                 # NOTE: Rules are processed in order - first match wins
                 # This configuration is from web-reorganized.xml (consolidation of duplicates)
 
-                # ===== REST API Security =====
+                # ===== REST =====
                 /rest/** = authcBasicWildbook,roles[researcher]
                 #/xxxapi/** = authcBasicWildbook,roles[rest-readonly]
                 /LightRest/** = authcBasicWildbook,roles[researcher]
@@ -93,7 +93,7 @@
                 /api/v3/bulk-import = authc
                 /api/v3/bulk-import/** = authc
 
-                # ===== Admin Panel Security =====
+                # ===== Appadmin =====
                 /appadmin/dataIntegrity.jsp = authc
                 /appadmin/iaBreakdownBySpecies.jsp = authc, roles[researcher]
                 /appadmin/sharedAnnotations.jsp = authc
@@ -111,26 +111,7 @@
                 /appadmin/batch* = authc, roles[admin]
                 /appadmin/** = authc, roles[admin]
 
-                # ===== Logs and System Admin =====
-                /logs/** = authc, roles[admin]
-                /xcalendar/** = authc, roles[researcher]
-
-                # ===== Mass Operations Security =====
-                #/MassSetInformOthers = authc, roles[admin]
-                /MassExposeGBIF = authc, roles[admin]
-                /MassSetLocationCodeFromLocationString = authc, roles[admin]
-                /MassSwapLocationCode = authc, roles[admin]
-
-                # ===== Image Processing and Spots =====
-                /SubmitSpots = authc, roles[imageProcessor]
-                /InterconnectSubmitSpots = authc, roles[imageProcessor]
-                /interconnectSubmitSpots = authc, roles[imageProcessor]
-                /SubmitSpotsAndImage = authc, roles[imageProcessor]
-                /SubmitSpotsAndTransformImage = authc,roles[researcher]
-                /EncounterAddSpotFile = authc, roles[identifier]
-                /EncounterRemoveSpots = authc, roles[researcher]
-
-                # ===== Import/Export Operations =====
+                # ===== Import Operations =====
                 /import/** = authc, roles[researcher]
                 /ImportSRGD = authc, roles[admin]
                 /ImportAccess = authc, roles[admin]
@@ -162,18 +143,7 @@
                 /ExportWekaPredictorARFF = authc, roles[admin]
                 /occurrenceExportSearchResults.jsp = authc, roles[researcher]
 
-                # ===== Gallery and Media =====
-                /gallery.jsp = authc
-                #/encounters/encounter.jsp = authc
-                /encounters/encounterMediaGallery.jsp = authc
-                /encounters/projectManagement.jsp = authc
-                /encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
-                /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
-                /encounters/manualAnnotation.jsp = authc, roles[researcher]
-                /encounters/encounterVM.jsp = authc, roles[researcher]
-                /pictureBook.jsp = authc, roles[researcher]
-
-                # ===== Search Pages =====
+                # ===== Search =====
                 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
                 /encounters/encounterSearch.jsp = roles[researcher]
                 /encounters/searchResults.jsp = authc, roles[researcher]
@@ -215,6 +185,9 @@
                 /merge.jsp = authc, roles[researcher]
                 /mergeComplete.jsp = authc, roles[researcher]
 
+                /gallery.jsp = authc
+                /pictureBook.jsp = authc, roles[researcher]
+
                 # ===== Encounter Management =====
                 /EncounterSetAlternateID = authc, roles[researcher]
                 /EncounterSetState = authc, roles[researcher]
@@ -254,6 +227,24 @@
                 /EncounterRemoveAnnotation = authc, roles[researcher]
                 /GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
                 /RemoveDynamicProperty = authc, roles[researcher]
+                /ResurrectDeletedEncounter = authc, roles[admin]
+
+                #/encounters/encounter.jsp = authc
+                /encounters/encounterMediaGallery.jsp = authc
+                /encounters/projectManagement.jsp = authc
+                /encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
+                /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
+                /encounters/manualAnnotation.jsp = authc, roles[researcher]
+                /encounters/encounterVM.jsp = authc, roles[researcher]
+
+                # ===== Spots =====
+                /SubmitSpots = authc, roles[imageProcessor]
+                /InterconnectSubmitSpots = authc, roles[imageProcessor]
+                /interconnectSubmitSpots = authc, roles[imageProcessor]
+                /SubmitSpotsAndImage = authc, roles[imageProcessor]
+                /SubmitSpotsAndTransformImage = authc,roles[researcher]
+                /EncounterAddSpotFile = authc, roles[identifier]
+                /EncounterRemoveSpots = authc, roles[researcher]
 
                 # ===== Occurrence Management =====
                 /OccurrenceCreate = authc, roles[researcher]
@@ -320,7 +311,7 @@
                 /UserGetSimpleJSON = authc
                 /UserPreferences = authc
 
-                # ===== Organization Management =====
+                # ===== Org Management =====
                 /editOrg.jsp = authc, roles[admin]
                 /OrganizationEdit = authc, roles[admin]
 
@@ -340,7 +331,7 @@
                 /MembershipCreate = authc
                 /MembershipDelete = authc
 
-                # ===== Keyword Management =====
+                # ===== Keywords =====
                 /RestKeyword = authc, roles[researcher]
                 /AddLabeledKeyword = authc, roles[researcher]
                 /KeywordHandler = authc, roles[admin]
@@ -351,9 +342,18 @@
                 /AnnotationEdit = authc, roles[admin]
                 /AnnotationSetMatchAgainst = authc, roles[admin]
 
+                # ===== Logs and System Admin =====
+                /logs/** = authc, roles[admin]
+                /xcalendar/** = authc, roles[researcher]
+
+                # ===== Mass Operations =====
+                #/MassSetInformOthers = authc, roles[admin]
+                /MassExposeGBIF = authc, roles[admin]
+                /MassSetLocationCodeFromLocationString = authc, roles[admin]
+                /MassSwapLocationCode = authc, roles[admin]
+
                 # ===== System Reset/Recovery =====
                 /ResetCommonConfiguration = authc, roles[admin]
-                /ResurrectDeletedEncounter = authc, roles[admin]
 
                 # ===== Calendar and Translation =====
                 /CalendarXMLServer = authc, roles[researcher]
