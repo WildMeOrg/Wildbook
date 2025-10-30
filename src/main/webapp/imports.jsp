@@ -126,12 +126,14 @@ if (user == null) {
     return;
 }
 boolean adminMode = request.isUserInRole("admin");
+boolean showAll = "true".equalsIgnoreCase(request.getParameter("showAll"));
+String keepShowAll = showAll ? "&showAll=true" : "";
 
-  //handle some cache-related security
-  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+//handle some cache-related security
+response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
 
 %>
@@ -208,7 +210,7 @@ try{
     int end = start + pageSize;
 	
     String uclause = "";
-    if (request.getParameter("showAll")==null) {
+    if (request.getParameter("showAll")==null || !adminMode) {
     	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
     }
 
@@ -359,14 +361,14 @@ try{
 	
 	</script>
 
-	<div class="pagination">
-		<% int previousPage = pageIndex - 1;
-		   int nextPage = pageIndex + 1;
-		   if (previousPage >= 0) { %>
-			<a href="?page=<%= previousPage %>">&laquo; Previous</a>
-		<% } %>
-		<a href="?page=<%= nextPage %>">Next &raquo;</a>
-	</div>
+<div class="pagination">
+  <% int previousPage = pageIndex - 1;
+     int nextPage = pageIndex + 1;
+     if (previousPage >= 0) { %>
+    <a href="?page=<%= previousPage %><%= keepShowAll %>">&laquo; Previous</a>
+  <% } %>
+  <a href="?page=<%= nextPage %><%= keepShowAll %>">Next &raquo;</a>
+</div>
 	
     
     	<script type="text/javascript">
