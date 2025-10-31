@@ -27,6 +27,7 @@
 				{"name": "Limpopo","id": "Limpopo", "locationID":[]},
 				{"name": "Lowveld", "id":"Lowveld", "locationID":[]},
 				{"name": "Mpumalanga", "id": "Mpumalanga", "locationID":[]},
+				{"name": "Mtimkulu Game Reserve", "id": "Mtimkulu Game Reserve", "geospatialInfo":{"lat":-23.61069826967048,"long": 31.112186923385384}, "locationID":[]},
 				{"name": "North West","id": "North West", "locationID":[]},
 				{"name": "Northern Cape","id": "Northern Cape", "locationID":[]},
 				{"name": "Western Cape","id": "Western Cape", "locationID":[]}
