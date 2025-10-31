@@ -7,8 +7,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
 import org.ecocean.api.SiteSettings;
+import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
@@ -45,6 +49,7 @@ class EncounterApiTest {
     HttpServletResponse mockResponse;
     SiteSettings apiServlet;
     StringWriter responseOut;
+    List<String> fakeConfValues = new ArrayList<String>();
 
     @BeforeEach void setUp()
     throws IOException {
@@ -56,6 +61,7 @@ class EncounterApiTest {
         responseOut = new StringWriter();
         PrintWriter writer = new PrintWriter(responseOut);
         when(mockResponse.getWriter()).thenReturn(writer);
+        fakeConfValues.add("test");
 
 /*
         try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
@@ -89,6 +95,73 @@ class EncounterApiTest {
                 JSONObject json = encSpy.jsonForApiGet(myShepherd, null);
                 assertEquals(json.length(), 35);
                 assertEquals(json.getString("id"), encId);
+            }
+        }
+    }
+
+    @Test void encounterApiGetTest()
+    throws ServletException, IOException {
+        Encounter enc = new Encounter();
+        User user = new User();
+        Shepherd myShepherd = mock(Shepherd.class);
+        // MediaAsset ma = mock(MediaAsset.class);
+        MediaAsset ma = new MediaAsset();
+
+        enc.addMediaAsset(ma);
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getUser(any(HttpServletRequest.class))).thenThrow(new RuntimeException(
+                "ohmgee"));
+        })) {
+            try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                    org.mockito.Answers.CALLS_REAL_METHODS)) {
+                mockCollab.when(() -> Collaboration.securityEnabled(any(String.class))).thenReturn(
+                    true);
+                try (MockedStatic<CommonConfiguration> mockConfig = mockStatic(
+                    CommonConfiguration.class)) {
+                    // this returns list of fakeConfValues for *anything* calling getIndexedPropertyValues()
+                    mockConfig.when(() -> CommonConfiguration.getIndexedPropertyValues(any(
+                        String.class), any(String.class))).thenReturn(fakeConfValues);
+                    // first test anon user
+                    JSONObject res = enc.jsonForApiGet(myShepherd, null);
+                    assertEquals(res.getJSONArray("mediaAssets").length(), 1);
+                    // now test with user
+                    MediaAsset mockMA = mock(MediaAsset.class);
+                    when(mockMA.getDetectionStatus()).thenReturn("complete");
+                    when(mockMA.getUserFilename()).thenReturn("test-file-name");
+                    when(mockMA.getKeywordsJSONArray()).thenReturn(new JSONArray());
+                    try (MockedStatic<MediaAssetFactory> mockMAF = mockStatic(
+                        MediaAssetFactory.class)) {
+                        mockMAF.when(() -> MediaAssetFactory.loadByUuid(any(String.class),
+                            any(Shepherd.class))).thenReturn(mockMA);
+                        Annotation mockAnnot = mock(Annotation.class);
+                        when(mockAnnot.getMediaAsset()).thenReturn(mockMA);
+                        when(mockAnnot.getIdentificationStatus()).thenReturn("test");
+                        when(mockAnnot.getId()).thenReturn("test-annot-id");
+                        when(myShepherd.getAnnotation(any(String.class))).thenReturn(mockAnnot);
+                        when(mockMA.hasAnnotations()).thenReturn(true);
+                        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+                        anns.add(mockAnnot);
+                        when(mockMA.getAnnotations()).thenReturn(anns);
+                        enc.addAnnotation(mockAnnot);
+                        res = enc.jsonForApiGet(myShepherd, user);
+                        assertEquals(res.getJSONArray("mediaAssets").length(), 2);
+                        assertEquals(res.getJSONArray("mediaAssets").getJSONObject(0).getString(
+                            "detectionStatus"), "complete");
+                        assertEquals(res.getJSONArray("mediaAssets").getJSONObject(0).getString(
+                            "userFilename"), "test-file-name");
+                        assertNotNull(res.getJSONArray("mediaAssets").getJSONObject(0).optString(
+                            "uuid", null));
+                        assertEquals(res.getJSONArray("mediaAssets").getJSONObject(1).getJSONArray(
+                            "annotations").length(), 1);
+                        assertEquals(res.getJSONArray("mediaAssets").getJSONObject(1).getJSONArray(
+                            "annotations").getJSONObject(0).getString("identificationStatus"),
+                            "test");
+                        assertEquals(res.getJSONArray("mediaAssets").getJSONObject(1).getJSONArray(
+                            "annotations").getJSONObject(0).getString("id"), "test-annot-id");
+                    }
+                }
             }
         }
     }
