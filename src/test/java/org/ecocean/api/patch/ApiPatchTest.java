@@ -384,6 +384,27 @@ class ApiPatchTest {
         Encounter enc = new Encounter();
         enc.setSubmitterID("someUser");
         String payload = patchPayload("add", "elevation", 10.0).toString();
+        payload = patchPayload("add", "behavior", "test", payload).toString();
+        payload = patchPayload("add", "alternateId", "test", payload).toString();
+        payload = patchPayload("add", "country", "Cuba", payload).toString();
+        payload = patchPayload("add", "sex", "male", payload).toString();
+        payload = patchPayload("add", "state", "approved", payload).toString();
+        payload = patchPayload("add", "lifeStage", "test", payload).toString();
+        payload = patchPayload("add", "livingStatus", "test", payload).toString();
+        payload = patchPayload("add", "submitterName", "test", payload).toString();
+        payload = patchPayload("add", "submitterOrganization", "test", payload).toString();
+        payload = patchPayload("add", "decimalLatitude", 1.23, payload).toString();
+        payload = patchPayload("add", "decimalLongitude", 1.23, payload).toString();
+        // from here on these are not yet tested on the enc after
+        payload = patchPayload("add", "groupRole", "test", payload).toString();
+        payload = patchPayload("add", "distinguishingScar", "test", payload).toString();
+        payload = patchPayload("add", "occurrenceRemarks", "test", payload).toString();
+        payload = patchPayload("add", "researcherComments", "test", payload).toString();
+        payload = patchPayload("add", "verbatimLocality", "test", payload).toString();
+        payload = patchPayload("add", "verbatimEventDate", "test", payload).toString();
+        payload = patchPayload("add", "sightingRemarks", "test", payload).toString();
+        payload = patchPayload("add", "otherCatalogNumbers", "test", payload).toString();
+        payload = patchPayload("add", "patterningCode", "test", payload).toString();
 
         when(mockRequest.getRequestURI()).thenReturn(
             "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
@@ -394,6 +415,7 @@ class ApiPatchTest {
                 (mock, context) -> {
             when(mock.getEncounter(any(String.class))).thenReturn(enc);
             when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getContext()).thenReturn("context0");
             doNothing().when(mock).beginDBTransaction();
         })) {
             try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
@@ -401,12 +423,30 @@ class ApiPatchTest {
                 try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
                     mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
                         HttpServletRequest.class))).thenReturn(true);
-                    apiServlet.doPatch(mockRequest, mockResponse);
-                    responseOut.flush();
-                    JSONObject jout = new JSONObject(responseOut.toString());
-                    verify(mockResponse).setStatus(200);
-                    assertTrue(jout.getBoolean("success"));
-                    assertTrue(enc.getMaximumElevationInMeters() == 10.0D);
+                    List<String> fakeConfValues = new ArrayList<String>();
+                    // lets "test" work for any validation against common config
+                    fakeConfValues.add("test");
+                    try (MockedStatic<CommonConfiguration> mockConfig = mockStatic(
+                        CommonConfiguration.class)) {
+                        mockConfig.when(() -> CommonConfiguration.getIndexedPropertyValues(any(
+                            String.class), any(String.class))).thenReturn(fakeConfValues);
+                        apiServlet.doPatch(mockRequest, mockResponse);
+                        responseOut.flush();
+                        JSONObject jout = new JSONObject(responseOut.toString());
+                        verify(mockResponse).setStatus(200);
+                        assertTrue(jout.getBoolean("success"));
+                        assertTrue(enc.getMaximumElevationInMeters() == 10.0D);
+                        assertEquals(enc.getBehavior(), "test");
+                        assertEquals(enc.getAlternateID(), "test");
+                        assertEquals(enc.getSex(), "male");
+                        assertEquals(enc.getState(), "approved");
+                        assertEquals(enc.getLifeStage(), "test");
+                        assertEquals(enc.getLivingStatus(), "test");
+                        assertEquals(enc.getSubmitterName(), "test");
+                        assertEquals(enc.getCountry(), "Cuba");
+                        assertTrue(enc.getDecimalLatitudeAsDouble() == 1.23);
+                        assertTrue(enc.getDecimalLongitudeAsDouble() == 1.23);
+                    }
                 }
             }
         }

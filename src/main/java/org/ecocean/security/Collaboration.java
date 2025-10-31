@@ -281,7 +281,7 @@ public class Collaboration implements java.io.Serializable {
     public static boolean canCollaborate(User u1, User u2, String context) {
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV))
             return true;
         return false;
@@ -291,8 +291,7 @@ public class Collaboration implements java.io.Serializable {
         if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        // System.out.println("canCollaborate(String context, String u1, String u2)");
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV))
             return true;
         return false;
@@ -319,7 +318,7 @@ public class Collaboration implements java.io.Serializable {
         if ((u1 == null) || (u2 == null)) return false;
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_EDIT_PRIV)) return true;
         return false;
     }
@@ -327,7 +326,7 @@ public class Collaboration implements java.io.Serializable {
     public static boolean canEdit(String context, User u1, User u2) {
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
-        if (c == null) return false;
+        if ((c == null) || (c.getState() == null)) return false;
         if (c.getState().equals(STATE_EDIT_PRIV)) return true;
         return false;
     }
@@ -419,7 +418,7 @@ public class Collaboration implements java.io.Serializable {
     public static boolean canUserViewOwnedObject(User viewer, User owner, String context) {
         // if they own it
         if (viewer != null && owner != null && viewer.getUUID() != null &&
-            viewer.getUUID().equals(owner.getUUID())) return true;                                                                  // should really be user .equals() method
+            viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
         // if viewer and owner have sharing turned on
         if (((viewer != null && viewer.hasSharing() && (owner == null || owner.hasSharing()))))
             return true; // just based on sharing
@@ -437,7 +436,6 @@ public class Collaboration implements java.io.Serializable {
             return canCollaborate(context, ownerName, "public");
         }
         String username = request.getUserPrincipal().getName();
-        // System.out.println("canUserAccessOwnedObject(String ownerName, HttpServletRequest request)");
         return canCollaborate(context, username, ownerName);
     }
 

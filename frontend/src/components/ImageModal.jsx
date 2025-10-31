@@ -502,7 +502,7 @@ export const ImageModal = observer(
             <aside
               id="image-modal-right"
               className="bg-white text-black ps-3 pe-3 pt-2 d-flex flex-column h-100"
-              style={{ flex: "0 0 360px", minHeight: 0 }}
+              style={{ flex: "0 0 360px", minHeight: 0, overflowY: "auto" }}
             >
               <div className="d-flex align-items-center gap-2 mb-2">
                 {a.url ? (

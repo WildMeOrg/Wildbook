@@ -34,9 +34,10 @@ class NewMatchStore {
   }
   setLocationID(ids) {
     const values = (ids || [])
-      .map((item) =>
-        typeof item === "object" && item.value ? item.value : item,
-      )
+      .map((item) => {
+        if (!item) return null;
+        return typeof item === "object" && item.value ? item.value : item;
+      })
       .filter(Boolean);
 
     const uniq = Array.from(new Set(values));
