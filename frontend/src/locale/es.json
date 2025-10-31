@@ -645,5 +645,12 @@
   "SELECT_PROJECTS": "Seleccionar proyectos",
   "ADDED_TO_PROJECT": "Encuentros añadidos a los proyectos con éxito",
   "FAILED_TO_ADD_TO_PROJECT": "No se pudieron añadir los encuentros al proyecto, por favor inténtalo de nuevo.",
-  "ADDING_TO_PROJECTS": "Añadiendo a los proyectos..."
+  "ADDING_TO_PROJECTS": "Añadiendo a los proyectos...",
+  "METAL_TAGS": "Etiquetas metálicas",
+  "ACOUSTIC_TAGS": "Etiquetas acústicas",
+  "SATELLITE_TAGS": "Etiquetas satelitales",
+  "SERIAL_NUMBER": "Serial Number",
+  "ID": "ID",
+  "NAME": "Nombre",
+  "ARGOS_PPT": "ARGOS PPT"
 }

@@ -645,5 +645,12 @@
   "SELECT_PROJECTS": "Sélectionner des projets",
   "ADDED_TO_PROJECT": "Rencontres ajoutées avec succès aux projets",
   "FAILED_TO_ADD_TO_PROJECT": "Échec de l'ajout des rencontres au projet, veuillez réessayer.",
-  "ADDING_TO_PROJECTS": "Ajout des rencontres aux projets..."
+  "ADDING_TO_PROJECTS": "Ajout des rencontres aux projets...",
+  "METAL_TAGS": "Balises métalliques",
+  "ACOUSTIC_TAGS": "Balises acoustiques",
+  "SATELLITE_TAGS": "Balises satellites",
+  "SERIAL_NUMBER": "Numéro de série",
+  "ID": "ID",
+  "NAME": "Nom",
+  "ARGOS_PPT": "Argos PPT"
 }
