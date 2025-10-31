@@ -500,6 +500,17 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>ApiDocs</servlet-name>
+        <servlet-class>org.ecocean.api.ApiDocsServlet</servlet-class>
+        <description>Serves the openapi.yaml spec for testing tools</description>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ApiDocs</servlet-name>
+        <url-pattern>/api/v3/docs/openapi.yaml</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>ProjectCreate</servlet-name>
         <servlet-class>org.ecocean.servlet.ProjectCreate</servlet-class>
     </servlet>
