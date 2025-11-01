@@ -20,8 +20,8 @@ import ContactInfoModal from "./ContactInfoModal";
 import { MoreDetails } from "./MoreDetails";
 import EncounterHistoryModal from "./EncounterHistoryModal";
 import MatchCriteriaModal from "./MatchCriteria";
-import { EncounterStore } from './stores';
-import { setEncounterState } from './stores/helperFunctions';
+import { EncounterStore } from "./stores";
+import { setEncounterState } from "./stores/helperFunctions";
 import { DateSectionReview } from "./DateSectionReview";
 import { IdentifySectionReview } from "./IdentifySectionReview";
 import { MetadataSectionReview } from "./MetadataSectionReview";
@@ -33,10 +33,15 @@ import { MetadataSectionEdit } from "./MetadataSectionEdit";
 import { LocationSectionEdit } from "./LocationSectionEdit";
 import { AttributesSectionEdit } from "./AttributesSectionEdit";
 import { FormattedMessage } from "react-intl";
+import DeleteEncounterCard from "./DeleteEncounterCard";
+import Modal from "react-bootstrap/Modal";
+import { Divider } from "antd";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
   const { data: siteSettings } = useGetSiteSettings();
+  const [encounterValid, setEncounterValid] = useState(true);
+  const [encounterDeleted, setEncounterDeleted] = useState(false);
 
   useEffect(() => {
     if (!siteSettings) return;
@@ -53,7 +58,7 @@ const Encounter = observer(() => {
       .then((res) => {
         if (!cancelled) store.setEncounterData(res.data);
       })
-      .catch((err) => console.error("fetch encounter error:", err));
+      .catch((_err) => setEncounterValid(false));
     return () => {
       cancelled = true;
     };
@@ -61,6 +66,42 @@ const Encounter = observer(() => {
 
   return (
     <Container style={{ padding: "20px" }}>
+      {!encounterValid && (
+        <Modal show onHide={() => setEncounterValid(true)}>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FormattedMessage id="ENCOUNTER_NOT_FOUND" />
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>
+              <FormattedMessage id="ENCOUNTER_NOT_FOUND" />
+            </p>
+          </Modal.Body>
+        </Modal>
+      )}
+      {encounterDeleted && (
+        <Modal show onHide={() => (window.location.href = "/react")}>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {encounterDeleted === "success" ? (
+                <FormattedMessage id="ENCOUNTER_DELETED" />
+              ) : (
+                <FormattedMessage id="ENCOUNTER_DELETED_ERROR" />
+              )}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>
+              {encounterDeleted === "success" ? (
+                <FormattedMessage id="ENCOUNTER_DELETED_DESC" />
+              ) : (
+                <FormattedMessage id="ENCOUNTER_DELETED_ERROR_DESC" />
+              )}
+            </p>
+          </Modal.Body>
+        </Modal>
+      )}
       <ContactInfoModal
         isOpen={store.modals.openContactInfoModal}
         onClose={() => store.modals.setOpenContactInfoModal(false)}
@@ -79,7 +120,7 @@ const Encounter = observer(() => {
       <Row>
         <Col md={6}>
           <h2>
-            <FormattedMessage id="ENCOUNTER"/>{" "}
+            <FormattedMessage id="ENCOUNTER" />{" "}
             {store.encounterData?.individualDisplayName ? (
               <a
                 href={`/individuals.jsp?id=${store.encounterData.individualId}`}
@@ -94,7 +135,9 @@ const Encounter = observer(() => {
             )}
           </h2>
 
-          <p><FormattedMessage id="ENCOUNTER_ID"/>: {encounterId}</p>
+          <p>
+            <FormattedMessage id="ENCOUNTER_ID" />: {encounterId}
+          </p>
         </Col>
         <Col md={6} className="text-end">
           <PillWithDropdown
@@ -171,22 +214,14 @@ const Encounter = observer(() => {
                   store.errors.setFieldError("date", "date", null);
                   store.errors.clearSectionErrors("date");
                 }}
-                content={
-                  <DateSectionEdit
-                    store={store}
-                  />
-                }
+                content={<DateSectionEdit store={store} />}
               />
             ) : (
               <CardWithEditButton
                 icon={<DateIcon />}
                 title="DATE"
                 onClick={() => store.setEditDateCard(true)}
-                content={
-                  <DateSectionReview
-                    store={store}
-                  />
-                }
+                content={<DateSectionReview store={store} />}
               />
             )}
 
@@ -204,22 +239,14 @@ const Encounter = observer(() => {
                   store.setEditIdentifyCard(false);
                   store.errors.clearSectionErrors("identify");
                 }}
-                content={
-                  <IdentifySectionEdit
-                    store={store}
-                  />
-                }
+                content={<IdentifySectionEdit store={store} />}
               />
             ) : (
               <CardWithEditButton
                 icon={<IdentifyIcon />}
                 title="IDENTIFY"
                 onClick={() => store.setEditIdentifyCard(true)}
-                content={
-                  <IdentifySectionReview
-                    store={store}
-                  />
-                }
+                content={<IdentifySectionReview store={store} />}
               />
             )}
 
@@ -237,22 +264,14 @@ const Encounter = observer(() => {
                   store.setEditMetadataCard(false);
                   store.errors.clearSectionErrors("metadata");
                 }}
-                content={
-                  <MetadataSectionEdit
-                    store={store}
-                  />
-                }
+                content={<MetadataSectionEdit store={store} />}
               />
             ) : (
               <CardWithEditButton
                 icon={<MetadataIcon />}
                 title="METADATA"
                 onClick={() => store.setEditMetadataCard(true)}
-                content={
-                  <MetadataSectionReview
-                    store={store}
-                  />
-                }
+                content={<MetadataSectionReview store={store} />}
               />
             )}
           </Col>
@@ -260,7 +279,10 @@ const Encounter = observer(() => {
             {store.editLocationCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<LocationIcon />}
-                disabled={!!store.errors.getFieldError("location", "latitude") || !!store.errors.getFieldError("location", "longitude")}
+                disabled={
+                  !!store.errors.getFieldError("location", "latitude") ||
+                  !!store.errors.getFieldError("location", "longitude")
+                }
                 title="LOCATION"
                 onSave={async () => {
                   await store.saveSection("location", encounterId);
@@ -273,24 +295,15 @@ const Encounter = observer(() => {
                   store.errors.setFieldError("location", "latitude", null);
                   store.errors.setFieldError("location", "longitude", null);
                   store.errors.clearSectionErrors("location");
-
                 }}
-                content={
-                  <LocationSectionEdit
-                    store={store}
-                  />
-                }
+                content={<LocationSectionEdit store={store} />}
               />
             ) : (
               <CardWithEditButton
                 icon={<LocationIcon />}
                 title="LOCATION"
                 onClick={() => store.setEditLocationCard(true)}
-                content={
-                  <LocationSectionReview
-                    store={store}
-                  />
-                }
+                content={<LocationSectionReview store={store} />}
               />
             )}
 
@@ -308,22 +321,14 @@ const Encounter = observer(() => {
                   store.setEditAttributesCard(false);
                   store.errors.clearSectionErrors("attributes");
                 }}
-                content={
-                  <AttributesSectionEdit
-                    store={store}                  
-                  />
-                }
+                content={<AttributesSectionEdit store={store} />}
               />
             ) : (
               <CardWithEditButton
                 icon={<AttributesIcon />}
                 title="ATTRIBUTES"
                 onClick={() => store.setEditAttributesCard(true)}
-                content={
-                  <AttributesSectionReview
-                    store={store}
-                  />
-                }
+                content={<AttributesSectionReview store={store} />}
               />
             )}
           </Col>
@@ -334,6 +339,15 @@ const Encounter = observer(() => {
       ) : (
         <MoreDetails store={store} />
       )}
+      <Divider />
+      <Row className="mt-3">
+        <Col md={12}>
+          <DeleteEncounterCard
+            id={encounterId}
+            setEncounterDeleted={setEncounterDeleted}
+          />
+        </Col>
+      </Row>
     </Container>
   );
 });
