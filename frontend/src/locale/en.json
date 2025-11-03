@@ -653,5 +653,16 @@
     "SERIAL_NUMBER": "Serial Number",
     "ID": "ID",
     "NAME": "Name",
-    "ARGOS_PPT": "Argos PPT"
+    "ARGOS_PPT": "Argos PPT",
+    "ENCOUNTER_NOT_FOUND": "Encounter Not Found",
+    "ENCOUNTER_NOT_FOUND_DESC": "The encounter you are looking for does not exist or has been deleted.",
+    "ENCOUNTER_DELETED": "Encounter Deleted",
+    "ENCOUNTER_DELETED_ERROR": "Failed to delete the encounter",
+    "ENCOUNTER_DELETED_DESC": "Then encounter has been deleted successfully.",
+    "ENCOUNTER_DELETED_ERROR_DESC": "There was an error while deleting the encounter. Please try again later or contact admin for help.",
+    "DELETE_ENCOUNTER": "Delete Encounter",
+    "DELETE_ENCOUNTER_DESC": "Encounter will be permanently deleted.",
+    "DELETE_ENCOUNTER_CONFIRM": "This will remove the encounter from the system permanently, including any associated images.",
+    "UNASSIGN_AND_DELETE_ENCOUNTER": "Unassign and Delete",
+    "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "This action will detach the encounter from its individual and delete it from the system along with any associated images."
 }

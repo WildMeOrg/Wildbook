@@ -75,7 +75,7 @@ const Encounter = observer(() => {
           </Modal.Header>
           <Modal.Body>
             <p>
-              <FormattedMessage id="ENCOUNTER_NOT_FOUND" />
+              <FormattedMessage id="ENCOUNTER_NOT_FOUND_DESC" />
             </p>
           </Modal.Body>
         </Modal>

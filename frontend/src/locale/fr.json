@@ -652,5 +652,16 @@
   "SERIAL_NUMBER": "Numéro de série",
   "ID": "ID",
   "NAME": "Nom",
-  "ARGOS_PPT": "Argos PPT"
+  "ARGOS_PPT": "Argos PPT",
+  "ENCOUNTER_NOT_FOUND": "Rencontre introuvable",
+  "ENCOUNTER_NOT_FOUND_DESC": "La rencontre que vous recherchez n'existe pas ou a été supprimée.",
+  "ENCOUNTER_DELETED": "Rencontre supprimée",
+  "ENCOUNTER_DELETED_ERROR": "Échec de la suppression de la rencontre",
+  "ENCOUNTER_DELETED_DESC": "La rencontre a été supprimée avec succès.",
+  "ENCOUNTER_DELETED_ERROR_DESC": "Une erreur est survenue lors de la suppression de la rencontre. Veuillez réessayer plus tard ou contacter l’administrateur pour obtenir de l’aide.",
+  "DELETE_ENCOUNTER": "Supprimer la rencontre",
+  "DELETE_ENCOUNTER_DESC": "La rencontre sera supprimée de manière permanente.",
+  "DELETE_ENCOUNTER_CONFIRM": "Cela supprimera définitivement la rencontre du système, y compris toutes les images associées.",
+  "UNASSIGN_AND_DELETE_ENCOUNTER": "Dissocier et supprimer",
+  "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Cette action détachera la rencontre de son individu et la supprimera du système ainsi que toutes les images associées."
 }

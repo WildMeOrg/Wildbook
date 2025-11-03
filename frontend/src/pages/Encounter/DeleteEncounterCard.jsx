@@ -96,11 +96,15 @@ export default function DeleteEncounterCard({
           <i className="bi bi-exclamation-triangle-fill"></i>
         </div>
         <div className="d-flex align-items-center text-align-center">
-          Danger Zone
+          <FormattedMessage id="DANGER_ZONE" />
         </div>
       </div>
-      <p>Delete Encounter?</p>
-      <p>Encounter will be permanently deleted.</p>
+      <p>
+        <FormattedMessage id="DELETE_ENCOUNTER" />?
+      </p>
+      <p>
+        <FormattedMessage id="DELETE_ENCOUNTER_DESC" />
+      </p>
       <MainButton
         onClick={handleClick}
         backgroundColor="#e80d23ff"
@@ -110,7 +114,7 @@ export default function DeleteEncounterCard({
         noArrow={true}
         disabled={loading}
       >
-        Delete Encounter
+        <FormattedMessage id="DELETE_ENCOUNTER" />
       </MainButton>
       <Modal
         centered
@@ -118,12 +122,13 @@ export default function DeleteEncounterCard({
         onHide={() => setDeleteModalShow(false)}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Delete Encounter</Modal.Title>
+          <Modal.Title>
+            <FormattedMessage id="DELETE_ENCOUNTER" />
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p className="mb-0">
-            This will remove the encounter from the system permanently,
-            including any associated images.
+            <FormattedMessage id="DELETE_ENCOUNTER_CONFIRM" />
           </p>
         </Modal.Body>
         <Modal.Footer className="d-flex gap-3">
@@ -145,24 +150,24 @@ export default function DeleteEncounterCard({
             borderColor={"#f91010ff"}
             disabled={loading}
           >
-            Delete
+            <FormattedMessage id="DELETE" />
           </MainButton>
         </Modal.Footer>
       </Modal>
 
-      {/* Unassign + Delete modal (has individual) */}
       <Modal
         centered
         show={unassignModalShow}
         onHide={() => setUnassignModalShow(false)}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Unassign Individual ID and Delete Encounter</Modal.Title>
+          <Modal.Title>
+            <FormattedMessage id="UNASSIGN_AND_DELETE_ENCOUNTER" />
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p className="mb-0">
-            This action will detach the encounter from its individual and delete
-            it from the system along with any associated images.
+            <FormattedMessage id="UNASSIGN_AND_DELETE_ENCOUNTER_DESC" />
           </p>
         </Modal.Body>
         <Modal.Footer className="d-flex gap-3">
@@ -174,7 +179,7 @@ export default function DeleteEncounterCard({
             backgroundColor={theme.primaryColors.primary700}
             color="white"
           >
-            Cancel
+            <FormattedMessage id="CANCEL" />
           </MainButton>
           <MainButton
             onClick={handleUnassignAndDelete}
@@ -184,7 +189,7 @@ export default function DeleteEncounterCard({
             borderColor={"#f91010ff"}
             disabled={loading}
           >
-            Unassign and Delete
+            <FormattedMessage id="UNASSIGN_AND_DELETE_ENCOUNTER" />
           </MainButton>
         </Modal.Footer>
       </Modal>

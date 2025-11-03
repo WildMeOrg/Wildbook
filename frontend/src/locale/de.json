@@ -654,5 +654,16 @@
   "SERIAL_NUMBER": "Seriennummer",
   "ID": "ID",
   "NAME": "Name",
-  "ARGOS_PPT": "Argos PPT"
+  "ARGOS_PPT": "Argos PPT",
+  "ENCOUNTER_NOT_FOUND": "Begegnung nicht gefunden",
+  "ENCOUNTER_NOT_FOUND_DESC": "Die gesuchte Begegnung existiert nicht oder wurde gelöscht.",
+  "ENCOUNTER_DELETED": "Begegnung gelöscht",
+  "ENCOUNTER_DELETED_ERROR": "Fehler beim Löschen der Begegnung",
+  "ENCOUNTER_DELETED_DESC": "Die Begegnung wurde erfolgreich gelöscht.",
+  "ENCOUNTER_DELETED_ERROR_DESC": "Beim Löschen der Begegnung ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut oder wenden Sie sich an den Administrator.",
+  "DELETE_ENCOUNTER": "Begegnung löschen",
+  "DELETE_ENCOUNTER_DESC": "Die Begegnung wird dauerhaft gelöscht.",
+  "DELETE_ENCOUNTER_CONFIRM": "Dies wird die Begegnung dauerhaft aus dem System entfernen, einschließlich aller zugehörigen Bilder.",
+  "UNASSIGN_AND_DELETE_ENCOUNTER": "Zuweisung aufheben und löschen",
+  "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Diese Aktion trennt die Begegnung von ihrem Individuum und löscht sie zusammen mit allen zugehörigen Bildern aus dem System."
 }

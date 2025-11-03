@@ -653,5 +653,16 @@
   "SERIAL_NUMBER": "Numero di serie",
   "ID": "ID",
   "NAME": "Nome",
-  "ARGOS_PPT": "Argos PPT"
+  "ARGOS_PPT": "Argos PPT",
+  "ENCOUNTER_NOT_FOUND": "Incontro non trovato",
+  "ENCOUNTER_NOT_FOUND_DESC": "L'incontro che stai cercando non esiste o è stato eliminato.",
+  "ENCOUNTER_DELETED": "Incontro eliminato",
+  "ENCOUNTER_DELETED_ERROR": "Impossibile eliminare l'incontro",
+  "ENCOUNTER_DELETED_DESC": "L'incontro è stato eliminato con successo.",
+  "ENCOUNTER_DELETED_ERROR_DESC": "Si è verificato un errore durante l'eliminazione dell'incontro. Riprova più tardi o contatta l'amministratore per assistenza.",
+  "DELETE_ENCOUNTER": "Elimina incontro",
+  "DELETE_ENCOUNTER_DESC": "L'incontro verrà eliminato in modo permanente.",
+  "DELETE_ENCOUNTER_CONFIRM": "Questa operazione rimuoverà definitivamente l'incontro dal sistema, comprese eventuali immagini associate.",
+  "UNASSIGN_AND_DELETE_ENCOUNTER": "Dissocia ed elimina",
+  "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Questa azione scollegherà l'incontro dal suo individuo e lo eliminerà dal sistema insieme a tutte le immagini associate."
 }
