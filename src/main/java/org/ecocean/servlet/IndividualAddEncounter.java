@@ -82,6 +82,9 @@ public class IndividualAddEncounter extends HttpServlet {
                             myShepherd.storeNewMarkedIndividual(addToMe);
                             myShepherd.updateDBTransaction();
                             addToMe.refreshNamesCache();
+                            // Explicitly set taxonomy from encounter to ensure genus and specificEpithet are set
+                            addToMe.setTaxonomyFromEncounters(true);
+                            myShepherd.updateDBTransaction();
                             addToMe.refreshDependentProperties();
                         } catch (Exception ex) {
                             ex.printStackTrace();

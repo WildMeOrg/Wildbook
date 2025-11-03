@@ -3089,6 +3089,8 @@ public class IBEISIA {
             indiv.addEncounter(encs.get(i));
             // encs.get(i).setIndividualID(individualId);
         }
+        // Explicitly set taxonomy from encounters to ensure genus and specificEpithet are set
+        indiv.setTaxonomyFromEncounters(true);
         indiv.refreshNumberEncounters();
 
         rtn.put("encounters", encs);
