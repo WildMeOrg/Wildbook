@@ -1156,10 +1156,10 @@ class EncounterStore {
       this._individualSearchResults = resp?.data?.hits ?? [];
       return resp;
     } catch (error) {
-      const message = this._intl.formatMessage({
-        id: "INDIVIDUAL_SEARCH_ERROR",
-      });
-      toast.error(message);
+      // const message = this._intl.formatMessage({
+      //   id: "INDIVIDUAL_SEARCH_ERROR",
+      // });
+      // toast.error(message);
       this._individualSearchResults = [];
       throw error;
     } finally {
@@ -1193,10 +1193,10 @@ class EncounterStore {
       this._sightingSearchResults = response?.data?.hits ?? [];
       return response;
     } catch (error) {
-      const message = this._intl.formatMessage({
-        id: "SIGHTING_SEARCH_ERROR",
-      });
-      toast.error(message);
+      // const message = this._intl.formatMessage({
+      //   id: "SIGHTING_SEARCH_ERROR",
+      // });
+      // toast.error(message);
       this._sightingSearchResults = [];
       throw error;
     } finally {
@@ -1224,7 +1224,6 @@ class EncounterStore {
       );
       if (result.status === 200) {
         await this.refreshEncounterData();
-
         toast.success("Individual removed successfully!");
       }
     } catch (error) {

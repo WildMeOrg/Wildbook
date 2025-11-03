@@ -3002,6 +3002,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public void addMediaAsset(MediaAsset ma) {
         Annotation ann = new Annotation(getTaxonomyString(), ma);
 
+        if (annotations == null) annotations = new ArrayList<Annotation>();
         annotations.add(ann);
     }
 

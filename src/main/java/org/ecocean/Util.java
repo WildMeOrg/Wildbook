@@ -235,6 +235,7 @@ public class Util {
         Properties myProps = ShepherdProperties.getProperties(
             "commonConfigurationLabels.properties", langCode, context);
 
+        if (myProps == null) return null;
         return myProps.getProperty(key + ".label");
     }
 

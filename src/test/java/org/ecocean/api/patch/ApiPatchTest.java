@@ -14,6 +14,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
+import org.ecocean.tag.MetalTag;
 import org.ecocean.User;
 
 import org.json.JSONArray;
@@ -55,6 +56,8 @@ class ApiPatchTest {
     BaseObject apiServlet;
     StringWriter responseOut;
     List<File> emptyFiles = new ArrayList<File>();
+    // lets "test" work for any validation against common config
+    List<String> fakeConfValues = new ArrayList<String>();
 
     @BeforeEach void setUp()
     throws IOException {
@@ -66,6 +69,7 @@ class ApiPatchTest {
         responseOut = new StringWriter();
         PrintWriter writer = new PrintWriter(responseOut);
         when(mockResponse.getWriter()).thenReturn(writer);
+        fakeConfValues.add("test");
     }
 
     private JSONArray patchPayload(String op, String path, Object value) {
@@ -423,9 +427,6 @@ class ApiPatchTest {
                 try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
                     mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
                         HttpServletRequest.class))).thenReturn(true);
-                    List<String> fakeConfValues = new ArrayList<String>();
-                    // lets "test" work for any validation against common config
-                    fakeConfValues.add("test");
                     try (MockedStatic<CommonConfiguration> mockConfig = mockStatic(
                         CommonConfiguration.class)) {
                         mockConfig.when(() -> CommonConfiguration.getIndexedPropertyValues(any(
@@ -1137,6 +1138,161 @@ class ApiPatchTest {
                     JSONObject jout = new JSONObject(responseOut.toString());
                     verify(mockResponse).setStatus(200);
                     assertTrue(jout.getBoolean("success"));
+                }
+            }
+        }
+    }
+
+    @Test void apiMetalTagsFailLocation()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        JSONObject tagData = new JSONObject();
+        tagData.put("location", "test_fail");
+        tagData.put("number", "aaa");
+        String payload = patchPayload("add", "metalTags", tagData).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getContext()).thenReturn("context0");
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    try (MockedStatic<CommonConfiguration> mockConfig = mockStatic(
+                        CommonConfiguration.class)) {
+                        // common config enable showMetalTags
+                        mockConfig.when(() -> CommonConfiguration.showMetalTags(any(
+                            String.class))).thenReturn(true);
+                        // valid locations mocked:
+                        mockConfig.when(() -> CommonConfiguration.getIndexedPropertyValues(eq(
+                            "metalTagLocation"), any(String.class))).thenReturn(fakeConfValues);
+                        apiServlet.doPatch(mockRequest, mockResponse);
+                        responseOut.flush();
+                        JSONObject jout = new JSONObject(responseOut.toString());
+                        verify(mockResponse).setStatus(400);
+                        assertFalse(jout.getBoolean("success"));
+                        assertTrue(gotErrorsValue(jout, "code", "INVALID"));
+                        assertTrue(gotErrorsValue(jout, "details",
+                            "metalTags has invalid location=test_fail"));
+                    }
+                }
+            }
+        }
+    }
+
+    @Test void apiMetalTagsSuccess()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        JSONObject tagData = new JSONObject();
+        tagData.put("location", "test");
+        tagData.put("number", "aaa");
+        String payload = patchPayload("add", "metalTags", tagData).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getContext()).thenReturn("context0");
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    try (MockedStatic<CommonConfiguration> mockConfig = mockStatic(
+                        CommonConfiguration.class)) {
+                        // common config enable showMetalTags
+                        mockConfig.when(() -> CommonConfiguration.showMetalTags(any(
+                            String.class))).thenReturn(true);
+                        // valid locations mocked:
+                        mockConfig.when(() -> CommonConfiguration.getIndexedPropertyValues(eq(
+                            "metalTagLocation"), any(String.class))).thenReturn(fakeConfValues);
+                        apiServlet.doPatch(mockRequest, mockResponse);
+                        responseOut.flush();
+                        JSONObject jout = new JSONObject(responseOut.toString());
+                        verify(mockResponse).setStatus(200);
+                        assertTrue(jout.getBoolean("success"));
+                        assertEquals(enc.getMetalTags().size(), 1);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test void apiMetalTagsModifySuccess()
+    throws ServletException, IOException {
+        User user = mock(User.class);
+
+        when(user.getUsername()).thenReturn("someUser");
+        Encounter enc = new Encounter();
+        enc.setSubmitterID("someUser");
+        MetalTag mtag = new MetalTag("bbb", "test");
+        enc.addMetalTag(mtag);
+        assertEquals(enc.getMetalTags().size(), 1);
+        assertEquals(enc.getMetalTags().get(0).getTagNumber(), "bbb");
+        JSONObject tagData = new JSONObject();
+        tagData.put("location", "test");
+        tagData.put("number", "aaa");
+        String payload = patchPayload("add", "metalTags", tagData).toString();
+
+        when(mockRequest.getRequestURI()).thenReturn(
+            "/api/v3/encounters/00000000-0000-0000-0000-000000000000");
+        when(mockRequest.getMethod()).thenReturn("PATCH");
+        when(mockRequest.getReader()).thenReturn(new BufferedReader(new StringReader(payload)));
+
+        try (MockedConstruction<Shepherd> mockShepherd = mockConstruction(Shepherd.class,
+                (mock, context) -> {
+            when(mock.getEncounter(any(String.class))).thenReturn(enc);
+            when(mock.getUser(any(HttpServletRequest.class))).thenReturn(user);
+            when(mock.getContext()).thenReturn("context0");
+            doNothing().when(mock).beginDBTransaction();
+        })) {
+            try (MockedStatic<ShepherdPMF> mockService = mockStatic(ShepherdPMF.class)) {
+                mockService.when(() -> ShepherdPMF.getPMF(any(String.class))).thenReturn(mockPMF);
+                try (MockedStatic<ReCAPTCHA> mockCaptcha = mockStatic(ReCAPTCHA.class)) {
+                    mockCaptcha.when(() -> ReCAPTCHA.sessionIsHuman(any(
+                        HttpServletRequest.class))).thenReturn(true);
+                    try (MockedStatic<CommonConfiguration> mockConfig = mockStatic(
+                        CommonConfiguration.class)) {
+                        // common config enable showMetalTags
+                        mockConfig.when(() -> CommonConfiguration.showMetalTags(any(
+                            String.class))).thenReturn(true);
+                        // valid locations mocked:
+                        mockConfig.when(() -> CommonConfiguration.getIndexedPropertyValues(eq(
+                            "metalTagLocation"), any(String.class))).thenReturn(fakeConfValues);
+                        apiServlet.doPatch(mockRequest, mockResponse);
+                        responseOut.flush();
+                        JSONObject jout = new JSONObject(responseOut.toString());
+                        verify(mockResponse).setStatus(200);
+                        assertTrue(jout.getBoolean("success"));
+                        // should still have only 1 tag, but number should be "aaa" not "bbb" now
+                        assertEquals(enc.getMetalTags().size(), 1);
+                        assertEquals(enc.getMetalTags().get(0).getTagNumber(), "aaa");
+                    }
                 }
             }
         }
