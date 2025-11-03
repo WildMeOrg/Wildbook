@@ -344,6 +344,7 @@ const Encounter = observer(() => {
         <Col md={12}>
           <DeleteEncounterCard
             id={encounterId}
+            individualId={store.encounterData?.individualId}
             setEncounterDeleted={setEncounterDeleted}
           />
         </Col>
