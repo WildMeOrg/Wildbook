@@ -701,9 +701,38 @@
 	{ "name": "South America", "id": "South America", "locationID":[
 		{"name": "Argentina", "id": "Argentina", "locationID":[] },
 		{"name": "Brazil", "id": "Brazil", "locationID":[
-			{"name": "Pará", "id": "Pará", "locationID":[] },
+		    {"name": "Acre", "id": "Acre", "locationID": []},
+			{"name": "Alagoas", "id": "Alagoas", "locationID": []},
+			{"name": "Amapá", "id": "Amapá", "locationID": []},
+			{"name": "Amazonas", "id": "Amazonas", "locationID": []},
+			{"name": "Bahia", "id": "Bahia", "locationID": []},
+			{"name": "Ceará", "id": "Ceará", "locationID": []},
+			{"name": "Distrito Federal", "id": "Distrito Federal", "locationID": []},
+			{"name": "Espírito Santo", "id": "Espírito Santo", "locationID": []},
+			{"name": "Goiás", "id": "Goiás", "locationID": []},
+			{"name": "Maranhão", "id": "Maranhão", "locationID": []},
+			{"name": "Mato Grosso", "id": "Mato Grosso", "locationID": []},
+			{"name": "Mato Grosso do Sul", "id": "Mato Grosso do Sul", "locationID": []},
+			{"name": "Minas Gerais", "id": "Minas Gerais", "locationID": []},
+			{"name": "Pará", "id": "Pará", "locationID": [
+			
+				{ "name":"CT01", "id":"CT01", "locationID":[] }
+			
+			]},
+			{"name": "Paraíba", "id": "Paraíba", "locationID": []},
+			{"name": "Paraná", "id": "Paraná", "locationID": []},
+			{"name": "Pernambuco", "id": "Pernambuco", "locationID": []},
+			{"name": "Piauí", "id": "Piauí", "locationID": []},
+			{"name": "Rio de Janeiro", "id": "Rio de Janeiro", "locationID": []},
+			{"name": "Rio Grande do Norte", "id": "Rio Grande do Norte", "locationID": []},
+			{"name": "Rio Grande do Sul", "id": "Rio Grande do Sul", "locationID": []},
 			{"name": "Rondônia", "id": "Rondônia", "locationID": []},
-			{ "name":"CT01", "id":"CT01", "locationID":[] }
+			{"name": "Roraima", "id": "Roraima", "locationID": []},
+			{"name": "Santa Catarina", "id": "Santa Catarina", "locationID": []},
+			{"name": "São Paulo", "id": "São Paulo", "locationID": []},
+			{"name": "Sergipe", "id": "Sergipe", "locationID": []},
+			{"name": "Tocantins", "id": "Tocantins", "locationID": []}
+			
 		] },
 		{"name": "Bolivia", "id": "Bolivia", "locationID":[] },
 		{"name": "Chile", "id": "Chile", "locationID":[] },
