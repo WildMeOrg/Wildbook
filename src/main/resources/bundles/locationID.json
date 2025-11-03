@@ -686,6 +686,7 @@
 			] }
 		] },
 		{ "name": "Central America", "id": "Central America", "locationID":[
+		{"name": "Belize", "id": "Belize", "locationID":[] },
 			{"name": "Guatemala", "id": "Guatemala", "locationID":[
 			
 				{ "name":"America - Central", "id":"America - Central", "locationID":[] }
