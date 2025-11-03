@@ -52,6 +52,7 @@ public class Annotation implements java.io.Serializable {
     private boolean isExemplar = false;
     private Boolean isOfInterest = null; // aka AoI (Annotation of Interest)
     protected String identificationStatus;
+    private Boolean validForIA; // persisted validity flag for identification
     private ArrayList<Feature> features;
     protected String acmId;
 
@@ -92,6 +93,7 @@ public class Annotation implements java.io.Serializable {
 
     private MediaAsset mediaAsset = null;
     ////// end of what will go away
+
 
     // the "trivial" Annotation - will have a single feature which references the
     // total MediaAsset
@@ -699,6 +701,14 @@ public class Annotation implements java.io.Serializable {
                  * .append("asset", mediaAsset)
                  */
                 .toString();
+    }
+
+    public Boolean getValidForIA() {
+        return validForIA;
+    }
+
+    public void setValidForIA(Boolean validForIA) {
+        this.validForIA = validForIA;
     }
 
     /*

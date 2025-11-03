@@ -429,6 +429,8 @@ td.measurement{
 var lastIndivAutoData = {};
 function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
+    var opening = false;        // prevents recursive re-calls
+    var cachedRes = null;       // holds last results to render without new AJAX
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
@@ -450,6 +452,46 @@ function setIndivAutocomplete(el) {
             resetIdButtons();
             return true;
         }
+    };
+    // Pass genus and specificEpithet to SiteSearch for server-side filtering
+    args.source = function(request, response) {
+        if (opening && cachedRes) {
+            // serve cached results to open the menu without another AJAX call
+            response(cachedRes);
+            opening = false;
+            cachedRes = null;
+            return;
+        }
+        var tax = $('#displayTax').text() || '';
+        var parts = tax.trim().split(/\s+/);
+        var genus = (parts.length > 0) ? parts[0] : '';
+        var specific = (parts.length > 1) ? parts[1] : '';
+        var loader = $('#indivSearchLoading');
+        if (loader.length) loader.show();
+
+        $.ajax({
+            url: wildbookGlobals.baseUrl + '/SiteSearch',
+            dataType: 'json',
+            data: {
+                term: request.term,
+                genus: genus,
+                specificEpithet: specific
+            },
+            success: function(data) {
+                var res = args.resMap(data);
+                response(res);
+                cachedRes = res;
+                if (res && res.length) {
+                    el.focus();
+                    opening = true;
+                    $(el).autocomplete('search', el.val());
+                }
+                if (loader.length) loader.hide();
+            },
+            error: function() {
+                if (loader.length) loader.hide();
+            }
+        });
     };
     wildbook.makeAutocomplete(el[0], args);
 }
@@ -1794,6 +1836,7 @@ function resetIdButtons() {
                         <div class="col-sm-5 col-xs-10">
                           <input name="individual" type="text" class="form-control" id="individualAddEncounterInputDisplay"/>
                           <input style="margin-left: 220px;outline: blue 2px dashed;" name="individual" type="hidden" class="form-control" id="individualAddEncounterInput"/>
+                          <div id="indivSearchLoading" style="display:none; font-size:12px; color:#777; margin-top:4px;">Loading...</div>
                         </div>
                           <div id="add-to-existing-ind-section">
                           </div>
@@ -1840,13 +1883,9 @@ function checkIdDisplay() {
 
     $('#individualAddEncounterInputDisplay').on('change', function(ev) {
         checkIdDisplay();
-        resetIdButtons();
     });
-    $('#individualAddEncounterInputDisplay').on('keyup keydown click', function(ev) {
-        switchIdMode('#Add');
+    $('#individualAddEncounterInputDisplay').on('keyup', function(ev) {
         checkIdDisplay();
-        resetIdButtons();
-        //$('#matchType').val('Pattern match');
     });
     $('#individualNewAddEncounterInput').on('keydown click', function() {
         switchIdMode('#AddNew');

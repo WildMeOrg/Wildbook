@@ -396,6 +396,9 @@
           }
         ]
       },
+      "spotted_hyena": {
+        "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
+      },
       "spotted_hyaena": {
         "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
       }
@@ -472,9 +475,13 @@
           }
         ]
       },
+      "hyaena_brown":{
+        "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
+      },
       "brown_hyaena": {
         "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
       }
+
     }
   },
 

@@ -4674,16 +4674,21 @@ public class IBEISIA {
     public static boolean validForIdentification(Annotation ann, String context) {
         if (ann == null) return false;
         String acmId = ann.getAcmId();
+        // if DB already has a value, return it
+        if (ann.getValidForIA() != null) {
+            System.out.println("INFO: IBEISIA.validForIdentification() returning cached validForIA=" + ann.getValidForIA() + " for ann=" + ann.getId());
+            return ann.getValidForIA();
+        }
         /*
             NOTE: we need to allow for case where ann.acmId is null; namely, this is an annot IA knows nothing about.
             in this case, we will be keeping this out of AnnotationLite.cache, as it should get added later
          */
-        AnnotationLite annl = null;
-        if (acmId != null) {
-            annl = AnnotationLite.getCache(acmId);
-            if ((annl != null) && (annl.getValidForIdentification() != null))
-                return annl.getValidForIdentification();
-        }
+        // AnnotationLite annl = null;
+        // if (acmId != null) {
+        //     annl = AnnotationLite.getCache(acmId);
+        //     if ((annl != null) && (annl.getValidForIdentification() != null))
+        //         return annl.getValidForIdentification();
+        // }
         // System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
         List<Feature> forceJdoToUnpackTheseFeatures = ann.getFeatures();
         String ungodlyHackString = "";
@@ -4693,37 +4698,43 @@ public class IBEISIA {
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validToSendToIA() failing " + ann.toString() +
                 " - invalid bbox");
-            if (acmId != null) {
-                if (annl == null) {
-                    annl = new AnnotationLite(false);
-                } else {
-                    annl.setValidForIdentification(false);
-                }
-                AnnotationLite.setCache(acmId, annl);
-            }
+            ann.setValidForIA(false);
+            System.out.println("INFO: IBEISIA.validForIdentification() set validForIA=false (null bbox) for ann=" + ann.getId());
+            // if (acmId != null) {
+            //     if (annl == null) {
+            //         annl = new AnnotationLite(false);
+            //     } else {
+            //         annl.setValidForIdentification(false);
+            //     }
+            //     AnnotationLite.setCache(acmId, annl);
+            // }
             return false;
         }
         if (context != null && !validIAClassForIdentification(ann, context) && !ann.isTrivial()) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() +
                 " - annotation does not have valid Identification class.");
-            if (acmId != null) {
-                if (annl == null) {
-                    annl = new AnnotationLite(false);
-                } else {
-                    annl.setValidForIdentification(false);
-                }
-                AnnotationLite.setCache(acmId, annl);
-            }
+            ann.setValidForIA(false);
+            System.out.println("INFO: IBEISIA.validForIdentification() set validForIA=false (invalid IA class) for ann=" + ann.getId());
+            // if (acmId != null) {
+            //     if (annl == null) {
+            //         annl = new AnnotationLite(false);
+            //     } else {
+            //         annl.setValidForIdentification(false);
+            //     }
+            //     AnnotationLite.setCache(acmId, annl);
+            // }
             return false;
         }
-        if (acmId != null) {
-            if (annl == null) {
-                annl = new AnnotationLite(true);
-            } else {
-                annl.setValidForIdentification(true);
-            }
-            AnnotationLite.setCache(acmId, annl);
-        }
+        ann.setValidForIA(true);
+        System.out.println("INFO: IBEISIA.validForIdentification() set validForIA=true for ann=" + ann.getId());
+        // if (acmId != null) {
+        //     if (annl == null) {
+        //         annl = new AnnotationLite(true);
+        //     } else {
+        //         annl.setValidForIdentification(true);
+        //     }
+        //     AnnotationLite.setCache(acmId, annl);
+        // }
         return true;
     }
 

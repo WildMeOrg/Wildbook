@@ -53,6 +53,9 @@ public class SiteSearch extends HttpServlet {
         response.setContentType("text/json");
         PrintWriter out = response.getWriter();
         String term = request.getParameter("term");
+        // optional server-side taxonomy filters
+        String filterGenus = request.getParameter("genus");
+        String filterSpecific = request.getParameter("specificEpithet");
         if (!Util.stringExists(term) || (term.length() < 2)) {
             out.println("[]");
             return;
@@ -113,7 +116,7 @@ public class SiteSearch extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         try {
-            List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex);
+            List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex, filterGenus, filterSpecific);
             for (MarkedIndividual ind : individuals) {
                 try {
                     HashMap<String, String> hm = new HashMap<String, String>();
