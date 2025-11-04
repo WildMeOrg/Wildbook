@@ -137,6 +137,17 @@
 		"prefix": "NSW-", 
 		"prefixDigitPadding": 4 
 	},
+	{
+		"name": "NSW-Sydney-Freshwater",
+		"id": "NSW-Sydney-Freshwater",
+		"locationID": [],
+		"prefix": "NSW-",
+		"prefixDigitPadding": 4,
+		"geospatialInfo": {
+			"lat": -33.78279119769228,
+			"long": 151.29790475906643
+		}
+	},
 	{ 
 		"name": "NSW-Sydney-Henry’s Head", 
 		"id": "NSW-Sydney-Henry’s Head", 
