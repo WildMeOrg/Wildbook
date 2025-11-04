@@ -541,7 +541,7 @@ const ImageCard = observer(({ store = {} }) => {
       </div>
       <div
         className="d-flex flex-wrap align-items-center mt-2"
-        style={{ gap: 8 }}
+        style={{ gap: 8, overflowY: "auto", maxHeight: 200 }}
       >
         {store.encounterData?.mediaAssets.map((asset, index) => (
           <img
