@@ -331,7 +331,7 @@ public class BaseObject extends ApiBase {
         } finally {
             if (rtn.optInt("statusCode", 500) == 200) {
                 myShepherd.commitDBTransaction();
-                if (obj != null) rtn.put("_afterPatch", obj.afterPatch(myShepherd));
+                if (obj != null) Util.merge(rtn, obj.afterPatch(myShepherd));
                 myShepherd.closeDBTransaction();
             } else {
                 myShepherd.rollbackAndClose();

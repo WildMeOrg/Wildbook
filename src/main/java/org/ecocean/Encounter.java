@@ -5,6 +5,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import java.io.*;
 import java.lang.Math;
 import java.net.URI;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -4219,7 +4220,7 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField("mimeTypeMinor", ma.getMimeTypeMinor());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
-                java.net.URL url = ma.safeURL(myShepherd, null, "master");
+                URL url = ma.safeURL(myShepherd, null, "master");
                 if (url != null) jgen.writeStringField("url", url.toString());
             } catch (Exception ex) {}
             // we (likely) dont need annotations to search on, but they are needed for
@@ -5185,16 +5186,26 @@ public class Encounter extends Base implements java.io.Serializable {
     public org.json.JSONObject afterPatch(Shepherd myShepherd) {
         org.json.JSONObject res = new org.json.JSONObject();
         List<Base> needsIndexing = new ArrayList<Base>();
-        // handle assets that were newly added
-        List<MediaAsset> newAssets = new ArrayList<MediaAsset>();
+        org.json.JSONArray newAssetsArr = new org.json.JSONArray();
+        // we update children here (not backgrounded) since we need them available
+        // once the api returns the results
         for (MediaAsset ma : this.getMedia()) {
             if ("_new".equals(ma.getDetectionStatus())) {
-                newAssets.add(ma);
+                // _post_new is meant to be temporary, as it
+                // will get overwritten once put into IA pipeline
+                ma.setDetectionStatus("_post_new");
+                ma.updateStandardChildren(myShepherd);
                 needsIndexing.add(ma);
+                org.json.JSONObject maj = new org.json.JSONObject();
+                maj.put("id", ma.getId());
+                try {
+                    URL url = ma.safeURL(myShepherd, null, "master");
+                    if (url != null) maj.put("url", url.toString());
+                } catch (Exception ex) {}
+                newAssetsArr.put(maj);
             }
         }
-        res.put("numNewAssets", newAssets.size());
-        MediaAsset.updateStandardChildrenBackgroundAssets(myShepherd.getContext(), newAssets);
+        if (newAssetsArr.length() > 0) res.put("newMediaAssets", newAssetsArr);
         BulkImportUtil.bulkOpensearchIndex(needsIndexing);
         // FIXME  see servlet/MediaAssetCreate - replicate sending stuff to IA but maybe a nice method?
         return res;

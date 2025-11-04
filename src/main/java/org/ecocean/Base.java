@@ -408,7 +408,7 @@ import org.json.JSONObject;
     // this will be run at the end of all patches, if successful
     // even though passed a shepherd, the obj should be *committed* at this point,
     // making it suitable for background tasks etc.
-    public org.json.JSONObject afterPatch(Shepherd myShepherd) {
+    public JSONObject afterPatch(Shepherd myShepherd) {
         // override this if needed
         return null;
     }
