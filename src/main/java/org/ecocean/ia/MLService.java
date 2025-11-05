@@ -120,6 +120,10 @@ public class MLService {
         FeatureType.initAll(myShepherd);
         Task task = myShepherd.getTask(jobData.optString("taskId", null));
         JSONArray ids = jobData.optJSONArray("mediaAssetIds");
+        // skipEmbedding will set true if there was a non-requeuable config problem
+        // (probably not configured for _mlservice in IA.json) so we just give up and
+        // let ident do its thing
+        boolean skipEmbedding = false;
         try {
             // got some asset ids
             if (ids != null) {
@@ -147,10 +151,15 @@ public class MLService {
                 jobData);
             iaex.printStackTrace();
             if (task != null) task.setStatus("error");
-            if (iaex.shouldRequeue()) requeueJob(jobData, iaex.shouldIncrement());
+            if (iaex.shouldRequeue()) {
+                requeueJob(jobData, iaex.shouldIncrement());
+            } else {
+                // we might want more complex logic to determine if we really should give up
+                skipEmbedding = true;
+            }
         } finally {
             // we end up here after *each* annotation, so we are "done" when all annotations have been processed
-            boolean taskComplete = areAllEmbeddingsExtracted(task);
+            boolean taskComplete = skipEmbedding || areAllEmbeddingsExtracted(task);
             if (taskComplete) task.setCompletionDateInMilliseconds();
             myShepherd.commitDBTransaction();
             if (taskComplete) {
