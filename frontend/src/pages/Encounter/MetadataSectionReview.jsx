@@ -59,6 +59,7 @@ export const MetadataSectionReview = observer(({ store }) => {
               href={`/react/bulk-import-task?id=${store.encounterData.importTaskId}`}
               target="_blank"
               rel="noopener noreferrer"
+              className="text-decoration-none"
             >
               {store.encounterData.importTaskId}
             </a>
