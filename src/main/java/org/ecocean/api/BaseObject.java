@@ -333,6 +333,9 @@ public class BaseObject extends ApiBase {
                 myShepherd.commitDBTransaction();
                 if (obj != null) Util.merge(rtn, obj.afterPatch(myShepherd));
                 myShepherd.closeDBTransaction();
+                // this has to be done *after* db transaction closed, so background
+                // stuff can be done (e.g. IA pipeline)
+                if (obj != null) Util.merge(rtn, obj.afterPatchTransaction(context));
             } else {
                 myShepherd.rollbackAndClose();
             }
@@ -340,47 +343,6 @@ public class BaseObject extends ApiBase {
         return rtn;
     }
 
-/*
-    private List<File> findFiles(HttpServletRequest request, JSONObject payload)
-    throws IOException {
-        List<File> files = new ArrayList<File>();
-
-        if (payload == null) return files;
-        String submissionId = payload.optString("submissionId", null);
-        if (!Util.isUUID(submissionId)) {
-            System.out.println("WARNING: valid submissionId required; no files possible");
-            return files;
-        }
-        Map<String, String> values = new HashMap<String, String>();
-        values.put("submissionId", submissionId);
-        File uploadDir = new File(UploadServlet.getUploadDir(request, values));
-        System.out.println("findFiles() uploadDir=" + uploadDir);
-        if (!uploadDir.exists())
-            throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
-        List<String> filenames = new ArrayList<String>();
-        JSONArray fnArr = payload.optJSONArray("assetFilenames");
-        if (fnArr != null) {
-            for (int i = 0; i < fnArr.length(); i++) {
-                String fn = fnArr.optString(i, null);
-                if (fn != null) filenames.add(fn);
-            }
-   /  right now we *require* explicitly listed assetFilenames, so we dont do this "add all" option
-        } else {
-            for (File f : uploadDir.listFiles()) {
-                filenames.add(f.getName());
-            }
-   /
-        }
-        if (filenames.size() < 1) return files;
-        for (String fname : filenames) {
-            File file = new File(uploadDir, fname);
-            if (!file.exists()) throw new IOException(file + " does not exist in uploadDir");
-            files.add(file);
-        }
-        System.out.println("findFiles(): files=" + files);
-        return files;
-    }
- */
     private Map<File, MediaAsset> makeMediaAssets(String encounterId, List<File> files,
         Shepherd myShepherd)
     throws ApiException {

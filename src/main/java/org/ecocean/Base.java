@@ -413,6 +413,13 @@ import org.json.JSONObject;
         return null;
     }
 
+    // like above, but db transaction has been closed so obj should
+    // be persisted in db and ready for background behavior, like IA processing
+    public JSONObject afterPatchTransaction(String context) {
+        // override this if needed
+        return null;
+    }
+
     // TODO should this be an abstract? will we need some base stuff?
     public static Object validateFieldValue(String fieldName, JSONObject data)
     throws ApiException {
