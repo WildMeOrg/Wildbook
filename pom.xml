@@ -20,6 +20,7 @@
     <mockito.version>4.11.0</mockito.version>
     <testcontainers.version>1.19.3</testcontainers.version>
     <rest-assured.version>5.4.0</rest-assured.version>
+    <wiremock.version>3.3.1</wiremock.version>
   </properties>
 
   <repositories>
