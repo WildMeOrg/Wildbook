@@ -408,7 +408,14 @@ import org.json.JSONObject;
     // this will be run at the end of all patches, if successful
     // even though passed a shepherd, the obj should be *committed* at this point,
     // making it suitable for background tasks etc.
-    public org.json.JSONObject afterPatch(Shepherd myShepherd) {
+    public JSONObject afterPatch(Shepherd myShepherd) {
+        // override this if needed
+        return null;
+    }
+
+    // like above, but db transaction has been closed so obj should
+    // be persisted in db and ready for background behavior, like IA processing
+    public JSONObject afterPatchTransaction(String context) {
         // override this if needed
         return null;
     }

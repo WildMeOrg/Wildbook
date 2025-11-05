@@ -1169,6 +1169,20 @@ public class Util {
         return new JSONObject(original, JSONObject.getNames(original));
     }
 
+    // changes original in-place by folding source into original
+    // overwrite means source will squash like-keyed values in original
+    public static void merge(JSONObject original, JSONObject source, boolean overwrite) {
+        if ((original == null) || (source == null)) return;
+        for (String key : source.keySet()) {
+            if (original.has(key) && !overwrite) continue;
+            original.put(key, source.get(key));
+        }
+    }
+
+    public static void merge(JSONObject original, JSONObject source) {
+        merge(original, source, true);
+    }
+
     /**
      * Generates and returns version long value using 'modified', returns 0 for now if the 'modified' property
      * does not have any value or can't be converted to Long.

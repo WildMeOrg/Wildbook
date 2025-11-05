@@ -5,6 +5,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import java.io.*;
 import java.lang.Math;
 import java.net.URI;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -4219,7 +4220,7 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField("mimeTypeMinor", ma.getMimeTypeMinor());
             try {
                 // historic data might throw IllegalArgumentException: Path not under given root
-                java.net.URL url = ma.safeURL(myShepherd, null, "master");
+                URL url = ma.safeURL(myShepherd, null, "master");
                 if (url != null) jgen.writeStringField("url", url.toString());
             } catch (Exception ex) {}
             // we (likely) dont need annotations to search on, but they are needed for
@@ -5185,19 +5186,47 @@ public class Encounter extends Base implements java.io.Serializable {
     public org.json.JSONObject afterPatch(Shepherd myShepherd) {
         org.json.JSONObject res = new org.json.JSONObject();
         List<Base> needsIndexing = new ArrayList<Base>();
-        // handle assets that were newly added
-        List<MediaAsset> newAssets = new ArrayList<MediaAsset>();
+        org.json.JSONArray newAssetsArr = new org.json.JSONArray();
+        // we update children here (not backgrounded) since we need them available
+        // once the api returns the results
         for (MediaAsset ma : this.getMedia()) {
             if ("_new".equals(ma.getDetectionStatus())) {
-                newAssets.add(ma);
+                // _post_new is meant to be temporary, as it
+                // will get overwritten once put into IA pipeline
+                ma.setDetectionStatus("_post_new");
+                ma.updateStandardChildren(myShepherd);
                 needsIndexing.add(ma);
+                org.json.JSONObject maj = new org.json.JSONObject();
+                maj.put("id", ma.getIdInt());
+                try {
+                    URL url = ma.safeURL(myShepherd, null, "master");
+                    if (url != null) maj.put("url", url.toString());
+                } catch (Exception ex) {}
+                newAssetsArr.put(maj);
             }
         }
-        res.put("numNewAssets", newAssets.size());
-        MediaAsset.updateStandardChildrenBackgroundAssets(myShepherd.getContext(), newAssets);
+        if (newAssetsArr.length() > 0) res.put("newMediaAssets", newAssetsArr);
         BulkImportUtil.bulkOpensearchIndex(needsIndexing);
-        // FIXME  see servlet/MediaAssetCreate - replicate sending stuff to IA but maybe a nice method?
         return res;
+    }
+
+    // this is allowed to have its own new thread since encounter is persisted
+    public org.json.JSONObject afterPatchTransaction(String context) {
+        List<Integer> ids = new ArrayList<Integer>();
+
+        // we use _post_new state to determine what needs to go to IA
+        // see: afterPatch() above
+        for (MediaAsset ma : this.getMedia()) {
+            if ("_post_new".equals(ma.getDetectionStatus())) {
+                ids.add(ma.getIdInt());
+            }
+        }
+        if (ids.size() < 1) return null;
+        Task task = this.sendToIA(ids, context);
+        if (task == null) return null;
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        rtn.put("taskId", task.getId());
+        return rtn;
     }
 
     public MarkedIndividual removeIndividual() {
@@ -5324,7 +5353,7 @@ public class Encounter extends Base implements java.io.Serializable {
                     tp.put("matchingSetFilter", mf);
                     parentTask.setParameters(tp);
                 }
-                task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, this.getMedia(), parentTask);
+                task = IA.intakeMediaAssets(myShepherd, this.getMedia(), parentTask);
                 myShepherd.storeNewTask(task);
                 System.out.println("sendToIA() success on " + this + " => " + task);
             } else {
@@ -5333,6 +5362,59 @@ public class Encounter extends Base implements java.io.Serializable {
         } catch (Exception ex) {
             System.out.println("sendToIA() failed on " + this + ": " + ex);
             ex.printStackTrace();
+        }
+        return task;
+    }
+
+    // this is based on servlet/MediaAssetCreate and differs only slightly from
+    // above - mainly in that it can handle multiple assets and creates own shepherd
+    // (note: all assets assumed to be using *this encounter*
+    public Task sendToIA(List<Integer> ids, String context) {
+        Task task = null;
+        Shepherd myShepherd = new Shepherd(context);
+
+        myShepherd.setAction("Encounter.sendToIA()");
+        myShepherd.beginDBTransaction();
+        try {
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            boolean hasConfig = iaConfig.hasIA(this, myShepherd);
+            List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+            for (Integer id : ids) {
+                if (id < 0) continue;
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma != null) {
+                    ma.setDetectionStatus(hasConfig ? "pending" : "complete");
+                    allMAs.add(ma);
+                }
+            }
+            if (!hasConfig) {
+                System.out.println("sendToIA() skipped; no config for " + this);
+            } else if (allMAs.size() > 0) {
+                Task parentTask = null; // not persisted
+                if (this.getLocationID() != null) {
+                    parentTask = new Task();
+                    org.json.JSONObject tp = new org.json.JSONObject();
+                    org.json.JSONObject mf = new org.json.JSONObject();
+                    mf.put("locationId", this.getLocationID());
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                Taxonomy taxy = this.getTaxonomy(myShepherd);
+                if (taxy != null) {
+                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask);
+                } else {
+                    task = IA.intakeMediaAssets(myShepherd, allMAs);
+                }
+                myShepherd.storeNewTask(task);
+                System.out.println("sendToIA() created " + task + " for " + this);
+            }
+            // persist will catch change on asset detectionStatus regardless
+            myShepherd.commitDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackDBTransaction();
+        } finally {
+            myShepherd.closeDBTransaction();
         }
         return task;
     }
