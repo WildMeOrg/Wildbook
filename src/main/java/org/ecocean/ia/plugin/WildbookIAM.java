@@ -171,6 +171,92 @@ public class WildbookIAM extends IAPlugin {
         return allRtn;
     }
 
+    public JSONObject sendMediaAssetsForceId(ArrayList<MediaAsset> mas, boolean checkFirst)
+    throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
+        InvalidKeyException {
+        String u = IA.getProperty(context, "IBEISIARestUrlAddImages");
+
+        if (u == null)
+            throw new MalformedURLException(
+                      "WildbookIAM configuration value IBEISIARestUrlAddImages is not set");
+        URL url = new URL(u);
+        int batchSize = 30;
+        int numBatches = Math.round(mas.size() / batchSize + 1);
+
+        // sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
+        List<String> iaImageIds = new ArrayList<String>();
+        if (checkFirst) iaImageIds = iaImageIds();
+        HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
+        map.put("image_uri_list", new ArrayList<JSONObject>());
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
+        map.put("image_unixtime_list", new ArrayList<Integer>());
+        map.put("image_gps_lat_list", new ArrayList<Double>());
+        map.put("image_gps_lon_list", new ArrayList<Double>());
+        int batchCt = 1;
+        JSONObject allRtn = new JSONObject();
+        allRtn.put("_batchSize", batchSize);
+        allRtn.put("_totalSize", mas.size());
+        JSONArray bres = new JSONArray();
+        for (int i = 0; i < mas.size(); i++) {
+            MediaAsset ma = mas.get(i);
+            if (iaImageIds.contains(ma.getAcmId())) continue;
+            if (ma.isValidImageForIA() != null && !ma.isValidImageForIA()) {
+                IA.log(
+                    "WARNING: WildbookIAM.sendMediaAssetsForceId() found a corrupt or otherwise invalid MediaAsset with Id: "
+                    + ma.getId());
+                continue;
+            }
+            if (!validMediaAsset(ma)) {
+                IA.log("WARNING: WildbookIAM.sendMediaAssetsForceId() skipping invalid " + ma);
+                continue;
+            }
+            map.get("image_uri_list").add(mediaAssetToUri(ma));
+            map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
+            map.get("image_gps_lat_list").add(ma.getLatitude());
+            map.get("image_gps_lon_list").add(ma.getLongitude());
+            DateTime t = ma.getDateTime();
+            if (t == null) {
+                map.get("image_unixtime_list").add(null);
+            } else {
+                map.get("image_unixtime_list").add((int)Math.floor(t.getMillis() / 1000)); // IA wants seconds since epoch
+            }
+            int sendSize = map.get("image_uri_list").size();
+            if ((i == (mas.size() - 1)) || ((i > 0) && (i % batchSize == 0))) { // end of all; or end of a batch
+                if (sendSize > 0) {
+                    IA.log("INFO: WildbookIAM.sendMediaAssetsForceId() is sending " + sendSize +
+                        " with batchSize=" + batchSize + " (" + batchCt + " of " + numBatches +
+                        " batches)");
+                    JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
+                    System.out.println(batchCt + "]  sendMediaAssetsForceId() -> " + rtn);
+/*
+                    if (acmIds == null) {
+                        IA.log(
+                            "WARNING: WildbookIAM.sendMediaAssetsForceId() could not get list of acmIds from response: "
+ + rtn);
+                    } else {
+                        int numChanged = AcmUtil.rectifyMediaAssetIds(acmList, acmIds);
+                        IA.log("INFO: WildbookIAM.sendMediaAssetsForceId() updated " + numChanged +
+                            " MediaAsset(s) acmId(s) via rectifyMediaAssetIds()");
+                    }
+ */
+                    bres.put(rtn);
+                    // initialize for next batch (if any)
+                    map.put("image_uri_list", new ArrayList<JSONObject>());
+                    map.put("image_uuid_list", new ArrayList<JSONObject>());
+                    map.put("image_unixtime_list", new ArrayList<Integer>());
+                    map.put("image_gps_lat_list", new ArrayList<Double>());
+                    map.put("image_gps_lon_list", new ArrayList<Double>());
+                    // acmList = new ArrayList<MediaAsset>();
+                } else {
+                    bres.put("EMPTY BATCH");
+                }
+                batchCt++;
+            }
+        }
+        allRtn.put("batchResults", bres);
+        return allRtn;
+    }
+
     public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst,
         Shepherd myShepherd)
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
@@ -330,12 +416,10 @@ public class WildbookIAM extends IAPlugin {
             String sentId = fromFancyUUID(sentIds.get(i));
             if (sentId == null)
                 throw new IOException("bad sentId at i=" + i + "; sentIds.get=" + sentIds.get(i));
-            System.out.println(">>>>>>>>>>>>>>>>> sentId = " + sentId);
             JSONObject jid = respArr.optJSONObject(i);
             if (jid == null) throw new IOException("no JSONObject at respArr[" + i + "]");
             String respId = fromFancyUUID(jid);
             if (respId == null) throw new IOException("bad respId at i=" + i + "; jid=" + jid);
-            System.out.println(">>>>>>>>>>>>>>>>> respId = " + respId);
             if (!respId.equals(sentId))
                 throw new IOException("mismatch of ids at i=" + i + ": sentId=" + sentId +
                         "; respId=" + respId);
