@@ -256,7 +256,7 @@
     "DELETED_ENCOUNTERS_LOG": "Registro de encuentros eliminados",
     "EMAIL_LOG": "Registro de correos electrónicos",
     "REPORT_PAGE_TITLE": "Página para informar de un encuentro",
-    "REPORT_PAGE_DESCRIPTION": "Háblenos del animal que vio y sea lo más específico posible. Al enviar datos e imágenes, usted autoriza el uso ilimitado de estos materiales únicamente con fines de investigación y conservación.",
+    "REPORT_PAGE_DESCRIPTION": "Háblenos del animal que vio y sea lo más específico posible. Para los científicos ciudadanos: Permiten el uso irrestricto de estos datos exclusivamente para fines de investigación y conservación de la naturaleza.",
     "SIGNIN_REMINDER_BANNER": "Para asociar el encuentro con tu cuenta, por favor inicia sesión. Si deseas continuar de forma anónima, completa el captcha.",
     "SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER": "Gracias por verificar. Continúe con su envío anónimo o inicie sesión",
     "REQUIRED_FIELDS_KEY": "* Campos obligatorios",
