@@ -1,0 +1,324 @@
+Wildbook Encounter Export API Specification
+
+Overview
+
+A new API endpoint that combines Encounter Search export generation with image cropping/organization, eliminating the need for users to manually download an Excel file and process it through a separate tool.
+
+This endpoint follows the v3 API structure in the org.ecocean.api package, consistent with existing endpoints like SearchApi, BulkImport, and SiteSettings.
+
+---
+
+API Endpoint
+
+POST /api/v3/encounters/export-images
+
+Authentication: Required (session-based, follows Shiro authentication model)
+Authorization: researcher role required (minimum)
+
+Implementation:
+- Package: org.ecocean.api
+- Class: EncounterExportImages extends ApiBase
+- Servlet mapping in web.xml:
+  <servlet>
+    <servlet-name>EncounterExportImages</servlet-name>
+    <servlet-class>org.ecocean.api.EncounterExportImages</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>EncounterExportImages</servlet-name>
+    <url-pattern>/api/v3/encounters/export-images</url-pattern>
+  </servlet-mapping>
+
+---
+
+Request Parameters
+
+All parameters mirror the existing Encounter Search export functionality, plus additional WildEx configuration:
+
+Query/Search Parameters (from Encounter Search):
+- locationId: string[] - Location ID(s) to filter by
+- projectId: string[] - Project ID(s) to filter by
+- encounterDate: { start?: string, end?: string } - ISO 8601 date range
+- sex: string[] - Sex filter values
+- taxonomy: string - Species taxonomy
+- individualId: string[] - Specific Individual ID(s)
+- encounterId: string[] - Specific Encounter ID(s)
+- [... all other standard Encounter Search filters]
+
+WildEx Processing Parameters:
+- unidentifiedEncounters: boolean - Include annotations without Individual IDs (default: false)
+- numAnnotationsPerId: number | "all" - How many annotations per Individual (1-10 or "all", default: "all")
+- includeMetadata: boolean - Include Excel metadata file in zip (default: true)
+
+Request Body Format:
+{
+  "searchCriteria": {
+    "locationId": ["loc-123", "loc-456"],
+    "encounterDate": {
+      "start": "2024-01-01",
+      "end": "2024-12-31"
+    },
+    "taxonomy": "Panthera leo"
+  },
+  "exportOptions": {
+    "unidentifiedEncounters": false,
+    "numAnnotationsPerId": 5,
+    "includeMetadata": true
+  }
+}
+
+Note: The searchCriteria should match the OpenSearch query format used by SearchApi (/api/v3/search/*), allowing reuse of existing query infrastructure.
+
+---
+
+Response
+
+Success (HTTP 200):
+- Content-Type: application/zip
+- Content-Disposition: attachment; filename="encounter_export_{timestamp}.zip"
+
+Response Body: Binary ZIP file
+
+Error Responses:
+
+HTTP 400 Bad Request:
+{
+  "error": "Invalid search criteria",
+  "details": "numAnnotationsPerId must be between 1-10 or 'all'"
+}
+
+HTTP 401 Unauthorized:
+{
+  "error": "Authentication required"
+}
+
+HTTP 403 Forbidden:
+{
+  "error": "Insufficient permissions to access requested encounters"
+}
+
+HTTP 404 Not Found:
+{
+  "error": "No encounters found matching search criteria"
+}
+
+HTTP 500 Internal Server Error:
+{
+  "error": "Export failed",
+  "details": "Error processing images",
+  "partialResults": false
+}
+
+HTTP 206 Partial Content:
+- Content-Type: application/zip
+- X-Export-Status: partial
+- X-Failed-Count: 12
+- X-Success-Count: 143
+
+Response includes:
+- ZIP file with successfully processed images
+- errors.txt or errors.xlsx file documenting failures
+- Original metadata file (if includeMetadata: true)
+
+---
+
+ZIP File Structure
+
+encounter_export_{timestamp}.zip
+├── metadata.xlsx                          # Original export data (optional)
+├── errors.txt                             # Only included if some downloads failed
+└── images/
+    ├── {IndividualID_1}/
+    │   ├── {encounter_id}_{annotation_idx}.jpg
+    │   └── {encounter_id}_{annotation_idx}.jpg
+    ├── {IndividualID_2}/
+    │   └── {encounter_id}_{annotation_idx}.jpg
+    └── Unidentified_annotations/           # Only if unidentifiedEncounters: true
+        └── {encounter_id}_{annotation_idx}.jpg
+
+Filename Convention:
+- Format: {encounterId}_{annotationIndex}.jpg
+- Example: enc_abc123_0.jpg, enc_abc123_1.jpg
+- Ensures uniqueness when multiple annotations from same encounter
+
+---
+
+Processing Logic
+
+1. Execute Encounter Search
+   - Apply all search criteria filters
+   - Retrieve matching encounters with annotations
+   - Return 404 if no results
+
+2. Generate Internal Export Data
+   - Create in-memory Excel structure (same format as "Encounter Annotations Export")
+   - Includes columns: Encounter.mediaAsset0.imageUrl, Annotation0.bbox, Name0.value, etc.
+
+3. Process Annotations (following WildEx logic)
+   - Flatten multi-annotation encounters
+   - Validate each annotation:
+     * MatchAgainst === 'true'
+     * ViewPoint is not empty
+     * imageUrl is not empty
+     * bbox is not empty or 'null'
+   - Group by Individual ID (Name0.value)
+   - Filter unidentified if unidentifiedEncounters === false
+   - Apply viewpoint selection shortlisting (numAnnotationsPerId)
+
+4. Download & Crop Images
+   - For each Individual ID:
+     * Create directory in zip: images/{IndividualID}/
+   - For each annotation:
+     * Download from Encounter.mediaAsset0.imageUrl
+     * Parse bbox: "x,y,w,h" → [x, y, w, h]
+     * Crop using bounding box coordinates
+     * Save as: {encounterId}_{annotationIdx}.jpg
+     * Preserve EXIF metadata
+   - Track failures with error messages
+
+5. Handle Errors
+   - If all downloads fail: Return HTTP 500
+   - If partial success: Return HTTP 206 with ZIP including errors.txt
+   - errors.txt format:
+     * Plain text file listing failed annotations with error messages
+     * Format: {encounterId}_{annotationIdx}: {errorMessage}
+     * Example: enc_abc123_0: Failed to download image from URL
+
+6. Generate ZIP
+   - Add images/ directory tree
+   - Add metadata.xlsx (if includeMetadata: true)
+   - Add errors.txt (if any failures occurred)
+   - Stream ZIP to client
+
+---
+
+Viewpoint Selection Logic
+
+Applies same logic as WildEx shortlistAnnotations():
+
+numAnnotationsPerId = 1:
+  Priority: left → right → similar(left) → similar(right) → any
+
+numAnnotationsPerId = 2-10:
+  Priority order: left → right → front → back → up
+  - First attempt: exact match
+  - Second attempt: similar match (e.g., "frontleft" matches "left")
+  - Fallback: any available annotation
+
+numAnnotationsPerId = "all":
+  Returns all valid annotations
+
+---
+
+Performance Considerations
+
+Timeouts:
+- Max processing time: 30 minutes
+- Client should handle long-running requests
+- Consider implementing async job queue for large exports
+
+Rate Limiting:
+- Suggest: 5 concurrent exports per user
+- 100 total exports per user per day
+
+Resource Limits:
+- Max encounters per export: 10,000
+- Max total annotations: 50,000
+- Max image size: 50MB per image
+- Max ZIP size: 5GB
+
+Optimization:
+- Parallel image downloads (pool of 10 concurrent requests)
+- Stream ZIP generation (don't load entire ZIP in memory)
+- Implement caching for frequently accessed images
+- Use CDN URLs for media assets when available
+
+---
+
+Implementation Notes
+
+Backend Stack:
+- Language: Java (javax.servlet.http.HttpServlet)
+- Image processing: ImageMagick, Java ImageIO, or integrate existing sharp/Node.js utilities
+- ZIP generation: java.util.zip.ZipOutputStream (streaming mode)
+- Excel generation: Apache POI (org.apache.poi.xssf)
+- HTTP client: java.net.http.HttpClient (Java 11+) or Apache HttpClient
+- Database: Shepherd pattern (myShepherd = new Shepherd(context))
+
+Dependencies:
+- OpenSearch class for executing encounter queries (reuse SearchApi infrastructure)
+- ServletUtilities.getContext(request) for context
+- User authentication via myShepherd.getUser(request)
+- ServletUtilities.jsonFromHttpServletRequest(request) for parsing POST body
+- Existing Encounter, Annotation, MediaAsset models
+- New: Image download/crop utility class
+- New: WildEx processing logic (port from TypeScript utils.ts)
+
+Security:
+- Authentication: myShepherd.getUser(request) must not be null
+- Authorization: Check currentUser.isRole("researcher", myShepherd)
+- Query sanitization: OpenSearch.querySanitize(query, currentUser, myShepherd)
+- Validate user permissions per encounter (existing Shepherd ACL)
+- Sanitize Individual IDs for filesystem safety (no ../, special chars)
+- Validate image URLs are from MediaAsset objects (trusted sources only)
+- Consider SSRF protection when downloading images from external URLs
+
+Monitoring:
+- Log export request details (user, criteria, result count)
+- Track success/failure rates
+- Monitor processing time distribution
+- Alert on high error rates or timeouts
+
+---
+
+Example Request
+
+POST /api/v3/encounters/export-images
+Content-Type: application/json
+Cookie: JSESSIONID={session}
+
+{
+  "searchCriteria": {
+    "locationId": ["kenya_mara"],
+    "encounterDate": {
+      "start": "2024-01-01",
+      "end": "2024-06-30"
+    },
+    "taxonomy": "Panthera leo"
+  },
+  "exportOptions": {
+    "unidentifiedEncounters": false,
+    "numAnnotationsPerId": 3,
+    "includeMetadata": true
+  }
+}
+
+Example using curl:
+curl -X POST https://wildbook.example.org/api/v3/encounters/export-images \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"searchCriteria": {"taxonomy": "Panthera leo"}, "exportOptions": {"numAnnotationsPerId": 3}}' \
+  -o export.zip
+
+---
+
+Future Enhancements
+
+- Async job queue with status polling endpoint:
+  * POST /api/v3/encounters/export-images → { "jobId": "uuid" }
+  * GET /api/v3/export-jobs/{jobId} → { "status": "processing", "progress": 45 }
+  * GET /api/v3/export-jobs/{jobId}/download → ZIP file
+
+- Support for additional export formats:
+  * COCO JSON for ML training
+  * CSV with base64-encoded image data
+  * Direct integration with cloud storage (S3, GCS)
+
+- Image format options:
+  * Output format: jpg, png, webp
+  * Compression quality settings
+  * Resize options (max width/height)
+
+- Filtering annotations by:
+  * Viewpoint (only export specific viewpoints)
+  * Match confidence threshold
+  * Annotation quality scores
