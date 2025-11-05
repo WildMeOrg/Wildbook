@@ -10,7 +10,7 @@ import "swiper/css/zoom";
 import PaginationBar from "../../../components/PaginationBar";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 
-const GalleryView = observer(({ store }) => {
+const GalleryView = observer(({ store, refetchMediaAssets }) => {
   useEffect(() => {
     if (store.currentPage > store.totalPages)
       store.setCurrentPage(store.totalPages);
@@ -54,13 +54,16 @@ const GalleryView = observer(({ store }) => {
     setImgDims({});
   }, [store.currentPage]);
 
+  console.log("store.lastEncounterIndex:", JSON.stringify(store.lastEncounterIndex));
+  console.log("store.lastMediaAssetId:", JSON.stringify(store.lastMediaAssetId));
+
   return (
     <div
       className="container mt-1 mb-5"
       style={{ position: "relative", color: "white" }}
     >
       {store.loadingAll && <FullScreenLoader />}
-      <PaginationBar
+      {/* <PaginationBar
         totalItems={store.totalItems}
         page={store.currentPage}
         pageSize={store.pageSize}
@@ -71,7 +74,20 @@ const GalleryView = observer(({ store }) => {
           }
         }}
         className="mb-3"
-      />
+      /> */}
+      <div className="w-100 d-flex flex-row gap-3 justify-content-center">
+        <div className="secondary"
+          onClick={() => {      
+            console.log("left arrow clicked");
+          }}
+        ><i class="bi bi-chevron-left"></i></div>
+        <div className="secondary"
+          onClick={() => {       
+            store.setStart(store.lastEncounterIndex);
+            refetchMediaAssets();
+          }}
+        ><i class="bi bi-chevron-right"></i></div>
+      </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {store.currentPageItems.length > 0 ? (
@@ -154,8 +170,6 @@ const GalleryView = observer(({ store }) => {
                         width: rect.width / scaleX,
                         height: rect.height / scaleY,
                         border:
-                          // rect.encounterId === store.encounterData?.id
-                          //   ? "2px solid red"
                           "2px dotted red",
                         transform: `rotate(${rect.rotation}rad)`,
                         cursor: "pointer",

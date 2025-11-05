@@ -52,16 +52,6 @@ const helperFunction = async (
         },
         "Individual ID",
       );
-      // console.log("=========>")
-      // console.log("Encounter data:", JSON.stringify(encounterData));
-      // store.setLoadingAll(true);
-      // if (encounterData && encounterData.results) {
-      //   console.log("encounterData:", JSON.stringify(encounterData));
-      //   store.setSearchResultsAll(encounterData.results);
-      //   store.setSearchResultsAll(encounterData);
-      //   store.setHasFetchedAllEncounters(true);
-      //   store.setActiveStep(1);
-      // }
     }
   };
   setTempFormFilters([...store.formFilters]);

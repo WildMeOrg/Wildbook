@@ -12,7 +12,7 @@ class EncounterFormStore {
   _siteSettingsData = null;
 
   _hasFetchedAllEncounters = false;
-  _searchResultsAll = [];
+  _searchResultsMediaAssets = [];
   _loadingAll = false;
   _selectedRows = [];
   _selectedProjects = [];
@@ -26,7 +26,8 @@ class EncounterFormStore {
   _totalItems = 0;
   _totalPages = 0;
   _currentPage = 1;
-  _pageSize = 10;
+  _pageSize = 20;
+  _start = 0;
 
   _showAnnotations = true;
 
@@ -51,7 +52,7 @@ class EncounterFormStore {
     const selectedImageIndex = this.imageModalStore.selectedImageIndex;
     const encounterId = this.currentPageItems[selectedImageIndex]?.encounterId;
     return (
-      this.searchResultsAll.filter((item) => item.id === encounterId)[0] || null
+      this.searchResultsMediaAssets.filter((item) => item.id === encounterId)[0] || null
     );
   }
 
@@ -76,11 +77,11 @@ class EncounterFormStore {
     this._activeStep = step;
   }
 
-  get searchResultsAll() {
-    return this._searchResultsAll;
+  get searchResultsMediaAssets() {
+    return this._searchResultsMediaAssets;
   }
-  setSearchResultsAll(data) {
-    this._searchResultsAll = data;
+  setSearchResultsMediaAssets(data) {
+    this._searchResultsMediaAssets = data;
   }
 
   get hasFetchedAllEncounters() {
@@ -146,12 +147,36 @@ class EncounterFormStore {
     this._currentPage = page;
   }
 
-  get start() {
-    return (this._currentPage - 1) * this.pageSize;
+  get start () {
+    return this._start;
+  }
+
+  setStart(start) {
+    this._start = start;
+  }
+
+  get lastEncounterId() {
+    return this.currentPageItems[this.pageSize - 1]?.encounterId;
+  }
+
+  get lastEncounterIndex() {
+    const encounterId = this.currentPageItems[this.pageSize - 1]?.encounterId ;
+    console.log("Encounter ID:", JSON.stringify(encounterId));
+    const encounterIndex = this._searchResultsMediaAssets.findIndex(
+      (item) => item.id === encounterId,
+    );
+    if (encounterIndex !== -1) {
+      return encounterIndex;
+    }
+    return null;
+  }
+
+  get lastMediaAssetId() {
+    return this.currentPageItems[this.pageSize - 1]?.id ;
   }
 
   get allMediaAssets() {
-    const src = this._searchResultsAll ?? [];
+    const src = this._searchResultsMediaAssets ?? [];
     return src
       .filter(
         (item) =>
@@ -179,7 +204,11 @@ class EncounterFormStore {
   }
 
   get currentPageItems() {
-    return this.allMediaAssets.slice(this.start, this.start + this.pageSize);
+    const encounter = this.searchResultsMediaAssets.find(
+      (item) => item.id === this.lastEncounterId,
+    );
+    const imageIndex = this.searchResultsMediaAssets.findIndex
+    return this.allMediaAssets.slice(0, this.pageSize);
   }
 
   addFilter(filterId, clause, query, filterKey, path = "") {

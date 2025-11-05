@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
-import useFilterEncountersAll from "../../models/encounters/useFilterEncountersAll";
+import useFilterEncountersWithMediaAssets from "../../models/encounters/useFilterEncountersWithMediaAssets";
 import FilterPanel from "../../components/FilterPanel";
 import useEncounterSearchSchemas from "../../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../../components/filterFields/SideBar";
@@ -18,6 +18,7 @@ import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
 import ExportModal from "./components/ExportModal";
 import { observer } from "mobx-react-lite";
+import { toJS } from "mobx";
 
 const EncounterSearch = observer(() => {
   const columns = encounterSearchColumns;
@@ -76,10 +77,28 @@ const EncounterSearch = observer(() => {
     },
   });
 
-  const { refetch: refetchAll } = useFilterEncountersAll({
-    queries: store.formFilters,
-    params: { sort: encounterSortName, sortOrder: encounterSortOrder },
+  const filterOnMediaAssets = { "filterId": "numberMediaAssets", 
+    "clause": "filter", 
+    "query": { "range": { "numberMediaAssets": { "gte": 1 } } }, 
+    "filterKey": "Number Media Assets", 
+    "path": "" }
+
+    const queries = React.useMemo(() => {
+      const base = toJS(store.formFilters) || []  ;
+      const has = base.some(f => f.filterId === "numberMediaAssets");
+      if (!has) {
+        return [...base, filterOnMediaAssets];
+      }
+      return base;
+    }, [store.formFilters]);
+
+  const { refetch: refetchMediaAssets } = useFilterEncountersWithMediaAssets({
+    queries: queries,
+    params: { sort: encounterSortName, sortOrder: encounterSortOrder, size: store.pageSize, from: store.start },
   });
+
+  console.log("Encounter Search Queries1111:", JSON.stringify(store.formFilters));
+
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
 
@@ -181,7 +200,8 @@ const EncounterSearch = observer(() => {
       />
       <DataTable
         store={store}
-        refetchAll={refetchAll}
+        searchQueryId={searchQueryId}
+        refetchMediaAssets={refetchMediaAssets}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",
