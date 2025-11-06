@@ -12,7 +12,6 @@ import axios from "axios";
 import { get } from "lodash-es";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
-import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
 import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
 import ExportModal from "./components/ExportModal";
@@ -20,7 +19,6 @@ import { observer } from "mobx-react-lite";
 
 const EncounterSearch = observer(() => {
   const columns = encounterSearchColumns;
-  const tabs = encounterSearchPagetabs;
   const intl = useIntl();
   const schemas = useEncounterSearchSchemas();
   const theme = React.useContext(ThemeColorContext);
@@ -145,16 +143,6 @@ const EncounterSearch = observer(() => {
   const totalEncounters = encounterData?.resultCount || 0;
   const searchQueryId = encounterData?.searchQueryId || "";
 
-  const updatedTabs = tabs.map((tab) => {
-    const [name, url] = tab.split(":");
-    const updatedUrl = queryID
-      ? `${url}?searchQueryId=${queryID}`
-      : searchQueryId
-        ? `${url}?searchQueryId=${searchQueryId}&regularQuery=true`
-        : url;
-    return `${name}:${updatedUrl}`;
-  });
-
   useEffect(() => {
     if (queryID) {
       axios
@@ -241,7 +229,6 @@ const EncounterSearch = observer(() => {
           />
         }
         columnNames={columns}
-        tabs={updatedTabs}
         searchText={intl.formatMessage({ id: "SEARCH" })}
         tableData={sortedEncounters}
         totalItems={queryID ? totalItems : totalEncounters}

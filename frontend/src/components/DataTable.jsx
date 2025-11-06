@@ -41,7 +41,6 @@ const MyDataTable = observer(
     onPerPageChange,
     setSort,
     style = {},
-    tabs = [],
     isLoading = false,
     extraStyles = [],
     onSelectedRowsChange = () => {},
@@ -367,38 +366,6 @@ const MyDataTable = observer(
             >
               <FormattedMessage id="CALENDAR_VIEW" />
             </Button>
-
-            {tabs.map((tab, index) => {
-              return (
-                <Button
-                  key={index}
-                  variant="outline-tertiary"
-                  className="me-1 mt-1"
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.3)",
-                    paddingLeft: "5px",
-                    paddingRight: "5px",
-                  }}
-                >
-                  <a
-                    key={index}
-                    href={tab.split(":")[1]}
-                    style={{
-                      color: "white",
-                      textDecoration: "none",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {
-                      <FormattedMessage
-                        id={tab.split(":")[0]}
-                        defaultMessage={tab.split(":")[0]}
-                      />
-                    }
-                  </a>
-                </Button>
-              );
-            })}
           </div>
           <InputGroup
             className="mb-3 d-flex search-bar"
