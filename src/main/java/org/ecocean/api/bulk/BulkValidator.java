@@ -43,12 +43,13 @@ public class BulkValidator {
         "Sighting.groupComposition", "Sighting.hour", "Sighting.humanActivityNearby",
         "Sighting.individualCount", "Sighting.initialCue", "Sighting.maxGroupSizeEstimate",
         "Sighting.millis", "Sighting.minGroupSizeEstimate", "Sighting.minutes", "Sighting.month",
-        "Sighting.numAdults", "Sighting.numCalves", "Sighting.numJuveniles", "Sighting.observer",
-        "Sighting.sightingID", "Sighting.seaState", "Sighting.groupSize", "Sighting.numSubAdults",
-        "Sighting.numAdultMales", "Sighting.numAdultFemales", "Sighting.numSubFemales",
-        "Sighting.numSubMales", "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature",
-        "Sighting.swellHeight", "Sighting.terrain", "Sighting.transectBearing",
-        "Sighting.transectName", "Sighting.vegetation", "Sighting.visibilityIndex", "Sighting.year",
+        "Sighting.monitoringZone", "Sighting.numAdults", "Sighting.numCalves",
+        "Sighting.numJuveniles", "Sighting.observer", "Sighting.sightingID", "Sighting.seaState",
+        "Sighting.groupSize", "Sighting.numSubAdults", "Sighting.numAdultMales",
+        "Sighting.numAdultFemales", "Sighting.numSubFemales", "Sighting.numSubMales",
+        "Sighting.seaSurfaceTemp", "Sighting.seaSurfaceTemperature", "Sighting.swellHeight",
+        "Sighting.terrain", "Sighting.transectBearing", "Sighting.transectName",
+        "Sighting.vegetation", "Sighting.visibilityIndex", "Sighting.wp", "Sighting.year",
         "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID", "SexAnalysis.sex",
         "SocialUnit.socialUnitName", "Survey.comments", "Survey.id", "Survey.type", "Survey.vessel",
         "SurveyTrack.vesselID", "TissueSample.sampleID", "TissueSample.tissueType"));
@@ -76,10 +77,10 @@ public class BulkValidator {
         "MicrosatelliteMarkersAnalysis.alleleNames", "MicrosatelliteMarkersAnalysis.analysisID",
         "MitochondrialDNAAnalysis.haplotype", "Sighting.comments", "Sighting.fieldStudySite",
         "Sighting.groupBehavior", "Sighting.groupComposition", "Sighting.humanActivityNearby",
-        "Sighting.initialCue", "Sighting.observer", "Sighting.sightingID", "Sighting.terrain",
-        "Sighting.transectName", "Sighting.vegetation", "SatelliteTag.serialNumber",
-        "SexAnalysis.processingLabTaskID", "SocialUnit.socialUnitName", "Survey.comments",
-        "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel",
+        "Sighting.initialCue", "Sighting.monitoringZone", "Sighting.observer",
+        "Sighting.sightingID", "Sighting.terrain", "Sighting.transectName", "Sighting.vegetation",
+        "SatelliteTag.serialNumber", "SexAnalysis.processingLabTaskID", "SocialUnit.socialUnitName",
+        "Survey.comments", "Survey.id", "Survey.type", "SurveyTrack.vesselID", "Survey.vessel",
         "TissueSample.tissueType"));
     public static final Set<String> MINIMAL_FIELD_NAMES_INT = new HashSet<>(Arrays.asList(
         "Sighting.fieldSurveyCode", "Sighting.groupSize", "Sighting.individualCount",
@@ -87,7 +88,7 @@ public class BulkValidator {
         "Sighting.numAdultFemales", "Sighting.numAdultMales", "Sighting.numAdults",
         "Sighting.numCalves", "Sighting.numJuveniles", "Sighting.numSubAdults",
         "Sighting.numSubFemales", "Sighting.numSubMales", "Sighting.seaState",
-        "Sighting.visibilityIndex"));
+        "Sighting.visibilityIndex", "Sighting.wp"));
     public static final Set<String> MINIMAL_FIELD_NAMES_DOUBLE = new HashSet<>(Arrays.asList(
         "Encounter.depth", "Encounter.elevation", "Sighting.bearing",
         "Sighting.bestGroupSizeEstimate", "Sighting.distance", "Sighting.effortCode",
