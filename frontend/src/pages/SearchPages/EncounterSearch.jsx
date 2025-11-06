@@ -128,10 +128,6 @@ const EncounterSearch = observer(() => {
     store.setStart(start);
   };
 
-  // useEffect(() => {
-  //   pg();
-  // }, []);
-
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
   const sortedEncounters = React.useMemo(() => {
     const list = (encounters || []).slice();
