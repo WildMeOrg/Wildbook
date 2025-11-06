@@ -25,8 +25,8 @@ import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.social.*;
 import org.ecocean.shepherd.utils.ShepherdState;
+import org.ecocean.social.*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -512,9 +512,18 @@ public class Shepherd {
         return tempEnc;
     }
 
+    public void storeNewImportTask(ImportTask itask) {
+        try {
+            pm.makePersistent(itask);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public Setting getSetting(String group, String id) {
         if ((group == null) || (id == null)) return null;
-        Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group + "' && id=='" + id + "'");
+        Query qry = pm.newQuery("SELECT FROM org.ecocean.Setting WHERE group=='" + group +
+            "' && id=='" + id + "'");
         Setting st = null;
         Collection results = (Collection)(qry.execute());
         if (!results.isEmpty()) st = (Setting)results.iterator().next();
@@ -524,6 +533,7 @@ public class Shepherd {
 
     public Setting getOrCreateSetting(String group, String id) {
         Setting st = getSetting(group, id);
+
         if (st != null) return st;
         st = new Setting(group, id);
         pm.makePersistent(st);
@@ -532,6 +542,7 @@ public class Shepherd {
 
     public Object getSettingValue(String group, String id) {
         Setting st = getSetting(group, id);
+
         if (st == null) return null;
         return st.getValue();
     }
@@ -1075,6 +1086,26 @@ public class Shepherd {
         Collection c = (Collection)(query.execute());
         Iterator it = c.iterator();
 
+        if (it.hasNext()) {
+            project = (Project)it.next();
+        }
+        query.closeAll();
+        return project;
+    }
+
+    // this is forgiving in that it only needs to match the start of the prefix and is case-insenstive
+    // is the case-insensitivity too much? time will tell! thus, a user passing 'FOO-'
+    // will match 'foo-#' or 'Foo-###'. it sorts by (lowercase) prefix value, to at least provide
+    // consistency; but this may give undesirable results in a crowded dataset
+    public Project getProjectByProjectIdPrefixPrefix(String projectIdPrefix) {
+        if (projectIdPrefix == null) return null;
+        Project project = null;
+        String filter =
+            "SELECT FROM org.ecocean.Project WHERE projectIdPrefix.toLowerCase().startsWith(\"" +
+            projectIdPrefix.trim().toLowerCase() + "\") ORDER BY projectIdPrefix.toLowerCase()";
+        Query query = getPM().newQuery(filter);
+        Collection c = (Collection)(query.execute());
+        Iterator it = c.iterator();
         if (it.hasNext()) {
             project = (Project)it.next();
         }
@@ -1900,26 +1931,25 @@ public class Shepherd {
         }
     }
 
-    public List<List<String>> getAllTaxonomyCommonNames() {return getAllTaxonomyCommonNames(false);
+    public List<List<String> > getAllTaxonomyCommonNames() {
+        return getAllTaxonomyCommonNames(false);
     }
 
     // forceSpaces will turn `Foo bar_bar` into `Foo bar bar` - use with caution!
-    public List<List<String>> getAllTaxonomyCommonNames(boolean forceSpaces) {
+    public List<List<String> > getAllTaxonomyCommonNames(boolean forceSpaces) {
         Set<String> allSciNames = new LinkedHashSet<String>();
         Set<String> allComNames = new LinkedHashSet<String>();
-
         List<String> configNamesSci = CommonConfiguration.getIndexedPropertyValues("genusSpecies",
-                getContext());
+            getContext());
         List<String> configNamesCom = CommonConfiguration.getIndexedPropertyValues("commonName",
-                getContext());
+            getContext());
+
         allSciNames.addAll(configNamesSci);
         allComNames.addAll(configNamesCom);
 
         List<String> allSciNamesList = new ArrayList<String>(allSciNames);
         List<String> allComNamesList = new ArrayList<String>(allComNames);
-
-        List<List<String>> result = new ArrayList<>();
-
+        List<List<String> > result = new ArrayList<>();
         if (forceSpaces) {
             List<String> spaceySci = new ArrayList<String>();
             for (String tx : allSciNamesList) {
@@ -2053,14 +2083,14 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection) (acceptedEncounters.execute());
+            c = (Collection)(acceptedEncounters.execute());
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2071,7 +2101,7 @@ public class Shepherd {
 
         try {
             // System.out.println("getAllOccurrences is called on query "+myQuery);
-            c = (Collection) (myQuery.execute());
+            c = (Collection)(myQuery.execute());
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2079,7 +2109,7 @@ public class Shepherd {
             return list;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2092,7 +2122,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+                "Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
             npe.printStackTrace();
             return null;
         }
@@ -2102,42 +2132,42 @@ public class Shepherd {
         Collection c;
 
         try {
-            c = (Collection) (acceptedEncounters.execute());
+            c = (Collection)(acceptedEncounters.execute());
             ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
             return list;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Encounter> getAllEncounters(Query acceptedEncounters,
-                                                Map<String, Object> paramMap) {
+        Map<String, Object> paramMap) {
         Collection c;
 
         try {
-            c = (Collection) (acceptedEncounters.executeWithMap(paramMap));
+            c = (Collection)(acceptedEncounters.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // Collections.reverse(list);
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
     }
 
     public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences,
-                                                  Map<String, Object> paramMap) {
+        Map<String, Object> paramMap) {
         Collection c;
 
         try {
             // System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
-            c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
+            c = (Collection)(acceptedOccurrences.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             // System.out.println("getAllOccurrences got "+list.size()+" occurrences");
             // Collections.reverse(list);
@@ -2145,7 +2175,7 @@ public class Shepherd {
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2156,15 +2186,15 @@ public class Shepherd {
 
         try {
             System.out.println("getAllSurveys is called on query " + acceptedSurveys +
-                    " and paramMap " + paramMap);
-            c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
+                " and paramMap " + paramMap);
+            c = (Collection)(acceptedSurveys.executeWithMap(paramMap));
             ArrayList list = new ArrayList(c);
             System.out.println("getAllSurveys got " + list.size() + " surveys");
             Iterator it = list.iterator();
             return it;
         } catch (Exception npe) {
             System.out.println(
-                    "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
+                "Error encountered when trying to execute getAllSurveys(Query). Returning a null collection.");
             npe.printStackTrace();
             return null;
         }
@@ -2190,7 +2220,7 @@ public class Shepherd {
 
     public List<Organization> getAllCommonOrganizationsForTwoUsers(User user1, User user2) {
         ArrayList<Organization> al = new ArrayList<Organization>();
-
+        if(user1==null||user2==null) return al;
         try {
             Query q = getPM().newQuery(
                 "SELECT FROM org.ecocean.Organization WHERE members.contains(user1) && members.contains(user2) && user1.uuid == \""
@@ -2199,8 +2229,13 @@ public class Shepherd {
             Collection results = (Collection)q.execute();
             al = new ArrayList<Organization>(results);
             q.closeAll();
-        } catch (javax.jdo.JDOException x) {
+        }
+        catch (javax.jdo.JDOException x) {
             x.printStackTrace();
+            return al;
+        }
+        catch (Exception xe) {
+            xe.printStackTrace();
             return al;
         }
         return al;
@@ -3784,12 +3819,15 @@ public class Shepherd {
     }
 
     public List<Encounter> getEncountersByIndividualAndOccurrence(String indID, String occID) {
+        ArrayList al = new ArrayList();
+
+        if (!Util.stringExists(indID) || !Util.stringExists(occID)) return al;
         String filter = "this.individual.individualID == \"" + indID +
             "\" && this.occurrenceID == \"" + occID + "\"";
         Extent encClass = pm.getExtent(Encounter.class, true);
         Query acceptedEncounters = pm.newQuery(encClass, filter);
         Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList al = new ArrayList(c);
+        al = new ArrayList(c);
 
         acceptedEncounters.closeAll();
         return al;
@@ -4556,6 +4594,21 @@ public class Shepherd {
         return all;
     }
 
+    public List<ImportTask> getImportTasks() {
+        List<ImportTask> all = new ArrayList<ImportTask>();
+        String filter = "SELECT FROM org.ecocean.servlet.importer.ImportTask";
+        Query query = getPM().newQuery(filter);
+
+        query.setOrdering("created DESC");
+        Collection c = (Collection)(query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            all.add((ImportTask)it.next());
+        }
+        query.closeAll();
+        return all;
+    }
+
     public User getUserByTwitterHandle(String handle) {
         User user = null;
         String filter = "SELECT FROM org.ecocean.User WHERE twitterHandle == \"" + handle.trim() +
@@ -4587,5 +4640,11 @@ public class Shepherd {
             allAnnotIds.put(ann);
         }
         return allAnnotIds;
+    }
+
+    public void cacheEvictAll() {
+        PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
+
+        if (pmf != null) pmf.getDataStoreCache().evictAll();
     }
 }

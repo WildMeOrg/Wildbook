@@ -412,15 +412,23 @@ public class Task implements java.io.Serializable {
         return t;
     }
 
-    // TODO: evaluate if we should support versions for multiple objects (when needed)
     public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd) {
+        return getTasksFor(ann, myShepherd, null);
+    }
+
+    // TODO: evaluate if we should support versions for multiple objects (when needed)
+    public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd, String ordering) {
         String qstr =
             "SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(obj) && obj.id == \""
             + ann.getId() + "\" VARIABLES org.ecocean.Annotation obj";
         Query query = myShepherd.getPM().newQuery(qstr);
 
         query.setIgnoreCache(true);
-        query.setOrdering("created");
+        if (ordering == null) {
+            query.setOrdering("created");
+        } else {
+            query.setOrdering(ordering);
+        }
         Collection c = (Collection)query.execute();
         List<Task> listy = new ArrayList<Task>(c);
         query.closeAll();
@@ -504,6 +512,52 @@ public class Task implements java.io.Serializable {
             }
             // if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
             // if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
+        }
+        return status;
+    }
+
+    // this is stitched together from import.jsp. godspeed.
+    // "resumeStalledTasks" functionality was stripped from this. if needed, revisit original method in import.jsp
+    // also the original building/modification of (passed-in) idStatusMap is dropped
+    public String getOverallStatus(Shepherd myShepherd) {
+        String status = "unknown";
+
+        if (this.hasChildren()) {
+            // accumulate status across children
+            HashMap<String, String> map = new HashMap<String, String>();
+            // this should only ever be two layers deep
+            for (Task childTask : this.getChildren()) {
+                if (childTask.hasChildren()) {
+                    for (Task childTask2 : childTask.getChildren()) {
+                        if ((childTask2.getObjectAnnotations() != null) &&
+                            (childTask2.getObjectAnnotations().size() > 0) &&
+                            childTask2.getObjectAnnotations().get(0).getMatchAgainst() &&
+                            (childTask2.getObjectAnnotations().get(0).getIAClass() != null)) {
+                            map.put(childTask2.getId(), childTask2.getStatus(myShepherd));
+                        }
+                    }
+                } else {
+                    if ((childTask.getObjectAnnotations() != null) &&
+                        (childTask.getObjectAnnotations().size() > 0) &&
+                        childTask.getObjectAnnotations().get(0).getMatchAgainst() &&
+                        (childTask.getObjectAnnotations().get(0).getIAClass() != null)) {
+                        map.put(childTask.getId(), childTask.getStatus(myShepherd));
+                    }
+                }
+            }
+            // now, how do we report these?
+            HashMap<String, Integer> resultsMap = new HashMap<String, Integer>();
+            for (String key : map.values()) {
+                // task results
+                if (!resultsMap.containsKey(key)) {
+                    resultsMap.put(key, new Integer(1));
+                } else {
+                    resultsMap.put(key, new Integer(resultsMap.get(key) + 1));
+                }
+            }
+            status = resultsMap.toString();
+        } else { // childless
+            status = this.getStatus(myShepherd);
         }
         return status;
     }
