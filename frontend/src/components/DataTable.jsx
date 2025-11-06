@@ -331,7 +331,6 @@ const MyDataTable = observer(
               variant="outline-tertiary"
               className="me-1"
               onClick={() => {
-                store.setActiveStep(2);
                 const url = `/encounters/mappedSearchResults.jsp?searchQueryId=${searchQueryId}&regularQuery=true`;
                 window.open(url, "_blank");
               }}
@@ -346,7 +345,6 @@ const MyDataTable = observer(
               variant="outline-tertiary"
               className="me-1"
               onClick={() => {
-                store.setActiveStep(3);
                 const url = `/encounters/searchResultsAnalysis.jsp?searchQueryId=${searchQueryId}&regularQuery=true`;
                 window.open(url, "_blank");
               }}

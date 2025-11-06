@@ -66,15 +66,18 @@ const GalleryView = observer(({ store, pg = {} }) => {
             height: "30px",
           }}
           disabled={store.currentPage <= 0}
-          backgroundColor="white"
-          color={theme.primaryColors.primary500}
-          borderColor={theme.primaryColors.primary500}
+          color="white"
+          backgroundColor={theme.primaryColors.primary500}
           onClick={() => {
             if (store.currentPage <= 0) return;
-            const prev = store.previousPageItems[store.currentPage - 1];
-            if (!prev || !prev.length) return;
-            store.setCurrentPageItems(prev.slice());
-            store.setCurrentPage(store.currentPage - 1);
+            const current = store.currentPage;
+            const prevPage = current - 1;
+            if (store.previousPageItems[prevPage]) {
+              store.setCurrentPageItems(
+                store.previousPageItems[prevPage].slice(),
+              );
+              store.setCurrentPage(prevPage);
+            }
           }}
         >
           <i className="bi bi-chevron-left"></i>
@@ -87,26 +90,23 @@ const GalleryView = observer(({ store, pg = {} }) => {
             height: "30px",
           }}
           disabled={store.currentPageItems.length < store.pageSize}
-          backgroundColor="white"
-          color={theme.primaryColors.primary500}
-          borderColor={theme.primaryColors.primary500}
+          color="white"
+          backgroundColor={theme.primaryColors.primary500}
           onClick={async () => {
-            if (store.currentPageItems.length === 0) return;
             store.setPreviousPageItems(
               store.currentPage,
               store.currentPageItems.slice(),
             );
-            if (store.previousPageItems[store.currentPage + 1]) {
+            const current = store.currentPage;
+            const nextPage = current + 1;
+            if (store.previousPageItems[nextPage]) {
               store.setCurrentPageItems(
-                store.previousPageItems[store.currentPage + 1].slice(),
+                store.previousPageItems[nextPage].slice(),
               );
             } else {
               await pg();
             }
-
-            if (store.currentPageItems.length !== 0) {
-              store.setCurrentPage(store.currentPage + 1);
-            }
+            store.setCurrentPage(nextPage);
           }}
         >
           <i className="bi bi-chevron-right"></i>
@@ -197,6 +197,11 @@ const GalleryView = observer(({ store, pg = {} }) => {
                         border: "2px dotted red",
                         transform: `rotate(${rect.rotation}rad)`,
                         cursor: "pointer",
+                        backgroundColor:
+                          rect.annotationId ===
+                          store.imageModalStore.selectedAnnotationId
+                            ? "rgba(255, 0, 0, 0.3)"
+                            : "transparent",
                       }}
                     />
                   ))}
