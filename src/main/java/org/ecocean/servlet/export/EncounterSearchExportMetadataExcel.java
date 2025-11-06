@@ -148,6 +148,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             MultiValueExportColumn.addNameColumns(numNameCols, columns);
             newEasyColumn("Occurrence.occurrenceID", columns);
             newEasyColumn("Occurrence.sightingPlatform", columns);
+            newEasyColumn("Occurrence.fieldSurveyCode", columns);
             newEasyColumn("Encounter.decimalLatitude", columns);
             newEasyColumn("Encounter.decimalLongitude", columns);
             newEasyColumn("Encounter.locationID", columns);
