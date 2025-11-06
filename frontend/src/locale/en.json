@@ -257,7 +257,7 @@
     "SESSION_CLOSE": "Close",
     "LOADING": "Loading",
     "REPORT_PAGE_TITLE": "Report an Encounter Page",
-    "REPORT_PAGE_DESCRIPTION": "Tell us about the animal you saw and be as specific as you can. By submitting data and images, you are granting unlimited usage of these materials for research and conservation purposes only.",
+    "REPORT_PAGE_DESCRIPTION": "Tell us about the animal you saw and be as specific as you can. For citizen scientists: You grant unlimited usage of this data for research and conservation purposes only.",
     "SIGNIN_REMINDER_BANNER": "To associate encounter with your account, please sign in. If you want to continue anonymously, complete the captcha.",
     "SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER": "Thank you for verifying! Continue with your anonymous submission or sign in.",
     "REQUIRED_FIELDS_KEY": "* Required fields",
