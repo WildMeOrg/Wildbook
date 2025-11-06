@@ -115,6 +115,20 @@ public class Occurrence extends Base implements java.io.Serializable {
 
     private Long dateTimeLong; // this is for searching
 
+    //Start legacy GiraffeSpotter fields
+    private String vegetation;
+    private String terrain;
+    private String monitoringZone;
+    private Integer groupSize;
+    private Integer numAdultMales;
+    private Integer numAdultFemales;
+    private Integer numSubMales;
+    private Integer numSubFemales;
+    private Integer numSubAdults;
+    private Integer wp;  //i think this is waypoint???
+    //End legacy GiraffeSpotter fields
+
+
     // empty constructor used by the JDO enhancer
     public Occurrence() {}
 
@@ -1522,4 +1536,70 @@ public class Occurrence extends Base implements java.io.Serializable {
         return
                 "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"OCCURRENCE\" ORDER BY version";
     }
+
+    /*LEGACY GiraffeSpotter Customizations*/
+    public Integer getNumAdultMales() {
+        return this.numAdultMales;
+    }
+    public void setNumAdultMales(Integer s) {
+        this.numAdultMales = s;
+    }
+
+    public Integer getNumAdultFemales() {
+        return this.numAdultFemales;
+    }
+    public void setNumAdultFemales(Integer s) {
+        this.numAdultFemales = s;
+    }
+
+    public Integer getNumSubMales() {
+        return this.numSubMales;
+    }
+    public void setNumSubMales(Integer s) {
+        this.numSubMales = s;
+    }
+
+    public Integer getNumSubFemales() {
+        return this.numSubFemales;
+    }
+    public void setNumSubFemales(Integer s) {
+        this.numSubFemales = s;
+        }
+
+    public Integer getNumSubAdults() {
+        return this.numSubAdults;
+    }
+    public void setNumSubAdults(Integer s) {
+        this.numSubAdults = s;
+    }
+
+    public String getVegetation() {
+        return this.vegetation;
+    }
+    public void setVegetation(String h) {
+        this.vegetation = h;
+    }
+    
+    public String getTerrain() {
+        return this.terrain;
+    }
+    public void setTerrain(String h) {
+        this.terrain = h;
+    }
+
+    public Integer getWp() {
+    return this.wp;
+    }
+    public void setWp(Integer s) {
+    this.wp = s;
+    }
+    
+    public Integer getGroupSize() {
+        return this.groupSize;
+    }
+    public void setGroupSize(Integer s) {
+        this.groupSize = s;
+    }
+    /*LEGACY GiraffeSpotter Customizations*/
+
 }
