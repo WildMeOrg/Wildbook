@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Calendar, Views, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./searchResultTabs.css";
 import { observer } from "mobx-react-lite";
 import FullScreenLoader from "../../../components/FullScreenLoader";
+import useFilterEncounters from "../../../models/encounters/useFilterEncounters";
 
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
@@ -18,17 +19,84 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
+function startOfDayISO(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.toISOString();
+}
+function endOfDayISO(d) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x.toISOString();
+}
+
 const CalendarTab = observer(({ store }) => {
   const [events, setEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
+
+  const toDefault = useMemo(() => new Date(), []);
+  const fromDefault = useMemo(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d;
+  }, []);
+
+  const [from, setFrom] = useState(fromDefault);
+  const [to, setTo] = useState(toDefault);
+
+  const handleRangeChange = (range) => {
+    const dates = Array.isArray(range) ? range : [range.start, range.end];
+    const start = new Date(Math.min(...dates.map((d) => +new Date(d))));
+    const end = new Date(Math.max(...dates.map((d) => +new Date(d))));
+    setFrom(start);
+    setTo(end);
+  };
+
+  const queries = useMemo(() => {
+    const base = store.formFilters || [];
+    const hasDate = base.some((f) => f.filterId === "date");
+    if (hasDate) return base;
+
+    return [
+      ...base,
+      {
+        filterId: "date",
+        clause: "filter",
+        query: {
+          range: {
+            date: {
+              gte: startOfDayISO(from),
+              lte: endOfDayISO(to),
+            },
+          },
+        },
+        filterKey: "Sighting Date",
+        path: "",
+      },
+    ];
+  }, [store.formFilters, from, to]);
+
+  const {
+    data: encounterData,
+    loading,
+    refetch,
+  } = useFilterEncounters({
+    queries,
+    params: { sort: "date", sortOrder: "desc" },
+  });
+
   useEffect(() => {
-    if (!store.searchResultsAll || store.searchResultsAll.length === 0) {
+    refetch?.();
+  }, [queries, refetch]);
+
+  useEffect(() => {
+    const results = encounterData?.results || [];
+    if (!encounterData || results.length === 0) {
       setEvents([]);
       return;
     }
-    
-    const parsed = store?.searchResultsAll?.map((item) => {
-      const dateStrLocal = item?.date?.replace(/Z$/, "");
+    const parsed = results.map((item) => {
+      const dateStrLocal = (item?.date || "").replace(/Z$/, "");
       const d = new Date(dateStrLocal);
       return {
         title: item.id,
@@ -39,18 +107,15 @@ const CalendarTab = observer(({ store }) => {
       };
     });
     setEvents(parsed);
-  }, [store.searchResultsAll]);
+  }, [encounterData]);
 
   return (
     <div
       className="container mt-1"
       style={{ backgroundColor: "#f8f9fa", position: "relative" }}
     >
-      {/* <div style={{ marginBottom: "1rem", width: "100%", display: "flex", justifyContent: "flex-end" }}>
-        <button onClick={() => setView(Views.MONTH)}>Grid</button>
-        <button onClick={() => setView(Views.AGENDA)}>List</button>
-      </div> */}
-      {store.loadingAll && <FullScreenLoader />}
+      {(loading || store.loadingAll) && <FullScreenLoader />}
+
       <Calendar
         localizer={localizer}
         events={events}
@@ -58,9 +123,9 @@ const CalendarTab = observer(({ store }) => {
         onView={setView}
         startAccessor="start"
         endAccessor="end"
+        onRangeChange={handleRangeChange}
         style={{ height: 600 }}
-        // popup
-        toolbar={true}
+        toolbar
         components={{
           event: ({ event }) => (
             <a
@@ -69,7 +134,7 @@ const CalendarTab = observer(({ store }) => {
               rel="noreferrer"
               style={{
                 background: "transparent",
-                color: "#007bff !important",
+                color: "#007bff",
                 padding: 0,
                 textDecoration: "underline",
               }}
@@ -81,6 +146,6 @@ const CalendarTab = observer(({ store }) => {
       />
     </div>
   );
-})
+});
 
 export default CalendarTab;

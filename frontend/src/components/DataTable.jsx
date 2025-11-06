@@ -9,8 +9,6 @@ import ThemeColorContext from "../ThemeColorProvider";
 import { useIntl } from "react-intl";
 import Calendar from "../pages/SearchPages/searchResultTabs/CalendarView";
 import { observer } from "mobx-react-lite";
-import ChartView from "../pages/SearchPages/searchResultTabs/ChartView";
-import { MapView } from "../pages/SearchPages/searchResultTabs/MapView";
 import GalleryView from "../pages/SearchPages/searchResultTabs/GalleryView";
 import Select from "react-select";
 import MainButton from "./MainButton";
@@ -30,7 +28,8 @@ const MyDataTable = observer(
   ({
     store,
     searchQueryId,
-    refetchMediaAssets = () => { },
+    refetchMediaAssets = () => {},
+    pg = () => {},
     title = "",
     columnNames = [],
     totalItems = 0,
@@ -45,9 +44,9 @@ const MyDataTable = observer(
     tabs = [],
     isLoading = false,
     extraStyles = [],
-    onSelectedRowsChange = () => { },
-    onRowClicked = () => { },
-    setExportModalOpen = () => { },
+    onSelectedRowsChange = () => {},
+    onRowClicked = () => {},
+    setExportModalOpen = () => {},
   }) => {
     const [data, setData] = useState([]);
     const [filterText, setFilterText] = useState("");
@@ -320,8 +319,6 @@ const MyDataTable = observer(
               className="me-1"
               onClick={async () => {
                 store.setActiveStep(1);
-                const response = await refetchMediaAssets();
-                store.setSearchResultsMediaAssets(response?.data?.data?.hits || []);
               }}
               style={{
                 ...(store.activeStep === 1 ? activeStyle : inactiveStyle),
@@ -335,7 +332,7 @@ const MyDataTable = observer(
               className="me-1"
               onClick={() => {
                 store.setActiveStep(2);
-                const url = `/encounters/mappedSearchResults.jsp?searchQueryId=${searchQueryId}&regularQuery=true`
+                const url = `/encounters/mappedSearchResults.jsp?searchQueryId=${searchQueryId}&regularQuery=true`;
                 window.open(url, "_blank");
               }}
               style={{
@@ -700,7 +697,11 @@ const MyDataTable = observer(
             display: store.activeStep === 1 ? "block" : "none",
           }}
         >
-          <GalleryView store={store} refetchMediaAssets={refetchMediaAssets} />
+          <GalleryView
+            store={store}
+            refetchMediaAssets={refetchMediaAssets}
+            pg={pg}
+          />
         </div>
         <div
           className="w-100"

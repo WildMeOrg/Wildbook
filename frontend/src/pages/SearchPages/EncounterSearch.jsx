@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
@@ -18,7 +17,6 @@ import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
 import ExportModal from "./components/ExportModal";
 import { observer } from "mobx-react-lite";
-import { toJS } from "mobx";
 
 const EncounterSearch = observer(() => {
   const columns = encounterSearchColumns;
@@ -50,7 +48,13 @@ const EncounterSearch = observer(() => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
-    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters, encounterData);
+    helperFunction(
+      searchParams,
+      store,
+      setFilterPanel,
+      setTempFormFilters,
+      encounterData,
+    );
   }, [searchParams]);
 
   useEffect(() => {
@@ -77,31 +81,54 @@ const EncounterSearch = observer(() => {
     },
   });
 
-  const filterOnMediaAssets = { "filterId": "numberMediaAssets", 
-    "clause": "filter", 
-    "query": { "range": { "numberMediaAssets": { "gte": 1 } } }, 
-    "filterKey": "Number Media Assets", 
-    "path": "" }
-
-    const queries = React.useMemo(() => {
-      const base = toJS(store.formFilters) || []  ;
-      const has = base.some(f => f.filterId === "numberMediaAssets");
-      if (!has) {
-        return [...base, filterOnMediaAssets];
-      }
-      return base;
-    }, [store.formFilters]);
-
   const { refetch: refetchMediaAssets } = useFilterEncountersWithMediaAssets({
-    queries: queries,
-    params: { sort: encounterSortName, sortOrder: encounterSortOrder, size: store.pageSize, from: store.start },
+    queries: store.mediaAssetsSearchQuery || [],
+    params: {
+      sort: encounterSortName,
+      sortOrder: encounterSortOrder,
+      size: store.pageSize,
+      from: store.start,
+    },
   });
 
-  console.log("Encounter Search Queries1111:", JSON.stringify(store.formFilters));
+  const pg = async () => {
+    const response = await refetchMediaAssets();
+    const fetchedData = response?.data?.data?.hits || [];
+    let offset = 0;
+    let contents = [];
 
+    if (fetchedData[offset].mediaAssets.length <= store.assetOffset) {
+      store.setAssetOffset(0);
+    }
+
+    while (contents.length < store.pageSize && offset < fetchedData.length) {
+      if (fetchedData[offset].mediaAssets.length > store.assetOffset) {
+        const encounter = fetchedData[offset];
+        const data = encounter.mediaAssets[store.assetOffset];
+        data.__k = `${encounter.id}-${store.assetOffset}-${data.uuid ?? data.id ?? ""}`;
+        data.encounterId = encounter.id;
+        data.individualId = encounter.individualId;
+        data.date = encounter.date;
+        data.individualDisplayName = encounter.individualDisplayName;
+        data.verbatimDate = encounter.verbatimDate;
+        contents.push(data);
+        const newOffset = store.assetOffset + 1;
+        store.setAssetOffset(newOffset);
+      } else {
+        offset++;
+        store.setAssetOffset(0);
+      }
+    }
+    store.setCurrentPageItems(contents);
+    const start = store.start + offset;
+    store.setStart(start);
+  };
+
+  // useEffect(() => {
+  //   pg();
+  // }, []);
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
-
   const sortedEncounters = React.useMemo(() => {
     const list = (encounters || []).slice();
     if (!sortname || !sortorder) return list;
@@ -197,11 +224,13 @@ const EncounterSearch = observer(() => {
         refetch={refetch}
         setTempFormFilters={setTempFormFilters}
         store={store}
+        pg={pg}
       />
       <DataTable
         store={store}
         searchQueryId={searchQueryId}
         refetchMediaAssets={refetchMediaAssets}
+        pg={pg}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",

@@ -11,23 +11,19 @@ class EncounterFormStore {
 
   _siteSettingsData = null;
 
-  _hasFetchedAllEncounters = false;
-  _searchResultsMediaAssets = [];
   _loadingAll = false;
   _selectedRows = [];
   _selectedProjects = [];
   //0: hide, 1: show select 2: show adding 3: show success 4: show error
   _projectBannerStatusCode = 0;
   _clearSelectedRows = false;
-  _imageCoundPerPage = 20;
 
-  _allMediaAssets = [];
-  _pageItems = [];
-  _totalItems = 0;
-  _totalPages = 0;
-  _currentPage = 1;
-  _pageSize = 20;
+  _currentPageItems = [];
+  _previousPageItems = [];
+  _currentPage = 0;
+  _pageSize = 5;
   _start = 0;
+  _assetOffset = 0;
 
   _showAnnotations = true;
 
@@ -45,14 +41,6 @@ class EncounterFormStore {
         imageModal: false,
       },
       { autoBind: true },
-    );
-  }
-
-  get encounterData() {
-    const selectedImageIndex = this.imageModalStore.selectedImageIndex;
-    const encounterId = this.currentPageItems[selectedImageIndex]?.encounterId;
-    return (
-      this.searchResultsMediaAssets.filter((item) => item.id === encounterId)[0] || null
     );
   }
 
@@ -75,20 +63,6 @@ class EncounterFormStore {
   }
   setActiveStep(step) {
     this._activeStep = step;
-  }
-
-  get searchResultsMediaAssets() {
-    return this._searchResultsMediaAssets;
-  }
-  setSearchResultsMediaAssets(data) {
-    this._searchResultsMediaAssets = data;
-  }
-
-  get hasFetchedAllEncounters() {
-    return this._hasFetchedAllEncounters;
-  }
-  setHasFetchedAllEncounters(value) {
-    this._hasFetchedAllEncounters = value;
   }
 
   get loadingAll() {
@@ -126,13 +100,6 @@ class EncounterFormStore {
     this._clearSelectedRows = value;
   }
 
-  get imageCountPerPage() {
-    return this._imageCoundPerPage;
-  }
-  setimageCountPerPage(count) {
-    this._imageCoundPerPage = count;
-  }
-
   get pageSize() {
     return this._pageSize;
   }
@@ -144,10 +111,37 @@ class EncounterFormStore {
     return this._currentPage;
   }
   setCurrentPage(page) {
+    if (page < 0) {
+      page = 0;
+    }
     this._currentPage = page;
   }
 
-  get start () {
+  get assetOffset() {
+    return this._assetOffset || 0;
+  }
+  setAssetOffset(offset) {
+    this._assetOffset = offset;
+  }
+
+  get mediaAssetsSearchQuery() {
+    const filterOnMediaAssets = {
+      filterId: "numberMediaAssets",
+      clause: "filter",
+      query: { range: { numberMediaAssets: { gte: 1 } } },
+      filterKey: "Number Media Assets",
+      path: "",
+    };
+    const base = this.formFilters || [];
+    const has = base.some((f) => f.filterId === "numberMediaAssets");
+    if (!has) {
+      return [...base, filterOnMediaAssets];
+    } else {
+      return base;
+    }
+  }
+
+  get start() {
     return this._start;
   }
 
@@ -155,61 +149,23 @@ class EncounterFormStore {
     this._start = start;
   }
 
-  get lastEncounterId() {
-    return this.currentPageItems[this.pageSize - 1]?.encounterId;
-  }
-
-  get lastEncounterIndex() {
-    const encounterId = this.currentPageItems[this.pageSize - 1]?.encounterId ;
-    console.log("Encounter ID:", JSON.stringify(encounterId));
-    const encounterIndex = this._searchResultsMediaAssets.findIndex(
-      (item) => item.id === encounterId,
-    );
-    if (encounterIndex !== -1) {
-      return encounterIndex;
-    }
-    return null;
-  }
-
-  get lastMediaAssetId() {
-    return this.currentPageItems[this.pageSize - 1]?.id ;
-  }
-
-  get allMediaAssets() {
-    const src = this._searchResultsMediaAssets ?? [];
-    return src
-      .filter(
-        (item) =>
-          Array.isArray(item.mediaAssets) && item.mediaAssets.length > 0,
-      )
-      .flatMap((item) =>
-        item.mediaAssets.map((a, idx) => ({
-          ...a,
-          __k: `${item.id}-${idx}-${a.uuid ?? a.id ?? ""}`,
-          encounterId: item.id,
-          individualId: item.individualId,
-          date: item.date,
-          individualDisplayName: item.individualDisplayName,
-          verbatimDate: item.verbatimDate,
-        })),
-      );
-  }
-
-  get totalItems() {
-    return this.allMediaAssets.length;
-  }
-
-  get totalPages() {
-    return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
-  }
-
   get currentPageItems() {
-    const encounter = this.searchResultsMediaAssets.find(
-      (item) => item.id === this.lastEncounterId,
-    );
-    const imageIndex = this.searchResultsMediaAssets.findIndex
-    return this.allMediaAssets.slice(0, this.pageSize);
+    return this._currentPageItems || [];
   }
+  setCurrentPageItems(items) {
+    this._currentPageItems = items;
+  }
+
+  get previousPageItems() {
+    return this._previousPageItems || [];
+  }
+  setPreviousPageItems(index, data) {
+    if (index < 0 || index > this._currentPage) {
+      return;
+    }
+    this._previousPageItems[index] = data;
+  }
+  s;
 
   addFilter(filterId, clause, query, filterKey, path = "") {
     const existingIndex = this.formFilters.findIndex(
@@ -272,7 +228,6 @@ class EncounterFormStore {
       return {
         week: weekKey,
         count: countsByWeek[weekKey] || 0,
-        // date: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
       };
     });
     return result;
