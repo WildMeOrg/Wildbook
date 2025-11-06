@@ -94,6 +94,10 @@ const EncounterSearch = observer(() => {
   const pg = async () => {
     const response = await refetchMediaAssets();
     const fetchedData = response?.data?.data?.hits || [];
+    if (!fetchedData || !fetchedData.length) {
+      store.setCurrentPageItems([]);
+      return;
+    }
     let offset = 0;
     let contents = [];
 
@@ -224,7 +228,6 @@ const EncounterSearch = observer(() => {
         refetch={refetch}
         setTempFormFilters={setTempFormFilters}
         store={store}
-        pg={pg}
       />
       <DataTable
         store={store}

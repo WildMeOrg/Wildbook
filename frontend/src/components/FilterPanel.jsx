@@ -17,7 +17,6 @@ export default function FilterPanel({
   refetch = () => {},
   setTempFormFilters = () => {},
   store,
-  pg = () => {},
 }) {
   const { data } = useGetSiteSettings();
   const safeSchemas = schemas || [];
@@ -148,7 +147,7 @@ export default function FilterPanel({
                   refetch().then(({ data }) => {
                     console.log("Refetched data:", data);
                   });
-                  pg();
+                  store.resetGallery();
                   setSearchParams(new URLSearchParams());
                   sessionStorage.setItem(
                     "formData",

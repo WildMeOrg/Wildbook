@@ -4,6 +4,7 @@ import { chain, range } from "lodash-es";
 import ImageModalStore from "./ImageModalStore";
 import { toJS } from "mobx";
 import axios from "axios";
+import { action } from "mobx";
 
 class EncounterFormStore {
   _formFilters;
@@ -21,7 +22,7 @@ class EncounterFormStore {
   _currentPageItems = [];
   _previousPageItems = [];
   _currentPage = 0;
-  _pageSize = 5;
+  _pageSize = 20;
   _start = 0;
   _assetOffset = 0;
 
@@ -100,6 +101,14 @@ class EncounterFormStore {
     this._clearSelectedRows = value;
   }
 
+  resetGallery = action(() => {
+    this.setCurrentPageItems([]);
+    this.setStart(0);
+    this.setAssetOffset(0);
+    this.clearPreviousPageItems([]);
+    this.setCurrentPage?.(0);
+  });
+
   get pageSize() {
     return this._pageSize;
   }
@@ -165,7 +174,10 @@ class EncounterFormStore {
     }
     this._previousPageItems[index] = data;
   }
-  s;
+
+  clearPreviousPageItems() {
+    this._previousPageItems = [];
+  }
 
   addFilter(filterId, clause, query, filterKey, path = "") {
     const existingIndex = this.formFilters.findIndex(

@@ -8,8 +8,21 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import "swiper/css/zoom";
 import FullScreenLoader from "../../../components/FullScreenLoader";
+import MainButton from "../../../components/MainButton";
+import ThemeColorContext from "../../../ThemeColorProvider";
 
 const GalleryView = observer(({ store, pg = {} }) => {
+  const theme = React.useContext(ThemeColorContext);
+
+  useEffect(() => {
+    store.resetGallery();
+    pg();
+
+    return () => {
+      store.resetGallery();
+    };
+  }, []);
+
   useEffect(() => {
     store.imageModalStore.setSelectedImageIndex(0);
   }, [store.currentPageItems]);
@@ -37,10 +50,6 @@ const GalleryView = observer(({ store, pg = {} }) => {
     );
   }, [store.currentPageItems, store.imageModalStore.selectedImageIndex]);
 
-  useEffect(() => {
-    pg();
-  }, []);
-
   return (
     <div
       className="container mt-1 mb-5"
@@ -49,7 +58,17 @@ const GalleryView = observer(({ store, pg = {} }) => {
       {store.loadingAll && <FullScreenLoader />}
 
       <div className="w-100 d-flex flex-row gap-3 justify-content-center">
-        <div
+        <MainButton
+          noArrow={true}
+          style={{
+            padding: "10px",
+            width: "50px",
+            height: "30px",
+          }}
+          disabled={store.currentPage <= 0}
+          backgroundColor="white"
+          color={theme.primaryColors.primary500}
+          borderColor={theme.primaryColors.primary500}
           onClick={() => {
             if (store.currentPage <= 0) return;
             const prev = store.previousPageItems[store.currentPage - 1];
@@ -59,8 +78,18 @@ const GalleryView = observer(({ store, pg = {} }) => {
           }}
         >
           <i className="bi bi-chevron-left"></i>
-        </div>
-        <div
+        </MainButton>
+        <MainButton
+          noArrow={true}
+          style={{
+            padding: "10px",
+            width: "50px",
+            height: "30px",
+          }}
+          disabled={store.currentPageItems.length < store.pageSize}
+          backgroundColor="white"
+          color={theme.primaryColors.primary500}
+          borderColor={theme.primaryColors.primary500}
           onClick={async () => {
             if (store.currentPageItems.length === 0) return;
             store.setPreviousPageItems(
@@ -81,7 +110,7 @@ const GalleryView = observer(({ store, pg = {} }) => {
           }}
         >
           <i className="bi bi-chevron-right"></i>
-        </div>
+        </MainButton>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>

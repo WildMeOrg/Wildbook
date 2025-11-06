@@ -691,26 +691,25 @@ const MyDataTable = observer(
             </Row>
           )}
         </div>
-        <div
-          className="w-100"
-          style={{
-            display: store.activeStep === 1 ? "block" : "none",
-          }}
-        >
-          <GalleryView
-            store={store}
-            refetchMediaAssets={refetchMediaAssets}
-            pg={pg}
-          />
-        </div>
-        <div
-          className="w-100"
-          style={{
-            display: store.activeStep === 4 ? "block" : "none",
-          }}
-        >
-          <Calendar store={store} />
-        </div>
+        {store.activeStep === 1 && (
+          <div
+            className="w-100"
+            style={{
+              display: "block",
+            }}
+          >
+            <GalleryView
+              store={store}
+              refetchMediaAssets={refetchMediaAssets}
+              pg={pg}
+            />
+          </div>
+        )}
+        {store.activeStep === 4 && (
+          <div className="w-100">
+            <Calendar store={store} />
+          </div>
+        )}
       </div>
     );
   },
