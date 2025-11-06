@@ -68,8 +68,10 @@ class NewMatchStore {
 
   get annotationIds() {
     const encounterData = this.encounterStore?.encounterData;
-    const mediaAssets = encounterData?.mediaAssets || [];
-    const annotations = mediaAssets.flatMap((a) => a.annotations || []);
+    const allMediaAssets = encounterData?.mediaAssets || [];
+    const mediaAsset =
+      allMediaAssets[this.encounterStore.selectedImageIndex] || {};
+    const annotations = mediaAsset?.annotations || [];
     const encounterId = encounterData?.id || "";
     return annotations
       .filter((d) => d.encounterId === encounterId)
