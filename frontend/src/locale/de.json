@@ -665,5 +665,6 @@
   "DELETE_ENCOUNTER_DESC": "Die Begegnung wird dauerhaft gelöscht.",
   "DELETE_ENCOUNTER_CONFIRM": "Dies wird die Begegnung dauerhaft aus dem System entfernen, einschließlich aller zugehörigen Bilder.",
   "UNASSIGN_AND_DELETE_ENCOUNTER": "Zuweisung aufheben und löschen",
-  "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Diese Aktion trennt die Begegnung von ihrem Individuum und löscht sie zusammen mit allen zugehörigen Bildern aus dem System."
+  "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Diese Aktion trennt die Begegnung von ihrem Individuum und löscht sie zusammen mit allen zugehörigen Bildern aus dem System.",
+  "MATCH_CRITERIA": "Übereinstimmungskriterien"
 }

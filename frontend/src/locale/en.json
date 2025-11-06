@@ -664,5 +664,6 @@
     "DELETE_ENCOUNTER_DESC": "Encounter will be permanently deleted.",
     "DELETE_ENCOUNTER_CONFIRM": "This will remove the encounter from the system permanently, including any associated images.",
     "UNASSIGN_AND_DELETE_ENCOUNTER": "Unassign and Delete",
-    "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "This action will detach the encounter from its individual and delete it from the system along with any associated images."
+    "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "This action will detach the encounter from its individual and delete it from the system along with any associated images.",
+    "MATCH_CRITERIA": "Match Criteria"
 }

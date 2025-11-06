@@ -664,5 +664,6 @@
   "DELETE_ENCOUNTER_DESC": "L'incontro verrà eliminato in modo permanente.",
   "DELETE_ENCOUNTER_CONFIRM": "Questa operazione rimuoverà definitivamente l'incontro dal sistema, comprese eventuali immagini associate.",
   "UNASSIGN_AND_DELETE_ENCOUNTER": "Dissocia ed elimina",
-  "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Questa azione scollegherà l'incontro dal suo individuo e lo eliminerà dal sistema insieme a tutte le immagini associate."
+  "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Questa azione scollegherà l'incontro dal suo individuo e lo eliminerà dal sistema insieme a tutte le immagini associate.",
+  "MATCH_CRITERIA": "Criteri di corrispondenza"
 }
