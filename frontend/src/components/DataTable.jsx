@@ -9,8 +9,6 @@ import ThemeColorContext from "../ThemeColorProvider";
 import { useIntl } from "react-intl";
 import Calendar from "../pages/SearchPages/searchResultTabs/CalendarView";
 import { observer } from "mobx-react-lite";
-import ChartView from "../pages/SearchPages/searchResultTabs/ChartView";
-import { MapView } from "../pages/SearchPages/searchResultTabs/MapView";
 import GalleryView from "../pages/SearchPages/searchResultTabs/GalleryView";
 import Select from "react-select";
 import MainButton from "./MainButton";
@@ -29,7 +27,9 @@ const customStyles = {
 const MyDataTable = observer(
   ({
     store,
-    refetchAll,
+    searchQueryId,
+    refetchMediaAssets = () => {},
+    pg = () => {},
     title = "",
     columnNames = [],
     totalItems = 0,
@@ -171,8 +171,8 @@ const MyDataTable = observer(
             return {
               id: col.selector,
               name: <FormattedMessage id={col.name} />,
-              selector: (row) => row[col.selector] || "-", // Accessor function for the column data
-              sortable: true, // Make the column sortable
+              selector: (row) => row[col.selector] || "-",
+              sortable: true,
               sortFunction: sortFunction,
               conditionalCellStyles: [
                 {
@@ -288,18 +288,6 @@ const MyDataTable = observer(
       color: "white",
     };
 
-    const refetchAllData = async () => {
-      store.setLoadingAll(true);
-      try {
-        const response = await refetchAll();
-        store.setSearchResultsAll(response?.data?.data?.hits || []);
-      } catch (error) {
-        console.error("Error fetching all encounters:", error);
-      }
-      store.setLoadingAll(false);
-      store.setHasFetchedAllEncounters(true);
-    };
-
     return (
       <div
         className="container mt-3 mb-5"
@@ -329,11 +317,8 @@ const MyDataTable = observer(
               key={"gallery"}
               variant="outline-tertiary"
               className="me-1"
-              onClick={() => {
+              onClick={async () => {
                 store.setActiveStep(1);
-                if (!store.hasFetchedAllEncounters) {
-                  refetchAllData();
-                }
               }}
               style={{
                 ...(store.activeStep === 1 ? activeStyle : inactiveStyle),
@@ -347,9 +332,8 @@ const MyDataTable = observer(
               className="me-1"
               onClick={() => {
                 store.setActiveStep(2);
-                if (!store.hasFetchedAllEncounters) {
-                  refetchAllData();
-                }
+                const url = `/encounters/mappedSearchResults.jsp?searchQueryId=${searchQueryId}&regularQuery=true`;
+                window.open(url, "_blank");
               }}
               style={{
                 ...(store.activeStep === 2 ? activeStyle : inactiveStyle),
@@ -363,9 +347,8 @@ const MyDataTable = observer(
               className="me-1"
               onClick={() => {
                 store.setActiveStep(3);
-                if (!store.hasFetchedAllEncounters) {
-                  refetchAllData();
-                }
+                const url = `/encounters/searchResultsAnalysis.jsp?searchQueryId=${searchQueryId}&regularQuery=true`;
+                window.open(url, "_blank");
               }}
               style={{
                 ...(store.activeStep === 3 ? activeStyle : inactiveStyle),
@@ -379,9 +362,6 @@ const MyDataTable = observer(
               className="me-1"
               onClick={() => {
                 store.setActiveStep(4);
-                if (!store.hasFetchedAllEncounters) {
-                  refetchAllData();
-                }
               }}
               style={{
                 ...(store.activeStep === 4 ? activeStyle : inactiveStyle),
@@ -711,38 +691,25 @@ const MyDataTable = observer(
             </Row>
           )}
         </div>
-        <div
-          className="w-100"
-          style={{
-            display: store.activeStep === 1 ? "block" : "none",
-          }}
-        >
-          <GalleryView store={store} />
-        </div>
-        <div
-          className="w-100"
-          style={{
-            display: store.activeStep === 2 ? "block" : "none",
-          }}
-        >
-          <MapView store={store} />
-        </div>
-        <div
-          className="w-100"
-          style={{
-            display: store.activeStep === 3 ? "block" : "none",
-          }}
-        >
-          <ChartView store={store} />
-        </div>
-        <div
-          className="w-100"
-          style={{
-            display: store.activeStep === 4 ? "block" : "none",
-          }}
-        >
-          <Calendar store={store} />
-        </div>
+        {store.activeStep === 1 && (
+          <div
+            className="w-100"
+            style={{
+              display: "block",
+            }}
+          >
+            <GalleryView
+              store={store}
+              refetchMediaAssets={refetchMediaAssets}
+              pg={pg}
+            />
+          </div>
+        )}
+        {store.activeStep === 4 && (
+          <div className="w-100">
+            <Calendar store={store} />
+          </div>
+        )}
       </div>
     );
   },

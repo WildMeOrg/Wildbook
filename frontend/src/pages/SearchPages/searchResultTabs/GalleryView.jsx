@@ -7,28 +7,35 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import "swiper/css/zoom";
-import PaginationBar from "../../../components/PaginationBar";
 import FullScreenLoader from "../../../components/FullScreenLoader";
+import MainButton from "../../../components/MainButton";
+import ThemeColorContext from "../../../ThemeColorProvider";
 
-const GalleryView = observer(({ store }) => {
+const GalleryView = observer(({ store, pg = {} }) => {
+  const theme = React.useContext(ThemeColorContext);
+
   useEffect(() => {
-    if (store.currentPage > store.totalPages)
-      store.setCurrentPage(store.totalPages);
-  }, [store.currentPage, store.totalPages]);
+    store.resetGallery();
+    pg();
+
+    return () => {
+      store.resetGallery();
+    };
+  }, []);
 
   useEffect(() => {
     store.imageModalStore.setSelectedImageIndex(0);
-  }, [store.currentPage]);
+  }, [store.currentPageItems]);
 
   const [imgDims, setImgDims] = useState({});
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const rects = useMemo(() => {
     return (
       store.currentPageItems[
         store.imageModalStore.selectedImageIndex
       ]?.annotations
         ?.filter((data) => !data.isTrivial)
+        ?.filter((a) => a.boundingBox)
         ?.map((a) => ({
           x: a.boundingBox[0],
           y: a.boundingBox[1],
@@ -43,35 +50,68 @@ const GalleryView = observer(({ store }) => {
     );
   }, [store.currentPageItems, store.imageModalStore.selectedImageIndex]);
 
-  useEffect(() => {
-    if (!imageModalOpen) return;
-    if (currentIndex >= store.currentPageItems.length) {
-      setCurrentIndex(Math.max(0, store.currentPageItems.length - 1));
-    }
-  }, [store.currentPageItems.length, imageModalOpen, currentIndex]);
-
-  useEffect(() => {
-    setImgDims({});
-  }, [store.currentPage]);
-
   return (
     <div
       className="container mt-1 mb-5"
       style={{ position: "relative", color: "white" }}
     >
       {store.loadingAll && <FullScreenLoader />}
-      <PaginationBar
-        totalItems={store.totalItems}
-        page={store.currentPage}
-        pageSize={store.pageSize}
-        onPageChange={(p) => store.setCurrentPage(p)}
-        onPageSizeChange={(size) => {
-          if (typeof store.setimageCountPerPage === "function") {
-            store.setPageSize(size);
-          }
-        }}
-        className="mb-3"
-      />
+
+      <div className="w-100 d-flex flex-row gap-3 justify-content-center">
+        <MainButton
+          noArrow={true}
+          style={{
+            padding: "10px",
+            width: "50px",
+            height: "30px",
+          }}
+          disabled={store.currentPage <= 0}
+          backgroundColor="white"
+          color={theme.primaryColors.primary500}
+          borderColor={theme.primaryColors.primary500}
+          onClick={() => {
+            if (store.currentPage <= 0) return;
+            const prev = store.previousPageItems[store.currentPage - 1];
+            if (!prev || !prev.length) return;
+            store.setCurrentPageItems(prev.slice());
+            store.setCurrentPage(store.currentPage - 1);
+          }}
+        >
+          <i className="bi bi-chevron-left"></i>
+        </MainButton>
+        <MainButton
+          noArrow={true}
+          style={{
+            padding: "10px",
+            width: "50px",
+            height: "30px",
+          }}
+          disabled={store.currentPageItems.length < store.pageSize}
+          backgroundColor="white"
+          color={theme.primaryColors.primary500}
+          borderColor={theme.primaryColors.primary500}
+          onClick={async () => {
+            if (store.currentPageItems.length === 0) return;
+            store.setPreviousPageItems(
+              store.currentPage,
+              store.currentPageItems.slice(),
+            );
+            if (store.previousPageItems[store.currentPage + 1]) {
+              store.setCurrentPageItems(
+                store.previousPageItems[store.currentPage + 1].slice(),
+              );
+            } else {
+              await pg();
+            }
+
+            if (store.currentPageItems.length !== 0) {
+              store.setCurrentPage(store.currentPage + 1);
+            }
+          }}
+        >
+          <i className="bi bi-chevron-right"></i>
+        </MainButton>
+      </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {store.currentPageItems.length > 0 ? (
@@ -79,6 +119,7 @@ const GalleryView = observer(({ store }) => {
             const rects =
               asset.annotations
                 ?.filter((d) => !d.isTrivial)
+                ?.filter((a) => a.boundingBox)
                 ?.map((a) => ({
                   x: a.boundingBox[0],
                   y: a.boundingBox[1],
@@ -153,17 +194,9 @@ const GalleryView = observer(({ store }) => {
                         top: rect.y / scaleY,
                         width: rect.width / scaleX,
                         height: rect.height / scaleY,
-                        border:
-                          // rect.encounterId === store.encounterData?.id
-                          //   ? "2px solid red"
-                          "2px dotted red",
+                        border: "2px dotted red",
                         transform: `rotate(${rect.rotation}rad)`,
                         cursor: "pointer",
-                        backgroundColor:
-                          rect.annotationId ===
-                          store.imageModalStore.selectedAnnotationId
-                            ? "rgba(240, 11, 11, 0.5)"
-                            : "transparent",
                       }}
                     />
                   ))}
@@ -185,7 +218,6 @@ const GalleryView = observer(({ store }) => {
         onClose={() => setImageModalOpen(false)}
         assets={store.currentPageItems}
         index={store.imageModalStore.selectedImageIndex}
-        setIndex={setCurrentIndex}
         imageStore={store.imageModalStore}
         rects={rects}
       />

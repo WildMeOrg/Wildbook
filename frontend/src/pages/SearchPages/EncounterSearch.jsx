@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
-import useFilterEncountersAll from "../../models/encounters/useFilterEncountersAll";
+import useFilterEncountersWithMediaAssets from "../../models/encounters/useFilterEncountersWithMediaAssets";
 import FilterPanel from "../../components/FilterPanel";
 import useEncounterSearchSchemas from "../../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../../components/filterFields/SideBar";
@@ -49,7 +48,13 @@ const EncounterSearch = observer(() => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
-    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters, encounterData);
+    helperFunction(
+      searchParams,
+      store,
+      setFilterPanel,
+      setTempFormFilters,
+      encounterData,
+    );
   }, [searchParams]);
 
   useEffect(() => {
@@ -76,13 +81,58 @@ const EncounterSearch = observer(() => {
     },
   });
 
-  const { refetch: refetchAll } = useFilterEncountersAll({
-    queries: store.formFilters,
-    params: { sort: encounterSortName, sortOrder: encounterSortOrder },
+  const { refetch: refetchMediaAssets } = useFilterEncountersWithMediaAssets({
+    queries: store.mediaAssetsSearchQuery || [],
+    params: {
+      sort: encounterSortName,
+      sortOrder: encounterSortOrder,
+      size: store.pageSize,
+      from: store.start,
+    },
   });
 
-  const encounters = queryID ? searchData || [] : encounterData?.results || [];
+  const pg = async () => {
+    const response = await refetchMediaAssets();
+    const fetchedData = response?.data?.data?.hits || [];
+    if (!fetchedData || !fetchedData.length) {
+      store.setCurrentPageItems([]);
+      return;
+    }
+    let offset = 0;
+    let contents = [];
 
+    if (fetchedData[offset].mediaAssets.length <= store.assetOffset) {
+      store.setAssetOffset(0);
+    }
+
+    while (contents.length < store.pageSize && offset < fetchedData.length) {
+      if (fetchedData[offset].mediaAssets.length > store.assetOffset) {
+        const encounter = fetchedData[offset];
+        const data = encounter.mediaAssets[store.assetOffset];
+        data.__k = `${encounter.id}-${store.assetOffset}-${data.uuid ?? data.id ?? ""}`;
+        data.encounterId = encounter.id;
+        data.individualId = encounter.individualId;
+        data.date = encounter.date;
+        data.individualDisplayName = encounter.individualDisplayName;
+        data.verbatimDate = encounter.verbatimDate;
+        contents.push(data);
+        const newOffset = store.assetOffset + 1;
+        store.setAssetOffset(newOffset);
+      } else {
+        offset++;
+        store.setAssetOffset(0);
+      }
+    }
+    store.setCurrentPageItems(contents);
+    const start = store.start + offset;
+    store.setStart(start);
+  };
+
+  // useEffect(() => {
+  //   pg();
+  // }, []);
+
+  const encounters = queryID ? searchData || [] : encounterData?.results || [];
   const sortedEncounters = React.useMemo(() => {
     const list = (encounters || []).slice();
     if (!sortname || !sortorder) return list;
@@ -181,7 +231,9 @@ const EncounterSearch = observer(() => {
       />
       <DataTable
         store={store}
-        refetchAll={refetchAll}
+        searchQueryId={searchQueryId}
+        refetchMediaAssets={refetchMediaAssets}
+        pg={pg}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",

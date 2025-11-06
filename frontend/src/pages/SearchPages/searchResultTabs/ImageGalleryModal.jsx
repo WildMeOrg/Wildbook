@@ -10,6 +10,8 @@ export const ImageGalleryModal = observer(
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
 
+    const encounterData = assets[index] || {};
+
     useEffect(() => {
       const s = thumbsRef.current;
       if (!s || s.destroyed) return;
@@ -254,12 +256,12 @@ export const ImageGalleryModal = observer(
                   <div className="fw-semibold">
                     <FormattedMessage id="ENCOUNTER" />{" "}
                     <span>
-                      {imageStore.encounterData?.individualDisplayName
-                        ? `of ${imageStore.encounterData?.individualDisplayName}`
+                      {encounterData?.individualDisplayName
+                        ? `of ${encounterData?.individualDisplayName}`
                         : "Unassigned "}
                     </span>
                     <br />
-                    {imageStore.encounterData?.date}
+                    {encounterData?.date}
                   </div>
                   <div className="text-muted small">{a.date ?? ""}</div>
                 </div>
@@ -288,25 +290,25 @@ export const ImageGalleryModal = observer(
                   <FormattedMessage id="ENCOUNTER" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {imageStore.encounterData.id ?? "—"}
+                  {encounterData.encounterId ?? "—"}
                 </dd>
                 <dt className="col-5">
                   <FormattedMessage id="INDIVIDUAL_ID" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {imageStore.encounterData?.individualId ?? "—"}
+                  {encounterData?.individualId ?? "—"}
                 </dd>
                 <dt className="col-5">
                   <FormattedMessage id="LOCATION_ID" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {imageStore.encounterData?.locationId ?? "—"}
+                  {encounterData?.locationId ?? "—"}
                 </dd>
                 <dt className="col-5">
                   <FormattedMessage id="VERBATIM_EVENT_DATE" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {imageStore.encounterData?.verbatimEventDate ?? "—"}
+                  {encounterData?.verbatimEventDate ?? "—"}
                 </dd>
               </dl>
             </aside>
