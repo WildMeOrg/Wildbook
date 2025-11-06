@@ -57,7 +57,7 @@ const GalleryView = observer(({ store, pg = {} }) => {
     >
       {store.loadingAll && <FullScreenLoader />}
 
-      <div className="w-100 d-flex flex-row gap-3 justify-content-center">
+      <div className="w-100 d-flex flex-row gap-3 justify-content-center mb-3">
         <MainButton
           noArrow={true}
           style={{
