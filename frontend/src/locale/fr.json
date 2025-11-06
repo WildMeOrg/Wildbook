@@ -256,7 +256,7 @@
   "SESSION_CLOSE": "Fermer",
   "LOADING": "Chargement",
   "REPORT_PAGE_TITLE": "Page Signaler une rencontre",
-  "REPORT_PAGE_DESCRIPTION": "Parlez-nous de l'animal que vous avez vu et soyez aussi précis que possible. En soumettant des données et des images, vous autorisez l'utilisation illimitée de ce matériel à des fins de recherche et de conservation uniquement.",
+  "REPORT_PAGE_DESCRIPTION": "Parlez-nous de l'animal que vous avez vu et soyez aussi précis que possible. Pour les citoyens scientifiques : ils autorisent l’utilisation sans restriction de ces données exclusivement à des fins de recherche et de conservation de la nature.",
   "SIGNIN_REMINDER_BANNER": "Pour associer la rencontre avec votre compte, veuillez vous connecter. Si vous souhaitez continuer anonymement, veuillez compléter le captcha.",
   "SIGNIN_CAPTCHACOMPLETE_REMINDER_BANNER": "Merci d'avoir vérifié ! Poursuivez votre soumission anonyme ou connectez-vous.",
   "REQUIRED_FIELDS_KEY": "* Champs obligatoires",
