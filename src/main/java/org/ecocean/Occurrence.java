@@ -115,7 +115,7 @@ public class Occurrence extends Base implements java.io.Serializable {
 
     private Long dateTimeLong; // this is for searching
 
-    //Start legacy GiraffeSpotter fields
+    // Start legacy GiraffeSpotter fields
     private String vegetation;
     private String terrain;
     private String monitoringZone;
@@ -125,9 +125,8 @@ public class Occurrence extends Base implements java.io.Serializable {
     private Integer numSubMales;
     private Integer numSubFemales;
     private Integer numSubAdults;
-    private Integer wp;  //i think this is waypoint???
-    //End legacy GiraffeSpotter fields
-
+    private Integer wp; // i think this is waypoint???
+    // End legacy GiraffeSpotter fields
 
     // empty constructor used by the JDO enhancer
     public Occurrence() {}
@@ -632,14 +631,16 @@ public class Occurrence extends Base implements java.io.Serializable {
     public List<String> getAllSpeciesDeep() {
         List<String> result = new ArrayList<String>();
 
-        if (taxonomies != null) for (Taxonomy tax : taxonomies) {
-            String sciName = tax.getScientificName();
-            if (sciName != null && !result.contains(sciName)) result.add(sciName);
-        }
-        if (encounters != null) for (Encounter enc : encounters) {
-            String sciName = enc.getTaxonomyString();
-            if (sciName != null && !result.contains(sciName)) result.add(sciName);
-        }
+        if (taxonomies != null)
+            for (Taxonomy tax : taxonomies) {
+                String sciName = tax.getScientificName();
+                if (sciName != null && !result.contains(sciName)) result.add(sciName);
+            }
+        if (encounters != null)
+            for (Encounter enc : encounters) {
+                String sciName = enc.getTaxonomyString();
+                if (sciName != null && !result.contains(sciName)) result.add(sciName);
+            }
         return result;
     }
 
@@ -1541,6 +1542,7 @@ public class Occurrence extends Base implements java.io.Serializable {
     public Integer getNumAdultMales() {
         return this.numAdultMales;
     }
+
     public void setNumAdultMales(Integer s) {
         this.numAdultMales = s;
     }
@@ -1548,6 +1550,7 @@ public class Occurrence extends Base implements java.io.Serializable {
     public Integer getNumAdultFemales() {
         return this.numAdultFemales;
     }
+
     public void setNumAdultFemales(Integer s) {
         this.numAdultFemales = s;
     }
@@ -1555,6 +1558,7 @@ public class Occurrence extends Base implements java.io.Serializable {
     public Integer getNumSubMales() {
         return this.numSubMales;
     }
+
     public void setNumSubMales(Integer s) {
         this.numSubMales = s;
     }
@@ -1562,13 +1566,15 @@ public class Occurrence extends Base implements java.io.Serializable {
     public Integer getNumSubFemales() {
         return this.numSubFemales;
     }
+
     public void setNumSubFemales(Integer s) {
         this.numSubFemales = s;
-        }
+    }
 
     public Integer getNumSubAdults() {
         return this.numSubAdults;
     }
+
     public void setNumSubAdults(Integer s) {
         this.numSubAdults = s;
     }
@@ -1576,30 +1582,42 @@ public class Occurrence extends Base implements java.io.Serializable {
     public String getVegetation() {
         return this.vegetation;
     }
+
     public void setVegetation(String h) {
         this.vegetation = h;
     }
-    
+
     public String getTerrain() {
         return this.terrain;
     }
+
     public void setTerrain(String h) {
         this.terrain = h;
     }
 
+    public String getMonitoringZone() {
+        return this.monitoringZone;
+    }
+
+    public void setMonitoringZone(String h) {
+        this.monitoringZone = h;
+    }
+
     public Integer getWp() {
-    return this.wp;
+        return this.wp;
     }
+
     public void setWp(Integer s) {
-    this.wp = s;
+        this.wp = s;
     }
-    
+
     public Integer getGroupSize() {
         return this.groupSize;
     }
+
     public void setGroupSize(Integer s) {
         this.groupSize = s;
     }
-    /*LEGACY GiraffeSpotter Customizations*/
 
+    /*LEGACY GiraffeSpotter Customizations*/
 }
