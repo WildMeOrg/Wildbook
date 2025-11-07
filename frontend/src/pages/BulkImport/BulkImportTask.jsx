@@ -122,24 +122,20 @@ const BulkImportTask = observer(() => {
     };
   });
 
-  const sortedTableData = tableData.sort((a, b) => {
-    return new Date(b.createdMillis) - new Date(a.createdMillis);
-  });
+  const sortedTableData = tableData
+    .sort((a, b) => {
+      return new Date(a.createdMillis) - new Date(b.createdMillis);
+    })
+    .map((item, index) => ({
+      tableID: index + 1,
+      ...item,
+    }));
 
   const columns = [
     {
-      name: "Created At",
-      selector: (row) => row.createdMillis,
-      cell: (row) => {
-        console.log("Created At:", row.createdMillis);
-        const date = new Date(Number(row.createdMillis));
-        if (isNaN(date)) return "-";
-        return date
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", "")
-          .slice(0, 19);
-      },
+      name: "#",
+      cell: (row) => row.tableID,
+      selector: (row) => row.tableID,
     },
     {
       name: "Encounter ID",
