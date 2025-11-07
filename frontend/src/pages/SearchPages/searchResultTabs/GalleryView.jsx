@@ -73,9 +73,10 @@ const GalleryView = observer(({ store, pg = {} }) => {
             const current = store.currentPage;
             const prevPage = current - 1;
             if (store.previousPageItems[prevPage]) {
-              store.setCurrentPageItems(
-                store.previousPageItems[prevPage].slice(),
-              );
+              const prevItems = store.previousPageItems[prevPage].slice();
+              const currentItems = store.currentPageItems.slice();
+              store.setPreviousPageItems(store.currentPage, currentItems);
+              store.setCurrentPageItems(prevItems);
               store.setCurrentPage(prevPage);
             }
           }}

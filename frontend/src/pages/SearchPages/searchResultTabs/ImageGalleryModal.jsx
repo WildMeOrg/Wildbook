@@ -48,7 +48,7 @@ export const ImageGalleryModal = observer(
         <div
           id="image-modal-content"
           className="container-fluid h-100 d-flex flex-column"
-          style={{ minHeight: 0 }}
+          style={{ minHeight: 0, paddingRight: "0" }}
         >
           <div
             id="image-modal-body"
@@ -173,10 +173,7 @@ export const ImageGalleryModal = observer(
                           top: rect.y / scaleY,
                           width: rect.width / scaleX,
                           height: rect.height / scaleY,
-                          border:
-                            // rect.encounterId === imageStore.encounterData?.id
-                            //   ? "2px solid red"
-                            "2px dotted red",
+                          border: "2px dotted red",
                           transform: `rotate(${rect.rotation}rad)`,
                           cursor: "pointer",
                         }}
@@ -263,7 +260,6 @@ export const ImageGalleryModal = observer(
                     <br />
                     {encounterData?.date}
                   </div>
-                  <div className="text-muted small">{a.date ?? ""}</div>
                 </div>
               </div>
               <div></div>
