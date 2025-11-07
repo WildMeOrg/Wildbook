@@ -108,7 +108,7 @@ const BulkImportInstructionsModal = observer(({ store }) => {
               values={{
                 link: (
                   <a
-                    href="/import/WildbookStandardFormat.xlsx"
+                    href="https://wildbook.docs.wildme.org/data/bulk-import-beta.html#spreadsheet-templates-by-use-case"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
