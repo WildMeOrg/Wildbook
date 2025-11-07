@@ -118,10 +118,29 @@ const BulkImportTask = observer(() => {
       individualName: item.individualDisplayName || item.individualId || "-",
       imageCount: item.numberMediaAssets,
       class: classArray,
+      createdMillis: item.createdMillis || "-",
     };
   });
 
+  const sortedTableData = tableData.sort((a, b) => {
+    return new Date(b.createdMillis) - new Date(a.createdMillis);
+  });
+
   const columns = [
+    {
+      name: "Created At",
+      selector: (row) => row.createdMillis,
+      cell: (row) => {
+        console.log("Created At:", row.createdMillis);
+        const date = new Date(Number(row.createdMillis));
+        if (isNaN(date)) return "-";
+        return date
+          .toISOString()
+          .replace("T", " ")
+          .replace("Z", "")
+          .slice(0, 19);
+      },
+    },
     {
       name: "Encounter ID",
       selector: (row) => row.encounterID,
@@ -389,7 +408,7 @@ const BulkImportTask = observer(() => {
           />
         </div>
 
-        <SimpleDataTable columns={columns} data={tableData} />
+        <SimpleDataTable columns={columns} data={sortedTableData} />
       </section>
 
       <Row>
