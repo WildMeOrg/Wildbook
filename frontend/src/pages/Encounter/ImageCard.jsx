@@ -561,7 +561,7 @@ const ImageCard = observer(({ store = {} }) => {
             onClick={() => store.setSelectedImageIndex(index)}
           />
         ))}
-        <div id="add-more-files" onClick={() => fileInputRef.current.click()}>
+        <div id="add-more-files">
           <label
             htmlFor={"add-more-files-input"}
             style={{
