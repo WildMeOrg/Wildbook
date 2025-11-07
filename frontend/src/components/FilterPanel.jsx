@@ -147,6 +147,7 @@ export default function FilterPanel({
                   refetch().then(({ data }) => {
                     console.log("Refetched data:", data);
                   });
+                  store.resetGallery();
                   setSearchParams(new URLSearchParams());
                   sessionStorage.setItem(
                     "formData",
@@ -154,6 +155,7 @@ export default function FilterPanel({
                   );
                   setFilterPanel(false);
                   handleSearch();
+                  store.setActiveStep(0);
                 }}
                 noArrow={true}
                 style={{
