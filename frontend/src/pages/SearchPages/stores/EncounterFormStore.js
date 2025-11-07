@@ -105,7 +105,7 @@ class EncounterFormStore {
     this.setCurrentPageItems([]);
     this.setStart(0);
     this.setAssetOffset(0);
-    this.clearPreviousPageItems([]);
+    this.clearPreviousPageItems();
     this.setCurrentPage?.(0);
   });
 
@@ -166,13 +166,13 @@ class EncounterFormStore {
   }
 
   get previousPageItems() {
-    return this._previousPageItems || [];
+    return this._previousPageItems;
   }
   setPreviousPageItems(index, data) {
-    if (index < 0 || index > this._currentPage) {
+    if (index < 0) {
       return;
     }
-    this._previousPageItems[index] = data;
+    this._previousPageItems[index] = Array.isArray(data) ? data.slice() : [];
   }
 
   clearPreviousPageItems() {
