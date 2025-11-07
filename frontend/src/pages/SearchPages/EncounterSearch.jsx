@@ -207,7 +207,7 @@ export default function EncounterSearch() {
           },
         ]}
         onRowClicked={(row) => {
-          const url = `/encounters/encounter.jsp?number=${row.id}`;
+          const url = `/react/encounter?number=${row.id}`;
           window.open(url, "_blank");
         }}
         onSelectedRowsChange={(selectedRows) => {

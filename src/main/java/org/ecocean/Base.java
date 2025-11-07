@@ -1,11 +1,13 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
@@ -15,7 +17,9 @@ import java.util.Map;
 
 import javax.jdo.Query;
 import org.ecocean.api.ApiException;
+import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.shepherd.core.Shepherd;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -81,6 +85,15 @@ import org.json.JSONObject;
     // for now as reference -- but are not called. they will need to be addressed when these classes are searchable
     // public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
     // public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
+
+    // these should/must be overridden. they are used for generic access control, like in api/ApiBase.java
+    public boolean canUserView(User user, Shepherd myShepherd) {
+        return false;
+    }
+
+    public boolean canUserEdit(User user, Shepherd myShepherd) {
+        return false;
+    }
 
     // this allows us to delay indexing during heavy activity which triggers auto-indexing
     // via lifecycle persisting triggers e.g. during bulk import
@@ -254,11 +267,64 @@ import org.json.JSONObject;
         return rtn;
     }
 
+    // this is the results used for a single GET of object via api
+    // default behavior here is just to use opensearchDocument, but each class can override
+    // if desired
+    public JSONObject jsonForApiGet(Shepherd myShepherd, User user)
+    throws IOException {
+        JSONObject rtn = new JSONObject();
+
+        // default/base behavior uses canUserView(), which can disallow user=null etc
+        // override jsonForApiGet() if this is undesirable behavior (e.g. Encounter)
+        if (!canUserView(user, myShepherd)) {
+            rtn.put("success", false);
+            rtn.put("statusCode", 401);
+            rtn.put("error", "access denied");
+            return rtn;
+        }
+        rtn = opensearchDocumentAsJSONObject(myShepherd);
+        rtn.put("success", true);
+        rtn.put("statusCode", 200);
+        return rtn;
+    }
+
+    public JSONObject opensearchDocumentAsJSONObject(Shepherd myShepherd)
+    throws IOException {
+        StringWriter sw = new StringWriter();
+        JsonFactory jf = new JsonFactory();
+        JsonGenerator jgen = jf.createGenerator(sw);
+
+        jgen.writeStartObject();
+        opensearchDocumentSerializer(jgen, myShepherd);
+        jgen.close();
+        jgen.getCurrentValue();
+        String jsonStr = sw.getBuffer().toString();
+        sw.close();
+        return new JSONObject(jsonStr);
+    }
+
     // these two methods are kinda hacky needs for opensearchSyncIndex (e.g. the fact
     // they are not static)
     public abstract Base getById(Shepherd myShepherd, String id);
 
     public abstract String getAllVersionsSql();
+
+    // i guess that makes this extra hacky?
+    public static Base getByClassnameAndId(Shepherd myShepherd, String className, String id) {
+        if ((myShepherd == null) || (className == null) || (id == null)) return null;
+        Base tmp = null;
+        switch (className) {
+        case "encounters":
+            tmp = new Encounter();
+            break;
+        case "annotations":
+            tmp = new Annotation();
+            break;
+        default:
+            return null;
+        }
+        return tmp.getById(myShepherd, id);
+    }
 
     // contains some reflection; not pretty, but gets the job done
     public static int[] opensearchSyncIndex(Shepherd myShepherd, Class cls, int stopAfter)
@@ -330,9 +396,48 @@ import org.json.JSONObject;
         throw new ApiException("not yet supported");
     }
 
+    // should probably be overridden?
+    // https://datatracker.ietf.org/doc/html/rfc6902
+    // op (add, remove, replace, move, copy, test), path, value
+    public JSONObject processPatch(JSONArray patchArr, User user, Shepherd myShepherd)
+    throws ApiException {
+        // FIXME make this do something real?
+        throw new ApiException("processPatch() not yet implemented", "FAIL");
+    }
+
+    // this will be run at the end of all patches, if successful
+    // even though passed a shepherd, the obj should be *committed* at this point,
+    // making it suitable for background tasks etc.
+    public JSONObject afterPatch(Shepherd myShepherd) {
+        // override this if needed
+        return null;
+    }
+
+    // like above, but db transaction has been closed so obj should
+    // be persisted in db and ready for background behavior, like IA processing
+    public JSONObject afterPatchTransaction(String context) {
+        // override this if needed
+        return null;
+    }
+
     // TODO should this be an abstract? will we need some base stuff?
     public static Object validateFieldValue(String fieldName, JSONObject data)
     throws ApiException {
+        return null;
+    }
+
+    /*
+        this basically applies the patch ops on a base object. in the case of add/replace/remove there
+        is a TON of overlap (basically calling setters) between this and both BulkImporter.processRow()
+        and Base.createFromApi() .... this is really ugly and unfortunate. in some wonderful future
+        this setter activity (basically mapping fieldname to setter) would be consolidated.
+        as in these other cases, the *values* we use here are assumed to have already been validated,
+        and thus we can just blindingly set them (including setting nulls for "remove"), including being
+        able to cast the value object to the necessary value-class.
+     */
+    public Object applyPatchOp(String fieldName, Object value, String op)
+    throws ApiException {
+        // override me
         return null;
     }
 
@@ -345,4 +450,14 @@ import org.json.JSONObject;
         return res;
     }
  */
+
+    // basically mean id-equivalent, override if undesirable
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Base)) return false;
+        Base two = (Base)u2;
+        if ((this.getId() == null) || (two == null) || (two.getId() == null))
+            return false;
+        return this.getId().equals(two.getId());
+    }
 }
