@@ -1047,21 +1047,23 @@ class EncounterStore {
             filename: file?.file?.name || file?.name || "upload.jpg",
           },
         };
-        await axios.patch(
+        const result = await axios.patch(
           `/api/v3/encounters/${this._encounterData.id}`,
           [op],
           {
             headers: { "Content-Type": "application/json" },
           },
         );
-        if (this._uploadToastId) {
-          toast.update(this._uploadToastId, {
-            render:
-              "Image uploaded successfully! Please refresh to see changes.",
-            type: "success",
-            isLoading: false,
-            autoClose: 3000,
-          });
+        if (result.status === 200) {
+          this.refreshEncounterData();
+          if (this._uploadToastId) {
+            toast.update(this._uploadToastId, {
+              render: "Image uploaded successfully!",
+              type: "success",
+              isLoading: false,
+              autoClose: 3000,
+            });
+          }
         }
       } catch (e) {
         if (this._uploadToastId) {
