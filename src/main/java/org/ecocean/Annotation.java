@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
@@ -51,6 +53,7 @@ public class Annotation extends Base implements java.io.Serializable {
     private Boolean isOfInterest = null; // aka AoI (Annotation of Interest)
     protected String identificationStatus;
     private ArrayList<Feature> features;
+    private Set<Embedding> embeddings;
     protected String acmId;
 
     // this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
@@ -156,6 +159,24 @@ public class Annotation extends Base implements java.io.Serializable {
         // all case-insensitive keyword-ish types
         // map.put("fubar", keywordNormalType);
 
+        // embeddings have some metadata (algorithm etc)
+        // and then the vector that is the embedding
+        JSONObject embMap = new JSONObject();
+        embMap.put("type", "nested");
+        embMap.put("dynamic", false);
+        JSONObject embProps = new JSONObject();
+        embProps.put("method", keywordType);
+        embProps.put("methodVersion", keywordType);
+        JSONObject embVect = new JSONObject();
+        // https://docs.opensearch.org/docs/latest/vector-search/creating-vector-index/
+        embVect.put("type", "knn_vector");
+        embVect.put("dimension", Embedding.getVectorDimension());
+        embVect.put("space_type", "l2");
+        // etc...... TODO
+        embProps.put("vector", embVect);
+        embMap.put("properties", embProps);
+        map.put("embeddings", embMap);
+
         return map;
     }
 
@@ -194,6 +215,28 @@ public class Annotation extends Base implements java.io.Serializable {
                 if (tod > 0) jgen.writeNumberField("encounterIndividualTimeOfDeath", tod);
             }
         }
+        jgen.writeArrayFieldStart("embeddings");
+        if (this.embeddings != null)
+            for (Embedding emb : this.embeddings) {
+                jgen.writeStartObject();
+                jgen.writeStringField("id", emb.getId());
+                jgen.writeStringField("method", emb.getMethod());
+                jgen.writeStringField("methodVersion", emb.getMethodVersion());
+                jgen.writeNumberField("created", emb.getCreated());
+
+                float[] vecFloat = emb.vectorToFloatArray();
+                // System.out.println("[INFO] indexing emb " + emb.getId() + " vector length " + ((vecFloat == null) ? "null" : vecFloat.length));
+                if ((vecFloat != null) && (vecFloat.length > 0)) {
+                    jgen.writeFieldName("vector");
+                    jgen.writeStartArray();
+                    for (int i = 0; i < vecFloat.length; i++) {
+                        jgen.writeNumber(vecFloat[i]);
+                    }
+                    jgen.writeEndArray();
+                }
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
     }
 
     // TODO should this also be limited by matchAgainst and acmId?
@@ -684,6 +727,44 @@ public class Annotation extends Base implements java.io.Serializable {
         return bbox;
     }
 
+    public boolean equalsBbox(Annotation other) {
+        if (other == null) return false;
+        int[] mine = this.getBbox();
+        if (mine == null) return false;
+        int[] otherBbox = other.getBbox();
+        if (otherBbox == null) return false;
+        if (mine.length != otherBbox.length) return false;
+        for (int i = 0; i < mine.length; i++) {
+            if (mine[i] != otherBbox[i]) return false;
+        }
+        return true;
+    }
+
+    public boolean equalsTheta(Annotation other) {
+        if (other == null) return false;
+        return (this.theta == other.getTheta());
+    }
+
+    // combines theta + bbox
+    public boolean equalsShape(Annotation other) {
+        if (!equalsTheta(other)) return false;
+        return equalsBbox(other);
+    }
+
+    public boolean equalsIAClass(Annotation other) {
+        if (other == null) return false;
+        if ((other.getIAClass() == null) && (iaClass == null)) return true; // sketchy?
+        if (iaClass == null) return false;
+        return iaClass.equals(other.getIAClass());
+    }
+
+    public boolean equalsViewpoint(Annotation other) {
+        if (other == null) return false;
+        if ((other.getViewpoint() == null) && (viewpoint == null)) return true; // sketchy?
+        if (viewpoint == null) return false;
+        return viewpoint.equals(other.getViewpoint());
+    }
+
     public String getBboxAsString() {
         return Arrays.toString(this.getBbox());
     }
@@ -694,6 +775,7 @@ public class Annotation extends Base implements java.io.Serializable {
                    .append("species", species)
                    .append("iaClass", iaClass)
                    .append("bbox", getBbox())
+                   .append("numEmbed", numberEmbeddings())
                    .toString();
     }
 
@@ -1006,6 +1088,71 @@ public class Annotation extends Base implements java.io.Serializable {
             if (ann != null) anns.add(ann);
         }
         System.out.println("getMatchingSet() results: hitSize=" + hitSize + "; hits length=" +
+            hits.length() + "; anns size=" + anns.size() + "; " +
+            (System.currentTimeMillis() - startTime) + "ms");
+        return anns;
+    }
+
+    // a variation of matchingSet query, but includes the vector stuff - thus returns actual matches(!)
+    // method and methodVersion are used to determine *which* embedding to use; if null it will use 1st embedding
+    // return null when this annot has no embeddings to match, sorry!
+    public JSONObject getMatchQuery(Shepherd myShepherd, JSONObject taskParams, boolean useClauses,
+        String method, String methodVersion) {
+        Embedding emb = getEmbeddingByMethod(method, methodVersion);
+
+        if (emb == null) return null;
+        JSONObject query = getMatchingSetQuery(myShepherd, taskParams, useClauses);
+        JSONObject nested = new JSONObject(
+            "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
+        JSONArray must = new JSONArray();
+        JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
+            new JSONArray(emb.vectorToFloatArray()));
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", 5);
+        must.put(knn);
+        if (method != null)
+            must.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
+        if (methodVersion != null)
+            must.put(new JSONObject("{\"term\": {\"embeddings.methodVersion\":\"" + methodVersion +
+                "\"}}"));
+        nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
+            must);
+        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(nested);
+        return query;
+    }
+
+    // finds annotations based on embedding vector matches
+    // null means we didnt have an embedding to query with
+    public List<Annotation> getMatches(Shepherd myShepherd, JSONObject taskParams,
+        boolean useClauses, String method, String methodVersion) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        JSONObject query = getMatchQuery(myShepherd, taskParams, useClauses, method, methodVersion);
+
+        if (query == null) return null;
+        OpenSearch os = new OpenSearch();
+        long startTime = System.currentTimeMillis();
+        JSONObject queryRes = null;
+        int hitSize = -1;
+        try {
+            int pageSize = 10000;
+            try {
+                pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
+            os.deletePit("annotation");
+            queryRes = os.queryPit("annotation", query, 0, pageSize, null, null);
+            hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
+        } catch (Exception ex) {
+            System.out.println("getMatches() exception: " + ex);
+            ex.printStackTrace();
+        }
+        JSONArray hits = OpenSearch.getHits(queryRes);
+        for (int i = 0; i < hits.length(); i++) {
+            JSONObject hit = hits.optJSONObject(i);
+            if (hit == null) continue;
+            Annotation ann = myShepherd.getAnnotation(hit.optString("_id", null));
+            if (ann != null) anns.add(ann);
+        }
+        System.out.println("getMatches() results: hitSize=" + hitSize + "; hits length=" +
             hits.length() + "; anns size=" + anns.size() + "; " +
             (System.currentTimeMillis() - startTime) + "ms");
         return anns;
@@ -1419,6 +1566,18 @@ public class Annotation extends Base implements java.io.Serializable {
         return ann;
     }
 
+    public void queueForEmbeddingExtraction(Task task, Shepherd myShepherd) {
+        MLService mlserv = new MLService();
+
+        try {
+            mlserv.initiateRequest(this, this.getSpecies(myShepherd), task);
+        } catch (IOException ex) {
+            System.out.println("[ERROR] queueForEmbeddingExtraction() failed on " + this + ": " +
+                ex);
+            ex.printStackTrace();
+        }
+    }
+
     public static Object validateFieldValue(String fieldName, JSONObject data)
     throws ApiException {
         if (data == null) throw new ApiException("empty payload");
@@ -1639,6 +1798,77 @@ public class Annotation extends Base implements java.io.Serializable {
             nfe.printStackTrace();
         }
         return null;
+    }
+
+    public Set<Embedding> getEmbeddings() {
+        return embeddings;
+    }
+
+    public int numberEmbeddings() {
+        return Util.collectionSize(embeddings);
+    }
+
+    public Set<Embedding> addEmbedding(Embedding emb) {
+        if (embeddings == null) embeddings = new HashSet<Embedding>();
+        if (emb == null) return embeddings;
+        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
+        embeddings.add(emb);
+        return embeddings;
+    }
+
+    // since embeddings is a set, there isnt really an order so...
+    // pretty much random; null if we have none
+    public Embedding getAnEmbedding() {
+        return getEmbeddingByMethod(null, null);
+    }
+
+    public Embedding getEmbeddingByMethod(String method) {
+        return getEmbeddingByMethod(method, null);
+    }
+
+    // suppose we could order by created?
+    public Embedding getEmbeddingByMethod(String method, String methodVersion) {
+        if (numberEmbeddings() < 1) return null;
+        Iterator it = embeddings.iterator();
+        if (method == null) return (Embedding)it.next();
+        while (it.hasNext()) {
+            Embedding emb = (Embedding)it.next();
+            if (!method.equals(emb.getMethod())) continue;
+            if ((methodVersion == null) || (methodVersion.equals(emb.getMethodVersion())))
+                return emb;
+        }
+        return null;
+    }
+
+    // this will match only vector (not other properties)
+    public Embedding findEmbeddingByVector(Embedding find) {
+        if (find == null) return null;
+        if (numberEmbeddings() < 1) return null;
+        Iterator it = embeddings.iterator();
+        while (it.hasNext()) {
+            Embedding emb = (Embedding)it.next();
+            if (emb.hasEqualVector(find)) return emb;
+        }
+        return null;
+    }
+
+/*
+    public void loadEmbeddingVectors(Shepherd myShepherd) {
+        if (embeddings == null) return;
+        for (Embedding emb : this.embeddings) {
+            emb.loadVector(myShepherd);
+        }
+    }
+ */
+
+    // need these two so we can use things like List.contains()
+    // note: this basically is "id-equivalence" rather than *content* equivalence, so will not compare semantic similarity of 2 annots
+    public boolean equals(final Object o2) {
+        if (o2 == null) return false;
+        if (!(o2 instanceof Annotation)) return false;
+        Annotation two = (Annotation)o2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
     }
 
     public int hashCode() {

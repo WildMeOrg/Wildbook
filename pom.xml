@@ -254,6 +254,12 @@
       <version>2.0</version>
     </dependency>
 
+	<dependency>
+		<groupId>com.pgvector</groupId>
+		<artifactId>pgvector</artifactId>
+		<version>0.1.6</version>
+	</dependency>
+
     <dependency>
       <groupId>org.opensearch.client</groupId>
       <artifactId>opensearch-java</artifactId>

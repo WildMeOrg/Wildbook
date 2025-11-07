@@ -582,9 +582,12 @@ public class Task implements java.io.Serializable {
 
     // this will set all date stuff based on ms since epoch
     public void setCompletionDateInMilliseconds(Long ms) {
-        if (ms == null) { this.completionDateInMilliseconds = null; } else {
-            this.completionDateInMilliseconds = ms;
-        }
+        this.completionDateInMilliseconds = ms;
+    }
+
+    // no arg = set to now
+    public void setCompletionDateInMilliseconds() {
+        this.completionDateInMilliseconds = Long.valueOf(System.currentTimeMillis());
     }
 
     // capture original queue message to make this Task more easily resumeable

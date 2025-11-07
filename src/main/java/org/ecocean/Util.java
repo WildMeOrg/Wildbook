@@ -490,6 +490,32 @@ public class Util {
         return rtn;
     }
 
+    public static List<Integer> jsonArrayToIntegerList(JSONArray arr) {
+        if (arr == null) return null;
+        List<Integer> rtn = new ArrayList<Integer>();
+        for (int i = 0; i < arr.length(); i++) {
+            Integer jint = null;
+            try {
+                jint = arr.getInt(i);
+            } catch (org.json.JSONException je) {}
+            if (jint != null) rtn.add(jint);
+        }
+        return rtn;
+    }
+
+    public static List<Double> jsonArrayToDoubleList(JSONArray arr) {
+        if (arr == null) return null;
+        List<Double> rtn = new ArrayList<Double>();
+        for (int i = 0; i < arr.length(); i++) {
+            Double jdbl = null;
+            try {
+                jdbl = arr.getDouble(i);
+            } catch (org.json.JSONException je) {}
+            if (jdbl != null) rtn.add(jdbl);
+        }
+        return rtn;
+    }
+
     public static boolean jsonArrayContains(JSONArray arr, String str) {
         if ((str == null) || (arr == null)) return false; // might be a matter of philosophical debate
         return jsonArrayToStringList(arr).contains(str);
@@ -709,6 +735,15 @@ public class Util {
             currentToString = currentToString.split("T")[0];
         }
         return (currentToString);
+    }
+
+    // how do we not have this?
+    public static String prettyPrintDateTime(long millis) {
+        return prettyPrintDateTime(new DateTime(millis));
+    }
+
+    public static String prettyPrintDateTime() {
+        return prettyPrintDateTime(System.currentTimeMillis());
     }
 
     public static String prettyTimeStamp() {
