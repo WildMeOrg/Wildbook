@@ -4247,29 +4247,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 }
             jgen.writeEndArray();
             jgen.writeEndObject();
->>>>>>> 1197_new_encounter_page_react_api
             if (featuredAssetId == null) featuredAssetId = ma.getUUID();
-            // we (likely) dont need annotations to search on, but they are needed for
-            // all of the usages (export, gallery, etc) of search results
-            jgen.writeArrayFieldStart("annotations");
-            if (ma.hasAnnotations())
-                for (Annotation ann : ma.getAnnotations()) {
-                    jgen.writeStartObject();
-                    jgen.writeStringField("id", ann.getId());
-                    jgen.writeNumberField("theta", ann.getTheta());
-                    jgen.writeArrayFieldStart("boundingBox");
-                    int[] bbox = ann.getBbox();
-                    if (bbox != null)
-                        for (int i : bbox) {
-                            jgen.writeNumber(i);
-                        }
-                    jgen.writeEndArray();
-                    Encounter annEnc = ann.findEncounter(myShepherd);
-                    if (annEnc != null) jgen.writeStringField("encounterId", annEnc.getId());
-                    jgen.writeEndObject();
-                }
-            jgen.writeEndArray();
-            jgen.writeEndObject();
         }
         jgen.writeEndArray();
         if (featuredAssetId != null) jgen.writeStringField("featuredAssetUuid", featuredAssetId);
