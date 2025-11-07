@@ -2,6 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 class EncounterFormStore {
   _formFilters;
+  _activeStep = 0;
 
   constructor() {
     this.formFilters = [];
@@ -12,8 +13,16 @@ class EncounterFormStore {
     return this._formFilters;
   }
 
+  get activeStep() {
+    return this._activeStep;
+  }
+
   set formFilters(newFilters) {
     this._formFilters = newFilters;
+  }
+
+  setActiveStep(step) {
+    this._activeStep = step;
   }
 
   addFilter(filterId, clause, query, filterKey, path = "") {
@@ -50,6 +59,7 @@ class EncounterFormStore {
   resetFilters() {
     this.formFilters = [];
   }
+  
 }
 
 const globalEncounterFormStore = new EncounterFormStore();
