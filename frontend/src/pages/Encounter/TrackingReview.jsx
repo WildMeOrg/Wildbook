@@ -58,7 +58,7 @@ export const TrackingReview = observer(({ store = {} }) => {
             {store.encounterData?.satelliteTag?.serialNumber}
           </p>
           <p>
-            <FormattedMessage id="ARGOS_PTT" />:{" "}
+            <FormattedMessage id="ARGOS_PTT_NUMBER" />:{" "}
             {store.encounterData?.satelliteTag?.argosPttNumber}
           </p>
           <Divider />

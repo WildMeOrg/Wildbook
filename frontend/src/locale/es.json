@@ -681,5 +681,6 @@
   "MEASUREMENTS_SAVE_SUCCESS": "Mediciones guardadas correctamente",
   "UPLOADING_IMAGE": "Subiendo imagen...",
   "SAMPLING_PROTOCOL": "Protocolo de muestreo",
-  "ARGOS_PTT_NUMBER": "Número PTT de ARGOS"
+  "ARGOS_PTT_NUMBER": "Número PTT de ARGOS",
+  "GO_TO_ENCOUNTER_PAGE": "Ir a la página del encuentro"
 }
