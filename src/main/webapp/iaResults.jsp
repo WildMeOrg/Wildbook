@@ -1497,7 +1497,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
         }  //end if (mainAsset)
 
     if (otherAnnots.length > 0) {
-        imgInfo += '<div><i>Alternate references:</i><ul>';
+        imgInfo += '<div><i>Duplicate photo(s):</i><ul>';
         for (var i = 0 ; i < otherAnnots.length ; i++) {
             imgInfo += '<li title="Annot ' + otherAnnots[i].id + '"><b>Annot ' + otherAnnots[i].id.substring(0,12) + '</b>';
             var ft = findMyFeature(acmId, otherAnnots[i].asset);  //TODO is acmId correct here???

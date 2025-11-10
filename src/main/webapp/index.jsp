@@ -66,18 +66,33 @@ QueryCache qc=QueryCacheFactory.getQueryCache(context);
 //RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
 //dispatcher.forward(request, response);
 
+long pageStartTime = System.currentTimeMillis();
+long operationStartTime = 0;
 
 try{
-
-
+    operationStartTime = System.currentTimeMillis();
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
+    System.out.println("[PERF] index.jsp: numMarkedIndividuals query took " + (System.currentTimeMillis() - operationStartTime) + " ms");
+    
+    operationStartTime = System.currentTimeMillis();
     numEncounters=myShepherd.getNumEncounters();
+    System.out.println("[PERF] index.jsp: getNumEncounters() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
+    
+    operationStartTime = System.currentTimeMillis();
     numSightings=myShepherd.getNumOccurrences();
+    System.out.println("[PERF] index.jsp: getNumOccurrences() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
+    
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
+    operationStartTime = System.currentTimeMillis();
     numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
+    System.out.println("[PERF] index.jsp: numUsersWithRoles query took " + (System.currentTimeMillis() - operationStartTime) + " ms");
+    
+    operationStartTime = System.currentTimeMillis();
     numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
+    System.out.println("[PERF] index.jsp: numUsers query took " + (System.currentTimeMillis() - operationStartTime) + " ms");
+    
     numUsersWithRoles = numUsers-numDataContributors;
 
 
@@ -222,7 +237,9 @@ h2.vidcap {
             <%
             //myShepherd.beginDBTransaction();
             try{
+                operationStartTime = System.currentTimeMillis();
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+                System.out.println("[PERF] index.jsp: getRandomUserWithPhotoAndStatement() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
             if(featuredUser!=null){
                 String profilePhotoURL="images/user-profile-white-transparent.png";
                 if(featuredUser.getUserImage()!=null){
@@ -266,7 +283,9 @@ h2.vidcap {
                     <ul class="encounter-list list-unstyled">
 
                        <%
+                       operationStartTime = System.currentTimeMillis();
                        List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                       System.out.println("[PERF] index.jsp: getMostRecentIdentifiedEncountersByDate(3) took " + (System.currentTimeMillis() - operationStartTime) + " ms");
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
                        try{
@@ -319,7 +338,9 @@ h2.vidcap {
 
 	                    System.out.println("  I think my startTime is: "+startTime);
 
+	                    operationStartTime = System.currentTimeMillis();
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+	                    System.out.println("[PERF] index.jsp: getTopUsersSubmittingEncountersSinceTimeInDescendingOrder() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();
@@ -439,7 +460,9 @@ if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonCo
             <%
             myShepherd.beginDBTransaction();
             try{
+                operationStartTime = System.currentTimeMillis();
 	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
+                System.out.println("[PERF] index.jsp: getRandomAdoptionWithPhotoAndStatement() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
 	            if(adopt!=null){
 	            %>
 	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -488,4 +511,5 @@ if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonCo
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
+System.out.println("[PERF] index.jsp: Total page load time: " + (System.currentTimeMillis() - pageStartTime) + " ms");
 %>

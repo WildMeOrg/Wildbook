@@ -219,6 +219,9 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 						res.put("newIncrementalId", indiv.getDisplayName(projectId));
 					}
 					myShepherd.updateDBTransaction();
+					// Explicitly set taxonomy from encounter to ensure genus and specificEpithet are set
+					indiv.setTaxonomyFromEncounters(true);
+					myShepherd.updateDBTransaction();
 					//res.put("newIndividualUUID", indiv.getId());
 					res.put("individualName", indiv.getDisplayName(request, myShepherd));
 					res.put("individualId", indiv.getId());
