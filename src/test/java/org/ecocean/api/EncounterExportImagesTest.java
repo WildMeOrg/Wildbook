@@ -8,11 +8,6 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 
-import org.apache.shiro.config.IniSecurityManagerFactory;
-import org.apache.shiro.mgt.SecurityManager;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.util.ThreadContext;
 import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -20,10 +15,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.security.ShepherdRealm;
 import org.ecocean.servlet.ServletUtilities;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -32,15 +24,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import java.awt.image.BufferedImage;
-import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.file.FileSystems;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import javax.imageio.ImageIO;
-import javax.servlet.DispatcherType;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
@@ -289,129 +275,6 @@ import static org.junit.jupiter.api.Assertions.*;
             System.err.println("Authentication failed: " + e.getMessage());
             return null;
         }
-    }
-
-    /**
-     * Create a simple test image with the specified dimensions.
-     *
-     * @param width  image width
-     * @param height image height
-     * @return BufferedImage
-     */
-    private static BufferedImage createTestImage(int width, int height) {
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-        // Image is blank - could add test patterns if needed
-        return image;
-    }
-
-    /**
-     * Convert a BufferedImage to JPEG byte array.
-     *
-     * @param image the image to convert
-     * @return byte array of JPEG data
-     */
-    private static byte[] imageToBytes(BufferedImage image) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(image, "jpg", baos);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to convert image to bytes", e);
-        }
-    }
-
-    /**
-     * Verify the contents of a ZIP file.
-     *
-     * @param zipBytes        the ZIP file as byte array
-     * @param hasMetadata     whether metadata.xlsx should be present
-     * @param hasUnidentified whether Unidentified_annotations directory should be present
-     * @throws IOException if ZIP reading fails
-     */
-    private static void verifyZipContents(byte[] zipBytes, boolean hasMetadata,
-        boolean hasUnidentified)
-    throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-            ZipEntry entry;
-            boolean foundMetadata = false;
-            boolean foundImages = false;
-            boolean foundUnidentified = false;
-            List<String> entries = new ArrayList<>();
-            while ((entry = zis.getNextEntry()) != null) {
-                String name = entry.getName();
-                entries.add(name);
-                if (name.equals("metadata.xlsx")) {
-                    foundMetadata = true;
-                }
-                if (name.startsWith("images/") && name.endsWith(".jpg")) {
-                    foundImages = true;
-                }
-                if (name.contains("Unidentified_annotations")) {
-                    foundUnidentified = true;
-                }
-            }
-            System.out.println("ZIP contains " + entries.size() + " entries:");
-            entries.forEach(e -> System.out.println("  - " + e));
-
-            assertEquals(hasMetadata, foundMetadata, "Metadata file presence mismatch");
-            assertTrue(foundImages, "No image files found in ZIP");
-            assertEquals(hasUnidentified, foundUnidentified,
-                "Unidentified annotations presence mismatch");
-        }
-    }
-
-    /**
-     * Verify that a ZIP file contains an errors.txt file with proper format.
-     *
-     * @param zipBytes the ZIP file as byte array
-     * @throws IOException if ZIP reading fails
-     */
-    private static void verifyZipContainsErrorFile(byte[] zipBytes)
-    throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-            ZipEntry entry;
-            boolean foundErrorFile = false;
-            while ((entry = zis.getNextEntry()) != null) {
-                if (entry.getName().equals("errors.txt")) {
-                    foundErrorFile = true;
-
-                    // Read and verify error file format
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
-                    String line = reader.readLine();
-                    if (line != null) {
-                        System.out.println("Error file content: " + line);
-                        assertTrue(line.matches(".*_\\d+: .*"),
-                            "Error line doesn't match expected format: {encounterId}_{annotationIdx}: {message}");
-                    }
-                    break;
-                }
-            }
-            assertTrue(foundErrorFile, "errors.txt not found in ZIP");
-        }
-    }
-
-    /**
-     * Parse ZIP structure into a map for detailed verification.
-     *
-     * @param zipBytes the ZIP file as byte array
-     * @return map of entry names to their properties
-     * @throws IOException if ZIP reading fails
-     */
-    private static Map<String, Map<String, Object> > parseZipStructure(byte[] zipBytes)
-    throws IOException {
-        Map<String, Map<String, Object> > structure = new HashMap<>();
-
-        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                Map<String, Object> props = new HashMap<>();
-                props.put("size", entry.getSize());
-                props.put("isDirectory", entry.isDirectory());
-                structure.put(entry.getName(), props);
-            }
-        }
-
-        return structure;
     }
 
     /**
