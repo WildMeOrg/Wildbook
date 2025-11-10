@@ -664,5 +664,6 @@
   "DELETE_ENCOUNTER_CONFIRM": "Cela supprimera définitivement la rencontre du système, y compris toutes les images associées.",
   "UNASSIGN_AND_DELETE_ENCOUNTER": "Dissocier et supprimer",
   "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Cette action détachera la rencontre de son individu et la supprimera du système ainsi que toutes les images associées.",
-  "MATCH_CRITERIA": "Critères de correspondance"
+  "MATCH_CRITERIA": "Critères de correspondance",
+  "NO_RECORD": "Aucun enregistrement trouvé"
 }
