@@ -20,7 +20,6 @@
     <mockito.version>4.11.0</mockito.version>
     <testcontainers.version>1.19.3</testcontainers.version>
     <rest-assured.version>5.4.0</rest-assured.version>
-    <wiremock.version>3.3.1</wiremock.version>
   </properties>
 
   <repositories>
@@ -434,21 +433,19 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- WireMock for mocking external HTTP services -->
-    <dependency>
-      <groupId>org.wiremock</groupId>
-      <artifactId>wiremock-standalone</artifactId>
-      <version>${wiremock.version}</version>
-      <scope>test</scope>
-    </dependency>
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+          <version>9.4.58.v20250814</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlet</artifactId>
+          <version>9.4.58.v20250814</version>
+          <scope>test</scope>
+      </dependency>
 
-    <!-- PostgreSQL JDBC driver for tests -->
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.7.1</version>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.geotools</groupId>

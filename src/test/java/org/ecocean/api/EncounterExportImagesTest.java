@@ -1,27 +1,44 @@
 package org.ecocean.api;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
+import java.util.EnumSet;
+import javax.servlet.DispatcherType;
+import org.apache.shiro.config.IniSecurityManagerFactory;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.util.ThreadContext;
+import org.apache.shiro.web.servlet.IniShiroFilter;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.ecocean.media.AssetStore;
-import org.ecocean.media.Feature;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.security.ShepherdRealm;
+import org.ecocean.servlet.ServletUtilities;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
+import javax.servlet.DispatcherType;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,7 +57,6 @@ import static org.junit.jupiter.api.Assertions.*;
             .withUsername("wildbook")
             .withPassword("wildbook");
 
-    private static WireMockServer wireMockServer;
     private static String baseUrl;
     private static String sessionCookie;
 
@@ -53,15 +69,33 @@ import static org.junit.jupiter.api.Assertions.*;
 
         System.out.println("PostgreSQL started at: " + jdbcUrl);
 
-        // Start WireMock server for mocking image URLs
-        wireMockServer = new WireMockServer(8089);
-        wireMockServer.start();
-        configureFor("localhost", 8089);
-        System.out.println("WireMock started on port 8089");
+        // start embedded jetty
+        Server server = new Server(new InetSocketAddress("localhost", 0));
+        ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.SESSIONS);
+
+        // Configure Shiro using IniShiroFilter with shiro.ini from test resources
+        IniShiroFilter shiroFilter = new IniShiroFilter();
+        shiroFilter.setConfigPath("classpath:shiro.ini");
+
+        ctx.addFilter(new FilterHolder(shiroFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
+
+        ctx.setContextPath("/");
+// ctx.setAttribute("datasource", ds);
+// ctx.setAttribute("objectMapper", new ObjectMapper());
+        // TODO: see if we can load web.xml
+        ctx.addServlet(new ServletHolder(new UserHome()), "/api/v3/home");
+        ctx.addServlet(new ServletHolder(new Login()), "/api/v3/login");
+        server.setHandler(ctx);
+        try {
+            server.start();
+        } catch (Exception e) {
+            throw new RuntimeException("Error starting embedded Jetty server", e);
+        }
+        int port = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
 
         // Configure REST Assured
         RestAssured.baseURI = "http://localhost";
-        RestAssured.port = 8080; // Assumes Wildbook running on 8080
+        RestAssured.port = port; // Assumes Wildbook running on 8080
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         baseUrl = RestAssured.baseURI + ":" + RestAssured.port;
 
@@ -79,17 +113,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @AfterAll static void tearDown() {
         System.out.println("\n=== Tearing Down Test Environment ===");
-        if (wireMockServer != null) {
-            wireMockServer.stop();
-            System.out.println("WireMock stopped");
-        }
         System.out.println("PostgreSQL container will be stopped automatically");
         System.out.println("=== Teardown Complete ===");
     }
 
     @BeforeEach void setupMocks() {
-        // Reset WireMock stubs before each test
-        wireMockServer.resetAll();
     }
 
     // =========================================================================
@@ -100,6 +128,18 @@ import static org.junit.jupiter.api.Assertions.*;
      * Test 1: Verify that unauthenticated requests are rejected with 401.
      * This is a basic smoke test to validate the test framework is working.
      */
+    @Test void testGetUser_Ok() {
+        String authenticationCookie = authenticateTestUser();
+
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .when()
+            .get("/api/v3/home")
+            .then()
+            .statusCode(200)
+            .log().ifValidationFails();
+    }
+
     @Test @Order(1) void testExportImages_Unauthorized() {
         System.out.println("\n--- Test: Unauthorized Access ---");
 
@@ -131,6 +171,7 @@ import static org.junit.jupiter.api.Assertions.*;
         properties.setProperty("datanucleus.ConnectionPassword", postgres.getPassword());
         properties.setProperty("datanucleus.ConnectionDriverName", postgres.getDriverClassName());
         properties.setProperty("datanucleus.ConnectionURL", postgres.getJdbcUrl());
+        properties.setProperty("datanucleus.schema.autoCreateTables", "true");
 
         org.ecocean.shepherd.core.Shepherd myShepherd = new org.ecocean.shepherd.core.Shepherd(
             "context0", properties);
@@ -138,77 +179,84 @@ import static org.junit.jupiter.api.Assertions.*;
         try {
             myShepherd.beginDBTransaction();
 
-            // Create test users
-            org.ecocean.User testUser = new org.ecocean.User("test_researcher", "test_researcher");
-            testUser.setPassword("password123");
-            // Note: Role assignment may need to be done differently based on Wildbook's user model
+            // Create test user with properly hashed password
+            String username = "test_researcher";
+            String plainPassword = "password123";
+            String salt = ServletUtilities.getSalt().toHex();
+            String hashedPassword = ServletUtilities.hashAndSaltPassword(plainPassword, salt);
+
+            org.ecocean.User testUser = new org.ecocean.User(username, hashedPassword, salt);
             myShepherd.getPM().makePersistent(testUser);
 
+            // Assign researcher role to the test user
+            org.ecocean.Role researcherRole = new org.ecocean.Role(username, "researcher");
+            myShepherd.getPM().makePersistent(researcherRole);
+
             // Create test individuals
-            org.ecocean.MarkedIndividual ind1 = new org.ecocean.MarkedIndividual("Individual_1",
-                null);
-            myShepherd.getPM().makePersistent(ind1);
+// org.ecocean.MarkedIndividual ind1 = new org.ecocean.MarkedIndividual("Individual_1",
+// null);
+// myShepherd.getPM().makePersistent(ind1);
 
-            org.ecocean.MarkedIndividual ind2 = new org.ecocean.MarkedIndividual("Individual_2",
-                null);
-            myShepherd.getPM().makePersistent(ind2);
-
-            AssetStore localStore = new LocalAssetStore("local",
-                FileSystems.getDefault().getPath("src", "test", "bulk-images"), null, false);
-            MediaAsset asset1 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
-            MediaAsset asset2 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
-            MediaAsset asset3 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
-
-            // Create test encounters
-            org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
-            enc1.setEncounterNumber("ENC_001");
-            enc1.setGenus("Panthera");
-            enc1.setSpecificEpithet("leo");
-            enc1.setIndividual(ind1);
-            enc1.addMediaAsset(asset1);
-            myShepherd.getPM().makePersistent(enc1);
-
-            org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
-            enc2.setEncounterNumber("ENC_002");
-            enc2.setGenus("Panthera");
-            enc2.setSpecificEpithet("leo");
-            enc2.setIndividual(ind1);
-            enc1.addMediaAsset(asset2);
-            myShepherd.getPM().makePersistent(enc2);
-
-            org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
-            enc3.setEncounterNumber("ENC_003");
-            enc3.setGenus("Panthera");
-            enc3.setSpecificEpithet("leo");
-            enc3.setIndividual(ind2);
-            enc1.addMediaAsset(asset3);
-            myShepherd.getPM().makePersistent(enc3);
-
-            // Create annotations with bounding boxes
-            org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
-            ann1.setViewpoint("left");
-            // Note: bbox format may need adjustment based on Annotation class
-            myShepherd.getPM().makePersistent(ann1);
-
-            org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
-            ann2.setViewpoint("right");
-            myShepherd.getPM().makePersistent(ann2);
-
-            org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
-            ann3.setViewpoint("front");
-            myShepherd.getPM().makePersistent(ann3);
-
-            // Create media assets pointing to WireMock URLs
-            org.ecocean.media.MediaAsset ma1 = new org.ecocean.media.MediaAsset();
-            // Note: MediaAsset configuration may vary - adjust as needed
-            myShepherd.getPM().makePersistent(ma1);
+// org.ecocean.MarkedIndividual ind2 = new org.ecocean.MarkedIndividual("Individual_2",
+// null);
+// myShepherd.getPM().makePersistent(ind2);
+//
+// AssetStore localStore = new LocalAssetStore("local",
+// FileSystems.getDefault().getPath("src", "test", "bulk-images"), null, false);
+// MediaAsset asset1 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
+// MediaAsset asset2 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
+// MediaAsset asset3 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
+//
+//// Create test encounters
+// org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
+// enc1.setEncounterNumber("ENC_001");
+// enc1.setGenus("Panthera");
+// enc1.setSpecificEpithet("leo");
+// enc1.setIndividual(ind1);
+// enc1.addMediaAsset(asset1);
+// myShepherd.getPM().makePersistent(enc1);
+//
+// org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
+// enc2.setEncounterNumber("ENC_002");
+// enc2.setGenus("Panthera");
+// enc2.setSpecificEpithet("leo");
+// enc2.setIndividual(ind1);
+// enc1.addMediaAsset(asset2);
+// myShepherd.getPM().makePersistent(enc2);
+//
+// org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
+// enc3.setEncounterNumber("ENC_003");
+// enc3.setGenus("Panthera");
+// enc3.setSpecificEpithet("leo");
+// enc3.setIndividual(ind2);
+// enc1.addMediaAsset(asset3);
+// myShepherd.getPM().makePersistent(enc3);
+//
+//// Create annotations with bounding boxes
+// org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
+// ann1.setViewpoint("left");
+//// Note: bbox format may need adjustment based on Annotation class
+// myShepherd.getPM().makePersistent(ann1);
+//
+// org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
+// ann2.setViewpoint("right");
+// myShepherd.getPM().makePersistent(ann2);
+//
+// org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
+// ann3.setViewpoint("front");
+// myShepherd.getPM().makePersistent(ann3);
+//
+//// Create media assets pointing to WireMock URLs
+// org.ecocean.media.MediaAsset ma1 = new org.ecocean.media.MediaAsset();
+//// Note: MediaAsset configuration may vary - adjust as needed
+// myShepherd.getPM().makePersistent(ma1);
 
             myShepherd.commitDBTransaction();
             System.out.println("Test data initialized successfully");
         } catch (Exception e) {
             System.err.println("Failed to initialize test data: " + e.getMessage());
-            e.printStackTrace();
             myShepherd.rollbackDBTransaction();
+            throw new RuntimeException("Error executing database initialization", e);
         } finally {
             myShepherd.closeDBTransaction();
         }
@@ -222,8 +270,6 @@ import static org.junit.jupiter.api.Assertions.*;
     private static String authenticateTestUser() {
         System.out.println("Authenticating test user...");
 
-        // Note: This assumes a login endpoint exists
-        // Adjust the endpoint and payload based on actual Wildbook API
         try {
             Response response = given()
                     .contentType(ContentType.JSON)
@@ -241,26 +287,6 @@ import static org.junit.jupiter.api.Assertions.*;
             System.err.println("Authentication failed: " + e.getMessage());
             return null;
         }
-    }
-
-    /**
-     * Mock an image URL with WireMock, returning a generated test image.
-     *
-     * @param path URL path to mock
-     * @param width image width in pixels
-     * @param height image height in pixels
-     */
-    private static void mockImageUrl(String path, int width, int height) {
-        BufferedImage image = createTestImage(width, height);
-        byte[] imageBytes = imageToBytes(image);
-
-        stubFor(get(urlEqualTo(path))
-                .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "image/jpeg")
-                .withBody(imageBytes)));
-
-        System.out.println("Mocked image URL: " + path + " (" + width + "x" + height + ")");
     }
 
     /**
