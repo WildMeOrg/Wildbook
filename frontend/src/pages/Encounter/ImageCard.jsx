@@ -273,6 +273,20 @@ const ImageCard = observer(({ store = {} }) => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div
+                        onMouseEnter={(e) => {
+                          e.stopPropagation();
+                          handleEnter(
+                            intl.formatMessage({ id: "EDIT_ANNOTATION" }),
+                          );
+                        }}
+                        onMouseMove={(e) => {
+                          e.stopPropagation();
+                          handleMove(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.stopPropagation();
+                          handleLeave();
+                        }}
                         className="d-flex align-items-center justify-content-center"
                         style={{
                           width: "20px",
@@ -318,6 +332,20 @@ const ImageCard = observer(({ store = {} }) => {
                         </svg>
                       </div>
                       <div
+                        onMouseEnter={(e) => {
+                          e.stopPropagation();
+                          handleEnter(
+                            intl.formatMessage({ id: "DELETE_ANNOTATION" }),
+                          );
+                        }}
+                        onMouseMove={(e) => {
+                          e.stopPropagation();
+                          handleMove(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.stopPropagation();
+                          handleLeave();
+                        }}
                         className="d-flex align-items-center justify-content-center"
                         style={{
                           width: "20px",
@@ -358,6 +386,20 @@ const ImageCard = observer(({ store = {} }) => {
                     </div>
                   ) : (
                     <div
+                      onMouseEnter={(e) => {
+                        e.stopPropagation();
+                        handleEnter(
+                          intl.formatMessage({ id: "GO_TO_ENCOUNTER_PAGE" }),
+                        );
+                      }}
+                      onMouseMove={(e) => {
+                        e.stopPropagation();
+                        handleMove(e);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.stopPropagation();
+                        handleLeave();
+                      }}
                       className="d-flex"
                       style={{
                         position: "absolute",

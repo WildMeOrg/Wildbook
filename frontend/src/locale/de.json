@@ -683,5 +683,6 @@
   "MEASUREMENTS_SAVE_SUCCESS": "Messwerte erfolgreich gespeichert",
   "UPLOADING_IMAGE": "Bild wird hochgeladen...",
   "SAMPLING_PROTOCOL": "Probenahmeprotokoll",
-  "ARGOS_PTT_NUMBER": "Argos PTT-Nummer"
+  "ARGOS_PTT_NUMBER": "Argos PTT-Nummer",
+  "GO_TO_ENCOUNTER_PAGE": "Zur Begegnungsseite gehen"
 }
