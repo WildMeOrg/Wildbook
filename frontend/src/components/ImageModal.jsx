@@ -47,7 +47,48 @@ export const ImageModal = observer(
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
+
     const [zoom, setZoom] = useState(1);
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [dragStart, setDragStart] = useState(null);
+
+    useEffect(() => {
+      setPan({ x: 0, y: 0 });
+    }, [zoom, safeIndex]);
+
+    const onMouseDown = (e) => {
+      if (e.button !== 0) return;
+      if (zoom <= 1) return;
+      e.preventDefault();
+      setDragStart({ x: e.clientX, y: e.clientY, startPan: pan });
+    };
+
+    useEffect(() => {
+      if (!dragStart) return;
+
+      const handleMouseMove = (e) => {
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        setPan({
+          x: dragStart.startPan.x + dx,
+          y: dragStart.startPan.y + dy,
+        });
+      };
+
+      const handleMouseUp = () => {
+        setDragStart(null);
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "none";
+
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.userSelect = "";
+      };
+    }, [dragStart]);
 
     const canPrev = safeIndex > 0;
     const canNext = safeIndex < assets.length - 1;
@@ -90,6 +131,7 @@ export const ImageModal = observer(
     const boxRef = React.useRef(null);
     const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
     const handleMove = (e) => {
+      if (dragStart) return;
       const el = boxRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -255,16 +297,25 @@ export const ImageModal = observer(
                 >
                   <div
                     ref={boxRef}
+                    onMouseDown={onMouseDown}
                     style={{
-                      transform: `scale(${zoom})`,
+                      transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                       transformOrigin: "center center",
-                      transition: "transform 0.2s ease",
+                      transition: dragStart ? "none" : "transform 0.2s ease",
                       position: "relative",
                       display: "inline-block",
+                      cursor:
+                        zoom > 1
+                          ? dragStart
+                            ? "grabbing"
+                            : "grab"
+                          : "default",
                     }}
                   >
                     <img
                       id="image-modal-main-image"
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
                       src={a.url}
                       ref={imgRef}
                       alt={`asset-${a.id ?? safeIndex}`}
