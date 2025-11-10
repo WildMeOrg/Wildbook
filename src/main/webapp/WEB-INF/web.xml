@@ -414,6 +414,7 @@
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
+				/EncounterUpdateUser = authc, roles[researcher]
 
 
 				/AnnotationEdit = authc, roles[admin]
@@ -636,6 +637,11 @@
     <servlet-class>org.ecocean.servlet.EncounterAddUser</servlet-class>
   </servlet>
 
+      <servlet>
+    <servlet-name>EncounterUpdateUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterUpdateUser</servlet-class>
+  </servlet>
+
       <servlet-mapping>
     <servlet-name>EncounterRemoveUser</servlet-name>
     <url-pattern>/EncounterRemoveUser</url-pattern>
@@ -644,6 +650,11 @@
     <servlet-mapping>
     <servlet-name>EncounterAddUser</servlet-name>
     <url-pattern>/EncounterAddUser</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+    <servlet-name>EncounterUpdateUser</servlet-name>
+    <url-pattern>/EncounterUpdateUser</url-pattern>
   </servlet-mapping>
 
   <servlet>
