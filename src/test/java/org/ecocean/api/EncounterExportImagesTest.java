@@ -3,8 +3,11 @@ package org.ecocean.api;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
+
+import java.nio.file.Path;
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
+
 import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
@@ -45,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for the EncounterExportImages API endpoint.
- *
+ * <p>
  * Uses Testcontainers for PostgreSQL, WireMock for external image mocking,
  * and REST Assured for HTTP testing.
  */
@@ -192,64 +195,63 @@ import static org.junit.jupiter.api.Assertions.*;
             org.ecocean.Role researcherRole = new org.ecocean.Role(username, "researcher");
             myShepherd.getPM().makePersistent(researcherRole);
 
-            // Create test individuals
-// org.ecocean.MarkedIndividual ind1 = new org.ecocean.MarkedIndividual("Individual_1",
-// null);
-// myShepherd.getPM().makePersistent(ind1);
+            Path assetsRoot = FileSystems.getDefault().getPath("src", "test",
+                "bulk-images").toAbsolutePath();
+            AssetStore localStore = new LocalAssetStore("local", assetsRoot, null, false);
+            MediaAsset asset1 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
+                "image-ok-0.jpg").toFile());
+            MediaAsset asset2 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
+                "image-ok-0.jpg").toFile());
+            MediaAsset asset3 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
+                "image-ok-0.jpg").toFile());
 
-// org.ecocean.MarkedIndividual ind2 = new org.ecocean.MarkedIndividual("Individual_2",
-// null);
-// myShepherd.getPM().makePersistent(ind2);
-//
-// AssetStore localStore = new LocalAssetStore("local",
-// FileSystems.getDefault().getPath("src", "test", "bulk-images"), null, false);
-// MediaAsset asset1 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
-// MediaAsset asset2 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
-// MediaAsset asset3 = ((LocalAssetStore)localStore).create(new File("image-ok-0.jpg"));
-//
-//// Create test encounters
-// org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
-// enc1.setEncounterNumber("ENC_001");
-// enc1.setGenus("Panthera");
-// enc1.setSpecificEpithet("leo");
-// enc1.setIndividual(ind1);
-// enc1.addMediaAsset(asset1);
-// myShepherd.getPM().makePersistent(enc1);
-//
-// org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
-// enc2.setEncounterNumber("ENC_002");
-// enc2.setGenus("Panthera");
-// enc2.setSpecificEpithet("leo");
-// enc2.setIndividual(ind1);
-// enc1.addMediaAsset(asset2);
-// myShepherd.getPM().makePersistent(enc2);
-//
-// org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
-// enc3.setEncounterNumber("ENC_003");
-// enc3.setGenus("Panthera");
-// enc3.setSpecificEpithet("leo");
-// enc3.setIndividual(ind2);
-// enc1.addMediaAsset(asset3);
-// myShepherd.getPM().makePersistent(enc3);
-//
-//// Create annotations with bounding boxes
-// org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
-// ann1.setViewpoint("left");
-//// Note: bbox format may need adjustment based on Annotation class
-// myShepherd.getPM().makePersistent(ann1);
-//
-// org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
-// ann2.setViewpoint("right");
-// myShepherd.getPM().makePersistent(ann2);
-//
-// org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
-// ann3.setViewpoint("front");
-// myShepherd.getPM().makePersistent(ann3);
-//
-//// Create media assets pointing to WireMock URLs
-// org.ecocean.media.MediaAsset ma1 = new org.ecocean.media.MediaAsset();
-//// Note: MediaAsset configuration may vary - adjust as needed
-// myShepherd.getPM().makePersistent(ma1);
+// Create test encounters
+            org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
+            enc1.setEncounterNumber("ENC_001");
+            enc1.setGenus("Panthera");
+            enc1.setSpecificEpithet("leo");
+            myShepherd.getPM().makePersistent(enc1);
+            enc1.addMediaAsset(asset1);
+
+            org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
+            enc2.setEncounterNumber("ENC_002");
+            enc2.setGenus("Panthera");
+            enc2.setSpecificEpithet("leo");
+            myShepherd.getPM().makePersistent(enc2);
+            enc1.addMediaAsset(asset2);
+
+            org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
+            enc3.setEncounterNumber("ENC_003");
+            enc3.setGenus("Panthera");
+            enc3.setSpecificEpithet("leo");
+            myShepherd.getPM().makePersistent(enc3);
+            enc1.addMediaAsset(asset3);
+
+            // Create test individuals
+            org.ecocean.MarkedIndividual ind1 = new org.ecocean.MarkedIndividual("Individual_1",
+                enc1);
+            enc1.setIndividual(ind1);
+            enc2.setIndividual(ind1);
+            myShepherd.getPM().makePersistent(ind1);
+
+            org.ecocean.MarkedIndividual ind2 = new org.ecocean.MarkedIndividual("Individual_2",
+                enc3);
+            enc3.setIndividual(ind2);
+            myShepherd.getPM().makePersistent(ind2);
+
+// Create annotations with bounding boxes
+            org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
+            ann1.setViewpoint("left");
+// Note: bbox format may need adjustment based on Annotation class
+            myShepherd.getPM().makePersistent(ann1);
+
+            org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
+            ann2.setViewpoint("right");
+            myShepherd.getPM().makePersistent(ann2);
+
+            org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
+            ann3.setViewpoint("front");
+            myShepherd.getPM().makePersistent(ann3);
 
             myShepherd.commitDBTransaction();
             System.out.println("Test data initialized successfully");
@@ -292,7 +294,7 @@ import static org.junit.jupiter.api.Assertions.*;
     /**
      * Create a simple test image with the specified dimensions.
      *
-     * @param width image width
+     * @param width  image width
      * @param height image height
      * @return BufferedImage
      */
@@ -321,8 +323,8 @@ import static org.junit.jupiter.api.Assertions.*;
     /**
      * Verify the contents of a ZIP file.
      *
-     * @param zipBytes the ZIP file as byte array
-     * @param hasMetadata whether metadata.xlsx should be present
+     * @param zipBytes        the ZIP file as byte array
+     * @param hasMetadata     whether metadata.xlsx should be present
      * @param hasUnidentified whether Unidentified_annotations directory should be present
      * @throws IOException if ZIP reading fails
      */
