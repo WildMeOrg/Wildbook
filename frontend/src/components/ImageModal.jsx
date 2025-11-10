@@ -304,6 +304,7 @@ export const ImageModal = observer(
                       transition: dragStart ? "none" : "transform 0.2s ease",
                       position: "relative",
                       display: "inline-block",
+                      overflow: "hidden",
                       cursor:
                         zoom > 1
                           ? dragStart
