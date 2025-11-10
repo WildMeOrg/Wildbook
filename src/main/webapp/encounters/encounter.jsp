@@ -3944,6 +3944,16 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
       	</jsp:include>
 
 		<%
+		// Add "Send all to matching" button if user is logged in
+		if(loggedIn){
+		%>
+		<div style="text-align: center; margin: 15px 0;">
+			<button id="send-all-to-matching-btn" class="btn btn-primary" style="display: none;" onclick="sendAllToMatching()">
+				<%=encprops.getProperty("sendAllToMatching") != null ? encprops.getProperty("sendAllToMatching") : "Send all to matching"%>
+			</button>
+		</div>
+		<%
+		}
 		if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 		%>
           <br/>
@@ -6878,6 +6888,122 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
     //TODO uncheck everything????
     $('.ia-match-filter-dialog').hide();
 }
+
+// Function to send all photos in encounter to matching
+function sendAllToMatching() {
+    if (typeof assets === 'undefined' || !assets || assets.length === 0) {
+        alert('No photos found in this encounter.');
+        return;
+    }
+    
+    // Collect all annotation IDs with matchAgainst = TRUE
+    var allMatchAgainstIds = [];
+    var iaClasses = [];
+    
+    for (var i = 0; i < assets.length; i++) {
+        if (assets[i].annotation && assets[i].annotation.matchAgainst) {
+            allMatchAgainstIds.push(assets[i].annotation.id);
+            if (assets[i].annotation.iaClass && iaClasses.indexOf(assets[i].annotation.iaClass) === -1) {
+                iaClasses.push(assets[i].annotation.iaClass);
+            }
+        }
+    }
+    
+    if (allMatchAgainstIds.length === 0) {
+        alert('No photos with matchAgainst enabled found in this encounter.');
+        return;
+    }
+    
+    if (allMatchAgainstIds.length === 1) {
+        // If only one, use the existing single-photo flow
+        var ma = assetByAnnotationId(allMatchAgainstIds[0]);
+        if (ma) {
+            wildbook.IA.getPluginByType('IBEIS').matchFilter(allMatchAgainstIds[0], ma);
+        }
+        return;
+    }
+    
+    // Set all annotation IDs
+    iaMatchFilterAnnotationIds = allMatchAgainstIds;
+    
+    // Show the Match Against criteria dialog
+    $('#noalgo').css('visibility', 'hidden');
+    $('#matchbutton').css('visibility', 'hidden');
+    
+    // Show all algorithms first
+    $('.mfalgo-item').show();
+    
+    // If we have iaClasses, try to filter algorithms to show only those that match any of the iaClasses
+    // But always show all as fallback if filtering doesn't work
+    if (iaClasses.length > 0) {
+        // Hide all algorithms first
+        $('.mfalgo-item').hide();
+        
+        // Show algorithms that match any of the iaClasses
+        var foundAny = false;
+        for (var j = 0; j < iaClasses.length; j++) {
+            var iaClass = iaClasses[j];
+            if (iaClass) {
+                var iaClassSelector = '.mfalgo-iaclass-' + iaClass.replace(/\+/g, '-');
+                var matchingAlgos = $(iaClassSelector);
+                if (matchingAlgos.length > 0) {
+                    matchingAlgos.show();
+                    foundAny = true;
+                }
+            }
+        }
+        
+        // If no algorithms matched any iaClass, show all algorithms (fallback)
+        if (!foundAny) {
+            $('.mfalgo-item').show(); // Show all as fallback
+        }
+    }
+    
+    // Check all default-checked algorithms
+    $('.mfalgo-item [data-default-checked="true"]').prop('checked', true);
+    
+    // Count visible algorithms - always show button if there are any algorithms at all
+    var numAlgosVisible = $('.mfalgo-item:visible').length;
+    var totalAlgos = $('.mfalgo-item').length;
+    
+    if (totalAlgos < 1) {
+        // No algorithms configured at all
+        $('#noalgo').css('visibility', 'visible');
+        $('#matchbutton').css('visibility', 'hidden');
+    } else if (numAlgosVisible < 1) {
+        // Algorithms exist but none are visible - show all as fallback
+        $('.mfalgo-item').show();
+        $('#matchbutton').css('visibility', 'visible');
+        $('#noalgo').css('visibility', 'hidden');
+    } else {
+        // Algorithms are visible
+        $('#matchbutton').css('visibility', 'visible');
+        $('#noalgo').css('visibility', 'hidden');
+    }
+    
+    // Show the dialog
+    $('.ia-match-filter-dialog').show();
+    $('.mfalgo-item:hidden input').prop('checked', false);
+}
+
+// Show the button only if there are multiple photos with matchAgainst annotations
+$(document).ready(function() {
+    // Wait for assets to be loaded (they're loaded in encounterMediaGallery.jsp)
+    setTimeout(function() {
+        if (typeof assets !== 'undefined' && assets && assets.length > 0) {
+            var matchAgainstCount = 0;
+            for (var i = 0; i < assets.length; i++) {
+                if (assets[i].annotation && assets[i].annotation.matchAgainst) {
+                    matchAgainstCount++;
+                }
+            }
+            // Show button if there are 2+ annotations with matchAgainst
+            if (matchAgainstCount >= 2) {
+                $('#send-all-to-matching-btn').show();
+            }
+        }
+    }, 1000); // Increased timeout to ensure assets are loaded
+});
 
 var encText = '<%=encprops.getProperty("encounter")%>';
 var noneText = '<%=encprops.getProperty("none")%>';
