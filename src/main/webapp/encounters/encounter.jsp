@@ -2374,13 +2374,54 @@ function checkIdDisplay() {
             //$(".addUser").hide();
 
             $("#editContactBtn").click(function() {
+              // Show all edit forms explicitly
               $(".editUsers,.editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
+              
+              // Ensure all photo edit forms are visible (in case they were hidden after update)
+              // Force show by removing inline display:none and setting to block
+              $("div.editFormContact").each(function() {
+                var $div = $(this);
+                // Remove the inline display:none but keep margin-top
+                var marginTop = $div.css("margin-top");
+                $div.css({"display": "block", "margin-top": marginTop || "5px"});
+              });
+              
+              // Update form values to match current display values for photographer forms
+              $("form[id^='photoEditForm-']").each(function() {
+                var form = $(this);
+                var uuid = form.find('input[name="uuid"]').val();
+                var nameDisplay = $("#displayPhotoName-" + uuid);
+                var emailDisplay = $("#displayPhotoEmail-" + uuid);
+                var originalEmail = $("#originalEmail-" + uuid);
+                
+                if (nameDisplay.length) {
+                  var currentName = nameDisplay.text().trim();
+                  // If it shows "noname", clear it
+                  if (currentName === '<%=encprops.getProperty("noname")%>') {
+                    currentName = "";
+                  }
+                  form.find('input[name="fullName"]').val(currentName);
+                }
+                
+                if (emailDisplay.length && originalEmail.length) {
+                  // Extract email from the link if it exists
+                  var emailLink = emailDisplay.find('a');
+                  var currentEmail = emailLink.length ? emailLink.text().trim() : emailDisplay.text().trim();
+                  form.find('input[name="emailAddress"]').val(currentEmail);
+                  originalEmail.val(currentEmail);
+                }
+              });
 
-              $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
+              // Hide all error and success indicators (including dynamically generated ones)
+              $("[id^='photoNameError-'], [id^='photoNameCheck-'], [id^='photoEmailError-'], [id^='photoEmailCheck-'], " +
+                "#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, " +
+                "#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, " +
+                "#photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
 
-              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
-
-              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-success");
+              // Remove all error and success classes
+              $("[id^='photoNameDiv-'], [id^='photoEmailDiv-'], " +
+                "#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, " +
+                "#photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error has-success");
 
             });
 
@@ -2508,26 +2549,68 @@ function checkIdDisplay() {
 				    	   <%
 				          if(user.getFullName()!=null){name=user.getFullName();}
 				            %>
-				            <span id="displaySubmitName"><%=name%></span>
+				            <span id="displayPhotoName-<%=user.getUUID()%>"><%=name%></span>
 				            <%
 
-				          if (isOwner || encounterIsPublic) {
+				          if (isOwner || encounterIsPublic || encounterCanBeEditedByAnyLoggedInUser) {
 
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
 
 						                %>
-						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
+						                <br/><span id="displayPhotoEmail-<%=user.getUUID()%>"><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a></span>
+						                <%
+						            } else {
+						                %>
+						                <br/><span id="displayPhotoEmail-<%=user.getUUID()%>"></span>
 						                <%
 						            }
 					                if((user.getAffiliation()!=null)&&(!user.getAffiliation().equals(""))){
 					                %>
-					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
+					                	<br/><span id="displayPhotoOrg-<%=user.getUUID()%>"><%=user.getAffiliation() %></span>
+					                <%
+					                } else {
+					                %>
+					                	<br/><span id="displayPhotoOrg-<%=user.getUUID()%>"></span>
 					                <%
 					                }
 
 				         } //end if isOwner
+					         %>
+					         <%
+					         // Add edit forms for photographer contact information
+					         // Use same permissions as add photographer functionality
+					         if((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
+					         %>
+					         <div class="editFormContact" style="display:none;margin-top:5px;">
+					         	<div class="editTextContact">
+					         		<strong>Edit Contact Information:</strong>
+					         	</div>
+					         	<form class="editFormContact" id="photoEditForm-<%=user.getUUID()%>">
+					         		<input type="hidden" name="uuid" value="<%=user.getUUID()%>" />
+					         		<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber()%>" />
+					         		<input type="hidden" name="type" value="photographer" />
+					         		<input type="hidden" name="originalEmail" id="originalEmail-<%=user.getUUID()%>" value="<%=user.getEmailAddress() != null ? user.getEmailAddress() : ""%>" />
+					         		<div id="photoNameDiv-<%=user.getUUID()%>">
+					         			<label>Name:</label>
+					         			<input type="text" name="fullName" class="form-control" id="photoName-<%=user.getUUID()%>" value="<%=user.getFullName() != null ? user.getFullName() : ""%>" style="width:250px;display:inline-block;margin-left:5px;" />
+					         			<span class="form-control-feedback" id="photoNameCheck-<%=user.getUUID()%>" style="display:none;">&check;</span>
+					         			<span class="form-control-feedback" id="photoNameError-<%=user.getUUID()%>" style="display:none;color:red;">X</span>
+					         		</div>
+					         		<div id="photoEmailDiv-<%=user.getUUID()%>" style="margin-top:5px;">
+					         			<label>Email:</label>
+					         			<input type="email" name="emailAddress" class="form-control" id="photoEmail-<%=user.getUUID()%>" value="<%=user.getEmailAddress() != null ? user.getEmailAddress() : ""%>" style="width:250px;display:inline-block;margin-left:5px;" />
+					         			<span class="form-control-feedback" id="photoEmailCheck-<%=user.getUUID()%>" style="display:none;">&check;</span>
+					         			<span class="form-control-feedback" id="photoEmailError-<%=user.getUUID()%>" style="display:none;color:red;">X</span>
+					         		</div>
+					         		<div style="margin-top:5px;">
+					         			<button type="submit" class="btn btn-sm" id="photoEditSubmit-<%=user.getUUID()%>">Update</button>
+					         		</div>
+					         	</form>
+					         </div>
+					         <%
+					         }
 					         %>
 					         </p>
 					         </td>
@@ -2772,6 +2855,141 @@ function checkIdDisplay() {
 
 
                     	}); //end click function
+                    });  //end document ready
+                    </script>
+
+                 <!--  Handle User Contact Information Updates -->
+		         <script type="text/javascript">
+                    $(window).on('load',function() {
+
+                      // Handle photographer contact form submissions
+                      $(document).on('submit', 'form[id^="photoEditForm-"]', function(event) {
+                    	event.preventDefault();
+                        var form = $(this);
+                        var uuid = form.find('input[name="uuid"]').val();
+                        var encounter = form.find('input[name="encounter"]').val();
+                        var type = form.find('input[name="type"]').val();
+                        var fullName = form.find('input[name="fullName"]').val();
+                        var emailAddress = form.find('input[name="emailAddress"]').val();
+                        var originalEmail = form.find('input[name="originalEmail"]').val();
+
+                        // Hide previous errors/checks
+                        $("#photoNameCheck-" + uuid + ", #photoNameError-" + uuid +
+                          ", #photoEmailCheck-" + uuid + ", #photoEmailError-" + uuid).hide();
+                        $("#photoNameDiv-" + uuid + ", #photoEmailDiv-" + uuid).removeClass("has-error has-success");
+
+                        // Check email uniqueness if email is being changed
+                        if (emailAddress && emailAddress.trim() !== "" && 
+                            (originalEmail == null || originalEmail.trim() !== emailAddress.trim())) {
+                          // Email is being changed, check for uniqueness
+                          var jsonRequest = {};
+                          jsonRequest['checkForExistingEmailDesired'] = true;
+                          jsonRequest['emailAddress'] = emailAddress.trim();
+
+                          $.ajax({
+                            url: "../UserCheck",
+                            type: 'POST',
+                            data: JSON.stringify(jsonRequest),
+                            dataType: 'json',
+                            contentType: 'application/json',
+                            success: function(checkData) {
+                              if (checkData && checkData.existingEmailAddressResultsJson && 
+                                  checkData.existingEmailAddressResultsJson.doesEmailAddressExistAlready) {
+                                // Email already exists
+                                $("#photoEmailError-" + uuid).show();
+                                $("#photoEmailDiv-" + uuid).addClass("has-error");
+                                alert("Email address is already in use by another user. Please use a different email address.");
+                                return;
+                              }
+                              // Email is unique, proceed with update
+                              submitPhotoUpdate();
+                            },
+                            error: function() {
+                              alert("Error checking email uniqueness. Please try again.");
+                            }
+                          });
+                        } else {
+                          // Email not changed or empty, proceed with update
+                          submitPhotoUpdate();
+                        }
+
+                        function submitPhotoUpdate() {
+                          $.post("../EncounterUpdateUser",
+                          	{
+		                        	"encounter": encounter,
+		                        	"uuid": uuid,
+		                        	"type": type,
+		                        	"fullName": fullName,
+		                        	"emailAddress": emailAddress,
+		                        	"originalEmail": originalEmail
+	                        	},
+		                        function(data) {
+		                          // Update display fields
+		                          var nameDisplay = $("#displayPhotoName-" + uuid);
+		                          var emailDisplay = $("#displayPhotoEmail-" + uuid);
+
+		                          if (fullName && fullName.trim() !== "") {
+		                            nameDisplay.html(fullName);
+		                          } else {
+		                            nameDisplay.html('<%=encprops.getProperty("noname")%>');
+		                          }
+
+		                          if (emailAddress && emailAddress.trim() !== "") {
+		                            var emailSubject = '<%=encprops.getProperty("contactEmailMessageHeading") %>' + encounter + ':<%=CommonConfiguration.getProperty("htmlTitle",context)%>';
+		                            emailDisplay.html('<a href="mailto:' + emailAddress + 
+		                              '?subject=' + encodeURIComponent(emailSubject) + '">' + 
+		                              emailAddress + '</a>');
+		                          } else {
+		                            emailDisplay.html('');
+		                          }
+
+		                          // Show success indicators
+		                          $("#photoNameCheck-" + uuid).show();
+		                          $("#photoNameDiv-" + uuid).addClass("has-success");
+		                          $("#photoEmailCheck-" + uuid).show();
+		                          $("#photoEmailDiv-" + uuid).addClass("has-success");
+
+		                          // Update originalEmail hidden field for next edit
+		                          form.find('input[name="originalEmail"]').val(emailAddress);
+		                          
+		                          // Update form input values to match updated display values
+		                          form.find('input[name="fullName"]').val(fullName || "");
+		                          form.find('input[name="emailAddress"]').val(emailAddress || "");
+
+		                          // Clear success indicators after showing them briefly
+		                          setTimeout(function() {
+		                            $("#photoNameCheck-" + uuid + ", #photoEmailCheck-" + uuid).hide();
+		                            $("#photoNameDiv-" + uuid + ", #photoEmailDiv-" + uuid).removeClass("has-success");
+		                          }, 1000);
+		                          
+		                          // Don't hide the form - keep it visible so user can edit again immediately
+
+		                     }, 'json'
+	                         ) //end post
+		                     .fail(function(response) {
+		                          // Show error indicators
+		                          $("#photoNameError-" + uuid).show();
+		                          $("#photoNameDiv-" + uuid).addClass("has-error");
+		                          $("#photoEmailError-" + uuid).show();
+		                          $("#photoEmailDiv-" + uuid).addClass("has-error");
+		                          var errorMsg = "Could not update contact information. ";
+		                          try {
+		                            var errorData = JSON.parse(response.responseText);
+		                            if (errorData.error) {
+		                              errorMsg += errorData.error;
+		                            }
+		                          } catch(e) {
+		                            if (response.status === 409) {
+		                              errorMsg = "Email address is already in use by another user. Please use a different email address.";
+		                            } else {
+		                              errorMsg += "Please check the logs for errors.";
+		                            }
+		                          }
+		                          alert(errorMsg);
+		                        }); //end fail
+                        } //end submitPhotoUpdate
+                    	}); //end submit function
+
                     });  //end document ready
                     </script>
 
