@@ -189,6 +189,17 @@ const MyDataTable = observer(
       [columnNames],
     );
 
+    const params = new URLSearchParams(window.location.search);
+    const individualIDExact = params.get("individualIDExact");
+    useEffect(() => {
+      if (individualIDExact) {
+        const timer = setTimeout(() => {
+          store.setActiveStep(1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }, [individualIDExact]);
+
     useEffect(() => {
       if (
         store.projectBannerStatusCode === 0 ||
