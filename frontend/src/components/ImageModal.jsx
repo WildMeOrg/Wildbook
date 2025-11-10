@@ -355,6 +355,20 @@ export const ImageModal = observer(
                             }}
                           >
                             <div
+                              onMouseEnter={(e) => {
+                                e.stopPropagation();
+                                handleEnter(
+                                  intl.formatMessage({ id: "EDIT_ANNOTATION" }),
+                                );
+                              }}
+                              onMouseMove={(e) => {
+                                e.stopPropagation();
+                                handleMove(e);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.stopPropagation();
+                                handleLeave();
+                              }}
                               className="d-flex flex-column"
                               style={{
                                 position: "absolute",
@@ -407,6 +421,22 @@ export const ImageModal = observer(
                                 </svg>
                               </div>
                               <div
+                                onMouseEnter={(e) => {
+                                  e.stopPropagation();
+                                  handleEnter(
+                                    intl.formatMessage({
+                                      id: "DELETE_ANNOTATION",
+                                    }),
+                                  );
+                                }}
+                                onMouseMove={(e) => {
+                                  e.stopPropagation();
+                                  handleMove(e);
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.stopPropagation();
+                                  handleLeave();
+                                }}
                                 className="d-flex align-items-center justify-content-center"
                                 style={{
                                   width: "20px",
@@ -934,57 +964,6 @@ export const ImageModal = observer(
                 >
                   <FormattedMessage id="ADD_ANNOTATION" />
                 </MainButton>
-                {/* <MainButton
-                style={{
-                    margin: "1rem 0",
-                  }}
-                  noArrow={true}
-                  disabled={!currentAnnotation?.annotationId}
-                  backgroundColor="white"
-                  color={themeColor?.wildMeColors?.cyan700}
-                  borderColor={themeColor?.wildMeColors?.cyan700}
-                  target={true}
-                  onClick={() => {
-                    if (
-                      !imageStore.encounterData?.mediaAssets[
-                        imageStore.selectedImageIndex
-                      ] ||
-                      !annotationParam ||
-                      !assets[index]?.id
-                    ) {
-                      return;
-                    }
-                    window.open(
-                      `/react/edit-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.annotationId}`,
-                      "_blank",
-                    );
-                  }}
-                >
-                  <FormattedMessage id="EDIT_ANNOTATION" />
-                </MainButton>
-                <MainButton
-                style={{
-                    margin: "1rem 0",
-                  }}
-                  noArrow={true}
-                  backgroundColor="white"
-                  disabled={!currentAnnotation?.annotationId}
-                  color={themeColor?.wildMeColors?.cyan700}
-                  borderColor={themeColor?.wildMeColors?.cyan700}
-                  target={true}
-                  onClick={async () => {
-                    if (window.confirm(deleteAnnotationConfirmMsg)) {
-                      await imageStore.removeAnnotation(
-                        currentAnnotation?.annotationId,
-                      );
-                      // window.location.reload();
-                      imageStore.setSelectedAnnotationId(null);
-                      imageStore.refreshEncounterData();
-                    }
-                  }}
-                >
-                  <FormattedMessage id="DELETE_ANNOTATION" />
-                </MainButton> */}
                 <h5 className="text-danger mt-3">
                   <FormattedMessage id="DANGER_ZONE" />
                 </h5>
