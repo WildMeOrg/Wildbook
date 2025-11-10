@@ -334,7 +334,7 @@ function validate() {
 
 //returns true if we are sending stuff via iframe background magic
 function sendSocialPhotosBackground() {
-	$('#submit-button').prop('disabled', 'disabled').css('opacity', '0.3').after('<div class="throbbing" style="display: inline-block; width: 24px; vertical-align: top; margin-left: 10px; height: 24px;"></div>');
+	$('#submitEncounterButton').prop('disabled', 'disabled').css('opacity', '0.3').after('<div class="throbbing" style="display: inline-block; width: 24px; vertical-align: top; margin-left: 10px; height: 24px;"></div>');
 	var s = $('.social-photo-input');
 	if (s.length < 1) return false;
 	var iframeUrl = 'SocialGrabFiles?';
@@ -1424,6 +1424,13 @@ if (hasTags) {
 <script>
 
 function sendButtonClicked() {
+	// Disable the submit button immediately to prevent duplicate submissions
+	var submitButton = $('#submitEncounterButton');
+	var isAlreadyDisabled = submitButton.prop('disabled');
+	if (!isAlreadyDisabled) {
+		submitButton.prop('disabled', 'disabled').css('opacity', '0.3');
+	}
+	
 	// $('.required-missing').removeClass('required-missing')
 	// if an mediaAsset is ever required
 	// if(!$('#theFiles').val()){
@@ -1435,11 +1442,19 @@ function sendButtonClicked() {
   if(!$('#locationID').val()){
     $('#locationID').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('Select the location ID'); }, 100);
+		// Re-enable button if validation fails
+		if (!isAlreadyDisabled) {
+			submitButton.prop('disabled', false).css('opacity', '1');
+		}
 		return false;
   }
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
     $('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+		// Re-enable button if validation fails
+		if (!isAlreadyDisabled) {
+			submitButton.prop('disabled', false).css('opacity', '1');
+		}
 		return false;
 	}
 
@@ -1449,6 +1464,10 @@ function sendButtonClicked() {
 	    if(!re.test(email.toLowerCase())){
 				$('#submitterEmail').closest('.form-group').addClass('required-missing');
 				window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
+				// Re-enable button if validation fails
+				if (!isAlreadyDisabled) {
+					submitButton.prop('disabled', false).css('opacity', '1');
+				}
 				return false;
 			}
 	}
@@ -1472,17 +1491,30 @@ function sendButtonClicked() {
 	if (!$('#datepicker').val()) {
 		$('#datepicker').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
+		// Re-enable button if validation fails
+		if (!isAlreadyDisabled) {
+			submitButton.prop('disabled', false).css('opacity', '1');
+		}
 		return false;
 	}
 
 	if (!$('#genusSpecies').val()) {
 		$('#genusSpecies').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+		// Re-enable button if validation fails
+		if (!isAlreadyDisabled) {
+			submitButton.prop('disabled', false).css('opacity', '1');
+		}
 		return false;
 	}
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
+	
+	// Ensure button is disabled before submitting (safety check)
+	if (!isAlreadyDisabled) {
+		submitButton.prop('disabled', 'disabled').css('opacity', '0.3');
+	}
 
     <%
     if(request.getUserPrincipal()!=null){
@@ -1505,8 +1537,18 @@ function sendButtonClicked() {
    						$("#encounterForm").attr("action", "EncounterForm");
 
    						if (sendSocialPhotosBackground()) return false;
+   						
+   						// Ensure button is disabled before submitting (safety check)
+   						if (!isAlreadyDisabled) {
+   							submitButton.prop('disabled', 'disabled').css('opacity', '0.3');
+   						}
 
    						submitForm();
+   					} else {
+   						// Re-enable button if reCAPTCHA validation fails
+   						if (!isAlreadyDisabled) {
+   							submitButton.prop('disabled', false).css('opacity', '1');
+   						}
    					}
 		}
 	//alert(recaptachaResponse);

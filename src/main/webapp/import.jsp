@@ -741,6 +741,7 @@ try{
 	        jarrs.put(enc.getCatalogNumber(), jarr);
 	        
 	    	}
+	    }
 	    int percent = -1;
 	    if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
 	%>
@@ -1081,7 +1082,11 @@ try{
 
 	
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
-	if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
+	boolean statusComplete = (itask.getStatus()!=null &&"complete".equals(itask.getStatus()));
+	boolean isCreator = (itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName()));
+	boolean showDeleteButton = statusComplete || adminMode || isCreator;
+	
+	if(showDeleteButton) {
 		    %>
 
 		    <p><strong>Delete this bulk import?</strong></p>
@@ -1211,7 +1216,6 @@ try{
 	
 	
 	<%
-	}   //end final else
 }
 catch(Exception e){
 	e.printStackTrace();
