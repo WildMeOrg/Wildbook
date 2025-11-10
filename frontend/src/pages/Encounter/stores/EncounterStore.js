@@ -417,7 +417,7 @@ class EncounterStore {
       }
     } catch (error) {
       const message = this._intl.formatMessage({
-        id: "ENCOUNTER_REMOVED_FROM_PROJECT",
+        id: "ENCOUNTER_REMOVE_FROM_PROJECT_ERROR",
       });
       toast.error(message);
       throw error;
@@ -1158,10 +1158,6 @@ class EncounterStore {
       this._individualSearchResults = resp?.data?.hits ?? [];
       return resp;
     } catch (error) {
-      // const message = this._intl.formatMessage({
-      //   id: "INDIVIDUAL_SEARCH_ERROR",
-      // });
-      // toast.error(message);
       this._individualSearchResults = [];
       throw error;
     } finally {
@@ -1195,10 +1191,6 @@ class EncounterStore {
       this._sightingSearchResults = response?.data?.hits ?? [];
       return response;
     } catch (error) {
-      // const message = this._intl.formatMessage({
-      //   id: "SIGHTING_SEARCH_ERROR",
-      // });
-      // toast.error(message);
       this._sightingSearchResults = [];
       throw error;
     } finally {

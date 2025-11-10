@@ -666,5 +666,21 @@
     "UNASSIGN_AND_DELETE_ENCOUNTER": "Unassign and Delete",
     "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "This action will detach the encounter from its individual and delete it from the system along with any associated images.",
     "MATCH_CRITERIA": "Match Criteria",
-    "NO_RECORD": "No Record"
+    "NO_RECORD": "No Record",
+    "ENCOUNTER_ADD_PERSON_SUCCESS": "Person added successfully",
+    "ENCOUNTER_ADD_PERSON_ERROR": "Failed to add person",
+    "CONTACT_REMOVE_SUCCESS": "Contact removed successfully",
+    "CONTACT_REMOVE_FAILURE": "Failed to remove contact",
+    "NO_PROJECT_SELECTED": "No project selected",
+    "ENCOUNTER_ADDED_TO_PROJECT": "Encounter added to project successfully",
+    "ENCOUNTER_ADD_PROJECT_ERROR": "Failed to add encounter to project",
+    "ENCOUNTER_REMOVED_FROM_PROJECT": "Encounter removed from project successfully",
+    "ENCOUNTER_REMOVE_FROM_PROJECT_ERROR": "Failed to remove encounter from project",
+    "TRACKING_DATA_SAVED": "Tracking data saved successfully",
+    "TRACKING_DATA_SAVE_ERROR": "Failed to save tracking data",
+    "MEASUREMENTS_SAVE_ERROR": "Failed to save measurements",
+    "MEASUREMENTS_SAVE_SUCCESS": "Measurements saved successfully",
+    "UPLOADING_IMAGE": "Uploading image...",
+    "SAMPLING_PROTOCOL": "Sampling Protocol",
+    "ARGOS_PTT_NUMBER": "Argos PTT Number"
 }

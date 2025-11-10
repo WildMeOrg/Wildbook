@@ -665,5 +665,21 @@
   "UNASSIGN_AND_DELETE_ENCOUNTER": "Dissocier et supprimer",
   "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Cette action détachera la rencontre de son individu et la supprimera du système ainsi que toutes les images associées.",
   "MATCH_CRITERIA": "Critères de correspondance",
-  "NO_RECORD": "Aucun enregistrement trouvé"
+  "NO_RECORD": "Aucun enregistrement trouvé",
+  "ENCOUNTER_ADD_PERSON_SUCCESS": "Personne ajoutée avec succès",
+  "ENCOUNTER_ADD_PERSON_ERROR": "Échec de l’ajout de la personne",
+  "CONTACT_REMOVE_SUCCESS": "Contact supprimé avec succès",
+  "CONTACT_REMOVE_FAILURE": "Échec de la suppression du contact",
+  "NO_PROJECT_SELECTED": "Aucun projet sélectionné",
+  "ENCOUNTER_ADDED_TO_PROJECT": "Observation ajoutée au projet avec succès",
+  "ENCOUNTER_ADD_PROJECT_ERROR": "Échec de l’ajout de l’observation au projet",
+  "ENCOUNTER_REMOVED_FROM_PROJECT": "Observation retirée du projet avec succès",
+  "ENCOUNTER_REMOVE_FROM_PROJECT_ERROR": "Échec du retrait de l’observation du projet",
+  "TRACKING_DATA_SAVED": "Données de suivi enregistrées avec succès",
+  "TRACKING_DATA_SAVE_ERROR": "Échec de l’enregistrement des données de suivi",
+  "MEASUREMENTS_SAVE_ERROR": "Échec de l’enregistrement des mesures",
+  "MEASUREMENTS_SAVE_SUCCESS": "Mesures enregistrées avec succès",
+  "UPLOADING_IMAGE": "Téléchargement de l’image...",
+  "SAMPLING_PROTOCOL": "Protocole d'échantillonnage",
+  "ARGOS_PTT_NUMBER": "Numéro Argos PTT"
 }
