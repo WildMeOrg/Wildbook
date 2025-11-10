@@ -67,7 +67,12 @@ const Encounter = observer(() => {
   return (
     <Container style={{ padding: "20px" }}>
       {!encounterValid && (
-        <Modal show onHide={() => setEncounterValid(true)}>
+        <Modal
+          show
+          onHide={() => {
+            window.location.href = "/react";
+          }}
+        >
           <Modal.Header closeButton>
             <Modal.Title>
               <FormattedMessage id="ENCOUNTER_NOT_FOUND" />
