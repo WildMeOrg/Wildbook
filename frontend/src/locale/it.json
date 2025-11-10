@@ -666,5 +666,21 @@
   "UNASSIGN_AND_DELETE_ENCOUNTER": "Dissocia ed elimina",
   "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Questa azione scollegherà l'incontro dal suo individuo e lo eliminerà dal sistema insieme a tutte le immagini associate.",
   "MATCH_CRITERIA": "Criteri di corrispondenza",
-  "NO_RECORD": "Nessun record trovato"
+  "NO_RECORD": "Nessun record trovato",
+  "ENCOUNTER_ADD_PERSON_SUCCESS": "Persona aggiunta con successo",
+  "ENCOUNTER_ADD_PERSON_ERROR": "Impossibile aggiungere la persona",
+  "CONTACT_REMOVE_SUCCESS": "Contatto rimosso con successo",
+  "CONTACT_REMOVE_FAILURE": "Errore nella rimozione del contatto",
+  "NO_PROJECT_SELECTED": "Nessun progetto selezionato",
+  "ENCOUNTER_ADDED_TO_PROJECT": "Incontro aggiunto al progetto con successo",
+  "ENCOUNTER_ADD_PROJECT_ERROR": "Errore nell’aggiunta dell’incontro al progetto",
+  "ENCOUNTER_REMOVED_FROM_PROJECT": "Incontro rimosso dal progetto con successo",
+  "ENCOUNTER_REMOVE_FROM_PROJECT_ERROR": "Errore nella rimozione dell’incontro dal progetto",
+  "TRACKING_DATA_SAVED": "Dati di tracciamento salvati con successo",
+  "TRACKING_DATA_SAVE_ERROR": "Errore durante il salvataggio dei dati di tracciamento",
+  "MEASUREMENTS_SAVE_ERROR": "Errore durante il salvataggio delle misure",
+  "MEASUREMENTS_SAVE_SUCCESS": "Misure salvate con successo",
+  "UPLOADING_IMAGE": "Caricamento dell’immagine...",
+  "SAMPLING_PROTOCOL": "Protocollo di campionamento",
+  "ARGOS_PTT_NUMBER": "Numero Argos PTT"
 }

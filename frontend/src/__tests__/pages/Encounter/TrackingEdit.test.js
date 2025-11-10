@@ -151,7 +151,7 @@ describe("TrackingEdit", () => {
       serialNumber: "SAT-999",
     });
 
-    const pttInput = screen.getByTestId("PTTARGOS_PTT_NUMBER");
+    const pttInput = screen.getByTestId("ARGOS_PTT_NUMBER");
     fireEvent.change(pttInput, { target: { value: "PTT-000" } });
     expect(store.setSatelliteTagValues).toHaveBeenCalledWith({
       argosPttNumber: "PTT-000",

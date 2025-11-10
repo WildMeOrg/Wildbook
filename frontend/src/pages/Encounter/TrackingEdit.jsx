@@ -85,7 +85,7 @@ export const TrackingEdit = observer(({ store = {} }) => {
             }}
           />
           <TextInput
-            label="PTTARGOS_PTT_NUMBER"
+            label="ARGOS_PTT_NUMBER"
             value={store.satelliteTagValues?.argosPttNumber || ""}
             onChange={(value) => {
               store.setSatelliteTagValues({ argosPttNumber: value });

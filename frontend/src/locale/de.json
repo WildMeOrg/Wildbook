@@ -667,5 +667,21 @@
   "UNASSIGN_AND_DELETE_ENCOUNTER": "Zuweisung aufheben und löschen",
   "UNASSIGN_AND_DELETE_ENCOUNTER_DESC": "Diese Aktion trennt die Begegnung von ihrem Individuum und löscht sie zusammen mit allen zugehörigen Bildern aus dem System.",
   "MATCH_CRITERIA": "Übereinstimmungskriterien",
-  "NO_RECORD": "Kein Eintrag"
+  "NO_RECORD": "Kein Eintrag",
+  "ENCOUNTER_ADD_PERSON_SUCCESS": "Person erfolgreich hinzugefügt",
+  "ENCOUNTER_ADD_PERSON_ERROR": "Fehler beim Hinzufügen der Person",
+  "CONTACT_REMOVE_SUCCESS": "Kontakt erfolgreich entfernt",
+  "CONTACT_REMOVE_FAILURE": "Fehler beim Entfernen des Kontakts",
+  "NO_PROJECT_SELECTED": "Kein Projekt ausgewählt",
+  "ENCOUNTER_ADDED_TO_PROJECT": "Begegnung erfolgreich zum Projekt hinzugefügt",
+  "ENCOUNTER_ADD_PROJECT_ERROR": "Fehler beim Hinzufügen der Begegnung zum Projekt",
+  "ENCOUNTER_REMOVED_FROM_PROJECT": "Begegnung erfolgreich aus dem Projekt entfernt",
+  "ENCOUNTER_REMOVE_FROM_PROJECT_ERROR": "Fehler beim Entfernen der Begegnung aus dem Projekt",
+  "TRACKING_DATA_SAVED": "Tracking-Daten erfolgreich gespeichert",
+  "TRACKING_DATA_SAVE_ERROR": "Fehler beim Speichern der Tracking-Daten",
+  "MEASUREMENTS_SAVE_ERROR": "Fehler beim Speichern der Messwerte",
+  "MEASUREMENTS_SAVE_SUCCESS": "Messwerte erfolgreich gespeichert",
+  "UPLOADING_IMAGE": "Bild wird hochgeladen...",
+  "SAMPLING_PROTOCOL": "Probenahmeprotokoll",
+  "ARGOS_PTT_NUMBER": "Argos PTT-Nummer"
 }
