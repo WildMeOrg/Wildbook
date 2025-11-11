@@ -4,22 +4,30 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 
+import org.apache.http.HttpHost;
 import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
 import org.junit.jupiter.api.*;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.annotation.JsonAppend;
+import org.testcontainers.utility.DockerImageName;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -35,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Integration tests for the EncounterExportImages API endpoint.
  * <p>
- * Uses Testcontainers for PostgreSQL, WireMock for external image mocking,
+ * Uses Testcontainers for PostgreSQL and OpenSearch, WireMock for external image mocking,
  * and REST Assured for HTTP testing.
  */
 @Testcontainers @TestMethodOrder(MethodOrderer.OrderAnnotation.class) public class
@@ -46,17 +54,37 @@ import static org.junit.jupiter.api.Assertions.*;
             .withUsername("wildbook")
             .withPassword("wildbook");
 
+    @Container static GenericContainer<?> opensearch = new GenericContainer<>(DockerImageName.parse(
+        "opensearchproject/opensearch:2.15.0"))
+            .withExposedPorts(9200, 9300)
+            .withEnv("discovery.type", "single-node")
+            .withEnv("plugins.security.disabled", "true")
+            .withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
+            .withEnv("DISABLE_INSTALL_DEMO_CONFIG", "true")
+            .waitingFor(new HttpWaitStrategy()
+            .forPort(9200)
+            .forPath("/_cluster/health")
+            .forStatusCode(200)
+            .withStartupTimeout(java.time.Duration.ofMinutes(2)));
+
     private static String baseUrl;
     private static String sessionCookie;
 
     @BeforeAll static void setUp() {
         System.out.println("=== Starting EncounterExportImagesTest Setup ===");
 
+        Properties commonConfiguration = new Properties();
+        commonConfiguration.setProperty("collaborationSecurityEnabled", "true");
+        CommonConfiguration.initialize("context0", commonConfiguration);
+
         // Configure database connection for tests via environment variables
         // ShepherdPMF will read these and connect to our Testcontainers PostgreSQL
         String jdbcUrl = postgres.getJdbcUrl();
 
         System.out.println("PostgreSQL started at: " + jdbcUrl);
+
+        // Log OpenSearch connection details
+        System.out.println("OpenSearch started at: " + getOpenSearchUrl());
 
         // start embedded jetty
         Server server = new Server(new InetSocketAddress("localhost", 0));
@@ -74,6 +102,7 @@ import static org.junit.jupiter.api.Assertions.*;
         // TODO: see if we can load web.xml
         ctx.addServlet(new ServletHolder(new UserHome()), "/api/v3/home");
         ctx.addServlet(new ServletHolder(new Login()), "/api/v3/login");
+        ctx.addServlet(new ServletHolder(new SearchApi()), "/api/v3/search/*");
         server.setHandler(ctx);
         try {
             server.start();
@@ -90,9 +119,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
         System.out.println("REST Assured configured for: " + baseUrl);
 
+        OpenSearch.initializeClient(new HttpHost(opensearch.getHost(),
+            opensearch.getMappedPort(9200), "http"));
+
+        // disable auto indexing
+        try {
+            new java.io.File("/tmp/skipAutoIndexing").createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         // Initialize test data via Shepherd
         // DataNucleus will auto-create tables on first access
         initializeTestData();
+
+        // Manually trigger OpenSearch indexing (don't wait for background task which has 2 min delay)
+        OpenSearch.updateEncounterIndexes("context0");
 
         System.out.println("=== Setup Complete ===\n");
 
@@ -103,6 +144,7 @@ import static org.junit.jupiter.api.Assertions.*;
     @AfterAll static void tearDown() {
         System.out.println("\n=== Tearing Down Test Environment ===");
         System.out.println("PostgreSQL container will be stopped automatically");
+        System.out.println("OpenSearch container will be stopped automatically");
         System.out.println("=== Teardown Complete ===");
     }
 
@@ -114,9 +156,153 @@ import static org.junit.jupiter.api.Assertions.*;
     // =========================================================================
 
     /**
-     * Test 1: Verify that unauthenticated requests are rejected with 401.
-     * This is a basic smoke test to validate the test framework is working.
+     * Test the search endpoint with various queries
      */
+    @Test @Order(2) void testPostSearch_Ok()
+    throws Exception {
+        System.out.println("\n--- Test: Search API with OpenSearch ---");
+
+        String authenticationCookie = authenticateTestUser();
+
+        // Wait for OpenSearch to be ready and index to be created
+        Thread.sleep(2000);
+
+        // Test 1: Search without path should return 404
+        System.out.println("Test 1: Search without index name");
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .contentType(ContentType.JSON)
+            .body("{\"query\": {\"match_all\": {}}}")
+            .when()
+            .post("/api/v3/search/")
+            .then()
+            .statusCode(404)
+            .body("error", equalTo("unsupported"))
+            .log().ifValidationFails();
+
+        // Test 2: Search with invalid index name should return 404
+        System.out.println("Test 2: Search with invalid index name");
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .contentType(ContentType.JSON)
+            .body("{\"query\": {\"match_all\": {}}}")
+            .when()
+            .post("/api/v3/search/invalid_index")
+            .then()
+            .statusCode(404)
+            .body("error", equalTo("unknown index"))
+            .log().ifValidationFails();
+
+        // Test 3: Unauthenticated request should return 401
+        System.out.println("Test 3: Unauthenticated search request");
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"query\": {\"match_all\": {}}}")
+            .when()
+            .post("/api/v3/search/encounter")
+            .then()
+            .statusCode(401)
+            .body("error", equalTo(401))
+            .log().ifValidationFails();
+
+        // Test 4: Valid encounter search with match_all query
+        System.out.println("Test 4: Valid encounter search with match_all");
+        Response searchResponse = given()
+                .cookie("JSESSIONID", authenticationCookie)
+                .contentType(ContentType.JSON)
+                .body("{\"query\": {\"match_all\": {}}}")
+                .when()
+                .post("/api/v3/search/encounter")
+                .then()
+                .statusCode(200)
+                .body("success", equalTo(true))
+                .body("hits", notNullValue())
+                .body("searchQueryId", notNullValue())
+                .body("query", notNullValue())
+                .header("X-Wildbook-Total-Hits", notNullValue())
+                .header("X-Wildbook-Search-Query-Id", notNullValue())
+                .log().ifValidationFails()
+                .extract()
+                .response();
+        String searchQueryId = searchResponse.jsonPath().getString("searchQueryId");
+        System.out.println("Search query ID: " + searchQueryId);
+
+        // Test 5: Retrieve search results using the searchQueryId (GET request)
+        System.out.println("Test 5: Retrieve search using searchQueryId");
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .when()
+            .get("/api/v3/search/" + searchQueryId)
+            .then()
+            .statusCode(200)
+            .body("success", equalTo(true))
+            .body("hits", notNullValue())
+            .body("searchQueryId", equalTo(searchQueryId))
+            .log().ifValidationFails();
+
+        // Test 6: Search with pagination parameters
+        System.out.println("Test 6: Search with pagination");
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .contentType(ContentType.JSON)
+            .body("{\"query\": {\"match_all\": {}}}")
+            .queryParam("from", 0)
+            .queryParam("size", 2)
+            .when()
+            .post("/api/v3/search/encounter")
+            .then()
+            .statusCode(200)
+            .body("success", equalTo(true))
+            .body("hits", notNullValue())
+            .log().ifValidationFails();
+
+        // Test 7: Search with sorting
+        System.out.println("Test 7: Search with sorting");
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .contentType(ContentType.JSON)
+            .body("{\"query\": {\"match_all\": {}}}")
+            .queryParam("sort", "dateSubmitted")
+            .queryParam("sortOrder", "asc")
+            .when()
+            .post("/api/v3/search/encounter")
+            .then()
+            .statusCode(200)
+            .body("success", equalTo(true))
+            .body("hits", notNullValue())
+            .log().ifValidationFails();
+
+        // Test 8: Search with specific query (matching genus)
+        System.out.println("Test 8: Search with match query for genus");
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .contentType(ContentType.JSON)
+            .body("{\"query\": {\"match\": {\"genus\": \"Panthera\"}}}")
+            .when()
+            .post("/api/v3/search/encounter")
+            .then()
+            .statusCode(200)
+            .body("success", equalTo(true))
+            .body("hits", notNullValue())
+            .log().ifValidationFails();
+
+        // Test 9: Search for individual index
+        System.out.println("Test 9: Search individual index");
+        given()
+            .cookie("JSESSIONID", authenticationCookie)
+            .contentType(ContentType.JSON)
+            .body("{\"query\": {\"match_all\": {}}}")
+            .when()
+            .post("/api/v3/search/individual")
+            .then()
+            .statusCode(200)
+            .body("success", equalTo(true))
+            .body("hits", notNullValue())
+            .log().ifValidationFails();
+
+        System.out.println("Search API test passed");
+    }
+
     @Test void testGetUser_Ok() {
         String authenticationCookie = authenticateTestUser();
 
@@ -129,24 +315,18 @@ import static org.junit.jupiter.api.Assertions.*;
             .log().ifValidationFails();
     }
 
-    @Test @Order(1) void testExportImages_Unauthorized() {
-        System.out.println("\n--- Test: Unauthorized Access ---");
-
-        given()
-            .contentType(ContentType.JSON)
-            .body("{\"searchCriteria\": {}, \"exportOptions\": {}}")
-            .when()
-            .post("/api/v3/encounters/export-images")
-            .then()
-            .statusCode(anyOf(is(401), is(404))) // 404 if endpoint doesn't exist yet, 401 when it does
-            .log().ifValidationFails();
-
-        System.out.println("Test passed: Unauthorized access handled correctly");
-    }
-
     // =========================================================================
     // Helper Methods
     // =========================================================================
+
+    /**
+     * Get the OpenSearch base URL for the running container.
+     *
+     * @return OpenSearch base URL (e.g., "http://localhost:12345")
+     */
+    private static String getOpenSearchUrl() {
+        return "http://" + opensearch.getHost() + ":" + opensearch.getMappedPort(9200);
+    }
 
     /**
      * Initialize test data in the database using Shepherd.
@@ -193,25 +373,31 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // Create test encounters
             org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
-            enc1.setEncounterNumber("ENC_001");
             enc1.setGenus("Panthera");
             enc1.setSpecificEpithet("leo");
-            myShepherd.getPM().makePersistent(enc1);
+            myShepherd.storeNewEncounter(enc1);
             enc1.addMediaAsset(asset1);
 
+            enc1.opensearchIndexDeep();
+            asset1.opensearchIndexDeep();
+
             org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
-            enc2.setEncounterNumber("ENC_002");
             enc2.setGenus("Panthera");
             enc2.setSpecificEpithet("leo");
-            myShepherd.getPM().makePersistent(enc2);
-            enc1.addMediaAsset(asset2);
+            myShepherd.storeNewEncounter(enc2);
+            enc2.addMediaAsset(asset2);
+
+            enc2.opensearchIndexDeep();
+            asset2.opensearchIndexDeep();
 
             org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
-            enc3.setEncounterNumber("ENC_003");
             enc3.setGenus("Panthera");
             enc3.setSpecificEpithet("leo");
-            myShepherd.getPM().makePersistent(enc3);
-            enc1.addMediaAsset(asset3);
+            myShepherd.storeNewEncounter(enc3);
+            enc3.addMediaAsset(asset3);
+
+            enc3.opensearchIndexDeep();
+            asset3.opensearchIndexDeep();
 
             // Create test individuals
             org.ecocean.MarkedIndividual ind1 = new org.ecocean.MarkedIndividual("Individual_1",
@@ -225,19 +411,25 @@ import static org.junit.jupiter.api.Assertions.*;
             enc3.setIndividual(ind2);
             myShepherd.getPM().makePersistent(ind2);
 
+            ind1.opensearchIndexDeep();
+            ind2.opensearchIndexDeep();
+
 // Create annotations with bounding boxes
             org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
             ann1.setViewpoint("left");
 // Note: bbox format may need adjustment based on Annotation class
             myShepherd.getPM().makePersistent(ann1);
+            ann1.opensearchIndexDeep();
 
             org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
             ann2.setViewpoint("right");
             myShepherd.getPM().makePersistent(ann2);
+            ann2.opensearchIndexDeep();
 
             org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
             ann3.setViewpoint("front");
             myShepherd.getPM().makePersistent(ann3);
+            ann3.opensearchIndexDeep();
 
             myShepherd.commitDBTransaction();
             System.out.println("Test data initialized successfully");
@@ -288,5 +480,27 @@ import static org.junit.jupiter.api.Assertions.*;
 
         assertTrue(postgres.isRunning(), "PostgreSQL container should be running");
         System.out.println("Database connection test passed");
+    }
+
+    /**
+     * OpenSearch connection info for debugging.
+     */
+    @Test @Order(0) void testOpenSearchConnection() {
+        System.out.println("\n--- Test: OpenSearch Connection ---");
+        System.out.println("OpenSearch URL: " + getOpenSearchUrl());
+        System.out.println("OpenSearch Port 9200: " + opensearch.getMappedPort(9200));
+        System.out.println("OpenSearch Port 9300: " + opensearch.getMappedPort(9300));
+
+        assertTrue(opensearch.isRunning(), "OpenSearch container should be running");
+
+        // Verify we can connect to OpenSearch cluster health endpoint
+        given()
+            .when()
+            .get(getOpenSearchUrl() + "/_cluster/health")
+            .then()
+            .statusCode(200)
+            .log().ifValidationFails();
+
+        System.out.println("OpenSearch connection test passed");
     }
 }
