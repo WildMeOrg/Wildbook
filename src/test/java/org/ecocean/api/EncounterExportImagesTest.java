@@ -29,6 +29,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.annotation.JsonAppend;
 import org.testcontainers.utility.DockerImageName;
 
 import org.eclipse.jetty.server.Server;
@@ -384,7 +385,7 @@ import static org.junit.jupiter.api.Assertions.*;
             myShepherd.storeNewEncounter(enc2);
 
             enc2.opensearchIndexDeep();
-            asset2.opensearchIndexDeep();
+            enc1.addMediaAsset(asset2);
 
             org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
             enc3.setGenus("Panthera");
