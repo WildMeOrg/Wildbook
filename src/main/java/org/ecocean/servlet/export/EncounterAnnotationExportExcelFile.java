@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 
 import org.ecocean.*;
+import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 

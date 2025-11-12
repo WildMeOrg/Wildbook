@@ -1,4 +1,4 @@
-package org.ecocean.servlet.export;
+package org.ecocean.export;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -6,6 +6,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.ecocean.*;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.HiddenEncReporter;
+import org.ecocean.servlet.export.ExportColumn;
+import org.ecocean.servlet.export.MultiValueExportColumn;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.social.SocialUnit;
@@ -134,7 +136,7 @@ public class EncounterAnnotationExportFile {
             numNameCols);
     }
 
-    EncounterAnnotationExportFile writeExcelFile(HttpServletRequest request, Shepherd myShepherd)
+    public void writeExcelFile(HttpServletRequest request, Shepherd myShepherd)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
         IllegalAccessException, IOException {
         String context = ServletUtilities.getContext(request);
@@ -446,7 +448,5 @@ public class EncounterAnnotationExportFile {
         // end Excel export and business logic ===============================================
         System.out.println("Done with EncounterAnnotationExportExcelFile. We hid " +
             hiddenData.size() + " encounters.");
-
-        return this;
     }
 }
