@@ -276,6 +276,7 @@ export const ImageModal = observer(
               >
                 <button
                   type="button"
+                  style={{ zIndex: 100 }}
                   aria-label="Previous image"
                   className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ${canPrev ? "" : "opacity-50 pe-none"}`}
                   onClick={(e) => {
@@ -288,14 +289,17 @@ export const ImageModal = observer(
                   <i className="bi bi-chevron-left" />
                 </button>
                 <div
+                  id="image-modal-image-container"
                   className="position-relative d-flex justify-content-center align-items-center"
                   style={{
-                    maxWidth: "100vw",
+                    width: "100%",
+                    height: "100%",
                     maxHeight: "100vh",
                     overflow: "hidden",
                   }}
                 >
                   <div
+                    id="image-modal-image-box"
                     ref={boxRef}
                     onMouseDown={onMouseDown}
                     style={{
@@ -305,6 +309,8 @@ export const ImageModal = observer(
                       position: "relative",
                       display: "inline-block",
                       overflow: "hidden",
+                      width: "90%",
+                      height: "100%",
                       cursor:
                         zoom > 1
                           ? dragStart
@@ -323,12 +329,9 @@ export const ImageModal = observer(
                       className="img-fluid"
                       style={{
                         display: "block",
-                        maxWidth: "100%",
-                        maxHeight: "80vh",
-                        width: "auto",
-                        height: "auto",
+                        width: "100%",
+                        height: "100%",
                         objectFit: "contain",
-                        margin: "0 auto",
                       }}
                       onLoad={() => {
                         const iw = imgRef.current?.clientWidth || 1;
@@ -531,6 +534,7 @@ export const ImageModal = observer(
 
                 <button
                   type="button"
+                  style={{ zIndex: 100 }}
                   aria-label="Next image"
                   className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 ${canNext ? "" : "opacity-50 pe-none"}`}
                   onClick={(e) => {
