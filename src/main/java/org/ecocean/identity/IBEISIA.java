@@ -4600,6 +4600,18 @@ public class IBEISIA {
     }
 
     public static String callbackUrl(String baseUrl) {
+        // For local development, allow overriding the callback URL
+        // This enables the API running locally to reach Wildbook running in Docker
+        String useOverride = System.getenv("USE_LOCAL_CALLBACK_URL");
+        if ("true".equalsIgnoreCase(useOverride)) {
+            String wildbookAppUrl = System.getenv("WILDBOOK_APP_URL");
+            if (wildbookAppUrl != null && !wildbookAppUrl.isEmpty()) {
+                System.out.println("Using local callback URL: " + wildbookAppUrl + "/ia?callback (instead of " + baseUrl + "/ia?callback)");
+                return wildbookAppUrl + "/ia?callback";
+            } else {
+                System.out.println("WARNING: USE_LOCAL_CALLBACK_URL is true but WILDBOOK_APP_URL is not set, using baseUrl");
+            }
+        }
         return baseUrl + "/ia?callback";
     }
 

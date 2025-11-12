@@ -905,42 +905,42 @@
       "wild_dog+tail_ambiguous": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailAmbiguous",
-         "_id_conf": [],
+         "_id_conf": []
       },
       "wild_dog+tail_double_black_brown": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailDoubleBlackBrown",
-         "_id_conf": [],
+         "_id_conf": []
       },
       "wild_dog+tail_double_black_white": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailDoubleBlackWhite",
-         "_id_conf": [],
+         "_id_conf": []
       },
       "wild_dog+tail_long_black": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailLongBlack",
-         "_id_conf": [],
+         "_id_conf": []
       },
       "wild_dog+tail_long_white": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailLongWhite",
-         "_id_conf": [],
+         "_id_conf": []
       },
       "wild_dog+tail_short_black": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailShortBlack",
-         "_id_conf": [],
+         "_id_conf": []
       },
       "wild_dog+tail_standard": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailStandard",
-         "_id_conf": [],
+         "_id_conf": []
       },
       "wild_dog+tail_triple_black": {
         "_save_as": "wild_dog+tail_general",
         "_save_keyword": "TailTripleBlack",
-         "_id_conf": [],
+         "_id_conf": []
       }
     }
   },

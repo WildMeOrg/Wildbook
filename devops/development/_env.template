@@ -5,8 +5,11 @@
 
 WILDBOOK_BASE_DIR=~/wildbook-dev
 
-
-
+# Local development settings for callback URLs
+# When arguswild-api runs locally (outside Docker), set USE_LOCAL_CALLBACK_URL=true
+# and set WILDBOOK_APP_URL to the URL where Wildbook is accessible from your local machine
+USE_LOCAL_CALLBACK_URL=false
+WILDBOOK_APP_URL=http://localhost:81/
 
 # these rest of these settings are fine for a development environment, but can be changed if you desire
 
@@ -23,7 +26,6 @@ WILDBOOK_DB_PASSWORD=development
 #: i.e. jdbc:postgresql://db:5432/${WILDBOOK_DB_NAME}
 WILDBOOK_DB_CONNECTION_URL=jdbc:postgresql://db:5432/wildbook
 
-
 WBIA_DB_NAME=wbia
 WBIA_DB_USER=wbia
 WBIA_DB_PASSWORD=development
@@ -33,3 +35,4 @@ WBIA_DB_URI=postgresql://wbia:development@db/wbia
 #: Location within the container
 WBIA_DB_DIR=/data/db
 
+googleMapsKey=ReplaceMe
