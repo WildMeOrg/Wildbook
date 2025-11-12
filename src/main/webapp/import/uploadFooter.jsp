@@ -54,7 +54,16 @@ if (!committing) {
 	<p><a onclick="sendAndRedirect('<%=uploadAction %>','<%=uuid %>')"><button id="commitButton" onclick="confirmCommit()">Commit these results.</button></a></p>
 	<script>
 		console.log("Commit count: "+errorCount);
-		if(errorCount>0){
+		// Check for missing required columns
+		if(typeof window.requiredColumnsAreMissing !== 'undefined' && window.requiredColumnsAreMissing === true){
+			console.log("Required columns are missing - disabling commit button");
+			var commitButton = document.getElementById('commitButton');
+			commitButton.setAttribute("disabled", "disabled");
+			commitButton.style.cursor = "not-allowed";
+			commitButton.style.opacity = "0.5";
+		}
+		// Check for other errors
+		else if(errorCount>0){
 			var commitButton = document.getElementById('commitButton');
 			commitButton.setAttribute("disabled", "disabled");
 		}

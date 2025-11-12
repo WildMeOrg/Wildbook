@@ -187,6 +187,9 @@ public class StandardImport extends HttpServlet {
         numFolderRows = 0;
         numAnnots = 0;
 
+        // Track missing required columns
+        List<String> missingRequiredColumns = new ArrayList<>();
+
         // these prefixes are added to any individualID, occurrenceID, or sightingID imported
 
         String defaultSubmitterID = null; // leave null to not set a default
@@ -232,7 +235,7 @@ public class StandardImport extends HttpServlet {
             String colName = getStringNoLog(firstRow, i);
             System.out.println("Are there any values in this colum? " + i);
             allColsMap.put(colName, i);
-            if (colName == null || colName.length() < 4 || !anyValuesInColumn(i, feedback, sheet)) {
+            if (colName == null || colName.length() < 4 || (!anyValuesInColumn(i, feedback, sheet) && !colName.equals("Encounter.submitter0.emailAddress"))) {
                 System.out.println("skipCols adding column named: " + colName + " with index " + i);
                 skipCols.add(i);
                 continue;
@@ -261,6 +264,24 @@ public class StandardImport extends HttpServlet {
         }
         int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
         // int lastColNum = firstRow.getLastCellNum();
+        
+        // Check for required columns after headers are loaded
+        List<String> requiredColumns = new ArrayList<>();
+        requiredColumns.add("Encounter.submitter0.emailAddress");
+        // Add more required columns here as needed
+        
+        System.out.println("=== CHECKING REQUIRED COLUMNS ===");
+        System.out.println("Available columns in Excel: " + colMap.keySet());
+        for (String reqCol : requiredColumns) {
+            boolean exists = allColsMap.containsKey(reqCol);
+            System.out.println("Required column '" + reqCol + "' exists: " + exists);
+            if (!exists) {
+                System.out.println("  -> Adding to missing list");
+                missingRequiredColumns.add(reqCol);
+            }
+        }
+        System.out.println("Total missing required columns: " + missingRequiredColumns.size());
+        
         // System.out.println("debug3: committing: "+committing);
         if (committing) {
             Shepherd myShepherd = new Shepherd(context);
@@ -318,6 +339,27 @@ public class StandardImport extends HttpServlet {
         int printPeriod = 1;
         // if (committing) myShepherd.beginDBTransaction();
         outPrnt("<h2>Parsed Import Table</h2>", committing, out);
+        
+        // Display prominent warning if required columns are missing - AFTER the header
+        if (!committing && !missingRequiredColumns.isEmpty()) {
+            out.println("<div style='clear: both;'></div>"); // Clear any floats
+            out.println("<div id='requiredColumnsWarning' style='background-color: #ffcccc; border: 2px solid #cc0000; padding: 10px 15px; margin: 15px 0; border-radius: 5px; clear: both;'>");
+            out.println("<h3 style='color: #cc0000; margin: 0 0 8px 0; font-size: 16px;'>⚠️ CRITICAL ERROR: REQUIRED COLUMNS MISSING</h3>");
+            out.println("<p style='margin: 5px 0; font-size: 13px;'><strong>Missing required columns:</strong> ");
+            boolean first = true;
+            for (String missingCol : missingRequiredColumns) {
+                if (!first) out.print(", ");
+                out.print("<span style='color: #cc0000; font-weight: bold;'>" + missingCol + "</span>");
+                first = false;
+            }
+            out.println("</p>");
+            out.println("<p style='margin: 5px 0; font-size: 13px;'><strong>⛔ Import Cannot Proceed.</strong> Add these columns to your Excel file and upload again.</p>");
+            out.println("</div>");
+            out.println("<script>");
+            out.println("// Disable commit button due to missing required columns");
+            out.println("window.requiredColumnsAreMissing = true;");
+            out.println("</script>");
+        }
         /*
            System.out.println("debug0:committing: "+committing);
            try {
@@ -1037,7 +1079,9 @@ public class StandardImport extends HttpServlet {
         String colEmalval = getString(row, colEmailId, colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
 
+        // Check if email value is null or empty
         if (colEmalval != null) {
+            // Email has a value - validate it
             User thisPerson = myShepherd.getUserByEmailAddress(colEmalval.trim());
             if (thisPerson != null) {
                 if(valSubmitterID == null){
@@ -1055,7 +1099,7 @@ public class StandardImport extends HttpServlet {
                 }
             } 
             else {
-                // User doesn't exist
+                // User doesn't exist in system
                 feedback.logParseError(getColIndexFromColName(colEmailId, colIndexMap), 
                     colEmalval, row, ERROR_EMAIL_INCORRECT);
             }
@@ -1070,8 +1114,10 @@ public class StandardImport extends HttpServlet {
             if (unusedColumns != null && val3 != null && !"".equals(val3))
                 unusedColumns.remove(colAffiliation);
         } else {
-            feedback.logParseError(getColIndexFromColName(colEmailId, colIndexMap), 
-                    colEmalval, row, ERROR_EMAIL_INCORRECT);
+            Integer colIndex = getColIndexFromColName(colEmailId, colIndexMap);
+            if (colIndex != null) {
+                feedback.logParseError(colIndex, colEmalval, row, ERROR_EMAIL_INCORRECT);
+            }
         }
         /*
          * End Submitter imports
