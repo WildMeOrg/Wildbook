@@ -39,11 +39,6 @@ export const ImageModal = observer(
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
-    const currentAnnotation =
-      rects.filter(
-        (a) => a.annotationId === imageStore.selectedAnnotationId,
-      )?.[0] || null;
-    const [editAnnotationParams, setEditAnnotationParams] = useState({});
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
@@ -98,22 +93,9 @@ export const ImageModal = observer(
     const goNext = () => {
       setIndex?.(safeIndex + 1);
     };
-    const annotationParam = encodeURIComponent(
-      JSON.stringify(editAnnotationParams),
-    );
+
     const [tagText, setTagText] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
-
-    useEffect(() => {
-      if (!currentAnnotation) return;
-      setEditAnnotationParams({
-        x: currentAnnotation.x || 0,
-        y: currentAnnotation.y || 0,
-        width: currentAnnotation.width || 0,
-        height: currentAnnotation.height || 0,
-        theta: currentAnnotation.rotation || 0,
-      });
-    }, [currentAnnotation]);
 
     useEffect(() => {
       const s = thumbsRef.current;
@@ -329,8 +311,10 @@ export const ImageModal = observer(
                       className="img-fluid"
                       style={{
                         display: "block",
-                        width: "100%",
-                        height: "100%",
+                        maxWidth: "100%",
+                        maxHeight: "90vh",
+                        width: "auto",
+                        height: "auto",
                         objectFit: "contain",
                       }}
                       onLoad={() => {
@@ -443,17 +427,25 @@ export const ImageModal = observer(
                                   color: "white",
                                 }}
                                 onClick={() => {
-                                  if (
-                                    !imageStore.encounterData?.mediaAssets[
-                                      imageStore.selectedImageIndex
-                                    ] ||
-                                    !annotationParam ||
-                                    !assets[index]?.id
-                                  ) {
+                                  const editParams = {
+                                    x: rect.x || 0,
+                                    y: rect.y || 0,
+                                    width: rect.width || 0,
+                                    height: rect.height || 0,
+                                    theta: rect.rotation || 0,
+                                  };
+                                  const annotationParamForThisRect =
+                                    encodeURIComponent(
+                                      JSON.stringify(editParams),
+                                    );
+
+                                  const currentAssetId = assets[safeIndex]?.id;
+                                  if (!currentAssetId || !rect.annotationId) {
                                     return;
                                   }
+
                                   window.open(
-                                    `/react/edit-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.annotationId}`,
+                                    `/react/edit-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${currentAssetId}&annotation=${annotationParamForThisRect}&annotationId=${rect.annotationId}`,
                                     "_blank",
                                   );
                                 }}
@@ -505,10 +497,10 @@ export const ImageModal = observer(
                                     window.confirm(deleteAnnotationConfirmMsg)
                                   ) {
                                     await imageStore.removeAnnotation(
-                                      currentAnnotation?.annotationId,
+                                      rect?.annotationId,
                                     );
                                     imageStore.setSelectedAnnotationId(null);
-                                    imageStore.refreshEncounterData();
+                                    window.location.reload();
                                   }
                                 }}
                               >

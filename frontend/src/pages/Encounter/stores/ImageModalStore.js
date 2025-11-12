@@ -149,7 +149,6 @@ class ImageModalStore {
       if (result.status === 200) {
         this.setSelectedAnnotationId(null);
         toast.success("Annotation removed successfully");
-        await this.refreshEncounterData();
       }
 
       return result;
