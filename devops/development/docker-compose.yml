@@ -49,7 +49,8 @@ services:
       - '$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/'
       - '$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/'
       - '/home/sufwan/Desktop/tech4/Wildbook/test2.xlsx:/tmp/test2.xlsx'
-      - '/data/upload:/data/upload'
+      - '${WILDBOOK_BASE_DIR}/webapps/wildbook_data_dir/data/upload:/data/upload'
+      # - '/data/upload:/data/upload'
     networks:
       - intranet
     ports:
