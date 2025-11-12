@@ -5,9 +5,14 @@ import io.restassured.response.Response;
 import io.restassured.RestAssured;
 
 import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import javax.servlet.DispatcherType;
 
 import org.apache.http.HttpHost;
@@ -102,6 +107,7 @@ import static org.junit.jupiter.api.Assertions.*;
         ctx.addServlet(new ServletHolder(new UserHome()), "/api/v3/home");
         ctx.addServlet(new ServletHolder(new Login()), "/api/v3/login");
         ctx.addServlet(new ServletHolder(new SearchApi()), "/api/v3/search/*");
+        ctx.addServlet(new ServletHolder(new EncounterExport()), "/api/v3/encounters/export");
         server.setHandler(ctx);
         try {
             server.start();
@@ -307,6 +313,106 @@ import static org.junit.jupiter.api.Assertions.*;
             .then()
             .statusCode(200)
             .log().ifValidationFails();
+    }
+
+    /**
+     * Test the happy path for encounter export with images.
+     * Verifies that a valid export request returns a properly structured ZIP file
+     * containing cropped images organized by Individual ID and metadata.
+     */
+    @Test @Order(3) void testEncounterExportImages_HappyPath()
+    throws Exception {
+        System.out.println("\n--- Test: Encounter Export Images - Happy Path ---");
+
+        String authenticationCookie = authenticateTestUser();
+
+        // Prepare request body with search criteria and export options
+        String requestBody = "{" + "\"searchCriteria\": {" +
+            "  \"query\": {\"match\": {\"genus\": \"Panthera\"}}" + "}," + "\"exportOptions\": {" +
+            "  \"unidentifiedEncounters\": false," + "  \"numAnnotationsPerId\": \"all\"," +
+            "  \"includeMetadata\": true" + "}" + "}";
+
+        System.out.println("Sending export request...");
+
+        // Make the export request
+        Response response = given()
+                .cookie("JSESSIONID", authenticationCookie)
+                .contentType(ContentType.JSON)
+                .body(requestBody)
+                .when()
+                .post("/api/v3/encounters/export")
+                .then()
+                .statusCode(200)
+                .contentType("application/zip")
+                .header("Content-Disposition", containsString("attachment"))
+                .header("Content-Disposition", containsString("encounter_export_"))
+                .header("Content-Disposition", containsString(".zip"))
+                .log().ifValidationFails()
+                .extract()
+                .response();
+
+        System.out.println("Export request successful, verifying ZIP structure...");
+
+        // Extract the ZIP file bytes
+        byte[] zipBytes = response.asByteArray();
+        assertTrue(zipBytes.length > 0, "ZIP file should not be empty");
+
+        // Parse the ZIP file and verify its structure
+        Set<String> zipEntries = new HashSet<>();
+        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                zipEntries.add(entry.getName());
+                System.out.println("  Found ZIP entry: " + entry.getName());
+                zis.closeEntry();
+            }
+        }
+
+        // Verify expected structure
+        System.out.println("Verifying ZIP structure...");
+
+        // Should contain metadata file (if includeMetadata: true)
+        assertTrue(zipEntries.stream().anyMatch(e -> e.equals("metadata.xlsx")),
+            "ZIP should contain metadata.xlsx");
+
+        // Should contain images directory
+        assertTrue(zipEntries.stream().anyMatch(e -> e.startsWith("images/")),
+            "ZIP should contain images/ directory");
+
+        // Should contain Individual_1 directory (from test data)
+        assertTrue(zipEntries.stream().anyMatch(e -> e.contains("Individual_1/")),
+            "ZIP should contain Individual_1/ subdirectory");
+
+        // Should contain Individual_2 directory (from test data)
+        assertTrue(zipEntries.stream().anyMatch(e -> e.contains("Individual_2/")),
+            "ZIP should contain Individual_2/ subdirectory");
+
+        // Should NOT contain Unidentified_annotations (since unidentifiedEncounters: false)
+        assertFalse(zipEntries.stream().anyMatch(e -> e.contains("Unidentified_annotations/")),
+            "ZIP should NOT contain Unidentified_annotations/ (unidentifiedEncounters: false)");
+
+        // Should contain actual image files with proper naming convention
+        assertTrue(zipEntries.stream().anyMatch(e -> e.matches(
+            "images/Individual_[12]/.+\\.(jpg|jpeg)")),
+            "ZIP should contain cropped image files with proper naming");
+
+        // Count image files for Individual_1 (should have 2 annotations based on test data)
+        long individual1Images = zipEntries.stream()
+                .filter(e -> e.startsWith("images/Individual_1/") && e.endsWith(".jpg"))
+                .count();
+        assertTrue(individual1Images >= 1, "Individual_1 should have at least 1 cropped image");
+
+        // Count image files for Individual_2 (should have 1 annotation based on test data)
+        long individual2Images = zipEntries.stream()
+                .filter(e -> e.startsWith("images/Individual_2/") && e.endsWith(".jpg"))
+                .count();
+        assertTrue(individual2Images >= 1, "Individual_2 should have at least 1 cropped image");
+
+        System.out.println("ZIP structure verification passed");
+        System.out.println("  Total ZIP entries: " + zipEntries.size());
+        System.out.println("  Individual_1 images: " + individual1Images);
+        System.out.println("  Individual_2 images: " + individual2Images);
+        System.out.println("Happy path test completed successfully");
     }
 
     // =========================================================================
