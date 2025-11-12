@@ -27,14 +27,11 @@ public class EncounterAnnotationExportFile {
     private final File excelFile;
 
     private int numMediaAssetCols = 0;
-    private int numKeywords = 0;
-    private int numMeasurements = 0;
     private int numNameCols = 0;
     private int numSubmitters = 0;
     private int numSocialUnits = 1;
 
     private List<String> measurementColTitles = new ArrayList<String>();
-    private List<String> labeledKeywords = new ArrayList<String>();
 
     public EncounterAnnotationExportFile(File targetDirectory) {
         DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
@@ -121,7 +118,6 @@ public class EncounterAnnotationExportFile {
             if (id != null && !individualIDsChecked.contains(id.getIndividualID())) {
                 individualIDsChecked.add(id.getIndividualID());
                 int numNames = id.getNameKeys().size();
-                // System.out.println("Individual "+enc.getIndividual()+" isnull = "+(enc.getIndividual()==null)+" and has # names: "+numNames);
                 if (numNames > maxNumNames) maxNumNames = numNames;
                 List<SocialUnit> mySocialUnits = myShepherd.getAllSocialUnitsForMarkedIndividual(
                     id);
@@ -129,9 +125,7 @@ public class EncounterAnnotationExportFile {
             }
         }
         numMediaAssetCols = maxNumMedia;
-        numKeywords = maxNumKeywords;
         numNameCols = maxNumNames;
-        numMeasurements = maxNumMeasurements;
         numSubmitters = maxSubmitters;
         numSocialUnits = maxSocialUnits;
         System.out.println(
