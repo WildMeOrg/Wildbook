@@ -570,25 +570,31 @@ export default function EditAnnotation() {
                     y *= adjH;
                     height *= adjH;
                   }
-                  await axios.patch(`/api/v3/encounters/${encounterId}`, [
-                    {
-                      op: "remove",
-                      path: "annotations",
-                      value: annotationId,
-                    },
-                  ]);
-
-                  await createAnnotation({
-                    encounterId,
-                    assetId,
-                    ia,
-                    viewpoint,
-                    x,
-                    y,
-                    width,
-                    height,
-                    rotation,
-                  });
+                  const result = await axios.patch(
+                    `/api/v3/encounters/${encounterId}`,
+                    [
+                      {
+                        op: "remove",
+                        path: "annotations",
+                        value: annotationId,
+                      },
+                    ],
+                  );
+                  if (result.status === 200) {
+                    await createAnnotation({
+                      encounterId,
+                      assetId,
+                      ia,
+                      viewpoint,
+                      x,
+                      y,
+                      width,
+                      height,
+                      rotation,
+                    });
+                  } else {
+                    alert("Error editing annotation");
+                  }
                 }
               } catch (error) {
                 alert("Error editing annotation", error);
