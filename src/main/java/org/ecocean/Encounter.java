@@ -4888,6 +4888,7 @@ public class Encounter extends Base implements java.io.Serializable {
     throws ApiException {
         if (patchArr == null)
             throw new ApiException("null patch array", ApiException.ERROR_RETURN_CODE_REQUIRED);
+        this.setSkipAutoIndexing(true);
         org.json.JSONArray resArr = new org.json.JSONArray();
         Set<Occurrence> occNeedPruning = new HashSet<Occurrence>();
         Set<MarkedIndividual> indivNeedPruning = new HashSet<MarkedIndividual>();
@@ -4913,16 +4914,21 @@ public class Encounter extends Base implements java.io.Serializable {
         EncounterPatchValidator.finalValidation(this, myShepherd);
         // now we need to look at modified objects which may be empty (and thus need pruning)
         for (Occurrence occ : occNeedPruning) {
-            occ.pruneIfNeeded(myShepherd);
+            if (!occ.pruneIfNeeded(myShepherd)) {
+                occ.setSkipAutoIndexing(false);
+            }
         }
         for (MarkedIndividual indiv : indivNeedPruning) {
-            indiv.pruneIfNeeded(myShepherd);
+            if (!indiv.pruneIfNeeded(myShepherd)) {
+                indiv.setSkipAutoIndexing(false);
+            }
         }
         // no exceptions means success
         rtn.put("success", true);
         rtn.put("statusCode", 200);
         this.setDWCDateLastModified();
         this._log(resArr);
+        this.setSkipAutoIndexing(false);
         return rtn;
     }
 
@@ -5116,6 +5122,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 }
                 current = removeIndividual();
                 if (current != null) {
+                    current.setSkipAutoIndexing(false);
                     setIndividual(null);
                     System.out.println("enc.applyPatchOp() removed (prior to re-setting) " + this +
                         " from " + current);
@@ -5233,6 +5240,8 @@ public class Encounter extends Base implements java.io.Serializable {
         MarkedIndividual current = getIndividual();
 
         if (current == null) return null;
+        // skip auto indexing cuz race conditions; must manually index later
+        current.setSkipAutoIndexing(true);
         current.removeEncounter(this);
         setIndividual(null);
         return current;
