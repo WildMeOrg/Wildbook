@@ -127,10 +127,23 @@ public class MergeIndividual extends HttpServlet {
                     request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {
                     canMergeAutomatically = true;
                 } else {
-                    ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2,
-                        twoWeeksFromNowLong(), currentUsername);
-                    myShepherd.storeNewScheduledIndividualMerge(merge);
-                    myShepherd.updateDBTransaction();
+                    // OLD CODE (REMOVED): Previously created a ScheduledIndividualMerge with 2-week auto-approval
+                    // This was a security issue as it allowed unauthorized merges after timeout
+                    // ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2,
+                    //     twoWeeksFromNowLong(), currentUsername);
+                    // myShepherd.storeNewScheduledIndividualMerge(merge);
+                    // myShepherd.updateDBTransaction();
+                    
+                    // NEW CODE: Block the merge request with an error message
+                    // User does not have edit-level collaboration with all encounter submitters
+                    // Set error status BEFORE calling errorAndClose (must be set before response is committed)
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    String msg =
+                        "<strong>Error:</strong> You do not have authorization to merge your individual with this individual.";
+                    errorAndClose(msg, response);
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
+                    return;
                 }
             }
             if (canMergeAutomatically) {
