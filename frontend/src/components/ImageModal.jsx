@@ -313,8 +313,6 @@ export const ImageModal = observer(
                       position: "relative",
                       display: "inline-block",
                       overflow: "hidden",
-                      width: "90%",
-                      height: "100%",
                       cursor:
                         zoom > 1
                           ? dragStart
@@ -338,6 +336,7 @@ export const ImageModal = observer(
                         width: "auto",
                         height: "auto",
                         objectFit: "contain",
+                        margin: "auto",
                       }}
                       onLoad={() => {
                         const iw = imgRef.current?.clientWidth || 1;
