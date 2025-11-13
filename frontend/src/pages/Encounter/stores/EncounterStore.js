@@ -765,12 +765,12 @@ class EncounterStore {
     }));
     const allOptions = [
       ...(
-        siteSettingsData.behaviorOptions[this._encounterData?.species] || []
+        siteSettingsData.behaviorOptions?.[this._encounterData?.species] || []
       ).map((data) => ({
         value: data,
         label: data,
       })),
-      ...(siteSettingsData.behaviorOptions[""] || []).map((data) => ({
+      ...(siteSettingsData.behaviorOptions?.[""] || []).map((data) => ({
         value: data,
         label: data,
       })),

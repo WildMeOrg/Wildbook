@@ -99,7 +99,7 @@ export default function EncounterPageViewOnly() {
                   <FormattedMessage id="SEX" />: {data?.sex}
                 </div>
                 <div>
-                  <FormattedMessage id="NOTICEABLE_SCAR" />:{" "}
+                  <FormattedMessage id="DISTINGUISHING_SCAR" />:{" "}
                   {data?.distinguishingScar}
                 </div>
                 <div>

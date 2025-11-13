@@ -30,6 +30,18 @@ const ResizableRotatableRect = ({
   const rectRef = useRef(null);
   const transformerRef = useRef(null);
 
+  useEffect(() => {
+    if (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rectRef.current &&
+      transformerRef.current
+    ) {
+      transformerRef.current.nodes([rectRef.current]);
+      transformerRef.current.getLayer().batchDraw();
+    }
+  }, [rect.width, rect.height]);
+
   const handleTransform = () => {
     const node = rectRef.current;
     const scaleX = node.scaleX();

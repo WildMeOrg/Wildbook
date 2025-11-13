@@ -396,12 +396,11 @@ import org.json.JSONObject;
         throw new ApiException("not yet supported");
     }
 
-    // should probably be overridden?
+    // should probably be overridden
     // https://datatracker.ietf.org/doc/html/rfc6902
     // op (add, remove, replace, move, copy, test), path, value
     public JSONObject processPatch(JSONArray patchArr, User user, Shepherd myShepherd)
     throws ApiException {
-        // FIXME make this do something real?
         throw new ApiException("processPatch() not yet implemented", "FAIL");
     }
 

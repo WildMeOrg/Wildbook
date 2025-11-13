@@ -39,11 +39,6 @@ export const ImageModal = observer(
     const imgRef = useRef(null);
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
-    const currentAnnotation =
-      rects.filter(
-        (a) => a.annotationId === imageStore.selectedAnnotationId,
-      )?.[0] || null;
-    const [editAnnotationParams, setEditAnnotationParams] = useState({});
 
     const safeIndex = Math.min(Math.max(index, 0), assets.length - 1);
     const a = assets[safeIndex] || {};
@@ -98,22 +93,9 @@ export const ImageModal = observer(
     const goNext = () => {
       setIndex?.(safeIndex + 1);
     };
-    const annotationParam = encodeURIComponent(
-      JSON.stringify(editAnnotationParams),
-    );
+
     const [tagText, setTagText] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
-
-    useEffect(() => {
-      if (!currentAnnotation) return;
-      setEditAnnotationParams({
-        x: currentAnnotation.x || 0,
-        y: currentAnnotation.y || 0,
-        width: currentAnnotation.width || 0,
-        height: currentAnnotation.height || 0,
-        theta: currentAnnotation.rotation || 0,
-      });
-    }, [currentAnnotation]);
 
     useEffect(() => {
       const s = thumbsRef.current;
@@ -128,6 +110,28 @@ export const ImageModal = observer(
       setScaleX(naturalWidth / displayWidth);
       setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
+
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        const clickedOnAnnotation = rects.some((_, index) => {
+          const rectElement = document.getElementById(
+            `annotation-rect-${index}`,
+          );
+          return rectElement && rectElement.contains(event.target);
+        });
+
+        if (!clickedOnAnnotation) {
+          imageStore.setSelectedAnnotationId(null);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [rects, imageStore]);
+
     const boxRef = React.useRef(null);
     const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
     const handleMove = (e) => {
@@ -276,6 +280,7 @@ export const ImageModal = observer(
               >
                 <button
                   type="button"
+                  style={{ zIndex: 100 }}
                   aria-label="Previous image"
                   className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 ${canPrev ? "" : "opacity-50 pe-none"}`}
                   onClick={(e) => {
@@ -288,14 +293,17 @@ export const ImageModal = observer(
                   <i className="bi bi-chevron-left" />
                 </button>
                 <div
+                  id="image-modal-image-container"
                   className="position-relative d-flex justify-content-center align-items-center"
                   style={{
-                    maxWidth: "100vw",
+                    width: "100%",
+                    height: "100%",
                     maxHeight: "100vh",
                     overflow: "hidden",
                   }}
                 >
                   <div
+                    id="image-modal-image-box"
                     ref={boxRef}
                     onMouseDown={onMouseDown}
                     style={{
@@ -324,11 +332,11 @@ export const ImageModal = observer(
                       style={{
                         display: "block",
                         maxWidth: "100%",
-                        maxHeight: "80vh",
+                        maxHeight: "90vh",
                         width: "auto",
                         height: "auto",
                         objectFit: "contain",
-                        margin: "0 auto",
+                        margin: "auto",
                       }}
                       onLoad={() => {
                         const iw = imgRef.current?.clientWidth || 1;
@@ -377,6 +385,7 @@ export const ImageModal = observer(
                         }
                         return (
                           <div
+                            id={`annotation-rect-${index}`}
                             key={index}
                             onMouseEnter={() =>
                               handleEnter(
@@ -440,17 +449,27 @@ export const ImageModal = observer(
                                   color: "white",
                                 }}
                                 onClick={() => {
-                                  if (
-                                    !imageStore.encounterData?.mediaAssets[
-                                      imageStore.selectedImageIndex
-                                    ] ||
-                                    !annotationParam ||
-                                    !assets[index]?.id
-                                  ) {
+                                  const editParams = {
+                                    x: rect.x || 0,
+                                    y: rect.y || 0,
+                                    width: rect.width || 0,
+                                    height: rect.height || 0,
+                                    theta: rect.rotation || 0,
+                                    viewpoint: rect.viewpoint || "",
+                                    iaClass: rect.iaClass || "",
+                                  };
+                                  const annotationParamForThisRect =
+                                    encodeURIComponent(
+                                      JSON.stringify(editParams),
+                                    );
+
+                                  const currentAssetId = assets[safeIndex]?.id;
+                                  if (!currentAssetId || !rect.annotationId) {
                                     return;
                                   }
+
                                   window.open(
-                                    `/react/edit-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}&annotation=${annotationParam}&annotationId=${currentAnnotation?.annotationId}`,
+                                    `/react/edit-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${currentAssetId}&annotation=${annotationParamForThisRect}&annotationId=${rect.annotationId}`,
                                     "_blank",
                                   );
                                 }}
@@ -502,10 +521,10 @@ export const ImageModal = observer(
                                     window.confirm(deleteAnnotationConfirmMsg)
                                   ) {
                                     await imageStore.removeAnnotation(
-                                      currentAnnotation?.annotationId,
+                                      rect?.annotationId,
                                     );
                                     imageStore.setSelectedAnnotationId(null);
-                                    imageStore.refreshEncounterData();
+                                    window.location.reload();
                                   }
                                 }}
                               >
@@ -531,6 +550,7 @@ export const ImageModal = observer(
 
                 <button
                   type="button"
+                  style={{ zIndex: 100 }}
                   aria-label="Next image"
                   className={`btn btn-sm btn-outline-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 ${canNext ? "" : "opacity-50 pe-none"}`}
                   onClick={(e) => {
