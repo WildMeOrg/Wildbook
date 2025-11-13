@@ -110,6 +110,28 @@ export const ImageModal = observer(
       setScaleX(naturalWidth / displayWidth);
       setScaleY(naturalHeight / displayHeight);
     }, [index, assets.length]);
+
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        const clickedOnAnnotation = rects.some((_, index) => {
+          const rectElement = document.getElementById(
+            `annotation-rect-${index}`,
+          );
+          return rectElement && rectElement.contains(event.target);
+        });
+
+        if (!clickedOnAnnotation) {
+          imageStore.setSelectedAnnotationId(null);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [rects, imageStore]);
+
     const boxRef = React.useRef(null);
     const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
     const handleMove = (e) => {
@@ -364,6 +386,7 @@ export const ImageModal = observer(
                         }
                         return (
                           <div
+                            id={`annotation-rect-${index}`}
                             key={index}
                             onMouseEnter={() =>
                               handleEnter(
@@ -433,6 +456,8 @@ export const ImageModal = observer(
                                     width: rect.width || 0,
                                     height: rect.height || 0,
                                     theta: rect.rotation || 0,
+                                    viewpoint: rect.viewpoint || "",
+                                    iaClass: rect.iaClass || "",
                                   };
                                   const annotationParamForThisRect =
                                     encodeURIComponent(
