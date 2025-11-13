@@ -1503,6 +1503,16 @@ public class Annotation extends Base implements java.io.Serializable {
         return Task.getRootTasksFor(this, myShepherd);
     }
 
+    public int detachFromTasks(Shepherd myShepherd) {
+        List<Task> tasks = Task.getTasksFor(this, myShepherd);
+
+        if (Util.collectionIsEmptyOrNull(tasks)) return 0;
+        for (Task task : tasks) {
+            task.removeObject(this);
+        }
+        return tasks.size();
+    }
+
     public static boolean isValidViewpoint(String vp) {
         if (vp == null) return true;
         return getAllValidViewpoints().contains(vp);

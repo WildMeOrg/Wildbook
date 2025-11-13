@@ -233,6 +233,7 @@ public class EncounterPatchValidator {
                 if (ann == null)
                     throw new ApiException("no such annotation id=" + value.toString(),
                             ApiException.ERROR_RETURN_CODE_INVALID);
+                ann.detachFromTasks(myShepherd);
                 enc.removeAnnotation(ann);
                 myShepherd.getPM().deletePersistent(ann);
                 value = ann;
