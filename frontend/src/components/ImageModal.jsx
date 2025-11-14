@@ -113,6 +113,10 @@ export const ImageModal = observer(
 
     useEffect(() => {
       const handleClickOutside = (event) => {
+        const imageBox = document.getElementById("image-modal-image-box");
+        if (!imageBox || !imageBox.contains(event.target)) {
+          return;
+        }
         const clickedOnAnnotation = rects.some((_, index) => {
           const rectElement = document.getElementById(
             `annotation-rect-${index}`,

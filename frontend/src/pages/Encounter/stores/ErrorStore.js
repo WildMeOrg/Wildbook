@@ -1,11 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
 class ErrorStore {
-  encounterStore; 
+  encounterStore;
 
-    _errors = new Map();  
-    _fieldErrors = new Map();
-    uploadErrors = [];
+  _errors = new Map();
+  _fieldErrors = new Map();
+  uploadErrors = [];
 
   constructor(encounterStore) {
     this.encounterStore = encounterStore;
@@ -33,41 +33,43 @@ class ErrorStore {
     return this._errors;
   }
 
-setErrors(sectionName, errorsObject) {
-  const list = Array.isArray(errorsObject?.errors) ? errorsObject.errors : [];
-  if (list.length === 0) {
-    this._errors.delete(sectionName);
-    return;
+  setErrors(sectionName, errorsObject) {
+    const list = Array.isArray(errorsObject?.errors) ? errorsObject.errors : [];
+    if (list.length === 0) {
+      this._errors.delete(sectionName);
+      return;
+    }
+
+    const msgs = list.map(
+      (e) =>
+        `field name: ${e.fieldName || "unknown"}, message: ${e.code || "INVALID"}, value: ${e.value || "N/A"}, details: ${e.details || "N/A"}`,
+    );
+    this._errors.set(sectionName, msgs);
   }
 
-  const msgs = list.map(e => `field name: ${e.fieldName || "unknown"}, message: ${e.code || "INVALID"}, value: ${e.value || "N/A"}`);
-  this._errors.set(sectionName, msgs);
-}
+  getSectionErrors(sectionName) {
+    return this._errors.get(sectionName) || [];
+  }
 
-getSectionErrors(sectionName) {
-  return this._errors.get(sectionName) || [];
-}
+  hasSectionError(sectionName) {
+    return (this._errors.get(sectionName)?.length || 0) > 0;
+  }
 
-hasSectionError(sectionName) {
-  return (this._errors.get(sectionName)?.length || 0) > 0;
-}
+  get sectionsWithErrors() {
+    return Array.from(this._errors.keys());
+  }
 
-get sectionsWithErrors() {
-  return Array.from(this._errors.keys());
-}
+  clearSectionErrors(sectionName) {
+    this._errors.delete(sectionName);
+  }
 
-clearSectionErrors(sectionName) {
-  this._errors.delete(sectionName);
-}
+  get hasErrors() {
+    return this._errors.size > 0;
+  }
 
-get hasErrors() {
-  return this._errors.size > 0;
-}
-
-clearErrors() {
-  this._errors.clear();
-}
-
+  clearErrors() {
+    this._errors.clear();
+  }
 }
 
 export default ErrorStore;
