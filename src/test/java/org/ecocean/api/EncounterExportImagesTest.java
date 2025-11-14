@@ -75,6 +75,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         Properties commonConfiguration = new Properties();
         commonConfiguration.setProperty("collaborationSecurityEnabled", "true");
+        commonConfiguration.setProperty("releaseDateFormat", "yyyy-MM-dd");
         CommonConfiguration.initialize("context0", commonConfiguration);
 
         // Configure database connection for tests via environment variables
@@ -416,17 +417,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // Create annotations with bounding boxes
             org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
+            ann1.setBbox(0,0,500,500);
             ann1.setViewpoint("left");
 // Note: bbox format may need adjustment based on Annotation class
             myShepherd.getPM().makePersistent(ann1);
             ann1.opensearchIndexDeep();
 
             org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
+            ann2.setBbox(500,0,500,500);
             ann2.setViewpoint("right");
             myShepherd.getPM().makePersistent(ann2);
             ann2.opensearchIndexDeep();
 
             org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
+            ann3.setBbox(0,500,500,500);
             ann3.setViewpoint("front");
             myShepherd.getPM().makePersistent(ann3);
             ann3.opensearchIndexDeep();
