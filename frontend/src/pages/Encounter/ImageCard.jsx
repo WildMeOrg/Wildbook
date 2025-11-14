@@ -139,6 +139,10 @@ const ImageCard = observer(({ store = {} }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      const imageBox = boxRef.current;
+      if (!imageBox || !imageBox.contains(event.target)) {
+        return;
+      }
       const clickedOnAnnotation = rects.some((_, index) => {
         const rectElement = document.getElementById(`rect-${index}`);
         return rectElement && rectElement.contains(event.target);
