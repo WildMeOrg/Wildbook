@@ -568,7 +568,21 @@ table.compareZone tr th {
     				window.location = confirmUrl;
           })
           .fail(function(response) {
-          	alert("FAILURE!!");
+          	// Display the actual error message from the server
+          	var errorMsg = "FAILURE!!";
+          	if (response.responseText) {
+          		errorMsg = response.responseText;
+          		// Strip HTML tags for cleaner display in alert
+          		var tempDiv = document.createElement("div");
+          		tempDiv.innerHTML = errorMsg;
+          		errorMsg = tempDiv.textContent || tempDiv.innerText || errorMsg;
+          	}
+          	// Use wildbook's error dialog if available, otherwise fall back to alert
+          	if (typeof wildbook !== 'undefined' && wildbook.showAlert) {
+          		wildbook.showAlert(errorMsg, null, 'Merge Failed');
+          	} else {
+          		alert(errorMsg);
+          	}
           });
         	
     	  });
