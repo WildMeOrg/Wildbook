@@ -46,6 +46,8 @@ const ImageCard = observer(({ store = {} }) => {
       width: currentAnnotation.boundingBox[2] || 0,
       height: currentAnnotation.boundingBox[3] || 0,
       theta: currentAnnotation.theta || 0,
+      viewpoint: currentAnnotation.viewpoint || "",
+      iaClass: currentAnnotation.iaClass || "",
     });
   }, [currentAnnotation]);
 
@@ -134,6 +136,26 @@ const ImageCard = observer(({ store = {} }) => {
       store.flow.assignBrowse(ref);
     }
   }, [store, maxSize]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const clickedOnAnnotation = rects.some((_, index) => {
+        const rectElement = document.getElementById(`rect-${index}`);
+        return rectElement && rectElement.contains(event.target);
+      });
+
+      if (!clickedOnAnnotation) {
+        setClickedAnnotation(null);
+        store.setSelectedAnnotationId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [rects, store]);
 
   const handleClick = (encounterId, storeEncounterId, annotationId) => {
     setClickedAnnotation({

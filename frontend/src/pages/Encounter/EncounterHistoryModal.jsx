@@ -17,7 +17,15 @@ export default function EncounterHistoryModal({
     ALLOWED_ATTR: ["href", "title", "target", "data-annot-id"],
   });
   return (
-    <Modal show={isOpen} onHide={onClose} backdrop keyboard scrollable centered>
+    <Modal
+      size="lg"
+      show={isOpen}
+      onHide={onClose}
+      backdrop
+      keyboard
+      scrollable
+      centered
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           <FormattedMessage id="ENCOUNTER_HISTORY" />
