@@ -4,6 +4,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.EnumSet;
@@ -28,7 +29,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.annotation.JsonAppend;
 import org.testcontainers.utility.DockerImageName;
 
 import org.eclipse.jetty.server.Server;
@@ -70,21 +70,18 @@ import static org.junit.jupiter.api.Assertions.*;
             .withStartupTimeout(java.time.Duration.ofMinutes(2)));
 
     private static String baseUrl;
-    private static String sessionCookie;
+    private static String authenticationCookie;
 
     @BeforeAll static void setUp() {
         System.out.println("=== Starting EncounterExportImagesTest Setup ===");
 
+        // initialize commonConfiguration
         Properties commonConfiguration = new Properties();
         commonConfiguration.setProperty("collaborationSecurityEnabled", "true");
         commonConfiguration.setProperty("releaseDateFormat", "yyyy-MM-dd");
         CommonConfiguration.initialize("context0", commonConfiguration);
 
-        // Configure database connection for tests via environment variables
-        // ShepherdPMF will read these and connect to our Testcontainers PostgreSQL
-        String jdbcUrl = postgres.getJdbcUrl();
-
-        System.out.println("PostgreSQL started at: " + jdbcUrl);
+        System.out.println("PostgreSQL started at: " + postgres.getJdbcUrl());
 
         // Log OpenSearch connection details
         System.out.println("OpenSearch started at: " + getOpenSearchUrl());
@@ -100,8 +97,6 @@ import static org.junit.jupiter.api.Assertions.*;
         ctx.addFilter(new FilterHolder(shiroFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
 
         ctx.setContextPath("/");
-// ctx.setAttribute("datasource", ds);
-// ctx.setAttribute("objectMapper", new ObjectMapper());
         // TODO: see if we can load web.xml
         ctx.addServlet(new ServletHolder(new UserHome()), "/api/v3/home");
         ctx.addServlet(new ServletHolder(new Login()), "/api/v3/login");
@@ -112,9 +107,8 @@ import static org.junit.jupiter.api.Assertions.*;
         } catch (Exception e) {
             throw new RuntimeException("Error starting embedded Jetty server", e);
         }
-        int port = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
-
         // Configure REST Assured
+        int port = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port; // Assumes Wildbook running on 8080
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
@@ -125,9 +119,13 @@ import static org.junit.jupiter.api.Assertions.*;
         OpenSearch.initializeClient(new HttpHost(opensearch.getHost(),
             opensearch.getMappedPort(9200), "http"));
 
-        // disable auto indexing
+        // disable auto indexing for the duration of the test, or leave it disabled if it is currently
         try {
-            new java.io.File("/tmp/skipAutoIndexing").createNewFile();
+            File file = new File("/tmp/skipAutoIndexing");
+            if (!file.exists()) {
+                file.createNewFile();
+                file.deleteOnExit();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -138,10 +136,9 @@ import static org.junit.jupiter.api.Assertions.*;
         // Manually trigger OpenSearch indexing (don't wait for background task which has 2 min delay)
         OpenSearch.updateEncounterIndexes("context0");
 
-        System.out.println("=== Setup Complete ===\n");
+        authenticationCookie = authenticateTestUser();
 
-        // Note: Authentication will need to be implemented when the API endpoint exists
-        // sessionCookie = authenticateTestUser();
+        System.out.println("=== Setup Complete ===\n");
     }
 
     @AfterAll static void tearDown() {
@@ -164,8 +161,6 @@ import static org.junit.jupiter.api.Assertions.*;
     @Test @Order(2) void testPostSearch_Ok()
     throws Exception {
         System.out.println("\n--- Test: Search API with OpenSearch ---");
-
-        String authenticationCookie = authenticateTestUser();
 
         // Wait for OpenSearch to be ready and index to be created
         Thread.sleep(2000);
@@ -307,8 +302,6 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void testGetUser_Ok() {
-        String authenticationCookie = authenticateTestUser();
-
         given()
             .cookie("JSESSIONID", authenticationCookie)
             .when()
@@ -338,6 +331,8 @@ import static org.junit.jupiter.api.Assertions.*;
     private static void initializeTestData() {
         System.out.println("Initializing test data via Shepherd...");
 
+        // Configure database connection for tests via environment variables
+        // ShepherdPMF will read these and connect to our Testcontainers PostgreSQL
         Properties properties = new Properties();
         properties.setProperty("datanucleus.ConnectionUserName", postgres.getUsername());
         properties.setProperty("datanucleus.ConnectionPassword", postgres.getPassword());
