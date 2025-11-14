@@ -2,6 +2,7 @@
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
               java.util.ArrayList,
+              java.util.HashMap,
               java.util.List,
               java.util.Map,
               java.util.Iterator,
@@ -53,7 +54,7 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
 //let's quickly get the data we need from Shepherd
 
 int numMarkedIndividuals=0;
-int numEncounters=0;
+//int numEncounters=0;
 int numSightings=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
@@ -75,9 +76,9 @@ try{
     numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     System.out.println("[PERF] index.jsp: numMarkedIndividuals query took " + (System.currentTimeMillis() - operationStartTime) + " ms");
     
-    operationStartTime = System.currentTimeMillis();
-    numEncounters=myShepherd.getNumEncounters();
-    System.out.println("[PERF] index.jsp: getNumEncounters() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
+    //operationStartTime = System.currentTimeMillis();
+    //numEncounters=myShepherd.getNumEncounters();
+    //System.out.println("[PERF] index.jsp: getNumEncounters() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
     
     operationStartTime = System.currentTimeMillis();
     numSightings=myShepherd.getNumOccurrences();
@@ -231,159 +232,7 @@ h2.vidcap {
 <div class="container-fluid relative data-section">
 
     <aside class="container main-section">
-        <div class="row">
-
-            <!-- Random user profile to select -->
-            <%
-            //myShepherd.beginDBTransaction();
-            try{
-                operationStartTime = System.currentTimeMillis();
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-                System.out.println("[PERF] index.jsp: getRandomUserWithPhotoAndStatement() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
-            if(featuredUser!=null){
-                String profilePhotoURL="images/user-profile-white-transparent.png";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                }
-
-            %>
-                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2><%=props.getProperty("ourContributors") %></h2>
-                        <div>
-                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                    </div>
-                </section>
-            <%
-            } // end if
-
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	//myShepherd.rollbackDBTransaction();
-            }
-            %>
-
-
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
-                    <ul class="encounter-list list-unstyled">
-
-                       <%
-                       operationStartTime = System.currentTimeMillis();
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
-                       System.out.println("[PERF] index.jsp: getMostRecentIdentifiedEncountersByDate(3) took " + (System.currentTimeMillis() - operationStartTime) + " ms");
-                       int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
-                       try{
-	                       for(int i=0;i<numResults;i++){
-	                           Encounter thisEnc=latestIndividuals.get(i);
-	                           %>
-	                            <li>
-	                                <img src="images/wild_dog_logo_2.png" alt="" width="85px" height="75px" class="pull-left" />
-	                                <small>
-	                                    <time>
-	                                        <%=thisEnc.getDate() %>
-	                                        <%
-	                                        if((thisEnc.getLocationID()!=null)&&(!thisEnc.getLocationID().trim().equals(""))){
-	                                        %>/ <%=thisEnc.getLocationID() %>
-	                                        <%
-	                                           }
-	                                        %>
-	                                    </time>
-	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
-
-
-	                            </li>
-	                        <%
-	                        }
-						}
-                       catch(Exception e){e.printStackTrace();}
-                       finally{
-                    	   myShepherd.rollbackDBTransaction();
-
-                       }
-
-                        %>
-
-                    </ul>
-                    <!--
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
-                    -->
-                </div>
-            </section>
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("topSpotters")%></h2>
-                    <ul class="encounter-list list-unstyled">
-                    <%
-                    //myShepherd.beginDBTransaction();
-                    try{
-	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
-
-	                    System.out.println("  I think my startTime is: "+startTime);
-
-	                    operationStartTime = System.currentTimeMillis();
-	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
-	                    System.out.println("[PERF] index.jsp: getTopUsersSubmittingEncountersSinceTimeInDescendingOrder() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
-	                    int numUsersToDisplay=3;
-	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
-	                    Iterator<String> keys=spotters.keySet().iterator();
-	                    Iterator<Integer> values=spotters.values().iterator();
-	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
-	                          String spotter=keys.next();
-	                          int numUserEncs=values.next().intValue();
-	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
-	                              User thisUser=myShepherd.getUser(spotter);
-	                              if(thisUser.getUserImage()!=null){
-	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-	                              }
-	                              //System.out.println(spotters.values().toString());
-	                            Integer myInt=spotters.get(spotter);
-	                            //System.out.println(spotters);
-
-	                          %>
-	                                <li>
-	                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-	                                    <%
-	                                    if(thisUser.getAffiliation()!=null){
-	                                    %>
-	                                    <small><%=thisUser.getAffiliation() %></small>
-	                                    <%
-	                                      }
-	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
-	                                </li>
-
-	                           <%
-	                           numUsersToDisplay--;
-	                    }
-	                   } //end while
-                    }
-                    catch(Exception e){e.printStackTrace();}
-                    //finally{myShepherd.rollbackDBTransaction();}
-
-                   %>
-
-                    </ul>
-                </div>
-            </section>
+        <!-- Empty row - Top Spotters moved to full-width section below -->
         </div>
     </aside>
 </div>
@@ -423,6 +272,161 @@ h2.vidcap {
         </div>
 
         <hr/>
+
+    </section>
+</div>
+
+<!-- Top Spotters (Past 30 Days) - Full Width Section -->
+<div class="container-fluid relative data-section">
+    <section class="container main-section">
+        <h2 class="section-header text-center"><%=props.getProperty("topSpotters")%></h2>
+        
+        <%
+        // Get top 12 spotters from last 30 days
+        try{
+            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
+            operationStartTime = System.currentTimeMillis();
+            Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+            System.out.println("[PERF] index.jsp: getTopUsersSubmittingEncountersSinceTimeInDescendingOrder() took " + (System.currentTimeMillis() - operationStartTime) + " ms");
+            
+            // Collect up to 12 valid users
+            ArrayList<Map<String,Object>> validSpotters = new ArrayList<Map<String,Object>>();
+            Iterator<String> keys=spotters.keySet().iterator();
+            Iterator<Integer> values=spotters.values().iterator();
+            
+            while(keys.hasNext() && validSpotters.size() < 12){
+                String spotter=keys.next();
+                int numUserEncs=values.next().intValue();
+                if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
+                    User thisUser=myShepherd.getUser(spotter);
+                    String profilePhotoURL="images/user-profile-white-transparent.png";
+                    if(thisUser.getUserImage()!=null){
+                        profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                    }
+                    
+                    Map<String,Object> spotterData = new HashMap<String,Object>();
+                    spotterData.put("user", thisUser);
+                    spotterData.put("username", spotter);
+                    spotterData.put("encounters", numUserEncs);
+                    spotterData.put("photo", profilePhotoURL);
+                    validSpotters.add(spotterData);
+                }
+            }
+            
+            // Split into 3 columns
+            int col1End = Math.min(4, validSpotters.size());
+            int col2End = Math.min(8, validSpotters.size());
+            int col3End = Math.min(12, validSpotters.size());
+        %>
+        
+        <div class="row">
+            <!-- Column 1: Top 1-4 -->
+            <% if(col1End > 0){ %>
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding focusbox">
+                <div class="focusbox-inner opec">
+                    <ul class="encounter-list list-unstyled">
+                    <%
+                    for(int i=0; i<col1End; i++){
+                        Map<String,Object> data = validSpotters.get(i);
+                        User thisUser = (User)data.get("user");
+                        String spotter = (String)data.get("username");
+                        int numUserEncs = (Integer)data.get("encounters");
+                        String profilePhotoURL = (String)data.get("photo");
+                    %>
+                        <li>
+                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
+                            <%
+                            if(thisUser.getAffiliation()!=null){
+                            %>
+                            <small><%=thisUser.getAffiliation() %></small>
+                            <%
+                            }
+                            %>
+                            <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %></span></p>
+                        </li>
+                    <%
+                    }
+                    %>
+                    </ul>
+                </div>
+            </section>
+            <% } %>
+            
+            <!-- Column 2: Top 5-8 -->
+            <% if(col2End > col1End){ %>
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding focusbox">
+                <div class="focusbox-inner opec">
+                    <ul class="encounter-list list-unstyled">
+                    <%
+                    for(int i=col1End; i<col2End; i++){
+                        Map<String,Object> data = validSpotters.get(i);
+                        User thisUser = (User)data.get("user");
+                        String spotter = (String)data.get("username");
+                        int numUserEncs = (Integer)data.get("encounters");
+                        String profilePhotoURL = (String)data.get("photo");
+                    %>
+                        <li>
+                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
+                            <%
+                            if(thisUser.getAffiliation()!=null){
+                            %>
+                            <small><%=thisUser.getAffiliation() %></small>
+                            <%
+                            }
+                            %>
+                            <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %></span></p>
+                        </li>
+                    <%
+                    }
+                    %>
+                    </ul>
+                </div>
+            </section>
+            <% } %>
+            
+            <!-- Column 3: Top 9-12 -->
+            <% if(col3End > col2End){ %>
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding focusbox">
+                <div class="focusbox-inner opec">
+                    <ul class="encounter-list list-unstyled">
+                    <%
+                    for(int i=col2End; i<col3End; i++){
+                        Map<String,Object> data = validSpotters.get(i);
+                        User thisUser = (User)data.get("user");
+                        String spotter = (String)data.get("username");
+                        int numUserEncs = (Integer)data.get("encounters");
+                        String profilePhotoURL = (String)data.get("photo");
+                    %>
+                        <li>
+                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
+                            <%
+                            if(thisUser.getAffiliation()!=null){
+                            %>
+                            <small><%=thisUser.getAffiliation() %></small>
+                            <%
+                            }
+                            %>
+                            <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %></span></p>
+                        </li>
+                    <%
+                    }
+                    %>
+                    </ul>
+                </div>
+            </section>
+            <% } %>
+        </div>
+        
+        <%
+        }
+        catch(Exception e){e.printStackTrace();}
+        %>
+        
+    </section>
+</div>
+
+<div class="container-fluid">
+    <section class="container text-center main-section">
 
         <main class="container">
             <article class="text-center">
