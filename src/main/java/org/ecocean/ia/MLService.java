@@ -61,16 +61,21 @@ public class MLService {
         if (iac == null) return null;
         if (passedTxStr == null) return null;
         String taxonomyString = passedTxStr.replaceAll(" ", "."); // need dots, not spaces
-        JSONObject txConf = (JSONObject)iac.get(taxonomyString);
-        if (txConf == null)
+        Object mlc = iac.get(taxonomyString + "._mlservice_conf");
+        if (mlc == null)
             throw new IAException(
                       "MLService.getConfigs() configuration problem with taxonomyString=" +
                       taxonomyString);
-        JSONArray confs = txConf.optJSONArray("_mlservice_conf");
+        JSONArray confs = null;
+        try {
+            confs = (JSONArray)mlc;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         if (confs == null)
             throw new IAException(
                       "MLService.getConfigs() configuration problem with taxonomyString=" +
-                      taxonomyString + "; txConf=" + txConf);
+                      taxonomyString + "; mlc=" + mlc);
         List<JSONObject> configs = new ArrayList<JSONObject>();
         for (int i = 0; i < confs.length(); i++) {
             JSONObject jc = confs.optJSONObject(i);
