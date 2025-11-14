@@ -1063,22 +1063,49 @@ try{
 		<%
 			}
 	}
-	if((request.isUserInRole("admin") || request.isUserInRole("researcher")) 
-			&& itask.getIATask()!=null 
-			&& itask.getStatus()!=null
-			&& itask.getStatus().equals("complete") 
-			&& (iaStatusString.startsWith("identification")||iaStatusString.equals("detection complete"))) {allowReID=true;}
-
-	if (allowReID) { 
-		%>
-		<p><strong>Click "Send to identification" to select your match-against criteria and then send to matching.</strong></p>
-
-		<div style="margin-bottom: 30px;">
-		    	<a class="button" onClick="showModal()">Send to identification</a>
-		   </div>
-		    	
-		    <%
+	// Check if identification tasks are currently in progress
+	boolean idTasksInProgress = false;
+	boolean idTasksStuckOver24Hours = false;
+	int idNumComplete = 0;
+	int idNumTotal = 0;
+	if(itask.iaTaskRequestedIdentification() && idStatusMap != null){
+		if(idStatusMap.get("completed") != null){idNumComplete = idStatusMap.get("completed");}
+		for(Integer key:idStatusMap.values()){
+			idNumTotal += key;
+		}
+		idTasksInProgress = (idNumTotal > 0 && idNumComplete < idNumTotal);
+		
+		// Check if tasks have been in progress for more than 24 hours
+		if(idTasksInProgress && itask.getIATask() != null) {
+			long taskCreatedTime = itask.getIATask().getModifiedLong();
+			long currentTime = System.currentTimeMillis();
+			long hoursSinceCreated = (currentTime - taskCreatedTime) / (1000 * 60 * 60);
+			idTasksStuckOver24Hours = (hoursSinceCreated >= 24);
+		}
 	}
+	
+	if((request.isUserInRole("admin") || request.isUserInRole("researcher")) 
+		&& itask.getIATask()!=null 
+		&& itask.getStatus()!=null
+		&& itask.getStatus().equals("complete") 
+		&& (iaStatusString.startsWith("identification")||iaStatusString.equals("detection complete"))) {allowReID=true;}
+
+if (allowReID) { 
+	%>
+	<% if (idTasksInProgress && !idTasksStuckOver24Hours) { %>
+		<p><strong>Identification is currently in progress. Please wait until all identification tasks complete before sending again.</strong></p>
+		<div style="margin-bottom: 30px;">
+			<a onClick="showModal()" class="button disabled" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;">Send to identification</a>
+		</div>
+	<% } else { %>
+		<p><strong>Click "Send to identification" to select your match-against criteria and then send to matching.</strong></p>
+		<div style="margin-bottom: 30px;">
+			<a class="button" onClick="showModal()">Send to identification</a>
+		</div>
+	<% } %>
+	    	
+	    <%
+}
 
 	
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
