@@ -409,6 +409,13 @@ public class Annotation extends Base implements java.io.Serializable {
         return false;
     }
 
+    public void setBbox(int x, int y, int width, int height) {
+        setX(x);
+        setY(y);
+        setWidth(width);
+        setHeight(height);
+    }
+
     // (viewpoint == null || viewpoint == 'up' || viewpoint == 'upfront' || viewpoint == 'upfrontright'
     // || viewpoint == 'upright' || viewpoint == 'upbackright' || viewpoint == 'upback'
     // || viewpoint == 'upbackleft' || viewpoint == 'upfront' || viewpoint == 'upfrontleft')

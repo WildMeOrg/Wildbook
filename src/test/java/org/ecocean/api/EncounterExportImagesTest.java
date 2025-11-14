@@ -16,10 +16,12 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.media.AssetStore;
+import org.ecocean.media.Feature;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -372,12 +374,11 @@ import static org.junit.jupiter.api.Assertions.*;
             MediaAsset asset3 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
 
-// Create test encounters
+            // Create test encounters
             org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
             enc1.setGenus("Panthera");
             enc1.setSpecificEpithet("leo");
             myShepherd.storeNewEncounter(enc1);
-            enc1.addMediaAsset(asset1);
 
             enc1.opensearchIndexDeep();
             asset1.opensearchIndexDeep();
@@ -386,7 +387,6 @@ import static org.junit.jupiter.api.Assertions.*;
             enc2.setGenus("Panthera");
             enc2.setSpecificEpithet("leo");
             myShepherd.storeNewEncounter(enc2);
-            enc2.addMediaAsset(asset2);
 
             enc2.opensearchIndexDeep();
             asset2.opensearchIndexDeep();
@@ -395,7 +395,6 @@ import static org.junit.jupiter.api.Assertions.*;
             enc3.setGenus("Panthera");
             enc3.setSpecificEpithet("leo");
             myShepherd.storeNewEncounter(enc3);
-            enc3.addMediaAsset(asset3);
 
             enc3.opensearchIndexDeep();
             asset3.opensearchIndexDeep();
@@ -405,34 +404,33 @@ import static org.junit.jupiter.api.Assertions.*;
                 enc1);
             enc1.setIndividual(ind1);
             enc2.setIndividual(ind1);
-            myShepherd.getPM().makePersistent(ind1);
+            myShepherd.storeNewMarkedIndividual(ind1);
 
             org.ecocean.MarkedIndividual ind2 = new org.ecocean.MarkedIndividual("Individual_2",
                 enc3);
             enc3.setIndividual(ind2);
-            myShepherd.getPM().makePersistent(ind2);
+            myShepherd.storeNewMarkedIndividual(ind2);
 
             ind1.opensearchIndexDeep();
             ind2.opensearchIndexDeep();
 
-// Create annotations with bounding boxes
+            // Create annotations with bounding boxes
             org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
-            ann1.setBbox(0,0,500,500);
+            ann1.setBbox(0, 0, 500, 500);
             ann1.setViewpoint("left");
-// Note: bbox format may need adjustment based on Annotation class
-            myShepherd.getPM().makePersistent(ann1);
+            myShepherd.storeNewAnnotation(ann1);
             ann1.opensearchIndexDeep();
 
             org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
-            ann2.setBbox(500,0,500,500);
+            ann2.setBbox(500, 0, 500, 500);
             ann2.setViewpoint("right");
-            myShepherd.getPM().makePersistent(ann2);
+            myShepherd.storeNewAnnotation(ann2);
             ann2.opensearchIndexDeep();
 
             org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
-            ann3.setBbox(0,500,500,500);
+            ann3.setBbox(0, 500, 500, 500);
             ann3.setViewpoint("front");
-            myShepherd.getPM().makePersistent(ann3);
+            myShepherd.storeNewAnnotation(ann3);
             ann3.opensearchIndexDeep();
 
             myShepherd.commitDBTransaction();
@@ -506,5 +504,15 @@ import static org.junit.jupiter.api.Assertions.*;
             .log().ifValidationFails();
 
         System.out.println("OpenSearch connection test passed");
+    }
+
+    private static Feature createBbox(int x, int y, int width, int height) {
+        JSONObject params = new JSONObject();
+
+        params.put("width", width);
+        params.put("height", height);
+        params.put("x", x);
+        params.put("y", y);
+        return new Feature("org.ecocean.boundingBox", params);
     }
 }
