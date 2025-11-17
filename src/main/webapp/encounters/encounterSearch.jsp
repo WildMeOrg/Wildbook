@@ -1599,12 +1599,38 @@ else {
 <tr>
   <td>
         <%
-
-          //List<String> users = myShepherd.getAllUsernames();
-        	// List<String> users = myShepherd.getAllNativeUsernames();
-          // users.remove(null);
-          // Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
-          List<User> users = myShepherd.getNativeUsersWithoutAnonymous();
+          List<User> users = new ArrayList<User>();
+          User currentUser = myShepherd.getUser(request);
+          //if you're an admin, see everybody
+          if(request.isUserInRole("admin")){
+            users = myShepherd.getNativeUsersWithoutAnonymous();
+          }
+          //if you're an orgAdmin, see only users in your org
+          else if(request.isUserInRole("orgAdmin")){
+            if(currentUser != null){
+              List<Organization> orgs = myShepherd.getAllOrganizationsForUser(currentUser);
+              if(orgs != null && orgs.size() > 0){
+                for(Organization org : orgs){
+                  List<User> members = org.getMembers();
+                  if(members != null){
+                    for(User member : members){
+                      // Filter out anonymous users and admins
+                      if(member.getUsername() != null && 
+                         !member.getUsername().contains("Anonymous_")){
+                        users.add(member);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          //otherwise, show no users (empty list)
+          else {
+            // Regular users see no users in the list
+            users = new ArrayList<User>();
+          }
+          
           int numUsers = users.size();
 
         %>
