@@ -118,10 +118,25 @@ const BulkImportTask = observer(() => {
       individualName: item.individualDisplayName || item.individualId || "-",
       imageCount: item.numberMediaAssets,
       class: classArray,
+      createdMillis: item.createdMillis || "-",
     };
   });
 
+  const sortedTableData = tableData
+    .sort((a, b) => {
+      return new Date(a.createdMillis) - new Date(b.createdMillis);
+    })
+    .map((item, index) => ({
+      tableID: index + 1,
+      ...item,
+    }));
+
   const columns = [
+    {
+      name: "#",
+      cell: (row) => row.tableID,
+      selector: (row) => row.tableID,
+    },
     {
       name: "Encounter ID",
       selector: (row) => row.encounterID,
@@ -389,7 +404,7 @@ const BulkImportTask = observer(() => {
           />
         </div>
 
-        <SimpleDataTable columns={columns} data={tableData} />
+        <SimpleDataTable columns={columns} data={sortedTableData} />
       </section>
 
       <Row>
