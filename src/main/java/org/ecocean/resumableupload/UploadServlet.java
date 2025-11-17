@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -152,6 +154,16 @@ public class UploadServlet extends HttpServlet {
         if (archivoFinal != null) { // Check if all chunks uploaded, and
             // change filename
             FlowInfoStorage.getInstance().remove(info);
+            
+            // Add this file to the current upload session list
+            try {
+                System.out.println("UploadServlet.doPost: File upload completed, adding to session: " + info.flowFilename);
+                addFileToCurrentUploadSession(request, info.flowFilename);
+            } catch (Exception e) {
+                System.out.println("UploadServlet.doPost: ERROR adding file to session: " + e.getMessage());
+                e.printStackTrace();
+            }
+            
             response.getWriter().print("{\"success\": true, \"uploadComplete\": true}");
         } else {
             response.getWriter().print(
@@ -350,5 +362,52 @@ public class UploadServlet extends HttpServlet {
             throw new ServletException("Invalid request params.");
         }
         return info;
+    }
+    
+    /**
+     * Add a filename to the current upload session list.
+     * This allows us to track which files were uploaded in the current session
+     * so we can display only those files on the review page.
+     */
+    @SuppressWarnings("unchecked")
+    private void addFileToCurrentUploadSession(HttpServletRequest request, String filename) {
+        try {
+            System.out.println("UploadServlet.addFileToCurrentUploadSession: Starting for filename: " + filename);
+            Set<String> uploadedFiles = (Set<String>) request.getSession().getAttribute("currentUploadSessionFiles");
+            if (uploadedFiles == null) {
+                System.out.println("UploadServlet.addFileToCurrentUploadSession: Creating new HashSet");
+                uploadedFiles = new HashSet<String>();
+            }
+            uploadedFiles.add(filename);
+            request.getSession().setAttribute("currentUploadSessionFiles", uploadedFiles);
+            System.out.println("UploadServlet.addFileToCurrentUploadSession: Successfully added file to current upload session: " + filename + 
+                              " (total files in session: " + uploadedFiles.size() + ")");
+        } catch (Exception e) {
+            System.out.println("UploadServlet.addFileToCurrentUploadSession: ERROR - " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Clear the current upload session file list.
+     * This should be called when starting a new upload session.
+     */
+    public static void clearCurrentUploadSession(HttpServletRequest request) {
+        try {
+            System.out.println("UploadServlet.clearCurrentUploadSession: Starting");
+            if (request == null) {
+                System.out.println("UploadServlet.clearCurrentUploadSession: ERROR - request is null");
+                return;
+            }
+            if (request.getSession() == null) {
+                System.out.println("UploadServlet.clearCurrentUploadSession: ERROR - session is null");
+                return;
+            }
+            request.getSession().removeAttribute("currentUploadSessionFiles");
+            System.out.println("UploadServlet.clearCurrentUploadSession: Successfully cleared current upload session file list");
+        } catch (Exception e) {
+            System.out.println("UploadServlet.clearCurrentUploadSession: ERROR - " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

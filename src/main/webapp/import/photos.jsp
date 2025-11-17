@@ -26,6 +26,16 @@ String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
 // stores subdir on session so it can go to the other import servlets
 UploadServlet.setSubdirForUpload(subdir, request);
 
+// Clear the previous upload session file list when starting a new upload
+try {
+	System.out.println("photos.jsp: About to call clearCurrentUploadSession");
+	UploadServlet.clearCurrentUploadSession(request);
+	System.out.println("photos.jsp: Successfully cleared current upload session");
+} catch (Exception e) {
+	System.out.println("photos.jsp: ERROR clearing upload session: " + e.getMessage());
+	e.printStackTrace();
+}
+
 boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
 
 

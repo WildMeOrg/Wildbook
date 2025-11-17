@@ -3,6 +3,7 @@
 	java.util.ArrayList,
 	java.util.List,
 	java.util.Collection,
+	java.util.Set,
 	java.io.File,
 	org.ecocean.*,
 	org.ecocean.resumableupload.UploadServlet,
@@ -26,37 +27,65 @@ String dirName = UploadServlet.getUploadDir(request);
 boolean isImportExport = "true".equals(request.getParameter("isImportExport"));
 String importExportDir = request.getParameter("subdir2");
 
-
-
+// Get the list of files uploaded in the current session
+Set<String> currentSessionFiles = (Set<String>) request.getSession().getAttribute("currentUploadSessionFiles");
+System.out.println("ReviewDirectory.jsp: currentSessionFiles = " + currentSessionFiles);
 
 File uploadDir = null;
 Collection<File> contents = null;
 int nImages = 0;
 
-try {
-	uploadDir = new File(dirName);
-	contents = FileUtils.listFiles(uploadDir, null, true);
-} catch (Exception e) {
-	System.out.println("Exception! On ReviewDirectory.jsp!!!");
-	e.printStackTrace();
-}
-
-
 List<File> imageFiles = new ArrayList<File>();
-if (contents!=null) {
-	for (File f: contents) {
-		String name = f.getName().toLowerCase();
 
-        // Check if it ends with a valid image extension
-        boolean isImage = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
+// If we have a current session file list, only show those files
+if (currentSessionFiles != null && !currentSessionFiles.isEmpty()) {
+	System.out.println("Showing only files from current upload session (" + currentSessionFiles.size() + " files)");
+	try {
+		uploadDir = new File(dirName);
+		for (String filename : currentSessionFiles) {
+			File f = new File(uploadDir, filename);
+			if (f.exists() && f.isFile()) {
+				String name = f.getName().toLowerCase();
+				// Check if it ends with a valid image extension
+				boolean isImage = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
+				// Check that it does NOT contain unwanted substrings
+				boolean isClean = !(name.contains("-mid") || name.contains("-watermark") || 
+									name.contains("-master") || name.contains("-thumb"));
+				if (isImage && isClean) {
+					imageFiles.add(f);
+				}
+			}
+		}
+	} catch (Exception e) {
+		System.out.println("Exception! On ReviewDirectory.jsp!!!");
+		e.printStackTrace();
+	}
+} else {
+	// Fallback to old behavior: show all files in the directory
+	System.out.println("No current session files found, showing all files in directory");
+	try {
+		uploadDir = new File(dirName);
+		contents = FileUtils.listFiles(uploadDir, null, true);
+	} catch (Exception e) {
+		System.out.println("Exception! On ReviewDirectory.jsp!!!");
+		e.printStackTrace();
+	}
+	
+	if (contents != null) {
+		for (File f: contents) {
+			String name = f.getName().toLowerCase();
 
-        // Check that it does NOT contain unwanted substrings
-        boolean isClean = !(name.contains("-mid") || name.contains("-watermark") || 
-                            name.contains("-master") || name.contains("-thumb"));
+			// Check if it ends with a valid image extension
+			boolean isImage = name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
 
-        if (isImage && isClean) {
-            imageFiles.add(f);
-        }
+			// Check that it does NOT contain unwanted substrings
+			boolean isClean = !(name.contains("-mid") || name.contains("-watermark") || 
+								name.contains("-master") || name.contains("-thumb"));
+
+			if (isImage && isClean) {
+				imageFiles.add(f);
+			}
+		}
 	}
 }
 nImages = imageFiles.size();
