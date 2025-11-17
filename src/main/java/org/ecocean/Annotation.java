@@ -1437,11 +1437,37 @@ public class Annotation implements java.io.Serializable {
     public static List<String> getAllValidViewpoints() {
         // add code to limit based on IA.properties viewpoints enabled switches if you
         // want i guess
+        // Custom ordered list as per client requirements
         List<String> all = new ArrayList<>();
-
-        for (int i = 0; i < VALID_VIEWPOINTS.length; i++) {
-            Collections.addAll(all, VALID_VIEWPOINTS[i]);
-        }
+        
+        // Primary directions
+        all.add("left");
+        all.add("right");
+        all.add("front");
+        all.add("back");
+        all.add("up");
+        all.add("down");
+        
+        // Simple combinations
+        all.add("frontleft");
+        all.add("frontright");
+        all.add("backleft");
+        all.add("backright");
+        all.add("upleft");
+        all.add("upright");
+        all.add("downleft");
+        all.add("downright");
+        
+        // Complex combinations
+        all.add("upfrontleft");
+        all.add("upfrontright");
+        all.add("upbackleft");
+        all.add("upbackright");
+        all.add("downfrontleft");
+        all.add("downfrontright");
+        all.add("downbackleft");
+        all.add("downbackright");
+        
         return all;
     }
 
