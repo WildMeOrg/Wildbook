@@ -58,7 +58,7 @@ const Encounter = observer(() => {
       .get(`/api/v3/encounters/${encounterId}`)
       .then((res) => {
         if (!cancelled) store.setEncounterData(res.data);
-        store.setAccess(get(res.data, "access", "write"));
+        store.setAccess(get(res.data, "access", "read"));
       })
       .catch((_err) => setEncounterValid(false));
     return () => {
