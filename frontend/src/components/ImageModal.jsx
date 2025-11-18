@@ -681,169 +681,95 @@ export const ImageModal = observer(
                     }}
                   />
                 ))}
-                <button
-                  className="btn btn-sm"
-                  style={{
-                    cursor: "pointer",
-                    backgroundColor: themeColor?.wildMeColors?.cyan700,
-                    color: "white",
-                    borderRadius: "20px",
-                  }}
-                  onClick={async () => {
-                    imageStore.setAddTagsFieldOpen(
-                      !imageStore.addTagsFieldOpen,
-                    );
-                  }}
-                >
-                  + <FormattedMessage id="ADD_TAG" />
-                </button>
-                {imageStore.addTagsFieldOpen && (
-                  <div>
-                    <p>
-                      <FormattedMessage id="ADD_NEW_KEYWORD" />
-                    </p>
-                    <div className="input-group mb-3">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="New tag"
-                        onChange={(e) => {
-                          const text = e.target.value.trim();
-                          setTagText(text);
-                        }}
-                        value={tagText}
-                      />
+                {imageStore.access === "write" && (
+                  <button
+                    className="btn btn-sm"
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor: themeColor?.wildMeColors?.cyan700,
+                      color: "white",
+                      borderRadius: "20px",
+                    }}
+                    onClick={async () => {
+                      imageStore.setAddTagsFieldOpen(
+                        !imageStore.addTagsFieldOpen,
+                      );
+                    }}
+                  >
+                    + <FormattedMessage id="ADD_TAG" />
+                  </button>
+                )}
+                {imageStore.access === "write" &&
+                  imageStore.addTagsFieldOpen && (
+                    <div>
+                      <p>
+                        <FormattedMessage id="ADD_NEW_KEYWORD" />
+                      </p>
+                      <div className="input-group mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="New tag"
+                          onChange={(e) => {
+                            const text = e.target.value.trim();
+                            setTagText(text);
+                          }}
+                          value={tagText}
+                        />
 
-                      <button
-                        className="btn"
-                        style={{
-                          cursor: "pointer",
-                          backgroundColor: tagText
-                            ? themeColor?.wildMeColors?.cyan700
-                            : "lightgray",
-                          color: tagText ? "white" : "black",
-                        }}
-                        onClick={async () => {
-                          if (tagText) {
-                            const result = await addNewKeywordText(
-                              imageStore.encounterData?.mediaAssets[
-                                imageStore.selectedImageIndex
-                              ]?.id,
-                              tagText,
-                            );
-                            if (result?.success === true) {
-                              imageStore.setAddTagsFieldOpen(false);
-                              setTagText("");
-                              imageStore.setSelectedKeyword(null);
-                              imageStore.setAddTagsFieldOpen(false);
-                              await imageStore.refreshEncounterData();
-                            } else {
-                              setErrorMsg("Failed to add new tag");
+                        <button
+                          className="btn"
+                          style={{
+                            cursor: "pointer",
+                            backgroundColor: tagText
+                              ? themeColor?.wildMeColors?.cyan700
+                              : "lightgray",
+                            color: tagText ? "white" : "black",
+                          }}
+                          onClick={async () => {
+                            if (tagText) {
+                              const result = await addNewKeywordText(
+                                imageStore.encounterData?.mediaAssets[
+                                  imageStore.selectedImageIndex
+                                ]?.id,
+                                tagText,
+                              );
+                              if (result?.success === true) {
+                                imageStore.setAddTagsFieldOpen(false);
+                                setTagText("");
+                                imageStore.setSelectedKeyword(null);
+                                imageStore.setAddTagsFieldOpen(false);
+                                await imageStore.refreshEncounterData();
+                              } else {
+                                setErrorMsg("Failed to add new tag");
+                              }
                             }
-                          }
-                        }}
-                      >
-                        <FormattedMessage id="ADD" />
-                      </button>
-                    </div>
-                    <p className="muted">
-                      <FormattedMessage id="SELECT_KEYWORD" />
-                    </p>
-                    <div className="input-group mb-3">
-                      <select
-                        className="form-select"
-                        onChange={async (e) => {
-                          const selectedValue = e.target.value;
-                          imageStore.setSelectedKeyword(selectedValue);
-                        }}
-                        value={imageStore.selectedKeyword || ""}
-                      >
-                        <option value="" disabled>
-                          <FormattedMessage id="SELECT_EXISTING_KEYWORD" />
-                        </option>
-                        {(imageStore.availableKeywords || []).map(
-                          (keyword, index) => (
-                            <option
-                              key={index}
-                              value={imageStore.availableKeywordsId[index]}
-                            >
-                              {keyword}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                      <button
-                        className="btn"
-                        disabled={!imageStore.selectedKeyword}
-                        style={{
-                          cursor: "pointer",
-                          backgroundColor: imageStore.selectedKeyword
-                            ? themeColor?.wildMeColors?.cyan700
-                            : "lightgray",
-                          color: imageStore.selectedKeyword ? "white" : "black",
-                        }}
-                        onClick={async () => {
-                          if (imageStore.selectedKeyword) {
-                            const result = await addExistingKeyword(
-                              imageStore.encounterData?.mediaAssets[
-                                imageStore.selectedImageIndex
-                              ]?.id,
-                              imageStore.selectedKeyword,
-                            );
-                            if (result?.success === true) {
-                              imageStore.setAddTagsFieldOpen(false);
-                              imageStore.setSelectedKeyword(null);
-                              setTagText("");
-                              imageStore.setAddTagsFieldOpen(false);
-                              await imageStore.refreshEncounterData();
-                            } else {
-                              setErrorMsg("Failed to add existing tag:");
-                            }
-                          }
-                        }}
-                      >
-                        <FormattedMessage id="ADD" />
-                      </button>
-                    </div>
-                    <p>
-                      <FormattedMessage id="SELECT_LABELED_KEYWORD" />
-                    </p>
-                    <div className="mb-3">
-                      <select
-                        className="form-select"
-                        onChange={async (e) => {
-                          const selectedValue = e.target.value;
-                          imageStore.setSelectedLabeledKeyword(selectedValue);
-                        }}
-                        value={imageStore.selectedLabeledKeyword || ""}
-                      >
-                        <option value="" disabled>
-                          <FormattedMessage id="SELECT_EXISTING_LABELED_KEYWORD" />
-                        </option>
-                        {(imageStore.availabelLabeledKeywords || []).map(
-                          (keyword) => (
-                            <option key={keyword} value={keyword}>
-                              {keyword}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                      <div className="input-group mt-3">
+                          }}
+                        >
+                          <FormattedMessage id="ADD" />
+                        </button>
+                      </div>
+                      <p className="muted">
+                        <FormattedMessage id="SELECT_KEYWORD" />
+                      </p>
+                      <div className="input-group mb-3">
                         <select
                           className="form-select"
                           onChange={async (e) => {
                             const selectedValue = e.target.value;
-                            imageStore.setSelectedAllowedValues(selectedValue);
+                            imageStore.setSelectedKeyword(selectedValue);
                           }}
-                          defaultValue=""
-                          value={imageStore.selectedAllowedValues || ""}
+                          value={imageStore.selectedKeyword || ""}
                         >
                           <option value="" disabled>
-                            <FormattedMessage id="SELECT_ALLOWED_VALUES" />
+                            <FormattedMessage id="SELECT_EXISTING_KEYWORD" />
                           </option>
-                          {(imageStore.labeledKeywordAllowedValues || []).map(
-                            (keyword) => (
-                              <option key={keyword} value={keyword}>
+                          {(imageStore.availableKeywords || []).map(
+                            (keyword, index) => (
+                              <option
+                                key={index}
+                                value={imageStore.availableKeywordsId[index]}
+                              >
                                 {keyword}
                               </option>
                             ),
@@ -851,39 +777,28 @@ export const ImageModal = observer(
                         </select>
                         <button
                           className="btn"
-                          disabled={
-                            !imageStore.selectedLabeledKeyword ||
-                            !imageStore.selectedAllowedValues
-                          }
+                          disabled={!imageStore.selectedKeyword}
                           style={{
                             cursor: "pointer",
-                            backgroundColor:
-                              imageStore.selectedLabeledKeyword &&
-                              imageStore.selectedAllowedValues
-                                ? themeColor?.wildMeColors?.cyan700
-                                : "lightgray",
+                            backgroundColor: imageStore.selectedKeyword
+                              ? themeColor?.wildMeColors?.cyan700
+                              : "lightgray",
                             color: imageStore.selectedKeyword
                               ? "white"
                               : "black",
                           }}
                           onClick={async () => {
-                            if (
-                              imageStore.selectedLabeledKeyword &&
-                              imageStore.selectedAllowedValues
-                            ) {
-                              const result = await addExistingLabeledKeyword(
+                            if (imageStore.selectedKeyword) {
+                              const result = await addExistingKeyword(
                                 imageStore.encounterData?.mediaAssets[
                                   imageStore.selectedImageIndex
                                 ]?.id,
-                                imageStore.selectedLabeledKeyword,
-                                imageStore.selectedAllowedValues,
+                                imageStore.selectedKeyword,
                               );
                               if (result?.success === true) {
                                 imageStore.setAddTagsFieldOpen(false);
-                                imageStore.setSelectedLabeledKeyword(null);
-                                imageStore.setSelectedAllowedValues(null);
-                                setTagText("");
                                 imageStore.setSelectedKeyword(null);
+                                setTagText("");
                                 imageStore.setAddTagsFieldOpen(false);
                                 await imageStore.refreshEncounterData();
                               } else {
@@ -895,9 +810,101 @@ export const ImageModal = observer(
                           <FormattedMessage id="ADD" />
                         </button>
                       </div>
+                      <p>
+                        <FormattedMessage id="SELECT_LABELED_KEYWORD" />
+                      </p>
+                      <div className="mb-3">
+                        <select
+                          className="form-select"
+                          onChange={async (e) => {
+                            const selectedValue = e.target.value;
+                            imageStore.setSelectedLabeledKeyword(selectedValue);
+                          }}
+                          value={imageStore.selectedLabeledKeyword || ""}
+                        >
+                          <option value="" disabled>
+                            <FormattedMessage id="SELECT_EXISTING_LABELED_KEYWORD" />
+                          </option>
+                          {(imageStore.availabelLabeledKeywords || []).map(
+                            (keyword) => (
+                              <option key={keyword} value={keyword}>
+                                {keyword}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                        <div className="input-group mt-3">
+                          <select
+                            className="form-select"
+                            onChange={async (e) => {
+                              const selectedValue = e.target.value;
+                              imageStore.setSelectedAllowedValues(
+                                selectedValue,
+                              );
+                            }}
+                            defaultValue=""
+                            value={imageStore.selectedAllowedValues || ""}
+                          >
+                            <option value="" disabled>
+                              <FormattedMessage id="SELECT_ALLOWED_VALUES" />
+                            </option>
+                            {(imageStore.labeledKeywordAllowedValues || []).map(
+                              (keyword) => (
+                                <option key={keyword} value={keyword}>
+                                  {keyword}
+                                </option>
+                              ),
+                            )}
+                          </select>
+                          <button
+                            className="btn"
+                            disabled={
+                              !imageStore.selectedLabeledKeyword ||
+                              !imageStore.selectedAllowedValues
+                            }
+                            style={{
+                              cursor: "pointer",
+                              backgroundColor:
+                                imageStore.selectedLabeledKeyword &&
+                                imageStore.selectedAllowedValues
+                                  ? themeColor?.wildMeColors?.cyan700
+                                  : "lightgray",
+                              color: imageStore.selectedKeyword
+                                ? "white"
+                                : "black",
+                            }}
+                            onClick={async () => {
+                              if (
+                                imageStore.selectedLabeledKeyword &&
+                                imageStore.selectedAllowedValues
+                              ) {
+                                const result = await addExistingLabeledKeyword(
+                                  imageStore.encounterData?.mediaAssets[
+                                    imageStore.selectedImageIndex
+                                  ]?.id,
+                                  imageStore.selectedLabeledKeyword,
+                                  imageStore.selectedAllowedValues,
+                                );
+                                if (result?.success === true) {
+                                  imageStore.setAddTagsFieldOpen(false);
+                                  imageStore.setSelectedLabeledKeyword(null);
+                                  imageStore.setSelectedAllowedValues(null);
+                                  setTagText("");
+                                  imageStore.setSelectedKeyword(null);
+                                  imageStore.setAddTagsFieldOpen(false);
+                                  await imageStore.refreshEncounterData();
+                                } else {
+                                  setErrorMsg("Failed to add existing tag:");
+                                }
+                              }
+                            }}
+                          >
+                            <FormattedMessage id="ADD" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
 
               <dl className="row g-2 mb-3">
@@ -927,144 +934,146 @@ export const ImageModal = observer(
                 </dd>
               </dl>
 
-              <div className="d-grid mt-auto pt-2 pb-3">
-                <div
-                  className="alert alert-warning mb-2 d-flex align-items-start gap-2"
-                  role="alert"
-                >
-                  <i
-                    className="bi bi-exclamation-triangle"
-                    aria-hidden="true"
-                  />
-                  <span>
-                    <FormattedMessage
-                      id="CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS"
-                      defaultMessage="Click on an annotation to view its match results."
+              {imageStore.access === "write" && (
+                <div className="d-grid mt-auto pt-2 pb-3">
+                  <div
+                    className="alert alert-warning mb-2 d-flex align-items-start gap-2"
+                    role="alert"
+                  >
+                    <i
+                      className="bi bi-exclamation-triangle"
+                      aria-hidden="true"
                     />
-                  </span>
+                    <span>
+                      <FormattedMessage
+                        id="CLICK_ANNOTATION_TO_SEE_MATCH_RESULTS"
+                        defaultMessage="Click on an annotation to view its match results."
+                      />
+                    </span>
+                  </div>
+                  <MainButton
+                    noArrow={true}
+                    color="white"
+                    backgroundColor={themeColor?.wildMeColors?.cyan700}
+                    borderColor={themeColor?.wildMeColors?.cyan700}
+                    target={true}
+                    disabled={!imageStore.matchResultClickable}
+                    onClick={() => {
+                      const taskId = imageStore.encounterAnnotations.filter(
+                        (a) => a.id === imageStore.selectedAnnotationId,
+                      )?.[0]?.iaTaskId;
+                      window.open(`/iaResults.jsp?taskId=${taskId}`, "_blank");
+                    }}
+                    style={{
+                      margin: "5px 0",
+                    }}
+                  >
+                    <FormattedMessage id="MATCH_RESULTS" />
+                  </MainButton>
+
+                  <MainButton
+                    style={{
+                      margin: "5px 0",
+                    }}
+                    noArrow={true}
+                    color="white"
+                    backgroundColor={themeColor?.wildMeColors?.cyan700}
+                    borderColor={themeColor?.wildMeColors?.cyan700}
+                    target={true}
+                    onClick={() => {
+                      if (
+                        !imageStore.encounterData?.mediaAssets[
+                          imageStore.selectedImageIndex
+                        ]
+                      ) {
+                        return;
+                      }
+                      const number = imageStore.encounterData?.id;
+                      const mediaAssetId =
+                        imageStore.encounterData?.mediaAssets[
+                          imageStore.selectedImageIndex
+                        ]?.id;
+                      const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
+                      window.open(url, "_blank");
+                    }}
+                  >
+                    <FormattedMessage id="VISUAL_MATCHER" />
+                  </MainButton>
+
+                  <MainButton
+                    style={{
+                      margin: "5px 0",
+                    }}
+                    noArrow={true}
+                    color="white"
+                    backgroundColor={themeColor?.wildMeColors?.cyan700}
+                    borderColor={themeColor?.wildMeColors?.cyan700}
+                    target={true}
+                    onClick={() => {
+                      if (
+                        !imageStore.encounterData?.mediaAssets[
+                          imageStore.selectedImageIndex
+                        ]
+                      ) {
+                        return;
+                      }
+                      imageStore.setOpenMatchCriteriaModal(true);
+                    }}
+                  >
+                    <FormattedMessage id="NEW_MATCH" />
+                  </MainButton>
+
+                  <MainButton
+                    style={{
+                      margin: "5px 0",
+                    }}
+                    noArrow={true}
+                    backgroundColor="white"
+                    color={themeColor?.wildMeColors?.cyan700}
+                    borderColor={themeColor?.wildMeColors?.cyan700}
+                    target={true}
+                    onClick={() => {
+                      if (
+                        !imageStore.encounterData?.mediaAssets[
+                          imageStore.selectedImageIndex
+                        ]
+                      ) {
+                        return;
+                      }
+                      window.open(
+                        `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}`,
+                        "_blank",
+                      );
+                    }}
+                  >
+                    <FormattedMessage id="ADD_ANNOTATION" />
+                  </MainButton>
+                  <h5 className="text-danger mt-3">
+                    <FormattedMessage id="DANGER_ZONE" />
+                  </h5>
+                  <MainButton
+                    onClick={async () => {
+                      if (window.confirm(deleteImageConfirmMsg)) {
+                        await imageStore.deleteImage();
+                        window.location.reload();
+                      }
+                    }}
+                    shadowColor={themeColor.statusColors.red500}
+                    color={themeColor.statusColors.red500}
+                    noArrow={true}
+                    style={{
+                      width: "auto",
+                      height: "40px",
+                      fontSize: "1rem",
+                      border: `1px solid ${themeColor.statusColors.red500}`,
+                      marginTop: "1rem",
+                      marginBottom: "2rem",
+                    }}
+                  >
+                    <FormattedMessage id="DELETE_IMAGE" />
+                  </MainButton>
                 </div>
-                <MainButton
-                  noArrow={true}
-                  color="white"
-                  backgroundColor={themeColor?.wildMeColors?.cyan700}
-                  borderColor={themeColor?.wildMeColors?.cyan700}
-                  target={true}
-                  disabled={!imageStore.matchResultClickable}
-                  onClick={() => {
-                    const taskId = imageStore.encounterAnnotations.filter(
-                      (a) => a.id === imageStore.selectedAnnotationId,
-                    )?.[0]?.iaTaskId;
-                    window.open(`/iaResults.jsp?taskId=${taskId}`, "_blank");
-                  }}
-                  style={{
-                    margin: "5px 0",
-                  }}
-                >
-                  <FormattedMessage id="MATCH_RESULTS" />
-                </MainButton>
-
-                <MainButton
-                  style={{
-                    margin: "5px 0",
-                  }}
-                  noArrow={true}
-                  color="white"
-                  backgroundColor={themeColor?.wildMeColors?.cyan700}
-                  borderColor={themeColor?.wildMeColors?.cyan700}
-                  target={true}
-                  onClick={() => {
-                    if (
-                      !imageStore.encounterData?.mediaAssets[
-                        imageStore.selectedImageIndex
-                      ]
-                    ) {
-                      return;
-                    }
-                    const number = imageStore.encounterData?.id;
-                    const mediaAssetId =
-                      imageStore.encounterData?.mediaAssets[
-                        imageStore.selectedImageIndex
-                      ]?.id;
-                    const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
-                    window.open(url, "_blank");
-                  }}
-                >
-                  <FormattedMessage id="VISUAL_MATCHER" />
-                </MainButton>
-
-                <MainButton
-                  style={{
-                    margin: "5px 0",
-                  }}
-                  noArrow={true}
-                  color="white"
-                  backgroundColor={themeColor?.wildMeColors?.cyan700}
-                  borderColor={themeColor?.wildMeColors?.cyan700}
-                  target={true}
-                  onClick={() => {
-                    if (
-                      !imageStore.encounterData?.mediaAssets[
-                        imageStore.selectedImageIndex
-                      ]
-                    ) {
-                      return;
-                    }
-                    imageStore.setOpenMatchCriteriaModal(true);
-                  }}
-                >
-                  <FormattedMessage id="NEW_MATCH" />
-                </MainButton>
-
-                <MainButton
-                  style={{
-                    margin: "5px 0",
-                  }}
-                  noArrow={true}
-                  backgroundColor="white"
-                  color={themeColor?.wildMeColors?.cyan700}
-                  borderColor={themeColor?.wildMeColors?.cyan700}
-                  target={true}
-                  onClick={() => {
-                    if (
-                      !imageStore.encounterData?.mediaAssets[
-                        imageStore.selectedImageIndex
-                      ]
-                    ) {
-                      return;
-                    }
-                    window.open(
-                      `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}`,
-                      "_blank",
-                    );
-                  }}
-                >
-                  <FormattedMessage id="ADD_ANNOTATION" />
-                </MainButton>
-                <h5 className="text-danger mt-3">
-                  <FormattedMessage id="DANGER_ZONE" />
-                </h5>
-                <MainButton
-                  onClick={async () => {
-                    if (window.confirm(deleteImageConfirmMsg)) {
-                      await imageStore.deleteImage();
-                      window.location.reload();
-                    }
-                  }}
-                  shadowColor={themeColor.statusColors.red500}
-                  color={themeColor.statusColors.red500}
-                  noArrow={true}
-                  style={{
-                    width: "auto",
-                    height: "40px",
-                    fontSize: "1rem",
-                    border: `1px solid ${themeColor.statusColors.red500}`,
-                    marginTop: "1rem",
-                    marginBottom: "2rem",
-                  }}
-                >
-                  <FormattedMessage id="DELETE_IMAGE" />
-                </MainButton>
-              </div>
+              )}
             </aside>
           </div>
         </div>

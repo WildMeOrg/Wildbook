@@ -28,6 +28,8 @@ class EncounterStore {
 
   _siteSettingsData = null;
 
+  _access = "read";
+
   _intl = null;
 
   modals;
@@ -146,6 +148,13 @@ class EncounterStore {
         samplingProtocol: m.samplingProtocol ?? "",
       }));
     this.resetAllDrafts();
+  }
+
+  get access() {
+    return this._access;
+  }
+  setAccess(newAccess) {
+    this._access = newAccess;
   }
 
   resetMeasurementValues() {

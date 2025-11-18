@@ -36,6 +36,7 @@ import { FormattedMessage } from "react-intl";
 import DeleteEncounterCard from "./DeleteEncounterCard";
 import Modal from "react-bootstrap/Modal";
 import { Divider } from "antd";
+import { get } from "lodash-es";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
@@ -57,12 +58,186 @@ const Encounter = observer(() => {
       .get(`/api/v3/encounters/${encounterId}`)
       .then((res) => {
         if (!cancelled) store.setEncounterData(res.data);
+        store.setAccess(get(res.data, "access", "write"));
       })
       .catch((_err) => setEncounterValid(false));
     return () => {
       cancelled = true;
     };
   }, [encounterId, store]);
+
+  if (store.access === "read") {
+    return (
+      <Container style={{ padding: "20px" }}>
+        {!encounterValid && (
+          <Modal
+            show
+            onHide={() => {
+              window.location.href = "/react";
+            }}
+          >
+            <Modal.Header closeButton>
+              <Modal.Title>
+                <FormattedMessage id="ENCOUNTER_NOT_FOUND" />
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <p>
+                <FormattedMessage id="ENCOUNTER_NOT_FOUND_DESC" />
+              </p>
+            </Modal.Body>
+          </Modal>
+        )}
+        {encounterDeleted && (
+          <Modal show onHide={() => (window.location.href = "/react")}>
+            <Modal.Header closeButton>
+              <Modal.Title>
+                {encounterDeleted === "success" ? (
+                  <FormattedMessage id="ENCOUNTER_DELETED" />
+                ) : (
+                  <FormattedMessage id="ENCOUNTER_DELETED_ERROR" />
+                )}
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <p>
+                {encounterDeleted === "success" ? (
+                  <FormattedMessage id="ENCOUNTER_DELETED_DESC" />
+                ) : (
+                  <FormattedMessage id="ENCOUNTER_DELETED_ERROR_DESC" />
+                )}
+              </p>
+            </Modal.Body>
+          </Modal>
+        )}
+        <ContactInfoModal
+          isOpen={store.modals.openContactInfoModal}
+          onClose={() => store.modals.setOpenContactInfoModal(false)}
+          store={store}
+        />
+        <EncounterHistoryModal
+          isOpen={store.modals.openEncounterHistoryModal}
+          onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
+          store={store}
+        />
+        <Row>
+          <Col md={6}>
+            <h2>
+              <FormattedMessage id="ENCOUNTER" />{" "}
+              {store.encounterData?.individualDisplayName ? (
+                <a
+                  href={`/individuals.jsp?id=${store.encounterData.individualId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  {store.encounterData.individualDisplayName}
+                </a>
+              ) : (
+                "Unassigned"
+              )}
+            </h2>
+
+            <p>
+              <FormattedMessage id="ENCOUNTER_ID" />: {encounterId}
+            </p>
+          </Col>
+          <Col md={6} className="text-end">
+            <Pill
+              text={store.encounterData?.state || "unidentifiable"}
+              style={{ marginRight: "10px" }}
+              active={false}
+            />
+          </Col>
+        </Row>
+
+        <div
+          style={{ marginTop: "20px", display: "flex", flexDirection: "row" }}
+        >
+          <div>
+            <Pill
+              text="OVERVIEW"
+              style={{ marginRight: "10px" }}
+              active={store.overviewActive}
+              onClick={() => {
+                if (store.overviewActive) return;
+                store.setOverviewActive(true);
+              }}
+            />
+            <Pill
+              text="MORE_DETAILS"
+              active={!store.overviewActive}
+              onClick={() => {
+                if (!store.overviewActive) return;
+                store.setOverviewActive(false);
+              }}
+            />
+          </div>
+          <div className="d-flex flex-row" style={{ marginLeft: "auto" }}>
+            <div
+              style={{ marginRight: "10px", cursor: "pointer" }}
+              onClick={() => {
+                store.modals.setOpenContactInfoModal(true);
+              }}
+            >
+              <ContactIcon />
+            </div>
+            <div
+              style={{ marginRight: "10px", cursor: "pointer" }}
+              onClick={() => {
+                store.modals.setOpenEncounterHistoryModal(true);
+              }}
+            >
+              <HistoryIcon />
+            </div>
+          </div>
+        </div>
+        {store.overviewActive ? (
+          <Row className="mt-3 mb-3">
+            <Col md={3}>
+              <CardWithEditButton
+                icon={<DateIcon />}
+                title="DATE"
+                content={<DateSectionReview store={store} />}
+                showEditButton={false}
+              />
+              <CardWithEditButton
+                icon={<IdentifyIcon />}
+                title="IDENTIFY"
+                content={<IdentifySectionReview store={store} />}
+                showEditButton={false}
+              />
+              <CardWithEditButton
+                icon={<MetadataIcon />}
+                title="METADATA"
+                content={<MetadataSectionReview store={store} />}
+                showEditButton={false}
+              />
+            </Col>
+            <Col md={3}>
+              <CardWithEditButton
+                icon={<LocationIcon />}
+                title="LOCATION"
+                content={<LocationSectionReview store={store} />}
+                showEditButton={false}
+              />
+              <CardWithEditButton
+                icon={<AttributesIcon />}
+                title="ATTRIBUTES"
+                content={<AttributesSectionReview store={store} />}
+                showEditButton={false}
+              />
+            </Col>
+            <Col md={6}>
+              <ImageCard store={store} />
+            </Col>
+          </Row>
+        ) : (
+          <MoreDetails store={store} />
+        )}
+      </Container>
+    );
+  }
 
   return (
     <Container style={{ padding: "20px" }}>

@@ -70,93 +70,99 @@ export const ProjectsCard = observer(({ store = {} }) => {
                     borderBottom: "1px solid #ccc",
                   }}
                 ></div>
-                <button
-                  type="button"
-                  className="btn p-1"
-                  aria-label={`Remove ${project.id}`}
-                  title="Remove"
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    padding: "5px",
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (
-                      window.confirm(
-                        `${intl.formatMessage({ id: "CONFIRM_REMOVE_PROJECT" })} ${project.name}?`,
-                      )
-                    ) {
-                      store.removeProjectFromEncounter(project.id);
-                    }
-                  }}
-                >
-                  <RemoveIcon />
-                </button>
+                {store.access === "write" && (
+                  <button
+                    type="button"
+                    className="btn p-1"
+                    aria-label={`Remove ${project.id}`}
+                    title="Remove"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                      padding: "5px",
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (
+                        window.confirm(
+                          `${intl.formatMessage({ id: "CONFIRM_REMOVE_PROJECT" })} ${project.name}?`,
+                        )
+                      ) {
+                        store.removeProjectFromEncounter(project.id);
+                      }
+                    }}
+                  >
+                    <RemoveIcon />
+                  </button>
+                )}
               </div>
             ))
           : null}
       </div>
-      <div>
-        <p className="mb-2">
-          <FormattedMessage id="SEARCH_PROJECT" />
-        </p>
-        <Select
-          placeholder={intl.formatMessage({ id: "SEARCH_A_PROJECT" })}
-          name="project-select"
-          isClearable={true}
-          isSearchable={true}
-          isMulti={true}
-          options={options}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          menuPlacement="auto"
-          menuPortalTarget={document.body}
-          styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-          value={(store.selectedProjects || []).map((p) => ({
-            value: p.id,
-            label: p.name,
-          }))}
-          onChange={(items) => {
-            const arr = items
-              ? items.map((o) => ({ id: o.value, name: o.label }))
-              : [];
-            store.setSelectedProjects(arr);
-          }}
-        />
-      </div>
-      <div className="d-flex justify-content-between mt-3">
-        <MainButton
-          onClick={() => {
-            store.addEncounterToProject();
-            store.setSelectedProjects(null);
-          }}
-          disabled={
-            !store.selectedProjects || store.selectedProjects.length === 0
-          }
-          noArrow={true}
-          color="white"
-          backgroundColor={themeColor?.wildMeColors?.cyan700}
-          borderColor={themeColor?.wildMeColors?.cyan700}
-        >
-          <FormattedMessage id="ADD_PROJECT" />
-        </MainButton>
-        <MainButton
-          onClick={() => {
-            store.setSelectedProjects(null);
-          }}
-          noArrow={true}
-          backgroundColor="white"
-          color={themeColor?.wildMeColors?.cyan700}
-          borderColor={themeColor?.wildMeColors?.cyan700}
-        >
-          <FormattedMessage id="CANCEL" />
-        </MainButton>
-      </div>
+      {store.access === "write" && (
+        <>
+          <div>
+            <p className="mb-2">
+              <FormattedMessage id="SEARCH_PROJECT" />
+            </p>
+            <Select
+              placeholder={intl.formatMessage({ id: "SEARCH_A_PROJECT" })}
+              name="project-select"
+              isClearable={true}
+              isSearchable={true}
+              isMulti={true}
+              options={options}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              menuPlacement="auto"
+              menuPortalTarget={document.body}
+              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+              value={(store.selectedProjects || []).map((p) => ({
+                value: p.id,
+                label: p.name,
+              }))}
+              onChange={(items) => {
+                const arr = items
+                  ? items.map((o) => ({ id: o.value, name: o.label }))
+                  : [];
+                store.setSelectedProjects(arr);
+              }}
+            />
+          </div>
+          <div className="d-flex justify-content-between mt-3">
+            <MainButton
+              onClick={() => {
+                store.addEncounterToProject();
+                store.setSelectedProjects(null);
+              }}
+              disabled={
+                !store.selectedProjects || store.selectedProjects.length === 0
+              }
+              noArrow={true}
+              color="white"
+              backgroundColor={themeColor?.wildMeColors?.cyan700}
+              borderColor={themeColor?.wildMeColors?.cyan700}
+            >
+              <FormattedMessage id="ADD_PROJECT" />
+            </MainButton>
+            <MainButton
+              onClick={() => {
+                store.setSelectedProjects(null);
+              }}
+              noArrow={true}
+              backgroundColor="white"
+              color={themeColor?.wildMeColors?.cyan700}
+              borderColor={themeColor?.wildMeColors?.cyan700}
+            >
+              <FormattedMessage id="CANCEL" />
+            </MainButton>
+          </div>
+        </>
+      )}
     </div>
   );
 });

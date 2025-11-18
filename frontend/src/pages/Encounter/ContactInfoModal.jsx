@@ -64,16 +64,20 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
             data={store.encounterData?.informOthers}
           />
         )}
-        <MainButton
-          onClick={() => store.modals.setOpenAddPeopleModal(true)}
-          noArrow={true}
-          backgroundColor={theme.primaryColors.primary700}
-          color="white"
-          style={{ marginLeft: 0, marginTop: "20px" }}
-        >
-          {<FormattedMessage id="ADD_PEOPLE" />}
-        </MainButton>
-        {store.modals.openAddPeopleModal && <AddPeople store={store} />}
+        {store.access === "write" && (
+          <MainButton
+            onClick={() => store.modals.setOpenAddPeopleModal(true)}
+            noArrow={true}
+            backgroundColor={theme.primaryColors.primary700}
+            color="white"
+            style={{ marginLeft: 0, marginTop: "20px" }}
+          >
+            {<FormattedMessage id="ADD_PEOPLE" />}
+          </MainButton>
+        )}
+        {store.access === "write" && store.modals.openAddPeopleModal && (
+          <AddPeople store={store} />
+        )}
       </Modal.Body>
     </Modal>
   );
