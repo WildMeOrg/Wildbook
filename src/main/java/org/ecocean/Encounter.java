@@ -4689,6 +4689,7 @@ public class Encounter extends Base implements java.io.Serializable {
         org.json.JSONObject rtn = opensearchDocumentAsJSONObject(myShepherd);
         rtn.put("success", true);
         rtn.put("statusCode", 200);
+        rtn.put("access", "none");
         boolean isPublic = isPubliclyReadable();
         if ((user == null) && !isPublic) {
             String[] blocked = {
@@ -4712,6 +4713,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         // these are blocked for non-logged-in *even if it is public*
         if (user == null) {
+            if (isPublic) rtn.put("access", "read");
             String[] blocked = {
                 "microsatelliteMarkers", "locationGeoPoint", "occurrenceLocationGeoPoint",
                     "mediaAssetKeywords", "mediaAssetLabeledKeywords", "biologicalMeasurements",
@@ -4739,6 +4741,11 @@ public class Encounter extends Base implements java.io.Serializable {
             }
             rtn.put("mediaAssets", mas);
         } else {
+            if (canUserEdit(user, myShepherd)) {
+                rtn.put("access", "write");
+            } else if (canUserView(user, myShepherd)) {
+                rtn.put("access", "read");
+            }
             // for real users we add some extras to assets and annotations
             if (rtn.optJSONArray("mediaAssets") != null) {
                 for (int i = 0; i < rtn.getJSONArray("mediaAssets").length(); i++) {
