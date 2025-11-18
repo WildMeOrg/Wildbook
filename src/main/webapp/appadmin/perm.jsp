@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
+org.ecocean.security.*,
 org.ecocean.shepherd.core.Shepherd,
 java.util.List,
 java.util.Map,
@@ -35,13 +36,17 @@ if (id == null) {
     } else {
         out.println("<p>encounter: <b>" + enc +"</b></p>");
         out.println("<p>enc.submitterUser: <b>" + enc.getSubmitterUser(myShepherd) +"</b></p>");
+        out.println("<p>enc.isPubliclyReadable(): <b>" + enc.isPubliclyReadable() +"</b></p>");
         out.println("<hr /><p>testing against user: <b>" + user +"</b></p>");
         if (user != null) {
             out.println("<p>user has roles: <b>" + myShepherd.getAllRolesForUserAsString(user.getUsername()) + "</b></p>");
+            out.println("<p>user isAdmin: <b>" + user.isAdmin(myShepherd) + "</b></p>");
         }
         out.println("<p>enc.canUserView(): <b>" + enc.canUserView(user, myShepherd) + "</b></p>");
         out.println("<p>enc.canUserEdit(): <b>" + enc.canUserEdit(user, myShepherd) + "</b></p>");
         out.println("<p>enc.canUserAccess(): <b>" + enc.canUserAccess(user, myShepherd.getContext()) + "</b></p>");
+        out.println("<p>collab canUserAccessEncounter(): <b>" + Collaboration.canUserAccessEncounter(enc, myShepherd.getContext(), (String)(user == null ? null : user.getUsername())) + "</b></p>");
+        out.println("<p>collab canEditEncounter(): <b>" + Collaboration.canEditEncounter(enc, user, myShepherd.getContext()) + "</b></p>");
     }
 }
 myShepherd.rollbackAndClose();
