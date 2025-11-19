@@ -4720,6 +4720,12 @@ public class Encounter extends Base implements java.io.Serializable {
                 blockedRtn.put("access", "none");
                 blockedRtn.put("id", rtn.get("id"));
                 // need this to know who to collab with
+                Collaboration col = Collaboration.collaborationBetweenUsers(user, submitter,
+                    myShepherd.getContext());
+                if (col != null) {
+                    blockedRtn.put("collaborationState", col.getState());
+                    blockedRtn.put("collaborationCreated", col.getDateStringCreated());
+                }
                 blockedRtn.put("assignedUsername", rtn.get("assignedUsername"));
                 blockedRtn.put("submitterUserId", rtn.get("submitterUserId"));
                 blockedRtn.put("submitterInfo", rtn.get("submitterInfo"));
