@@ -468,15 +468,21 @@ const ImageCard = observer(({ store = {} }) => {
             );
           })}
 
-        <img
-          ref={imgRef}
-          src={
-            store.encounterData?.mediaAssets[store.selectedImageIndex]?.url ||
-            ""
-          }
-          alt="encounter image"
-          style={{ width: "100%", height: "auto" }}
-        />
+        {store.encounterData?.mediaAssets.length > 0 ? (
+          <img
+            ref={imgRef}
+            src={
+              store.encounterData?.mediaAssets[store.selectedImageIndex]?.url ||
+              ""
+            }
+            alt="encounter image"
+            style={{ width: "100%", height: "auto" }}
+          />
+        ) : (
+          <p>
+            <FormattedMessage id="NO_AVAILABLE_IMAGE" />
+          </p>
+        )}
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
