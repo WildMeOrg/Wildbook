@@ -4686,36 +4686,61 @@ public class Encounter extends Base implements java.io.Serializable {
     // for encounters, we allow null user to see *some* things
     public org.json.JSONObject jsonForApiGet(Shepherd myShepherd, User user)
     throws IOException {
-        org.json.JSONObject rtn = opensearchDocumentAsJSONObject(myShepherd);
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        boolean isPublic = isPubliclyReadable();
+        // anon-user can only see public, so we 401 here
+        if ((user == null) && !isPublic) {
+            rtn.put("statusCode", 401);
+            rtn.put("success", false);
+            return rtn;
+        }
+        rtn = opensearchDocumentAsJSONObject(myShepherd);
         rtn.put("success", true);
         rtn.put("statusCode", 200);
-        rtn.put("access", "none");
-        boolean isPublic = isPubliclyReadable();
-        if ((user == null) && !isPublic) {
-            String[] blocked = {
-                "importTaskSourceName", "locationId", "locationName", "country", "verbatimLocality"
-            };
-            for (String field : blocked) {
-                rtn.remove(field);
-            }
-        } else {
-            rtn.put("researcherComments", getRComments());
-            rtn.put("groupRole", getGroupRole());
-            rtn.put("identificationRemarks", getIdentificationRemarks());
+        rtn.put("access", "read");
+        rtn.put("isPublic", isPublic);
 
-            User submitter = getSubmitterUser(myShepherd);
-            if (submitter != null)
-                rtn.put("submitterInfo", submitter.infoJSONObject(myShepherd, false));
-            // the user-listy things
-            rtn.put("submitters", userListJSONArray(myShepherd, this.submitters));
-            rtn.put("photographers", userListJSONArray(myShepherd, this.photographers));
-            rtn.put("informOthers", userListJSONArray(myShepherd, this.informOthers));
+        User submitter = getSubmitterUser(myShepherd);
+        if (submitter != null)
+            rtn.put("submitterInfo", submitter.infoJSONObject(myShepherd, false));
+        // check to see if logged-in-user is outright blocked
+        if (user != null) {
+            boolean blocked = true;
+            if (canUserEdit(user, myShepherd)) {
+                rtn.put("access", "write");
+                blocked = false;
+            } else if (canUserView(user, myShepherd)) {
+                blocked = false;
+            }
+            if (blocked) {
+                // we keep this very minimal
+                org.json.JSONObject blockedRtn = new org.json.JSONObject();
+                blockedRtn.put("success", true);
+                blockedRtn.put("statusCode", 200);
+                blockedRtn.put("access", "none");
+                blockedRtn.put("id", rtn.get("id"));
+                // need this to know who to collab with
+                blockedRtn.put("assignedUsername", rtn.get("assignedUsername"));
+                blockedRtn.put("submitterUserId", rtn.get("submitterUserId"));
+                blockedRtn.put("submitterInfo", rtn.get("submitterInfo"));
+                return blockedRtn;
+            }
         }
-        // these are blocked for non-logged-in *even if it is public*
+        // additional fields we want
+        rtn.put("researcherComments", getRComments());
+        rtn.put("groupRole", getGroupRole());
+        rtn.put("identificationRemarks", getIdentificationRemarks());
+
+        // the user-listy things
+        rtn.put("submitters", userListJSONArray(myShepherd, this.submitters));
+        rtn.put("photographers", userListJSONArray(myShepherd, this.photographers));
+        rtn.put("informOthers", userListJSONArray(myShepherd, this.informOthers));
+        // sanitize for non-logged-in users (hence, on public data)
         if (user == null) {
-            if (isPublic) rtn.put("access", "read");
+            rtn.put("access", "read");
             String[] blocked = {
-                "microsatelliteMarkers", "locationGeoPoint", "occurrenceLocationGeoPoint",
+                "importTaskSourceName", "locationId", "locationName", "country", "verbatimLocality",
+                    "microsatelliteMarkers", "locationGeoPoint", "occurrenceLocationGeoPoint",
                     "mediaAssetKeywords", "mediaAssetLabeledKeywords", "biologicalMeasurements",
                     "importTaskCreatorId", "annotationIAClasses", "annotationViewpoints",
                     "researcherComments", "informOthers", "photographers", "submitters",
@@ -4741,11 +4766,6 @@ public class Encounter extends Base implements java.io.Serializable {
             }
             rtn.put("mediaAssets", mas);
         } else {
-            if (canUserEdit(user, myShepherd)) {
-                rtn.put("access", "write");
-            } else if (canUserView(user, myShepherd)) {
-                rtn.put("access", "read");
-            }
             // for real users we add some extras to assets and annotations
             if (rtn.optJSONArray("mediaAssets") != null) {
                 for (int i = 0; i < rtn.getJSONArray("mediaAssets").length(); i++) {
