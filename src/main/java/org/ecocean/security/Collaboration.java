@@ -279,6 +279,7 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(User u1, User u2, String context) {
+        if (u1 == null) return false; // seems right choice?
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
         if ((c == null) || (c.getState() == null)) return false;
@@ -288,6 +289,7 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(String context, String u1, String u2) {
+        // note: User.isUsernameAnonymous(null) returns true, which seems... sketchy here?
         if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
