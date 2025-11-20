@@ -191,6 +191,7 @@ const MyDataTable = observer(
 
     const params = new URLSearchParams(window.location.search);
     const individualIDExact = params.get("individualIDExact");
+    const calendar = params.get("calendar");
     useEffect(() => {
       if (individualIDExact) {
         const timer = setTimeout(() => {
@@ -199,6 +200,14 @@ const MyDataTable = observer(
         return () => clearTimeout(timer);
       }
     }, [individualIDExact]);
+    useEffect(() => {
+      if (calendar) {
+        const timer = setTimeout(() => {
+          store.setActiveStep(4);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }, [calendar]);
 
     useEffect(() => {
       if (
