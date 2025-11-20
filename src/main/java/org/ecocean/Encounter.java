@@ -4726,9 +4726,9 @@ public class Encounter extends Base implements java.io.Serializable {
                     blockedRtn.put("collaborationState", col.getState());
                     blockedRtn.put("collaborationCreated", col.getDateStringCreated());
                 }
-                blockedRtn.put("assignedUsername", rtn.get("assignedUsername"));
-                blockedRtn.put("submitterUserId", rtn.get("submitterUserId"));
-                blockedRtn.put("submitterInfo", rtn.get("submitterInfo"));
+                blockedRtn.put("assignedUsername", rtn.optString("assignedUsername", null));
+                blockedRtn.put("submitterUserId", rtn.optString("submitterUserId", null));
+                blockedRtn.put("submitterInfo", rtn.optJSONObject("submitterInfo"));
                 return blockedRtn;
             }
         }
