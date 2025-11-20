@@ -163,7 +163,9 @@
 
 	      <Context path="" docBase="wildbook"></Context>
 
-	      <Context docBase="/usr/local/tomcat/webapps/wildbook_data_dir" path="/wildbook_data_dir" />
+	      <Context docBase="/usr/local/tomcat/webapps/wildbook_data_dir" path="/wildbook_data_dir">
+	        <Resources cacheMaxSize="512000" cacheObjectMaxSize="10240" cacheTtl="60000" />
+	      </Context>
 
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->
