@@ -37,6 +37,7 @@ import DeleteEncounterCard from "./DeleteEncounterCard";
 import Modal from "react-bootstrap/Modal";
 import { Divider } from "antd";
 import { get } from "lodash-es";
+import CollabModal from "./CollabModal";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
@@ -203,7 +204,7 @@ const Encounter = observer(() => {
               />
               <CardWithEditButton
                 icon={<IdentifyIcon />}
-                title="IDENTIFY"
+                title="IDENTITY"
                 content={<IdentifySectionReview store={store} />}
                 showEditButton={false}
               />
@@ -237,6 +238,10 @@ const Encounter = observer(() => {
         )}
       </Container>
     );
+  }
+
+  if (store.access === "none") {
+    return <CollabModal store={store} />;
   }
 
   return (
@@ -408,7 +413,7 @@ const Encounter = observer(() => {
             {store.editIdentifyCard ? (
               <CardWithSaveAndCancelButtons
                 icon={<IdentifyIcon />}
-                title="IDENTIFY"
+                title="IDENTITY"
                 onSave={async () => {
                   await store.saveSection("identify", encounterId);
                   store.setEditIdentifyCard(false);
@@ -424,7 +429,7 @@ const Encounter = observer(() => {
             ) : (
               <CardWithEditButton
                 icon={<IdentifyIcon />}
-                title="IDENTIFY"
+                title="IDENTITY"
                 onClick={() => store.setEditIdentifyCard(true)}
                 content={<IdentifySectionReview store={store} />}
               />

@@ -682,5 +682,14 @@
   "UPLOADING_IMAGE": "Subiendo imagen...",
   "SAMPLING_PROTOCOL": "Protocolo de muestreo",
   "ARGOS_PTT_NUMBER": "Número PTT de ARGOS",
-  "GO_TO_ENCOUNTER_PAGE": "Ir a la página del encuentro"
+  "GO_TO_ENCOUNTER_PAGE": "Ir a la página del encuentro",
+  "ACCESS_DENIED": "Acceso denegado",
+  "NO_ACCESS_TO_ENCOUNTER": "No tienes permiso para acceder a esta página.",
+  "NO_IMAGE_AVAILABLE": "No hay imagen disponible",
+  "IDENTITY": "Identidad",
+  "ACCESS_LIMITED": "El acceso a este recurso es limitado.",
+  "REQUEST_COLLAB_WITH": "Solicitar colaboración con ",
+  "REQUEST_COLLAB_MESSAGE": "Al hacer clic en 'Sí', se enviará una invitación de colaboración, incluida tu dirección de correo electrónico, al propietario de los datos. Es posible que se pongan en contacto contigo para obtener más información y así establecer acuerdos de intercambio de datos o MoUs.",
+  "REQUEST_REJECTED": "Tu solicitud de colaboración con este usuario ha sido rechazada.",
+  "ACCESS_PENDING": "Tu solicitud de colaboración está pendiente"  
 }

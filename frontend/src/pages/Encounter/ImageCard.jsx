@@ -69,7 +69,7 @@ const ImageCard = observer(({ store = {} }) => {
       store.encounterData?.mediaAssets?.length > 0
     ) {
       const selectedImage =
-        store.encounterData.mediaAssets[store.selectedImageIndex];
+        store.encounterData.mediaAssets?.[store.selectedImageIndex];
       const annotations = selectedImage?.annotations;
       if (annotations?.length > 0) {
         const anns = selectedImage?.annotations || [];
@@ -101,9 +101,9 @@ const ImageCard = observer(({ store = {} }) => {
     const handleImageLoad = () => {
       if (imgRef.current) {
         const naturalWidth =
-          store.encounterData?.mediaAssets[store.selectedImageIndex]?.width;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.width;
         const naturalHeight =
-          store.encounterData?.mediaAssets[store.selectedImageIndex]?.height;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.height;
         const displayWidth = imgRef.current.clientWidth;
         const displayHeight = imgRef.current.clientHeight;
 
@@ -195,13 +195,13 @@ const ImageCard = observer(({ store = {} }) => {
       </div>
       <div className="mb-2 d-flex flex-row align-items-center justify-content-between">
         <p>
-          {store.encounterData?.mediaAssets[store.selectedImageIndex]
+          {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
             ?.userFilename || ""}
         </p>
         <p>
-          {store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords
-            ?.length
-            ? `${store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length} tags`
+          {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+            ?.keywords?.length
+            ? `${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.keywords?.length} tags`
             : ""}
         </p>
       </div>
@@ -219,14 +219,14 @@ const ImageCard = observer(({ store = {} }) => {
           rects.map((rect, index) => {
             let newRect = { ...rect };
             if (
-              store.encounterData?.mediaAssets[store.selectedImageIndex]
+              store.encounterData?.mediaAssets?.[store.selectedImageIndex]
                 ?.rotationInfo
             ) {
               const imgW =
-                store.encounterData?.mediaAssets[store.selectedImageIndex]
+                store.encounterData?.mediaAssets?.[store.selectedImageIndex]
                   ?.width;
               const imgH =
-                store.encounterData?.mediaAssets[store.selectedImageIndex]
+                store.encounterData?.mediaAssets?.[store.selectedImageIndex]
                   ?.height;
               const adjW = imgH / imgW;
               const adjH = imgW / imgH;
@@ -286,7 +286,8 @@ const ImageCard = observer(({ store = {} }) => {
                   );
                 }}
               >
-                {newRect.annotationId === clickedAnnotation?.id &&
+                {store.access === "write" &&
+                  newRect.annotationId === clickedAnnotation?.id &&
                   (newRect.encounterId === store.encounterData.id ? (
                     <div
                       className="d-flex flex-column"
@@ -323,7 +324,7 @@ const ImageCard = observer(({ store = {} }) => {
                         }}
                         onClick={() => {
                           if (
-                            !store.imageModal.encounterData?.mediaAssets[
+                            !store.imageModal.encounterData?.mediaAssets?.[
                               store.imageModal.selectedImageIndex
                             ] ||
                             !annotationParam
@@ -331,7 +332,7 @@ const ImageCard = observer(({ store = {} }) => {
                             return;
                           }
                           const assetId =
-                            store.encounterData?.mediaAssets[
+                            store.encounterData?.mediaAssets?.[
                               store.selectedImageIndex
                             ]?.id;
                           window.open(
@@ -472,15 +473,15 @@ const ImageCard = observer(({ store = {} }) => {
           <img
             ref={imgRef}
             src={
-              store.encounterData?.mediaAssets[store.selectedImageIndex]?.url ||
-              ""
+              store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                ?.url || ""
             }
             alt="encounter image"
             style={{ width: "100%", height: "auto" }}
           />
         ) : (
           <p>
-            <FormattedMessage id="NO_AVAILABLE_IMAGE" />
+            <FormattedMessage id="NO_IMAGE_AVAILABLE" />
           </p>
         )}
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
@@ -567,13 +568,16 @@ const ImageCard = observer(({ store = {} }) => {
             className="d-flex align-items-center justify-content-center flex-column"
             style={{ cursor: "pointer", paddingTop: "20px" }}
             onClick={() => {
-              if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              if (
+                !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+              ) {
                 alert("No image selected.");
                 return;
               }
               const number = store.encounterData?.id;
               const mediaAssetId =
-                store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
+                store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                  ?.id;
               const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
               window.open(url, "_blank");
             }}
@@ -586,7 +590,9 @@ const ImageCard = observer(({ store = {} }) => {
           <div
             className="d-flex align-items-center justify-content-center flex-column"
             onClick={() => {
-              if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              if (
+                !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+              ) {
                 alert("No image selected.");
                 return;
               }
@@ -603,12 +609,14 @@ const ImageCard = observer(({ store = {} }) => {
             className="d-flex align-items-center justify-content-center flex-column"
             style={{ cursor: "pointer", paddingTop: "20px" }}
             onClick={() => {
-              if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
+              if (
+                !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+              ) {
                 alert("No image selected.");
                 return;
               }
               window.open(
-                `/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets[store.selectedImageIndex]?.id}`,
+                `/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.id}`,
                 "_blank",
               );
             }}

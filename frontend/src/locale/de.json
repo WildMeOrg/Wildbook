@@ -684,5 +684,14 @@
   "UPLOADING_IMAGE": "Bild wird hochgeladen...",
   "SAMPLING_PROTOCOL": "Probenahmeprotokoll",
   "ARGOS_PTT_NUMBER": "Argos PTT-Nummer",
-  "GO_TO_ENCOUNTER_PAGE": "Zur Begegnungsseite gehen"
+  "GO_TO_ENCOUNTER_PAGE": "Zur Begegnungsseite gehen",
+  "ACCESS_DENIED": "Zugriff verweigert",
+  "NO_ACCESS_TO_ENCOUNTER": "Sie haben keine Berechtigung, auf diese Seite zuzugreifen.",
+  "NO_IMAGE_AVAILABLE": "Kein Bild verfügbar",
+  "IDENTITY": "Identität",
+  "ACCESS_LIMITED": "Der Zugriff auf diese Ressource ist eingeschränkt.",
+  "REQUEST_COLLAB_WITH": "Zusammenarbeit anfragen mit ",
+  "REQUEST_COLLAB_MESSAGE": "Durch Klicken auf 'Ja' wird eine Einladung zur Zusammenarbeit, einschließlich Ihrer E-Mail-Adresse, an den Datenbesitzer gesendet. Sie könnten Sie kontaktieren, um weitere Informationen zu erhalten, damit entsprechende Datenfreigabevereinbarungen oder MoUs arrangiert werden können.",
+  "REQUEST_REJECTED": "Ihre Anfrage zur Zusammenarbeit mit diesem Benutzer wurde abgelehnt.",
+  "ACCESS_PENDING": "Ihre Anfrage zur Zusammenarbeit ist ausstehend"
 }

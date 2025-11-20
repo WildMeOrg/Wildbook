@@ -157,6 +157,20 @@ class EncounterStore {
     this._access = newAccess;
   }
 
+  async requestCollaboration({ message }) {
+    try {
+      await axios.get("/Collaborate", {
+        params: {
+          json: 1,
+          username: this._encounterData.assignedUsername,
+          message,
+        },
+      });
+    } catch (e) {
+      console.error("Failed to send request:", e);
+    }
+  }
+
   resetMeasurementValues() {
     this._measurementValues = (this.encounterData?.measurements ?? [])
       .filter((m) => m?.type)
