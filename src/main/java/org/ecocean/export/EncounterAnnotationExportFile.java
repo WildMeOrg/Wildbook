@@ -18,6 +18,7 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,7 +36,7 @@ public class EncounterAnnotationExportFile {
 
     private List<String> measurementColTitles = new ArrayList<String>();
 
-    public EncounterAnnotationExportFile(File targetDirectory) {
+    public EncounterAnnotationExportFile(Path targetDirectory) {
         DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
         DateTime timeNow = new DateTime();
         String formattedDate = fmt.print(timeNow);
@@ -44,7 +45,7 @@ public class EncounterAnnotationExportFile {
         String filename = "AnnotnExp_" + formattedDate + ".xlsx";
 
         // setup data dir
-        excelFile = new File(targetDirectory.getAbsolutePath() + "/" + filename);
+        excelFile = targetDirectory.resolve(filename).toFile();
     }
 
     // this would be a static method of above subclass if java allowed that

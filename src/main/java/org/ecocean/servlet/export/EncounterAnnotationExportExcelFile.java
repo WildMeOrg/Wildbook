@@ -3,6 +3,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
+import java.nio.file.Path;
 
 import org.ecocean.*;
 import org.ecocean.export.EncounterAnnotationExportFile;
@@ -28,7 +29,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         try {
-            File encountersDir = getExportFileFolder(context);
+            Path encountersDir = getExportFileFolder(context);
             EncounterAnnotationExportFile excelFile = new EncounterAnnotationExportFile(
                 encountersDir);
             excelFile.writeExcelFile(request, myShepherd);
@@ -58,7 +59,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         }
     }
 
-    private File getExportFileFolder(String context) {
+    private Path getExportFileFolder(String context) {
         String rootWebappPath = getServletContext().getRealPath("/");
         File webappsDir = new File(rootWebappPath).getParentFile();
         File shepherdDataDir = new File(webappsDir,
@@ -67,6 +68,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         if (!shepherdDataDir.exists()) { shepherdDataDir.mkdirs(); }
         File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
         if (!encountersDir.exists()) { encountersDir.mkdirs(); }
-        return encountersDir;
+        return encountersDir.toPath();
     }
 }

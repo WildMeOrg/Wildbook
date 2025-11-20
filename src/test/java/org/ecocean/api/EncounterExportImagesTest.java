@@ -4,29 +4,39 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
 
+import java.io.*;
 import java.io.File;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
+import java.security.Principal;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.servlet.DispatcherType;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
 import org.apache.http.HttpHost;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.Feature;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
@@ -45,8 +55,12 @@ import java.nio.file.FileSystems;
 import java.util.*;
 
 import static io.restassured.RestAssured.*;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Integration tests for the EncounterExportImages API endpoint.
@@ -315,6 +329,137 @@ import static org.junit.jupiter.api.Assertions.*;
             .log().ifValidationFails();
     }
 
+    @Test void testEncounterExportImageMetadata_HappyPath() {
+        Path path = FileSystems.getDefault().getPath("/tmp");
+        EncounterAnnotationExportFile file = new EncounterAnnotationExportFile(path);
+        Shepherd myShepherd = new Shepherd("context0");
+        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+        HttpSession mockSession = mock(HttpSession.class);
+        ServletContext mockServletContext = mock(ServletContext.class);
+
+        // Mock basic request properties
+        when(mockRequest.getContextPath()).thenReturn("/wildbook");
+        when(mockRequest.getScheme()).thenReturn("http");
+        when(mockRequest.getServerName()).thenReturn("localhost");
+        when(mockRequest.getServerPort()).thenReturn(8080);
+        when(mockRequest.getSession()).thenReturn(mockSession);
+        when(mockRequest.getSession(anyBoolean())).thenReturn(mockSession);
+
+        when(mockSession.getAttribute("context")).thenReturn("context0");
+        when(mockSession.getServletContext()).thenReturn(mockServletContext);
+        when(mockServletContext.getRealPath("/")).thenReturn("/tmp");
+
+        // Mock query parameters for encounter search (match all Panthera)
+        when(mockRequest.getParameter("genus")).thenReturn("Panthera");
+        when(mockRequest.getParameterNames()).thenReturn(Collections.enumeration(Arrays.asList(
+            "genus")));
+
+        when(mockRequest.getRequestURL()).thenReturn(new StringBuffer());
+
+        // Mock remote user
+        when(mockRequest.getRemoteUser()).thenReturn("test_researcher");
+
+        try {
+            System.out.println(file.getFile().getAbsolutePath());
+            file.writeExcelFile(mockRequest, myShepherd);
+
+            // validate file contents against expected CSV
+            File excelFile = file.getFile();
+            assertTrue(excelFile.exists(), "Excel file should exist");
+            assertTrue(excelFile.length() > 0, "Excel file should not be empty");
+
+            // Load expected CSV data
+            File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
+            List<String[]> expectedRows = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(expectedCsvFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Remove BOM if present
+                    if (line.startsWith("\ufeff")) {
+                        line = line.substring(1);
+                    }
+                    expectedRows.add(line.split(",", -1));
+                }
+            }
+
+            System.out.println("  Loaded " + expectedRows.size() + " rows from expected CSV");
+
+            // Load actual Excel data
+            try (FileInputStream fis = new FileInputStream(excelFile);
+            Workbook workbook = new XSSFWorkbook(fis)) {
+                Sheet sheet = workbook.getSheet("Search Results");
+                assertNotNull(sheet, "Excel should contain 'Search Results' sheet");
+
+                // Compare row count
+                int actualRowCount = sheet.getLastRowNum() + 1;
+                assertEquals(expectedRows.size(), actualRowCount,
+                    "Excel should have same number of rows as expected CSV");
+                // Compare each row and cell
+                for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
+                    Row actualRow = sheet.getRow(rowIndex);
+                    String[] expectedRow = expectedRows.get(rowIndex);
+
+                    assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
+
+                    // Compare cell count
+                    int actualCellCount = actualRow.getLastCellNum();
+                    assertEquals(expectedRow.length, actualCellCount,
+                        "Row " + rowIndex + " should have " + expectedRow.length + " cells");
+                    // Compare each cell
+                    for (int cellIndex = 0; cellIndex < expectedRow.length; cellIndex++) {
+                        Cell actualCell = actualRow.getCell(cellIndex);
+                        String expectedValue = expectedRow[cellIndex];
+                        String actualValue = getCellValueAsString(actualCell);
+                        // Skip comparison for dynamic fields like Occurrence.occurrenceID and Encounter.sourceUrl
+                        if (rowIndex == 0) {
+                            // Header row - exact match required
+                            assertEquals(expectedValue, actualValue,
+                                "Header cell [" + rowIndex + "," + cellIndex + "] mismatch");
+                        } else {
+                            // Data rows - skip UUID columns (column 0 and 1)
+                            if (cellIndex == 0 || cellIndex == 1) {
+                                assertNotNull(actualValue,
+                                    "Cell [" + rowIndex + "," + cellIndex + "] should not be null");
+                            } else {
+                                // Compare other cells with tolerance for numeric precision
+                                if (expectedValue.isEmpty() &&
+                                    (actualValue == null || actualValue.isEmpty())) {
+                                    // Both empty - OK
+                                    continue;
+                                } else if (isNumeric(expectedValue) && isNumeric(actualValue)) {
+                                    // Compare numbers with tolerance
+                                    double expected = Double.parseDouble(expectedValue);
+                                    double actual = Double.parseDouble(actualValue);
+                                    assertEquals(expected, actual, 0.0001,
+                                        "Cell [" + rowIndex + "," + cellIndex +
+                                        "] numeric value mismatch");
+                                } else {
+                                    // String comparison
+                                    assertEquals(expectedValue, actualValue,
+                                        "Cell [" + rowIndex + "," + cellIndex + "] mismatch");
+                                }
+                            }
+                        }
+                    }
+                }
+                System.out.println(
+                    "Excel metadata validation passed - all cells match expected CSV");
+            }
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            myShepherd.closeDBTransaction();
+        }
+    }
+
     /**
      * Test the happy path for encounter export with images.
      * Verifies that a valid export request returns a properly structured ZIP file
@@ -468,8 +613,10 @@ import static org.junit.jupiter.api.Assertions.*;
             AssetStore localStore = new LocalAssetStore("local", assetsRoot, null, false);
             MediaAsset asset1 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
+
             MediaAsset asset2 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
+
             MediaAsset asset3 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
 
@@ -477,6 +624,10 @@ import static org.junit.jupiter.api.Assertions.*;
             org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
             enc1.setGenus("Panthera");
             enc1.setSpecificEpithet("leo");
+            enc1.setLifeStage("cub");
+            enc1.setVerbatimLocality("iberia");
+            enc1.setDecimalLatitude(37.15414445923345);
+            enc1.setDecimalLongitude(-6.730740044168456);
             myShepherd.storeNewEncounter(enc1);
 
             enc1.opensearchIndexDeep();
@@ -485,7 +636,11 @@ import static org.junit.jupiter.api.Assertions.*;
             org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
             enc2.setGenus("Panthera");
             enc2.setSpecificEpithet("leo");
-            myShepherd.getPM().makePersistent(enc2);
+            enc2.setLifeStage("adult");
+            enc2.setVerbatimLocality("iberia");
+            enc2.setDecimalLatitude(37.15414445923345);
+            enc2.setDecimalLongitude(-6.730740044168456);
+            myShepherd.storeNewEncounter(enc2);
 
             enc2.opensearchIndexDeep();
             enc1.addMediaAsset(asset2);
@@ -493,6 +648,10 @@ import static org.junit.jupiter.api.Assertions.*;
             org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
             enc3.setGenus("Panthera");
             enc3.setSpecificEpithet("leo");
+            enc3.setLifeStage("senior");
+            enc3.setVerbatimLocality("iberia");
+            enc3.setDecimalLatitude(37.15414445923345);
+            enc3.setDecimalLongitude(-6.730740044168456);
             myShepherd.storeNewEncounter(enc3);
 
             enc3.opensearchIndexDeep();
@@ -508,7 +667,7 @@ import static org.junit.jupiter.api.Assertions.*;
             org.ecocean.MarkedIndividual ind2 = new org.ecocean.MarkedIndividual("Individual_2",
                 enc3);
             enc3.setIndividual(ind2);
-            myShepherd.getPM().makePersistent(enc3);
+            myShepherd.storeNewMarkedIndividual(ind2);
 
             ind1.opensearchIndexDeep();
             ind2.opensearchIndexDeep();
@@ -531,7 +690,31 @@ import static org.junit.jupiter.api.Assertions.*;
             ann3.setViewpoint("front");
             myShepherd.storeNewAnnotation(ann3);
             ann3.opensearchIndexDeep();
-            // Note: MediaAsset configuration may vary - adjust as needed
+
+            org.ecocean.Occurrence occ1 = new Occurrence("9cf5a4e7-4c81-466e-a788-8d976f869086");
+            occ1.addEncounter(enc1);
+            occ1.addAsset(asset1);
+            asset1.setOccurrence(occ1);
+            myShepherd.storeNewOccurrence(occ1);
+            occ1.opensearchIndexDeep();
+
+            org.ecocean.Occurrence occ2 = new Occurrence("c2dbf187-ac3b-450f-9886-aa4e49073844");
+            occ2.addEncounter(enc2);
+            occ2.addAsset(asset2);
+            asset2.setOccurrence(occ2);
+            myShepherd.storeNewOccurrence(occ2);
+            occ2.opensearchIndexDeep();
+
+            org.ecocean.Occurrence occ3 = new Occurrence("f981b20f-330a-4e52-bb0f-dd8d13f1e76a");
+            occ3.addEncounter(enc3);
+            occ3.addAsset(asset3);
+            asset3.setOccurrence(occ3);
+            myShepherd.storeNewOccurrence(occ3);
+            occ3.opensearchIndexDeep();
+
+            myShepherd.getPM().makePersistent(asset1);
+            myShepherd.getPM().makePersistent(asset2);
+            myShepherd.getPM().makePersistent(asset3);
 
             myShepherd.commitDBTransaction();
             System.out.println("Test data initialized successfully");
