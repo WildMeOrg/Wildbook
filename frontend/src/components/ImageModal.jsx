@@ -357,16 +357,16 @@ export const ImageModal = observer(
                       rects.map((rect, index) => {
                         let newRect = { ...rect };
                         if (
-                          imageStore.encounterData?.mediaAssets[
+                          imageStore.encounterData?.mediaAssets?.[
                             imageStore.selectedImageIndex
                           ]?.rotationInfo
                         ) {
                           const imgW =
-                            imageStore.encounterData?.mediaAssets[
+                            imageStore.encounterData?.mediaAssets?.[
                               imageStore.selectedImageIndex
                             ]?.width;
                           const imgH =
-                            imageStore.encounterData?.mediaAssets[
+                            imageStore.encounterData?.mediaAssets?.[
                               imageStore.selectedImageIndex
                             ]?.height;
                           const adjW = imgH / imgW;
@@ -668,7 +668,7 @@ export const ImageModal = observer(
                     text={tag.displayName || tag.name}
                     onClose={async () => {
                       const data = await removeKeyword(
-                        imageStore.encounterData?.mediaAssets[
+                        imageStore.encounterData?.mediaAssets?.[
                           imageStore.selectedImageIndex
                         ]?.id,
                         tag.id,
@@ -729,7 +729,7 @@ export const ImageModal = observer(
                           onClick={async () => {
                             if (tagText) {
                               const result = await addNewKeywordText(
-                                imageStore.encounterData?.mediaAssets[
+                                imageStore.encounterData?.mediaAssets?.[
                                   imageStore.selectedImageIndex
                                 ]?.id,
                                 tagText,
@@ -790,7 +790,7 @@ export const ImageModal = observer(
                           onClick={async () => {
                             if (imageStore.selectedKeyword) {
                               const result = await addExistingKeyword(
-                                imageStore.encounterData?.mediaAssets[
+                                imageStore.encounterData?.mediaAssets?.[
                                   imageStore.selectedImageIndex
                                 ]?.id,
                                 imageStore.selectedKeyword,
@@ -879,7 +879,7 @@ export const ImageModal = observer(
                                 imageStore.selectedAllowedValues
                               ) {
                                 const result = await addExistingLabeledKeyword(
-                                  imageStore.encounterData?.mediaAssets[
+                                  imageStore.encounterData?.mediaAssets?.[
                                     imageStore.selectedImageIndex
                                   ]?.id,
                                   imageStore.selectedLabeledKeyword,
@@ -982,7 +982,7 @@ export const ImageModal = observer(
                     target={true}
                     onClick={() => {
                       if (
-                        !imageStore.encounterData?.mediaAssets[
+                        !imageStore.encounterData?.mediaAssets?.[
                           imageStore.selectedImageIndex
                         ]
                       ) {
@@ -990,7 +990,7 @@ export const ImageModal = observer(
                       }
                       const number = imageStore.encounterData?.id;
                       const mediaAssetId =
-                        imageStore.encounterData?.mediaAssets[
+                        imageStore.encounterData?.mediaAssets?.[
                           imageStore.selectedImageIndex
                         ]?.id;
                       const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
@@ -1011,7 +1011,7 @@ export const ImageModal = observer(
                     target={true}
                     onClick={() => {
                       if (
-                        !imageStore.encounterData?.mediaAssets[
+                        !imageStore.encounterData?.mediaAssets?.[
                           imageStore.selectedImageIndex
                         ]
                       ) {
@@ -1034,7 +1034,7 @@ export const ImageModal = observer(
                     target={true}
                     onClick={() => {
                       if (
-                        !imageStore.encounterData?.mediaAssets[
+                        !imageStore.encounterData?.mediaAssets?.[
                           imageStore.selectedImageIndex
                         ]
                       ) {
