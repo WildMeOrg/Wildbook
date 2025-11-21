@@ -59,7 +59,9 @@
     "test": "react-app-rewired test --transformIgnorePatterns \"node_modules/(?!axios|react)/\"",
     "eject": "react-scripts eject",
     "deploy-dev": "npm run build && node scripts/deploy-dev.js",
-    "jest": "jest --verbose --coverage --coverageDirectory=./coverage "
+    "jest": "jest --verbose --coverage --coverageDirectory=./coverage ",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "eslintConfig": {
     "extends": [
@@ -82,9 +84,11 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@eslint/js": "^9.9.1",
+    "@playwright/test": "^1.56.1",
     "@tanstack/react-table": "^8.21.3",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
+    "@types/node": "^24.10.1",
     "bootstrap-icons": "^1.11.3",
     "css-loader": "^6.10.0",
     "date-fns": "^4.1.0",
