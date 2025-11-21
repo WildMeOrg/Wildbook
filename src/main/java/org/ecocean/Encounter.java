@@ -4910,6 +4910,10 @@ public class Encounter extends Base implements java.io.Serializable {
                 enc.addInformOther(addlUser);
             }
         }
+        // this will get/make an Occurrence no matter what
+        Occurrence occ = myShepherd.getOrCreateOccurrence(payload.optString("occurrenceId", null));
+        occ.addEncounterAndUpdateIt(enc);
+        myShepherd.getPM().makePersistent(occ);
         return enc;
     }
 
