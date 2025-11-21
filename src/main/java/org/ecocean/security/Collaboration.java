@@ -313,9 +313,11 @@ public class Collaboration implements java.io.Serializable {
 
     public static boolean canEditEncounter(Encounter enc, User user, String context) {
         if ((enc == null) || (user == null)) return false;
-        return canEdit(context, enc.getSubmitterID(), user.getUsername());
+        return canEdit(context, user.getUsername(), enc.getSubmitterID());
     }
 
+    // note: u1 should be the user asking to edit, u2 is the owner of object in question
+    // order is critical!
     public static boolean canEdit(String context, String u1, String u2) {
         if ((u1 == null) || (u2 == null)) return false;
         if (u1.equals(u2)) return true;
@@ -325,6 +327,7 @@ public class Collaboration implements java.io.Serializable {
         return false;
     }
 
+    // see not on u1/u2 ordering above
     public static boolean canEdit(String context, User u1, User u2) {
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
