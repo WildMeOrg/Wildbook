@@ -10,7 +10,8 @@ org.json.JSONArray
 %>
 
             <%
-Shepherd myShepherd = new Shepherd("context0");
+String context = "context0";
+Shepherd myShepherd = new Shepherd(context);
 
 myShepherd.beginDBTransaction();
 User loggedInUser = myShepherd.getUser(request);
@@ -34,13 +35,21 @@ if (id == null) {
     if (enc == null) {
         out.println("<p>encounter unknown</p>");
     } else {
+        User subUser = enc.getSubmitterUser(myShepherd);
         out.println("<p>encounter: <b>" + enc +"</b></p>");
-        out.println("<p>enc.submitterUser: <b>" + enc.getSubmitterUser(myShepherd) +"</b></p>");
+        out.println("<p>enc.submitterUser: <b>" + subUser +"</b></p>");
         out.println("<p>enc.isPubliclyReadable(): <b>" + enc.isPubliclyReadable() +"</b></p>");
         out.println("<hr /><p>testing against user: <b>" + user +"</b></p>");
         if (user != null) {
             out.println("<p>user has roles: <b>" + myShepherd.getAllRolesForUserAsString(user.getUsername()) + "</b></p>");
+            out.println("<p>user organizations: <b>" + user.getOrganizations() + "</b></p>");
             out.println("<p>user isAdmin: <b>" + user.isAdmin(myShepherd) + "</b></p>");
+            if (subUser != null) {
+                Collaboration c1 = Collaboration.collaborationBetweenUsers(user, subUser, context);
+                Collaboration c2 = Collaboration.collaborationBetweenUsers(subUser, user, context);
+                out.println("<p>collab between [user, submitter]: <b>" + c1 + "</b></p>");
+                out.println("<p>collab between [submitter, user]: <b>" + c2 + "</b></p>");
+            }
         }
         out.println("<p>enc.canUserView(): <b>" + enc.canUserView(user, myShepherd) + "</b></p>");
         out.println("<p>enc.canUserEdit(): <b>" + enc.canUserEdit(user, myShepherd) + "</b></p>");
