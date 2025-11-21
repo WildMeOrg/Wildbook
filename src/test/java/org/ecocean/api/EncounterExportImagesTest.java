@@ -330,8 +330,7 @@ import static org.mockito.Mockito.when;
     }
 
     @Test void testEncounterExportImageMetadata_HappyPath() {
-        Path path = FileSystems.getDefault().getPath("/tmp");
-        EncounterAnnotationExportFile file = new EncounterAnnotationExportFile(path);
+        Path tempPath = FileSystems.getDefault().getPath("/tmp");
         Shepherd myShepherd = new Shepherd("context0");
         HttpServletRequest mockRequest = mock(HttpServletRequest.class);
         HttpSession mockSession = mock(HttpSession.class);
@@ -359,12 +358,17 @@ import static org.mockito.Mockito.when;
         // Mock remote user
         when(mockRequest.getRemoteUser()).thenReturn("test_researcher");
 
+        EncounterAnnotationExportFile file = new EncounterAnnotationExportFile(mockRequest,
+            myShepherd);
+        Path outputFilePath = tempPath.resolve(file.getName());
         try {
-            System.out.println(file.getFile().getAbsolutePath());
-            file.writeExcelFile(mockRequest, myShepherd);
+            System.out.println("Wrote: " + outputFilePath);
+            try (OutputStream os = Files.newOutputStream(outputFilePath)) {
+                file.writeToStream(os);
+            }
 
             // validate file contents against expected CSV
-            File excelFile = file.getFile();
+            File excelFile = outputFilePath.toFile();
             assertTrue(excelFile.exists(), "Excel file should exist");
             assertTrue(excelFile.length() > 0, "Excel file should not be empty");
 

@@ -18,7 +18,6 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,7 +26,9 @@ public class EncounterAnnotationExportFile {
     private static final String REFERENCE_KEYWORD = "Reference";
     private static final int ROW_LIMIT = 100000;
 
-    private final File excelFile;
+    private final String name;
+    private final HttpServletRequest request;
+    private final Shepherd myShepherd;
 
     private int numMediaAssetCols = 0;
     private int numNameCols = 0;
@@ -36,16 +37,16 @@ public class EncounterAnnotationExportFile {
 
     private List<String> measurementColTitles = new ArrayList<String>();
 
-    public EncounterAnnotationExportFile(Path targetDirectory) {
+    public EncounterAnnotationExportFile(HttpServletRequest request, Shepherd myShepherd) {
+        this.request = request;
+        this.myShepherd = myShepherd;
+
         DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
         DateTime timeNow = new DateTime();
         String formattedDate = fmt.print(timeNow);
 
         // set up the files
-        String filename = "AnnotnExp_" + formattedDate + ".xlsx";
-
-        // setup data dir
-        excelFile = targetDirectory.resolve(filename).toFile();
+        this.name = "AnnotnExp_" + formattedDate + ".xlsx";
     }
 
     // this would be a static method of above subclass if java allowed that
@@ -55,93 +56,12 @@ public class EncounterAnnotationExportFile {
         return ExportColumn.newEasyColumn(classDotFieldNameHeader, columns);
     }
 
-    public String getName() { return excelFile.getName(); }
+    public String getName() { return name; }
 
-    public File getFile() { return excelFile; }
-
-    public void writeToStream(OutputStream stream)
-    throws IOException {
-        InputStream is = null;
-
-        try {
-            is = new FileInputStream(excelFile);
-            int read = 0;
-            byte[] bytes = new byte[BYTES_DOWNLOAD];
-            while ((read = is.read(bytes)) != -1) {
-                stream.write(bytes, 0, read);
-            }
-        } catch (FileNotFoundException e) {
-            // this should never happen unless something goes horrifically wrong, so throw a runtime exception
-            throw new RuntimeException(e);
-        }
-    }
-
-    void setMediaAssetCounts(Vector rEncounters, Shepherd myShepherd) {
-        System.out.println("EncounterAnnotationExportExcelFile: setting environment vars for " +
-            Math.max(rEncounters.size(), ROW_LIMIT) + " encs.");
-        int maxNumMedia = 0;
-        int maxNumKeywords = 0;
-        int maxNumLabeledKeywords = 0;
-        int maxNumNames = 0;
-        int maxNumMeasurements = 0;
-        int maxSocialUnits = 1;
-        int maxSubmitters = 0;
-        Set<String> individualIDsChecked = new HashSet<String>();
-        for (int i = 0; i < rEncounters.size() && i < ROW_LIMIT; i++) {
-            Encounter enc = (Encounter)rEncounters.get(i);
-            if (enc.getMeasurements().size() > 0) {
-                for (Measurement currentMeasurement : enc.getMeasurements()) { // populate a list of measurementColName with measurements in current
-                                                                               // encounter set only
-                    String currentMeasurementType = currentMeasurement.getType();
-                    if (currentMeasurementType != null &&
-                        !measurementColTitles.contains(currentMeasurementType)) {
-                        measurementColTitles.add(currentMeasurementType);
-                    }
-                }
-            }
-            if (enc.getSubmitters().size() > maxSubmitters)
-                maxSubmitters = enc.getSubmitters().size();
-            if (enc.getMeasurements().size() > maxNumMeasurements)
-                maxNumMeasurements = enc.getMeasurements().size();
-            ArrayList<MediaAsset> masDuplicates = enc.getMedia();
-            ArrayList<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
-            int numMedia = mas.size();
-            if (numMedia > maxNumMedia) maxNumMedia = numMedia;
-            for (MediaAsset ma : mas) {
-                int numKw = ma.numKeywordsStrict();
-                int numLabeledKw = 0;
-                if (ma.getLabeledKeywords() != null) {
-                    List<LabeledKeyword> lkws = ma.getLabeledKeywords();
-                    numLabeledKw = lkws.size();
-                }
-                if (numKw > maxNumKeywords) maxNumKeywords = numKw;
-                if (numLabeledKw > maxNumLabeledKeywords) maxNumLabeledKeywords = numLabeledKw;
-            }
-            MarkedIndividual id = enc.getIndividual();
-            if (id != null && !individualIDsChecked.contains(id.getIndividualID())) {
-                individualIDsChecked.add(id.getIndividualID());
-                int numNames = id.getNameKeys().size();
-                if (numNames > maxNumNames) maxNumNames = numNames;
-                List<SocialUnit> mySocialUnits = myShepherd.getAllSocialUnitsForMarkedIndividual(
-                    id);
-                if (mySocialUnits.size() > maxSocialUnits) maxSocialUnits = mySocialUnits.size();
-            }
-        }
-        numMediaAssetCols = maxNumMedia;
-        numNameCols = maxNumNames;
-        numSubmitters = maxSubmitters;
-        numSocialUnits = maxSocialUnits;
-        System.out.println(
-            "EncounterAnnotationExportExcelFile: environment vars numMediaAssetCols = " +
-            numMediaAssetCols + "; maxNumKeywords = " + maxNumKeywords + " and maxNumNames = " +
-            numNameCols);
-    }
-
-    public void writeExcelFile(HttpServletRequest request, Shepherd myShepherd)
+    public void writeToStream(OutputStream fileOut)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
         IllegalAccessException, IOException {
         String context = ServletUtilities.getContext(request);
-        File excelFile = getFile();
         Vector rEncounters;
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request,
             "year descending, month descending, day descending");
@@ -441,7 +361,6 @@ public class EncounterAnnotationExportFile {
         // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
         hiddenData.writeHiddenDataReport(hiddenSheet);
 
-        FileOutputStream fileOut = new FileOutputStream(excelFile);
         wb.write(fileOut); // Write the workbook to the FileOutputStream
         fileOut.close(); // Close the FileOutputStream
         wb.close(); // Close the workbook
@@ -449,5 +368,66 @@ public class EncounterAnnotationExportFile {
         // end Excel export and business logic ===============================================
         System.out.println("Done with EncounterAnnotationExportExcelFile. We hid " +
             hiddenData.size() + " encounters.");
+    }
+
+    void setMediaAssetCounts(Vector rEncounters, Shepherd myShepherd) {
+        System.out.println("EncounterAnnotationExportExcelFile: setting environment vars for " +
+            Math.max(rEncounters.size(), ROW_LIMIT) + " encs.");
+        int maxNumMedia = 0;
+        int maxNumKeywords = 0;
+        int maxNumLabeledKeywords = 0;
+        int maxNumNames = 0;
+        int maxNumMeasurements = 0;
+        int maxSocialUnits = 1;
+        int maxSubmitters = 0;
+        Set<String> individualIDsChecked = new HashSet<String>();
+        for (int i = 0; i < rEncounters.size() && i < ROW_LIMIT; i++) {
+            Encounter enc = (Encounter)rEncounters.get(i);
+            if (enc.getMeasurements().size() > 0) {
+                for (Measurement currentMeasurement : enc.getMeasurements()) { // populate a list of measurementColName with measurements in current
+                    // encounter set only
+                    String currentMeasurementType = currentMeasurement.getType();
+                    if (currentMeasurementType != null &&
+                        !measurementColTitles.contains(currentMeasurementType)) {
+                        measurementColTitles.add(currentMeasurementType);
+                    }
+                }
+            }
+            if (enc.getSubmitters().size() > maxSubmitters)
+                maxSubmitters = enc.getSubmitters().size();
+            if (enc.getMeasurements().size() > maxNumMeasurements)
+                maxNumMeasurements = enc.getMeasurements().size();
+            ArrayList<MediaAsset> masDuplicates = enc.getMedia();
+            ArrayList<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
+            int numMedia = mas.size();
+            if (numMedia > maxNumMedia) maxNumMedia = numMedia;
+            for (MediaAsset ma : mas) {
+                int numKw = ma.numKeywordsStrict();
+                int numLabeledKw = 0;
+                if (ma.getLabeledKeywords() != null) {
+                    List<LabeledKeyword> lkws = ma.getLabeledKeywords();
+                    numLabeledKw = lkws.size();
+                }
+                if (numKw > maxNumKeywords) maxNumKeywords = numKw;
+                if (numLabeledKw > maxNumLabeledKeywords) maxNumLabeledKeywords = numLabeledKw;
+            }
+            MarkedIndividual id = enc.getIndividual();
+            if (id != null && !individualIDsChecked.contains(id.getIndividualID())) {
+                individualIDsChecked.add(id.getIndividualID());
+                int numNames = id.getNameKeys().size();
+                if (numNames > maxNumNames) maxNumNames = numNames;
+                List<SocialUnit> mySocialUnits = myShepherd.getAllSocialUnitsForMarkedIndividual(
+                    id);
+                if (mySocialUnits.size() > maxSocialUnits) maxSocialUnits = mySocialUnits.size();
+            }
+        }
+        numMediaAssetCols = maxNumMedia;
+        numNameCols = maxNumNames;
+        numSubmitters = maxSubmitters;
+        numSocialUnits = maxSocialUnits;
+        System.out.println(
+            "EncounterAnnotationExportExcelFile: environment vars numMediaAssetCols = " +
+            numMediaAssetCols + "; maxNumKeywords = " + maxNumKeywords + " and maxNumNames = " +
+            numNameCols);
     }
 }

@@ -29,17 +29,15 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         try {
-            Path encountersDir = getExportFileFolder(context);
-            EncounterAnnotationExportFile excelFile = new EncounterAnnotationExportFile(
-                encountersDir);
-            excelFile.writeExcelFile(request, myShepherd);
+            EncounterAnnotationExportFile excelFile = new EncounterAnnotationExportFile(request,
+                myShepherd);
 
             // now write out the file
             response.setContentType("application/msexcel");
             response.setHeader("Content-Disposition", "attachment;filename=" + excelFile.getName());
 
             OutputStream os = response.getOutputStream();
-            excelFile.writeToStream(response.getOutputStream());
+            excelFile.writeToStream(os);
 
             os.flush();
             os.close();
