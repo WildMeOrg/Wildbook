@@ -628,6 +628,7 @@ import static org.mockito.Mockito.when;
             enc1.setVerbatimLocality("iberia");
             enc1.setDecimalLatitude(37.15414445923345);
             enc1.setDecimalLongitude(-6.730740044168456);
+            enc1.setDateFromISO8601String("2024-06-01");
             myShepherd.storeNewEncounter(enc1);
 
             enc1.opensearchIndexDeep();
@@ -640,6 +641,7 @@ import static org.mockito.Mockito.when;
             enc2.setVerbatimLocality("iberia");
             enc2.setDecimalLatitude(37.15414445923345);
             enc2.setDecimalLongitude(-6.730740044168456);
+            enc2.setDateFromISO8601String("2025-05-02");
             myShepherd.storeNewEncounter(enc2);
 
             enc2.opensearchIndexDeep();
@@ -652,6 +654,7 @@ import static org.mockito.Mockito.when;
             enc3.setVerbatimLocality("iberia");
             enc3.setDecimalLatitude(37.15414445923345);
             enc3.setDecimalLongitude(-6.730740044168456);
+            enc2.setDateFromISO8601String("2025-05-03");
             myShepherd.storeNewEncounter(enc3);
 
             enc3.opensearchIndexDeep();
