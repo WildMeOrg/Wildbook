@@ -7,8 +7,9 @@ import io.restassured.RestAssured;
 import java.io.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.security.Principal;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -109,6 +110,9 @@ import static org.mockito.Mockito.when;
         // start embedded jetty
         Server server = new Server(new InetSocketAddress("localhost", 0));
         ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.SESSIONS);
+
+        // Set resource base so getRealPath() doesn't return null
+        ctx.setResourceBase("/tmp");
 
         // Configure Shiro using IniShiroFilter with shiro.ini from test resources
         IniShiroFilter shiroFilter = new IniShiroFilter();
@@ -476,10 +480,8 @@ import static org.mockito.Mockito.when;
         String authenticationCookie = authenticateTestUser();
 
         // Prepare request body with search criteria and export options
-        String requestBody = "{" + "\"searchCriteria\": {" +
-            "  \"query\": {\"match\": {\"genus\": \"Panthera\"}}" + "}," + "\"exportOptions\": {" +
-            "  \"unidentifiedEncounters\": false," + "  \"numAnnotationsPerId\": \"all\"," +
-            "  \"includeMetadata\": true" + "}" + "}";
+        String requestBody =
+            "{  \"query\": {\"match\": {\"genus\": \"Panthera\"}}},\"exportOptions\": {  \"unidentifiedEncounters\": false,  \"numAnnotationsPerId\": \"all\",  \"includeMetadata\": true}";
 
         System.out.println("Sending export request...");
 
@@ -508,11 +510,23 @@ import static org.mockito.Mockito.when;
 
         // Parse the ZIP file and verify its structure
         Set<String> zipEntries = new HashSet<>();
+        byte[] metadataExcelBytes = null;
+
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 zipEntries.add(entry.getName());
                 System.out.println("  Found ZIP entry: " + entry.getName());
+                // Extract metadata.xlsx for validation
+                if (entry.getName().equals("metadata.xlsx")) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        baos.write(buffer, 0, len);
+                    }
+                    metadataExcelBytes = baos.toByteArray();
+                }
                 zis.closeEntry();
             }
         }
@@ -561,7 +575,152 @@ import static org.mockito.Mockito.when;
         System.out.println("  Total ZIP entries: " + zipEntries.size());
         System.out.println("  Individual_1 images: " + individual1Images);
         System.out.println("  Individual_2 images: " + individual2Images);
-        System.out.println("Happy path test completed successfully");
+
+        // Validate Excel metadata file content
+        System.out.println("\nVerifying Excel metadata file content...");
+        assertNotNull(metadataExcelBytes, "metadata.xlsx should have been extracted from ZIP");
+        assertTrue(metadataExcelBytes.length > 0, "metadata.xlsx should not be empty");
+
+        try (Workbook workbook = new XSSFWorkbook(new ByteArrayInputStream(metadataExcelBytes))) {
+            // Should have "Search Results" sheet
+            Sheet sheet = workbook.getSheet("Search Results");
+            assertNotNull(sheet, "Excel should contain 'Search Results' sheet");
+
+            // Should have "Hidden Data Report" sheet (for security)
+            Sheet hiddenSheet = workbook.getSheet("Hidden Data Report");
+            assertNotNull(hiddenSheet, "Excel should contain 'Hidden Data Report' sheet");
+
+            // Validate header row (row 0)
+            Row headerRow = sheet.getRow(0);
+            assertNotNull(headerRow, "Excel should have a header row");
+
+            // Build a map of column names to indices for easier validation
+            java.util.Map<String, Integer> columnIndices = new java.util.HashMap<>();
+            for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+                Cell cell = headerRow.getCell(i);
+                if (cell != null) {
+                    columnIndices.put(cell.getStringCellValue(), i);
+                }
+            }
+            System.out.println("  Found " + columnIndices.size() + " columns in Excel");
+
+            // Verify expected columns exist (based on EncounterAnnotationExportFile)
+            assertTrue(columnIndices.containsKey("Encounter.genus"),
+                "Excel should have 'Encounter.genus' column");
+            assertTrue(columnIndices.containsKey("Encounter.specificEpithet"),
+                "Excel should have 'Encounter.specificEpithet' column");
+            assertTrue(columnIndices.containsKey("Encounter.mediaAsset0.imageUrl"),
+                "Excel should have 'Encounter.mediaAsset0.imageUrl' column");
+            assertTrue(columnIndices.containsKey("Annotation0.ViewPoint"),
+                "Excel should have 'Annotation0.ViewPoint' column");
+            assertTrue(columnIndices.containsKey("Annotation0.bbox"),
+                "Excel should have 'Annotation0.bbox' column");
+            assertTrue(columnIndices.containsKey("Annotation0.MatchAgainst"),
+                "Excel should have 'Annotation0.MatchAgainst' column");
+            assertTrue(columnIndices.containsKey("Name0.value"),
+                "Excel should have 'Name0.value' column for Individual ID");
+
+            // Count data rows (should have 3 encounters from test data)
+            int dataRowCount = 0;
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row != null) {
+                    // Check if row has any non-empty cells
+                    boolean hasData = false;
+                    for (int j = 0; j < row.getLastCellNum(); j++) {
+                        Cell cell = row.getCell(j);
+                        if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK) {
+                            hasData = true;
+                            break;
+                        }
+                    }
+                    if (hasData) dataRowCount++;
+                }
+            }
+            System.out.println("  Found " + dataRowCount + " data rows in Excel");
+            assertTrue(dataRowCount >= 3,
+                "Excel should have at least 3 data rows (for 3 test encounters)");
+
+            // Validate data content in rows
+            boolean foundPanthera = false;
+            boolean foundLeo = false;
+            boolean foundIndividual1 = false;
+            boolean foundIndividual2 = false;
+            boolean foundLeftViewpoint = false;
+            boolean foundRightViewpoint = false;
+            boolean foundFrontViewpoint = false;
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+                // Check genus
+                if (columnIndices.containsKey("Encounter.genus")) {
+                    Cell genusCell = row.getCell(columnIndices.get("Encounter.genus"));
+                    if (genusCell != null && "Panthera".equals(getCellValueAsString(genusCell))) {
+                        foundPanthera = true;
+                    }
+                }
+                // Check species
+                if (columnIndices.containsKey("Encounter.specificEpithet")) {
+                    Cell speciesCell = row.getCell(columnIndices.get("Encounter.specificEpithet"));
+                    if (speciesCell != null && "leo".equals(getCellValueAsString(speciesCell))) {
+                        foundLeo = true;
+                    }
+                }
+                // Check individual names
+                if (columnIndices.containsKey("Name0.value")) {
+                    Cell nameCell = row.getCell(columnIndices.get("Name0.value"));
+                    if (nameCell != null) {
+                        String nameValue = getCellValueAsString(nameCell);
+                        if ("Individual_1".equals(nameValue)) foundIndividual1 = true;
+                        if ("Individual_2".equals(nameValue)) foundIndividual2 = true;
+                    }
+                }
+                // Check viewpoints
+                if (columnIndices.containsKey("Annotation0.ViewPoint")) {
+                    Cell viewpointCell = row.getCell(columnIndices.get("Annotation0.ViewPoint"));
+                    if (viewpointCell != null) {
+                        String viewpoint = getCellValueAsString(viewpointCell);
+                        if ("left".equals(viewpoint)) foundLeftViewpoint = true;
+                        if ("right".equals(viewpoint)) foundRightViewpoint = true;
+                        if ("front".equals(viewpoint)) foundFrontViewpoint = true;
+                    }
+                }
+            }
+            // Assert we found expected data values
+            assertTrue(foundPanthera, "Excel should contain genus 'Panthera' in data rows");
+            assertTrue(foundLeo, "Excel should contain species 'leo' in data rows");
+            assertTrue(foundIndividual1, "Excel should contain 'Individual_1' in Name0.value");
+            assertTrue(foundIndividual2, "Excel should contain 'Individual_2' in Name0.value");
+            assertTrue(foundLeftViewpoint, "Excel should contain 'left' viewpoint");
+            assertTrue(foundRightViewpoint, "Excel should contain 'right' viewpoint");
+            assertTrue(foundFrontViewpoint, "Excel should contain 'front' viewpoint");
+
+            System.out.println("Excel metadata validation passed");
+            System.out.println("  Validated taxonomy: Panthera leo");
+            System.out.println("  Validated individuals: Individual_1, Individual_2");
+            System.out.println("  Validated viewpoints: left, right, front");
+        }
+
+        System.out.println("\nHappy path test completed successfully");
+    }
+
+    /**
+     * Helper method to get cell value as string, handling different cell types.
+     */
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return null;
+        switch (cell.getCellType()) {
+        case Cell.CELL_TYPE_STRING:
+            return cell.getStringCellValue();
+        case Cell.CELL_TYPE_NUMERIC:
+            return String.valueOf(cell.getNumericCellValue());
+        case Cell.CELL_TYPE_BOOLEAN:
+            return String.valueOf(cell.getBooleanCellValue());
+        case Cell.CELL_TYPE_FORMULA:
+            return cell.getCellFormula();
+        default:
+            return null;
+        }
     }
 
     // =========================================================================
@@ -617,10 +776,8 @@ import static org.mockito.Mockito.when;
             AssetStore localStore = new LocalAssetStore("local", assetsRoot, null, false);
             MediaAsset asset1 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
-
             MediaAsset asset2 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
-
             MediaAsset asset3 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
 

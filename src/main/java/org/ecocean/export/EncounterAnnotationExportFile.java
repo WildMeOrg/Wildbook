@@ -361,8 +361,8 @@ public class EncounterAnnotationExportFile {
         // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
         hiddenData.writeHiddenDataReport(hiddenSheet);
 
-        wb.write(fileOut); // Write the workbook to the FileOutputStream
-        fileOut.close(); // Close the FileOutputStream
+        wb.write(fileOut); // Write the workbook to the OutputStream
+        // Note: Don't close fileOut - let the caller manage stream lifecycle
         wb.close(); // Close the workbook
 
         // end Excel export and business logic ===============================================
