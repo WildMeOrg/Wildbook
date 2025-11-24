@@ -21,7 +21,7 @@ const ImageCard = observer(({ store = {} }) => {
   const [scaleY, setScaleY] = useState(1);
   const [openImageModal, setOpenImageModal] = useState(false);
   const fileInputRef = useRef(null);
-  const maxSize = 10;
+  const maxSize = store.siteSettingsData?.maximumMediaSizeMegabytes || 3;
   const theme = useContext(ThemeColorContext);
   const boxRef = React.useRef(null);
   const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
