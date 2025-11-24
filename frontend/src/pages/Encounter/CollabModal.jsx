@@ -4,7 +4,10 @@ import { FormattedMessage } from "react-intl";
 
 export default function CollabModal({ store }) {
   const collabStatus = store.encounterData?.collaborationState || "none";
-  const dataOwner = store.encounterData?.assignedUsername || "admin123";
+  const dataOwner =
+    store.encounterData?.submitterInfo?.displayName ||
+    store.encounterData?.assignedUsername ||
+    "admin";
   const [collabMessage, setCollabMessage] = useState("");
   const [showRequestModal, setShowRequestModal] = useState(
     collabStatus === "none",
@@ -34,18 +37,15 @@ export default function CollabModal({ store }) {
 
         <Modal.Body style={{ textAlign: "center" }}>
           <h4 style={{ marginBottom: "20px" }}>
-            <FormattedMessage id="REQUEST_COLLAB_WITH" />{" "}
-            <span
+            <FormattedMessage id="REQUEST_COLLAB_WITH" />
+            <div
               style={{
-                border: "1px solid #ccc",
-                padding: "4px 8px",
-                borderRadius: "4px",
-                background: "#f5f5f5",
+                fontWeight: "bold",
+                marginTop: "10px",
               }}
             >
               {dataOwner}
-            </span>
-            ?
+            </div>
           </h4>
 
           <p style={{ marginBottom: "20px" }}>
