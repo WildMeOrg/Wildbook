@@ -15,12 +15,8 @@ import javax.servlet.ServletException;
 import java.io.*;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class EncounterRemoveAnnotation extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(EncounterRemoveAnnotation.class);
+//    public static Logger log = LoggerFactory.getLogger(EncounterRemoveAnnotation.class);
 
     public void init(ServletConfig config)
     throws ServletException {
