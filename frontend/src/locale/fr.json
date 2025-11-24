@@ -682,5 +682,14 @@
   "UPLOADING_IMAGE": "Téléchargement de l’image...",
   "SAMPLING_PROTOCOL": "Protocole d'échantillonnage",
   "ARGOS_PTT_NUMBER": "Numéro Argos PTT",
-  "GO_TO_ENCOUNTER_PAGE": "Aller à la page de rencontre"
+  "GO_TO_ENCOUNTER_PAGE": "Aller à la page de rencontre",
+  "ACCESS_DENIED": "Accès refusé",
+  "NO_ACCESS_TO_ENCOUNTER": "Vous n'avez pas l'autorisation d'accéder à cette page.",
+  "NO_IMAGE_AVAILABLE": "Aucune image disponible",
+  "IDENTITY": "Identité",
+  "ACCESS_LIMITED": "L'accès à cette ressource est limité.",
+  "REQUEST_COLLAB_WITH": "Demander une collaboration avec ",
+  "REQUEST_COLLAB_MESSAGE": "En cliquant sur 'Oui', une invitation à collaborer, incluant votre adresse e-mail, sera envoyée au propriétaire des données. Ils peuvent vous contacter pour obtenir plus d'informations afin d'établir des accords de partage de données ou des protocoles d'entente (MoUs).",
+  "REQUEST_REJECTED": "Votre demande de collaboration avec cet utilisateur a été refusée.",
+  "ACCESS_PENDING": "Votre demande de collaboration est en attente"
 }

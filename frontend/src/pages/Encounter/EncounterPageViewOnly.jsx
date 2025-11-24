@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Container } from "react-bootstrap";
 import { Row, Col } from "react-bootstrap";
@@ -8,12 +8,15 @@ import IdentifyIcon from "../../components/IdentifyIcon";
 import AttributesIcon from "../../components/icons/AttributesIcon";
 import CardWithoutEditButton from "../../components/CardWithoutEditButton";
 import { FormattedMessage } from "react-intl";
+import LoadingScreen from "../../components/LoadingScreen";
 
 export default function EncounterPageViewOnly() {
   const [data, setData] = React.useState([]);
   const params = new URLSearchParams(window.location.search);
   const encounterId = params.get("number");
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
+  const [isPublic, setIsPublic] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,14 +24,27 @@ export default function EncounterPageViewOnly() {
       .get(`/api/v3/encounters/${encounterId}`)
       .then((res) => {
         if (!cancelled) setData(res.data);
+        setIsPublic(res.data?.isPublic);
       })
       .catch((err) => {
         throw err;
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, [encounterId]);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isPublic) {
+    window.location.href = "/react/login";
+    return null;
+  }
 
   return (
     <Container style={{ padding: "20px" }}>
@@ -145,40 +161,49 @@ export default function EncounterPageViewOnly() {
                 {<FormattedMessage id="IMAGES" />}
               </span>
             </div>
-            {data?.mediaAssets?.length > 0 && (
-              <>
-                <img
-                  src={data?.mediaAssets[selectedImageIndex]?.url}
-                  alt={"Encounter Image"}
-                  style={{ width: "100%", height: "auto" }}
-                />
-                <div>
-                  {data?.mediaAssets?.length > 0 && (
-                    <div className="d-flex justify-content-center mt-2">
-                      {data.mediaAssets.map((image, index) => (
-                        <img
-                          key={index}
-                          src={image.url}
-                          alt={`Thumbnail ${index + 1}`}
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            margin: "0 5px",
-                            cursor: "pointer",
-                            borderRadius: "5px",
-                            border:
-                              selectedImageIndex === index
-                                ? "2px solid blue"
-                                : "2px solid transparent",
-                          }}
-                          onClick={() => setSelectedImageIndex(index)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+            <div
+              className="d-flex flex-wrap align-items-center mt-2"
+              style={{ gap: 8, overflowY: "auto", maxHeight: 200 }}
+            >
+              {data?.mediaAssets?.length > 0 ? (
+                <>
+                  <img
+                    src={data?.mediaAssets?.[selectedImageIndex]?.url}
+                    alt={"Encounter Image"}
+                    style={{ width: "100%", height: "auto" }}
+                  />
+                  <div>
+                    {data?.mediaAssets?.length > 0 && (
+                      <div className="d-flex mt-2 flex-wrap">
+                        {data.mediaAssets.map((image, index) => (
+                          <img
+                            key={index}
+                            src={image.url}
+                            alt={`img-${index + 1}`}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              margin: "0 5px",
+                              cursor: "pointer",
+                              borderRadius: "5px",
+                              border:
+                                selectedImageIndex === index
+                                  ? "2px solid blue"
+                                  : "2px solid transparent",
+                            }}
+                            onClick={() => setSelectedImageIndex(index)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p>
+                  <FormattedMessage id="NO_IMAGE_AVAILABLE" />
+                </p>
+              )}
+            </div>
           </div>
         </Col>
       </Row>

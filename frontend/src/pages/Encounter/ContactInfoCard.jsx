@@ -58,20 +58,22 @@ export const ContactInfoCard = observer(
                   )}
                 </span>
                 <div> {item?.displayName}</div>
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    if (window.confirm(confirmMsg)) {
-                      store.removeContact(type, item.id);
-                      store.refreshEncounterData();
-                    }
-                  }}
-                >
-                  <TrashCanIcon />
-                </div>
+                {store.access === "write" && (
+                  <div
+                    style={{
+                      marginLeft: "auto",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      if (window.confirm(confirmMsg)) {
+                        store.removeContact(type, item.id);
+                        store.refreshEncounterData();
+                      }
+                    }}
+                  >
+                    <TrashCanIcon />
+                  </div>
+                )}
               </div>
             );
           })}

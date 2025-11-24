@@ -25,6 +25,10 @@ class ImageModalStore {
     );
   }
 
+  get access() {
+    return this.encounterStore.access;
+  }
+
   get selectedImageIndex() {
     return this.encounterStore.selectedImageIndex || 0;
   }

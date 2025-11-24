@@ -93,7 +93,7 @@ class EncounterApiTest {
                 doReturn(emptyMap).when(encSpy).getBiologicalMeasurementsByType();
                 Shepherd myShepherd = new Shepherd("context0");
                 JSONObject json = encSpy.jsonForApiGet(myShepherd, null);
-                assertEquals(json.length(), 35);
+                assertEquals(json.length(), 33);
                 assertEquals(json.getString("id"), encId);
             }
         }
@@ -145,6 +145,8 @@ class EncounterApiTest {
                         anns.add(mockAnnot);
                         when(mockMA.getAnnotations()).thenReturn(anns);
                         enc.addAnnotation(mockAnnot);
+                        user.setUsername("test");
+                        enc.setSubmitterID("test");
                         res = enc.jsonForApiGet(myShepherd, user);
                         assertEquals(res.getJSONArray("mediaAssets").length(), 2);
                         assertEquals(res.getJSONArray("mediaAssets").getJSONObject(0).getString(
