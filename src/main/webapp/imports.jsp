@@ -126,6 +126,7 @@ if (user == null) {
     return;
 }
 boolean adminMode = request.isUserInRole("admin");
+boolean isOrgAdmin = request.isUserInRole("orgAdmin");
 boolean showAll = "true".equalsIgnoreCase(request.getParameter("showAll"));
 String keepShowAll = showAll ? "&showAll=true" : "";
 
@@ -210,54 +211,118 @@ try{
     int end = start + pageSize;
 	
     String uclause = "";
-    if (!(adminMode && "true".equalsIgnoreCase(request.getParameter("showAll")))) {
-        // Limit to own UUID plus active collaborators
-        Set<String> allowedUUIDs = new HashSet<String>();
-        if (user != null && user.getUUID() != null) allowedUUIDs.add(user.getUUID());
+	if("true".equalsIgnoreCase(request.getParameter("showAll"))){
+		if (!adminMode) {
+			if (isOrgAdmin) {
+				Set<String> allowedUUIDs = new HashSet<String>();
+				// Add own UUID
+				if (user != null && user.getUUID() != null) allowedUUIDs.add(user.getUUID());
+				
+				// Add all organization members
+				List<Organization> orgs = myShepherd.getAllOrganizationsForUser(user);
+				for (Organization org : orgs) {
+					List<User> members = org.getMembers();
+					for (User member : members) {
+						if (member.getUUID() != null) allowedUUIDs.add(member.getUUID());
+					}
+				}
+				
+				// Add collaborators (including those outside the organization)
+				List<Collaboration> collabs = new ArrayList<Collaboration>();
+				collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_EDIT_PRIV));
+				collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_APPROVED));
+				String currentUsername = user.getUsername();
 
-        List<Collaboration> collabs = new ArrayList<Collaboration>();
-        collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_EDIT_PRIV));
-        collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_APPROVED));
-        String currentUsername = user.getUsername();
+				Set<String> collaboratorUsernames = new HashSet<String>();
+				for (Collaboration collab : collabs) {
+					String username1 = collab.getUsername1();
+					String username2 = collab.getUsername2();
+					if (username2 != null && username2.equals(currentUsername) && username1 != null) {
+						collaboratorUsernames.add(username1);
+					} else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
+						collaboratorUsernames.add(username2);
+					}
+				}
 
-        Set<String> collaboratorUsernames = new HashSet<String>();
-        for (Collaboration collab : collabs) {
-            String username1 = collab.getUsername1();
-            String username2 = collab.getUsername2();
-            if (username2 != null && username2.equals(currentUsername) && username1 != null) {
-                collaboratorUsernames.add(username1);
-            } else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
-                collaboratorUsernames.add(username2);
-            }
-        }
+				if (!collaboratorUsernames.isEmpty()) {
+					StringBuilder jdoqlUser = new StringBuilder("SELECT FROM " + User.class.getName() + " WHERE ");
+					int count = 0;
+					for (String username : collaboratorUsernames) {
+						if (count > 0) jdoqlUser.append(" || ");
+						jdoqlUser.append("username == \"").append(username).append("\"");
+						count++;
+					}
+					Query userQuery = myShepherd.getPM().newQuery(jdoqlUser.toString());
+					Collection result = (Collection) userQuery.execute();
+					for (Object o : result) {
+						User u = (User) o;
+						if (u.getUUID() != null) allowedUUIDs.add(u.getUUID());
+					}
+					userQuery.closeAll();
+				}
 
-        if (!collaboratorUsernames.isEmpty()) {
-            StringBuilder jdoqlUser = new StringBuilder("SELECT FROM " + User.class.getName() + " WHERE ");
-            int count = 0;
-            for (String username : collaboratorUsernames) {
-                if (count > 0) jdoqlUser.append(" || ");
-                jdoqlUser.append("username == \"").append(username).append("\"");
-                count++;
-            }
-            Query userQuery = myShepherd.getPM().newQuery(jdoqlUser.toString());
-            Collection result = (Collection) userQuery.execute();
-            for (Object o : result) {
-                User u = (User) o;
-                if (u.getUUID() != null) allowedUUIDs.add(u.getUUID());
-            }
-            userQuery.closeAll();
-        }
+				if (!allowedUUIDs.isEmpty()) {
+					StringBuilder sb = new StringBuilder();
+					int cind = 0;
+					for (String uuid : allowedUUIDs) {
+						if (cind++ > 0) sb.append(" || ");
+						sb.append("creator.uuid == \"").append(uuid).append("\"");
+					}
+					uclause = " && (" + sb.toString() + ")";
+				}
 
-        if (!allowedUUIDs.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            int cind = 0;
-            for (String uuid : allowedUUIDs) {
-                if (cind++ > 0) sb.append(" || ");
-                sb.append("creator.uuid == \"").append(uuid).append("\"");
-            }
-            uclause = " && (" + sb.toString() + ")";
-        }
-    }
+			} else{
+				// Limit to own UUID plus active collaborators
+				Set<String> allowedUUIDs = new HashSet<String>();
+				if (user != null && user.getUUID() != null) allowedUUIDs.add(user.getUUID());
+		
+				List<Collaboration> collabs = new ArrayList<Collaboration>();
+				collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_EDIT_PRIV));
+				collabs.addAll(Collaboration.collaborationsForCurrentUser(request, Collaboration.STATE_APPROVED));
+				String currentUsername = user.getUsername();
+		
+				Set<String> collaboratorUsernames = new HashSet<String>();
+				for (Collaboration collab : collabs) {
+					String username1 = collab.getUsername1();
+					String username2 = collab.getUsername2();
+					if (username2 != null && username2.equals(currentUsername) && username1 != null) {
+						collaboratorUsernames.add(username1);
+					} else if (username1 != null && username1.equals(currentUsername) && username2 != null) {
+						collaboratorUsernames.add(username2);
+					}
+				}
+		
+				if (!collaboratorUsernames.isEmpty()) {
+					StringBuilder jdoqlUser = new StringBuilder("SELECT FROM " + User.class.getName() + " WHERE ");
+					int count = 0;
+					for (String username : collaboratorUsernames) {
+						if (count > 0) jdoqlUser.append(" || ");
+						jdoqlUser.append("username == \"").append(username).append("\"");
+						count++;
+					}
+					Query userQuery = myShepherd.getPM().newQuery(jdoqlUser.toString());
+					Collection result = (Collection) userQuery.execute();
+					for (Object o : result) {
+						User u = (User) o;
+						if (u.getUUID() != null) allowedUUIDs.add(u.getUUID());
+					}
+					userQuery.closeAll();
+				}
+		
+				if (!allowedUUIDs.isEmpty()) {
+					StringBuilder sb = new StringBuilder();
+					int cind = 0;
+					for (String uuid : allowedUUIDs) {
+						if (cind++ > 0) sb.append(" || ");
+						sb.append("creator.uuid == \"").append(uuid).append("\"");
+					}
+					uclause = " && (" + sb.toString() + ")";
+				}
+			}
+		}
+	} else{
+		uclause = " && creator.uuid == \"" + user.getUUID() + "\"";
+	}
 
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
