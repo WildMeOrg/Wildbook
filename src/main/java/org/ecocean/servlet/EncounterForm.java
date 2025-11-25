@@ -453,6 +453,18 @@ public class EncounterForm extends HttpServlet {
                 makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations,
                     genus, specificEpithet);
             }
+            int numFilesAdded = 0;
+            int numFilesGood = 0;
+            for (Annotation ann : newAnnotations) {
+                MediaAsset ma = ann.getMediaAsset();
+                if (ma == null) continue;
+                numFilesAdded += 1;
+                if (ma.isValidImageForIA()) numFilesGood += 1;
+            }
+            if ((numFilesAdded > 0) && (numFilesGood == 0)) {
+                System.out.println("no files good out of " + numFilesAdded + "; aborting submission");
+                throw new ServletException("No valid images files found in " + numFilesAdded + " files submitted");
+            }
             System.out.println("BBB: Checking if we have social files...");
             if (socialFiles.size() > 0) {
                 int numSocialFiles = socialFiles.size();
