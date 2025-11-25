@@ -693,5 +693,7 @@
   "REQUEST_COLLAB_WITH": "Zusammenarbeit anfragen mit ",
   "REQUEST_COLLAB_MESSAGE": "Durch Klicken auf 'Ja' wird eine Einladung zur Zusammenarbeit, einschließlich Ihrer E-Mail-Adresse, an den Datenbesitzer gesendet. Sie könnten Sie kontaktieren, um weitere Informationen zu erhalten, damit entsprechende Datenfreigabevereinbarungen oder MoUs arrangiert werden können.",
   "REQUEST_REJECTED": "Ihre Anfrage zur Zusammenarbeit mit diesem Benutzer wurde abgelehnt.",
-  "ACCESS_PENDING": "Ihre Anfrage zur Zusammenarbeit ist ausstehend"
+  "ACCESS_PENDING": "Ihre Anfrage zur Zusammenarbeit ist ausstehend",
+  "CALENDAR_VIEW_DESC": "Zeige die Suchergebnisse der Encounters in einem Kalender nach Encounter-Datum an. Klicke auf eine Encounter-ID, um die Details zu öffnen.",
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Wähle ein oder mehrere Encounters aus, um sie zu einem Projekt hinzuzufügen."
 }

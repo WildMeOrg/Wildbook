@@ -692,5 +692,7 @@
     "REQUEST_COLLAB_WITH": "Request collaboration with ",
     "REQUEST_COLLAB_MESSAGE": "Clicking 'Yes' will send a collaboration invitation, including your email, to the data owner. They may contact you for more information so appropriate data-sharing agreements or MoUs can be arranged.",
     "REQUEST_REJECTED": "Your request to collaborate with this user has been rejected.",
-    "ACCESS_PENDING": "Your request to collaborate is pending"
+    "ACCESS_PENDING": "Your request to collaborate is pending",
+    "CALENDAR_VIEW_DESC": "View encounter search results on a calendar by encounter date. Click an encounter ID to open its details.",
+    "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project."
 }

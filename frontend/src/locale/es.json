@@ -691,5 +691,7 @@
   "REQUEST_COLLAB_WITH": "Solicitar colaboración con ",
   "REQUEST_COLLAB_MESSAGE": "Al hacer clic en 'Sí', se enviará una invitación de colaboración, incluida tu dirección de correo electrónico, al propietario de los datos. Es posible que se pongan en contacto contigo para obtener más información y así establecer acuerdos de intercambio de datos o MoUs.",
   "REQUEST_REJECTED": "Tu solicitud de colaboración con este usuario ha sido rechazada.",
-  "ACCESS_PENDING": "Tu solicitud de colaboración está pendiente"  
+  "ACCESS_PENDING": "Tu solicitud de colaboración está pendiente",
+  "CALENDAR_VIEW_DESC": "Ver los resultados de la búsqueda de encuentros en un calendario por fecha del encuentro. Haz clic en un ID de encuentro para abrir sus detalles.",
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Selecciona uno o varios encuentros para añadirlos a un proyecto."
 }
