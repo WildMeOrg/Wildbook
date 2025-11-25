@@ -140,7 +140,7 @@ const CalendarTab = observer(({ store }) => {
           style={{ height: 600 }}
           onSelectEvent={(event) => {
             if (event?.url) {
-              window.location.href = event.url;
+              window.open(event.url, "_blank");
             }
           }}
           eventPropGetter={() => ({
