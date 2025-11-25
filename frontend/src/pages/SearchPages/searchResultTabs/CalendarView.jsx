@@ -116,7 +116,7 @@ const CalendarTab = observer(({ store }) => {
         className="d-flex flex-row align-items-center gap-2"
         style={{ color: "white", height: "50px" }}
       >
-        <FormattedMessage id="ADD_ENCOUNTER_TO_PROJECT_DESC" />
+        <FormattedMessage id="CALENDAR_VIEW_DESC" />
       </div>
       <div
         className="container"
