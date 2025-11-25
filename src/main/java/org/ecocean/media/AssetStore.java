@@ -584,7 +584,7 @@ public abstract class AssetStore implements java.io.Serializable {
                 if (exif != null) data.put("exif", exif);
             } catch (IOException ioe) {
                 System.out.println("WARNING: extractMetadataExif threw " + ioe.toString() + " on " +
-                    ma + "; ignoring");
+                    ma + "; file=" + file + "; ignoring");
             }
         }
         return new MediaAssetMetadata(data);

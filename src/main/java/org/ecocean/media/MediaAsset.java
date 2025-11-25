@@ -1482,7 +1482,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
             } else {
                 System.out.println(
                     "WARNING: validateSourceImage was called on a non-image or corrupt MediaAsset with Id: "
-                    + this.getId());
+                    + this.getId() + "; path=" + lPath);
                 this.validImageForIA = false;
             }
         }
