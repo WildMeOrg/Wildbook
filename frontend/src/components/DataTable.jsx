@@ -471,7 +471,12 @@ const MyDataTable = observer(
                 <div>
                   <FormattedMessage id="ADD_TO_PROJECT" />
                 </div>
-                <div style={{ width: "350px" }}>
+                <div
+                  style={{
+                    minWidth: "350px",
+                    flex: "1 1 auto",
+                  }}
+                >
                   <Select
                     isMulti={true}
                     options={projectOptions}

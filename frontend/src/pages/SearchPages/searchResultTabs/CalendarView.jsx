@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Calendar, Views, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import "./searchResultTabs.css";
 import { observer } from "mobx-react-lite";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import useFilterEncounters from "../../../models/encounters/useFilterEncounters";
@@ -103,8 +102,9 @@ const CalendarTab = observer(({ store }) => {
         title: item.id,
         start: d,
         end: d,
+        allDay: true,
         id: item.id,
-        url: `/encounters/encounter.jsp?number=${item.id}`,
+        url: `/react/encounter?number=${item.id}`,
       };
     });
     setEvents(parsed);
@@ -128,6 +128,7 @@ const CalendarTab = observer(({ store }) => {
         }}
       >
         {(loading || store.loadingAll) && <FullScreenLoader />}
+
         <Calendar
           localizer={localizer}
           events={events}
@@ -137,24 +138,20 @@ const CalendarTab = observer(({ store }) => {
           endAccessor="end"
           onRangeChange={handleRangeChange}
           style={{ height: 600 }}
-          toolbar
-          components={{
-            event: ({ event }) => (
-              <a
-                href={event.url}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  background: "transparent",
-                  color: "#007bff",
-                  padding: 0,
-                  textDecoration: "underline",
-                }}
-              >
-                {event.id}
-              </a>
-            ),
+          onSelectEvent={(event) => {
+            if (event?.url) {
+              window.location.href = event.url;
+            }
           }}
+          eventPropGetter={() => ({
+            style: {
+              backgroundColor: "transparent",
+              color: "#007bff",
+              cursor: "pointer",
+              border: "none",
+              borderRadius: "4px",
+            },
+          })}
         />
       </div>
     </div>
