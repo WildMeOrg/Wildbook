@@ -6,6 +6,7 @@ import "./searchResultTabs.css";
 import { observer } from "mobx-react-lite";
 import FullScreenLoader from "../../../components/FullScreenLoader";
 import useFilterEncounters from "../../../models/encounters/useFilterEncounters";
+import { FormattedMessage } from "react-intl";
 
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
@@ -110,40 +111,52 @@ const CalendarTab = observer(({ store }) => {
   }, [encounterData]);
 
   return (
-    <div
-      className="container mt-1"
-      style={{ backgroundColor: "#f8f9fa", position: "relative" }}
-    >
-      {(loading || store.loadingAll) && <FullScreenLoader />}
-
-      <Calendar
-        localizer={localizer}
-        events={events}
-        view={view}
-        onView={setView}
-        startAccessor="start"
-        endAccessor="end"
-        onRangeChange={handleRangeChange}
-        style={{ height: 600 }}
-        toolbar
-        components={{
-          event: ({ event }) => (
-            <a
-              href={event.url}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                background: "transparent",
-                color: "#007bff",
-                padding: 0,
-                textDecoration: "underline",
-              }}
-            >
-              {event.id}
-            </a>
-          ),
+    <div>
+      <div
+        className="d-flex flex-row align-items-center gap-2"
+        style={{ color: "white", height: "50px" }}
+      >
+        <FormattedMessage id="CALENDAR_VIEW_DESC" />
+      </div>
+      <div
+        className="container"
+        style={{
+          backgroundColor: "#f8f9fa",
+          position: "relative",
+          borderRadius: "8px",
+          padding: "20px",
         }}
-      />
+      >
+        {(loading || store.loadingAll) && <FullScreenLoader />}
+        <Calendar
+          localizer={localizer}
+          events={events}
+          view={view}
+          onView={setView}
+          startAccessor="start"
+          endAccessor="end"
+          onRangeChange={handleRangeChange}
+          style={{ height: 600 }}
+          toolbar
+          components={{
+            event: ({ event }) => (
+              <a
+                href={event.url}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  background: "transparent",
+                  color: "#007bff",
+                  padding: 0,
+                  textDecoration: "underline",
+                }}
+              >
+                {event.id}
+              </a>
+            ),
+          }}
+        />
+      </div>
     </div>
   );
 });

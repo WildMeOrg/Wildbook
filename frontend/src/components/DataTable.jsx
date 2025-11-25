@@ -390,7 +390,7 @@ const MyDataTable = observer(
           <InputGroup
             className="mb-3 d-flex search-bar"
             style={{
-              minWidth: "120px",
+              minWidth: "220px",
               height: "30px",
               whiteSpace: "nowrap",
             }}
@@ -453,119 +453,135 @@ const MyDataTable = observer(
           </InputGroup>
           <br />
         </div>
-        <div className="d-flex flex-row align-items-center mt-2 mb-2">
-          {store.projectBannerStatusCode === 1 && (
-            <div
-              className="d-flex flex-row align-items-center gap-2"
-              style={{ color: "white" }}
-            >
-              <div>
-                <FormattedMessage id="ADD_TO_PROJECT" />
+        {store.activeStep === 0 && (
+          <div className="d-flex flex-row align-items-center">
+            {store.projectBannerStatusCode === 0 && (
+              <div
+                className="d-flex flex-row align-items-center gap-2"
+                style={{ color: "white", height: "50px" }}
+              >
+                <FormattedMessage id="ADD_ENCOUNTER_TO_PROJECT_DESC" />
               </div>
-              <div style={{ width: "350px" }}>
-                <Select
-                  isMulti={true}
-                  options={projectOptions}
-                  className="basic-multi-select"
-                  classNamePrefix="select"
-                  menuPlacement="auto"
-                  menuPortalTarget={document.body}
-                  styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-                  value={projectOptions.filter((option) =>
-                    store.selectedProjects.includes(option.value),
-                  )}
-                  getOptionLabel={(option) => option.label}
-                  placeholder={intl.formatMessage({ id: "SELECT_PROJECTS" })}
-                  onChange={(selected) =>
-                    store.setSelectedProjects(
-                      (selected || []).map((opt) => opt.value),
-                    )
+            )}
+            {store.projectBannerStatusCode === 1 && (
+              <div
+                className="d-flex flex-row align-items-center gap-2"
+                style={{ color: "white", height: "50px" }}
+              >
+                <div>
+                  <FormattedMessage id="ADD_TO_PROJECT" />
+                </div>
+                <div style={{ width: "350px" }}>
+                  <Select
+                    isMulti={true}
+                    options={projectOptions}
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    menuPlacement="auto"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
+                    value={projectOptions.filter((option) =>
+                      store.selectedProjects.includes(option.value),
+                    )}
+                    getOptionLabel={(option) => option.label}
+                    placeholder={intl.formatMessage({ id: "SELECT_PROJECTS" })}
+                    onChange={(selected) =>
+                      store.setSelectedProjects(
+                        (selected || []).map((opt) => opt.value),
+                      )
+                    }
+                    closeMenuOnSelect={false}
+                  />
+                </div>
+                <MainButton
+                  color="white"
+                  noArrow
+                  backgroundColor={theme?.wildMeColors?.cyan700}
+                  borderColor="#007bff"
+                  disabled={
+                    !store.selectedProjects ||
+                    store.selectedProjects.length === 0
                   }
-                  closeMenuOnSelect={false}
-                />
+                  onClick={() => {
+                    store.addEncountersToProject();
+                  }}
+                >
+                  <FormattedMessage id="ADD" />
+                </MainButton>
               </div>
-              <MainButton
-                color="white"
-                noArrow
-                backgroundColor={theme?.wildMeColors?.cyan700}
-                borderColor="#007bff"
-                disabled={
-                  !store.selectedProjects || store.selectedProjects.length === 0
-                }
-                onClick={() => {
-                  store.addEncountersToProject();
+            )}
+            {store.projectBannerStatusCode === 2 && (
+              <div
+                className="d-flex align-items-center"
+                style={{
+                  backgroundColor: theme?.primaryColors?.primary100,
+                  borderRadius: "5px",
+                  padding: "5px",
+                  color: theme?.wildMeColors?.green700,
+                  height: "50px",
                 }}
               >
-                <FormattedMessage id="ADD" />
-              </MainButton>
-            </div>
-          )}
-          {store.projectBannerStatusCode === 2 && (
-            <div
-              className="d-flex align-items-center"
-              style={{
-                backgroundColor: theme?.primaryColors?.primary100,
-                borderRadius: "5px",
-                padding: "5px",
-                color: theme?.wildMeColors?.green700,
-              }}
-            >
-              <i className="bi bi-info-circle"></i>
-              <FormattedMessage id="ADDING_TO_PROJECT" />
-              <i
-                className="bi bi-arrow-repeat ms-2"
+                <i className="bi bi-info-circle"></i>
+                <FormattedMessage id="ADDING_TO_PROJECT" />
+                <i
+                  className="bi bi-arrow-repeat ms-2"
+                  style={{
+                    fontSize: "1.5em",
+                    color: theme?.wildMeColors?.cyan700,
+                  }}
+                ></i>
+              </div>
+            )}
+            {store.projectBannerStatusCode === 3 && (
+              <div
+                className="d-flex align-items-center"
                 style={{
-                  fontSize: "1.5em",
-                  color: theme?.wildMeColors?.cyan700,
-                }}
-              ></i>
-            </div>
-          )}
-          {store.projectBannerStatusCode === 3 && (
-            <div
-              className="d-flex align-items-center"
-              style={{
-                backgroundColor: theme?.primaryColors?.primary100,
-                borderRadius: "5px",
-                padding: "5px",
-                color: theme?.wildMeColors?.green700,
-              }}
-            >
-              <i className="bi bi-info-circle"></i>
-              <FormattedMessage id="ADDED_TO_PROJECT" />
-              <i
-                className="bi bi-check-circle ms-2"
-                style={{
-                  fontSize: "1.5em",
+                  backgroundColor: theme?.primaryColors?.primary100,
+                  borderRadius: "5px",
+                  padding: "5px",
                   color: theme?.wildMeColors?.green700,
+                  height: "50px",
                 }}
-              ></i>
-            </div>
-          )}
-          {store.projectBannerStatusCode === 4 && (
-            <div
-              className="d-flex align-items-center"
-              style={{
-                backgroundColor: theme?.statusColors?.red100,
-                borderRadius: "5px",
-                padding: "5px",
-                color: theme?.wildMeColors?.green700,
-              }}
-            >
-              <i className="bi bi-info-circle"></i>
-              <FormattedMessage id="FAILED_TO_ADD_TO_PROJECT" />
-              <i
-                className="bi bi-x-circle ms-2"
+              >
+                <i className="bi bi-info-circle"></i>
+                <FormattedMessage id="ADDED_TO_PROJECT" />
+                <i
+                  className="bi bi-check-circle ms-2"
+                  style={{
+                    fontSize: "1.5em",
+                    color: theme?.wildMeColors?.green700,
+                  }}
+                ></i>
+              </div>
+            )}
+            {store.projectBannerStatusCode === 4 && (
+              <div
+                className="d-flex align-items-center"
                 style={{
-                  fontSize: "1.5em",
-                  color: theme?.wildMeColors?.red700,
+                  backgroundColor: theme?.statusColors?.red100,
+                  borderRadius: "5px",
+                  padding: "5px",
+                  color: theme?.wildMeColors?.green700,
+                  height: "50px",
                 }}
-              ></i>
-            </div>
-          )}
-        </div>
+              >
+                <i className="bi bi-info-circle"></i>
+                <FormattedMessage id="FAILED_TO_ADD_TO_PROJECT" />
+                <i
+                  className="bi bi-x-circle ms-2"
+                  style={{
+                    fontSize: "1.5em",
+                    color: theme?.wildMeColors?.red700,
+                  }}
+                ></i>
+              </div>
+            )}
+          </div>
+        )}
         <div
-          className="w-100 mt-1"
+          className="w-100"
           style={{
             display: store.activeStep === 0 ? "block" : "none",
           }}
