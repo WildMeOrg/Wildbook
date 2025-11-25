@@ -1486,25 +1486,25 @@
 					"description": "Luangwa",
 					"locationID": [
 						{
-							"name": "Luangwa North",
-							"id": "Luangwa North",
-							"description": "Luangwa North",
+							"name": "North Luangwa National Park",
+							"id": "North Luangwa National Park",
+							"description": "North Luangwa National Park",
 							"locationID":[]
 						},
 						{
-							"name": "Luambe",
-							"id": "Luambe",
+							"name": "Luambe National Park",
+							"id": "Luambe National Park",
 							"locationID":[]
 						},
 						{
-							"name": "Luangwa South",
-							"id": "Luangwa South",
-							"description": "Luangwa South",
+							"name": "South Luangwa National Park",
+							"id": "South Luangwa National Park",
+							"description": "South Luangwa National Park",
 							"locationID":[]
 						},
 						{
-							"name": "Lower Luangwa",
-							"id": "Lower Luangwa",
+							"name": "Lower Luangwa Valley",
+							"id": "Lower Luangwa Valley",
 							"description": "Lower Luangwa",
 							"locationID":[]
 						}
