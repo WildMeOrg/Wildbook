@@ -279,6 +279,7 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(User u1, User u2, String context) {
+        if (u1 == null) return false; // seems right choice?
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
         if ((c == null) || (c.getState() == null)) return false;
@@ -288,6 +289,7 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(String context, String u1, String u2) {
+        // note: User.isUsernameAnonymous(null) returns true, which seems... sketchy here?
         if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
@@ -311,9 +313,11 @@ public class Collaboration implements java.io.Serializable {
 
     public static boolean canEditEncounter(Encounter enc, User user, String context) {
         if ((enc == null) || (user == null)) return false;
-        return canEdit(context, enc.getSubmitterID(), user.getUsername());
+        return canEdit(context, user.getUsername(), enc.getSubmitterID());
     }
 
+    // note: u1 should be the user asking to edit, u2 is the owner of object in question
+    // order is critical!
     public static boolean canEdit(String context, String u1, String u2) {
         if ((u1 == null) || (u2 == null)) return false;
         if (u1.equals(u2)) return true;
@@ -323,6 +327,7 @@ public class Collaboration implements java.io.Serializable {
         return false;
     }
 
+    // see not on u1/u2 ordering above
     public static boolean canEdit(String context, User u1, User u2) {
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);

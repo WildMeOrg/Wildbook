@@ -28,6 +28,8 @@ class EncounterStore {
 
   _siteSettingsData = null;
 
+  _access = "read";
+
   _intl = null;
 
   modals;
@@ -146,6 +148,27 @@ class EncounterStore {
         samplingProtocol: m.samplingProtocol ?? "",
       }));
     this.resetAllDrafts();
+  }
+
+  get access() {
+    return this._access;
+  }
+  setAccess(newAccess) {
+    this._access = newAccess;
+  }
+
+  async requestCollaboration({ message }) {
+    try {
+      await axios.get("/Collaborate", {
+        params: {
+          json: 1,
+          username: this._encounterData.assignedUsername,
+          message,
+        },
+      });
+    } catch (e) {
+      console.error("Failed to send request:", e);
+    }
   }
 
   resetMeasurementValues() {

@@ -180,4 +180,84 @@ class PermissionsTest {
             assertTrue(enc.canUserEdit(user2, myShepherd));
         }
     }
+
+    // Collaboration.canCollaborate() is central to many other calls
+    @Test void canCollaborateTest() {
+        User userResearcher = new User("user-researcher", null, null);
+        User userOther = new User("user-other", null, null);
+        String context = "context0";
+        Shepherd myShepherd = mock(Shepherd.class);
+
+        when(myShepherd.getContext()).thenReturn(context);
+        User userAdmin = mock(User.class);
+        when(userAdmin.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            // self-collab
+            assert (Collaboration.canCollaborate(userResearcher, userResearcher, context));
+            // no collab
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(userResearcher, userAdmin,
+                context)).thenReturn(null);
+            assertFalse(Collaboration.canCollaborate(userResearcher, userAdmin, context));
+
+            // collab between, but some funky state
+            Collaboration collab = new Collaboration();
+            collab.setState("unknown");
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(userResearcher, userAdmin,
+                context)).thenReturn(collab);
+            assertFalse(Collaboration.canCollaborate(userResearcher, userAdmin, context));
+
+            // now we good
+            collab.setState(Collaboration.STATE_APPROVED);
+            assert (Collaboration.canCollaborate(userResearcher, userAdmin, context));
+            collab.setState(Collaboration.STATE_EDIT_PRIV);
+            assert (Collaboration.canCollaborate(userResearcher, userAdmin, context));
+
+            // not so good
+            collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV);
+            assertFalse(Collaboration.canCollaborate(userResearcher, userAdmin, context));
+            collab.setState(Collaboration.STATE_INITIALIZED);
+            assertFalse(Collaboration.canCollaborate(userResearcher, userAdmin, context));
+            collab.setState(Collaboration.STATE_REJECTED);
+            assertFalse(Collaboration.canCollaborate(userResearcher, userAdmin, context));
+
+/*
+        note: Collaboration.canCollaborate() with String args (usernames) has almost identical logic, so
+        is not tested here. it does however have a kind of odd choice that if null is passed in as either
+        username it will return true - presumably something to do with "public" encounters not having submitters?
+ */
+        }
+    }
+
+    // test of Collaboration.canUserViewOwnedObject(user1, user2) which is called by other versions with different signatures
+    // note: like note above the username-flavor returns true when username is null
+    @Test void collaborationViewTest() {
+        User userResearcher = new User("user-researcher", null, null);
+        User userOther = new User("user-other", null, null);
+        String context = "context0";
+        Shepherd myShepherd = mock(Shepherd.class);
+
+        when(myShepherd.getContext()).thenReturn(context);
+        User userAdmin = mock(User.class);
+        when(userAdmin.isAdmin(any(Shepherd.class))).thenReturn(true);
+
+        // self-ownership
+        assert (Collaboration.canUserViewOwnedObject(userResearcher, userResearcher, context));
+        // whatever .hasSharing is ??
+        userOther.setSharing(true);
+        assert (Collaboration.canUserViewOwnedObject(userResearcher, userOther, context));
+        assert (Collaboration.canUserViewOwnedObject(userOther, userResearcher, context));
+
+        // we need some collab stuff now:
+        try (MockedStatic<Collaboration> mockCollab = mockStatic(Collaboration.class,
+                org.mockito.Answers.CALLS_REAL_METHODS)) {
+            // no collab
+            mockCollab.when(() -> Collaboration.collaborationBetweenUsers(userOther, userResearcher,
+                context)).thenReturn(null);
+            // this case falls back on Collaboration.canCollaborate() which we assume the previous test covers
+            userOther.setSharing(false); // no hasSharing and no collab, so:
+            assertFalse(Collaboration.canUserViewOwnedObject(userOther, userResearcher, context));
+        }
+    }
 }

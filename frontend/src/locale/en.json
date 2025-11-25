@@ -683,5 +683,14 @@
     "UPLOADING_IMAGE": "Uploading image...",
     "SAMPLING_PROTOCOL": "Sampling Protocol",
     "ARGOS_PTT_NUMBER": "Argos PTT Number",
-    "GO_TO_ENCOUNTER_PAGE": "Go to Encounter Page"
+    "GO_TO_ENCOUNTER_PAGE": "Go to Encounter Page",
+    "ACCESS_DENIED": "Access Denied",
+    "NO_ACCESS_TO_ENCOUNTER": "You do not have permission to access this page.",
+    "NO_IMAGE_AVAILABLE": "No image available",
+    "IDENTITY": "Identity",
+    "ACCESS_LIMITED": "Access to this resource is limited.",
+    "REQUEST_COLLAB_WITH": "Request collaboration with ",
+    "REQUEST_COLLAB_MESSAGE": "Clicking 'Yes' will send a collaboration invitation, including your email, to the data owner. They may contact you for more information so appropriate data-sharing agreements or MoUs can be arranged.",
+    "REQUEST_REJECTED": "Your request to collaborate with this user has been rejected.",
+    "ACCESS_PENDING": "Your request to collaborate is pending"
 }

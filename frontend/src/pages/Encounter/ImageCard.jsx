@@ -21,7 +21,7 @@ const ImageCard = observer(({ store = {} }) => {
   const [scaleY, setScaleY] = useState(1);
   const [openImageModal, setOpenImageModal] = useState(false);
   const fileInputRef = useRef(null);
-  const maxSize = 10;
+  const maxSize = store.siteSettingsData?.maximumMediaSizeMegabytes || 3;
   const theme = useContext(ThemeColorContext);
   const boxRef = React.useRef(null);
   const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
@@ -69,7 +69,7 @@ const ImageCard = observer(({ store = {} }) => {
       store.encounterData?.mediaAssets?.length > 0
     ) {
       const selectedImage =
-        store.encounterData.mediaAssets[store.selectedImageIndex];
+        store.encounterData.mediaAssets?.[store.selectedImageIndex];
       const annotations = selectedImage?.annotations;
       if (annotations?.length > 0) {
         const anns = selectedImage?.annotations || [];
@@ -101,9 +101,9 @@ const ImageCard = observer(({ store = {} }) => {
     const handleImageLoad = () => {
       if (imgRef.current) {
         const naturalWidth =
-          store.encounterData?.mediaAssets[store.selectedImageIndex]?.width;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.width;
         const naturalHeight =
-          store.encounterData?.mediaAssets[store.selectedImageIndex]?.height;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.height;
         const displayWidth = imgRef.current.clientWidth;
         const displayHeight = imgRef.current.clientHeight;
 
@@ -195,13 +195,13 @@ const ImageCard = observer(({ store = {} }) => {
       </div>
       <div className="mb-2 d-flex flex-row align-items-center justify-content-between">
         <p>
-          {store.encounterData?.mediaAssets[store.selectedImageIndex]
+          {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
             ?.userFilename || ""}
         </p>
         <p>
-          {store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords
-            ?.length
-            ? `${store.encounterData?.mediaAssets[store.selectedImageIndex]?.keywords?.length} tags`
+          {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+            ?.keywords?.length
+            ? `${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.keywords?.length} tags`
             : ""}
         </p>
       </div>
@@ -219,14 +219,14 @@ const ImageCard = observer(({ store = {} }) => {
           rects.map((rect, index) => {
             let newRect = { ...rect };
             if (
-              store.encounterData?.mediaAssets[store.selectedImageIndex]
+              store.encounterData?.mediaAssets?.[store.selectedImageIndex]
                 ?.rotationInfo
             ) {
               const imgW =
-                store.encounterData?.mediaAssets[store.selectedImageIndex]
+                store.encounterData?.mediaAssets?.[store.selectedImageIndex]
                   ?.width;
               const imgH =
-                store.encounterData?.mediaAssets[store.selectedImageIndex]
+                store.encounterData?.mediaAssets?.[store.selectedImageIndex]
                   ?.height;
               const adjW = imgH / imgW;
               const adjH = imgW / imgH;
@@ -286,7 +286,8 @@ const ImageCard = observer(({ store = {} }) => {
                   );
                 }}
               >
-                {newRect.annotationId === clickedAnnotation?.id &&
+                {store.access === "write" &&
+                  newRect.annotationId === clickedAnnotation?.id &&
                   (newRect.encounterId === store.encounterData.id ? (
                     <div
                       className="d-flex flex-column"
@@ -323,7 +324,7 @@ const ImageCard = observer(({ store = {} }) => {
                         }}
                         onClick={() => {
                           if (
-                            !store.imageModal.encounterData?.mediaAssets[
+                            !store.imageModal.encounterData?.mediaAssets?.[
                               store.imageModal.selectedImageIndex
                             ] ||
                             !annotationParam
@@ -331,7 +332,7 @@ const ImageCard = observer(({ store = {} }) => {
                             return;
                           }
                           const assetId =
-                            store.encounterData?.mediaAssets[
+                            store.encounterData?.mediaAssets?.[
                               store.selectedImageIndex
                             ]?.id;
                           window.open(
@@ -468,15 +469,21 @@ const ImageCard = observer(({ store = {} }) => {
             );
           })}
 
-        <img
-          ref={imgRef}
-          src={
-            store.encounterData?.mediaAssets[store.selectedImageIndex]?.url ||
-            ""
-          }
-          alt="encounter image"
-          style={{ width: "100%", height: "auto" }}
-        />
+        {store.encounterData?.mediaAssets.length > 0 ? (
+          <img
+            ref={imgRef}
+            src={
+              store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                ?.url || ""
+            }
+            alt="encounter image"
+            style={{ width: "100%", height: "auto" }}
+          />
+        ) : (
+          <p>
+            <FormattedMessage id="NO_IMAGE_AVAILABLE" />
+          </p>
+        )}
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
@@ -486,127 +493,141 @@ const ImageCard = observer(({ store = {} }) => {
           </div>
         )}
       </div>
-
-      <div
-        className="d-flex flex-row justify-content-between align-items-center w-100 align-items-center"
-        style={{
-          backgroundColor: "#303336",
-          color: "white",
-          height: "70px",
-          padding: "10px",
-        }}
-      >
+      {store.access === "write" && (
         <div
-          className="d-flex align-items-center justify-content-center flex-column"
-          style={{ cursor: "pointer", paddingTop: "20px" }}
-          onClick={async () => {
-            if (store.matchResultClickable) {
-              const taskId = currentAnnotation?.iaTaskId;
-              const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
-              window.open(url, "_blank", "noopener,noreferrer");
-            } else if (
-              clickedAnnotation &&
-              clickedAnnotation.encounterId !== store.encounterData?.id
-            ) {
-              const encounterId = clickedAnnotation.encounterId;
-              const result = await axios.get(
-                `/api/v3/encounters/${encounterId}`,
-              );
-              const encounterData = result.data;
-              const allAnnotations = (encounterData.mediaAssets || []).flatMap(
-                (a) => a.annotations || [],
-              );
-              const selectedAnnotation = allAnnotations.find(
-                (annotation) => annotation.id === clickedAnnotation?.id,
-              );
-              const mediaAsset = encounterData.mediaAssets.find(
-                (data) =>
-                  Array.isArray(data.annotations) &&
-                  data.annotations.some((a) => a.id === clickedAnnotation?.id),
-              );
-              const iaTaskId = !!selectedAnnotation?.iaTaskId;
-              const skipId = !!selectedAnnotation?.iaTaskParameters?.skipIdent;
-              const identActive = iaTaskId && !skipId;
-              const detectionComplete =
-                mediaAsset?.detectionStatus === "complete";
-              const identificationStatus =
-                selectedAnnotation?.identificationStatus === "complete" ||
-                selectedAnnotation?.identificationStatus === "pending";
-
-              if (identActive && (detectionComplete || identificationStatus)) {
-                const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
+          className="d-flex flex-row justify-content-between align-items-center w-100 align-items-center"
+          style={{
+            backgroundColor: "#303336",
+            color: "white",
+            height: "70px",
+            padding: "10px",
+          }}
+        >
+          <div
+            className="d-flex align-items-center justify-content-center flex-column"
+            style={{ cursor: "pointer", paddingTop: "20px" }}
+            onClick={async () => {
+              if (store.matchResultClickable) {
+                const taskId = currentAnnotation?.iaTaskId;
+                const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
                 window.open(url, "_blank", "noopener,noreferrer");
-              } else {
+              } else if (
+                clickedAnnotation &&
+                clickedAnnotation.encounterId !== store.encounterData?.id
+              ) {
+                const encounterId = clickedAnnotation.encounterId;
+                const result = await axios.get(
+                  `/api/v3/encounters/${encounterId}`,
+                );
+                const encounterData = result.data;
+                const allAnnotations = (
+                  encounterData.mediaAssets || []
+                ).flatMap((a) => a.annotations || []);
+                const selectedAnnotation = allAnnotations.find(
+                  (annotation) => annotation.id === clickedAnnotation?.id,
+                );
+                const mediaAsset = encounterData.mediaAssets.find(
+                  (data) =>
+                    Array.isArray(data.annotations) &&
+                    data.annotations.some(
+                      (a) => a.id === clickedAnnotation?.id,
+                    ),
+                );
+                const iaTaskId = !!selectedAnnotation?.iaTaskId;
+                const skipId =
+                  !!selectedAnnotation?.iaTaskParameters?.skipIdent;
+                const identActive = iaTaskId && !skipId;
+                const detectionComplete =
+                  mediaAsset?.detectionStatus === "complete";
+                const identificationStatus =
+                  selectedAnnotation?.identificationStatus === "complete" ||
+                  selectedAnnotation?.identificationStatus === "pending";
+
+                if (
+                  identActive &&
+                  (detectionComplete || identificationStatus)
+                ) {
+                  const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
+                  window.open(url, "_blank", "noopener,noreferrer");
+                } else {
+                  alert("No match results available for this annotation.");
+                }
+              } else if (clickedAnnotation?.id) {
                 alert("No match results available for this annotation.");
+              } else {
+                alert("Select an annotation to view match results.");
               }
-            } else if (clickedAnnotation?.id) {
-              alert("No match results available for this annotation.");
-            } else {
-              alert("Select an annotation to view match results.");
-            }
-          }}
-        >
-          <MatchResultIcon />
-          <p>
-            <FormattedMessage id="MATCH_RESULTS" />
-          </p>
+            }}
+          >
+            <MatchResultIcon />
+            <p>
+              <FormattedMessage id="MATCH_RESULTS" />
+            </p>
+          </div>
+          <div
+            className="d-flex align-items-center justify-content-center flex-column"
+            style={{ cursor: "pointer", paddingTop: "20px" }}
+            onClick={() => {
+              if (
+                !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+              ) {
+                alert("No image selected.");
+                return;
+              }
+              const number = store.encounterData?.id;
+              const mediaAssetId =
+                store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                  ?.id;
+              const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
+              window.open(url, "_blank");
+            }}
+          >
+            <EyeIcon />
+            <p>
+              <FormattedMessage id="VISUAL_MATCHER" />
+            </p>
+          </div>
+          <div
+            className="d-flex align-items-center justify-content-center flex-column"
+            onClick={() => {
+              if (
+                !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+              ) {
+                alert("No image selected.");
+                return;
+              }
+              store.modals.setOpenMatchCriteriaModal(true);
+            }}
+            style={{ cursor: "pointer", paddingTop: "20px" }}
+          >
+            <RefreshIcon />
+            <p>
+              <FormattedMessage id="NEW_MATCH" />
+            </p>
+          </div>
+          <div
+            className="d-flex align-items-center justify-content-center flex-column"
+            style={{ cursor: "pointer", paddingTop: "20px" }}
+            onClick={() => {
+              if (
+                !store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+              ) {
+                alert("No image selected.");
+                return;
+              }
+              window.open(
+                `/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.id}`,
+                "_blank",
+              );
+            }}
+          >
+            <PencilIcon />
+            <p>
+              <FormattedMessage id="ADD_ANNOTATION" />
+            </p>
+          </div>
         </div>
-        <div
-          className="d-flex align-items-center justify-content-center flex-column"
-          style={{ cursor: "pointer", paddingTop: "20px" }}
-          onClick={() => {
-            if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
-              alert("No image selected.");
-              return;
-            }
-            const number = store.encounterData?.id;
-            const mediaAssetId =
-              store.encounterData?.mediaAssets[store.selectedImageIndex]?.id;
-            const url = `/encounters/encounterVM.jsp?number=${encodeURIComponent(number)}&mediaAssetId=${encodeURIComponent(mediaAssetId)}`;
-            window.open(url, "_blank");
-          }}
-        >
-          <EyeIcon />
-          <p>
-            <FormattedMessage id="VISUAL_MATCHER" />
-          </p>
-        </div>
-        <div
-          className="d-flex align-items-center justify-content-center flex-column"
-          onClick={() => {
-            if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
-              alert("No image selected.");
-              return;
-            }
-            store.modals.setOpenMatchCriteriaModal(true);
-          }}
-          style={{ cursor: "pointer", paddingTop: "20px" }}
-        >
-          <RefreshIcon />
-          <p>
-            <FormattedMessage id="NEW_MATCH" />
-          </p>
-        </div>
-        <div
-          className="d-flex align-items-center justify-content-center flex-column"
-          style={{ cursor: "pointer", paddingTop: "20px" }}
-          onClick={() => {
-            if (!store.encounterData?.mediaAssets[store.selectedImageIndex]) {
-              alert("No image selected.");
-              return;
-            }
-            window.open(
-              `/react/manual-annotation?encounterId=${store.encounterData?.id}&assetId=${store.encounterData?.mediaAssets[store.selectedImageIndex]?.id}`,
-              "_blank",
-            );
-          }}
-        >
-          <PencilIcon />
-          <p>
-            <FormattedMessage id="ADD_ANNOTATION" />
-          </p>
-        </div>
-      </div>
+      )}
       <div
         className="d-flex flex-wrap align-items-center mt-2"
         style={{ gap: 8, overflowY: "auto", maxHeight: 200 }}
@@ -629,61 +650,63 @@ const ImageCard = observer(({ store = {} }) => {
             onClick={() => store.setSelectedImageIndex(index)}
           />
         ))}
-        <div id="add-more-files">
-          <label
-            htmlFor={"add-more-files-input"}
-            style={{
-              cursor: store.isUploading ? "not-allowed" : "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              opacity: store.isUploading ? 0.6 : 1,
-            }}
-          >
-            <div
-              className="d-flex flex-column align-items-center justify-content-center"
+        {store.access === "write" && (
+          <div id="add-more-files">
+            <label
+              htmlFor={"add-more-files-input"}
               style={{
-                width: 100,
-                height: 70,
-                borderRadius: 5,
-                cursor: "pointer",
-                border: `2px dashed ${theme.primaryColors.primary500}`,
-                backgroundColor: `${theme.primaryColors.primary50}`,
-                display: "flex",
-                justifyContent: "center",
+                cursor: store.isUploading ? "not-allowed" : "pointer",
+                display: "inline-flex",
                 alignItems: "center",
-                flexDirection: "column",
+                opacity: store.isUploading ? 0.6 : 1,
               }}
             >
-              {store.isUploading ? (
-                <>
-                  <div
-                    className="spinner-border spinner-border-sm"
-                    role="status"
-                    style={{ color: theme.primaryColors.primary500 }}
-                  >
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <small style={{ marginTop: 5 }}>
-                    {store.uploadProgress}%
-                  </small>
-                </>
-              ) : (
-                <>
-                  <ImageIcon />
-                  <FormattedMessage id="ADD_IMAGE" />
-                </>
-              )}
-            </div>
-          </label>
+              <div
+                className="d-flex flex-column align-items-center justify-content-center"
+                style={{
+                  width: 100,
+                  height: 70,
+                  borderRadius: 5,
+                  cursor: "pointer",
+                  border: `2px dashed ${theme.primaryColors.primary500}`,
+                  backgroundColor: `${theme.primaryColors.primary50}`,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "column",
+                }}
+              >
+                {store.isUploading ? (
+                  <>
+                    <div
+                      className="spinner-border spinner-border-sm"
+                      role="status"
+                      style={{ color: theme.primaryColors.primary500 }}
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <small style={{ marginTop: 5 }}>
+                      {store.uploadProgress}%
+                    </small>
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon />
+                    <FormattedMessage id="ADD_IMAGE" />
+                  </>
+                )}
+              </div>
+            </label>
 
-          <input
-            id={"add-more-files-input"}
-            type="file"
-            ref={fileInputRef}
-            accept="image/jpeg,image/png,image/bmp"
-            style={{ display: "none" }}
-          />
-        </div>
+            <input
+              id={"add-more-files-input"}
+              type="file"
+              ref={fileInputRef}
+              accept="image/jpeg,image/png,image/bmp"
+              style={{ display: "none" }}
+            />
+          </div>
+        )}
       </div>
       {openImageModal && (
         <ImageModal

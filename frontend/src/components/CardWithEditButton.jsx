@@ -4,6 +4,7 @@ import EditIcon from "./icons/EditIcon";
 import { FormattedMessage } from "react-intl";
 
 export default function CardWithEditButton({
+  showEditButton = true,
   onClick,
   icon,
   title = "Card Title",
@@ -31,17 +32,19 @@ export default function CardWithEditButton({
       </div>
       <div>{content}</div>
       <div className="d-flex justify-content-end align-items-center w-100"></div>
-      <div
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          cursor: "pointer",
-        }}
-        onClick={onClick}
-      >
-        <EditIcon />
-      </div>
+      {showEditButton && (
+        <div
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            cursor: "pointer",
+          }}
+          onClick={onClick}
+        >
+          <EditIcon />
+        </div>
+      )}
     </div>
   );
 }
