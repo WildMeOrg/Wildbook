@@ -1,19 +1,15 @@
-
 const helperFunction = async (
   searchParams,
   store,
   setFilterPanel,
-  setTempFormFilters = () => { },
-  encounterData = {},
+  setTempFormFilters = () => {},
 ) => {
   const params = Object.fromEntries(searchParams.entries()) || {};
   if (Object.keys(params).length === 0) {
     return;
   }
-  console.log("Search params:", JSON.stringify(params));
 
   for (const [key, _] of Object.entries(params)) {
-    console.log("Adding filter for key:", key);
     if (key === "username") {
       store.addFilter(
         "assignedUsername",
@@ -53,7 +49,7 @@ const helperFunction = async (
         "Individual ID",
       );
     }
-  };
+  }
   setTempFormFilters([...store.formFilters]);
   setFilterPanel(false);
   return;
