@@ -691,5 +691,7 @@
   "REQUEST_COLLAB_WITH": "Demander une collaboration avec ",
   "REQUEST_COLLAB_MESSAGE": "En cliquant sur 'Oui', une invitation à collaborer, incluant votre adresse e-mail, sera envoyée au propriétaire des données. Ils peuvent vous contacter pour obtenir plus d'informations afin d'établir des accords de partage de données ou des protocoles d'entente (MoUs).",
   "REQUEST_REJECTED": "Votre demande de collaboration avec cet utilisateur a été refusée.",
-  "ACCESS_PENDING": "Votre demande de collaboration est en attente"
+  "ACCESS_PENDING": "Votre demande de collaboration est en attente",
+  "CALENDAR_VIEW_DESC": "Afficher les résultats de recherche des rencontres dans un calendrier par date de rencontre. Cliquez sur un ID de rencontre pour en afficher les détails.",
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Sélectionnez une ou plusieurs rencontres à ajouter à un projet."
 }

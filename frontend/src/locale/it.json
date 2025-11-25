@@ -692,5 +692,7 @@
   "REQUEST_COLLAB_WITH": "Richiedi collaborazione con ",
   "REQUEST_COLLAB_MESSAGE": "Facendo clic su 'Sì', verrà inviata un’invito di collaborazione, inclusa la tua e-mail, al proprietario dei dati. Potrebbero contattarti per ulteriori informazioni al fine di stabilire accordi di condivisione dei dati o MoU.",
   "REQUEST_REJECTED": "La tua richiesta di collaborare con questo utente è stata rifiutata.",
-  "ACCESS_PENDING": "La tua richiesta di collaborazione è in sospeso"
+  "ACCESS_PENDING": "La tua richiesta di collaborazione è in sospeso",
+  "CALENDAR_VIEW_DESC": "Visualizza i risultati della ricerca degli encounter in un calendario per data dell’incontro. Fai clic su un ID di encounter per aprirne i dettagli.",
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Seleziona uno o più encounter da aggiungere a un progetto."
 }
