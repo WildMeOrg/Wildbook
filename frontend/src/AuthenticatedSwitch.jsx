@@ -26,6 +26,7 @@ const ManualAnnotation = lazy(() => import("./pages/ManualAnnotation"));
 
 const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
+const MatchResults = lazy(() => import("./pages/MatchResultsPage/MatchResults"));
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
@@ -69,7 +70,8 @@ export default function AuthenticatedSwitch({
       >
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
-            <Route path="/profile" element={<Profile />} />
+            
+            <Route path="/match-results" element={<MatchResults />} />
             <Route path="/citation" element={<Citation />} />
             <Route path="/projects/overview" element={<ProjectList />} />
             <Route path="/home" element={<Home />} />
