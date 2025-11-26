@@ -21,7 +21,9 @@ const styles = {
     fontSize: "0.9rem",
     marginTop: "4px",
     borderRadius: "5px",
-    backgroundColor: selected ? themeColor.primaryColors.primary50 : "transparent",
+    backgroundColor: selected
+      ? themeColor.primaryColors.primary50
+      : "transparent",
   }),
   matchRank: {
     width: "24px",
@@ -129,10 +131,16 @@ const MatchResults = observer(() => {
             type="button"
             style={{
               borderRadius: "35px",
-              backgroundColor: store.viewMode === "individual" ? themeColor.primaryColors.primary500 : "white",
+              backgroundColor:
+                store.viewMode === "individual"
+                  ? themeColor.primaryColors.primary500
+                  : "white",
               border: "none",
               padding: "5px 10px",
-              color: store.viewMode === "individual" ? "white" : themeColor.primaryColors.primary500,
+              color:
+                store.viewMode === "individual"
+                  ? "white"
+                  : themeColor.primaryColors.primary500,
             }}
             onClick={() => store.setViewMode("individual")}
           >
@@ -143,10 +151,16 @@ const MatchResults = observer(() => {
             type="button"
             style={{
               borderRadius: "35px",
-              backgroundColor: store.viewMode === "image" ? themeColor.primaryColors.primary500 : themeColor.primaryColors.primary100,
+              backgroundColor:
+                store.viewMode === "image"
+                  ? themeColor.primaryColors.primary500
+                  : themeColor.primaryColors.primary100,
               padding: "5px 10px",
               border: "none",
-              color: store.viewMode === "image" ? "white" : themeColor.primaryColors.primary500,
+              color:
+                store.viewMode === "image"
+                  ? "white"
+                  : themeColor.primaryColors.primary500,
             }}
             onClick={() => store.setViewMode("image")}
           >
@@ -192,7 +206,9 @@ const MatchResults = observer(() => {
 
           <div className="small text-muted d-flex align-items-center mb-2 mb-sm-0">
             {store.evaluatedAt}
-            <span ><i class="bi bi-info-circle"></i></span>
+            <span>
+              <i className="bi bi-info-circle"></i>
+            </span>
           </div>
         </div>
       </div>
@@ -221,10 +237,15 @@ const MatchResults = observer(() => {
             <Row className="mb-3">
               <Col md={6} className="mb-3 mb-md-0">
                 <div>
-                  {leftMatches.map((m, idx) => (
+                  {leftMatches.map((m) => (
                     <div
                       key={m.rank}
-                      style={styles.matchRow(m.encounterId === store.selectedMatch?.encounterId, themeColor)}
+                      style={styles.matchRow(
+                        store.selectedMatch?.some(
+                          (data) => data.encounterId === m.encounterId,
+                        ),
+                        themeColor,
+                      )}
                     >
                       <span style={styles.matchRank}>{m.rank}.</span>
                       <span style={styles.matchScore}>
@@ -240,9 +261,15 @@ const MatchResults = observer(() => {
                       <div className="ms-auto">
                         <Form.Check
                           type="checkbox"
-                          checked={m.encounterId === store.selectedMatch?.encounterId}
+                          checked={store.selectedMatch?.some(
+                            (data) => data.encounterId === m.encounterId,
+                          )}
                           onChange={(e) =>
-                            store.setSelectedMatch(e.target.checked, m.encounterId, m.individualId)
+                            store.setSelectedMatch(
+                              e.target.checked,
+                              m.encounterId,
+                              m.individualId,
+                            )
                           }
                         />
                       </div>
@@ -253,10 +280,15 @@ const MatchResults = observer(() => {
 
               <Col md={6}>
                 <div style={styles.matchListColumn}>
-                  {rightMatches.map((m, idx) => (
+                  {rightMatches.map((m) => (
                     <div
                       key={m.rank}
-                      style={styles.matchRow(m.encounterId === store.selectedMatch?.encounterId, themeColor)}
+                      style={styles.matchRow(
+                        store.selectedMatch?.some(
+                          (data) => data.encounterId === m.encounterId,
+                        ),
+                        themeColor,
+                      )}
                     >
                       <span style={styles.matchRank}>{m.rank}.</span>
                       <span style={styles.matchScore}>
@@ -272,9 +304,15 @@ const MatchResults = observer(() => {
                       <div className="ms-auto">
                         <Form.Check
                           type="checkbox"
-                          checked={m.encounterId === store.selectedMatch?.encounterId}
+                          checked={store.selectedMatch?.some(
+                            (data) => data.encounterId === m.encounterId,
+                          )}
                           onChange={(e) =>
-                            store.setSelectedMatch(e.target.checked, m.encounterId, m.individualId)
+                            store.setSelectedMatch(
+                              e.target.checked,
+                              m.encounterId,
+                              m.individualId,
+                            )
                           }
                         />
                       </div>
@@ -285,9 +323,15 @@ const MatchResults = observer(() => {
             </Row>
 
             <Row>
-              <Col md={6} className="mb-3 mb-md-0" style={{ position: "relative" }}>
+              <Col
+                md={6}
+                className="mb-3 mb-md-0"
+                style={{ position: "relative" }}
+              >
                 <div style={styles.matchImageCard}>
-                  <div style={styles.cornerLabel(themeColor)}>This encounter</div>
+                  <div style={styles.cornerLabel(themeColor)}>
+                    This encounter
+                  </div>
                   <img
                     src={store.thisEncounterImageUrl}
                     alt="This encounter"
@@ -313,8 +357,7 @@ const MatchResults = observer(() => {
                   </div>
                   <img
                     src={
-                      store.selectedMatchImageUrl ||
-                      store.thisEncounterImageUrl
+                      store.selectedMatchImageUrl || store.thisEncounterImageUrl
                     }
                     alt="Possible match"
                     style={styles.matchImage}
@@ -361,11 +404,7 @@ const MatchResults = observer(() => {
                 defaultMessage="Confirm Match"
               />
             </Button>
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              className="ms-2"
-            >
+            <Button variant="outline-secondary" size="sm" className="ms-2">
               <FormattedMessage
                 id="MARK_AS_NEW_INDIVIDUAL"
                 defaultMessage="Mark as New Individual"

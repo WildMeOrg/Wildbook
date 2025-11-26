@@ -17,40 +17,159 @@ const MOCK_DATA = {
       id: "miewId",
       label: "Matches Based on MIEW ID Algorithm",
       matches: [
-        { rank: 1, score: 0.8315, encounterId: "123", individualId: "TC_00124" },
-        { rank: 2, score: 0.8315, encounterId: "456",individualId: "TC_00126" },
-        { rank: 3, score: 0.8315, encounterId:"test",individualId: "TC_00125" },
-        { rank: 4, score: 0.8315, encounterId:"test",individualId: "TC_00127" },
-        { rank: 5, score: 0.8315, encounterId:"test",individualId: "TC_00130" },
-        { rank: 6, score: 0.8315, encounterId:"test",individualId: "TC_00129" },
-        { rank: 7, score: 0.8315, encounterId:"test",individualId: "TC_00131" },
-        { rank: 8, score: 0.8315, encounterId:"test",individualId: "TC_00128" },
-        { rank: 9, score: 0.8315, encounterId:"test",individualId: "TC_00135" },
-        { rank: 10, score: 0.8315, encounterId:"test",individualId: "TC_00133" },
-        { rank: 11, score: 0.8315, encounterId:"test",individualId: "TC_00134" },
-        { rank: 12, score: 0.8315, encounterId:"test",individualId: "TC_00132" },
+        {
+          rank: 1,
+          score: 0.8315,
+          encounterId: "123",
+          individualId: "TC_00124",
+        },
+        {
+          rank: 2,
+          score: 0.8315,
+          encounterId: "456",
+          individualId: "TC_00126",
+        },
+        {
+          rank: 3,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00125",
+        },
+        {
+          rank: 4,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00127",
+        },
+        {
+          rank: 5,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00130",
+        },
+        {
+          rank: 6,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00129",
+        },
+        {
+          rank: 7,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00131",
+        },
+        {
+          rank: 8,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00128",
+        },
+        {
+          rank: 9,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00135",
+        },
+        {
+          rank: 10,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00133",
+        },
+        {
+          rank: 11,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00134",
+        },
+        {
+          rank: 12,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00132",
+        },
       ],
     },
     {
       id: "hotspotter",
       label: "Matches Based on Hotspotter",
       matches: [
-        { rank: 1, score: 0.8315, encounterId: "789",individualId: "TC_00124" },
-        { rank: 2, score: 0.8315, encounterId: "000",individualId: "TC_00126" },
-        { rank: 3, score: 0.8315, encounterId:"test",individualId: "TC_00125" },
-        { rank: 4, score: 0.8315, encounterId:"test",individualId: "TC_00127" },
-        { rank: 5, score: 0.8315, encounterId:"test",individualId: "TC_00130" },
-        { rank: 6, score: 0.8315, encounterId:"test",individualId: "TC_00129" },
-        { rank: 7, score: 0.8315, encounterId:"test",individualId: "TC_00131" },
-        { rank: 8, score: 0.8315, encounterId:"test",individualId: "TC_00128" },
-        { rank: 9, score: 0.8315, encounterId:"test",individualId: "TC_00135" },
-        { rank: 10, score: 0.8315, encounterId:"test",individualId: "TC_00133" },
-        { rank: 11, score: 0.8315, encounterId:"test",individualId: "TC_00134" },
-        { rank: 12, score: 0.8315, encounterId:"test",individualId: "TC_00132" },
+        {
+          rank: 1,
+          score: 0.8315,
+          encounterId: "789",
+          individualId: "TC_00124",
+        },
+        {
+          rank: 2,
+          score: 0.8315,
+          encounterId: "000",
+          individualId: "TC_00126",
+        },
+        {
+          rank: 3,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00125",
+        },
+        {
+          rank: 4,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00127",
+        },
+        {
+          rank: 5,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00130",
+        },
+        {
+          rank: 6,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00129",
+        },
+        {
+          rank: 7,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00131",
+        },
+        {
+          rank: 8,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00128",
+        },
+        {
+          rank: 9,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00135",
+        },
+        {
+          rank: 10,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00133",
+        },
+        {
+          rank: 11,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00134",
+        },
+        {
+          rank: 12,
+          score: 0.8315,
+          encounterId: "test",
+          individualId: "TC_00132",
+        },
       ],
     },
   ],
-
 };
 
 export default class MatchResultsStore {
@@ -63,7 +182,7 @@ export default class MatchResultsStore {
   thisEncounterImageUrl = "";
   possibleMatchImageUrl = "";
   algorithms = [];
-  _selectedMatch = null;
+  _selectedMatch = [];
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -102,12 +221,14 @@ export default class MatchResultsStore {
   }
   setSelectedMatch(selected, encounterId, individualId) {
     if (selected) {
-      this._selectedMatch = {
+      this._selectedMatch.push({
         encounterId,
         individualId,
-      };
+      });
     } else {
-      this._selectedMatch = null;
+      this._selectedMatch = this.selectedMatch.filter(
+        (data) => data.encounterId !== encounterId,
+      );
     }
   }
 }
