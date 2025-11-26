@@ -8,7 +8,6 @@ import java.io.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -31,14 +30,13 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.media.AssetStore;
-import org.ecocean.media.Feature;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
-import org.json.JSONObject;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -246,6 +244,7 @@ import static org.mockito.Mockito.when;
                 .response();
         String searchQueryId = searchResponse.jsonPath().getString("searchQueryId");
         System.out.println("Search query ID: " + searchQueryId);
+        searchResponse.getBody().prettyPrint();
 
         // Test 5: Retrieve search results using the searchQueryId (GET request)
         System.out.println("Test 5: Retrieve search using searchQueryId");
@@ -378,80 +377,11 @@ import static org.mockito.Mockito.when;
 
             // Load expected CSV data
             File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
-            List<String[]> expectedRows = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new FileReader(expectedCsvFile))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Remove BOM if present
-                    if (line.startsWith("\ufeff")) {
-                        line = line.substring(1);
-                    }
-                    expectedRows.add(line.split(",", -1));
-                }
-            }
-
-            System.out.println("  Loaded " + expectedRows.size() + " rows from expected CSV");
+            List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
 
             // Load actual Excel data
-            try (FileInputStream fis = new FileInputStream(excelFile);
-            Workbook workbook = new XSSFWorkbook(fis)) {
-                Sheet sheet = workbook.getSheet("Search Results");
-                assertNotNull(sheet, "Excel should contain 'Search Results' sheet");
-
-                // Compare row count
-                int actualRowCount = sheet.getLastRowNum() + 1;
-                assertEquals(expectedRows.size(), actualRowCount,
-                    "Excel should have same number of rows as expected CSV");
-                // Compare each row and cell
-                for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
-                    Row actualRow = sheet.getRow(rowIndex);
-                    String[] expectedRow = expectedRows.get(rowIndex);
-
-                    assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
-
-                    // Compare cell count
-                    int actualCellCount = actualRow.getLastCellNum();
-                    assertEquals(expectedRow.length, actualCellCount,
-                        "Row " + rowIndex + " should have " + expectedRow.length + " cells");
-                    // Compare each cell
-                    for (int cellIndex = 0; cellIndex < expectedRow.length; cellIndex++) {
-                        Cell actualCell = actualRow.getCell(cellIndex);
-                        String expectedValue = expectedRow[cellIndex];
-                        String actualValue = getCellValueAsString(actualCell);
-                        // Skip comparison for dynamic fields like Occurrence.occurrenceID and Encounter.sourceUrl
-                        if (rowIndex == 0) {
-                            // Header row - exact match required
-                            assertEquals(expectedValue, actualValue,
-                                "Header cell [" + rowIndex + "," + cellIndex + "] mismatch");
-                        } else {
-                            // Data rows - skip UUID columns (column 0 and 1)
-                            if (cellIndex == 0 || cellIndex == 1) {
-                                assertNotNull(actualValue,
-                                    "Cell [" + rowIndex + "," + cellIndex + "] should not be null");
-                            } else {
-                                // Compare other cells with tolerance for numeric precision
-                                if (expectedValue.isEmpty() &&
-                                    (actualValue == null || actualValue.isEmpty())) {
-                                    // Both empty - OK
-                                    continue;
-                                } else if (isNumeric(expectedValue) && isNumeric(actualValue)) {
-                                    // Compare numbers with tolerance
-                                    double expected = Double.parseDouble(expectedValue);
-                                    double actual = Double.parseDouble(actualValue);
-                                    assertEquals(expected, actual, 0.0001,
-                                        "Cell [" + rowIndex + "," + cellIndex +
-                                        "] numeric value mismatch");
-                                } else {
-                                    // String comparison
-                                    assertEquals(expectedValue, actualValue,
-                                        "Cell [" + rowIndex + "," + cellIndex + "] mismatch");
-                                }
-                            }
-                        }
-                    }
-                }
-                System.out.println(
-                    "Excel metadata validation passed - all cells match expected CSV");
+            try (FileInputStream fis = new FileInputStream(excelFile)) {
+                assertExcelFileEquals(fis, expectedRows);
             }
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
@@ -465,6 +395,87 @@ import static org.mockito.Mockito.when;
             throw new RuntimeException(e);
         } finally {
             myShepherd.closeDBTransaction();
+        }
+    }
+
+    private static @NotNull List<String[]> loadExpectedCsv(File expectedCsvFile)
+    throws IOException {
+        List<String[]> expectedRows = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(expectedCsvFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Remove BOM if present
+                if (line.startsWith("\ufeff")) {
+                    line = line.substring(1);
+                }
+                expectedRows.add(line.split(",", -1));
+            }
+        }
+
+        System.out.println("  Loaded " + expectedRows.size() + " rows from expected CSV");
+        return expectedRows;
+    }
+
+    private void assertExcelFileEquals(InputStream fis, List<String[]> expectedRows)
+    throws IOException {
+        try (Workbook workbook = new XSSFWorkbook(fis)) {
+            Sheet sheet = workbook.getSheet("Search Results");
+            assertNotNull(sheet, "Excel should contain 'Search Results' sheet");
+
+            // Compare row count
+            int actualRowCount = sheet.getLastRowNum() + 1;
+            assertEquals(expectedRows.size(), actualRowCount,
+                "Excel should have same number of rows as expected CSV");
+            // Compare each row and cell
+            for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
+                Row actualRow = sheet.getRow(rowIndex);
+                String[] expectedRow = expectedRows.get(rowIndex);
+
+                assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
+
+                // Compare cell count
+                int actualCellCount = actualRow.getLastCellNum();
+                assertEquals(expectedRow.length, actualCellCount,
+                    "Row " + rowIndex + " should have " + expectedRow.length + " cells");
+                // Compare each cell
+                for (int cellIndex = 0; cellIndex < expectedRow.length; cellIndex++) {
+                    Cell actualCell = actualRow.getCell(cellIndex);
+                    String expectedValue = expectedRow[cellIndex];
+                    String actualValue = getCellValueAsString(actualCell);
+                    // Skip comparison for dynamic fields like Occurrence.occurrenceID and Encounter.sourceUrl
+                    if (rowIndex == 0) {
+                        // Header row - exact match required
+                        assertEquals(expectedValue, actualValue,
+                            "Header cell [" + rowIndex + "," + cellIndex + "] mismatch");
+                    } else {
+                        // Data rows - skip UUID columns (column 0 and 1)
+                        if (cellIndex == 0 || cellIndex == 1) {
+                            assertNotNull(actualValue,
+                                "Cell [" + rowIndex + "," + cellIndex + "] should not be null");
+                        } else {
+                            // Compare other cells with tolerance for numeric precision
+                            if (expectedValue.isEmpty() &&
+                                (actualValue == null || actualValue.isEmpty())) {
+                                // Both empty - OK
+                                continue;
+                            } else if (isNumeric(expectedValue) && isNumeric(actualValue)) {
+                                // Compare numbers with tolerance
+                                double expected = Double.parseDouble(expectedValue);
+                                double actual = Double.parseDouble(actualValue);
+                                assertEquals(expected, actual, 0.0001,
+                                    "Cell [" + rowIndex + "," + cellIndex +
+                                    "] numeric value mismatch");
+                            } else {
+                                // String comparison
+                                assertEquals(expectedValue, actualValue,
+                                    "Cell [" + rowIndex + "," + cellIndex + "] mismatch");
+                            }
+                        }
+                    }
+                }
+            }
+            System.out.println("Excel metadata validation passed - all cells match expected CSV");
         }
     }
 
@@ -581,124 +592,12 @@ import static org.mockito.Mockito.when;
         assertNotNull(metadataExcelBytes, "metadata.xlsx should have been extracted from ZIP");
         assertTrue(metadataExcelBytes.length > 0, "metadata.xlsx should not be empty");
 
-        try (Workbook workbook = new XSSFWorkbook(new ByteArrayInputStream(metadataExcelBytes))) {
-            // Should have "Search Results" sheet
-            Sheet sheet = workbook.getSheet("Search Results");
-            assertNotNull(sheet, "Excel should contain 'Search Results' sheet");
+        // Load expected CSV data
+        File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
+        List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
 
-            // Should have "Hidden Data Report" sheet (for security)
-            Sheet hiddenSheet = workbook.getSheet("Hidden Data Report");
-            assertNotNull(hiddenSheet, "Excel should contain 'Hidden Data Report' sheet");
-
-            // Validate header row (row 0)
-            Row headerRow = sheet.getRow(0);
-            assertNotNull(headerRow, "Excel should have a header row");
-
-            // Build a map of column names to indices for easier validation
-            java.util.Map<String, Integer> columnIndices = new java.util.HashMap<>();
-            for (int i = 0; i < headerRow.getLastCellNum(); i++) {
-                Cell cell = headerRow.getCell(i);
-                if (cell != null) {
-                    columnIndices.put(cell.getStringCellValue(), i);
-                }
-            }
-            System.out.println("  Found " + columnIndices.size() + " columns in Excel");
-
-            // Verify expected columns exist (based on EncounterAnnotationExportFile)
-            assertTrue(columnIndices.containsKey("Encounter.genus"),
-                "Excel should have 'Encounter.genus' column");
-            assertTrue(columnIndices.containsKey("Encounter.specificEpithet"),
-                "Excel should have 'Encounter.specificEpithet' column");
-            assertTrue(columnIndices.containsKey("Encounter.mediaAsset0.imageUrl"),
-                "Excel should have 'Encounter.mediaAsset0.imageUrl' column");
-            assertTrue(columnIndices.containsKey("Annotation0.ViewPoint"),
-                "Excel should have 'Annotation0.ViewPoint' column");
-            assertTrue(columnIndices.containsKey("Annotation0.bbox"),
-                "Excel should have 'Annotation0.bbox' column");
-            assertTrue(columnIndices.containsKey("Annotation0.MatchAgainst"),
-                "Excel should have 'Annotation0.MatchAgainst' column");
-            assertTrue(columnIndices.containsKey("Name0.value"),
-                "Excel should have 'Name0.value' column for Individual ID");
-
-            // Count data rows (should have 3 encounters from test data)
-            int dataRowCount = 0;
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row != null) {
-                    // Check if row has any non-empty cells
-                    boolean hasData = false;
-                    for (int j = 0; j < row.getLastCellNum(); j++) {
-                        Cell cell = row.getCell(j);
-                        if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK) {
-                            hasData = true;
-                            break;
-                        }
-                    }
-                    if (hasData) dataRowCount++;
-                }
-            }
-            System.out.println("  Found " + dataRowCount + " data rows in Excel");
-            assertTrue(dataRowCount >= 3,
-                "Excel should have at least 3 data rows (for 3 test encounters)");
-
-            // Validate data content in rows
-            boolean foundPanthera = false;
-            boolean foundLeo = false;
-            boolean foundIndividual1 = false;
-            boolean foundIndividual2 = false;
-            boolean foundLeftViewpoint = false;
-            boolean foundRightViewpoint = false;
-            boolean foundFrontViewpoint = false;
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
-                // Check genus
-                if (columnIndices.containsKey("Encounter.genus")) {
-                    Cell genusCell = row.getCell(columnIndices.get("Encounter.genus"));
-                    if (genusCell != null && "Panthera".equals(getCellValueAsString(genusCell))) {
-                        foundPanthera = true;
-                    }
-                }
-                // Check species
-                if (columnIndices.containsKey("Encounter.specificEpithet")) {
-                    Cell speciesCell = row.getCell(columnIndices.get("Encounter.specificEpithet"));
-                    if (speciesCell != null && "leo".equals(getCellValueAsString(speciesCell))) {
-                        foundLeo = true;
-                    }
-                }
-                // Check individual names
-                if (columnIndices.containsKey("Name0.value")) {
-                    Cell nameCell = row.getCell(columnIndices.get("Name0.value"));
-                    if (nameCell != null) {
-                        String nameValue = getCellValueAsString(nameCell);
-                        if ("Individual_1".equals(nameValue)) foundIndividual1 = true;
-                        if ("Individual_2".equals(nameValue)) foundIndividual2 = true;
-                    }
-                }
-                // Check viewpoints
-                if (columnIndices.containsKey("Annotation0.ViewPoint")) {
-                    Cell viewpointCell = row.getCell(columnIndices.get("Annotation0.ViewPoint"));
-                    if (viewpointCell != null) {
-                        String viewpoint = getCellValueAsString(viewpointCell);
-                        if ("left".equals(viewpoint)) foundLeftViewpoint = true;
-                        if ("right".equals(viewpoint)) foundRightViewpoint = true;
-                        if ("front".equals(viewpoint)) foundFrontViewpoint = true;
-                    }
-                }
-            }
-            // Assert we found expected data values
-            assertTrue(foundPanthera, "Excel should contain genus 'Panthera' in data rows");
-            assertTrue(foundLeo, "Excel should contain species 'leo' in data rows");
-            assertTrue(foundIndividual1, "Excel should contain 'Individual_1' in Name0.value");
-            assertTrue(foundIndividual2, "Excel should contain 'Individual_2' in Name0.value");
-            assertTrue(foundLeftViewpoint, "Excel should contain 'left' viewpoint");
-            assertTrue(foundRightViewpoint, "Excel should contain 'right' viewpoint");
-            assertTrue(foundFrontViewpoint, "Excel should contain 'front' viewpoint");
-
-            System.out.println("Excel metadata validation passed");
-            System.out.println("  Validated taxonomy: Panthera leo");
-            System.out.println("  Validated individuals: Individual_1, Individual_2");
-            System.out.println("  Validated viewpoints: left, right, front");
+        try (InputStream inputStream = new ByteArrayInputStream(metadataExcelBytes)) {
+            assertExcelFileEquals(inputStream, expectedRows);
         }
 
         System.out.println("\nHappy path test completed successfully");
@@ -773,7 +672,8 @@ import static org.mockito.Mockito.when;
 
             Path assetsRoot = FileSystems.getDefault().getPath("src", "test",
                 "bulk-images").toAbsolutePath();
-            AssetStore localStore = new LocalAssetStore("local", assetsRoot, null, false);
+            AssetStore localStore = new LocalAssetStore("local", assetsRoot,
+                "file://" + assetsRoot.toString(), false);
             MediaAsset asset1 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
                 "image-ok-0.jpg").toFile());
             MediaAsset asset2 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
@@ -840,18 +740,24 @@ import static org.mockito.Mockito.when;
             org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
             ann1.setBbox(0, 0, 500, 500);
             ann1.setViewpoint("left");
+            ann1.setMatchAgainst(true);
+            enc1.addAnnotation(ann1);
             myShepherd.storeNewAnnotation(ann1);
             ann1.opensearchIndexDeep();
 
             org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
             ann2.setBbox(500, 0, 500, 500);
             ann2.setViewpoint("right");
+            ann2.setMatchAgainst(true);
+            enc2.addAnnotation(ann2);
             myShepherd.storeNewAnnotation(ann2);
             ann2.opensearchIndexDeep();
 
             org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
             ann3.setBbox(0, 500, 500, 500);
             ann3.setViewpoint("front");
+            ann3.setMatchAgainst(true);
+            enc3.addAnnotation(ann3);
             myShepherd.storeNewAnnotation(ann3);
             ann3.opensearchIndexDeep();
 
@@ -951,15 +857,5 @@ import static org.mockito.Mockito.when;
             .log().ifValidationFails();
 
         System.out.println("OpenSearch connection test passed");
-    }
-
-    private static Feature createBbox(int x, int y, int width, int height) {
-        JSONObject params = new JSONObject();
-
-        params.put("width", width);
-        params.put("height", height);
-        params.put("x", x);
-        params.put("y", y);
-        return new Feature("org.ecocean.boundingBox", params);
     }
 }

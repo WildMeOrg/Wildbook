@@ -22,6 +22,8 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
 public class EncounterAnnotationExportFile {
+    // TODO: Refactor this into a SearchApi-based searching component and an export component
+
     private static final int BYTES_DOWNLOAD = 1024;
     private static final String REFERENCE_KEYWORD = "Reference";
     private static final int ROW_LIMIT = 100000;
