@@ -356,9 +356,11 @@
         ]
       },
       "spotted_hyena": {
+        "_save_as": "spotted_hyaena",
         "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
       },
       "spotted_hyaena": {
+        "_save_as": "spotted_hyaena",
         "_id_conf": "@Crocuta.crocuta.hyaena._id_conf"
       }
     }
@@ -395,6 +397,7 @@
         ]
       },
       "striped_hyaena": {
+        "_save_as": "striped_hyaena",
         "_id_conf": "@Hyaena.hyaena.hyaena._id_conf"
       }
     }
@@ -431,9 +434,11 @@
         ]
       },
       "hyaena_brown":{
+        "_save_as": "brown_hyaena",
         "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
       },
       "brown_hyaena": {
+        "_save_as": "brown_hyaena",
         "_id_conf": "@Parahyaena.brunnea.hyaena._id_conf"
       }
 
