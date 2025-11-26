@@ -4,6 +4,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.imageio.ImageIO;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -69,6 +71,9 @@ import static org.mockito.Mockito.when;
  */
 @Testcontainers @TestMethodOrder(MethodOrderer.OrderAnnotation.class) public class
     EncounterExportImagesTest {
+    public static final int TEST_IMAGE_WIDTH = 500;
+    public static final int TEST_IMAGE_HEIGHT = 500;
+
     @Container static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
         "postgres:15-alpine")
             .withDatabaseName("wildbook_test")
@@ -296,7 +301,7 @@ import static org.mockito.Mockito.when;
         given()
             .cookie("JSESSIONID", authenticationCookie)
             .contentType(ContentType.JSON)
-            .body("{\"query\": {\"match\": {\"genus\": \"Panthera\"}}}")
+            .body("{\"query\": {\"match\": {\"genus\": \"lynx\"}}}")
             .when()
             .post("/api/v3/search/encounter")
             .then()
@@ -351,8 +356,8 @@ import static org.mockito.Mockito.when;
         when(mockSession.getServletContext()).thenReturn(mockServletContext);
         when(mockServletContext.getRealPath("/")).thenReturn("/tmp");
 
-        // Mock query parameters for encounter search (match all Panthera)
-        when(mockRequest.getParameter("genus")).thenReturn("Panthera");
+        // Mock query parameters for encounter search (match all lynx)
+        when(mockRequest.getParameter("genus")).thenReturn("lynx");
         when(mockRequest.getParameterNames()).thenReturn(Collections.enumeration(Arrays.asList(
             "genus")));
 
@@ -492,7 +497,7 @@ import static org.mockito.Mockito.when;
 
         // Prepare request body with search criteria and export options
         String requestBody =
-            "{  \"query\": {\"match\": {\"genus\": \"Panthera\"}}},\"exportOptions\": {  \"unidentifiedEncounters\": false,  \"numAnnotationsPerId\": \"all\",  \"includeMetadata\": true}";
+            "{  \"query\": {\"match\": {\"genus\": \"lynx\"}}},\"exportOptions\": {  \"unidentifiedEncounters\": false,  \"numAnnotationsPerId\": \"all\",  \"includeMetadata\": true}";
 
         System.out.println("Sending export request...");
 
@@ -522,6 +527,7 @@ import static org.mockito.Mockito.when;
         // Parse the ZIP file and verify its structure
         Set<String> zipEntries = new HashSet<>();
         byte[] metadataExcelBytes = null;
+        int croppedImageCount = 0;
 
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
             ZipEntry entry;
@@ -537,6 +543,22 @@ import static org.mockito.Mockito.when;
                         baos.write(buffer, 0, len);
                     }
                     metadataExcelBytes = baos.toByteArray();
+                }
+                // Validate cropped image dimensions
+                if (entry.getName().startsWith("images/") && entry.getName().endsWith(".jpg")) {
+                    // Read image and verify dimensions
+                    BufferedImage image = ImageIO.read(zis);
+                    assertNotNull(image, "Image should be readable: " + entry.getName());
+
+                    // All test annotations have 500x500 bounding boxes
+                    assertEquals(TEST_IMAGE_WIDTH, image.getWidth(),
+                        "Cropped image width should be 500px: " + entry.getName());
+                    assertEquals(TEST_IMAGE_HEIGHT, image.getHeight(),
+                        "Cropped image height should be 500px: " + entry.getName());
+
+                    croppedImageCount++;
+                    System.out.println("  Validated cropped image dimensions (500x500): " +
+                        entry.getName());
                 }
                 zis.closeEntry();
             }
@@ -582,10 +604,15 @@ import static org.mockito.Mockito.when;
                 .count();
         assertTrue(individual2Images >= 1, "Individual_2 should have at least 1 cropped image");
 
+        // Verify that we validated at least some cropped images
+        assertTrue(croppedImageCount >= 3,
+            "Should have validated at least 3 cropped images (one per annotation)");
+
         System.out.println("ZIP structure verification passed");
         System.out.println("  Total ZIP entries: " + zipEntries.size());
         System.out.println("  Individual_1 images: " + individual1Images);
         System.out.println("  Individual_2 images: " + individual2Images);
+        System.out.println("  Validated cropped images: " + croppedImageCount);
 
         // Validate Excel metadata file content
         System.out.println("\nVerifying Excel metadata file content...");
@@ -683,8 +710,8 @@ import static org.mockito.Mockito.when;
 
             // Create test encounters
             org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
-            enc1.setGenus("Panthera");
-            enc1.setSpecificEpithet("leo");
+            enc1.setGenus("lynx");
+            enc1.setSpecificEpithet("pardinus");
             enc1.setLifeStage("cub");
             enc1.setVerbatimLocality("iberia");
             enc1.setDecimalLatitude(37.15414445923345);
@@ -696,8 +723,8 @@ import static org.mockito.Mockito.when;
             asset1.opensearchIndexDeep();
 
             org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
-            enc2.setGenus("Panthera");
-            enc2.setSpecificEpithet("leo");
+            enc2.setGenus("lynx");
+            enc2.setSpecificEpithet("pardinus");
             enc2.setLifeStage("adult");
             enc2.setVerbatimLocality("iberia");
             enc2.setDecimalLatitude(37.15414445923345);
@@ -709,8 +736,8 @@ import static org.mockito.Mockito.when;
             enc1.addMediaAsset(asset2);
 
             org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
-            enc3.setGenus("Panthera");
-            enc3.setSpecificEpithet("leo");
+            enc3.setGenus("lynx");
+            enc3.setSpecificEpithet("pardinus");
             enc3.setLifeStage("senior");
             enc3.setVerbatimLocality("iberia");
             enc3.setDecimalLatitude(37.15414445923345);
@@ -737,24 +764,24 @@ import static org.mockito.Mockito.when;
             ind2.opensearchIndexDeep();
 
             // Create annotations with bounding boxes
-            org.ecocean.Annotation ann1 = new org.ecocean.Annotation("fluke", asset1);
-            ann1.setBbox(0, 0, 500, 500);
+            org.ecocean.Annotation ann1 = new org.ecocean.Annotation("l. pardinus", asset1);
+            ann1.setBbox(0, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT);
             ann1.setViewpoint("left");
             ann1.setMatchAgainst(true);
             enc1.addAnnotation(ann1);
             myShepherd.storeNewAnnotation(ann1);
             ann1.opensearchIndexDeep();
 
-            org.ecocean.Annotation ann2 = new org.ecocean.Annotation("fluke", asset2);
-            ann2.setBbox(500, 0, 500, 500);
+            org.ecocean.Annotation ann2 = new org.ecocean.Annotation("l. pardinus", asset2);
+            ann2.setBbox(500, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT);
             ann2.setViewpoint("right");
             ann2.setMatchAgainst(true);
             enc2.addAnnotation(ann2);
             myShepherd.storeNewAnnotation(ann2);
             ann2.opensearchIndexDeep();
 
-            org.ecocean.Annotation ann3 = new org.ecocean.Annotation("fluke", asset3);
-            ann3.setBbox(0, 500, 500, 500);
+            org.ecocean.Annotation ann3 = new org.ecocean.Annotation("l. pardinus", asset3);
+            ann3.setBbox(0, 500, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT);
             ann3.setViewpoint("front");
             ann3.setMatchAgainst(true);
             enc3.addAnnotation(ann3);
