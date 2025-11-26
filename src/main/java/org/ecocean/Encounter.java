@@ -4700,15 +4700,22 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("access", "read");
         rtn.put("isPublic", isPublic);
 
+        boolean hideUserEmail = true;
         User submitter = getSubmitterUser(myShepherd);
         if (submitter != null)
-            rtn.put("submitterInfo", submitter.infoJSONObject(myShepherd, false));
+            rtn.put("submitterInfo",
+                submitter.infoJSONObject(myShepherd, user != null, hideUserEmail));
         // check to see if logged-in-user is outright blocked
         if (user != null) {
             boolean blocked = true;
             if (canUserEdit(user, myShepherd)) {
                 rtn.put("access", "write");
                 blocked = false;
+                // we can allow email being shown when access=write
+                hideUserEmail = false;
+                if (submitter != null)
+                    rtn.put("submitterInfo",
+                        submitter.infoJSONObject(myShepherd, true, hideUserEmail));
             } else if (canUserView(user, myShepherd)) {
                 blocked = false;
             }
@@ -4738,9 +4745,12 @@ public class Encounter extends Base implements java.io.Serializable {
         rtn.put("identificationRemarks", getIdentificationRemarks());
 
         // the user-listy things
-        rtn.put("submitters", userListJSONArray(myShepherd, this.submitters));
-        rtn.put("photographers", userListJSONArray(myShepherd, this.photographers));
-        rtn.put("informOthers", userListJSONArray(myShepherd, this.informOthers));
+        rtn.put("submitters",
+            userListJSONArray(myShepherd, this.submitters, user != null, hideUserEmail));
+        rtn.put("photographers",
+            userListJSONArray(myShepherd, this.photographers, user != null, hideUserEmail));
+        rtn.put("informOthers",
+            userListJSONArray(myShepherd, this.informOthers, user != null, hideUserEmail));
         // sanitize for non-logged-in users (hence, on public data)
         if (user == null) {
             rtn.put("access", "read");
@@ -4827,11 +4837,12 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // internal utility function
-    private org.json.JSONArray userListJSONArray(Shepherd myShepherd, List<User> users) {
+    private org.json.JSONArray userListJSONArray(Shepherd myShepherd, List<User> users,
+        boolean includeSensitive, boolean hideEmail) {
         org.json.JSONArray arr = new org.json.JSONArray();
         if (Util.collectionIsEmptyOrNull(users)) return arr;
         for (User user : users) {
-            arr.put(user.infoJSONObject(myShepherd, false));
+            arr.put(user.infoJSONObject(myShepherd, includeSensitive, hideEmail));
         }
         return arr;
     }
