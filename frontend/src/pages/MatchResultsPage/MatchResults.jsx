@@ -112,17 +112,65 @@ const styles = {
   bottomText: {
     fontSize: "0.9rem",
   },
+  matchListScrollContainer: {
+    overflowX: "auto",
+    overflowY: "hidden",
+    marginBottom: "1rem",
+  },
+  matchListGrid: {
+    display: "flex",
+    gap: "12px",
+    width: "100%",
+  },
+  matchColumn: {
+    flex: 1,
+    minWidth: "30%",
+    display: "flex",
+    flexDirection: "column",
+  },
 };
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
   const store = useMemo(() => new MatchResultsStore(), []);
 
+  const organizeMatchesIntoColumns = (matches) => {
+    const MAX_ROWS_PER_COLUMN = 4;
+    const totalMatches = matches.length;
+    if (totalMatches === 0) return [];
+
+    const columns = [];
+    for (let i = 0; i < totalMatches; i += MAX_ROWS_PER_COLUMN) {
+      const columnData = matches
+        .slice(i, i + MAX_ROWS_PER_COLUMN)
+        .map((match, index) => ({
+          ...match,
+          id: i + index + 1,
+        }));
+      columns.push(columnData);
+    }
+    return columns;
+  };
+
   return (
     <Container className="mt-3 mb-5">
-      <h2 className="mb-3">
-        <FormattedMessage id="MATCH_RESULT" />
-      </h2>
+      <div className="d-flex flex-row justify-content-between align-items-center mb-3">
+        <h2>
+          <FormattedMessage id="MATCH_RESULT" />
+        </h2>
+        <span>
+          <i
+            className="bi bi-info-circle-fill"
+            style={{
+              cursor: "pointer",
+              color: themeColor.primaryColors.primary500,
+              fontSize: "1.6rem",
+            }}
+            title="Help"
+            onClick={() => alert("Help information goes here.")}
+          ></i>
+        </span>
+      </div>
 
       <div className="d-flex align-items-center flex-wrap mb-3">
         <div className="d-flex align-items-center">
@@ -154,13 +202,13 @@ const MatchResults = observer(() => {
               backgroundColor:
                 store.viewMode === "image"
                   ? themeColor.primaryColors.primary500
-                  : themeColor.primaryColors.primary100,
+                  : themeColor.primaryColors.primary50,
               padding: "5px 10px",
               border: "none",
               color:
                 store.viewMode === "image"
                   ? "white"
-                  : themeColor.primaryColors.primary500,
+                  : themeColor.primaryColors.primary700,
             }}
             onClick={() => store.setViewMode("image")}
           >
@@ -176,18 +224,14 @@ const MatchResults = observer(() => {
                 defaultMessage="Number of Results"
               />
             </Form.Label>
-            <Form.Select
+            <Form.Control
+              type="number"
               size="sm"
+              min="1"
               value={store.numResults}
               onChange={(e) => store.setNumResults(Number(e.target.value))}
               style={{ width: "80px" }}
-            >
-              {[4, 8, 12, 16].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </Form.Select>
+            />
           </Form.Group>
 
           <Form.Group className="d-flex align-items-center me-3 mb-2 mb-sm-0">
@@ -204,19 +248,12 @@ const MatchResults = observer(() => {
             </Form.Select>
           </Form.Group>
 
-          <div className="small text-muted d-flex align-items-center mb-2 mb-sm-0">
-            {store.evaluatedAt}
-            <span>
-              <i className="bi bi-info-circle"></i>
-            </span>
-          </div>
+          <div className="small text-muted d-flex align-items-center mb-2 mb-sm-0"></div>
         </div>
       </div>
 
       {store.algorithms.map((algo) => {
-        const half = Math.ceil(algo.matches.length / 2);
-        const leftMatches = algo.matches.slice(0, half);
-        const rightMatches = algo.matches.slice(half);
+        const matchColumns = organizeMatchesIntoColumns(algo.matches);
 
         return (
           <div
@@ -234,93 +271,52 @@ const MatchResults = observer(() => {
               </div>
             </div>
 
-            <Row className="mb-3">
-              <Col md={6} className="mb-3 mb-md-0">
-                <div>
-                  {leftMatches.map((m) => (
-                    <div
-                      key={m.rank}
-                      style={styles.matchRow(
-                        store.selectedMatch?.some(
-                          (data) => data.encounterId === m.encounterId,
-                        ),
-                        themeColor,
-                      )}
-                    >
-                      <span style={styles.matchRank}>{m.rank}.</span>
-                      <span style={styles.matchScore}>
-                        {m.score.toFixed(4)}
-                      </span>
-                      <button
-                        type="button"
-                        style={styles.idPill(themeColor)}
-                        className="btn btn-sm p-0 px-2"
-                      >
-                        {m.individualId}
-                      </button>
-                      <div className="ms-auto">
-                        <Form.Check
-                          type="checkbox"
-                          checked={store.selectedMatch?.some(
+            <div style={styles.matchListScrollContainer}>
+              <div style={styles.matchListGrid}>
+                {matchColumns.map((column, columnIndex) => (
+                  <div key={columnIndex} style={styles.matchColumn}>
+                    {column.map((m) => (
+                      <div
+                        key={m.id}
+                        style={styles.matchRow(
+                          store.selectedMatch?.some(
                             (data) => data.encounterId === m.encounterId,
-                          )}
-                          onChange={(e) =>
-                            store.setSelectedMatch(
-                              e.target.checked,
-                              m.encounterId,
-                              m.individualId,
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Col>
-
-              <Col md={6}>
-                <div style={styles.matchListColumn}>
-                  {rightMatches.map((m) => (
-                    <div
-                      key={m.rank}
-                      style={styles.matchRow(
-                        store.selectedMatch?.some(
-                          (data) => data.encounterId === m.encounterId,
-                        ),
-                        themeColor,
-                      )}
-                    >
-                      <span style={styles.matchRank}>{m.rank}.</span>
-                      <span style={styles.matchScore}>
-                        {m.score.toFixed(4)}
-                      </span>
-                      <button
-                        type="button"
-                        style={styles.idPill(themeColor)}
-                        className="btn btn-sm p-0 px-2"
+                          ),
+                          themeColor,
+                        )}
                       >
-                        {m.individualId}
-                      </button>
-                      <div className="ms-auto">
-                        <Form.Check
-                          type="checkbox"
-                          checked={store.selectedMatch?.some(
-                            (data) => data.encounterId === m.encounterId,
-                          )}
-                          onChange={(e) =>
-                            store.setSelectedMatch(
-                              e.target.checked,
-                              m.encounterId,
-                              m.individualId,
-                            )
-                          }
-                        />
+                        <span style={styles.matchRank}>{m.id}.</span>
+                        <span style={styles.matchScore}>
+                          {m.score.toFixed(4)}
+                        </span>
+                        <button
+                          type="button"
+                          style={styles.idPill(themeColor)}
+                          className="btn btn-sm p-0 px-2"
+                        >
+                          {m.individualId}
+                        </button>
+                        <div className="ms-auto">
+                          <Form.Check
+                            type="checkbox"
+                            checked={store.selectedMatch?.some(
+                              (data) => data.encounterId === m.encounterId,
+                            )}
+                            onChange={(e) =>
+                              store.setSelectedMatch(
+                                e.target.checked,
+                                m.encounterId,
+                                m.individualId,
+                              )
+                            }
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </Col>
-            </Row>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <Row>
               <Col
@@ -379,7 +375,7 @@ const MatchResults = observer(() => {
         );
       })}
 
-      {store.selectedIndividualId && (
+      {store.selectedMatch.length > 0 && (
         <div style={styles.bottomBar}>
           <div style={styles.bottomText}>
             Encounter{" "}
