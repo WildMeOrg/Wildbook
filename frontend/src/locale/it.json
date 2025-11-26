@@ -373,7 +373,6 @@
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2": "Sono supportati solo i formati JPEG, JPG e PNG. I file in altri formati verranno ignorati.",
   "BULK_IMPORT_PHOTO_INSTRUCTION": "Trascina qui la cartella o i file oppure sfoglia per selezionare i file da caricare",
   "SEE_INSTRUCTIONS": "Vedi istruzioni",
-  "BULK_IMPORT_UPLOAD_IMAGE_DESC": "I nomi delle immagini devono corrispondere alla colonna “Encounter.MediaAsset” del tuo foglio di calcolo nel formato standard di Wildbook. Le immagini devono essere inferiori a 3 MB. Puoi caricare solo 200 immagini alla volta.",
   "BULK_IMPORT_UPLOAD_SPREADSHEET": "Carica foglio di calcolo",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART1": "Carica il tuo file foglio di calcolo (.csv, .xlsx, .xls) nel ",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART2": "Formato standard di Wildbook.",

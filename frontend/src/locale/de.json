@@ -374,7 +374,6 @@
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2": "Nur die Formate JPEG, JPG und PNG werden unterstützt. Dateien in anderen Formaten werden ignoriert.",
   "BULK_IMPORT_PHOTO_INSTRUCTION": "Ziehe deine Ordner oder Dateien hierher oder durchsuchen zum Hochladen",
   "SEE_INSTRUCTIONS": "Anleitung anzeigen",
-  "BULK_IMPORT_UPLOAD_IMAGE_DESC": "Die Bildnamen müssen der Spalte „Encounter.MediaAsset“ in deiner Wildbook-Standardformat-Tabelle entsprechen. Bilder müssen kleiner als 3 MB sein. Du kannst nur 200 Bilder auf einmal hochladen.",
   "BULK_IMPORT_UPLOAD_SPREADSHEET": "Tabelle hochladen",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART1": "Lade deine Tabellen-Datei (.csv, .xlsx, .xls) im ",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART2": "Wildbook-Standardformat hoch.",
