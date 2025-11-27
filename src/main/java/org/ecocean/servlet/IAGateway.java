@@ -822,17 +822,18 @@ public class IAGateway extends HttpServlet {
             System.out.println("--- BEFORE _doIdentify() ---");
             try {
                 // here jobj contains queryconfigdict somehow
-                JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl, fastlane);
-                System.out.println(
-                    "INFO: IAGateway.processQueueMessage() 'identify' from successful --> " +
-                    rtn.toString());
-                if (!rtn.optBoolean("success", false)) {
-                    requeueIncrement = true;
-                    requeue = true;
-                    myShepherd.rollbackDBTransaction();
-                } else {
-                    myShepherd.commitDBTransaction();
-                }
+                System.out.println("jobj: ");
+                // JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl, fastlane);
+                // System.out.println(
+                //     "INFO: IAGateway.processQueueMessage() 'identify' from successful --> " +
+                //     rtn.toString());
+                // if (!rtn.optBoolean("success", false)) {
+                //     requeueIncrement = true;
+                //     requeue = true;
+                //     myShepherd.rollbackDBTransaction();
+                // } else {
+                //     myShepherd.commitDBTransaction();
+                // }
             } catch (javax.jdo.JDOObjectNotFoundException ex) {
                 System.out.println(
                     "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " +
