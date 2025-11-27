@@ -4839,17 +4839,12 @@ public class IBEISIA {
             if (!Util.collectionIsEmptyOrNull(annsToSend)) {
                 JSONArray mergedResults = new JSONArray();
             
-                int batchSize = 10;
+                int batchSize = 500;
                 int totalAnnotations = annsToSend.size();
                 int totalBatches = (int) Math.ceil((double) totalAnnotations / batchSize);
                 int currentBatch = 1;
                 
                 for (int i = 0; i < totalAnnotations; i += batchSize) {
-                    // Break after 10 batches
-                    if (currentBatch > 10) {
-                        System.out.println("Reached maximum batch limit of 10, stopping processing");
-                        break;
-                    }
                     
                     int end = Math.min(i + batchSize, totalAnnotations);
                     ArrayList<Annotation> batch = new ArrayList<>(annsToSend.subList(i, end));
