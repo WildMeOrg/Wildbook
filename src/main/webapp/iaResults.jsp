@@ -1444,6 +1444,13 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                         indivId: indivId,
                         displayName: displayName
                     }
+                    // Store taxonomy for filtering autocomplete results
+                    if (ft && ft.genus) {
+                        qdata.genus = ft.genus;
+                    }
+                    if (ft && ft.specificEpithet) {
+                        qdata.specificEpithet = ft.specificEpithet;
+                    }
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
                 }
@@ -1608,13 +1615,16 @@ console.log('indivs=%o | unassignedEncs=%o', indivs, unassignedEncs);
 					nextId = '';
 				}
 
-				h  = '<input id="autocomplete-individual-name" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
+				h  = '<span style="position: relative; display: inline-block;">';
+				h += '<input id="autocomplete-individual-name" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
 				h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 				h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 				h += '/>';
+				h += '<span class="indiv-search-loading" style="display:none; font-size:12px; color:#777; position: absolute; left: 0; top: 100%; margin-top: 2px;">Loading...</span>';
+				h += '</span>';
 				h += '<input type="button" value="New Project ID For Both Encounters" data-projectId="'+selectedProjectIdPrefix+'" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
 
-				$('#enc-action').html(h);
+				$('#enc-action').html(h).data('task-id', taskId);
 
 				setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 				return true;
@@ -1635,18 +1645,22 @@ console.log('indivs=%o | unassignedEncs=%o', indivs, unassignedEncs);
 	} else {
 		h = '';
 		if (annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId) h += '<label for="lbcheckbox" title="' + annotData[queryAnnotId][0].encounterLocationId + '">Use next name based on location</label><input type="checkbox" class="location-based-checkbox" onClick="return locationBasedCheckbox(this, \'' + queryAnnotId + '\');" />';
+		h += '<span style="position: relative; display: inline-block;">';
 		h += '<input id="new-name-input" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' data-match-task-id="' + taskId + '" ';
 		h += ' data-match-display-name="' + jel.data('displayname') + '" ';
-		h += ' /> <input type="button" value="Set individual on all encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
+		h += ' />';
+		h += '<span class="indiv-search-loading" style="display:none; font-size:12px; color:#777; position: absolute; left: 0; top: 100%; margin-top: 2px;">Loading...</span>';
+		h += '</span>';
+		h += '<input type="button" value="Set individual on all encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
 	}
 
 //$('#enc-action').html(h);
 //console.log(h); return;
 	if (allowSyncReturn) {
-		$('#enc-action').html(h);
+		$('#enc-action').html(h).data('task-id', taskId);
 		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 		return true;
 	}
@@ -1666,6 +1680,8 @@ function locationBasedCheckbox(el, qann) {
 var nameUUIDCache = {};
 function setIndivAutocomplete(el) {
 	if (!el || !el.length) return;
+    var opening = false;        // prevents recursive re-calls
+    var cachedRes = null;       // holds last results to render without new AJAX
     var args = {
 		resMap: function(data) {
 			var res = $.map(data, function(item) {
@@ -1679,6 +1695,123 @@ function setIndivAutocomplete(el) {
             return res;
         }
     };
+    
+    // Override source to pass genus and specificEpithet to SiteSearch for server-side filtering
+    args.source = function(request, response) {
+        // Serve cached results to open the menu without another AJAX call
+        if (opening && cachedRes) {
+            response(cachedRes);
+            opening = false;
+            cachedRes = null;
+            return;
+        }
+        // Get taxonomy from task data by finding the task container from the input element
+        var $input = $(el[0] || el);
+        var taskId = '';
+        var genus = '';
+        var specificEpithet = '';
+        
+        // Try to get taskId from #enc-action parent data attribute (most reliable)
+        var $encAction = $input.closest('#enc-action');
+        if ($encAction.length) {
+            taskId = $encAction.data('task-id');
+        }
+        
+        // If not found, try data attribute on input element
+        if (!taskId && $input.length) {
+            taskId = $input.data('match-task-id') || $input.attr('data-match-task-id');
+        }
+        
+        // If still not found, try to find task-content parent
+        if (!taskId) {
+            var $taskContent = $input.closest('.task-content');
+            if (!$taskContent.length && $encAction.length) {
+                $taskContent = $encAction.closest('.task-content');
+            }
+            if ($taskContent.length) {
+                var taskIdAttr = $taskContent.attr('id');
+                if (taskIdAttr && taskIdAttr.indexOf('task-') === 0) {
+                    taskId = taskIdAttr.substring(5); // Remove 'task-' prefix
+                }
+            }
+        }        
+        if (taskId) {
+            var taskData = $('#task-' + taskId).data();
+            if (taskData) {
+                if (taskData.genus) {
+                    genus = taskData.genus;
+                }
+                if (taskData.specificEpithet) {
+                    specificEpithet = taskData.specificEpithet;
+                }
+            }
+        }
+        
+        // Show loading indicator
+        var $loader = $input.siblings('.indiv-search-loading');
+        if (!$loader.length) {
+            $loader = $input.parent().find('.indiv-search-loading');
+        }
+        if (!$loader.length) {
+            $loader = $encAction.find('.indiv-search-loading');
+        }
+        if ($loader.length) {
+            $loader.show();
+        }
+        
+        $.ajax({
+            url: wildbookGlobals.baseUrl + '/SiteSearch',
+            dataType: 'json',
+            data: {
+                term: request.term,
+                genus: genus,
+                specificEpithet: specificEpithet
+            },
+            success: function(data) {
+                var res = args.resMap(data);
+                response(res);
+                cachedRes = res;
+                if ($loader.length) {
+                    $loader.hide();
+                }
+                // Force menu to open if we have results, even if input lost focus
+                // Similar to encounter.jsp implementation
+                if (res && res.length > 0) {
+                    var $inputEl = $(el[0] || el);
+                    // Focus the input to ensure menu can open
+                    $inputEl.focus();
+                    opening = true;
+                    // Trigger search again to open the menu with results
+                    // This will use cached results, not make another API call
+                    setTimeout(function() {
+                        $inputEl.autocomplete('search', $inputEl.val());
+                    }, 50);
+                }
+            },
+            error: function() {
+                if ($loader.length) {
+                    $loader.hide();
+                }
+            }
+        });
+    };
+    
+    // Configure autocomplete options to ensure it works properly
+    args.minLength = 2; // Minimum characters before triggering search
+    args.delay = 300; // Delay before triggering search (ms)
+    args.autoFocus = true; // Automatically focus first item
+    
+    // Append menu to enc-action to ensure it's in the right DOM location
+    var $encAction = $(el[0] || el).closest('#enc-action');
+    if ($encAction.length) {
+        args.appendTo = $encAction;
+    }
+    
+    // Ensure menu opens when results are available
+    args.open = function() {
+        // Menu opened - ensure it stays visible
+    };
+    
     wildbook.makeAutocomplete(el[0], args);
 }
 
