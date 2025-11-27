@@ -402,27 +402,6 @@ public class Annotation extends Base implements java.io.Serializable {
         return false;
     }
 
-    public void setBbox(int x, int y, int width, int height) {
-        Feature feature = null;
-
-        for (Feature ft : this.features) {
-            if (ft.isType("org.ecocean.boundingBox")) {
-                feature = ft;
-                break;
-            }
-        }
-        if (feature == null) {
-            feature = new Feature("org.ecocean.boundingBox", new JSONObject());
-            addFeature(feature);
-        }
-        JSONObject featureParameters = new JSONObject();
-        featureParameters.put("x", x);
-        featureParameters.put("y", y);
-        featureParameters.put("width", width);
-        featureParameters.put("height", height);
-        feature.setParameters(featureParameters);
-    }
-
     // (viewpoint == null || viewpoint == 'up' || viewpoint == 'upfront' || viewpoint == 'upfrontright'
     // || viewpoint == 'upright' || viewpoint == 'upbackright' || viewpoint == 'upback'
     // || viewpoint == 'upbackleft' || viewpoint == 'upfront' || viewpoint == 'upfrontleft')

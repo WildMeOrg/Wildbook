@@ -19,6 +19,9 @@ import javax.imageio.ImageIO;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -29,16 +32,16 @@ import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.export.EncounterAnnotationExportFile;
-import org.ecocean.media.AssetStore;
-import org.ecocean.media.LocalAssetStore;
-import org.ecocean.media.MediaAsset;
+import org.ecocean.media.*;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -174,6 +177,19 @@ import static org.mockito.Mockito.when;
         System.out.println("PostgreSQL container will be stopped automatically");
         System.out.println("OpenSearch container will be stopped automatically");
         System.out.println("=== Teardown Complete ===");
+    }
+
+    private static @NotNull Feature createBbox(MediaAsset asset, int x, int y, int width,
+        int height) {
+        JSONObject featureParameters = new JSONObject();
+
+        featureParameters.put("x", x);
+        featureParameters.put("y", y);
+        featureParameters.put("width", width);
+        featureParameters.put("height", height);
+        Feature f = new Feature("org.ecocean.boundingBox", featureParameters);
+        asset.addFeature(f);
+        return f;
     }
 
     @BeforeEach void setupMocks() {
@@ -407,14 +423,21 @@ import static org.mockito.Mockito.when;
     throws IOException {
         List<String[]> expectedRows = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(expectedCsvFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Remove BOM if present
-                if (line.startsWith("\ufeff")) {
-                    line = line.substring(1);
+        try (Reader reader = new FileReader(expectedCsvFile);
+        CSVParser parser = CSVFormat.EXCEL.parse(reader)) {
+            boolean firstRow = true;
+            for (CSVRecord record : parser) {
+                String[] row = new String[record.size()];
+                for (int i = 0; i < record.size(); i++) {
+                    String value = record.get(i);
+                    // Strip BOM from first cell of first row
+                    if (firstRow && i == 0 && value.startsWith("\uFEFF")) {
+                        value = value.substring(1);
+                    }
+                    row[i] = value;
                 }
-                expectedRows.add(line.split(",", -1));
+                expectedRows.add(row);
+                firstRow = false;
             }
         }
 
@@ -682,6 +705,8 @@ import static org.mockito.Mockito.when;
             "context0", properties);
 
         try {
+            FeatureType.initAll(myShepherd);
+
             myShepherd.beginDBTransaction();
 
             // Create test user with properly hashed password
@@ -764,24 +789,24 @@ import static org.mockito.Mockito.when;
             ind2.opensearchIndexDeep();
 
             // Create annotations with bounding boxes
-            org.ecocean.Annotation ann1 = new org.ecocean.Annotation("l. pardinus", asset1);
-            ann1.setBbox(0, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT);
+            org.ecocean.Annotation ann1 = new org.ecocean.Annotation("l. pardinus",
+                createBbox(asset1, 0, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
             ann1.setViewpoint("left");
             ann1.setMatchAgainst(true);
             enc1.addAnnotation(ann1);
             myShepherd.storeNewAnnotation(ann1);
             ann1.opensearchIndexDeep();
 
-            org.ecocean.Annotation ann2 = new org.ecocean.Annotation("l. pardinus", asset2);
-            ann2.setBbox(500, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT);
+            org.ecocean.Annotation ann2 = new org.ecocean.Annotation("l. pardinus",
+                createBbox(asset2, 500, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
             ann2.setViewpoint("right");
             ann2.setMatchAgainst(true);
             enc2.addAnnotation(ann2);
             myShepherd.storeNewAnnotation(ann2);
             ann2.opensearchIndexDeep();
 
-            org.ecocean.Annotation ann3 = new org.ecocean.Annotation("l. pardinus", asset3);
-            ann3.setBbox(0, 500, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT);
+            org.ecocean.Annotation ann3 = new org.ecocean.Annotation("l. pardinus",
+                createBbox(asset3, 0, 500, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
             ann3.setViewpoint("front");
             ann3.setMatchAgainst(true);
             enc3.addAnnotation(ann3);

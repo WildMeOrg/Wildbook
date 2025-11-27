@@ -447,6 +447,14 @@
           <scope>test</scope>
       </dependency>
 
+    <!-- Apache Commons CSV for proper CSV parsing in tests -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>1.11.0</version>
+      <scope>test</scope>
+    </dependency>
+
 
     <dependency>
       <groupId>org.geotools</groupId>
