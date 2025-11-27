@@ -201,7 +201,7 @@ const ImageCard = observer(({ store = {} }) => {
         <p>
           {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
             ?.keywords?.length
-            ? `${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.keywords?.length} tags`
+            ? `${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.keywords?.length} ${intl.formatMessage({ id: "KEYWORDS" })}`
             : ""}
         </p>
       </div>
