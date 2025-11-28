@@ -526,5 +526,6 @@
     "BULK_IMPORT_SEND_TO_IDENTIFICATION": "Send to Identification",
     "BULK_IMPORT_LOCATION_ID_DESC": "The more options you select, the longer identification takes. Be as specific as possible.",
     "DANGER_ZONE": "Danger Zone",
-    "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Button is disabled if detection or initial identification task is incomplete. Please wait for the task to complete before sending to identification."
+    "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Button is disabled if detection or initial identification task is incomplete. Please wait for the task to complete before sending to identification.",
+    "RESULTS_PER_PAGE": "Results per page"
 }
