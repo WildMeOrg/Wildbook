@@ -3,6 +3,7 @@ package org.ecocean.api;
 import org.apache.commons.lang3.StringUtils;
 import org.ecocean.*;
 import org.ecocean.export.EncounterAnnotationExportFile;
+import org.ecocean.export.EncounterImageExportFile;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
@@ -51,42 +52,10 @@ public class EncounterExport extends ApiBase {
             Map<String,
                 MarkedIndividual> encounterToIndividual = buildEncounterIndividualMap(myShepherd,
                 encounters);
-            for (Encounter e : encounters) {
-                int annotatationIdx = 0;
-                for (Annotation a : e.getAnnotations()) {
-                    MediaAsset ma = a.getMediaAsset();
-                    if (!a.getMatchAgainst() || StringUtils.isBlank(a.getViewpoint()) ||
-                        ma.webURL() == null) {
-                        System.out.printf("Skipping annotation %s%n", a.getId());
-                        continue;
-                    }
-                    try {
-                        String displayName = getDisplayName(e, encounterToIndividual);
-                        URI imageUrl = ma.webURL().toURI();
-                        System.out.printf("Writing image [%s] %s%n", displayName, imageUrl);
+            EncounterImageExportFile imagesExport = new EncounterImageExportFile(encounters,
+                encounterToIndividual);
 
-                        ZipEntry croppedImageEntry = new ZipEntry(String.format(
-                            "images/%s/%s_%s.jpg", displayName, e.getID(), annotatationIdx++));
-                        outputStream.putNextEntry(croppedImageEntry);
-                        BufferedImage originalImage = ImageIO.read(imageUrl.toURL());
-                        BufferedImage croppedImage;
-                        int[] bbox = a.getBbox();
-                        if (bbox == null || bbox.length < 4 || bbox[2] == 0 || bbox[3] == 0) {
-                            croppedImage = originalImage;
-                        } else {
-                            croppedImage = originalImage.getSubimage(bbox[0], bbox[1], bbox[2],
-                                bbox[3]);
-                            System.out.printf("  Cropped to [%d,%d,%d,%d] %n", bbox[0], bbox[1],
-                                bbox[2], bbox[3]);
-                        }
-                        ImageIO.write(croppedImage, "jpg", outputStream);
-                        outputStream.closeEntry();
-                    } catch (Exception ex) {
-                        throw new RuntimeException("Unable to process annotation " + a.getId() +
-                                " for encounter " + e.getId(), ex);
-                    }
-                }
-            }
+            imagesExport.writeTo(outputStream);
         } catch (Exception e) {
             // todo: make this more specific
             e.printStackTrace();
@@ -150,23 +119,6 @@ public class EncounterExport extends ApiBase {
             }
         }
         return map;
-    }
-
-    private static String getDisplayName(Encounter e,
-        Map<String, MarkedIndividual> encounterToIndividual) {
-        String displayName = "unidentified_individual";
-
-        // Try the map first (handles both old and new relationships)
-        MarkedIndividual individual = encounterToIndividual.get(e.getCatalogNumber());
-
-        if (individual != null) {
-            MultiValue names = individual.getNames();
-            List<String> nameLabels = names.getSortedKeys();
-            if (!nameLabels.isEmpty()) {
-                displayName = names.getValue(nameLabels.get(0));
-            }
-        }
-        return displayName;
     }
 
     private static void writeMetadataFile(HttpServletRequest request, Shepherd myShepherd,
