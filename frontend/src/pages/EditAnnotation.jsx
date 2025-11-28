@@ -323,8 +323,9 @@ export default function EditAnnotation() {
       y: e.clientY - top,
       width: 0,
       height: 0,
-      rotation: value,
+      rotation: 0,
     });
+    setValue(0);
     setIsDrawing(true);
   };
 
