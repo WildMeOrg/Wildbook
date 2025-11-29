@@ -14,7 +14,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import { Alert } from "react-bootstrap";
 import EXIF from "exif-js";
-import { defaultMaxMediaSize } from "../constants/photoUpload.js";
+import { defaultMaxMediaSize } from "../../constants/photoUpload.js";
 
 export const ImageSection = observer(({ store }) => {
   const [files, setFiles] = useState([]);

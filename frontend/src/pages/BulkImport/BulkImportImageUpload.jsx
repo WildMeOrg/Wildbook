@@ -17,7 +17,7 @@ import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
 import {
   defaultMaxMediaSize,
   defaultMaxMediaCount,
-} from "../constants/photoUpload.js";
+} from "../../constants/photoUpload.js";
 
 const handleDragOver = (e) => {
   e.preventDefault();

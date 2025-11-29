@@ -8,7 +8,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import {
   defaultMaxMediaSize,
   defaultMaxMediaCount,
-} from "../constants/photoUpload.js";
+} from "../../constants/photoUpload.js";
 
 const BulkImportInstructionsModal = observer(({ store }) => {
   const theme = React.useContext(ThemeColorContext);
