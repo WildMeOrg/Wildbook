@@ -2048,8 +2048,23 @@ public class IBEISIA {
         } else {
             rtn.put("error", "unknown task action type " + type);
         }
+        // LOGGING: Transaction commit - staging debug
+        System.out.println("===== TRANSACTION COMMIT DEBUG =====");
+        System.out.println("TaskID: " + taskID);
+        System.out.println("Task type: " + type);
+        if ("detect".equals(type)) {
+            JSONObject dres = rtn.optJSONObject("processResult");
+            if (dres != null) {
+                System.out.println("processResult success: " + dres.optBoolean("success", false));
+            }
+        }
+        System.out.println("About to commitDBTransaction()");
         myShepherd.commitDBTransaction();
+        System.out.println("commitDBTransaction() completed successfully");
+        System.out.println("About to closeDBTransaction()");
         myShepherd.closeDBTransaction();
+        System.out.println("closeDBTransaction() completed successfully");
+        System.out.println("===== END TRANSACTION COMMIT DEBUG =====");
 
         boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context,
             "IBEISIADisableIdentification"));
@@ -2121,20 +2136,37 @@ public class IBEISIA {
     private static JSONObject processCallbackDetect(String taskID,
         ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd, String context,
         String rootDir) {
+        // LOGGING: Entry point - staging debug
+        System.out.println("===== processCallbackDetect ENTRY =====");
+        System.out.println("TaskID: " + taskID);
+        System.out.println("Context: " + context);
+        System.out.println("Shepherd action: " + myShepherd.getAction());
+        System.out.println("Transaction active: " + (myShepherd.getPM().currentTransaction().isActive()));
+        
         JSONObject rtn = new JSONObject("{\"success\": false}");
         Task task = Task.load(taskID, myShepherd);
+        System.out.println("Task loaded: " + (task != null ? task.getId() : "null"));
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
 
-        System.out.println("***** ids = " + ids);
+        System.out.println("***** ids = " + java.util.Arrays.toString(ids));
         if (ids == null) {
             rtn.put("error", "could not find any MediaAsset ids from logs");
+            System.out.println("ERROR: No MediaAsset IDs found in logs");
             return rtn;
         }
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        System.out.println("Loading " + ids.length + " MediaAssets");
         for (int i = 0; i < ids.length; i++) {
             MediaAsset ma = MediaAssetFactory.load(Integer.parseInt(ids[i]), myShepherd);
-            if (ma != null) mas.add(ma);
+            if (ma != null) {
+                mas.add(ma);
+                System.out.println("  Loaded MediaAsset ID: " + ma.getId() + ", current detectionStatus: " + ma.getDetectionStatus());
+            } else {
+                System.out.println("  WARNING: Could not load MediaAsset ID: " + ids[i]);
+            }
         }
+        System.out.println("Total MediaAssets loaded: " + mas.size());
+        System.out.println("===== END processCallbackDetect ENTRY =====");
         int numCreated = 0;
         System.out.println("RESP ===>>>>>> " + resp.toString(2));
         if ((resp.optJSONObject("_response") != null) &&
@@ -2307,12 +2339,26 @@ public class IBEISIA {
                         
                         
                     }
+                    // LOGGING: Detection status update - staging debug
+                    System.out.println("===== DETECTION STATUS UPDATE DEBUG =====");
+                    System.out.println("TaskID: " + taskID);
+                    System.out.println("MediaAsset ID: " + asset.getId());
+                    System.out.println("MediaAsset acmId: " + asset.getAcmId());
+                    System.out.println("Current detectionStatus BEFORE update: " + asset.getDetectionStatus());
+                    System.out.println("needsReview flag: " + needsReview);
+                    System.out.println("newAnns.length(): " + newAnns.length());
+                    System.out.println("Asset is persistent: " + (myShepherd.getPM().getObjectId(asset) != null));
                     if (needsReview) {
                         needReview.put(asset.getId());
+                        System.out.println("Setting detectionStatus to: " + STATUS_PENDING);
                         asset.setDetectionStatus(STATUS_PENDING);
+                        System.out.println("DetectionStatus AFTER setDetectionStatus: " + asset.getDetectionStatus());
                     } else {
+                        System.out.println("Setting detectionStatus to: " + STATUS_COMPLETE);
                         asset.setDetectionStatus(STATUS_COMPLETE);
+                        System.out.println("DetectionStatus AFTER setDetectionStatus: " + asset.getDetectionStatus());
                     }
+                    System.out.println("===== END DETECTION STATUS UPDATE DEBUG =====");
                     if (newAnns.length() > 0) {
                         List<Encounter> assignedEncs = asset.assignEncounters(myShepherd); // WB-945 here is where we make some encounter(s) if we
                                                                                            // need to
@@ -2353,7 +2399,17 @@ public class IBEISIA {
                 rtn.put("success", true);
                 task.setStatus("completed");
                 task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                // LOGGING: Transaction update - staging debug
+                System.out.println("===== TRANSACTION UPDATE DEBUG =====");
+                System.out.println("TaskID: " + taskID);
+                System.out.println("About to call updateDBTransaction()");
+                System.out.println("Number of MediaAssets processed: " + mas.size());
+                for (MediaAsset ma : mas) {
+                    System.out.println("  MediaAsset ID: " + ma.getId() + ", detectionStatus: " + ma.getDetectionStatus());
+                }
                 myShepherd.updateDBTransaction();
+                System.out.println("updateDBTransaction() completed successfully");
+                System.out.println("===== END TRANSACTION UPDATE DEBUG =====");
                 if (amap.length() > 0) rtn.put("annotations", amap); // needed to kick off ident jobs with return value
 
                 JSONObject jlog = new JSONObject();
