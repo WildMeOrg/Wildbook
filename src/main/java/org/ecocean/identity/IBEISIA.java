@@ -2246,6 +2246,13 @@ public class IBEISIA {
                     }
                     boolean needsReview = false;
                     boolean skipEncounters = asset.hasLabel("_frame");
+                    // LOGGING: Show detection cutoff value for this asset
+                    double detectionCutoff = getDetectionCutoffValue(context, task);
+                    System.out.println("===== DETECTION CUTOFF DEBUG =====");
+                    System.out.println("MediaAsset ID: " + asset.getId());
+                    System.out.println("Detection cutoff value: " + detectionCutoff);
+                    System.out.println("Number of detection results (janns.length()): " + janns.length());
+                    System.out.println("===== END DETECTION CUTOFF DEBUG =====");
                     
 
 
@@ -2268,7 +2275,11 @@ public class IBEISIA {
                                     System.out.println("null jann case in processCallbackDetect, WITH assignments");
                                     continue;
                                 }
-                                if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue(context, task)) {
+                                double confidence = jann.optDouble("confidence", -1.0);
+                                double cutoff = getDetectionCutoffValue(context, task);
+                                System.out.println("ASSIGNER: Detection confidence=" + confidence + ", cutoff=" + cutoff + " (needsReview if confidence < cutoff)");
+                                if (confidence < cutoff) {
+                                    System.out.println("ASSIGNER: Setting needsReview=true because confidence " + confidence + " < cutoff " + cutoff);
                                     needsReview = true;
                                     continue;
                                 }
@@ -2311,8 +2322,11 @@ public class IBEISIA {
                         if (jann == null) {
                             continue;
                         }
-                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue(context,
-                            task)) {
+                        double confidence = jann.optDouble("confidence", -1.0);
+                        double cutoff = getDetectionCutoffValue(context, task);
+                        System.out.println("NORMAL: Detection confidence=" + confidence + ", cutoff=" + cutoff + " (needsReview if confidence < cutoff)");
+                        if (confidence < cutoff) {
+                            System.out.println("NORMAL: Setting needsReview=true because confidence " + confidence + " < cutoff " + cutoff);
                             needsReview = true;
                             continue;
                         }
