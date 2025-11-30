@@ -396,7 +396,7 @@
   "BULK_IMPORT_INSTRUCTIONS_STEP1_PLACE_IMAGES": "Lege alle Bilder in einen einzigen Ordner",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_IMAGE_REQUIREMENTS": "Bilder müssen:",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT": "Im JPEG-, JPG- oder PNG-Format sein",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Weniger als {maxSize} MB sein",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Weniger als {maxSize}MB sein",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Nicht mehr als {maxImageCount} Dateien pro Upload",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FILENAME_REQUIREMENTS": "Dateinamen müssen",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_LETTERS_NUMBERS": "Nur englische Buchstaben, Zahlen, Punkte und Leerzeichen verwenden",
