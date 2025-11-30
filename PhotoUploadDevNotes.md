@@ -1,8 +1,8 @@
 # Photo Upload
 
-There are currently three places to change the default photo upload size and default max count amount.
+There are currently three places to change the default photo upload size and default max count amount. These three places affect these pages or modals: `Submit -> Report an Encounter`, `Submit -> Report an Encounter (classic)`, `Submit -> Bulk Import`, `Submit -> Bulk Import -> See Instructions`.
 
-This is linked from comments in the relevant files (except non-development properties files) which say: `Refer to PhotoUploadDevNotes.md for information/where else to change`. Properties files are not annotated with this comment since those files will be changed by users.
+This is linked from comments in the relevant files which say: `Refer to PhotoUploadDevNotes.md for information/where else to change`. Non-development properties files are not annotated with this comment since those files will be changed by users.
 
 Order of using:
 1. `commonConfiguration.properties`, which each production Wildbook can change if needed
