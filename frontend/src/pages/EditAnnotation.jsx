@@ -26,8 +26,8 @@ export default function EditAnnotation() {
   const [value, setValue] = useState(0);
   const [incomplete, setIncomplete] = useState(false);
   const [data, setData] = useState({
-    width: 100,
-    height: 100,
+    width: 0,
+    height: 0,
     url: "",
     annotations: [],
   });
@@ -40,7 +40,7 @@ export default function EditAnnotation() {
     useCreateAnnotation();
 
   const [showModal, setShowModal] = useState(false);
-  const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
+  const [scaleFactor, setScaleFactor] = useState(null);
   const [ia, setIa] = useState(
     annotation?.iaClass
       ? { value: annotation.iaClass, label: annotation.iaClass }
@@ -108,11 +108,12 @@ export default function EditAnnotation() {
       !preFilledAnnotation &&
       annotation &&
       imageReady &&
+      scaleFactor &&
       Number.isFinite(scaleFactor.x) &&
       Number.isFinite(scaleFactor.y);
     if (!ready) return;
 
-    const factor = scaleFactor || { x: 1, y: 1 };
+    const factor = scaleFactor;
     let x = annotation.x / (factor.x || 1);
     let y = annotation.y / (factor.y || 1);
     let width = annotation.width / (factor.x || 1);
@@ -183,7 +184,7 @@ export default function EditAnnotation() {
 
   useEffect(() => {
     const handleImageLoad = () => {
-      if (imgRef.current) {
+      if (imgRef.current && data.width && data.height) {
         const factor = calculateScaleFactor(
           data.width,
           data.height,
