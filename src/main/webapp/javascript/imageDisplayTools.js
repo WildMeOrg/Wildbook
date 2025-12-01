@@ -115,6 +115,13 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
   caption = caption || '';
 
+  // Filter out features that don't have annotations
+  if (maJson && maJson.features && Array.isArray(maJson.features)) {
+    maJson.features = maJson.features.filter(function(feature) {
+      return feature && feature.annotationId != null;
+    });
+  }
+
   // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
 
