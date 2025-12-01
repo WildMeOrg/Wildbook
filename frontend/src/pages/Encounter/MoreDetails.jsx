@@ -12,8 +12,11 @@ import { ProjectsCard } from "./ProjectsCard";
 import { MeasurementsEdit } from "./MeasurementsEdit";
 import { MeasurementsReview } from "./MeasurementsReview";
 import { FormattedMessage } from "react-intl";
+import ThemeColorContext from "../../ThemeColorProvider";
 
 export const MoreDetails = observer(({ store = {} }) => {
+  const theme = React.useContext(ThemeColorContext);
+  const primary700 = theme.primaryColors.primary700;
   return (
     <Container style={{ padding: 0 }}>
       <Row>
@@ -27,7 +30,9 @@ export const MoreDetails = observer(({ store = {} }) => {
             }}
             style={{
               cursor: "pointer",
-              color: !store.measurementsAndTrackingSection ? "black" : "blue",
+              color: !store.measurementsAndTrackingSection
+                ? "black"
+                : primary700,
             }}
           >
             <p>
@@ -38,16 +43,15 @@ export const MoreDetails = observer(({ store = {} }) => {
           <div
             className="d-flex align-items-center justify-content-between mb-3 w-100"
             onClick={() => {
-              store.setBiologicalSamplesSection(true);
-              store.setMeasurementsAndTrackingSection(false);
+              store.setMeasurementsAndTrackingSection(true);
               store.setProjectsSection(false);
-              window.location.href =
+              const url =
                 "/encounters/biologicalSamples.jsp?number=" +
                 store.encounterData?.id;
+              window.open(url, "_blank");
             }}
             style={{
               cursor: "pointer",
-              color: !store.biologicalSamplesSection ? "black" : "blue",
             }}
           >
             <p>
@@ -64,7 +68,7 @@ export const MoreDetails = observer(({ store = {} }) => {
             }}
             style={{
               cursor: "pointer",
-              color: !store.projectsSection ? "black" : "blue",
+              color: !store.projectsSection ? "black" : primary700,
             }}
           >
             <p>

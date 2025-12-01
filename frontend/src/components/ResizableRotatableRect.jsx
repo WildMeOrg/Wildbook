@@ -106,6 +106,7 @@ const ResizableRotatableRect = ({
           onDragEnd={handleDragEnd}
           onTransformEnd={handleTransform}
           draggable={true}
+          strokeScaleEnabled={false}
         />
         <Transformer
           ref={transformerRef}
