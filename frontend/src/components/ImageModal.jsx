@@ -696,7 +696,7 @@ export const ImageModal = observer(
                       );
                     }}
                   >
-                    + <FormattedMessage id="ADD_TAG" />
+                    + <FormattedMessage id="ADD_KEYWORD" />
                   </button>
                 )}
                 {imageStore.access === "write" &&
@@ -709,7 +709,9 @@ export const ImageModal = observer(
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="New tag"
+                          placeholder={intl.formatMessage({
+                            id: "NEW_KEYWORD",
+                          })}
                           onChange={(e) => {
                             const text = e.target.value.trim();
                             setTagText(text);
@@ -815,7 +817,7 @@ export const ImageModal = observer(
                       </p>
                       <div className="mb-3">
                         <select
-                          className="form-select"
+                          className="form-select mb-2"
                           onChange={async (e) => {
                             const selectedValue = e.target.value;
                             imageStore.setSelectedLabeledKeyword(selectedValue);
@@ -823,7 +825,7 @@ export const ImageModal = observer(
                           value={imageStore.selectedLabeledKeyword || ""}
                         >
                           <option value="" disabled>
-                            <FormattedMessage id="SELECT_EXISTING_LABELED_KEYWORD" />
+                            <FormattedMessage id="SELECT_EXISTING_LABELLED_KEYWORD" />
                           </option>
                           {(imageStore.availabelLabeledKeywords || []).map(
                             (keyword) => (
@@ -833,7 +835,10 @@ export const ImageModal = observer(
                             ),
                           )}
                         </select>
-                        <div className="input-group mt-3">
+                        <p>
+                          <FormattedMessage id="SELECT_LABELED_KEYWORD_VALUE" />
+                        </p>
+                        <div className="input-group">
                           <select
                             className="form-select"
                             onChange={async (e) => {

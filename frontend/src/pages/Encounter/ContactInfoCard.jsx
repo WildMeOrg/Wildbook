@@ -57,8 +57,17 @@ export const ContactInfoCard = observer(
                     ></i>
                   )}
                 </span>
-                <div> {item?.displayName}</div>
-                {store.access === "write" && (
+                <div>
+                  {" "}
+                  {store.access === "write" &&
+                    (item?.username || item?.email || item?.displayName)}
+                </div>
+                <div>
+                  {" "}
+                  {store.access === "read" &&
+                    (item?.username || item?.displayName)}
+                </div>
+                {store.access === "write" && type !== "submitterID" && (
                   <div
                     style={{
                       marginLeft: "auto",

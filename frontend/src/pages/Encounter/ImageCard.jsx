@@ -201,7 +201,7 @@ const ImageCard = observer(({ store = {} }) => {
         <p>
           {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
             ?.keywords?.length
-            ? `${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.keywords?.length} tags`
+            ? `${store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.keywords?.length} ${intl.formatMessage({ id: "KEYWORDS" })}`
             : ""}
         </p>
       </div>
@@ -271,7 +271,8 @@ const ImageCard = observer(({ store = {} }) => {
                   transform: `rotate(${(newRect.rotation * 180) / Math.PI}deg)`,
                   transformOrigin: "center",
                   cursor: "pointer",
-                  zIndex: 10,
+                  zIndex:
+                    newRect.annotationId === clickedAnnotation?.id ? 2000 : 10,
                   backgroundColor:
                     newRect.annotationId === clickedAnnotation?.id
                       ? "rgba(240, 11, 11, 0.3)"

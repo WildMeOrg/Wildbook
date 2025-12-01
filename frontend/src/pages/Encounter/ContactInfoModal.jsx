@@ -35,7 +35,7 @@ export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
         {Object.keys(store.encounterData?.submitterInfo).length > 0 && (
           <ContactInfoCard
             title="MANAGING_RESEARCHER"
-            type="submitters"
+            type="submitterID"
             data={[store.encounterData?.submitterInfo]}
             store={store}
           />
