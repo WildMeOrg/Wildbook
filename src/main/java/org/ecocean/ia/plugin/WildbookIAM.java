@@ -295,6 +295,7 @@ public class WildbookIAM extends IAPlugin {
         map.put("annot_bbox_list", new ArrayList<int[]>());
         map.put("annot_name_list", new ArrayList<String>());
         map.put("annot_theta_list", new ArrayList<Double>());
+        map.put("annot_viewpoint_list", new ArrayList<String>());
 
         List<Annotation> acmList = new ArrayList<Annotation>(); // for rectifyAnnotationIds below
         for (Annotation ann : anns) {
@@ -332,6 +333,7 @@ public class WildbookIAM extends IAPlugin {
             map.get("annot_species_list").add(ann.getIAClass());
 
             map.get("annot_theta_list").add(ann.getTheta());
+            map.get("annot_viewpoint_list").add(ann.getViewpoint());
             String name = ann.findIndividualId(myShepherd);
             map.get("annot_name_list").add((name == null) ? "____" : name);
             ct++;
