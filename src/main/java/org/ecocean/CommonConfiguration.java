@@ -432,8 +432,9 @@ public class CommonConfiguration {
         return getProperty("htmlDescription", context).trim();
     }
 
+    // Refer to PhotoUploadDevNotes.md for information/where else to change
     public static int getMaxMediaSizeInMegabytes(String context) {
-        int maxSize = 10;
+        int maxSize = 3;
 
         try {
             String sMaxSize = getProperty("maxMediaSize", context);
@@ -449,6 +450,7 @@ public class CommonConfiguration {
         return maxSize;
     }
 
+    // Refer to PhotoUploadDevNotes.md for information/where else to change
     public static int getMaxMediaCountEncounter(String context) {
         int maxCount = 200;
 
