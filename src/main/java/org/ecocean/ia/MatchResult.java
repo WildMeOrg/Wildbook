@@ -42,6 +42,7 @@ public class MatchResult implements java.io.Serializable {
     private String id;
     private long created;
     private Task task;
+    private Set<MatchResultProspect> prospects;
 
     public MatchResult() {
         id = Util.generateUUID();
