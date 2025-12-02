@@ -269,11 +269,26 @@ public class Annotation implements java.io.Serializable {
     }
 
     public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        IA.log("INFO: Annotation.getTaxonomy() called for annotation ID: " + this.id);
         Encounter enc = findEncounter(myShepherd);
 
-        if (enc == null)
+        if (enc == null) {
+            IA.log("WARNING: Annotation.getTaxonomy() findEncounter() returned null for annotation ID: " + this.id);
+            IA.log("WARNING: Annotation.getTaxonomy() annotation acmId: " + this.acmId);
+            MediaAsset ma = this.getMediaAsset();
+            IA.log("WARNING: Annotation.getTaxonomy() mediaAsset: " + (ma != null ? ma.getId() : "null"));
             return null;
-        return enc.getTaxonomy(myShepherd);
+        }
+        IA.log("INFO: Annotation.getTaxonomy() found encounter: " + enc.getCatalogNumber() + " for annotation ID: " + this.id);
+        IA.log("INFO: Annotation.getTaxonomy() encounter genus: " + enc.getGenus() + ", specificEpithet: " + enc.getSpecificEpithet());
+        Taxonomy taxy = enc.getTaxonomy(myShepherd);
+        if (taxy == null) {
+            IA.log("WARNING: Annotation.getTaxonomy() encounter.getTaxonomy() returned null for encounter: " + enc.getCatalogNumber());
+            IA.log("WARNING: Annotation.getTaxonomy() encounter genus: " + enc.getGenus() + ", specificEpithet: " + enc.getSpecificEpithet());
+        } else {
+            IA.log("INFO: Annotation.getTaxonomy() returning taxonomy: " + taxy.getScientificName() + " (ID: " + taxy.getId() + ")");
+        }
+        return taxy;
     }
 
     // TODO this needs to be fixed to mean "has the unity feature"... i think(!?) --

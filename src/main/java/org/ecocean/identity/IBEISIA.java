@@ -4893,7 +4893,18 @@ public class IBEISIA {
             if (ma == null) continue; // snh #bad
             annsToSend.add(ann);
             // get iaImageIds only if we need it
-            if (iaImageIds == null) iaImageIds = new HashSet(plugin.iaImageIds(ann.getTaxonomy(myShepherd)));
+            if (iaImageIds == null) {
+                IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() getting taxonomy for annotation ID: " + ann.getId());
+                Taxonomy taxy = ann.getTaxonomy(myShepherd);
+                if (taxy == null) {
+                    IA.log("WARNING: IBEISIA.sendAnnotationsAsNeeded() annotation.getTaxonomy() returned null for annotation ID: " + ann.getId());
+                    IA.log("WARNING: IBEISIA.sendAnnotationsAsNeeded() annotation acmId: " + ann.getAcmId());
+                    IA.log("WARNING: IBEISIA.sendAnnotationsAsNeeded() mediaAsset: " + (ma != null ? ma.getId() : "null"));
+                } else {
+                    IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() found taxonomy: " + taxy.getScientificName() + " (ID: " + taxy.getId() + ") for annotation ID: " + ann.getId());
+                }
+                iaImageIds = new HashSet(plugin.iaImageIds(taxy));
+            }
             if (iaImageIds.isEmpty())
                 throw new RuntimeException("iaImageIds is empty; possible IA problems");
             if (iaImageIds.contains(ma.getAcmId())) continue;
