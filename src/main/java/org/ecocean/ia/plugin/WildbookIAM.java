@@ -452,6 +452,7 @@ public class WildbookIAM extends IAPlugin {
         } else {
             u = IBEISIA.iaURL(context, urlSuffix);
         }
+        System.out.println("apiGetJSONArray() --> " + u);
         JSONObject rtn = RestClient.get(u);
 
         if ((rtn == null) || (rtn.optJSONObject("status") == null) ||
