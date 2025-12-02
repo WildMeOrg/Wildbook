@@ -2378,9 +2378,21 @@ public class Encounter extends Base implements java.io.Serializable {
     // TODO FIXME this should be superceded by the getter for Taxonomy property in the future....
     public Taxonomy getTaxonomy(Shepherd myShepherd) {
         String sciname = this.getTaxonomyString();
+        System.out.println("INFO: Encounter.getTaxonomy() called for encounter: " + this.catalogNumber);
+        System.out.println("INFO: Encounter.getTaxonomy() genus: " + this.genus + ", specificEpithet: " + this.specificEpithet);
+        System.out.println("INFO: Encounter.getTaxonomy() constructed scientificName: " + sciname);
 
-        if (sciname == null) return null;
-        return myShepherd.getOrCreateTaxonomy(sciname, false); // false means don't commit the taxonomy
+        if (sciname == null) {
+            System.out.println("WARNING: Encounter.getTaxonomy() scientificName is null for encounter: " + this.catalogNumber);
+            return null;
+        }
+        Taxonomy taxy = myShepherd.getOrCreateTaxonomy(sciname, false); // false means don't commit the taxonomy
+        if (taxy != null) {
+            System.out.println("INFO: Encounter.getTaxonomy() returning taxonomy: " + taxy.getScientificName() + " (ID: " + taxy.getId() + ") for encounter: " + this.catalogNumber);
+        } else {
+            System.out.println("WARNING: Encounter.getTaxonomy() getOrCreateTaxonomy() returned null for scientificName: " + sciname);
+        }
+        return taxy;
     }
 
     // right now this updates .genus and .specificEpithet ... but in some glorious future we will just store Taxonomy!

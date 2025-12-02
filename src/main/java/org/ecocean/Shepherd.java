@@ -1486,7 +1486,10 @@ public class Shepherd {
     }
 
     public Taxonomy getTaxonomy(String scientificName) {
-        if (scientificName == null) return null;
+        if (scientificName == null) {
+            System.out.println("INFO: Shepherd.getTaxonomy() called with null scientificName");
+            return null;
+        }
         // lookout!  hactacular uuid-ahead!
         if (scientificName.matches(
             "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")) {
@@ -1494,6 +1497,7 @@ public class Shepherd {
                 scientificName + "' is UUID; hack is passing to getTaxonomyById()");
             return getTaxonomyById(scientificName);
         }
+        System.out.println("INFO: Shepherd.getTaxonomy() searching for scientificName: " + scientificName);
         List al = new ArrayList();
         try {
             String filter = "this.scientificName.toLowerCase() == \"" +
@@ -1505,8 +1509,18 @@ public class Shepherd {
             try {
                 acceptedKeywords.closeAll();
             } catch (NullPointerException npe) {}
-        } catch (Exception e) { e.printStackTrace(); }
-        return ((al.size() > 0) ? ((Taxonomy)al.get(0)) : null);
+        } catch (Exception e) { 
+            System.out.println("ERROR: Shepherd.getTaxonomy() exception: " + e.getMessage());
+            e.printStackTrace(); 
+        }
+        if (al.size() > 0) {
+            Taxonomy found = (Taxonomy)al.get(0);
+            System.out.println("INFO: Shepherd.getTaxonomy() found Taxonomy in database: " + found.getScientificName() + " (ID: " + found.getId() + ") for search: " + scientificName);
+            return found;
+        } else {
+            System.out.println("INFO: Shepherd.getTaxonomy() no Taxonomy found in database for: " + scientificName);
+            return null;
+        }
     }
 
     public Taxonomy getTaxonomy(int tsn) {
