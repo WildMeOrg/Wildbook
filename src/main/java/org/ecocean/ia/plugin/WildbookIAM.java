@@ -439,19 +439,31 @@ public class WildbookIAM extends IAPlugin {
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
 
+        IA.log("INFO: WildbookIAM.apiGetJSONArray() called with urlSuffix=" + urlSuffix + 
+            ", context=" + context + ", taxy=" + (taxy != null ? taxy.getScientificName() : "null"));
+        
         URL u = null;
 
         if (taxy != null && urlSuffix.equals("/api/image/json/")) {
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() using image API path for taxonomy: " + taxy.getScientificName());
             String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + architecture);
             String urlString = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_images");
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() using add_images URL: " + urlString);
             u = new URL(urlString);
         } else if (taxy != null && urlSuffix.equals("/api/annot/json/")) {
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() using annotation API path for taxonomy: " + taxy.getScientificName());
             String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + architecture);
             String urlString = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_annotations");
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() using add_annotations URL: " + urlString);
             u = new URL(urlString);
         } else {
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() using default IBEISIA.iaURL() path");
             u = IBEISIA.iaURL(context, urlSuffix);
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() IBEISIA.iaURL() returned: " + u);
         }
+        IA.log("INFO: WildbookIAM.apiGetJSONArray() final URL: " + u);
         System.out.println("apiGetJSONArray() --> " + u);
         JSONObject rtn = RestClient.get(u);
 
