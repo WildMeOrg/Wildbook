@@ -4,25 +4,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.ecocean.*;
 import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.export.EncounterImageExportFile;
-import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.Instant;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.imageio.ImageIO;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
@@ -42,8 +33,9 @@ public class EncounterExport extends ApiBase {
 
         myShepherd.beginDBTransaction();
         try (ZipOutputStream outputStream = new ZipOutputStream(response.getOutputStream())) {
-            writeMetadataFile(request, myShepherd, outputStream);
-
+            if (Objects.equals(request.getParameter("includeMetadata"), "true")) {
+                writeMetadataFile(request, myShepherd, outputStream);
+            }
             EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd,
                 request, "year descending, month descending, day descending");
             List<Encounter> encounters = queryResult.getResult();
@@ -52,8 +44,18 @@ public class EncounterExport extends ApiBase {
             Map<String,
                 MarkedIndividual> encounterToIndividual = buildEncounterIndividualMap(myShepherd,
                 encounters);
+            EnumSet<EncounterImageExportFile.ExportOptions> flags = EnumSet.noneOf(
+                EncounterImageExportFile.ExportOptions.class);
+            if (Objects.equals(request.getParameter("unidentifiedEncounters"), "true")) {
+                flags = EnumSet.of(
+                    EncounterImageExportFile.ExportOptions.IncludeUnidentifiedEncounters);
+            }
+            int numAnnotationsPerId = -1;
+            if (StringUtils.isNumeric(request.getParameter("numAnnotationsPerId"))) {
+                numAnnotationsPerId = Integer.parseInt(request.getParameter("numAnnotationsPerId"));
+            }
             EncounterImageExportFile imagesExport = new EncounterImageExportFile(encounters,
-                encounterToIndividual);
+                encounterToIndividual, numAnnotationsPerId, flags);
 
             imagesExport.writeTo(outputStream);
         } catch (Exception e) {

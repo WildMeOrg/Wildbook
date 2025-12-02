@@ -8,22 +8,32 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.MultiValue;
 
 import java.awt.image.BufferedImage;
-import java.io.OutputStream;
 import java.net.URI;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.imageio.ImageIO;
 
 public class EncounterImageExportFile {
-    private final List<Encounter> encounters;
+    public static final String UNIDENTIFIED_INDIVIDUAL = "unidentified_individual";
+
+    public enum ExportOptions {
+        IncludeUnidentifiedEncounters
+    } private final List<Encounter> encounters;
     private final Map<String, MarkedIndividual> encounterToIndividual;
+    private final int numAnnotationsPerId;
+    private final EnumSet<ExportOptions> exportFlags;
 
     public EncounterImageExportFile(List<Encounter> encounters,
-        Map<String, MarkedIndividual> encounterIndividualMap) {
+        Map<String, MarkedIndividual> encounterIndividualMap, int numAnnotationsPerId,
+        EnumSet<ExportOptions> exportFlags) {
         this.encounters = encounters;
         this.encounterToIndividual = encounterIndividualMap;
+        this.numAnnotationsPerId = numAnnotationsPerId;
+        this.exportFlags = exportFlags;
     }
 
     public void writeTo(ZipOutputStream outputStream) {
@@ -36,8 +46,17 @@ public class EncounterImageExportFile {
                     System.out.printf("Skipping annotation %s%n", a.getId());
                     continue;
                 }
+                // if numAnnotationsPerId is 1, then the annotationIdx will be 1 as we write the second image
+                if (numAnnotationsPerId > 0 && annotatationIdx >= numAnnotationsPerId) {
+                    continue;
+                }
                 try {
                     String displayName = getDisplayName(e, encounterToIndividual);
+                    if (Objects.equals(displayName,
+                        UNIDENTIFIED_INDIVIDUAL) &&
+                        !exportFlags.contains(ExportOptions.IncludeUnidentifiedEncounters)) {
+                        continue;
+                    }
                     URI imageUrl = ma.webURL().toURI();
                     System.out.printf("Writing image [%s] %s%n", displayName, imageUrl);
 
@@ -65,9 +84,9 @@ public class EncounterImageExportFile {
         }
     }
 
-    private static String getDisplayName(Encounter e,
+    private String getDisplayName(Encounter e,
         Map<String, MarkedIndividual> encounterToIndividual) {
-        String displayName = "unidentified_individual";
+        String displayName = UNIDENTIFIED_INDIVIDUAL;
 
         // Try the map first (handles both old and new relationships)
         MarkedIndividual individual = encounterToIndividual.get(e.getCatalogNumber());

@@ -35,6 +35,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.export.EncounterAnnotationExportFile;
+import org.ecocean.export.EncounterImageExportFile;
 import org.ecocean.media.*;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
@@ -607,8 +608,8 @@ import static org.mockito.Mockito.when;
             "ZIP should contain Individual_2/ subdirectory");
 
         // Should NOT contain Unidentified_annotations (since unidentifiedEncounters: false)
-        assertFalse(zipEntries.stream().anyMatch(e -> e.contains("Unidentified_annotations/")),
-            "ZIP should NOT contain Unidentified_annotations/ (unidentifiedEncounters: false)");
+        assertFalse(zipEntries.stream().anyMatch(e -> e.contains(EncounterImageExportFile.UNIDENTIFIED_INDIVIDUAL)),
+            "ZIP should NOT contain unidentified annotations (unidentifiedEncounters: false)");
 
         // Should contain actual image files with proper naming convention
         assertTrue(zipEntries.stream().anyMatch(e -> e.matches(
