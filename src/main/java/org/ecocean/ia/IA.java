@@ -171,7 +171,8 @@ public class IA {
             String detectionUrl = null;
             try {
                 String architecture = iaConfig.getDetectionConfig(taxy).getString("architecture");
-                detectionUrl = iaConfig.getJson().getJSONObject(architecture).getString("start_detect");
+                String envArchitecture = iaConfig.getArchitectureWithEnv(architecture);
+                detectionUrl = iaConfig.getJson().getJSONObject(envArchitecture).getString("start_detect");
             } catch (Exception e) {
                 detectionUrl = iaConfig.getDetectionUrl(taxy, i);
             }

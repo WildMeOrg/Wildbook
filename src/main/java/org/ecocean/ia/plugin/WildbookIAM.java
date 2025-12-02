@@ -150,7 +150,8 @@ public class WildbookIAM extends IAPlugin {
             // Shepherd myShepherd = new Shepherd(context);
             taxy = mas.get(0).getTaxonomy(myShepherd);
             String architecture = iaJsonProperties.getDetectionConfig(taxy).getString("architecture");
-            u = iaJsonProperties.getJson().getJSONObject(architecture).getString("add_images");
+            String envArchitecture = iaJsonProperties.getArchitectureWithEnv(architecture);
+            u = iaJsonProperties.getJson().getJSONObject(envArchitecture).getString("add_images");
         } catch (Exception e) {
             u = IA.getProperty(context, "IBEISIARestUrlAddImages");
         }
@@ -259,8 +260,10 @@ public class WildbookIAM extends IAPlugin {
         Taxonomy taxy = null;
         try {
             taxy = anns.get(0).getTaxonomy(myShepherd);
-            String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
-            u = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_annotations");
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            String architecture = iaConfig.getDetectionConfig(taxy).getString("architecture");
+            String envArchitecture = iaConfig.getArchitectureWithEnv(architecture);
+            u = iaConfig.getJson().getJSONObject(envArchitecture).getString("add_annotations");
         } catch (Exception e) {
             u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         }
@@ -446,16 +449,20 @@ public class WildbookIAM extends IAPlugin {
 
         if (taxy != null && urlSuffix.equals("/api/image/json/")) {
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using image API path for taxonomy: " + taxy.getScientificName());
-            String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
-            IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + architecture);
-            String urlString = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_images");
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            String architecture = iaConfig.getDetectionConfig(taxy).getString("architecture");
+            String envArchitecture = iaConfig.getArchitectureWithEnv(architecture);
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + envArchitecture);
+            String urlString = iaConfig.getJson().getJSONObject(envArchitecture).getString("add_images");
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using add_images URL: " + urlString);
             u = new URL(urlString);
         } else if (taxy != null && urlSuffix.equals("/api/annot/json/")) {
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using annotation API path for taxonomy: " + taxy.getScientificName());
-            String architecture = IAJsonProperties.iaConfig().getDetectionConfig(taxy).getString("architecture");
-            IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + architecture);
-            String urlString = IAJsonProperties.iaConfig().getJson().getJSONObject(architecture).getString("add_annotations");
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            String architecture = iaConfig.getDetectionConfig(taxy).getString("architecture");
+            String envArchitecture = iaConfig.getArchitectureWithEnv(architecture);
+            IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + envArchitecture);
+            String urlString = iaConfig.getJson().getJSONObject(envArchitecture).getString("add_annotations");
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using add_annotations URL: " + urlString);
             u = new URL(urlString);
         } else {

@@ -344,6 +344,52 @@ public class IAJsonProperties extends JsonProperties {
         return globalBackCompatibleKeyMap;
     }
 
+    /**
+     * Gets the architecture name with environment suffix based on WBIA_ENV environment variable.
+     * If WBIA_ENV is "staging", appends "_staging" to architecture name.
+     * If WBIA_ENV is "prod" or "production", appends "_prod" to architecture name.
+     * Otherwise returns the original architecture name.
+     * Falls back to original if environment-specific version doesn't exist in JSON.
+     */
+    public String getArchitectureWithEnv(String architecture) {
+        if (architecture == null) return architecture;
+
+        if (architecture == "old_wbia") {
+            return architecture;
+        }
+        
+        String env = System.getenv("WBIA_ENV");
+        if (env == null || env.isEmpty()) {
+            // Default to original architecture if no env var set
+            return architecture;
+        }
+        
+        String envSuffix = "";
+        if ("staging".equalsIgnoreCase(env)) {
+            envSuffix = "_staging";
+        } else if ("prod".equalsIgnoreCase(env) || "production".equalsIgnoreCase(env)) {
+            envSuffix = "_prod";
+        }  else if (env.equalsIgnoreCase("local")) {
+            envSuffix = "_local";
+        } else {
+            // Unknown env value, use original
+            return architecture;
+        }
+        
+        String envArchitecture = architecture + envSuffix;
+        
+        // Check if environment-specific architecture exists in JSON, otherwise fall back to original
+        try {
+            if (this.getJson().has(envArchitecture)) {
+                return envArchitecture;
+            }
+        } catch (Exception e) {
+            // Fall through to return original
+        }
+        
+        return architecture;
+    }
+
     public static JSONObject copyJobj(JSONObject jobj) {
         return new JSONObject(jobj, JSONObject.getNames(jobj));
     }

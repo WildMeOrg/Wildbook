@@ -60,6 +60,8 @@ services:
       DB_PASSWORD: '${WILDBOOK_DB_PASSWORD}'
       DB_CONNECTION_URL: '${WILDBOOK_DB_CONNECTION_URL}'
       WILDBOOK_APP_URL: '${WILDBOOK_APP_URL}'
+      WBIA_ENV: '${WBIA_ENV}'
+
 
       # Admin user created on startup,
       # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
