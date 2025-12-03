@@ -2,6 +2,7 @@ import React from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Form, Button } from "react-bootstrap";
+import MainButton from "../../components/MainButton";
 
 const styles = {
   bottomBar: (themeColor) => ({
@@ -39,6 +40,7 @@ const styles = {
 };
 
 const MatchResultsBottomBar = observer(({ store, themeColor }) => {
+
   const renderActions = () => {
     const matchingState = store.matchingState;
 
@@ -46,28 +48,28 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
       case "no_selection":
         return (
           <>
-            <Button
-              variant="primary"
+            <Form.Control
+              type="text"
+              placeholder="New Individual Name"
+              value={store.newIndividualName}
+              onChange={(e) => store.setNewIndividualName(e.target.value)}
+              style={{ maxWidth: "300px" }}
               size="sm"
-              onClick={store.handleConfirmMatch}
-              disabled
+            />
+
+            <MainButton
+              noArrow={true}
+              backgroundColor={themeColor.primaryColors.primary500}
+              color="white"
+              onClick={store.handleConfirmNoMatch}
+              disabled={!store.newIndividualName.trim()}
+              style={{ marginTop: "0", marginBottom: "0" }}
             >
               <FormattedMessage
-                id="CONFIRM_MATCH"
-                defaultMessage="Confirm Match"
+                id="CONFIRM_NO_MATCH"
+                defaultMessage="Confirm No Match"
               />
-            </Button>
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              className="ms-2"
-              onClick={store.handleMarkAsNewIndividual}
-            >
-              <FormattedMessage
-                id="MARK_AS_NEW_INDIVIDUAL"
-                defaultMessage="Mark as New Individual"
-              />
-            </Button>
+            </MainButton>
           </>
         );
 
@@ -76,23 +78,26 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
           <>
             <Form.Control
               type="text"
-              placeholder="Enter reason for no match"
-              value={store.noMatchReason}
-              onChange={(e) => store.setNoMatchReason(e.target.value)}
+              placeholder="New Individual Name"
+              value={store.newIndividualName}
+              onChange={(e) => store.setNewIndividualName(e.target.value)}
               style={{ maxWidth: "300px" }}
               size="sm"
             />
-            <Button
-              variant="warning"
-              size="sm"
+
+            <MainButton
+              noArrow={true}
+              backgroundColor={themeColor.primaryColors.primary500}
+              color="white"
               onClick={store.handleConfirmNoMatch}
-              disabled={!store.noMatchReason.trim()}
+              disabled={!store.newIndividualName.trim()}
+              style={{ marginTop: "0", marginBottom: "0" }}
             >
               <FormattedMessage
                 id="CONFIRM_NO_MATCH"
                 defaultMessage="Confirm No Match"
               />
-            </Button>
+            </MainButton>
           </>
         );
 

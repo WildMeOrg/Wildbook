@@ -7,17 +7,17 @@ import { MOCK_DATA } from "../mockupdata";
 export default class MatchResultsStore {
   _viewMode = "individual";
   _encounterId = "";
-  _individualId = null; 
+  _individualId = null;
   _projectName = "";
   _evaluatedAt = "";
   _numResults = 12;
   _numCandidates = 0;
-  _thisEncounterImageUrl = "";
-  _possibleMatchImageUrl = "";
+  _thisEncounterImageUrl = "";      
+  _selectedMatchImageUrlByAlgo = new Map(); 
   _algorithms = [];
   _selectedMatch = [];
   _taskId = null;
-  _noMatchReason = ""; 
+  _newIndividualName = "";
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -38,6 +38,15 @@ export default class MatchResultsStore {
       ...algo,
       matches: algo.matches.map((m) => ({ ...m })),
     }));
+
+    this._algorithms.forEach((algo) => {
+      if (algo.matches && algo.matches.length > 0) {
+        const firstMatchImage = algo.matches[0].imageUrl;
+        if (firstMatchImage) {
+          this._selectedMatchImageUrlByAlgo.set(algo.id, firstMatchImage);
+        }
+      }
+    });
   }
 
   get viewMode() {
@@ -72,16 +81,20 @@ export default class MatchResultsStore {
     return this._thisEncounterImageUrl;
   }
 
-  get possibleMatchImageUrl() {
-    return this._possibleMatchImageUrl;
+  getSelectedMatchImageUrl(algorithmId) {
+    return this._selectedMatchImageUrlByAlgo.get(algorithmId) || "";
+  }
+
+  setPreviewImageUrl(algorithmId, url) {
+    this._selectedMatchImageUrlByAlgo.set(algorithmId, url);
   }
 
   get algorithms() {
     return this._algorithms;
   }
 
-  get noMatchReason() {
-    return this._noMatchReason;
+  get newIndividualName() {
+    return this._newIndividualName;
   }
 
   get taskId() {
@@ -113,8 +126,8 @@ export default class MatchResultsStore {
     this._projectName = name;
   }
 
-  setNoMatchReason(reason) {
-    this._noMatchReason = reason;
+  setNewIndividualName(reason) {
+    this._newIndividualName = reason;
   }
 
   get selectedMatch() {
@@ -123,10 +136,7 @@ export default class MatchResultsStore {
 
   setSelectedMatch(selected, encounterId, individualId) {
     if (selected) {
-      this._selectedMatch.push({
-        encounterId,
-        individualId,
-      });
+      this._selectedMatch = [...this._selectedMatch, { encounterId, individualId }];
     } else {
       this._selectedMatch = this._selectedMatch.filter(
         (data) => data.encounterId !== encounterId,
@@ -136,36 +146,36 @@ export default class MatchResultsStore {
 
   get uniqueIndividualIds() {
     const ids = new Set();
-    
+
     if (this._individualId) {
       ids.add(this._individualId);
     }
-    
+
     this._selectedMatch.forEach((match) => {
       if (match.individualId) {
         ids.add(match.individualId);
       }
     });
-    
+
     return Array.from(ids);
   }
 
   get matchingState() {
     if (this._selectedMatch.length === 0) {
-      return "no_selection"; 
+      return "no_selection";
     }
 
     const uniqueIds = this.uniqueIndividualIds;
     const idCount = uniqueIds.length;
 
     if (idCount === 0) {
-      return "no_individuals"; 
+      return "no_individuals";
     } else if (idCount === 1) {
-      return "single_individual"; 
+      return "single_individual";
     } else if (idCount === 2) {
-      return "two_individuals"; 
+      return "two_individuals";
     } else {
-      return "too_many_individuals"; 
+      return "too_many_individuals";
     }
   }
 

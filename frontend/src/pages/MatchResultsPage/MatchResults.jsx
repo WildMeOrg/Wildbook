@@ -133,6 +133,7 @@ const MatchResults = observer(() => {
         return (
           <MatchProspectTable
             key={algo.id}
+            algorithmId={algo.id}  
             label={algo.label}
             matchColumns={matchColumns}
             numCandidates={store.numCandidates}
@@ -141,10 +142,9 @@ const MatchResults = observer(() => {
             onToggleSelected={(checked, encounterId, individualId) =>
               store.setSelectedMatch(checked, encounterId, individualId)
             }
+            onRowClick={(imageUrl) => store.setPreviewImageUrl(algo.id, imageUrl)}
             thisEncounterImageUrl={store.thisEncounterImageUrl}
-            possibleMatchImageUrl={
-              store.selectedMatchImageUrl || store.thisEncounterImageUrl
-            }
+            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algo.id)}  
             themeColor={themeColor}
           />
         );
