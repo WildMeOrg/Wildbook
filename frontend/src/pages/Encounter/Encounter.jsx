@@ -32,7 +32,7 @@ import { IdentifySectionEdit } from "./IdentifySectionEdit";
 import { MetadataSectionEdit } from "./MetadataSectionEdit";
 import { LocationSectionEdit } from "./LocationSectionEdit";
 import { AttributesSectionEdit } from "./AttributesSectionEdit";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import DeleteEncounterCard from "./DeleteEncounterCard";
 import Modal from "react-bootstrap/Modal";
 import { Divider } from "antd";
@@ -44,6 +44,7 @@ const Encounter = observer(() => {
   const { data: siteSettings } = useGetSiteSettings();
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);
+  const intl = useIntl();
 
   useEffect(() => {
     if (!siteSettings) return;
@@ -364,6 +365,7 @@ const Encounter = observer(() => {
         <div className="d-flex flex-row" style={{ marginLeft: "auto" }}>
           <div
             style={{ marginRight: "10px", cursor: "pointer" }}
+            title={intl.formatMessage({ id: "CONTACT_INFORMATION" })}
             onClick={() => {
               store.modals.setOpenContactInfoModal(true);
             }}
@@ -372,6 +374,7 @@ const Encounter = observer(() => {
           </div>
           <div
             style={{ marginRight: "10px", cursor: "pointer" }}
+            title={intl.formatMessage({ id: "ENCOUNTER_HISTORY" })}
             onClick={() => {
               store.modals.setOpenEncounterHistoryModal(true);
             }}
