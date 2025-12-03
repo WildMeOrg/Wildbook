@@ -12,7 +12,8 @@ import org.ecocean.Util;
 
 public class MatchResultProspect implements java.io.Serializable {
     private Annotation annotation;
-    private double score;
+    private double score = 0.0d;
+    private String scoreType;
     private MediaAsset asset;
     private MatchResult matchResult;
 
@@ -21,5 +22,12 @@ public class MatchResultProspect implements java.io.Serializable {
     public MatchResultProspect(Annotation ann) {
         this();
         this.annotation = ann;
+    }
+
+    public MatchResultProspect(Annotation ann, double score, String type) {
+        this();
+        this.annotation = ann;
+        this.score = score;
+        this.scoreType = type;
     }
 }
