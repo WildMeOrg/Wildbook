@@ -62,7 +62,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 // date time
 
-
 public class IBEISIA {
     // move this ish to its own class asap!
     private static final Map<String, String[]> speciesMap;
@@ -413,7 +412,7 @@ public class IBEISIA {
         JSONArray uuidList = new JSONArray();
 
         for (MediaAsset ma : mas) {
-        	if(ma.getAcmId()!=null)uuidList.put(toFancyUUID(ma.getAcmId()));
+            if (ma.getAcmId() != null) uuidList.put(toFancyUUID(ma.getAcmId()));
         }
         return uuidList;
     }
@@ -727,6 +726,14 @@ public class IBEISIA {
         }
         // we could also do a comparison with when it was started to enable a failure due to timeout
         return null; // if we fall through, it means we are still waiting ......
+    }
+
+    // singular log version
+    public static JSONObject getTaskResultsBasic(String taskID, IdentityServiceLog log) {
+        ArrayList<IdentityServiceLog> one = new ArrayList<IdentityServiceLog>();
+
+        one.add(log);
+        return getTaskResultsBasic(taskID, one);
     }
 
     public static HashMap<String, Object> getTaskResultsAsHashMap(String taskID, String context) {
@@ -1493,8 +1500,7 @@ public class IBEISIA {
                     subParentTask.setParameters(taskParameters);
                     myShepherd2.storeNewTask(subParentTask);
                     myShepherd2.updateDBTransaction();
-                    
-                    
+
                     Task childTask = IA.intakeAnnotations(myShepherd2, annots, subParentTask,
                         false);
                     myShepherd2.storeNewTask(childTask);
@@ -1574,7 +1580,8 @@ public class IBEISIA {
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue; // was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getIdInt())) {
+                        if (ma.getAcmId().equals(iuuid) &&
+                            !alreadyDetected.contains(ma.getIdInt())) {
                             alreadyDetected.add(ma.getIdInt());
                             asset = ma;
                             break;
