@@ -1992,6 +1992,7 @@ public class EncounterImportExcelServlet extends HttpServlet {
                     "StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
                 return mark;
             }
+            myShepherd.getPM().refresh(mark);
             if (!newIndividual) {
                 mark.addEncounter(enc);
                 enc.setIndividual(mark);
