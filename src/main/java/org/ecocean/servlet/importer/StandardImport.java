@@ -2070,6 +2070,16 @@ public class StandardImport extends HttpServlet {
             nickname = getString(row, "MarkedIndividual.nickName", colIndexMap, verbose,
                 missingColumns, unusedColumns, feedback);
         if (nickname != null) mark.setNickName(nickname);
+        
+        // Set Individual sex from IndividualSummary.sex (not from Encounter.sex)
+        // This ensures the Individual record reflects the sex from the Individual record itself,
+        // not from individual encounter records which may be "unknown"
+        String individualSex = getString(row, "IndividualSummary.sex", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
+        if (individualSex != null && !individualSex.trim().equals("")) {
+            mark.setSex(individualSex.trim());
+        }
+        
         int numNameColumns = getNumNameColumns(colIndexMap);
         // import name columns
         for (int t = 0; t < numNameColumns; t++) {
