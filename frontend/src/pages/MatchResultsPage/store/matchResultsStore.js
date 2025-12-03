@@ -1,306 +1,197 @@
 import { makeAutoObservable } from "mobx";
+import axios from "axios";
+import { MAX_ROWS_PER_COLUMN } from "../constants";
+import { MOCK_DATA } from "../mockupdata";
 
-const MOCK_DATA = {
-  viewMode: "individual", // "individual" | "image"
-  encounterId: "sdf9-sdaw-f624-4d3",
-  projectName: "Giraffe Conservation Project",
-  evaluatedAt: "2024/02/29 7:34 PM",
-  numResults: 12,
-  numCandidates: 2343,
-  thisEncounterImageUrl:
-    "https://images.pexels.com/photos/667205/pexels-photo-667205.jpeg",
-  possibleMatchImageUrl:
-    "https://images.pexels.com/photos/667205/pexels-photo-667205.jpeg",
-
-  algorithms: [
-    {
-      id: "miewId",
-      label: "Matches Based on MIEW ID Algorithm",
-      matches: [
-        {
-          rank: 1,
-          score: 0.8315,
-          encounterId: "123",
-          individualId: "TC_00124",
-        },
-        {
-          rank: 2,
-          score: 0.8315,
-          encounterId: "456",
-          individualId: "TC_00126",
-        },
-        {
-          rank: 3,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00125",
-        },
-        {
-          rank: 4,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00127",
-        },
-        {
-          rank: 5,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00130",
-        },
-        {
-          rank: 6,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00129",
-        },
-        {
-          rank: 7,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00131",
-        },
-        {
-          rank: 8,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00128",
-        },
-        {
-          rank: 9,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00135",
-        },
-        {
-          rank: 10,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00133",
-        },
-        {
-          rank: 11,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00134",
-        },
-        {
-          rank: 12,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00132",
-        },
-        {
-          rank: 1,
-          score: 0.8315,
-          encounterId: "123",
-          individualId: "TC_00124",
-        },
-        {
-          rank: 2,
-          score: 0.8315,
-          encounterId: "456",
-          individualId: "TC_00126",
-        },
-        {
-          rank: 3,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00125",
-        },
-        {
-          rank: 4,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00127",
-        },
-        {
-          rank: 5,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00130",
-        },
-        {
-          rank: 6,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00129",
-        },
-        {
-          rank: 7,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00131",
-        },
-        {
-          rank: 8,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00128",
-        },
-        {
-          rank: 9,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00135",
-        },
-        {
-          rank: 10,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00133",
-        },
-        {
-          rank: 11,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00134",
-        },
-        {
-          rank: 12,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00132",
-        },
-      ],
-    },
-    {
-      id: "hotspotter",
-      label: "Matches Based on Hotspotter",
-      matches: [
-        {
-          rank: 1,
-          score: 0.8315,
-          encounterId: "789",
-          individualId: "TC_00124",
-        },
-        {
-          rank: 2,
-          score: 0.8315,
-          encounterId: "000",
-          individualId: "TC_00126",
-        },
-        {
-          rank: 3,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00125",
-        },
-        {
-          rank: 4,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00127",
-        },
-        {
-          rank: 5,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00130",
-        },
-        {
-          rank: 6,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00129",
-        },
-        {
-          rank: 7,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00131",
-        },
-        {
-          rank: 8,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00128",
-        },
-        {
-          rank: 9,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00135",
-        },
-        {
-          rank: 10,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00133",
-        },
-        {
-          rank: 11,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00134",
-        },
-        {
-          rank: 12,
-          score: 0.8315,
-          encounterId: "test",
-          individualId: "TC_00132",
-        },
-      ],
-    },
-  ],
-};
 
 export default class MatchResultsStore {
-  viewMode = "individual";
-  encounterId = "";
-  projectName = "";
-  evaluatedAt = "";
-  numResults = 12;
-  numCandidates = 0;
-  thisEncounterImageUrl = "";
-  possibleMatchImageUrl = "";
-  algorithms = [];
+  _viewMode = "individual";
+  _encounterId = "";
+  _individualId = null;
+  _projectName = "";
+  _evaluatedAt = "";
+  _numResults = 12;
+  _numCandidates = 0;
+  _thisEncounterImageUrl = "";      
+  _selectedMatchImageUrlByAlgo = new Map(); 
+  _algorithms = [];
   _selectedMatch = [];
+  _taskId = null;
+  _newIndividualName = "";
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
-    this.loadMockData();
+    this.loadData();
   }
 
-  loadMockData() {
-    this.viewMode = MOCK_DATA.viewMode;
-    this.encounterId = MOCK_DATA.encounterId;
-    this.projectName = MOCK_DATA.projectName;
-    this.evaluatedAt = MOCK_DATA.evaluatedAt;
-    this.numResults = MOCK_DATA.numResults;
-    this.numCandidates = MOCK_DATA.numCandidates;
-    this.thisEncounterImageUrl = MOCK_DATA.thisEncounterImageUrl;
-    this.possibleMatchImageUrl = MOCK_DATA.possibleMatchImageUrl;
-    this.algorithms = MOCK_DATA.algorithms.map((algo) => ({
+  loadData(result) {
+    this._viewMode = MOCK_DATA.viewMode;
+    this._encounterId = MOCK_DATA.encounterId;
+    this._individualId = MOCK_DATA.individualId;
+    this._projectName = MOCK_DATA.projectName;
+    this._evaluatedAt = MOCK_DATA.evaluatedAt;
+    this._numResults = MOCK_DATA.numResults;
+    this._numCandidates = MOCK_DATA.numCandidates;
+    this._thisEncounterImageUrl = MOCK_DATA.thisEncounterImageUrl;
+    this._possibleMatchImageUrl = MOCK_DATA.possibleMatchImageUrl;
+    this._algorithms = MOCK_DATA.algorithms.map((algo) => ({
       ...algo,
       matches: algo.matches.map((m) => ({ ...m })),
     }));
+
+    this._algorithms.forEach((algo) => {
+      if (algo.matches && algo.matches.length > 0) {
+        const firstMatchImage = algo.matches[0].imageUrl;
+        if (firstMatchImage) {
+          this._selectedMatchImageUrlByAlgo.set(algo.id, firstMatchImage);
+        }
+      }
+    });
+  }
+
+  get viewMode() {
+    return this._viewMode;
+  }
+
+  get encounterId() {
+    return this._encounterId;
+  }
+
+  get individualId() {
+    return this._individualId;
+  }
+
+  get projectName() {
+    return this._projectName;
+  }
+
+  get evaluatedAt() {
+    return this._evaluatedAt;
+  }
+
+  get numResults() {
+    return this._numResults;
+  }
+
+  get numCandidates() {
+    return this._numCandidates;
+  }
+
+  get thisEncounterImageUrl() {
+    return this._thisEncounterImageUrl;
+  }
+
+  getSelectedMatchImageUrl(algorithmId) {
+    return this._selectedMatchImageUrlByAlgo.get(algorithmId) || "";
+  }
+
+  setPreviewImageUrl(algorithmId, url) {
+    this._selectedMatchImageUrlByAlgo.set(algorithmId, url);
+  }
+
+  get algorithms() {
+    return this._algorithms;
+  }
+
+  get newIndividualName() {
+    return this._newIndividualName;
+  }
+
+  get taskId() {
+    return this._taskId;
+  }
+
+  setTaskId(id) {
+    this._taskId = id;
+  }
+
+  async getMatchResults() {
+    try {
+      const result = await axios.get();
+      this.loadData(result);
+    } catch (e) {
+      console.log();
+    }
   }
 
   setViewMode(mode) {
-    this.viewMode = mode;
+    this._viewMode = mode;
   }
 
   setNumResults(n) {
-    this.numResults = n;
+    this._numResults = n;
   }
 
   setProjectName(name) {
-    this.projectName = name;
+    this._projectName = name;
+  }
+
+  setNewIndividualName(reason) {
+    this._newIndividualName = reason;
   }
 
   get selectedMatch() {
     return this._selectedMatch;
   }
+
   setSelectedMatch(selected, encounterId, individualId) {
     if (selected) {
-      this._selectedMatch.push({
-        encounterId,
-        individualId,
-      });
+      this._selectedMatch = [...this._selectedMatch, { encounterId, individualId }];
     } else {
-      this._selectedMatch = this.selectedMatch.filter(
+      this._selectedMatch = this._selectedMatch.filter(
         (data) => data.encounterId !== encounterId,
       );
     }
+  }
+
+  get uniqueIndividualIds() {
+    const ids = new Set();
+
+    if (this._individualId) {
+      ids.add(this._individualId);
+    }
+
+    this._selectedMatch.forEach((match) => {
+      if (match.individualId) {
+        ids.add(match.individualId);
+      }
+    });
+
+    return Array.from(ids);
+  }
+
+  get matchingState() {
+    if (this._selectedMatch.length === 0) {
+      return "no_selection";
+    }
+
+    const uniqueIds = this.uniqueIndividualIds;
+    const idCount = uniqueIds.length;
+
+    if (idCount === 0) {
+      return "no_individuals";
+    } else if (idCount === 1) {
+      return "single_individual";
+    } else if (idCount === 2) {
+      return "two_individuals";
+    } else {
+      return "too_many_individuals";
+    }
+  }
+
+  organizeMatchesIntoColumns(matches) {
+    const totalMatches = matches.length;
+    if (totalMatches === 0) return [];
+    const columns = [];
+    for (let i = 0; i < totalMatches; i += MAX_ROWS_PER_COLUMN) {
+      const columnData = matches
+        .slice(i, i + MAX_ROWS_PER_COLUMN)
+        .map((match, index) => ({
+          ...match,
+          id: i + index + 1,
+        }));
+      columns.push(columnData);
+    }
+    return columns;
   }
 }
