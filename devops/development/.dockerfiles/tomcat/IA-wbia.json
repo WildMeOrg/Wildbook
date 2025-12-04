@@ -2,14 +2,14 @@
   "_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
   "new_wbia_local": {
     "_note": "Default/development WBIA API URLs. Use new_wbia_staging or new_wbia_prod based on WBIA_ENV environment variable.",
-    "add_images": "http://172.17.0.1:5000/api/image/json/",
-    "add_annotations": "http://172.17.0.1:5000/api/annot/json/",
-    "start_identify": "http://172.17.0.1:5000/api/engine/query/graph/",
-    "identify_review": "http://172.17.0.1:5000/api/review/query/graph/",
-    "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
-    "detect_review": "http://172.17.0.1:5000/api/review/detect/cnn/yolo/",
-    "get_job_status": "http://172.17.0.1:5000/api/engine/job/status/",
-    "get_job_result": "http://172.17.0.1:5000/api/engine/job/result/"
+    "add_images": "http://172.17.0.1:8000/image/json/",
+    "add_annotations": "http://172.17.0.1:8000/annot/json/",
+    "start_identify": "http://172.17.0.1:8000/engine/query/graph/",
+    "identify_review": "http://172.17.0.1:8000/review/query/graph/",
+    "start_detect": "http://172.17.0.1:8000/engine/detect/cnn/lightnet/",
+    "detect_review": "http://172.17.0.1:8000/review/detect/cnn/yolo/",
+    "get_job_status": "http://172.17.0.1:8000/engine/job/status/",
+    "get_job_result": "http://172.17.0.1:8000/engine/job/result/"
   },
   "new_wbia_staging": {
     "_note": "STAGING environment - WBIA API URLs. Used when WBIA_ENV=staging",
@@ -949,7 +949,7 @@
           "nms_aware": null,
           "nms_thresh": 0.5,
           "sensitivity": 0.48,
-          "architecture": "new_wbia_staging"
+          "architecture": "new_wbia"
         }
       ],
       "maned_wolf": {
@@ -1126,7 +1126,7 @@
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
           "labeler_model_tag": "forestcat_v0",
-          "architecture": "new_wbia_local"
+          "architecture": "new_wbia"
         }
       ],
       "lynx_pardinus": {
