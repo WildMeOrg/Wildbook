@@ -109,7 +109,7 @@ public class GenericObject extends ApiBase {
                                     "prospectsSize"));
                             } catch (NumberFormatException ex) {}
                             rtn.put("prospectsSize", prospectsSize);
-                            rtn.put("matchResults",
+                            rtn.put("matchResultsRoot",
                                 task.matchResultsJson(prospectsSize, myShepherd));
                             rtn.put("success", true);
                             rtn.put("statusCode", 200);
