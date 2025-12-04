@@ -716,6 +716,12 @@ public class Util {
         return sdf.format(new Date());
     }
 
+    public static String millisToISO8601String(Long millis) {
+        if (millis == null) return null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        return sdf.format(new Date(millis));
+    }
+
     public static boolean dateTimeIsOnlyDate(DateTime dt) {
         try {
             return (dt.millisOfDay().get() == 0);
