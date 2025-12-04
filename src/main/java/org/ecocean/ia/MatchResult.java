@@ -2,6 +2,7 @@ package org.ecocean.ia;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -150,10 +151,54 @@ public class MatchResult implements java.io.Serializable {
         return Util.collectionSize(prospects);
     }
 
+    public Set<String> prospectScoreTypes() {
+        Set<String> types = new HashSet<String>();
+
+        if (numberProspects() == 0) return types;
+        for (MatchResultProspect mrp : prospects) {
+            types.add(mrp.getType());
+        }
+        return types;
+    }
+
+    public List<MatchResultProspect> prospectsSorted(String type, int cutoff) {
+        List<MatchResultProspect> pros = new ArrayList<MatchResultProspect>();
+
+        if (numberProspects() == 0) return pros;
+        for (MatchResultProspect mrp : prospects) {
+            if (mrp.isType(type)) pros.add(mrp);
+        }
+        Collections.sort(pros);
+        if (pros.size() > cutoff) return pros.subList(0, cutoff);
+        return pros;
+    }
+
+    public JSONObject prospectsForApiGet(int cutoff) {
+        JSONObject sj = new JSONObject();
+
+        for (String type : prospectScoreTypes()) {
+            JSONArray jarr = new JSONArray();
+            for (MatchResultProspect mrp : prospectsSorted(type, cutoff)) {
+                jarr.put(mrp.jsonForApiGet());
+            }
+            sj.put(type, jarr);
+        }
+        return sj;
+    }
+
+    public JSONObject jsonForApiGet(int cutoff) {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("id", id);
+        rtn.put("created", Util.millisToISO8601String(created));
+        rtn.put("prospects", prospectsForApiGet(cutoff));
+        return rtn;
+    }
+
     public String toString() {
         String s = "MatchResult " + id;
 
-        s += " [" + new java.util.Date(created) + "]";
+        s += " [" + Util.millisToISO8601String(created) + "]";
         s += " query " + queryAnnotation;
         s += "; numCandidates=" + this.numberCandidates();
         s += "; numProspects=" + this.numberProspects();

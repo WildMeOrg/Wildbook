@@ -2812,6 +2812,20 @@ public class Shepherd {
         return mr;
     }
 
+    public List<MatchResult> getMatchResults(Task task) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (task == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE task.id == '" + task.getId() +
+            "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
+        return all;
+    }
+
     public MarkedIndividual getMarkedIndividualQuiet(String name) {
         MarkedIndividual indiv = null;
 
