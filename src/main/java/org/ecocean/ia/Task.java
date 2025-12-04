@@ -594,4 +594,35 @@ public class Task implements java.io.Serializable {
             queueResumeMessage = message;
         }
     }
+
+    // convenience
+    public List<MatchResult> getMatchResults(Shepherd myShepherd) {
+        return myShepherd.getMatchResults(this);
+    }
+
+    public MatchResult getLatestMatchResult(Shepherd myShepherd) {
+        List<MatchResult> all = myShepherd.getMatchResults(this);
+
+        if (Util.collectionIsEmptyOrNull(all)) return null;
+        return all.get(0);
+    }
+
+    public JSONObject matchResultsJson(Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("id", getId());
+        rtn.put("parameters", getParameters());
+        // TODO fill out generic task meta here -- query annot, matching set filter, etc
+        MatchResult mr = getLatestMatchResult(myShepherd);
+        if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(50));
+        if (hasChildren()) {
+            JSONArray charr = new JSONArray();
+            for (Task child : children) {
+                // TODO decide if we need to process child????
+                charr.put(child.matchResultsJson(myShepherd));
+            }
+            rtn.put("children", charr);
+        }
+        return rtn;
+    }
 }
