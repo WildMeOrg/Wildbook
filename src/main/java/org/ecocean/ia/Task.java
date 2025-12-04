@@ -607,19 +607,19 @@ public class Task implements java.io.Serializable {
         return all.get(0);
     }
 
-    public JSONObject matchResultsJson(Shepherd myShepherd) {
+    public JSONObject matchResultsJson(int cutoff, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", getId());
         rtn.put("parameters", getParameters());
         // TODO fill out generic task meta here -- query annot, matching set filter, etc
         MatchResult mr = getLatestMatchResult(myShepherd);
-        if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(50));
+        if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(cutoff));
         if (hasChildren()) {
             JSONArray charr = new JSONArray();
             for (Task child : children) {
                 // TODO decide if we need to process child????
-                charr.put(child.matchResultsJson(myShepherd));
+                charr.put(child.matchResultsJson(cutoff, myShepherd));
             }
             rtn.put("children", charr);
         }

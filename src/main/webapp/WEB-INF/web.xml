@@ -557,6 +557,10 @@
 		<servlet-name>ApiGenericObject</servlet-name>
 		<url-pattern>/api/v3/media-assets/*</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiGenericObject</servlet-name>
+		<url-pattern>/api/v3/tasks/*</url-pattern>
+	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>ApiBaseObject</servlet-name>

@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
@@ -86,6 +87,35 @@ public class GenericObject extends ApiBase {
                             janns.put(jann);
                         }
                         rtn.put("annotations", janns);
+                    }
+                }
+                break;
+            case "tasks":
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    if ((args.length > 2) && ("match-results".equals(args[2]))) {
+                        Task task = myShepherd.getTask(args[1]);
+                        if (task == null) {
+                            rtn.put("statusCode", 404);
+                            rtn.put("error", "not found");
+                        } else {
+                            // TODO do we have security on match results ??
+                            int prospectsSize = org.ecocean.ia.MatchResult.DEFAULT_PROSPECTS_CUTOFF;
+                            try {
+                                // note: negative size means all of them (no cutoff)
+                                prospectsSize = Integer.parseInt(request.getParameter(
+                                    "prospectsSize"));
+                            } catch (NumberFormatException ex) {}
+                            rtn.put("prospectsSize", prospectsSize);
+                            rtn.put("matchResults",
+                                task.matchResultsJson(prospectsSize, myShepherd));
+                            rtn.put("success", true);
+                            rtn.put("statusCode", 200);
+                        }
+                    } else {
+                        throw new ApiException("invalid tasks operation");
                     }
                 }
                 break;

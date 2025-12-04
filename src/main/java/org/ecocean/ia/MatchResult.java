@@ -42,6 +42,8 @@ public class MatchResult implements java.io.Serializable {
     private Set<MatchResultProspect> prospects;
     private Annotation queryAnnotation;
     private Set<Annotation> candidates;
+    // fallback number to cutoff number of prospects to return
+    public static final int DEFAULT_PROSPECTS_CUTOFF = 100;
 
     public MatchResult() {
         id = Util.generateUUID();
@@ -161,6 +163,7 @@ public class MatchResult implements java.io.Serializable {
         return types;
     }
 
+    // if cutoff < 0 then it will not be truncated at all
     public List<MatchResultProspect> prospectsSorted(String type, int cutoff) {
         List<MatchResultProspect> pros = new ArrayList<MatchResultProspect>();
 
@@ -169,7 +172,7 @@ public class MatchResult implements java.io.Serializable {
             if (mrp.isType(type)) pros.add(mrp);
         }
         Collections.sort(pros);
-        if (pros.size() > cutoff) return pros.subList(0, cutoff);
+        if ((cutoff > 0) && (pros.size() > cutoff)) return pros.subList(0, cutoff);
         return pros;
     }
 
