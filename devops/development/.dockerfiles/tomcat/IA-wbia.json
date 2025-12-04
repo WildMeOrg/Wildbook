@@ -1115,5 +1115,43 @@
       }
     }
   },
+  "Felis": {
+    "sp": {
+      "_detect_conf": [
+        {
+          "labeler_algo": "densenet",
+          "model_tag": "forestcat_v0",
+          "model_tag_new": "forestcat_v0",
+          "nms_aware": null,
+          "nms_thresh": 0.4,
+          "sensitivity": 0.21,
+          "labeler_model_tag": "forestcat_v0",
+          "architecture": "new_wbia_local"
+        }
+      ],
+      "lynx_pardinus": {
+        "_save_as": "forest_cat",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "forest_cat": {
+        "_id_conf": "@Felis.sp.lynx_pardinus._id_conf"
+      }
+    }
+  },
   "_default": "@Lycaon.pictus"
 }
