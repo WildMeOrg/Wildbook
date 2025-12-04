@@ -116,7 +116,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
           "nms_thresh": 0.4,
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "snow_leopard": {
@@ -148,7 +148,7 @@
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
           "nms_aware": "ispart",
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "lion": {
@@ -265,7 +265,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
           "nms_thresh": 0.4,
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "snow_leopard": {
@@ -414,11 +414,11 @@
         {
           "labeler_model_tag": "hyaena_v0",
           "model_tag": "hyaena_v0",
-          "model_tag_new": "hyaena_v0",
+          "model_tag_new": "striped_hyaena_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.74,
           "nms_thresh": 0.7,
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "hyaena": {
@@ -501,7 +501,7 @@
           "sensitivity": 0.7,
           "nms_thresh": 0.4,
           "nms_aware": "ispart",
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "lion": {

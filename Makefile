@@ -293,7 +293,7 @@ setup: check-prerequisites setup-directories setup-environment
 	@echo "  2. Run: make build-and-run"
 
 # Build and run
-build-and-run: clean check-prerequisites setup-directories setup-environment build deploy start init-db
+build-and-run: stop clean check-prerequisites setup-directories setup-environment build deploy start init-db
 	@echo ""
 	@echo "========================================"
 	@echo "Wildbook is Running!"
@@ -327,5 +327,5 @@ logs:
 	@echo "Viewing Logs"
 	@echo "========================================"
 	@echo -e "$(YELLOW)ℹ Viewing logs...$(NC)"
-	@cd $(DOCKER_DIR) && docker compose -f $(COMPOSE_FILE) logs -f
+	@cd $(DOCKER_DIR) && docker compose -f $(COMPOSE_FILE) logs -f --tail=1000
 	@echo -e "$(GREEN)✓ Logs viewed$(NC)"
