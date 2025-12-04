@@ -261,7 +261,7 @@
         {
           "labeler_model_tag": "snow_leopard_v0",
           "model_tag": "snow_leopard_v0",
-          "model_tag_new": "snow_leopard_v0",
+          "model_tag_new": "south_tiger_cat_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
           "nms_thresh": 0.4,
@@ -496,7 +496,7 @@
         {
           "labeler_model_tag": "lions_v0",
           "model_tag": "lions_v0",
-          "model_tag_new": "lions_v0",
+          "model_tag_new": "puma_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.7,
           "nms_thresh": 0.4,
