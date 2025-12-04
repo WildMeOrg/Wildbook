@@ -938,6 +938,41 @@
       }
     }
   },
+  "Chrysocyon": {
+    "brachyurus": {
+      "_detect_conf": [
+        {
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "maned_wolf_v0",
+          "model_tag": "maned_wolf_v0",
+          "model_tag_new": "maned_wolf_v0",
+          "nms_aware": null,
+          "nms_thresh": 0.5,
+          "sensitivity": 0.48,
+          "architecture": "new_wbia_staging"
+        }
+      ],
+      "maned_wolf": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
+      }
+    }
+  },
   "Lynx": {
     "canadensis": {
       "_detect_conf": [
