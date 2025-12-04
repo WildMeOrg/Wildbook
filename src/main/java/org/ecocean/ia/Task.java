@@ -578,7 +578,7 @@ public class Task implements java.io.Serializable {
         else { status = newStatus; }
     }
 
-    public java.lang.Long getCompletionDateInMilliseconds() { return completionDateInMilliseconds; }
+    public Long getCompletionDateInMilliseconds() { return completionDateInMilliseconds; }
 
     // this will set all date stuff based on ms since epoch
     public void setCompletionDateInMilliseconds(Long ms) {
@@ -593,6 +593,29 @@ public class Task implements java.io.Serializable {
         if (message == null) { queueResumeMessage = null; } else {
             queueResumeMessage = message;
         }
+    }
+
+    public JSONObject getMatchingSetFilter() {
+        if (getParameters() == null) return null;
+        return getParameters().optJSONObject("matchingSetFilter");
+    }
+
+    public JSONObject getIdentificationMethodInfo() {
+        if (getParameters() == null) return null;
+        if (getParameters().optJSONObject("ibeis.identification") == null) return null;
+        // it seems both of these are in most logs (and are identical), but being safe in case there are
+        // examples in the wild with only one
+        JSONObject conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
+            "query_config_dict");
+        if (conf == null)
+            conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
+                "queryConfigDict");
+        JSONObject rtn = new JSONObject();
+        if (conf != null) rtn.put("name", conf.optString("pipeline_root", null)); // null conf means that we have no name
+        rtn.put("description",
+            getParameters().getJSONObject("ibeis.identification").optString("description",
+            "unknown algorith/method"));
+        return rtn;
     }
 
     // convenience
@@ -611,8 +634,18 @@ public class Task implements java.io.Serializable {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", getId());
-        rtn.put("parameters", getParameters());
-        // TODO fill out generic task meta here -- query annot, matching set filter, etc
+        rtn.put("dateCreated", Util.millisToISO8601String(getCreatedLong()));
+        rtn.put("dateCompleted", Util.millisToISO8601String(getCompletionDateInMilliseconds()));
+
+        JSONObject methodInfo = getIdentificationMethodInfo();
+        // we basically use this to determine if we are "identification-like" enough
+        // to display extended details
+        if (methodInfo != null) {
+            rtn.put("method", getIdentificationMethodInfo());
+            rtn.put("matchingSetFilter", getMatchingSetFilter());
+            rtn.put("status", getStatus(myShepherd));
+            rtn.put("statusOverall", getOverallStatus(myShepherd));
+        }
         MatchResult mr = getLatestMatchResult(myShepherd);
         if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(cutoff));
         if (hasChildren()) {

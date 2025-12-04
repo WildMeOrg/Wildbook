@@ -193,6 +193,7 @@ public class MatchResult implements java.io.Serializable {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", id);
+        rtn.put("numberTotalProspects", numberProspects());
         rtn.put("created", Util.millisToISO8601String(created));
         rtn.put("prospects", prospectsForApiGet(cutoff));
         return rtn;
