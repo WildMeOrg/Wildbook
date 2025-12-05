@@ -25,6 +25,9 @@ public class GenericObject extends ApiBase {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
+        // normally false for GET, but some deep behavior creates objects on-the-fly
+        // and therefore needs to commit to db
+        boolean commitShepherd = false;
         Shepherd myShepherd = new Shepherd(context);
 
         myShepherd.setAction("api.GenericObject.doGet");
@@ -109,10 +112,13 @@ public class GenericObject extends ApiBase {
                                     "prospectsSize"));
                             } catch (NumberFormatException ex) {}
                             rtn.put("prospectsSize", prospectsSize);
-                            rtn.put("matchResultsRoot",
-                                task.matchResultsJson(prospectsSize, myShepherd));
+                            JSONObject mrJson = task.matchResultsJson(prospectsSize, myShepherd);
+                            rtn.put("matchResultsRoot", mrJson);
                             rtn.put("success", true);
                             rtn.put("statusCode", 200);
+                            // this means we created on-the-fly some MatchResult(s) that need persisting
+                            commitShepherd = mrJson.optBoolean("_commitShepherd", false);
+                            if (commitShepherd) myShepherd.commitDBTransaction();
                         }
                     } else {
                         throw new ApiException("invalid tasks operation");
@@ -127,7 +133,11 @@ public class GenericObject extends ApiBase {
             rtn.put("errors", apiEx.getErrors());
             rtn.put("debug", apiEx.toString());
         } finally {
-            myShepherd.rollbackAndClose();
+            if (commitShepherd) {
+                myShepherd.closeDBTransaction();
+            } else {
+                myShepherd.rollbackAndClose();
+            }
         }
         response.setStatus(rtn.optInt("statusCode", 500));
         response.setCharacterEncoding("UTF-8");

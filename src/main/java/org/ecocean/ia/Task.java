@@ -211,6 +211,11 @@ public class Task implements java.io.Serializable {
         return parent;
     }
 
+    public String getParentId() {
+        if (parent == null) return null;
+        return parent.getId();
+    }
+
     public int numChildren() {
         return (children == null) ? 0 : children.size();
     }
@@ -661,6 +666,7 @@ public class Task implements java.io.Serializable {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", getId());
+        rtn.put("parentTaskId", getParentId());
         rtn.put("dateCreated", Util.millisToISO8601String(getCreatedLong()));
         rtn.put("dateCompleted", Util.millisToISO8601String(getCompletionDateInMilliseconds()));
         // TODO theory is that we might not need to use/store queryAnnotation on MatchResult as
@@ -688,7 +694,10 @@ public class Task implements java.io.Serializable {
                     "[DEBUG] matchResultsJson() found no MatchResults; generating on " + this);
                 List<MatchResult> mrs = generateMatchResults(myShepherd);
                 rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
-                if (mrs.size() > 0) mr = mrs.get(mrs.size() - 1);
+                if (mrs.size() > 0) {
+                    mr = mrs.get(mrs.size() - 1);
+                    rtn.put("_commitShepherd", true);
+                }
             }
             if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(cutoff));
         }
@@ -697,7 +706,11 @@ public class Task implements java.io.Serializable {
             JSONArray charr = new JSONArray();
             for (Task child : children) {
                 // TODO decide if we need to process child????
-                charr.put(child.matchResultsJson(cutoff, myShepherd));
+                JSONObject childJson = child.matchResultsJson(cutoff, myShepherd);
+                // we have to bubble this up all the way to the toplevel  :/
+                if (childJson.optBoolean("_commitShepherd", false))
+                    rtn.put("_commitShepherd", true);
+                charr.put(childJson);
             }
             rtn.put("children", charr);
         }
