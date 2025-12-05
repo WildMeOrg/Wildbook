@@ -632,7 +632,7 @@ export const ImageModal = observer(
                     {imageStore.encounterData?.individualDisplayName
                       ? `of ${imageStore.encounterData?.individualDisplayName}`
                       : "Unassigned "}
-                    {imageStore.encounterData?.date}
+                    <p>{imageStore.encounterData?.date}</p>
                   </div>
                   <div className="text-muted small">{a.date ?? ""}</div>
                 </div>
@@ -923,7 +923,18 @@ export const ImageModal = observer(
                   <FormattedMessage id="INDIVIDUAL_ID" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {imageStore.encounterData.individualId ?? "—"}
+                  {imageStore.encounterData.individualId ? (
+                    <a
+                      href={`/individuals.jsp?id=${imageStore.encounterData.individualId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-decoration-none"
+                    >
+                      {imageStore.encounterData.individualId}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
                 </dd>
                 <dt className="col-5">
                   <FormattedMessage id="LOCATION_ID" />
