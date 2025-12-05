@@ -780,22 +780,30 @@
 		{"name": "Uruguay", "id": "Uruguay", "locationID":[] },
 		{"name": "Venezuela", "id": "Venezuela", "locationID":[] }
 		] },
-		{ "name":"Dinarides", "id":"Dinarides", "locationID":[
-				
-			{"name": "Croatia", "id": "Croatia", "locationID":[
-				{"name": "Gorski kotar", "id": "Gorski kotar", "locationID":[] }
-			] } 
-		
-		] },
+
 		{ "name": "Europe", "id": "Europe", "locationID":[
 			{"name": "Austria", "id": "Austria", "locationID":[] },
 			{"name": "Belgium", "id": "Belgium", "locationID":[] },
 			{"name": "Czech Republic", "id": "Czech Republic", "locationID":[] },
+			{ "name":"Dinarides", "id":"Dinarides", "locationID":[
+				
+				{"name": "Croatia", "id": "Croatia", "locationID":[
+					{"name": "Gorski kotar", "id": "Gorski kotar", "locationID":[] }
+				] },
+				{"name": "Bosnia and Herzegovina", "id": "Bosnia and Herzegovina", "locationID":[] }				
+		
+			] },
+			{"name": "Estonia", "id": "Estonia", "locationID":[] },
+			{"name": "Finland", "id": "Finland", "locationID":[] },
 			{"name": "France", "id": "France", "locationID":[] },
 			{"name": "Germany", "id": "Germany", "locationID":[] },
 			{"name": "Italy", "id": "Italy", "locationID":[] },
+			{"name": "Latvia", "id": "Latvia", "locationID":[] },
+			{"name": "Lithuania", "id": "Lithuania", "locationID":[] },
 			{"name": "Luxembourg", "id": "Luxembourg", "locationID":[] },
+			{"name": "Norway", "id": "Luxembourg", "locationID":[] },
 			{"name": "Spain", "id": "Spain", "locationID":[] },
+			{"name": "Sweden", "id": "Sweden", "locationID":[] },
 			{"name": "Switzerland", "id": "Switzerland", "locationID":[] }
 		] }
 		
