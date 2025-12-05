@@ -1,0 +1,629 @@
+import React, { useState, useContext, useRef, useEffect } from "react";
+import Select from "react-select";
+import Form from "react-bootstrap/Form";
+import { FormattedMessage } from "react-intl";
+import Container from "react-bootstrap/Container";
+import MainButton from "../components/MainButton";
+import ThemeColorContext from "../ThemeColorProvider";
+import ResizableRotatableRect from "../components/ResizableRotatableRect";
+import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSearchParams } from "react-router-dom";
+import AnnotationSuccessful from "../components/AnnotationSuccessful";
+import useCreateAnnotation from "../models/encounters/useCreateAnnotation";
+import calculateFinalRect from "../models/js/calculateFinalRect";
+import calculateScaleFactor from "../models/js/calculateScaleFactor";
+import AddAnnotationModal from "../components/AddAnnotationModal";
+import axios from "axios";
+
+export default function EditAnnotation() {
+  const [searchParams] = useSearchParams();
+  const assetId = searchParams.get("assetId");
+  const encounterId = searchParams.get("encounterId");
+  const annotationId = searchParams.get("annotationId");
+  const theme = useContext(ThemeColorContext);
+  const imgRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [value, setValue] = useState(0);
+  const [incomplete, setIncomplete] = useState(false);
+  const [data, setData] = useState({
+    width: 0,
+    height: 0,
+    url: "",
+    annotations: [],
+  });
+
+  const raw = searchParams.get("annotation");
+  const annotation = JSON.parse(decodeURIComponent(raw || "null")) || null;
+  const [preFilledAnnotation, setPreFilledAnnotation] = useState(false);
+
+  const { createAnnotation, loading, error, submissionDone, responseData } =
+    useCreateAnnotation();
+
+  const [showModal, setShowModal] = useState(false);
+  const [scaleFactor, setScaleFactor] = useState(null);
+  const [ia, setIa] = useState(
+    annotation?.iaClass
+      ? { value: annotation.iaClass, label: annotation.iaClass }
+      : null,
+  );
+  const [viewpoint, setViewpoint] = useState(
+    annotation?.viewpoint
+      ? { value: annotation.viewpoint, label: annotation.viewpoint }
+      : null,
+  );
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawStatus, setDrawStatus] = useState("DRAW");
+  const [iaOptions, setIaOptions] = useState(null);
+  const [loadingIa, setLoadingIa] = useState(true);
+  const [taxonomy, setTaxonomy] = useState("");
+
+  const [rect, setRect] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    rotation: 0,
+  });
+  const { data: siteData } = useGetSiteSettings();
+  const [rotationInfo, setRotationInfo] = useState(null);
+  const [imageReady, setImageReady] = useState(false);
+
+  const iaClassesForTaxonomy = siteData?.iaClassesForTaxonomy || {};
+
+  const viewpointOptions = siteData?.annotationViewpoint?.map((viewpoint) => ({
+    value: viewpoint,
+    label: viewpoint,
+  }));
+
+  const getMediaAssets = async () => {
+    setLoadingIa(true);
+    try {
+      const response = await fetch(`/api/v3/media-assets/${assetId}`);
+      const data = await response.json();
+      setData(data);
+      setRotationInfo(data.rotationInfo || null);
+
+      const annotation =
+        data.annotations?.find(
+          (annotation) => annotation.encounterId === encounterId,
+        ) || {};
+      const iaForTaxonomy =
+        iaClassesForTaxonomy[annotation?.encounterTaxonomy] || [];
+      setTaxonomy(annotation?.encounterTaxonomy);
+      setIaOptions(
+        iaForTaxonomy.map((iaClass) => ({
+          value: iaClass,
+          label: iaClass,
+        })),
+      );
+      setLoadingIa(false);
+    } catch (error) {
+      alert("Error fetching media assets", error);
+      setLoadingIa(false);
+    }
+  };
+
+  useEffect(() => {
+    const ready =
+      !preFilledAnnotation &&
+      annotation &&
+      imageReady &&
+      scaleFactor &&
+      Number.isFinite(scaleFactor.x) &&
+      Number.isFinite(scaleFactor.y);
+    if (!ready) return;
+
+    const factor = scaleFactor;
+    let x = annotation.x / (factor.x || 1);
+    let y = annotation.y / (factor.y || 1);
+    let width = annotation.width / (factor.x || 1);
+    let height = annotation.height / (factor.y || 1);
+
+    if (rotationInfo) {
+      const imgW = data.width;
+      const imgH = data.height;
+      const adjW = imgH / imgW;
+      const adjH = imgW / imgH;
+      x /= adjW;
+      width /= adjW;
+      y /= adjH;
+      height /= adjH;
+    }
+
+    const theta = annotation.theta ?? annotation.rotation ?? 0;
+    const deg = (theta * 180) / Math.PI;
+
+    const centerOffsetX = width / 2;
+    const centerOffsetY = height / 2;
+
+    const originalCenterX = x + centerOffsetX;
+    const originalCenterY = y + centerOffsetY;
+
+    const rad = (deg * Math.PI) / 180;
+    const rotatedOffsetX =
+      Math.cos(rad) * centerOffsetX - Math.sin(rad) * centerOffsetY;
+    const rotatedOffsetY =
+      Math.sin(rad) * centerOffsetX + Math.cos(rad) * centerOffsetY;
+
+    const newX = originalCenterX - rotatedOffsetX;
+    const newY = originalCenterY - rotatedOffsetY;
+
+    setRect({
+      x: newX,
+      y: newY,
+      width: width,
+      height: height,
+      rotation: deg,
+    });
+    setValue(deg);
+    setPreFilledAnnotation(true);
+  }, [
+    annotation,
+    scaleFactor?.x,
+    scaleFactor?.y,
+    imageReady,
+    preFilledAnnotation,
+    rotationInfo,
+  ]);
+
+  useEffect(() => {
+    if (isDrawing) {
+      setDrawStatus("DRAWING");
+    } else if (rect.width > 0 && rect.height > 0) {
+      setDrawStatus("DELETE");
+    } else {
+      setDrawStatus("DRAW");
+    }
+  }, [isDrawing, rect]);
+
+  useEffect(() => {
+    if (error) {
+      setShowModal(true);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    const handleImageLoad = () => {
+      if (imgRef.current && data.width && data.height) {
+        const factor = calculateScaleFactor(
+          data.width,
+          data.height,
+          imgRef.current.clientWidth,
+          imgRef.current.clientHeight,
+        );
+        setScaleFactor(factor);
+        setImageReady(true);
+
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d");
+        canvas.width = imgRef.current.clientWidth;
+        canvas.height = imgRef.current.clientHeight;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        const validAnnotations = data.annotations
+          .filter((annotation) => !annotation.trivial)
+          .filter(
+            (data) =>
+              data.encounterId === encounterId && data.id !== annotationId,
+          );
+        for (const annotation of validAnnotations) {
+          const { x, y, width, height, theta } = annotation;
+          const scaledRect = {
+            x: x / factor.x,
+            y: y / factor.y,
+            width: width / factor.x,
+            height: height / factor.y,
+          };
+
+          if (rotationInfo) {
+            const imgW = data.width;
+            const imgH = data.height;
+            const adjW = imgH / imgW;
+            const adjH = imgW / imgH;
+            scaledRect.x /= adjW;
+            scaledRect.width /= adjW;
+            scaledRect.y /= adjH;
+            scaledRect.height /= adjH;
+          }
+
+          const rectCenterX = scaledRect.x + scaledRect.width / 2;
+          const rectCenterY = scaledRect.y + scaledRect.height / 2;
+          context.save();
+          context.translate(rectCenterX, rectCenterY);
+          context.rotate(theta);
+
+          context.strokeStyle = "yellow";
+          context.lineWidth = 1;
+
+          context.strokeRect(
+            -scaledRect.width / 2,
+            -scaledRect.height / 2,
+            scaledRect.width,
+            scaledRect.height,
+          );
+
+          context.restore();
+        }
+      }
+    };
+    const imgElement = imgRef.current;
+    if (imgElement && imgElement.complete) {
+      handleImageLoad();
+    } else if (imgElement) {
+      imgElement.addEventListener("load", handleImageLoad);
+    }
+
+    return () => {
+      if (imgElement) {
+        imgElement.removeEventListener("load", handleImageLoad);
+      }
+    };
+  }, [data]);
+
+  useEffect(() => {
+    if (assetId && encounterId && siteData) {
+      const fetchData = async () => {
+        await getMediaAssets();
+      };
+      fetchData();
+    }
+  }, [assetId, encounterId, siteData?.iaClassesForTaxonomy]);
+
+  useEffect(() => {
+    const handleMouseUp = () => setIsDrawing(false);
+    window.addEventListener("mouseup", handleMouseUp);
+    const handleKeyDown = (event) => {
+      if (event.key === "Delete") {
+        setRect({
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+          rotation: 0,
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!annotation) return;
+
+    if (viewpointOptions && annotation.viewpoint) {
+      const isValidViewpoint = viewpointOptions.some(
+        (opt) => opt.value === annotation.viewpoint,
+      );
+      if (!isValidViewpoint) {
+        console.warn(`Invalid viewpoint: ${annotation.viewpoint}`);
+        setViewpoint(null);
+      }
+    }
+
+    if (iaOptions && annotation.iaClass) {
+      const isValidIa = iaOptions.some(
+        (opt) => opt.value === annotation.iaClass,
+      );
+      if (!isValidIa) {
+        console.warn(`Invalid IA class: ${annotation.iaClass}`);
+        setIa(null);
+      }
+    }
+  }, [viewpointOptions, iaOptions, annotation]);
+
+  const handleMouseDown = (e) => {
+    if (!imgRef.current || drawStatus === "DELETE") return;
+
+    const { left, top } = imgRef.current.getBoundingClientRect();
+    setRect({
+      x: e.clientX - left,
+      y: e.clientY - top,
+      width: 0,
+      height: 0,
+      rotation: 0,
+    });
+    setValue(0);
+    setIsDrawing(true);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!imgRef.current || drawStatus === "DELETE") return;
+
+    const { left, top } = imgRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - left;
+    const mouseY = e.clientY - top;
+
+    if (isDrawing) {
+      setRect((prevRect) => ({
+        ...prevRect,
+        width: mouseX - prevRect.x,
+        height: mouseY - prevRect.y,
+        rotation: value,
+      }));
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!imgRef.current || drawStatus === "DELETE") return;
+    function normalizeRectOnDraw(rect) {
+      let { x, y, width, height } = rect;
+
+      if (width < 0) {
+        x = x + width;
+        width = -width;
+      }
+      if (height < 0) {
+        y = y + height;
+        height = -height;
+      }
+
+      return { x, y, width, height };
+    }
+
+    setRect((prev) => normalizeRectOnDraw(prev));
+    setIsDrawing(false);
+  };
+
+  return (
+    <Container>
+      {submissionDone ? (
+        <AnnotationSuccessful
+          annotationId={responseData?.id}
+          encounterId={encounterId}
+          rect={calculateFinalRect(rect, scaleFactor, value)}
+          imageData={data}
+        />
+      ) : (
+        <>
+          <h4 className="mt-3 mb-3">
+            <FormattedMessage
+              id="EDIT_ANNOTATIONS"
+              defaultMessage={"Edit Annotations"}
+            />
+          </h4>
+          <Form className="d-flex flex-row">
+            <Form.Group controlId="formBasicEmail" className="me-3">
+              <Form.Label>
+                <FormattedMessage id="FILTER_IA_CLASS" />*
+              </Form.Label>
+              <Select
+                options={iaOptions}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                menuPlacement="auto"
+                menuPortalTarget={document.body}
+                value={ia}
+                styles={{
+                  container: (provided) => ({
+                    ...provided,
+                    width: "200px",
+                  }),
+                }}
+                onChange={(selected) => {
+                  setIa(selected);
+                }}
+              />
+              {!loadingIa && !taxonomy && (
+                <div
+                  className="text-danger"
+                  style={{
+                    maxWidth: "200px",
+                    nowrap: "break-word",
+                  }}
+                >
+                  <FormattedMessage id="NO_TAXONOMY" />
+                </div>
+              )}
+              {!loadingIa && taxonomy && iaOptions.length === 0 && (
+                <div
+                  className="text-danger"
+                  style={{
+                    maxWidth: "200px",
+                    nowrap: "break-word",
+                  }}
+                >
+                  <FormattedMessage id="NO_IA_CLASS" />
+                </div>
+              )}
+            </Form.Group>
+            <Form.Group controlId="formBasicEmail">
+              <Form.Label>
+                <FormattedMessage id="FILTER_VIEWPOINT" />*
+              </Form.Label>
+              <Select
+                options={viewpointOptions}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                menuPlacement="auto"
+                menuPortalTarget={document.body}
+                value={viewpoint}
+                styles={{
+                  container: (provided) => ({
+                    ...provided,
+                    width: "200px",
+                  }),
+                }}
+                onChange={(selected) => {
+                  setViewpoint(selected);
+                }}
+              />
+            </Form.Group>
+          </Form>
+          <div
+            className="d-flex flex-column"
+            style={{
+              maxWidth: "100%",
+              height: "auto",
+              padding: "1em",
+              marginTop: "1em",
+              borderRadius: "10px",
+              boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <div className="d-flex justify-content-between">
+              <h6>
+                <FormattedMessage id="DRAW_ANNOTATION" />
+              </h6>
+              <div
+                style={{
+                  cursor: "pointer",
+                  color: theme.primaryColors.primary500,
+                }}
+                onClick={() => {
+                  if (drawStatus === "DELETE") {
+                    setRect({
+                      x: 0,
+                      y: 0,
+                      width: 0,
+                      height: 0,
+                    });
+                  } else if (drawStatus === "DRAW") {
+                    setDrawStatus("DRAWING");
+                  }
+                }}
+              >
+                <FormattedMessage id={drawStatus} />
+                {drawStatus === "DELETE" && (
+                  <i className="bi bi-trash ms-2"></i>
+                )}
+              </div>
+            </div>
+            <div
+              id="image-container"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              style={{
+                width: "100%",
+                marginTop: "1rem",
+                position: "relative",
+              }}
+            >
+              <img
+                ref={imgRef}
+                src={data.url}
+                alt="annotationimages"
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  objectFit: "contain",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                }}
+              />
+
+              <ResizableRotatableRect
+                rect={rect}
+                imgHeight={imgRef.current?.height}
+                imgWidth={imgRef.current?.width}
+                setRect={setRect}
+                value={value}
+                setValue={setValue}
+                drawStatus={drawStatus}
+                scaleFactor={scaleFactor}
+              />
+              <canvas
+                ref={canvasRef}
+                width={150}
+                height={150}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  pointerEvents: "none",
+                }}
+              ></canvas>
+            </div>
+          </div>
+          <MainButton
+            noArrow={true}
+            style={{ marginTop: "1em" }}
+            backgroundColor={theme.primaryColors.primary500}
+            borderColor={theme.primaryColors.primary500}
+            color={theme.defaultColors.white}
+            loading={loading}
+            onClick={async () => {
+              try {
+                if (!ia || !viewpoint || !rect.width || !rect.height) {
+                  setShowModal(true);
+                  setIncomplete(true);
+                  return;
+                } else {
+                  setIncomplete(false);
+                  let { x, y, width, height, rotation } = calculateFinalRect(
+                    rect,
+                    scaleFactor,
+                    value,
+                  );
+
+                  if (rotationInfo) {
+                    const imgW = data.width;
+                    const imgH = data.height;
+                    const adjW = imgH / imgW;
+                    const adjH = imgW / imgH;
+
+                    x *= adjW;
+                    width *= adjW;
+                    y *= adjH;
+                    height *= adjH;
+                  }
+                  const result = await axios.patch(
+                    `/api/v3/encounters/${encounterId}`,
+                    [
+                      {
+                        op: "remove",
+                        path: "annotations",
+                        value: annotationId,
+                      },
+                    ],
+                  );
+                  if (result.status === 200) {
+                    await createAnnotation({
+                      encounterId,
+                      assetId,
+                      ia,
+                      viewpoint,
+                      x,
+                      y,
+                      width,
+                      height,
+                      rotation,
+                    });
+                  } else {
+                    alert("Error editing annotation");
+                  }
+                }
+              } catch (error) {
+                alert("Error editing annotation", error);
+                setShowModal(true);
+              }
+            }}
+          >
+            <FormattedMessage id="SAVE_ANNOTATION" />
+            {loading && (
+              <div
+                className="spinner-border spinner-border-sm ms-1"
+                role="status"
+              >
+                <span className="visually-hidden">
+                  <FormattedMessage id="LOADING" />
+                </span>
+              </div>
+            )}
+          </MainButton>
+          <AddAnnotationModal
+            showModal={showModal}
+            setShowModal={setShowModal}
+            incomplete={incomplete}
+            error={error}
+          />
+        </>
+      )}
+    </Container>
+  );
+}
