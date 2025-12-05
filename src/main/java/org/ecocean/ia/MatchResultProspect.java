@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
 public class MatchResultProspect implements java.io.Serializable, Comparable<MatchResultProspect> {
@@ -48,10 +49,10 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
         return scoreType + ": " + score + " on " + annotation;
     }
 
-    public JSONObject jsonForApiGet() {
+    public JSONObject jsonForApiGet(Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
 
-        rtn.put("annotation", MatchResult.annotationDetails(annotation));
+        rtn.put("annotation", MatchResult.annotationDetails(annotation, myShepherd));
         rtn.put("score", score);
         // skipping scoreType since this is currently only used filtered by scoreType already
         return rtn;

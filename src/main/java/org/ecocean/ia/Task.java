@@ -699,7 +699,7 @@ public class Task implements java.io.Serializable {
                     rtn.put("_commitShepherd", true);
                 }
             }
-            if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(cutoff));
+            if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(cutoff, myShepherd));
         }
         // now we recurse thru children if applicable
         if (hasChildren()) {

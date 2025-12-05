@@ -13,9 +13,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.identity.IdentityServiceLog;
+import org.ecocean.media.Feature;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
@@ -172,36 +176,78 @@ public class MatchResult implements java.io.Serializable {
         return pros;
     }
 
-    public JSONObject prospectsForApiGet(int cutoff) {
+    public JSONObject prospectsForApiGet(int cutoff, Shepherd myShepherd) {
         JSONObject sj = new JSONObject();
 
         for (String type : prospectScoreTypes()) {
             JSONArray jarr = new JSONArray();
             for (MatchResultProspect mrp : prospectsSorted(type, cutoff)) {
-                jarr.put(mrp.jsonForApiGet());
+                jarr.put(mrp.jsonForApiGet(myShepherd));
             }
             sj.put(type, jarr);
         }
         return sj;
     }
 
-    public JSONObject jsonForApiGet(int cutoff) {
+    public JSONObject jsonForApiGet(int cutoff, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", id);
-        rtn.put("queryAnnotation", annotationDetails(queryAnnotation));
+        rtn.put("queryAnnotation", annotationDetails(queryAnnotation, myShepherd));
         rtn.put("numberTotalProspects", numberProspects());
         rtn.put("numberCandidates", getNumberCandidates());
         rtn.put("created", Util.millisToISO8601String(created));
-        rtn.put("prospects", prospectsForApiGet(cutoff));
+        rtn.put("prospects", prospectsForApiGet(cutoff, myShepherd));
         return rtn;
     }
 
-    public static JSONObject annotationDetails(Annotation ann) {
+    public static JSONObject annotationDetails(Annotation ann, Shepherd myShepherd) {
         JSONObject aj = new JSONObject();
 
-        aj.put("TODO", "fill this out with encounter, asset, indiv, etc etc etc");
         if (ann == null) return aj;
+        MediaAsset ma = ann.getMediaAsset();
+        // populate bounding box stuff (note: it may reset aj so must be done first)
+        if (ann.getFeatures() != null) {
+            for (Feature ft : ann.getFeatures()) {
+                if (ft.isUnity()) {
+                    aj.put("trivial", true);
+                    aj.put("x", 0);
+                    aj.put("y", 0);
+                    // would be weird to be null, but.....
+                    if (ma != null) {
+                        aj.put("width", (int)ma.getWidth());
+                        aj.put("height", (int)ma.getHeight());
+                    }
+                } else {
+                    // basically if we have more than one feature, only one wins
+                    if (ft.getParameters() != null) aj = ft.getParameters();
+                }
+            }
+        }
+        if (ma != null) {
+            JSONObject mj = ma.toSimpleJSONObject();
+            mj.put("rotationInfo", ma.getRotationInfo());
+            aj.put("asset", mj);
+        }
+        Encounter enc = ann.findEncounter(myShepherd);
+        if (enc != null) {
+            JSONObject ej = new JSONObject();
+            // FIXME add "access" permission value
+            ej.put("id", enc.getId());
+            ej.put("taxonomy", enc.getTaxonomyString());
+            aj.put("encounter", ej);
+            MarkedIndividual indiv = enc.getIndividual();
+            if (indiv != null) {
+                JSONObject ij = new JSONObject();
+                ij.put("id", indiv.getId());
+                ij.put("taxonomy", indiv.getTaxonomyString());
+                ij.put("displayName", indiv.getDisplayName());
+                ij.put("nickname", indiv.getNickName());
+                ij.put("sex", indiv.getSex());
+                ij.put("numberEncounters", indiv.getNumEncounters());
+                aj.put("individual", ij);
+            }
+        }
         aj.put("id", ann.getId());
         return aj;
     }
