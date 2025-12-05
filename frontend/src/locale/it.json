@@ -526,5 +526,6 @@
   "BULK_IMPORT_SEND_TO_IDENTIFICATION": "Invia per l’identificazione",
   "BULK_IMPORT_LOCATION_ID_DESC": "Più opzioni selezioni, più tempo richiederà l’identificazione. Sii il più specifico possibile.",
   "DANGER_ZONE": "Zona pericolosa",
-  "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Il pulsante è disabilitato se il rilevamento o l’attività di identificazione iniziale non è completata. Attendere il completamento dell’attività prima di inviare all’identificazione."
+  "BULK_IMPORT_SEND_TO_IDENTIFICATION_DISABLED_DESC": "Il pulsante è disabilitato se il rilevamento o l’attività di identificazione iniziale non è completata. Attendere il completamento dell’attività prima di inviare all’identificazione.",
+  "RESULTS_PER_PAGE": "Risultati per pagina"
 }
