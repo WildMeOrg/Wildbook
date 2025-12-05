@@ -286,13 +286,35 @@ export const ImageGalleryModal = observer(
                   <FormattedMessage id="ENCOUNTER" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {encounterData.encounterId ?? "—"}
+                  {encounterData.encounterId ? (
+                    <a
+                      href={`/react/encounter?number=${encounterData.encounterId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-decoration-none"
+                    >
+                      {encounterData.encounterId}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
                 </dd>
                 <dt className="col-5">
                   <FormattedMessage id="INDIVIDUAL_ID" />
                 </dt>
                 <dd className="col-7 mb-0">
-                  {encounterData?.individualId ?? "—"}
+                  {encounterData?.individualId ? (
+                    <a
+                      href={`/individuals.jsp?id=${encounterData?.individualId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-decoration-none"
+                    >
+                      {encounterData?.individualId}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
                 </dd>
                 <dt className="col-5">
                   <FormattedMessage id="LOCATION_ID" />
