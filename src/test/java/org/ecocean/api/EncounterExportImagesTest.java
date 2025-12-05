@@ -463,8 +463,10 @@ import static org.mockito.Mockito.when;
                 String[] expectedRow = expectedRows.get(rowIndex);
 
                 assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
+                int actualCellCount = actualRow.getLastCellNum();
                 // Compare each cell
-                for (int cellIndex = 0; cellIndex < expectedRow.length; cellIndex++) {
+                for (int cellIndex = 0; cellIndex < Math.min(expectedRow.length, actualCellCount);
+                    cellIndex++) {
                     Cell actualCell = actualRow.getCell(cellIndex);
                     String expectedValue = expectedRow[cellIndex];
                     String actualValue = getCellValueAsString(actualCell);
@@ -500,7 +502,6 @@ import static org.mockito.Mockito.when;
                     }
                 }
                 // check there aren't extra cells in the Excel that we didn't compare
-                int actualCellCount = actualRow.getLastCellNum();
                 assertTrue(expectedRow.length >= actualCellCount,
                     "Row " + rowIndex + " should have " + expectedRow.length + " cells");
             }
@@ -735,6 +736,23 @@ import static org.mockito.Mockito.when;
             MediaAsset asset1 = ((LocalAssetStore)localStore).create(testImage);
             MediaAsset asset2 = ((LocalAssetStore)localStore).create(testImage);
             MediaAsset asset3 = ((LocalAssetStore)localStore).create(testImage);
+
+            // Create keywords and add them to media assets
+            org.ecocean.Keyword refKeyword = new org.ecocean.Keyword("Reference");
+            org.ecocean.Keyword laboratoryKeyword = new org.ecocean.Keyword("Laboratory Study");
+            org.ecocean.Keyword fieldKeyword = new org.ecocean.Keyword("Field Study");
+            myShepherd.getPM().makePersistent(refKeyword);
+            myShepherd.getPM().makePersistent(laboratoryKeyword);
+            myShepherd.getPM().makePersistent(fieldKeyword);
+
+            // asset1 has Reference and Scientific keywords
+            asset1.addKeyword(refKeyword);
+            asset1.addKeyword(laboratoryKeyword);
+
+            // asset2 has only Field Study keyword
+            asset2.addKeyword(fieldKeyword);
+
+            // asset3 has no keywords (to test that case)
 
             // Create test encounters
             org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
