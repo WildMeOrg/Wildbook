@@ -193,10 +193,20 @@ public class MatchResult implements java.io.Serializable {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", id);
+        rtn.put("queryAnnotation", annotationDetails(queryAnnotation));
         rtn.put("numberTotalProspects", numberProspects());
         rtn.put("created", Util.millisToISO8601String(created));
         rtn.put("prospects", prospectsForApiGet(cutoff));
         return rtn;
+    }
+
+    public static JSONObject annotationDetails(Annotation ann) {
+        JSONObject aj = new JSONObject();
+
+        aj.put("TODO", "fill this out with encounter, asset, indiv, etc etc etc");
+        if (ann == null) return aj;
+        aj.put("id", ann.getId());
+        return aj;
     }
 
     public String toString() {

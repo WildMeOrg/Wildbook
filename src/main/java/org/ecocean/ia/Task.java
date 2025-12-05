@@ -636,7 +636,13 @@ public class Task implements java.io.Serializable {
         rtn.put("id", getId());
         rtn.put("dateCreated", Util.millisToISO8601String(getCreatedLong()));
         rtn.put("dateCompleted", Util.millisToISO8601String(getCompletionDateInMilliseconds()));
-
+        if (hasObjectAnnotations()) {
+            JSONArray annotArr = new JSONArray();
+            for (Annotation ann : getObjectAnnotations()) {
+                if (ann != null) annotArr.put(ann.getId());
+            }
+            rtn.put("__taskAnnotations", annotArr);
+        }
         JSONObject methodInfo = getIdentificationMethodInfo();
         // we basically use this to determine if we are "identification-like" enough
         // to display extended details

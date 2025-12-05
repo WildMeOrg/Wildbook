@@ -50,11 +50,8 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
 
     public JSONObject jsonForApiGet() {
         JSONObject rtn = new JSONObject();
-        JSONObject annj = new JSONObject();
 
-        // TODO really fill out all we need for annotation! (shepherd)
-        annj.put("id", annotation.getId());
-        rtn.put("annotation", annj);
+        rtn.put("annotation", MatchResult.annotationDetails(annotation));
         rtn.put("score", score);
         // skipping scoreType since this is currently only used filtered by scoreType already
         return rtn;
