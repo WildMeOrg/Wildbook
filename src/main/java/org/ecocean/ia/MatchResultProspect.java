@@ -25,11 +25,12 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
         this.annotation = ann;
     }
 
-    public MatchResultProspect(Annotation ann, double score, String type) {
+    public MatchResultProspect(Annotation ann, double score, String type, MediaAsset asset) {
         this();
         this.annotation = ann;
         this.score = score;
         this.scoreType = type;
+        this.asset = asset;
     }
 
     public double getScore() {
@@ -55,6 +56,11 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
         rtn.put("annotation", MatchResult.annotationDetails(annotation, myShepherd));
         rtn.put("score", score);
         // skipping scoreType since this is currently only used filtered by scoreType already
+        if (asset != null) {
+            JSONObject aj = asset.toSimpleJSONObject();
+            aj.put("rotationInfo", asset.getRotationInfo());
+            rtn.put("asset", aj);
+        }
         return rtn;
     }
 

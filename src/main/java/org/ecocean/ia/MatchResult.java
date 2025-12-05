@@ -94,15 +94,17 @@ public class MatchResult implements java.io.Serializable {
  */
         this.prospects = new HashSet<MatchResultProspect>();
         this.populateProspects("annot", results.optJSONArray("dannot_uuid_list"),
-            results.optJSONArray("annot_score_list"), myShepherd);
+            results.optJSONArray("annot_score_list"), results.optJSONArray("dannot_extern_list"),
+            results.optString("dannot_extern_reference", null), myShepherd);
         this.populateProspects("indiv", results.optJSONArray("dannot_uuid_list"),
-            results.optJSONArray("score_list"), myShepherd);
+            results.optJSONArray("score_list"), results.optJSONArray("dannot_extern_list"),
+            results.optString("dannot_extern_reference", null), myShepherd);
         System.out.println("[DEBUG] createFromIdentityServiceLog() created " + this);
     }
 
     // must initialize this.propsects first!!
     private int populateProspects(String type, JSONArray annotIds, JSONArray scores,
-        Shepherd myShepherd)
+        JSONArray externs, String externRef, Shepherd myShepherd)
     throws IOException {
         if ((annotIds == null) || (scores == null))
             throw new IOException("null annotIds or scores");
@@ -118,7 +120,11 @@ public class MatchResult implements java.io.Serializable {
                     "; skipping; score=" + score);
                 continue;
             }
-            this.prospects.add(new MatchResultProspect(ann, score, type));
+            MediaAsset ma = null;
+            // we only try if we have a true value in externs[i]
+            if ((externs != null) && (externs.length() > i) && externs.optBoolean(i, false))
+                ma = createInspectionHeatmapAsset(externRef, id);
+            this.prospects.add(new MatchResultProspect(ann, score, type, ma));
             num++;
         }
         return num;
@@ -129,6 +135,17 @@ public class MatchResult implements java.io.Serializable {
         List<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId, true);
         if ((anns == null) || (anns.size() < 1)) return null;
         return anns.get(0);
+    }
+
+    // if it exists, we just return the thing, other wise we attempt to create it
+    public MediaAsset createInspectionHeatmapAsset(String externRef, String annotId) {
+        if (externRef == null) return null;
+        String url = "/api/query/graph/match/thumb/?extern_reference=" + externRef;
+        url += "&query_annot_uuid=" + this.queryAnnotation.getId();
+        url += "&database_annot_uuid=" + annotId;
+        url += "&version=heatmap";
+        System.out.println("[DEBUG] trying extern url=" + url);
+        return null;
     }
 
     public JSONObject getTaskParameters() {
@@ -232,7 +249,7 @@ public class MatchResult implements java.io.Serializable {
         Encounter enc = ann.findEncounter(myShepherd);
         if (enc != null) {
             JSONObject ej = new JSONObject();
-            // FIXME add "access" permission value
+            // TODO add "access" permission value if needed?
             ej.put("id", enc.getId());
             ej.put("taxonomy", enc.getTaxonomyString());
             aj.put("encounter", ej);
