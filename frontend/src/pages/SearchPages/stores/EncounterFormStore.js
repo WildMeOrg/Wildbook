@@ -1,6 +1,4 @@
 import { makeAutoObservable } from "mobx";
-import { isValid, parseISO, getWeek } from "date-fns";
-import { chain, range } from "lodash-es";
 import ImageModalStore from "./ImageModalStore";
 import { toJS } from "mobx";
 import axios from "axios";
@@ -214,35 +212,6 @@ class EncounterFormStore {
 
   resetFilters() {
     this.formFilters = [];
-  }
-
-  weekKey = (date) => {
-    const d = parseISO(date);
-    if (!isValid(d)) {
-      console.warn(`Invalid date skipped: ${date}`);
-      return null;
-    }
-    return String(getWeek(d));
-  };
-
-  calculateWeeklyDates(dates) {
-    if (!Array.isArray(dates)) return [];
-    const validDates = dates.filter((d) => typeof d === "string" && d.trim());
-
-    const countsByWeek = chain(validDates)
-      .map(this.weekKey)
-      .filter((w) => w !== null)
-      .countBy()
-      .value();
-
-    const result = range(1, 54).map((week) => {
-      const weekKey = String(week);
-      return {
-        week: weekKey,
-        count: countsByWeek[weekKey] || 0,
-      };
-    });
-    return result;
   }
 
   async addEncountersToProject() {
