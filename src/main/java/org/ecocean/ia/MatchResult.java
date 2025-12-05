@@ -12,22 +12,6 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/*
-   import org.ecocean.Base;
-   import org.ecocean.Encounter;
-   import org.ecocean.media.AssetStore;
-   import org.ecocean.media.MediaAsset;
-   import org.ecocean.media.MediaAssetFactory;
-   import org.ecocean.MarkedIndividual;
-   import org.ecocean.Occurrence;
-   import org.ecocean.OpenSearch;
-   import org.ecocean.resumableupload.UploadServlet;
-   import org.ecocean.servlet.ReCAPTCHA;
-   import org.ecocean.servlet.ServletUtilities;
-   import org.ecocean.shepherd.core.ShepherdPMF;
-   import org.ecocean.User;
- */
-
 import org.ecocean.Annotation;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
@@ -41,6 +25,10 @@ public class MatchResult implements java.io.Serializable {
     private Task task;
     private Set<MatchResultProspect> prospects;
     private Annotation queryAnnotation;
+    private int numberCandidates = 0;
+    // not sure we really *need* true fk link to these annots
+    // they might be gone now and will we ever use this?
+    // so for now we just populate numberCandidates
     private Set<Annotation> candidates;
     // fallback number to cutoff number of prospects to return
     public static final int DEFAULT_PROSPECTS_CUTOFF = 100;
@@ -59,6 +47,10 @@ public class MatchResult implements java.io.Serializable {
     throws IOException {
         this();
         this.createFromIdentityServiceLog(isLog, myShepherd);
+    }
+
+    public int getNumberCandidates() {
+        return numberCandidates;
     }
 
     public void createFromIdentityServiceLog(IdentityServiceLog isLog, Shepherd myShepherd)
@@ -88,7 +80,9 @@ public class MatchResult implements java.io.Serializable {
         // results is the real scores (etc) we are looking for.... finally!
         JSONObject results = res.getJSONObject("cm_dict").optJSONObject(queryAnnotId);
         if (results == null) throw new IOException("no actual results found");
-        // TODO load candidates from "database_annot_uuid_list" but maybe after prospects since there is overlap there???
+        // see note at top about true annot list of candidates vs number
+        if (res.optJSONArray("database_annot_uuid_list") != null)
+            this.numberCandidates = res.getJSONArray("database_annot_uuid_list").length();
 /*
         annot_score_list <=> dannot_uuid_list
         score_list is for indiv scores but on dannot_uuid_list (same length)
@@ -145,10 +139,12 @@ public class MatchResult implements java.io.Serializable {
         return params.optJSONObject("matchingSetFilter");
     }
 
+/*
+    see note at top about candidates vs numberCandidates
     public int numberCandidates() {
         return Util.collectionSize(candidates);
     }
-
+ */
     public int numberProspects() {
         return Util.collectionSize(prospects);
     }
@@ -195,6 +191,7 @@ public class MatchResult implements java.io.Serializable {
         rtn.put("id", id);
         rtn.put("queryAnnotation", annotationDetails(queryAnnotation));
         rtn.put("numberTotalProspects", numberProspects());
+        rtn.put("numberCandidates", getNumberCandidates());
         rtn.put("created", Util.millisToISO8601String(created));
         rtn.put("prospects", prospectsForApiGet(cutoff));
         return rtn;
@@ -214,7 +211,7 @@ public class MatchResult implements java.io.Serializable {
 
         s += " [" + Util.millisToISO8601String(created) + "]";
         s += " query " + queryAnnotation;
-        s += "; numCandidates=" + this.numberCandidates();
+        s += "; numCandidates=" + this.getNumberCandidates();
         s += "; numProspects=" + this.numberProspects();
         s += "; " + task;
         return s;
