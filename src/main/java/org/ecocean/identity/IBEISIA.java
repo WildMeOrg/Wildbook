@@ -2035,9 +2035,6 @@ public class IBEISIA {
             System.out.println("INFO: setting iaBaseURL=" + iaBaseURL);
         }
         String ustr = iaBaseURL;
-
-        System.out.println("!!!ustr: " + iaBaseURL);
-        System.out.println("!!!urlSuffix: " + urlSuffix);
         if (urlSuffix != null) {
             if (urlSuffix.indexOf("/") == 0) urlSuffix = urlSuffix.substring(1); // get rid of leading /
             ustr += urlSuffix;

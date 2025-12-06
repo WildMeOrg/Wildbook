@@ -1,6 +1,8 @@
 package org.ecocean.ia;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,6 +14,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.api.UploadedFiles;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
@@ -19,6 +22,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.URLAssetStore;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
@@ -123,7 +127,7 @@ public class MatchResult implements java.io.Serializable {
             MediaAsset ma = null;
             // we only try if we have a true value in externs[i]
             if ((externs != null) && (externs.length() > i) && externs.optBoolean(i, false))
-                ma = createInspectionHeatmapAsset(externRef, id);
+                ma = createInspectionHeatmapAsset(externRef, id, myShepherd);
             this.prospects.add(new MatchResultProspect(ann, score, type, ma));
             num++;
         }
@@ -138,14 +142,32 @@ public class MatchResult implements java.io.Serializable {
     }
 
     // if it exists, we just return the thing, other wise we attempt to create it
-    public MediaAsset createInspectionHeatmapAsset(String externRef, String annotId) {
+    public MediaAsset createInspectionHeatmapAsset(String externRef, String annotId,
+        Shepherd myShepherd) {
         if (externRef == null) return null;
         String url = "/api/query/graph/match/thumb/?extern_reference=" + externRef;
         url += "&query_annot_uuid=" + this.queryAnnotation.getId();
         url += "&database_annot_uuid=" + annotId;
         url += "&version=heatmap";
-        System.out.println("[DEBUG] trying extern url=" + url);
-        return null;
+        URL fullUrl = IBEISIA.iaURL(myShepherd.getContext(), url);
+        File tmpFile = new File("/tmp/extern-" + this.id + "-" + externRef + "-" +
+            this.queryAnnotation.getId() + "-" + annotId + ".jpg");
+        System.out.println("[DEBUG] trying extern fetch url=" + fullUrl + " => " + tmpFile);
+        MediaAsset ma = null;
+        try {
+            URLAssetStore.fetchFileFromURL(fullUrl, tmpFile);
+            ma = UploadedFiles.makeMediaAsset(this.id, tmpFile, myShepherd);
+            ma.addLabel("matchInspectionHeatmap");
+            System.out.println("[INFO] createInspectionHeatmapAsset() fetched " + fullUrl +
+                " and created " + ma);
+            tmpFile.delete();
+        } catch (Exception ex) {
+            System.out.println(
+                "[ERROR] createInspectionHeatmapAsset() asset creation failed using " + fullUrl +
+                " => " + tmpFile + ": " + ex);
+            ex.printStackTrace();
+        }
+        return ma;
     }
 
     public JSONObject getTaskParameters() {

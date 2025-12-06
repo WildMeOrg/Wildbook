@@ -58,7 +58,7 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
         // skipping scoreType since this is currently only used filtered by scoreType already
         if (asset != null) {
             JSONObject aj = asset.toSimpleJSONObject();
-            aj.put("rotationInfo", asset.getRotationInfo());
+            aj.put("url", asset.webURL()); // we have no "safe" url
             rtn.put("asset", aj);
         }
         return rtn;
