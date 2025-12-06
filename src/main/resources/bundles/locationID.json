@@ -68,13 +68,16 @@
         {"name": "Caribbean Sea", "id": "Caribbean Sea", "locationID":[
           {"name": "Anguilla", "id": "Anguilla", "locationID": []},
           {"name": "Antigua", "id": "Antigua", "locationID": []},
+          {"name": "Aruba", "id": "Aruba", "locationID": []},
           {"name": "Bahamas", "id": "Bahamas", "locationID": [
             {"name": "Bahamas-GBB", "id": "Bahamas-GBB", "locationID": []},
             {"name": "Bahamas-LBB", "id": "Bahamas-LBB", "locationID": []}
           ]},
+          {"name": "Bonaire", "id": "Bonaire", "locationID": []},
           {"name": "Barbuda","id": "Barbuda", "locationID": []},
           {"name": "British Virgin Islands", "id": "British Virgin Islands", "locationID": []},
           {"name": "Bocas del Toro", "id": "Bocas del Toro", "geospatialInfo": {"lat":  9.223864, "long": -82.239131}, "locationID":[]},
+          {"name": "Curaçao", "id": "Curaçao", "locationID": []},
           {"name": "Dominica", "id": "Dominica", "locationID": []},
           {"name": "Grenada", "id": "Grenada", "locationID": []},
           {"name": "Guadeloupe", "id": "Guadeloupe", "locationID": []},
