@@ -3,6 +3,8 @@ package org.ecocean.ia.plugin;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -457,6 +459,15 @@ public class WildbookIAM extends IAPlugin {
             IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + envArchitecture);
             String urlString = iaConfig.getJson().getJSONObject(envArchitecture).getString("add_images");
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using add_images URL: " + urlString);
+            
+            // If envArchitecture starts with "new", append taxonomy as query params
+            if (envArchitecture != null && envArchitecture.startsWith("new")) {
+                urlString = appendTaxonomyQueryParams(urlString, taxy);
+                IA.log("INFO: WildbookIAM.apiGetJSONArray() appended taxonomy query params to URL");
+
+                return fetchAllWithPagination(urlString);
+            }
+            
             u = new URL(urlString);
         } else if (taxy != null && urlSuffix.equals("/api/annot/json/")) {
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using annotation API path for taxonomy: " + taxy.getScientificName());
@@ -466,6 +477,16 @@ public class WildbookIAM extends IAPlugin {
             IA.log("INFO: WildbookIAM.apiGetJSONArray() detected architecture: " + envArchitecture);
             String urlString = iaConfig.getJson().getJSONObject(envArchitecture).getString("add_annotations");
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using add_annotations URL: " + urlString);
+            
+            // If envArchitecture starts with "new", append taxonomy as query params and handle pagination
+            if (envArchitecture != null && envArchitecture.startsWith("new")) {
+                urlString = appendTaxonomyQueryParams(urlString, taxy);
+                IA.log("INFO: WildbookIAM.apiGetJSONArray() appended taxonomy query params to URL");
+                
+                // Fetch all data using pagination
+                return fetchAllWithPagination(urlString);
+            }
+            
             u = new URL(urlString);
         } else {
             IA.log("INFO: WildbookIAM.apiGetJSONArray() using default IBEISIA.iaURL() path");
@@ -484,6 +505,141 @@ public class WildbookIAM extends IAPlugin {
             return null;
         }
         return rtn.getJSONArray("response");
+    }
+
+    /**
+     * Fetches all data using pagination by making multiple requests and combining results.
+     * 
+     * @param baseUrlString The base URL string (may already have query params)
+     * @return JSONArray containing all results from all pages
+     */
+    private static JSONArray fetchAllWithPagination(String baseUrlString)
+            throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
+            InvalidKeyException {
+        JSONArray allResults = new JSONArray();
+        int limit = 500; // Default page size
+        int offset = 0;
+        boolean hasMore = true;
+        
+        IA.log("INFO: WildbookIAM.fetchAllWithPagination() starting pagination fetch");
+        
+        while (hasMore) {
+            // Build URL with pagination parameters
+            String urlString = addPaginationParams(baseUrlString, limit, offset);
+            URL u = new URL(urlString);
+            
+            IA.log("INFO: WildbookIAM.fetchAllWithPagination() fetching page: limit=" + limit + ", offset=" + offset);
+            IA.log("INFO: WildbookIAM.fetchAllWithPagination() URL: " + u);
+            
+            JSONObject rtn = RestClient.get(u);
+            
+            if ((rtn == null) || (rtn.optJSONObject("status") == null) ||
+                (rtn.optJSONArray("response") == null) ||
+                !rtn.getJSONObject("status").optBoolean("success", false)) {
+                IA.log("WARNING: WildbookIAM.fetchAllWithPagination() could not parse response at offset " + offset);
+                // If this is the first page, return null. Otherwise, return what we have.
+                if (offset == 0) {
+                    return null;
+                }
+                break;
+            }
+            
+            JSONArray pageResults = rtn.getJSONArray("response");
+            int pageSize = (pageResults != null) ? pageResults.length() : 0;
+            
+            IA.log("INFO: WildbookIAM.fetchAllWithPagination() page returned " + pageSize + " results");
+            
+            // Add results from this page to the combined array
+            if (pageResults != null && pageSize > 0) {
+                for (int i = 0; i < pageSize; i++) {
+                    allResults.put(pageResults.get(i));
+                }
+            }
+            
+            // If we got fewer results than the limit, we've reached the end
+            if (pageSize < limit) {
+                hasMore = false;
+                IA.log("INFO: WildbookIAM.fetchAllWithPagination() reached end of data (pageSize=" + pageSize + " < limit=" + limit + ")");
+            } else {
+                // Move to next page
+                offset += limit;
+            }
+        }
+        
+        IA.log("INFO: WildbookIAM.fetchAllWithPagination() completed. Total results: " + allResults.length());
+        return allResults;
+    }
+    
+    /**
+     * Adds pagination parameters (limit and offset) to a URL string.
+     * 
+     * @param urlString The base URL string
+     * @param limit The number of results per page
+     * @param offset The offset for pagination
+     * @return The URL string with pagination parameters appended
+     */
+    private static String addPaginationParams(String urlString, int limit, int offset) {
+        if (urlString == null) {
+            return urlString;
+        }
+        
+        try {
+            StringBuilder queryParams = new StringBuilder();
+            
+            // Add limit parameter
+            queryParams.append("limit=").append(limit);
+            
+            // Add offset parameter
+            if (offset > 0) {
+                queryParams.append("&offset=").append(offset);
+            }
+            
+            // Append query parameters to URL
+            String separator = urlString.contains("?") ? "&" : "?";
+            urlString = urlString + separator + queryParams.toString();
+            
+            return urlString;
+        } catch (Exception e) {
+            IA.log("ERROR: WildbookIAM.addPaginationParams() failed: " + e.getMessage());
+            e.printStackTrace();
+            return urlString; // Return original URL on error
+        }
+    }
+
+    /**
+     * Appends taxonomy information as query parameters to a URL string.
+     * 
+     * @param urlString The base URL string
+     * @param taxy The Taxonomy object containing species information
+     * @return The URL string with taxonomy query parameters appended
+     */
+    private static String appendTaxonomyQueryParams(String urlString, Taxonomy taxy) {
+        if (taxy == null || urlString == null) {
+            return urlString;
+        }
+        
+        try {
+            StringBuilder queryParams = new StringBuilder();
+            
+            // Add scientific name
+            if (taxy.getScientificName() != null) {
+                if (queryParams.length() > 0) queryParams.append("&");
+                queryParams.append("scientificName=")
+                          .append(URLEncoder.encode(taxy.getScientificName(), StandardCharsets.UTF_8.toString()));
+            }
+            
+            // Append query parameters to URL
+            if (queryParams.length() > 0) {
+                String separator = urlString.contains("?") ? "&" : "?";
+                urlString = urlString + separator + queryParams.toString();
+            }
+            
+            return urlString;
+        } catch (Exception e) {
+            IA.log("ERROR: WildbookIAM.appendTaxonomyQueryParams() failed: " + e.getMessage());
+            e.printStackTrace();
+            return urlString; // Return original URL on error
+        }
     }
 
     public static String fromFancyUUID(JSONObject u) {
