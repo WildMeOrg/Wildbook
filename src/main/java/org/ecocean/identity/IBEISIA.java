@@ -4905,11 +4905,21 @@ public class IBEISIA {
         // List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
         HashSet<String> iaImageIds = null;
         Util.mark("sendAnnotationsAsNeeded 2-hs ", tt);
+        
+        // Log total annotations count
+        IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() processing " + anns.size() + " total annotation(s)");
+        
         for (Annotation ann : anns) {
-            if (iaAnnotIds.contains(ann.getAcmId())) continue;
+            if (iaAnnotIds.contains(ann.getAcmId())) {
+                IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() skipping annotation - already exists in IA. Annotation ID: " + ann.getId() + ", acmId: " + ann.getAcmId());
+                continue;
+            }
             MediaAsset ma = ann.getMediaAsset();
-            if (ma == null) continue; // snh #bad
+            if (ma == null) {
+                continue;
+            }
             annsToSend.add(ann);
+            IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() adding annotation ID: " + ann.getId());
             // get iaImageIds only if we need it
             if (iaImageIds == null) {
                 IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() getting taxonomy for annotation ID: " + ann.getId());
@@ -4925,9 +4935,13 @@ public class IBEISIA {
             }
             if (iaImageIds.isEmpty())
                 throw new RuntimeException("iaImageIds is empty; possible IA problems");
-            if (iaImageIds.contains(ma.getAcmId())) continue;
+            if (iaImageIds.contains(ma.getAcmId())) {
+                continue;
+            }
             masToSend.add(ma);
+            IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() adding MediaAsset ID: " + ma.getId());
         }
+
         Util.mark("sendAnnotationsAsNeeded 3-hs ", tt);
         rtn.put("numAnnotsToSend", Util.collectionSize(annsToSend));
         rtn.put("numAssetsToSend", Util.collectionSize(masToSend));
