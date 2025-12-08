@@ -1849,6 +1849,15 @@ public class IBEISIA {
         if (task != null) {
             task.setStatus("completed");
             task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+            try {
+                MatchResult mr = new MatchResult(task, j, myShepherd);
+                System.out.println("processCallbackIdentify() created " + mr + " on " + task);
+                myShepherd.getPM().makePersistent(mr);
+            } catch (IOException ex) {
+                System.out.println("processCallbackIdentify() failed to create MatchResult on " +
+                    task + ": " + ex);
+                ex.printStackTrace();
+            }
         }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
