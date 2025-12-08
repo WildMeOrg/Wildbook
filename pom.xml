@@ -618,10 +618,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.1</version>
+        <version>3.11.0</version>
         <configuration>
           <source>17</source>      <!-- Use Java 17 language features -->
-          <target>11</target>      <!-- Generate Java 11 bytecode -->
+          <target>11</target>      <!-- Generate Java 11 bytecode - datanucleus 5.0 enhancer limitation -->
           <release>11</release>    <!-- Ensure Java 11 compatibility -->
           <encoding>UTF-8</encoding>
         </configuration>
@@ -779,9 +779,10 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
-        <version>3.3.2</version>
+        <version>3.4.0</version>
         <configuration>
           <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
         </configuration>
