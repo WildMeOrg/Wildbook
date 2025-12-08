@@ -8,12 +8,16 @@
   <packaging>war</packaging>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+    <java.version>17</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <datanucleus.version>4.2.0-release</datanucleus.version>
+
+    <datanucleus.version>5.2.10</datanucleus.version>
+    <datanucleus.jdo.version>5.2.8</datanucleus.jdo.version>
+    <datanucleus.jpa.version>5.2.8</datanucleus.jpa.version>
+    <javax.jdo.version>3.2.0-release</javax.jdo.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
+
     <geotools.version>23.0</geotools.version>
     <slf4j.version>1.7.12</slf4j.version>
     <junit.version>5.11.0</junit.version>
@@ -281,51 +285,68 @@
 
     <!--Start
     JDO and DataNucleus dependencies -->
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>javax.jdo</artifactId>
-      <version>3.2.0-m3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-core</artifactId>
-      <version>4.1.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-jdo</artifactId>
-      <version>${datanucleus.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-jdo-query</artifactId>
-      <version>4.2.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-rdbms</artifactId>
-      <version>4.1.11</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-jodatime</artifactId>
-      <version>4.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-rest</artifactId>
-      <version>4.2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-geospatial</artifactId>
-      <version>4.1.0-release</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-jpa</artifactId>
-      <version>4.1.7</version>
-    </dependency>
+      <!-- JDO API (update from 3.2.0-m3 to release) -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>javax.jdo</artifactId>
+        <version>${javax.jdo.version}</version>
+      </dependency>
+
+      <!-- Core DataNucleus -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-core</artifactId>
+        <version>${datanucleus.version}</version>
+      </dependency>
+
+      <!-- JDO API implementation -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-api-jdo</artifactId>
+        <version>${datanucleus.jdo.version}</version>
+      </dependency>
+
+      <!-- JDO Query -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-jdo-query</artifactId>
+        <version>5.0.3</version>
+      </dependency>
+
+      <!-- RDBMS Support -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-rdbms</artifactId>
+        <version>${datanucleus.version}</version>
+      </dependency>
+
+      <!-- JodaTime Support -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-jodatime</artifactId>
+        <version>5.2.0-release</version>
+      </dependency>
+
+      <!-- REST API -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-api-rest</artifactId>
+        <version>5.2.0-release</version>
+      </dependency>
+
+      <!-- Geospatial -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-geospatial</artifactId>
+        <version>5.2.0-release</version>
+      </dependency>
+
+      <!-- JPA API (if needed) -->
+      <dependency>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-api-jpa</artifactId>
+        <version>${datanucleus.jpa.version}</version>
+      </dependency>
 
     <dependency>
       <groupId>org.apache.sanselan</groupId>
@@ -588,7 +609,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
-        <version>${maven-release-plugin.version}</version>
+        <version>3.2.0</version>
         <configuration>
           <scmCommentPrefix>[ci skip]</scmCommentPrefix>
         </configuration>
@@ -597,12 +618,16 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.14.1</version>
+        <configuration>
+          <release>${java.version}</release>
+          <encoding>UTF-8</encoding>
+        </configuration>
       </plugin>
 
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.19</version>
+        <version>3.5.4</version>
         <dependencies>
             <dependency>
                 <groupId>org.junit.platform</groupId>
@@ -616,35 +641,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.2</version>
-        <configuration>
-          <executable>java</executable>
-          <arguments>
-            <argument>-classpath</argument>
-            <classpath />
-            <argument>org.datanucleus.enhancer.DataNucleusEnhancer</argument>
-            <argument>-v</argument>
-            <argument>target/classes/org/ecocean/package.jdo</argument>
-            <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
-            <argument>target/classes/org/ecocean/grid/package.jdo</argument>
-            <argument>target/classes/org/ecocean/cache/package.jdo</argument>
-            <argument>target/classes/org/ecocean/tag/package.jdo</argument>
-            <argument>target/classes/org/ecocean/media/package.jdo</argument>
-            <argument>target/classes/org/ecocean/identity/package.jdo</argument>
-            <argument>target/classes/org/ecocean/ia/package.jdo</argument>
-            <argument>target/classes/org/ecocean/servlet/importer/package.jdo</argument>
-            <argument>target/classes/org/ecocean/scheduled/package.jdo</argument>
-            <argument>target/classes/org/ecocean/social/package.jdo</argument>
-            <argument>target/classes/org/ecocean/movement/package.jdo</argument>
-          </arguments>
-        </configuration>
         <executions>
-          <execution>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-
           <execution>
             <id>Git Version Stamper</id>
             <phase>clean</phase>
@@ -666,6 +663,46 @@
               <executable>${basedir}/frontend/maven-build.sh</executable>
               <workingDirectory>${basedir}</workingDirectory>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-plugin</artifactId>
+        <version>5.2.1</version>
+        <configuration>
+          <api>JDO</api>
+          <verbose>true</verbose>
+          <fork>false</fork>
+          <!-- Automatically finds all .jdo files -->
+          <mappingIncludes>**/*.jdo</mappingIncludes>
+        </configuration>
+        <dependencies>
+          <!-- Plugin needs same versions as your runtime -->
+          <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>${datanucleus.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-api-jdo</artifactId>
+            <version>${datanucleus.jdo.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-rdbms</artifactId>
+            <version>${datanucleus.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>enhance-classes</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
