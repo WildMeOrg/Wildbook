@@ -57,6 +57,13 @@ public class MatchResult implements java.io.Serializable {
         this.createFromIdentityServiceLog(isLog, myShepherd);
     }
 
+    public MatchResult(Task task, JSONObject jsonResult, Shepherd myShepherd)
+    throws IOException {
+        this();
+        this.task = task;
+        this.createFromJsonResult(jsonResult, myShepherd);
+    }
+
     public int getNumberCandidates() {
         return numberCandidates;
     }
@@ -73,6 +80,13 @@ public class MatchResult implements java.io.Serializable {
                 isLog.getStatusJson());
             throw new IOException("could not get json result");
         }
+        createFromJsonResult(res, myShepherd);
+    }
+
+    // json_result section should be passed here
+    public void createFromJsonResult(JSONObject res, Shepherd myShepherd)
+    throws IOException {
+        if (res == null) throw new IOException("null json_result passed");
         if (res.optJSONArray("query_annot_uuid_list") == null)
             throw new IOException("no query annot list");
         if (res.getJSONArray("query_annot_uuid_list").length() < 1)
@@ -103,7 +117,7 @@ public class MatchResult implements java.io.Serializable {
         this.populateProspects("indiv", results.optJSONArray("dannot_uuid_list"),
             results.optJSONArray("score_list"), results.optJSONArray("dannot_extern_list"),
             results.optString("dannot_extern_reference", null), myShepherd);
-        System.out.println("[DEBUG] createFromIdentityServiceLog() created " + this);
+        System.out.println("[DEBUG] createFromJsonResult() created " + this);
     }
 
     // must initialize this.propsects first!!
