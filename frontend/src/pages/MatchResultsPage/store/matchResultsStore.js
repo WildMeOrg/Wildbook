@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 import { MAX_ROWS_PER_COLUMN } from "../constants";
-import { MOCK_DATA } from "../mockupdata";
+import { MOCK_DATA1, getAllAnnot, getAllIndiv } from "../mockupdata";
 
 
 export default class MatchResultsStore {
@@ -12,12 +12,13 @@ export default class MatchResultsStore {
   _evaluatedAt = "";
   _numResults = 12;
   _numCandidates = 0;
-  _thisEncounterImageUrl = "";      
-  _selectedMatchImageUrlByAlgo = new Map(); 
-  _algorithms = [];
+  _thisEncounterImageUrl = "";
+  _selectedMatchImageUrlByAlgo = new Map();
   _selectedMatch = [];
   _taskId = null;
   _newIndividualName = "";
+  _groupedAnnots = [];
+  _groupedIndivs = [];
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -25,28 +26,38 @@ export default class MatchResultsStore {
   }
 
   loadData(result) {
-    this._viewMode = MOCK_DATA.viewMode;
-    this._encounterId = MOCK_DATA.encounterId;
-    this._individualId = MOCK_DATA.individualId;
-    this._projectName = MOCK_DATA.projectName;
-    this._evaluatedAt = MOCK_DATA.evaluatedAt;
-    this._numResults = MOCK_DATA.numResults;
-    this._numCandidates = MOCK_DATA.numCandidates;
-    this._thisEncounterImageUrl = MOCK_DATA.thisEncounterImageUrl;
-    this._possibleMatchImageUrl = MOCK_DATA.possibleMatchImageUrl;
-    this._algorithms = MOCK_DATA.algorithms.map((algo) => ({
-      ...algo,
-      matches: algo.matches.map((m) => ({ ...m })),
-    }));
+    const annotResults = getAllAnnot(MOCK_DATA1.matchResultsRoot);
+    const indivResults = getAllIndiv(MOCK_DATA1.matchResultsRoot);
 
-    this._algorithms.forEach((algo) => {
-      if (algo.matches && algo.matches.length > 0) {
-        const firstMatchImage = algo.matches[0].imageUrl;
-        if (firstMatchImage) {
-          this._selectedMatchImageUrlByAlgo.set(algo.id, firstMatchImage);
+    this._encounterId = annotResults[0].queryEncounterId || indivResults[0].queryEncounterId;
+    this._individualId = annotResults[0].queryIndividualId || indivResults[0].queryIndividualId;
+    this._projectName = "test_project";
+    this._matchDate = annotResults[0].date || indivResults[0].date;
+    this._numCandidates = annotResults[0].numberCandidates || indivResults[0].numberCandidates;
+    this._thisEncounterImageUrl = annotResults[0].queryEncounterImageUrl || indivResults[0].queryEncounterImageUrl;
+    this._possibleMatchImageUrl = this.viewMode === "individual" ? annotResults[0].annotation?.asset?.url : indivResults[0].annotation?.asset?.url;
+
+    const groupByAlgorithm = (data) => {
+      const grouped = new Map();
+      data.forEach(item => {
+        const algorithm = item.algorithm;
+        if (!grouped.has(algorithm)) {
+          grouped.set(algorithm, []);
         }
-      }
-    });
+        grouped.get(algorithm).push(item);
+      });
+      return grouped;
+    };
+
+    this._groupedAnnots = groupByAlgorithm(annotResults);
+    this._groupedIndivs = groupByAlgorithm(indivResults);
+  }
+
+  get groupedAnnots(){
+    return this._groupedAnnots;
+  }
+  get groupedIndivs(){
+    return this._groupedIndivs;
   }
 
   get viewMode() {
@@ -89,10 +100,6 @@ export default class MatchResultsStore {
     this._selectedMatchImageUrlByAlgo.set(algorithmId, url);
   }
 
-  get algorithms() {
-    return this._algorithms;
-  }
-
   get newIndividualName() {
     return this._newIndividualName;
   }
@@ -105,12 +112,15 @@ export default class MatchResultsStore {
     this._taskId = id;
   }
 
-  async getMatchResults() {
+  async fetchMatchResults() {
     try {
-      const result = await axios.get();
+      const result = await axios.get(
+        `/api/v3/tasks/${this._taskId}/match-results?prospectsSize=1`
+      );
+      console.log("Match results fetched:", JSON.stringify(result.data));
       this.loadData(result);
     } catch (e) {
-      console.log();
+      console.log(e);
     }
   }
 
@@ -180,7 +190,7 @@ export default class MatchResultsStore {
   }
 
   organizeMatchesIntoColumns(matches) {
-    const totalMatches = matches.length;
+    const totalMatches = matches?.length || 0;
     if (totalMatches === 0) return [];
     const columns = [];
     for (let i = 0; i < totalMatches; i += MAX_ROWS_PER_COLUMN) {
@@ -195,3 +205,6 @@ export default class MatchResultsStore {
     return columns;
   }
 }
+
+
+

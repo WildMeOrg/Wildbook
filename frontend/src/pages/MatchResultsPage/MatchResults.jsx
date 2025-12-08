@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Container, Form, Modal } from "react-bootstrap";
@@ -6,11 +6,24 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import MatchResultsStore from "./store/matchResultsStore";
 import MatchProspectTable from "./MatchProspectTable";
 import MatchResultsBottomBar from "./MatchResultsBottomBar";
+import { useSearchParams } from "react-router-dom";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
   const store = useMemo(() => new MatchResultsStore(), []);
   const [instructionsVisible, setInstructionsVisible] = React.useState(false);
+  const [params] = useSearchParams();
+  const taskId = params.get("taskId");
+
+  // useEffect(() => {
+  //   if (taskId) {
+  //     store.setTaskId(taskId);
+  //     store.fetchMatchResults();
+  //   }
+  //   return () => {
+  //     // store.resetStore();
+  //   };
+  // }, [taskId]);
 
   return (
     <Container className="mt-3 mb-5">
@@ -127,29 +140,38 @@ const MatchResults = observer(() => {
         </div>
       </div>
 
-      {store.algorithms.map((algo) => {
-        const matchColumns = store.organizeMatchesIntoColumns(algo.matches);
-
-        return (
+      {store.viewMode === "individual" ? [...store.groupedIndivs].map(([algorithmName, data]) => (
+        <div key={algorithmName}>
           <MatchProspectTable
-            key={algo.id}
-            algorithmId={algo.id}  
-            label={algo.label}
-            matchColumns={matchColumns}
-            numCandidates={store.numCandidates}
-            evaluatedAt={store.evaluatedAt}
+            algorithm={algorithmName}
+            key={data[0].queryEncounterId}
+            numCandidates={data[0].numberCandidates}
+            date={data[0].date}
+            thisEncounterImageUrl={data[0].queryEncounterImageAsset?.url}
+            themeColor={themeColor}
+            candidates={data}
             selectedMatch={store.selectedMatch}
             onToggleSelected={(checked, encounterId, individualId) =>
               store.setSelectedMatch(checked, encounterId, individualId)
             }
-            onRowClick={(imageUrl) => store.setPreviewImageUrl(algo.id, imageUrl)}
-            thisEncounterImageUrl={store.thisEncounterImageUrl}
-            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algo.id)}  
-            themeColor={themeColor}
+            onRowClick={(imageUrl) => store.setPreviewImageUrl(algorithmName, imageUrl)}
+            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algorithmName)}  
           />
-        );
-      })}
+        </div>
+      )) : [...store.groupedAnnots].map(([algorithmName, data]) => (
+        <div key={algorithmName}>
+          <MatchProspectTable
+            algorithm={algorithmName}
+            key={data[0].queryEncounterId}
+            numCandidates={data[0].numberCandidates}
+            date={data[0].date}
+            thisEncounterImageUrl={data[0].queryEncounterImageAsset?.url}
+            themeColor={themeColor}
+            candidates={data}
 
+          />
+        </div>
+      ))}
       <MatchResultsBottomBar store={store} themeColor={themeColor} />
     </Container>
   );

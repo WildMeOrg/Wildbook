@@ -1,6 +1,5 @@
 import React from "react";
 import { Row, Col, Form } from "react-bootstrap";
-import { observer } from "mobx-react-lite";
 import ZoomInIcon from "./icons/ZoomInIcon";
 import ZoomOutIcon from "./icons/ZoomOutIcon";
 import Icon3 from "./icons/Icon3";
@@ -68,6 +67,7 @@ const styles = {
     padding: "2px 8px",
     borderRadius: "2px",
     fontSize: "0.75rem",
+    zIndex: 1000,
   }),
   toolsBarLeft: {
     position: "absolute",
@@ -107,20 +107,19 @@ const styles = {
 
 const MatchProspectTable =
   ({
-    label,
-    matchColumns,
+    label = "",
     numCandidates,
-    evaluatedAt,
+    date,
     selectedMatch,
-    onToggleSelected,
-    onRowClick,
+    onToggleSelected = {},
+    onRowClick = {},
     thisEncounterImageUrl,
     selectedMatchImageUrl,
     themeColor,
+    candidates,
+    algorithm,
   }) => {
-    const [previewedEncounterId, setPreviewedEncounterId] = React.useState(
-      matchColumns[0]?.[0]?.encounterId || null
-    );
+    const [previewedEncounterId, setPreviewedEncounterId] = React.useState();
     const [leftImageZoom, setLeftImageZoom] = React.useState(1);
     const [rightImageZoom, setRightImageZoom] = React.useState(1);
 
@@ -152,7 +151,7 @@ const MatchProspectTable =
     const [rightPanEnabled, setRightPanEnabled] = React.useState(false);
     const [leftPanPosition, setLeftPanPosition] = React.useState({ x: 0, y: 0 });
     const [rightPanPosition, setRightPanPosition] = React.useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = React.useState(null); 
+    const [isDragging, setIsDragging] = React.useState(null);
     const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
 
     const togglePanMode = (side) => {
@@ -228,69 +227,72 @@ const MatchProspectTable =
     };
 
     return (
-      <div className="pt-3 mb-4" style={{ borderTop: "1px solid #eee" }}>
+      <div className="mb-4">
         <div className="d-flex justify-content-between align-items-center mb-2">
-          <h5 className="mb-0">{label}</h5>
-          <div className="small text-muted d-flex align-items-center">
-            <span className="me-3">against {numCandidates} candidates</span>
-            <span>{evaluatedAt}</span>
+         
+          <div className="small text-muted d-flex align-items-between">
+            <div>{algorithm}</div>
+            <div 
+              style={{marginLeft:"auto"}}
+            >against {numCandidates} candidates <span>{date}</span></div>
+            
           </div>
         </div>
-
+       
         <div style={styles.matchListScrollContainer}>
           <div style={styles.matchListGrid}>
-            {matchColumns.map((column, columnIndex) => (
-              <div key={columnIndex} style={styles.matchColumn}>
-                {column.map((m) => {
-                  const isRowSelected = isSelected(m.encounterId);
-                  const isRowPreviewed = m.encounterId === previewedEncounterId;
+            {candidates.map((candidate, columnIndex) => {
+              const candidateEncounterId = candidate.annotation?.encounter?.id;
+              const candidateIndividualId = candidate.annotation?.individual?.id;
+              const candidateIndividualDisplayName = candidate.annotation?.individual?.displayName;
+              const candidateImageUrl = candidate.annotation?.asset?.url;
+              
+              const isRowSelected = isSelected(candidateEncounterId);
+              const isRowPreviewed = candidateEncounterId === previewedEncounterId;
+              return <div key={columnIndex} style={styles.matchColumn}>
+                <div
+                  key={candidateEncounterId}
+                  style={{
+                    ...styles.matchRow(isRowSelected, themeColor),
+                    cursor: "pointer",
+                    backgroundColor: isRowPreviewed
+                      ? themeColor.primaryColors.primary50
+                      : "transparent",
+                  }}
+                  onClick={() => handleRowClick(candidateEncounterId, candidateImageUrl)}
+                >
+                  {/* <span style={styles.matchRank}>{candidateEncounterId}.</span> */}
+                  <span style={styles.matchScore}>
+                    {candidate.score.toFixed(4)}
+                  </span>
 
-                  return (
-                    <div
-                      key={m.id}
-                      style={{
-                        ...styles.matchRow(isRowSelected, themeColor),
-                        cursor: "pointer",
-                        backgroundColor: isRowPreviewed
-                          ? themeColor.primaryColors.primary50
-                          : "transparent",
-                      }}
-                      onClick={() => handleRowClick(m.encounterId, m.imageUrl)}
-                    >
-                      <span style={styles.matchRank}>{m.id}.</span>
-                      <span style={styles.matchScore}>
-                        {m.score.toFixed(4)}
-                      </span>
+                  <button
+                    type="button"
+                    style={styles.idPill(themeColor)}
+                    className="btn btn-sm p-0 px-2"
+                  >
+                    {candidateIndividualDisplayName}
+                  </button>
 
-                      <button
-                        type="button"
-                        style={styles.idPill(themeColor)}
-                        className="btn btn-sm p-0 px-2"
-                      >
-                        {m.individualId}
-                      </button>
-
-                      <div
-                        className="ms-auto"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Form.Check
-                          type="checkbox"
-                          checked={isRowSelected}
-                          onChange={(e) =>
-                            onToggleSelected(
-                              e.target.checked,
-                              m.encounterId,
-                              m.individualId,
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                  <div
+                    className="ms-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Form.Check
+                      type="checkbox"
+                      checked={isRowSelected}
+                      onChange={(e) =>
+                        onToggleSelected(
+                          e.target.checked,
+                          candidateEncounterId,
+                          candidateIndividualDisplayName,
+                        )
+                      }
+                    />
+                  </div>
+                </div>
               </div>
-            ))}
+            })}
           </div>
         </div>
 
