@@ -117,6 +117,10 @@ public class OpenSearch {
 
         /////final OpenSearchTransport transport = builder.build();
         ///final RestClient restClient = RestClient.builder(host).build();
+        initializeClient(host);
+    }
+
+    public static void initializeClient(HttpHost host) {
         restClient = RestClient.builder(host).build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
@@ -140,28 +144,7 @@ public class OpenSearch {
         final ScheduledFuture schedFutureIndexing = schedExec.scheduleWithFixedDelay(
             new Runnable() {
                 public void run() {
-                    Shepherd myShepherd = new Shepherd(context);
-                    myShepherd.setAction("OpenSearch.backgroundIndexing");
-                    try {
-                        myShepherd.beginDBTransaction();
-                        System.out.println("OpenSearch background indexing running...");
-                        Base.opensearchSyncIndex(myShepherd, Encounter.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, Annotation.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, Occurrence.class,
-                        BACKGROUND_SLICE_SIZE);
-                        Base.opensearchSyncIndex(myShepherd, MediaAsset.class,
-                        BACKGROUND_SLICE_SIZE);
-                        System.out.println("OpenSearch background indexing finished.");
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    } finally {
-                        myShepherd.rollbackAndClose();
-                        unsetActiveIndexingBackground();
-                    }
+                    updateEncounterIndexes(context);
                 }
             }, 2, // initial delay
             BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
@@ -169,19 +152,7 @@ public class OpenSearch {
         final ScheduledFuture schedFuturePermissions = schedExec.scheduleWithFixedDelay(
             new Runnable() {
                 public void run() {
-                    Shepherd myShepherd = new Shepherd(context);
-                    myShepherd.setAction("OpenSearch.backgroundPermissions");
-                    try {
-                        myShepherd.beginDBTransaction();
-                        System.out.println("OpenSearch background permissions running...");
-                        Encounter.opensearchIndexPermissionsBackground(myShepherd);
-                        System.out.println("OpenSearch background permissions finished.");
-                        myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
-                        myShepherd.closeDBTransaction();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        myShepherd.rollbackAndClose();
-                    }
+                    updatePermissionsIndex(context);
                 }
             }, 8, // initial delay
             BACKGROUND_PERMISSIONS_MINUTES, TimeUnit.MINUTES); // unit of delays above
@@ -193,6 +164,44 @@ public class OpenSearch {
                 ") interrupted: " + ex.toString());
         }
         System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
+    }
+
+    private static void updatePermissionsIndex(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+
+        myShepherd.setAction("OpenSearch.backgroundPermissions");
+        try {
+            myShepherd.beginDBTransaction();
+            System.out.println("OpenSearch background permissions running...");
+            Encounter.opensearchIndexPermissionsBackground(myShepherd);
+            System.out.println("OpenSearch background permissions finished.");
+            myShepherd.commitDBTransaction(); // need commit since we might have changed SystemValues
+            myShepherd.closeDBTransaction();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            myShepherd.rollbackAndClose();
+        }
+    }
+
+    public static void updateEncounterIndexes(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+
+        myShepherd.setAction("OpenSearch.backgroundIndexing");
+        try {
+            myShepherd.beginDBTransaction();
+            System.out.println("OpenSearch background indexing running...");
+            Base.opensearchSyncIndex(myShepherd, Encounter.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, Annotation.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, MarkedIndividual.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, Occurrence.class, BACKGROUND_SLICE_SIZE);
+            Base.opensearchSyncIndex(myShepherd, MediaAsset.class, BACKGROUND_SLICE_SIZE);
+            System.out.println("OpenSearch background indexing finished.");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            myShepherd.rollbackAndClose();
+            unsetActiveIndexingBackground();
+        }
     }
 
     public void createIndex(String indexName, JSONObject mapping)
