@@ -620,7 +620,9 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.14.1</version>
         <configuration>
-          <release>${java.version}</release>
+          <source>17</source>      <!-- Use Java 17 language features -->
+          <target>11</target>      <!-- Generate Java 11 bytecode -->
+          <release>11</release>    <!-- Ensure Java 11 compatibility -->
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
@@ -674,11 +676,18 @@
         <configuration>
           <api>JDO</api>
           <verbose>true</verbose>
-          <fork>false</fork>
-          <!-- Automatically finds all .jdo files -->
+          <fork>true</fork>
           <mappingIncludes>**/*.jdo</mappingIncludes>
+          <jdkToolchain>
+            <version>17</version>
+          </jdkToolchain>
         </configuration>
         <dependencies>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>8.0.1</version>
+          </dependency>
           <!-- Plugin needs same versions as your runtime -->
           <dependency>
             <groupId>org.datanucleus</groupId>
