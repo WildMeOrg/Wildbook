@@ -107,21 +107,26 @@ const styles = {
 
 const MatchProspectTable =
   ({
-    label = "",
+    key,
     numCandidates,
     date,
     selectedMatch,
     onToggleSelected = {},
-    onRowClick = {},
     thisEncounterImageUrl,
-    selectedMatchImageUrl,
     themeColor,
     candidates,
     algorithm,
   }) => {
-    const [previewedEncounterId, setPreviewedEncounterId] = React.useState();
+    const [previewedEncounterId, setPreviewedEncounterId] = React.useState(candidates[0].annotation?.encounter.id);
+    const [selectedMatchImageUrl, setSelectedMatchImageUrl] = React.useState(candidates[0].annotation?.asset.url);
     const [leftImageZoom, setLeftImageZoom] = React.useState(1);
     const [rightImageZoom, setRightImageZoom] = React.useState(1);
+    const [leftPanEnabled, setLeftPanEnabled] = React.useState(false);
+    const [rightPanEnabled, setRightPanEnabled] = React.useState(false);
+    const [leftPanPosition, setLeftPanPosition] = React.useState({ x: 0, y: 0 });
+    const [rightPanPosition, setRightPanPosition] = React.useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = React.useState(null);
+    const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
 
     const handleZoomIn = (side) => {
       if (side === "left") {
@@ -146,13 +151,6 @@ const MatchProspectTable =
         setRightImageZoom(1);
       }
     };
-
-    const [leftPanEnabled, setLeftPanEnabled] = React.useState(false);
-    const [rightPanEnabled, setRightPanEnabled] = React.useState(false);
-    const [leftPanPosition, setLeftPanPosition] = React.useState({ x: 0, y: 0 });
-    const [rightPanPosition, setRightPanPosition] = React.useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = React.useState(null);
-    const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
 
     const togglePanMode = (side) => {
       if (side === "left") {
@@ -207,6 +205,11 @@ const MatchProspectTable =
       setIsDragging(null);
     };
 
+    const handleRowClick = (encounterId, imageUrl) => {
+      setPreviewedEncounterId(encounterId);
+      setSelectedMatchImageUrl(imageUrl);
+    };
+
     React.useEffect(() => {
       if (isDragging) {
         window.addEventListener("mousemove", handleMouseMove);
@@ -221,24 +224,17 @@ const MatchProspectTable =
     const isSelected = (encounterId) =>
       selectedMatch?.some((d) => d.encounterId === encounterId);
 
-    const handleRowClick = (encounterId, imageUrl) => {
-      setPreviewedEncounterId(encounterId);
-      onRowClick(imageUrl);
-    };
-
     return (
-      <div className="mb-4">
+      <div className="mb-4" id={`${key}-${algorithm}`}>
         <div className="d-flex justify-content-between align-items-center mb-2">
-         
-          <div className="small text-muted d-flex align-items-between">
+          <div className="small text-muted d-flex">
             <div>{algorithm}</div>
-            <div 
-              style={{marginLeft:"auto"}}
+            <div
+              style={{ marginLeft: "auto" }}
             >against {numCandidates} candidates <span>{date}</span></div>
-            
           </div>
         </div>
-       
+
         <div style={styles.matchListScrollContainer}>
           <div style={styles.matchListGrid}>
             {candidates.map((candidate, columnIndex) => {
@@ -246,7 +242,6 @@ const MatchProspectTable =
               const candidateIndividualId = candidate.annotation?.individual?.id;
               const candidateIndividualDisplayName = candidate.annotation?.individual?.displayName;
               const candidateImageUrl = candidate.annotation?.asset?.url;
-              
               const isRowSelected = isSelected(candidateEncounterId);
               const isRowPreviewed = candidateEncounterId === previewedEncounterId;
               return <div key={columnIndex} style={styles.matchColumn}>
@@ -261,11 +256,9 @@ const MatchProspectTable =
                   }}
                   onClick={() => handleRowClick(candidateEncounterId, candidateImageUrl)}
                 >
-                  {/* <span style={styles.matchRank}>{candidateEncounterId}.</span> */}
                   <span style={styles.matchScore}>
                     {candidate.score.toFixed(4)}
                   </span>
-
                   <button
                     type="button"
                     style={styles.idPill(themeColor)}
@@ -273,7 +266,6 @@ const MatchProspectTable =
                   >
                     {candidateIndividualDisplayName}
                   </button>
-
                   <div
                     className="ms-auto"
                     onClick={(e) => e.stopPropagation()}

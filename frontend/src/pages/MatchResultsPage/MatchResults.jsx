@@ -15,15 +15,19 @@ const MatchResults = observer(() => {
   const [params] = useSearchParams();
   const taskId = params.get("taskId");
 
-  // useEffect(() => {
-  //   if (taskId) {
-  //     store.setTaskId(taskId);
-  //     store.fetchMatchResults();
-  //   }
-  //   return () => {
-  //     // store.resetStore();
-  //   };
-  // }, [taskId]);
+  useEffect(() => {
+    if (taskId) {
+      store.setTaskId(taskId);
+      store.fetchMatchResults();
+    }
+    return () => {
+      // store.resetStore();
+    };
+  }, [taskId]);
+
+  if (store.loading) {
+    return <p>Loading</p>
+  }
 
   return (
     <Container className="mt-3 mb-5">
@@ -119,7 +123,10 @@ const MatchResults = observer(() => {
               size="sm"
               min="1"
               value={store.numResults}
-              onChange={(e) => store.setNumResults(Number(e.target.value))}
+              onChange={(e) => {
+                store.setNumResults(Number(e.target.value));
+                store.fetchMatchResults();
+              }}
               style={{ width: "80px" }}
             />
           </Form.Group>
@@ -143,8 +150,8 @@ const MatchResults = observer(() => {
       {store.viewMode === "individual" ? [...store.groupedIndivs].map(([algorithmName, data]) => (
         <div key={algorithmName}>
           <MatchProspectTable
+            key={store.viewMode}
             algorithm={algorithmName}
-            key={data[0].queryEncounterId}
             numCandidates={data[0].numberCandidates}
             date={data[0].date}
             thisEncounterImageUrl={data[0].queryEncounterImageAsset?.url}
@@ -155,20 +162,25 @@ const MatchResults = observer(() => {
               store.setSelectedMatch(checked, encounterId, individualId)
             }
             onRowClick={(imageUrl) => store.setPreviewImageUrl(algorithmName, imageUrl)}
-            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algorithmName)}  
+            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algorithmName)}
           />
         </div>
       )) : [...store.groupedAnnots].map(([algorithmName, data]) => (
         <div key={algorithmName}>
           <MatchProspectTable
+            key={store.viewMode}
             algorithm={algorithmName}
-            key={data[0].queryEncounterId}
             numCandidates={data[0].numberCandidates}
             date={data[0].date}
             thisEncounterImageUrl={data[0].queryEncounterImageAsset?.url}
             themeColor={themeColor}
             candidates={data}
-
+            selectedMatch={store.selectedMatch}
+            onToggleSelected={(checked, encounterId, individualId) =>
+              store.setSelectedMatch(checked, encounterId, individualId)
+            }
+            onRowClick={(imageUrl) => store.setPreviewImageUrl(algorithmName, imageUrl)}
+            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algorithmName)}
           />
         </div>
       ))}

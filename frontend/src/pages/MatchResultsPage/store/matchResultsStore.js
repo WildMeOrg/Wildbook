@@ -9,8 +9,7 @@ export default class MatchResultsStore {
   _encounterId = "";
   _individualId = null;
   _projectName = "";
-  _evaluatedAt = "";
-  _numResults = 12;
+  _numResults = 2;
   _numCandidates = 0;
   _thisEncounterImageUrl = "";
   _selectedMatchImageUrlByAlgo = new Map();
@@ -19,19 +18,22 @@ export default class MatchResultsStore {
   _newIndividualName = "";
   _groupedAnnots = [];
   _groupedIndivs = [];
+  _loading = true;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
-    this.loadData();
+    // this.loadData();
   }
 
   loadData(result) {
-    const annotResults = getAllAnnot(MOCK_DATA1.matchResultsRoot);
-    const indivResults = getAllIndiv(MOCK_DATA1.matchResultsRoot);
+    const annotResults1 = getAllAnnot(MOCK_DATA1.matchResultsRoot);
+    const indivResults1 = getAllIndiv(MOCK_DATA1.matchResultsRoot);
+
+    const annotResults = getAllAnnot(result.matchResultsRoot);
+    const indivResults = getAllIndiv(result.matchResultsRoot);
 
     this._encounterId = annotResults[0].queryEncounterId || indivResults[0].queryEncounterId;
     this._individualId = annotResults[0].queryIndividualId || indivResults[0].queryIndividualId;
-    this._projectName = "test_project";
     this._matchDate = annotResults[0].date || indivResults[0].date;
     this._numCandidates = annotResults[0].numberCandidates || indivResults[0].numberCandidates;
     this._thisEncounterImageUrl = annotResults[0].queryEncounterImageUrl || indivResults[0].queryEncounterImageUrl;
@@ -76,10 +78,6 @@ export default class MatchResultsStore {
     return this._projectName;
   }
 
-  get evaluatedAt() {
-    return this._evaluatedAt;
-  }
-
   get numResults() {
     return this._numResults;
   }
@@ -90,6 +88,14 @@ export default class MatchResultsStore {
 
   get thisEncounterImageUrl() {
     return this._thisEncounterImageUrl;
+  }
+
+  get loading(){
+    return this._loading;
+  }
+
+  setLoading(loading) {
+    this._loading = loading;
   }
 
   getSelectedMatchImageUrl(algorithmId) {
@@ -113,14 +119,16 @@ export default class MatchResultsStore {
   }
 
   async fetchMatchResults() {
+    this.setLoading(true);
     try {
       const result = await axios.get(
-        `/api/v3/tasks/${this._taskId}/match-results?prospectsSize=1`
+        `/api/v3/tasks/${this._taskId}/match-results?prospectsSize=${this.numResults}`
       );
-      console.log("Match results fetched:", JSON.stringify(result.data));
-      this.loadData(result);
+      this.loadData(result.data);
     } catch (e) {
-      console.log(e);
+      console.error(e);
+    } finally{
+      this.setLoading(false);
     }
   }
 
