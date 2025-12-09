@@ -4900,7 +4900,6 @@ public class IBEISIA {
         }
         if (iaAnnotIds.isEmpty())
             throw new RuntimeException("iaAnnotIds is empty; possible IA problems");
-        IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() iaAnnotIds size: " + iaAnnotIds.size() + ", IDs: " + iaAnnotIds);
         Util.mark("sendAnnotationsAsNeeded 1 ", tt);
         ArrayList<MediaAsset> masToSend = new ArrayList<MediaAsset>();
         // List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
@@ -4932,7 +4931,6 @@ public class IBEISIA {
                     IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() found taxonomy: " + taxy.getScientificName() + " (ID: " + taxy.getId() + ") for annotation ID: " + ann.getId());
                 }
                 iaImageIds = new HashSet(plugin.iaImageIds(taxy));
-                IA.log("INFO: IBEISIA.sendAnnotationsAsNeeded() iaImageIds size: " + iaImageIds.size() + ", IDs: " + iaImageIds);
             }
             if (iaImageIds.isEmpty())
                 throw new RuntimeException("iaImageIds is empty; possible IA problems");
