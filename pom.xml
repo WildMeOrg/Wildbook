@@ -133,6 +133,7 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- todo:  align versions of shiro. -->
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-core</artifactId>
@@ -369,7 +370,7 @@
     </dependency>
 
     <!-- Amazon support for sharkGrid -->
-    <!-- deprecate EC2RequestThread ?? -->
+    <!-- todo:  deprecate EC2RequestThread and any other AWS uses -->
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-ec2</artifactId>
@@ -471,6 +472,14 @@
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
+
+    <!-- todo:  deprecate and remove TwitterBot, TwitterUtils, etc -->
+    <dependency>
+      <groupId>org.twitter4j</groupId>
+      <artifactId>twitter4j-core</artifactId>
+      <version>4.0.7</version>
+    </dependency>
+
 
     <!-- START QR code generating dependencies-->
     <dependency>
@@ -684,10 +693,6 @@
           <api>JDO</api>
           <verbose>true</verbose>
           <fork>true</fork>
-          <mappingIncludes>**/*.jdo</mappingIncludes>
-          <jdkToolchain>
-            <version>17</version>
-          </jdkToolchain>
         </configuration>
         <dependencies>
           <dependency>
@@ -746,27 +751,28 @@
       <plugin>
         <groupId>org.codehaus.cargo</groupId>
         <artifactId>cargo-maven3-plugin</artifactId>
-        <version>1.10.9</version>
+        <version>1.10.25</version> <configuration>
+        <container>
+          <containerId>tomcat9x</containerId>
+          <artifactInstaller>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat</artifactId>
+            <version>9.0.83</version> </artifactInstaller>
+        </container>
         <configuration>
-          <container>
-            <containerId>tomcat9x</containerId>
-            <artifactInstaller>
-              <groupId>org.apache.tomcat</groupId>
-              <artifactId>tomcat</artifactId>
-              <version>9.0.83</version> </artifactInstaller>
-          </container>
-          <configuration>
-            <properties>
-              <cargo.servlet.port>8080</cargo.servlet.port>
-              <cargo.servlet.port>8080</cargo.servlet.port>
-              <cargo.start.jvmargs>
-                -Xmx4g -Djava.awt.headless=true
-                --add-opens java.base/java.lang=ALL-UNNAMED
-                --add-opens java.base/java.util=ALL-UNNAMED
-              </cargo.start.jvmargs>
-            </properties>
-          </configuration>
+          <properties>
+            <cargo.servlet.port>8080</cargo.servlet.port>
+            <cargo.start.jvmargs>
+              -Xmx4g
+              -Djava.awt.headless=true
+              --add-opens java.base/java.lang=ALL-UNNAMED
+              --add-opens java.base/java.util=ALL-UNNAMED
+              --add-opens java.base/java.io=ALL-UNNAMED
+              --add-opens java.base/java.time=ALL-UNNAMED
+            </cargo.start.jvmargs>
+          </properties>
         </configuration>
+      </configuration>
       </plugin>
 
       <plugin>
