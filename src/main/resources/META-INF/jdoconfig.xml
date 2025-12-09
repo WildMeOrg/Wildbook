@@ -18,7 +18,8 @@
            
         <property name="datanucleus.ConnectionPassword" value="shepherd"/>
 
-       	<property name="datanucleus.autoCreateSchema" value="true"/>
+       	<!-- todo:  update to datanucleus.schema.autoCreateAll or preferred setting -->
+        <property name="datanucleus.autoCreateSchema" value="true"/>
          
         <property name="datanucleus.NontransactionalRead" value="true"/>
         
