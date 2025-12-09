@@ -225,6 +225,7 @@ public class WildbookIAM extends IAPlugin {
                     JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
                     System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
                     List<String> acmIds = acmIdsFromResponse(rtn);
+                    IA.log("INFO: WildbookIAM.sendMediaAssets() acmIds from response: " + acmIds);
                     if (acmIds == null) {
                         IA.log(
                             "WARNING: WildbookIAM.sendMediaAssets() could not get list of acmIds from response: "

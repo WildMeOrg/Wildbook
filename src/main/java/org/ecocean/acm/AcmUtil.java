@@ -13,7 +13,15 @@ public class AcmUtil {
     // if we could get AcmBase to work (grrr) we could generalize this
     public static int rectifyMediaAssetIds(List<MediaAsset> mas, List<String> acmIds) {
         if ((mas == null) || (acmIds == null) || (mas.size() != acmIds.size())) {
-            IA.log("ERROR: AcmUtil.rectifyMediaAssetIds() has invalid lists passed; failing");
+            StringBuilder errorMsg = new StringBuilder("ERROR: AcmUtil.rectifyMediaAssetIds() has invalid lists passed; failing - ");
+            if (mas == null) {
+                errorMsg.append("mas is null");
+            } else if (acmIds == null) {
+                errorMsg.append("acmIds is null");
+            } else {
+                errorMsg.append("size mismatch: mas.size()=").append(mas.size()).append(", acmIds.size()=").append(acmIds.size());
+            }
+            IA.log(errorMsg.toString());
             return -1;
         }
         int numChanged = 0;
