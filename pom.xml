@@ -113,16 +113,23 @@
     </dependency>
 
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>7.0</version>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>4.0.1</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>javax.servlet.jsp-api</artifactId>
+      <version>2.3.3</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>8.0.1</version>
       <scope>provided</scope>
     </dependency>
 
@@ -171,7 +178,7 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.4</version>
+      <version>1.16.1</version>
     </dependency>
 
     <dependency>
@@ -231,7 +238,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>1.3.3</version>
+      <version>1.5</version>
     </dependency>
 
     <dependency>
@@ -334,12 +341,13 @@
         <version>5.2.0-release</version>
       </dependency>
 
-      <!-- Geospatial -->
-      <dependency>
-        <groupId>org.datanucleus</groupId>
-        <artifactId>datanucleus-geospatial</artifactId>
-        <version>5.2.0-release</version>
-      </dependency>
+    <!-- Deprecated -->
+<!--      &lt;!&ndash; Geospatial &ndash;&gt;-->
+<!--      <dependency>-->
+<!--        <groupId>org.datanucleus</groupId>-->
+<!--        <artifactId>datanucleus-geospatial</artifactId>-->
+<!--        <version>5.2.0-release</version>-->
+<!--      </dependency>-->
 
       <!-- JPA API (if needed) -->
       <dependency>
@@ -361,6 +369,7 @@
     </dependency>
 
     <!-- Amazon support for sharkGrid -->
+    <!-- deprecate EC2RequestThread ?? -->
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-ec2</artifactId>
@@ -462,18 +471,6 @@
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.twitter4j</groupId>
-      <artifactId>twitter4j-core</artifactId>
-      <version>4.0.7</version>
-    </dependency>
-
 
     <!-- START QR code generating dependencies-->
     <dependency>
@@ -698,7 +695,7 @@
             <artifactId>asm</artifactId>
             <version>8.0.1</version>
           </dependency>
-          <!-- Plugin needs same versions as your runtime -->
+          <!-- Plugin needs same versions as runtime -->
           <dependency>
             <groupId>org.datanucleus</groupId>
             <artifactId>datanucleus-core</artifactId>
@@ -747,14 +744,28 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.tomcat.maven</groupId>
-        <artifactId>tomcat7-maven-plugin</artifactId>
-        <version>2.2</version>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven3-plugin</artifactId>
+        <version>1.10.9</version>
         <configuration>
-          <url>http://localhost:8080/manager/text</url>
-          <server>TomcatServer</server>
-          <username>admin</username>
-          <password></password>
+          <container>
+            <containerId>tomcat9x</containerId>
+            <artifactInstaller>
+              <groupId>org.apache.tomcat</groupId>
+              <artifactId>tomcat</artifactId>
+              <version>9.0.83</version> </artifactInstaller>
+          </container>
+          <configuration>
+            <properties>
+              <cargo.servlet.port>8080</cargo.servlet.port>
+              <cargo.servlet.port>8080</cargo.servlet.port>
+              <cargo.start.jvmargs>
+                -Xmx4g -Djava.awt.headless=true
+                --add-opens java.base/java.lang=ALL-UNNAMED
+                --add-opens java.base/java.util=ALL-UNNAMED
+              </cargo.start.jvmargs>
+            </properties>
+          </configuration>
         </configuration>
       </plugin>
 
