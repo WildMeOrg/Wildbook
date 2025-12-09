@@ -16,13 +16,12 @@ export default class MatchResultsStore {
   _selectedMatch = [];
   _taskId = null;
   _newIndividualName = "";
-  _groupedAnnots = [];
-  _groupedIndivs = [];
+  _rawAnnots = [];  
+  _rawIndivs = []; 
   _loading = true;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
-    // this.loadData();
   }
 
   loadData(result) {
@@ -39,27 +38,63 @@ export default class MatchResultsStore {
     this._thisEncounterImageUrl = annotResults[0].queryEncounterImageUrl || indivResults[0].queryEncounterImageUrl;
     this._possibleMatchImageUrl = this.viewMode === "individual" ? annotResults[0].annotation?.asset?.url : indivResults[0].annotation?.asset?.url;
 
-    const groupByAlgorithm = (data) => {
-      const grouped = new Map();
-      data.forEach(item => {
-        const algorithm = item.algorithm;
-        if (!grouped.has(algorithm)) {
-          grouped.set(algorithm, []);
+    this._rawAnnots = annotResults;
+    this._rawIndivs = indivResults;    
+  }
+
+  _processData(rawData) {
+    // 1.filter by project name if set
+    const filtered = this._projectName 
+      ? rawData.filter(item => item.projectName === this._projectName)
+      : rawData;
+
+    // 2. group by algorithm
+    const grouped = new Map();
+    filtered.forEach(item => {
+      const algorithm = item.algorithm;
+      if (!grouped.has(algorithm)) {
+        grouped.set(algorithm, []);
+      }
+      grouped.get(algorithm).push(item);
+    });
+
+    // 3. organize into columns
+    const organized = new Map();
+    for (const [algorithm, data] of grouped) {
+      const columns = [];
+      for (let i = 0; i < data.length; i += MAX_ROWS_PER_COLUMN) {
+        const columnData = data
+          .slice(i, i + MAX_ROWS_PER_COLUMN)
+          .map((match, index) => ({
+            ...match,
+            displayIndex: i + index + 1,  
+          }));
+        columns.push(columnData);
+      }
+      organized.set(algorithm, {
+        columns,
+        metadata: {
+          numCandidates: data[0].numberCandidates,
+          date: data[0].date,
+          queryImageUrl: data[0].queryEncounterImageAsset?.url,
         }
-        grouped.get(algorithm).push(item);
       });
-      return grouped;
-    };
-
-    this._groupedAnnots = groupByAlgorithm(annotResults);
-    this._groupedIndivs = groupByAlgorithm(indivResults);
+    }
+    return organized;
   }
 
-  get groupedAnnots(){
-    return this._groupedAnnots;
+  get processedAnnots() {
+    return this._processData(this._rawAnnots);
   }
-  get groupedIndivs(){
-    return this._groupedIndivs;
+
+  get processedIndivs() {
+    return this._processData(this._rawIndivs);
+  }
+
+  get currentViewData() {
+    return this._viewMode === "individual" 
+      ? this.processedIndivs 
+      : this.processedAnnots;
   }
 
   get viewMode() {
@@ -90,20 +125,12 @@ export default class MatchResultsStore {
     return this._thisEncounterImageUrl;
   }
 
-  get loading(){
+  get loading() {
     return this._loading;
   }
 
   setLoading(loading) {
     this._loading = loading;
-  }
-
-  getSelectedMatchImageUrl(algorithmId) {
-    return this._selectedMatchImageUrlByAlgo.get(algorithmId) || "";
-  }
-
-  setPreviewImageUrl(algorithmId, url) {
-    this._selectedMatchImageUrlByAlgo.set(algorithmId, url);
   }
 
   get newIndividualName() {
@@ -127,7 +154,7 @@ export default class MatchResultsStore {
       this.loadData(result.data);
     } catch (e) {
       console.error(e);
-    } finally{
+    } finally {
       this.setLoading(false);
     }
   }
@@ -197,20 +224,20 @@ export default class MatchResultsStore {
     }
   }
 
-  organizeMatchesIntoColumns(matches) {
-    const totalMatches = matches?.length || 0;
-    if (totalMatches === 0) return [];
-    const columns = [];
-    for (let i = 0; i < totalMatches; i += MAX_ROWS_PER_COLUMN) {
-      const columnData = matches
-        .slice(i, i + MAX_ROWS_PER_COLUMN)
-        .map((match, index) => ({
-          ...match,
-          id: i + index + 1,
-        }));
-      columns.push(columnData);
+  get organizedAnnotColumns() {
+    const organized = new Map();
+    for (const [algorithm, data] of this.filteredGroupedAnnots) {
+      organized.set(algorithm, this.organizeMatchesIntoColumns(data));
     }
-    return columns;
+    return organized;
+  }
+
+  get organizedIndivColumns() {
+    const organized = new Map();
+    for (const [algorithm, data] of this.filteredGroupedIndivs) {
+      organized.set(algorithm, this.organizeMatchesIntoColumns(data));
+    }
+    return organized;
   }
 }
 
