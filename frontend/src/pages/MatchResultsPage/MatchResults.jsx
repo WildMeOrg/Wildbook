@@ -7,6 +7,7 @@ import MatchResultsStore from "./store/matchResultsStore";
 import MatchProspectTable from "./MatchProspectTable";
 import MatchResultsBottomBar from "./MatchResultsBottomBar";
 import { useSearchParams } from "react-router-dom";
+import { useSiteSettings } from "../../SiteSettingsContext";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -14,6 +15,7 @@ const MatchResults = observer(() => {
   const [instructionsVisible, setInstructionsVisible] = React.useState(false);
   const [params] = useSearchParams();
   const taskId = params.get("taskId");
+  const { projectsForUser = {} } = useSiteSettings() || {};
 
   useEffect(() => {
     if (taskId) {
@@ -125,7 +127,11 @@ const MatchResults = observer(() => {
               value={store.numResults}
               onChange={(e) => {
                 store.setNumResults(Number(e.target.value));
-                store.fetchMatchResults();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  store.fetchMatchResults();
+                }
               }}
               style={{ width: "80px" }}
             />
@@ -138,49 +144,39 @@ const MatchResults = observer(() => {
             <Form.Select
               size="sm"
               value={store.projectName}
-              onChange={(e) => store.setProjectName(e.target.value)}
+              onChange={(e) => {
+                store.setProjectName(e.target.value);
+
+              }}
               style={{ minWidth: "220px" }}
             >
-              <option value={store.projectName}>{store.projectName}</option>
+              <option value="">
+                <FormattedMessage id="SELECT_A_PROJECT" />
+              </option>
+              {Object.entries(projectsForUser).map(([key, value]) => (
+                <option key={key} value={key}>
+                  {value}
+                </option>
+              ))}
             </Form.Select>
           </Form.Group>
         </div>
       </div>
 
-      {store.viewMode === "individual" ? [...store.groupedIndivs].map(([algorithmName, data]) => (
+      {[...store.currentViewData].map(([algorithmName, { columns, metadata }]) => (
         <div key={algorithmName}>
           <MatchProspectTable
-            key={store.viewMode}
+            key={`${store.viewMode}-${algorithmName}`}
             algorithm={algorithmName}
-            numCandidates={data[0].numberCandidates}
-            date={data[0].date}
-            thisEncounterImageUrl={data[0].queryEncounterImageAsset?.url}
+            numCandidates={metadata.numCandidates}
+            date={metadata.date}
+            thisEncounterImageUrl={metadata.queryImageUrl}
             themeColor={themeColor}
-            candidates={data}
+            columns={columns}
             selectedMatch={store.selectedMatch}
             onToggleSelected={(checked, encounterId, individualId) =>
               store.setSelectedMatch(checked, encounterId, individualId)
             }
-            onRowClick={(imageUrl) => store.setPreviewImageUrl(algorithmName, imageUrl)}
-            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algorithmName)}
-          />
-        </div>
-      )) : [...store.groupedAnnots].map(([algorithmName, data]) => (
-        <div key={algorithmName}>
-          <MatchProspectTable
-            key={store.viewMode}
-            algorithm={algorithmName}
-            numCandidates={data[0].numberCandidates}
-            date={data[0].date}
-            thisEncounterImageUrl={data[0].queryEncounterImageAsset?.url}
-            themeColor={themeColor}
-            candidates={data}
-            selectedMatch={store.selectedMatch}
-            onToggleSelected={(checked, encounterId, individualId) =>
-              store.setSelectedMatch(checked, encounterId, individualId)
-            }
-            onRowClick={(imageUrl) => store.setPreviewImageUrl(algorithmName, imageUrl)}
-            selectedMatchImageUrl={store.getSelectedMatchImageUrl(algorithmName)}
           />
         </div>
       ))}

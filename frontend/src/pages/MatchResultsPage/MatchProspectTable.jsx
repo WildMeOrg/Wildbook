@@ -105,308 +105,329 @@ const styles = {
   },
 };
 
-const MatchProspectTable =
-  ({
-    key,
-    numCandidates,
-    date,
-    selectedMatch,
-    onToggleSelected = {},
-    thisEncounterImageUrl,
-    themeColor,
-    candidates,
-    algorithm,
-  }) => {
-    const [previewedEncounterId, setPreviewedEncounterId] = React.useState(candidates[0].annotation?.encounter.id);
-    const [selectedMatchImageUrl, setSelectedMatchImageUrl] = React.useState(candidates[0].annotation?.asset.url);
-    const [leftImageZoom, setLeftImageZoom] = React.useState(1);
-    const [rightImageZoom, setRightImageZoom] = React.useState(1);
-    const [leftPanEnabled, setLeftPanEnabled] = React.useState(false);
-    const [rightPanEnabled, setRightPanEnabled] = React.useState(false);
-    const [leftPanPosition, setLeftPanPosition] = React.useState({ x: 0, y: 0 });
-    const [rightPanPosition, setRightPanPosition] = React.useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = React.useState(null);
-    const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
+const MatchProspectTable = ({
+  key,
+  numCandidates,
+  date,
+  selectedMatch,
+  onToggleSelected,
+  thisEncounterImageUrl,
+  themeColor,
+  columns, 
+  algorithm,
+}) => {
+  const [previewedEncounterId, setPreviewedEncounterId] = React.useState(
+    columns[0]?.[0]?.annotation?.encounter?.id
+  );
+  const [selectedMatchImageUrl, setSelectedMatchImageUrl] = React.useState(
+    columns[0]?.[0]?.annotation?.asset?.url
+  );
 
-    const handleZoomIn = (side) => {
-      if (side === "left") {
-        setLeftImageZoom((prev) => Math.min(prev + 0.25, 3));
-      } else {
-        setRightImageZoom((prev) => Math.min(prev + 0.25, 3));
+  const [leftImageZoom, setLeftImageZoom] = React.useState(1);
+  const [rightImageZoom, setRightImageZoom] = React.useState(1);
+  const [leftPanEnabled, setLeftPanEnabled] = React.useState(false);
+  const [rightPanEnabled, setRightPanEnabled] = React.useState(false);
+  const [leftPanPosition, setLeftPanPosition] = React.useState({ x: 0, y: 0 });
+  const [rightPanPosition, setRightPanPosition] = React.useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = React.useState(null);
+  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
+
+  
+  const handleZoomIn = (side) => {
+    if (side === "left") {
+      setLeftImageZoom((prev) => Math.min(prev + 0.25, 3));
+    } else {
+      setRightImageZoom((prev) => Math.min(prev + 0.25, 3));
+    }
+  };
+
+  const handleZoomOut = (side) => {
+    if (side === "left") {
+      setLeftImageZoom((prev) => Math.max(prev - 0.25, 0.5));
+    } else {
+      setRightImageZoom((prev) => Math.max(prev - 0.25, 0.5));
+    }
+  };
+
+  const handleResetZoom = (side) => {
+    if (side === "left") {
+      setLeftImageZoom(1);
+    } else {
+      setRightImageZoom(1);
+    }
+  };
+
+  const togglePanMode = (side) => {
+    if (side === "left") {
+      setLeftPanEnabled((prev) => !prev);
+      if (leftPanEnabled) {
+        setLeftPanPosition({ x: 0, y: 0 });
       }
-    };
-
-    const handleZoomOut = (side) => {
-      if (side === "left") {
-        setLeftImageZoom((prev) => Math.max(prev - 0.25, 0.5));
-      } else {
-        setRightImageZoom((prev) => Math.max(prev - 0.25, 0.5));
+    } else {
+      setRightPanEnabled((prev) => !prev);
+      if (rightPanEnabled) {
+        setRightPanPosition({ x: 0, y: 0 });
       }
-    };
+    }
+  };
 
-    const handleResetZoom = (side) => {
-      if (side === "left") {
-        setLeftImageZoom(1);
-      } else {
-        setRightImageZoom(1);
-      }
-    };
+  const handleMouseDown = (side, e) => {
+    const panEnabled = side === "left" ? leftPanEnabled : rightPanEnabled;
+    if (!panEnabled) return;
 
-    const togglePanMode = (side) => {
-      if (side === "left") {
-        setLeftPanEnabled((prev) => !prev);
-        if (leftPanEnabled) {
-          setLeftPanPosition({ x: 0, y: 0 });
-        }
-      } else {
-        setRightPanEnabled((prev) => !prev);
-        if (rightPanEnabled) {
-          setRightPanPosition({ x: 0, y: 0 });
-        }
-      }
-    };
+    setIsDragging(side);
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+    });
+  };
 
-    const handleMouseDown = (side, e) => {
-      const panEnabled = side === "left" ? leftPanEnabled : rightPanEnabled;
-      if (!panEnabled) return;
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
 
-      setIsDragging(side);
-      setDragStart({
-        x: e.clientX,
-        y: e.clientY,
-      });
-    };
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
 
-    const handleMouseMove = (e) => {
-      if (!isDragging) return;
+    if (isDragging === "left") {
+      setLeftPanPosition((prev) => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY,
+      }));
+    } else {
+      setRightPanPosition((prev) => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY,
+      }));
+    }
 
-      const deltaX = e.clientX - dragStart.x;
-      const deltaY = e.clientY - dragStart.y;
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+    });
+  };
 
-      if (isDragging === "left") {
-        setLeftPanPosition((prev) => ({
-          x: prev.x + deltaX,
-          y: prev.y + deltaY,
-        }));
-      } else {
-        setRightPanPosition((prev) => ({
-          x: prev.x + deltaX,
-          y: prev.y + deltaY,
-        }));
-      }
+  const handleMouseUp = () => {
+    setIsDragging(null);
+  };
 
-      setDragStart({
-        x: e.clientX,
-        y: e.clientY,
-      });
-    };
+  const handleRowClick = (encounterId, imageUrl) => {
+    setPreviewedEncounterId(encounterId);
+   setSelectedMatchImageUrl(imageUrl); 
+  };
 
-    const handleMouseUp = () => {
-      setIsDragging(null);
-    };
+  React.useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, dragStart]);
 
-    const handleRowClick = (encounterId, imageUrl) => {
-      setPreviewedEncounterId(encounterId);
-      setSelectedMatchImageUrl(imageUrl);
-    };
+  const isSelected = (encounterId) =>
+    selectedMatch?.some((d) => d.encounterId === encounterId);
 
-    React.useEffect(() => {
-      if (isDragging) {
-        window.addEventListener("mousemove", handleMouseMove);
-        window.addEventListener("mouseup", handleMouseUp);
-        return () => {
-          window.removeEventListener("mousemove", handleMouseMove);
-          window.removeEventListener("mouseup", handleMouseUp);
-        };
-      }
-    }, [isDragging, dragStart]);
-
-    const isSelected = (encounterId) =>
-      selectedMatch?.some((d) => d.encounterId === encounterId);
-
-    return (
-      <div className="mb-4" id={`${key}-${algorithm}`}>
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <div className="small text-muted d-flex">
-            <div>{algorithm}</div>
-            <div
-              style={{ marginLeft: "auto" }}
-            >against {numCandidates} candidates <span>{date}</span></div>
+  return (
+    <div className="mb-4" id={key}>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <div className="small text-muted d-flex">
+          <div>{algorithm}</div>
+          <div style={{ marginLeft: "auto" }}>
+            against {numCandidates} candidates <span>{date}</span>
           </div>
         </div>
-
-        <div style={styles.matchListScrollContainer}>
-          <div style={styles.matchListGrid}>
-            {candidates.map((candidate, columnIndex) => {
-              const candidateEncounterId = candidate.annotation?.encounter?.id;
-              const candidateIndividualId = candidate.annotation?.individual?.id;
-              const candidateIndividualDisplayName = candidate.annotation?.individual?.displayName;
-              const candidateImageUrl = candidate.annotation?.asset?.url;
-              const isRowSelected = isSelected(candidateEncounterId);
-              const isRowPreviewed = candidateEncounterId === previewedEncounterId;
-              return <div key={columnIndex} style={styles.matchColumn}>
-                <div
-                  key={candidateEncounterId}
-                  style={{
-                    ...styles.matchRow(isRowSelected, themeColor),
-                    cursor: "pointer",
-                    backgroundColor: isRowPreviewed
-                      ? themeColor.primaryColors.primary50
-                      : "transparent",
-                  }}
-                  onClick={() => handleRowClick(candidateEncounterId, candidateImageUrl)}
-                >
-                  <span style={styles.matchScore}>
-                    {candidate.score.toFixed(4)}
-                  </span>
-                  <button
-                    type="button"
-                    style={styles.idPill(themeColor)}
-                    className="btn btn-sm p-0 px-2"
-                  >
-                    {candidateIndividualDisplayName}
-                  </button>
-                  <div
-                    className="ms-auto"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Form.Check
-                      type="checkbox"
-                      checked={isRowSelected}
-                      onChange={(e) =>
-                        onToggleSelected(
-                          e.target.checked,
-                          candidateEncounterId,
-                          candidateIndividualDisplayName,
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            })}
-          </div>
-        </div>
-
-        <Row>
-          <Col md={6} className="mb-3 mb-md-0" style={{ position: "relative" }}>
-            <div style={styles.matchImageCard}>
-              <div style={styles.cornerLabel(themeColor)}>This encounter</div>
-              <div
-                style={{
-                  ...styles.imageContainer,
-                  cursor: leftPanEnabled ? "grab" : "default",
-                }}
-                onMouseDown={(e) => handleMouseDown("left", e)}
-              >
-                <img
-                  src={thisEncounterImageUrl}
-                  alt="This encounter"
-                  style={{
-                    ...styles.matchImage,
-                    transform: `scale(${leftImageZoom}) translate(${leftPanPosition.x}px, ${leftPanPosition.y}px)`,
-                    transition: isDragging === "left" ? "none" : "transform 0.2s ease",
-                    cursor: leftPanEnabled ? (isDragging === "left" ? "grabbing" : "grab") : "default",
-                  }}
-                  draggable={false}
-                />
-              </div>
-            </div>
-
-            <div style={styles.toolsBarLeft}>
-              <div
-                onClick={() => handleZoomIn("left")}
-                style={styles.iconButton}
-                title="Zoom In"
-              >
-                <ZoomInIcon />
-              </div>
-              <div
-                onClick={() => handleZoomOut("left")}
-                style={styles.iconButton}
-                title="Zoom Out"
-              >
-                <ZoomOutIcon />
-              </div>
-              <div
-                onClick={() => togglePanMode("left")}
-                style={{
-                  ...styles.iconButton,
-                  backgroundColor: leftPanEnabled
-                    ? themeColor.primaryColors.primary200
-                    : "white",
-                }}
-                title="Pan Image (Click to toggle)"
-              >
-                <Icon3 />
-              </div>
-            </div>
-          </Col>
-
-          <Col md={6} style={{ position: "relative" }}>
-            <div style={styles.matchImageCard}>
-              <div style={{ ...styles.cornerLabel(themeColor) }}>
-                Possible Match
-              </div>
-              <div
-                style={{
-                  ...styles.imageContainer,
-                  cursor: rightPanEnabled ? "grab" : "default",
-                }}
-                onMouseDown={(e) => handleMouseDown("right", e)}
-              >
-                <img
-                  src={selectedMatchImageUrl}
-                  alt="Possible match"
-                  style={{
-                    ...styles.matchImage,
-                    transform: `scale(${rightImageZoom}) translate(${rightPanPosition.x}px, ${rightPanPosition.y}px)`,
-                    transition: isDragging === "right" ? "none" : "transform 0.2s ease",
-                    cursor: rightPanEnabled ? (isDragging === "right" ? "grabbing" : "grab") : "default",
-                  }}
-                  draggable={false}
-                />
-              </div>
-            </div>
-
-            <div style={styles.toolsBarRight}>
-              <div
-                onClick={() => handleZoomIn("right")}
-                style={styles.iconButton}
-                title="Zoom In"
-              >
-                <ZoomInIcon />
-              </div>
-              <div
-                onClick={() => handleZoomOut("right")}
-                style={styles.iconButton}
-                title="Zoom Out"
-              >
-                <ZoomOutIcon />
-              </div>
-              <div
-                onClick={() => togglePanMode("right")}
-                style={{
-                  ...styles.iconButton,
-                  backgroundColor: rightPanEnabled
-                    ? themeColor.primaryColors.primary200
-                    : "white",
-                }}
-                title="Pan Image (Click to toggle)"
-              >
-                <Icon3 />
-              </div>
-              <div style={styles.iconButton}>
-                <Icon5 />
-              </div>
-              <div style={styles.iconButton}>
-                <Icon7 />
-              </div>
-            </div>
-          </Col>
-        </Row>
       </div>
-    );
-  }
+
+      <div style={styles.matchListScrollContainer}>
+        <div style={styles.matchListGrid}>
+          {columns.map((columnData, columnIndex) => (
+            <div key={columnIndex} style={styles.matchColumn}>
+              {columnData.map((candidate) => {
+                const candidateEncounterId = candidate.annotation?.encounter?.id;
+                const candidateIndividualId = candidate.annotation?.individual?.id;
+                const candidateIndividualDisplayName =
+                  candidate.annotation?.individual?.displayName;
+                const candidateImageUrl = candidate.annotation?.asset?.url;
+                const isRowSelected = isSelected(candidateEncounterId);
+                const isRowPreviewed = candidateEncounterId === previewedEncounterId;
+
+                return (
+                  <div
+                    key={candidateEncounterId}
+                    style={{
+                      ...styles.matchRow(isRowSelected, themeColor),
+                      cursor: "pointer",
+                      backgroundColor: isRowPreviewed
+                        ? themeColor.primaryColors.primary50
+                        : "transparent",
+                    }}
+                    onClick={() =>
+                      handleRowClick(candidateEncounterId, candidateImageUrl)
+                    }
+                  >
+                    <span style={styles.matchRank}>{candidate.displayIndex}</span>
+                    <span style={styles.matchScore}>
+                      {candidate.score.toFixed(4)}
+                    </span>
+                    <button
+                      type="button"
+                      style={styles.idPill(themeColor)}
+                      className="btn btn-sm p-0 px-2"
+                    >
+                      {candidateIndividualDisplayName}
+                    </button>
+                    <div className="ms-auto" onClick={(e) => e.stopPropagation()}>
+                      <Form.Check
+                        type="checkbox"
+                        checked={isRowSelected}
+                        onChange={(e) =>
+                          onToggleSelected(
+                            e.target.checked,
+                            candidateEncounterId,
+                            candidateIndividualDisplayName
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Row>
+        <Col md={6} className="mb-3 mb-md-0" style={{ position: "relative" }}>
+          <div style={styles.matchImageCard}>
+            <div style={styles.cornerLabel(themeColor)}>This encounter</div>
+            <div
+              style={{
+                ...styles.imageContainer,
+                cursor: leftPanEnabled ? "grab" : "default",
+              }}
+              onMouseDown={(e) => handleMouseDown("left", e)}
+            >
+              <img
+                src={thisEncounterImageUrl}
+                alt="This encounter"
+                style={{
+                  ...styles.matchImage,
+                  transform: `scale(${leftImageZoom}) translate(${leftPanPosition.x}px, ${leftPanPosition.y}px)`,
+                  transition:
+                    isDragging === "left" ? "none" : "transform 0.2s ease",
+                  cursor: leftPanEnabled
+                    ? isDragging === "left"
+                      ? "grabbing"
+                      : "grab"
+                    : "default",
+                }}
+                draggable={false}
+              />
+            </div>
+          </div>
+
+          <div style={styles.toolsBarLeft}>
+            <div
+              onClick={() => handleZoomIn("left")}
+              style={styles.iconButton}
+              title="Zoom In"
+            >
+              <ZoomInIcon />
+            </div>
+            <div
+              onClick={() => handleZoomOut("left")}
+              style={styles.iconButton}
+              title="Zoom Out"
+            >
+              <ZoomOutIcon />
+            </div>
+            <div
+              onClick={() => togglePanMode("left")}
+              style={{
+                ...styles.iconButton,
+                backgroundColor: leftPanEnabled
+                  ? themeColor.primaryColors.primary200
+                  : "white",
+              }}
+              title="Pan Image (Click to toggle)"
+            >
+              <Icon3 />
+            </div>
+          </div>
+        </Col>
+
+        <Col md={6} style={{ position: "relative" }}>
+          <div style={styles.matchImageCard}>
+            <div style={{ ...styles.cornerLabel(themeColor) }}>
+              Possible Match
+            </div>
+            <div
+              style={{
+                ...styles.imageContainer,
+                cursor: rightPanEnabled ? "grab" : "default",
+              }}
+              onMouseDown={(e) => handleMouseDown("right", e)}
+            >
+              <img
+                src={selectedMatchImageUrl}
+                alt="Possible match"
+                style={{
+                  ...styles.matchImage,
+                  transform: `scale(${rightImageZoom}) translate(${rightPanPosition.x}px, ${rightPanPosition.y}px)`,
+                  transition:
+                    isDragging === "right" ? "none" : "transform 0.2s ease",
+                  cursor: rightPanEnabled
+                    ? isDragging === "right"
+                      ? "grabbing"
+                      : "grab"
+                    : "default",
+                }}
+                draggable={false}
+              />
+            </div>
+          </div>
+
+          <div style={styles.toolsBarRight}>
+            <div
+              onClick={() => handleZoomIn("right")}
+              style={styles.iconButton}
+              title="Zoom In"
+            >
+              <ZoomInIcon />
+            </div>
+            <div
+              onClick={() => handleZoomOut("right")}
+              style={styles.iconButton}
+              title="Zoom Out"
+            >
+              <ZoomOutIcon />
+            </div>
+            <div
+              onClick={() => togglePanMode("right")}
+              style={{
+                ...styles.iconButton,
+                backgroundColor: rightPanEnabled
+                  ? themeColor.primaryColors.primary200
+                  : "white",
+              }}
+              title="Pan Image (Click to toggle)"
+            >
+              <Icon3 />
+            </div>
+            <div style={styles.iconButton}>
+              <Icon5 />
+            </div>
+            <div style={styles.iconButton}>
+              <Icon7 />
+            </div>
+          </div>
+        </Col>
+      </Row>
+    </div>
+  );
+};
 
 export default MatchProspectTable;
