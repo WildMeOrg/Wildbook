@@ -14,6 +14,7 @@ import LocaleContext from "./IntlProvider";
 import FooterVisibilityContext from "./FooterVisibilityContext";
 import Cookies from "js-cookie";
 import FilterContext from "./FilterContextProvider";
+import { SiteSettingsProvider } from "./SiteSettingsContext";
 
 function App() {
   const messageMap = {
@@ -51,9 +52,11 @@ function App() {
     setFilters({});
   };
 
-  const publicUrl = process.env.PUBLIC_URL 
-  ? (process.env.PUBLIC_URL.startsWith('http') ? new URL(process.env.PUBLIC_URL).pathname : process.env.PUBLIC_URL)
-  : "/";
+  const publicUrl = process.env.PUBLIC_URL
+    ? process.env.PUBLIC_URL.startsWith("http")
+      ? new URL(process.env.PUBLIC_URL).pathname
+      : process.env.PUBLIC_URL
+    : "/";
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -70,16 +73,20 @@ function App() {
               defaultLocale="en"
               messages={messageMap[locale]}
             >
-              <FooterVisibilityContext.Provider value={{ visible, setVisible }}>
-                <FilterContext.Provider
-                  value={{ filters, updateFilter, resetFilters }}
+              <SiteSettingsProvider>
+                <FooterVisibilityContext.Provider
+                  value={{ visible, setVisible }}
                 >
-                  <FrontDesk
-                    adminUserInitialized={true}
-                    setLocale={setLocale}
-                  />
-                </FilterContext.Provider>
-              </FooterVisibilityContext.Provider>
+                  <FilterContext.Provider
+                    value={{ filters, updateFilter, resetFilters }}
+                  >
+                    <FrontDesk
+                      adminUserInitialized={true}
+                      setLocale={setLocale}
+                    />
+                  </FilterContext.Provider>
+                </FooterVisibilityContext.Provider>
+              </SiteSettingsProvider>
             </IntlProvider>
           </BrowserRouter>
         </div>

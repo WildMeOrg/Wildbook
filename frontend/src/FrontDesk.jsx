@@ -13,8 +13,9 @@ import {
   sessionWarningTime,
   sessionCountdownTime,
 } from "./constants/sessionWarning";
-import useGetSiteSettings from "./models/useGetSiteSettings";
+// import useGetSiteSettings from "./models/useGetSiteSettings";
 import useDocumentTitle from "./hooks/useDocumentTitle";
+import { useSiteSettings } from "./SiteSettingsContext";
 
 export default function FrontDesk() {
   useDocumentTitle();
@@ -24,7 +25,7 @@ export default function FrontDesk() {
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { data } = useGetSiteSettings();
+  const data = useSiteSettings();
   const showclassicsubmit = data?.showClassicSubmit;
   const showClassicEncounterSearch = data?.showClassicEncounters;
   const checkLoginStatus = () => {
