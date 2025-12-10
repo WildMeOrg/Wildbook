@@ -12,6 +12,7 @@ export default function CardWithSaveAndCancelButtons({
   icon,
   title = "Card Title",
   content = "Card content goes here.",
+  styles,
 }) {
   const theme = React.useContext(ThemeColorContext);
   return (
@@ -24,6 +25,7 @@ export default function CardWithSaveAndCancelButtons({
         width: "100%",
         height: "auto",
         overflow: "hidden",
+        ...styles,
       }}
     >
       <div

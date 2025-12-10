@@ -403,6 +403,9 @@ const Encounter = observer(() => {
                   store.errors.clearSectionErrors("date");
                 }}
                 content={<DateSectionEdit store={store} />}
+                styles={{
+                  overflow: "visible",
+                }}
               />
             ) : (
               <CardWithEditButton
