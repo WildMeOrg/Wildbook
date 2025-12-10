@@ -47,7 +47,7 @@ const Encounter = observer(() => {
   const intl = useIntl();
   const encounterStates = store.siteSettingsData?.encounterState;
   const encounterStatesOptions =
-    encounterStates && encounterStates.length > 0
+    store.encounterData?.state && encounterStates?.length > 0
       ? encounterStates.map((state) => ({
           value: state,
           label: state,
@@ -154,7 +154,7 @@ const Encounter = observer(() => {
           </Col>
           <Col md={6} className="text-end">
             <Pill
-              text={store.encounterData?.state || "unidentifiable"}
+              text={store.encounterData?.state || "loading"}
               style={{ marginRight: "10px" }}
               active={false}
             />
