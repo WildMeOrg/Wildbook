@@ -1,6 +1,9 @@
 services:
   db:
-    image: postgres:13.4
+    # technically pg vector support not really needed yet due to persistence from PGvector (java) to DB
+    # not being supported by DataNucleus ... but this change is noted here anyway
+    # image: postgres:13.4
+    image: pgvector/pgvector:pg13
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres || exit 1" ]
       interval: 10s
@@ -62,7 +65,7 @@ services:
       JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
 
   opensearch:
-    image: opensearchproject/opensearch:2.15.0
+    image: opensearchproject/opensearch:3.1.0
     healthcheck:
       test: [ "CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1" ]
       interval: 10s
