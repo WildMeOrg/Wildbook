@@ -36,6 +36,7 @@ public class Embedding implements java.io.Serializable {
         this.methodVersion = methodVersion;
         this.created = System.currentTimeMillis();
         this.getVector();
+        if (ann != null) ann.addEmbedding(this);
     }
 
     public Embedding(Annotation ann, String method, String methodVersion, JSONArray vecArr) {
@@ -54,7 +55,7 @@ public class Embedding implements java.io.Serializable {
 
     public void setAnnotation(Annotation ann) {
         this.annotation = ann;
-        ann.addEmbedding(this);
+        if (!ann.hasEmbedding(this)) ann.addEmbedding(this);
     }
 
     public PGvector getVector() {

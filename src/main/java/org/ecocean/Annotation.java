@@ -1786,9 +1786,14 @@ public class Annotation extends Base implements java.io.Serializable {
     public Set<Embedding> addEmbedding(Embedding emb) {
         if (embeddings == null) embeddings = new HashSet<Embedding>();
         if (emb == null) return embeddings;
-        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
         embeddings.add(emb);
+        if (!this.equals(emb.getAnnotation())) emb.setAnnotation(this);
         return embeddings;
+    }
+
+    public boolean hasEmbedding(Embedding emb) {
+        if (embeddings == null) return false;
+        return embeddings.contains(emb);
     }
 
     // since embeddings is a set, there isnt really an order so...
