@@ -742,7 +742,7 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public boolean equalsTheta(Annotation other) {
         if (other == null) return false;
-        return (this.theta == other.getTheta());
+        return (this.getTheta() == other.getTheta());
     }
 
     // combines theta + bbox
