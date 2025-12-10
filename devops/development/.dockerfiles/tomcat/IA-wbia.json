@@ -2,14 +2,14 @@
   "_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
   "new_wbia_local": {
     "_note": "Default/development WBIA API URLs. Use new_wbia_staging or new_wbia_prod based on WBIA_ENV environment variable.",
-    "add_images": "http://172.17.0.1:5000/api/image/json/",
-    "add_annotations": "http://172.17.0.1:5000/api/annot/json/",
-    "start_identify": "http://172.17.0.1:5000/api/engine/query/graph/",
-    "identify_review": "http://172.17.0.1:5000/api/review/query/graph/",
-    "start_detect": "http://172.17.0.1:5000/api/engine/detect/cnn/lightnet/",
-    "detect_review": "http://172.17.0.1:5000/api/review/detect/cnn/yolo/",
-    "get_job_status": "http://172.17.0.1:5000/api/engine/job/status/",
-    "get_job_result": "http://172.17.0.1:5000/api/engine/job/result/"
+    "add_images": "http://172.17.0.1:8000/image/json/",
+    "add_annotations": "http://172.17.0.1:8000/annot/json/",
+    "start_identify": "http://172.17.0.1:8000/engine/query/graph/",
+    "identify_review": "http://172.17.0.1:8000/review/query/graph/",
+    "start_detect": "http://172.17.0.1:8000/engine/detect/cnn/lightnet/",
+    "detect_review": "http://172.17.0.1:8000/review/detect/cnn/yolo/",
+    "get_job_status": "http://172.17.0.1:8000/engine/job/status/",
+    "get_job_result": "http://172.17.0.1:8000/engine/job/result/"
   },
   "new_wbia_staging": {
     "_note": "STAGING environment - WBIA API URLs. Used when WBIA_ENV=staging",
@@ -116,7 +116,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
           "nms_thresh": 0.4,
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "snow_leopard": {
@@ -148,7 +148,7 @@
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
           "nms_aware": "ispart",
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "lion": {
@@ -261,11 +261,11 @@
         {
           "labeler_model_tag": "snow_leopard_v0",
           "model_tag": "snow_leopard_v0",
-          "model_tag_new": "snow_leopard_v0",
+          "model_tag_new": "south_tiger_cat_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
           "nms_thresh": 0.4,
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "snow_leopard": {
@@ -414,11 +414,11 @@
         {
           "labeler_model_tag": "hyaena_v0",
           "model_tag": "hyaena_v0",
-          "model_tag_new": "hyaena_v0",
+          "model_tag_new": "striped_hyaena_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.74,
           "nms_thresh": 0.7,
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "hyaena": {
@@ -496,12 +496,12 @@
         {
           "labeler_model_tag": "lions_v0",
           "model_tag": "lions_v0",
-          "model_tag_new": "lions_v0",
+          "model_tag_new": "puma_v0",
           "labeler_algo": "densenet",
           "sensitivity": 0.7,
           "nms_thresh": 0.4,
           "nms_aware": "ispart",
-          "architecture": "old_wbia"
+          "architecture": "new_wbia"
         }
       ],
       "lion": {
@@ -938,6 +938,41 @@
       }
     }
   },
+  "Chrysocyon": {
+    "brachyurus": {
+      "_detect_conf": [
+        {
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "maned_wolf_v0",
+          "model_tag": "maned_wolf_v0",
+          "model_tag_new": "maned_wolf_v0",
+          "nms_aware": null,
+          "nms_thresh": 0.5,
+          "sensitivity": 0.48,
+          "architecture": "new_wbia"
+        }
+      ],
+      "maned_wolf": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "n": 20,
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          },
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          }
+        ]
+      }
+    }
+  },
   "Lynx": {
     "canadensis": {
       "_detect_conf": [
@@ -1077,6 +1112,44 @@
             "default": false
           }
         ]
+      }
+    }
+  },
+  "Felis": {
+    "sp": {
+      "_detect_conf": [
+        {
+          "labeler_algo": "densenet",
+          "model_tag": "forestcat_v0",
+          "model_tag_new": "forestcat_v0",
+          "nms_aware": null,
+          "nms_thresh": 0.4,
+          "sensitivity": 0.21,
+          "labeler_model_tag": "forestcat_v0",
+          "architecture": "new_wbia"
+        }
+      ],
+      "lynx_pardinus": {
+        "_save_as": "forest_cat",
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
+      },
+      "forest_cat": {
+        "_id_conf": "@Felis.sp.lynx_pardinus._id_conf"
       }
     }
   },

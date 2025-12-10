@@ -82,52 +82,73 @@ setup-directories:
 	@mkdir -p "$(LOGS_DIR)"
 	@echo -e "$(GREEN)✓ Created: $(LOGS_DIR)$(NC)"
 
-create-wbia-json:
+point-to-local:
 	@echo ""
 	@echo "========================================"
-	@echo "Converting WBIA JSON Endpoints"
+	@echo "Switching Architecture to Local"
 	@echo "========================================"
-	@OS_TYPE=$$(uname -s); \
-	if [ "$$OS_TYPE" = "Linux" ]; then \
-		echo -e "$(YELLOW)ℹ Detected Linux - using Docker internal routing (172.17.0.1:8000)$(NC)"; \
-		DOCKER_HOST="172.17.0.1:8000"; \
-	elif [ "$$OS_TYPE" = "Darwin" ]; then \
-		echo -e "$(YELLOW)ℹ Detected macOS - using host.docker.internal:8000$(NC)"; \
-		DOCKER_HOST="host.docker.internal:8000"; \
-	else \
-		echo -e "$(RED)✗ Unsupported OS: $$OS_TYPE$(NC)"; \
-		exit 1; \
-	fi; \
-	JSON_FILE="devops/development/.dockerfiles/tomcat/IA-wbia.json"; \
+	@JSON_FILE="devops/development/.dockerfiles/tomcat/IA-wbia.json"; \
 	if [ ! -f "$$JSON_FILE" ]; then \
 		echo -e "$(RED)✗ JSON file not found: $$JSON_FILE$(NC)"; \
 		exit 1; \
 	fi; \
-	echo -e "$(YELLOW)ℹ Updating endpoints in $$JSON_FILE$(NC)"; \
-	sed -i.bak \
-		-e "s|http://172\.31\.26\.160:5000/api/|http://$$DOCKER_HOST/|g" \
-		-e "s|https://h4s1noaaz0\.execute-api\.us-east-1\.amazonaws\.com/api/|http://$$DOCKER_HOST/|g" \
+	echo -e "$(YELLOW)ℹ Updating architecture values to 'new_wbia_local' in $$JSON_FILE$(NC)"; \
+	sed -i \
+		-e 's|"architecture": "[^"]*"|"architecture": "new_wbia_local"|g' \
 		"$$JSON_FILE"; \
-	echo -e "$(GREEN)✓ Endpoints updated successfully$(NC)"; \
-	echo -e "$(YELLOW)ℹ Backup created: $$JSON_FILE.bak$(NC)"
+	CHANGED_COUNT=$$(grep -c '"architecture": "new_wbia_local"' "$$JSON_FILE" || echo 0); \
+	echo -e "$(GREEN)✓ Architecture updated successfully ($$CHANGED_COUNT instances)$(NC)"
 
-restore-wbia-json:
+point-to-staging:
 	@echo ""
 	@echo "========================================"
-	@echo "Restoring WBIA JSON from Backup"
+	@echo "Switching Architecture to Staging"
 	@echo "========================================"
 	@JSON_FILE="devops/development/.dockerfiles/tomcat/IA-wbia.json"; \
-	BACKUP_FILE="$$JSON_FILE.bak"; \
-	if [ ! -f "$$BACKUP_FILE" ]; then \
-		echo -e "$(RED)✗ Backup file not found: $$BACKUP_FILE$(NC)"; \
-		echo -e "$(YELLOW)ℹ No backup available to restore$(NC)"; \
+	if [ ! -f "$$JSON_FILE" ]; then \
+		echo -e "$(RED)✗ JSON file not found: $$JSON_FILE$(NC)"; \
 		exit 1; \
 	fi; \
-	echo -e "$(YELLOW)ℹ Restoring from backup: $$BACKUP_FILE$(NC)"; \
-	cp "$$BACKUP_FILE" "$$JSON_FILE"; \
-	rm "$$BACKUP_FILE"; \
-	echo -e "$(GREEN)✓ File restored successfully$(NC)"; \
-	echo -e "$(GREEN)✓ Backup file removed$(NC)"
+	echo -e "$(YELLOW)ℹ Updating architecture values to 'new_wbia_staging' in $$JSON_FILE$(NC)"; \
+	sed -i \
+		-e 's|"architecture": "[^"]*"|"architecture": "new_wbia_staging"|g' \
+		"$$JSON_FILE"; \
+	CHANGED_COUNT=$$(grep -c '"architecture": "new_wbia_staging"' "$$JSON_FILE" || echo 0); \
+	echo -e "$(GREEN)✓ Architecture updated successfully ($$CHANGED_COUNT instances)$(NC)"
+
+point-to-default:
+	@echo ""
+	@echo "========================================"
+	@echo "Switching Architecture to Default"
+	@echo "========================================"
+	@JSON_FILE="devops/development/.dockerfiles/tomcat/IA-wbia.json"; \
+	if [ ! -f "$$JSON_FILE" ]; then \
+		echo -e "$(RED)✗ JSON file not found: $$JSON_FILE$(NC)"; \
+		exit 1; \
+	fi; \
+	echo -e "$(YELLOW)ℹ Updating architecture values to 'new_wbia' in $$JSON_FILE$(NC)"; \
+	sed -i \
+		-e 's|"architecture": "[^"]*"|"architecture": "new_wbia"|g' \
+		"$$JSON_FILE"; \
+	CHANGED_COUNT=$$(grep -c '"architecture": "new_wbia"' "$$JSON_FILE" || echo 0); \
+	echo -e "$(GREEN)✓ Architecture updated successfully ($$CHANGED_COUNT instances)$(NC)"
+
+point-to-prod:
+	@echo ""
+	@echo "========================================"
+	@echo "Switching Architecture to Production"
+	@echo "========================================"
+	@JSON_FILE="devops/development/.dockerfiles/tomcat/IA-wbia.json"; \
+	if [ ! -f "$$JSON_FILE" ]; then \
+		echo -e "$(RED)✗ JSON file not found: $$JSON_FILE$(NC)"; \
+		exit 1; \
+	fi; \
+	echo -e "$(YELLOW)ℹ Updating architecture values to 'new_wbia_prod' in $$JSON_FILE$(NC)"; \
+	sed -i \
+		-e 's|"architecture": "[^"]*"|"architecture": "new_wbia_prod"|g' \
+		"$$JSON_FILE"; \
+	CHANGED_COUNT=$$(grep -c '"architecture": "new_wbia_prod"' "$$JSON_FILE" || echo 0); \
+	echo -e "$(GREEN)✓ Architecture updated successfully ($$CHANGED_COUNT instances)$(NC)"
 
 # Setup environment file
 setup-environment: create-wbia-json
@@ -293,7 +314,7 @@ setup: check-prerequisites setup-directories setup-environment
 	@echo "  2. Run: make build-and-run"
 
 # Build and run
-build-and-run: clean check-prerequisites setup-directories setup-environment build deploy start init-db
+build-and-run: stop clean check-prerequisites setup-directories setup-environment build deploy start init-db
 	@echo ""
 	@echo "========================================"
 	@echo "Wildbook is Running!"
@@ -327,5 +348,5 @@ logs:
 	@echo "Viewing Logs"
 	@echo "========================================"
 	@echo -e "$(YELLOW)ℹ Viewing logs...$(NC)"
-	@cd $(DOCKER_DIR) && docker compose -f $(COMPOSE_FILE) logs -f
+	@cd $(DOCKER_DIR) && docker compose -f $(COMPOSE_FILE) logs -f --tail=1000
 	@echo -e "$(GREEN)✓ Logs viewed$(NC)"
