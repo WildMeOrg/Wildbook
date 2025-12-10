@@ -5,14 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -651,7 +644,9 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
-        if (getMediaAsset() == null) return null;
+        MediaAsset ma = getMediaAsset();
+
+        if (ma == null) return null;
         Feature found = null;
         for (Feature ft : getFeatures()) {
             if (ft.isUnity() || ft.isType("org.ecocean.boundingBox")) {
@@ -664,8 +659,8 @@ public class Annotation extends Base implements java.io.Serializable {
         if (found.isUnity()) {
             bbox[0] = 0;
             bbox[1] = 0;
-            bbox[2] = (int)getMediaAsset().getWidth();
-            bbox[3] = (int)getMediaAsset().getHeight();
+            bbox[2] = (int)ma.getWidth();
+            bbox[3] = (int)ma.getHeight();
         } else {
             // guess we derive from feature!
             if (found.getParameters() == null) return null;
