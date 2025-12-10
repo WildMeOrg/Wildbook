@@ -3,6 +3,44 @@
 	"source": "http://en.wikipedia.org/wiki/List_of_seas",
 	"locationID": [
 		{
+			"name": "Australia",
+			"id": "Australia",
+			"locationID": []
+		},
+		{
+			"name": "France",
+			"id": "France",
+			"locationID": [
+				{
+					"name": "Brittany",
+					"id": "Brittany",
+					"locationID": [
+						{
+							"name": "Rennes Metropole",
+							"id": "Rennes Metropole",
+							"locationID": [
+								{
+									"name": "Bois de Soeuvres",
+									"id": "Bois de Soeuvres",
+									"locationID": []
+								},
+								{
+									"name": "Poterie",
+									"id": "Poterie",
+									"locationID": []
+								},
+								{
+									"name": "Prevalaye",
+									"id": "Prevalaye",
+									"locationID": []
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Germany",
 			"id": "Germany",
 			"locationID":[
@@ -15,6 +53,17 @@
 					"name": "Alte Rinne",
 					"id": "Alte Rinne",
 					"locationID": []
+				},
+				{
+					"name": "Bonn",
+					"id": "Bonn",
+					"locationID": [
+						{
+							"name": "Ennert",
+							"id": "Ennert",
+							"locationID": []
+						}
+					]
 				},
 				{
 					"name": "Botanischer Garten Bielefeld",
@@ -67,6 +116,38 @@
 					"locationID": []
 				},
 				{
+					"name": "Freilichtmuseum Detmold",
+					"id": "Freilichtmuseum Detmold",
+					"geospatialInfo": {
+						"lat": 51.9234574,
+						"long": 8.865981
+					},
+					"locationID": [
+						{
+							"name": "Kernlebensraum",
+							"id": "Kernlebensraum",
+							"prefix": "KLR",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.923413,
+								"long": 8.872099
+							},
+							"locationID": []
+						},
+						{
+							"name": "Paderborner Dorf",
+							"id": "Paderborner Dorf",
+							"prefix": "PD",
+							"prefixDigitPadding": 4,
+							"geospatialInfo": {
+								"lat": 51.917119,
+								"long": 8.880677
+							},
+							"locationID": []
+						}
+					]
+				},
+				{
 					"name": "Heßles",
 					"id": "Heßles",
 					"locationID": []
@@ -94,71 +175,6 @@
 				{
 					"name": "Koenigsdorf",
 					"id": "Koenigsdorf",
-					"locationID": []
-				},
-				{
-					"name": "Kriebethal/Ehrenberg",
-					"id": "Kriebethal/Ehrenberg",
-					"locationID": []
-				},
-				{
-					"name": "Kruppwald Essen",
-					"id": "Kruppwald Essen",
-					"geospatialInfo": {
-						"lat": 51.4076079,
-						"long": 7.0024334
-					},
-					"locationID": []
-				},
-				{
-					"name": "Nerenbos",
-					"id": "Nerenbos",
-					"locationID": [
-						{
-							"name": "Makegemse Bossen",
-							"id": "Makegemse Bossen",
-							"locationID": []
-						}
-					]
-				},
-				{
-					"name": "Nüßleshof",
-					"id": "Nüßleshof",
-					"locationID": []
-				},
-				{
-					"name": "Reifenstein",
-					"id": "Reifenstein",
-					"locationID":[]
-				},
-				{
-					"name": "Rochlitzer Berg",
-					"id": "Rochlitzer Berg",
-					"locationID": []
-				},
-				{
-					"name": "Römhild",
-					"id": "Römhild",
-					"locationID": []
-				},
-				{
-					"name": "Steinbachholz",
-					"id": "Steinbachholz",
-					"locationID": []
-				},
-				{
-					"name": "Steinbruch Dettlebach",
-					"id": "Steinbruch Dettlebach",
-					"locationID": []
-				},
-				{
-					"name": "Talsperre Kriebstein",
-					"id": "Talsperre Kriebstein",
-					"locationID": []
-				},
-				{
-					"name": "Waldheim",
-					"id": "Waldheim",
 					"locationID": []
 				},
 				{
@@ -315,36 +331,153 @@
 					]
 				},
 				{
-					"name": "Freilichtmuseum Detmold",
-					"id": "Freilichtmuseum Detmold",
+					"name": "Kriebethal/Ehrenberg",
+					"id": "Kriebethal/Ehrenberg",
+					"locationID": []
+				},
+				{
+					"name": "Kruppwald Essen",
+					"id": "Kruppwald Essen",
 					"geospatialInfo": {
-						"lat": 51.9234574,
-						"long": 8.865981
+						"lat": 51.4076079,
+						"long": 7.0024334
 					},
+					"locationID": []
+				},
+				{
+					"name": "Nerenbos",
+					"id": "Nerenbos",
 					"locationID": [
 						{
-							"name": "Kernlebensraum",
-							"id": "Kernlebensraum",
-							"prefix": "KLR",
-							"prefixDigitPadding": 4,
+							"name": "Makegemse Bossen",
+							"id": "Makegemse Bossen",
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Nindorf",
+					"id": "Nindorf",
+					"locationID":[]
+				},
+				{
+					"name": "Nüßleshof",
+					"id": "Nüßleshof",
+					"locationID": []
+				},
+				{
+					"name": "Osterzgebirge",
+					"id": "Osterzgebirge",
+					"locationID": [
+						{
+							"name": "Lockwitzbach",
+							"id": "Lockwitzbach",
+							"locationID": []
+						},
+						{
+							"name": "Müglitz",
+							"id": "Müglitz",
+							"locationID": []
+						},
+						{
+							"name": "Seidewitz",
+							"id": "Seidewitz",
+							"locationID": []
+						},
+						{
+							"name": "Weißeritz",
+							"id": "Weißeritz",
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Reifenstein",
+					"id": "Reifenstein",
+					"locationID":[]
+				},
+				{
+					"name": "Remscheid",
+					"id": "Remscheid",
+					"locationID": [
+						{
+							"name": "Hohenhagen",
+							"id": "Hohenhagen",
 							"geospatialInfo": {
-								"lat": 51.923413,
-								"long": 8.872099
+								"lat": 51.180935,
+								"long": 7.216990
 							},
 							"locationID": []
 						},
 						{
-							"name": "Paderborner Dorf",
-							"id": "Paderborner Dorf",
-							"prefix": "PD",
-							"prefixDigitPadding": 4,
+							"name": "Eschbach",
+							"id": "Eschbach",
 							"geospatialInfo": {
-								"lat": 51.917119,
-								"long": 8.880677
+								"lat": 51.160653,
+								"long": 7.211977
 							},
 							"locationID": []
 						}
 					]
+				},
+				{
+					"name": "Rheinland-Pfalz",
+					"id": "Rheinland-Pfalz",
+					"geospatialInfo": {
+						"lat": 50.137861,
+						"long": 7.167395
+					},
+					"locationID": []
+				},
+				{
+					"name": "Rhein-Sieg-Kreis",
+					"id": "Rhein-Sieg-Kreis",
+					"locationID": []
+				},
+				{
+					"name": "Rochlitzer Berg",
+					"id": "Rochlitzer Berg",
+					"locationID": []
+				},
+				{
+					"name": "Römhild",
+					"id": "Römhild",
+					"locationID": []
+				},
+				{
+					"name": "Solingen",
+					"id": "Solingen",
+					"locationID": [
+						{
+							"name": "Steinbach",
+							"id": "Steinbach",
+							"geospatialInfo": {
+								"lat": 51.220200536404946,
+								"long": 7.08888989827654
+							},
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Steinbachholz",
+					"id": "Steinbachholz",
+					"locationID": []
+				},
+				{
+					"name": "Steinbruch Dettlebach",
+					"id": "Steinbruch Dettlebach",
+					"locationID": []
+				},
+				{
+					"name": "Talsperre Kriebstein",
+					"id": "Talsperre Kriebstein",
+					"locationID": []
+				},
+				{
+					"name": "Waldheim",
+					"id": "Waldheim",
+					"locationID": []
 				},
 				{
 					"name": "Northern Weser Hills",
@@ -520,11 +653,6 @@
 					]
 				},
 				{
-					"name": "Nindorf",
-					"id": "Nindorf",
-					"locationID":[]
-				},
-				{
 					"name": "Southern Weser Hills and Harz",
 					"id": "Southern Weser Hills and Harz",
 					"locationID": [
@@ -551,39 +679,6 @@
 					]
 				},
 				{
-					"name": "Remscheid",
-					"id": "Remscheid",
-					"locationID": [
-						{
-							"name": "Hohenhagen",
-							"id": "Hohenhagen",
-							"geospatialInfo": {
-								"lat": 51.180935,
-								"long": 7.216990
-							},
-							"locationID": []
-						},
-						{
-							"name": "Eschbach",
-							"id": "Eschbach",
-							"geospatialInfo": {
-								"lat": 51.160653,
-								"long": 7.211977
-							},
-							"locationID": []
-						}
-					]
-				},
-				{
-					"name": "Rheinland-Pfalz",
-					"id": "Rheinland-Pfalz",
-					"geospatialInfo": {
-						"lat": 50.137861,
-						"long": 7.167395
-					},
-					"locationID": []
-				},
-				{
 					"name": "Wasserburgertal",
 					"id": "Wasserburgertal",
 					"geospatialInfo": {
@@ -601,6 +696,17 @@
 					"name": "Wolbecker Tiergarten",
 					"id": "Wolbecker Tiergarten",
 					"locationID": []
+				},
+				{
+					"name": "Wolfsburg",
+					"id": "Wolfsburg",
+					"locationID": [
+						{
+							"name": "Barnstorfer Wald",
+							"id": "Barnstorfer Wald",
+							"locationID": []
+						}
+					]
 				},
 				{
 					"name": "Wuppertal",
@@ -726,6 +832,21 @@
 			]
 		},
 		{
+			"name": "Switzerland",
+			"id": "Switzerland",
+			"locationID": [
+				{
+					"name": "Valais",
+					"id": "Valais",
+					"geospatialInfo": {
+						"lat": 46.30844,
+						"long": 7.59047
+					},
+					"locationID": []
+				}
+			]
+		},
+		{
 			"name": "United States",
 			"id": "United States",
 			"locationID": [
@@ -797,5 +918,7 @@
 				}
 			]
 		}
+
+		  
 	]
   }  
