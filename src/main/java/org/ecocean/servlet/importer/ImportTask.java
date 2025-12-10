@@ -82,6 +82,20 @@ public class ImportTask implements java.io.Serializable {
         return encounters;
     }
 
+    public List<Encounter> getEncountersOrderByCreated() {
+        if (encounters == null) return null;
+        List<Encounter> sorted = new ArrayList<Encounter>(encounters);
+        Collections.sort(sorted, new Comparator<Encounter>() {
+            @Override public int compare(Encounter encA, Encounter encB) {
+                Long longA = encA.getDWCDateAddedLong();
+                Long longB = encB.getDWCDateAddedLong();
+                if ((longA == null) || (longB == null)) return 0;
+                return Long.compare(longA, longB);
+            }
+        });
+        return sorted;
+    }
+
     public void setEncounters(List<Encounter> encs) {
         encounters = encs;
     }
