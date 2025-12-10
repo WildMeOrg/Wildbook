@@ -1,6 +1,6 @@
 import { get, partition } from "lodash-es";
+import { useFetchManual } from "../../hooks/useFetchManual";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
-import useFetch from "../../hooks/useFetch";
 
 function buildQuery(queries) {
   const mustNotQueries = queries.filter((q) => q.clause === "must_not");
@@ -33,22 +33,24 @@ function buildQuery(queries) {
   };
 }
 
-export default function useFilterEncounters({ queries, params = {} }) {
+export default function useFilterEncountersWithMediaAssets({
+  queries,
+  params = {},
+}) {
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
   const { sortOrder, sort, size, from } = params;
 
-  return useFetch({
+  return useFetchManual({
     method: "post",
-    queryKey: getEncounterFilterQueryKey(queries, size, from, sort, sortOrder),
+    queryKey: getEncounterFilterQueryKey(queries, sort, sortOrder),
     url: "/search/encounter",
     data: compositeQuery,
     params: {
-      sort: sort?.sortname,
-      sortOrder: sort?.sortorder,
+      sort: sort?.sortname || "date",
+      sortOrder: sort?.sortorder || "desc",
       size: size || 20,
       from: from || 0,
-      ...params,
     },
     dataAccessor: (result) => {
       const resultCount = parseInt(
@@ -66,10 +68,6 @@ export default function useFilterEncounters({ queries, params = {} }) {
         ),
         success: get(result, ["data", "data", "success"], false),
       };
-    },
-    queryOptions: {
-      retry: 2,
-      enable: false,
     },
   });
 }
