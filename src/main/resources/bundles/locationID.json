@@ -1274,10 +1274,40 @@
 					"locationID":[]
 				},
 				{
+					"name": "Greater Makalali Nature Reserve",
+					"id": "Greater Makalali Nature Reserve",
+					"description": "Greater Makalali Nature Reserve",
+					"geospatialInfo": {
+						"lat": -24.14883,
+						"long": 30.69676
+					},
+					"locationID": []
+				},
+				{
+					"name": "Hluhluwe-iMfolozi Park",
+					"id": "Hluhluwe-iMfolozi Park",
+					"description": "Hluhluwe-iMfolozi Park",
+					"geospatialInfo": {
+						"lat": -28.21990,
+						"long": 31.95185
+					},
+					"locationID": []
+				},
+				{
 					"name": "Inkwenkwezi",
 					"id": "Inkwenkwezi",
 					"description": "Inkwenkwezi",
 					"locationID":[]
+				},
+				{
+					"name": "Kapama Private Game Reserve",
+					"id": "Kapama Private Game Reserve",
+					"description": "Kapama Private Game Reserve",
+					"geospatialInfo": {
+						"lat": -24.42866,
+						"long": 31.01545
+					},
+					"locationID": []
 				},
 				{
 					"name": "Kariega Game Reserve",
@@ -1346,6 +1376,16 @@
 					"geospatialInfo": {
 						"lat": -27.24027,
 						"long": 22.38372
+					},
+					"locationID": []
+				},
+				{
+					"name": "uMkhuze Game Reserve",
+					"id": "uMkhuze Game Reserve",
+					"description": "uMkhuze Game Reserve",
+					"geospatialInfo":{
+						"lat": -27.64576,
+						"long": 32.15122
 					},
 					"locationID": []
 				},
@@ -1419,6 +1459,26 @@
 		 			 	"long":37.5
 		 			 },
 					"locationID":[]
+				},
+				{
+					"name": "Serengeti National Park",
+					"id": "Serengeti National Park",
+					"description": "Serengeti National Park",
+					"geospatialInfo": {
+						"lat": -2.33341,
+						"long": 34.83344
+					},
+					"locationID": []
+				},
+				{
+					"name": "Tarangire National Park",
+					"id": "Tarangire National Park",
+					"description": "Tarangire National Park",
+					"geospatialInfo": {
+						"lat": -4.16289,
+						"long": 36.08990
+					},
+					"locationID": []
 				}
 			]
 		},
@@ -1505,7 +1565,7 @@
 						{
 							"name": "Lower Luangwa Valley",
 							"id": "Lower Luangwa Valley",
-							"description": "Lower Luangwa",
+							"description": "Lower Luangwa Valley",
 							"locationID":[]
 						}
 
