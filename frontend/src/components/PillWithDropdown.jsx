@@ -21,7 +21,7 @@ export default function PillWithDropdown({
           color: "#000",
           borderRadius: "20px",
           cursor: "pointer",
-          width: "130px",
+          width: "140px",
           height: "40px",
           border: "none",
           fontSize: "1rem",
