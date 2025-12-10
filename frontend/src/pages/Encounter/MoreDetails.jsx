@@ -78,7 +78,11 @@ export const MoreDetails = observer(({ store = {} }) => {
           </div>
         </Col>
         {store.measurementsAndTrackingSection && (
-          <Col md={9} sm={12} className="d-flex flex-row gap-3">
+          <Col
+            md={9}
+            sm={12}
+            className="d-flex flex-row gap-3 align-items-start"
+          >
             {!store.editTracking ? (
               <CardWithEditButton
                 icon={<TrackingIcon />}
