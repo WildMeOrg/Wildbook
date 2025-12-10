@@ -45,6 +45,14 @@ const Encounter = observer(() => {
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);
   const intl = useIntl();
+  const encounterStates = store.siteSettingsData?.encounterState;
+  const encounterStatesOptions =
+    encounterStates && encounterStates.length > 0
+      ? encounterStates.map((state) => ({
+          value: state,
+          label: state,
+        }))
+      : [{ value: "loading", label: "loading" }];
 
   useEffect(() => {
     if (!siteSettings) return;
@@ -327,14 +335,10 @@ const Encounter = observer(() => {
         </Col>
         <Col md={6} className="text-end">
           <PillWithDropdown
-            options={
-              store.siteSettingsData?.encounterState?.map((state) => ({
-                value: state,
-                label: state,
-              })) || []
-            }
-            selectedOption={store.encounterData?.state || "unidentifiable"}
+            options={encounterStatesOptions}
+            selectedOption={store.encounterData?.state || "loading"}
             onSelect={(value) => {
+              if (value === "loading") return;
               setEncounterState(value, store.encounterData?.id);
               store.refreshEncounterData();
             }}
@@ -403,6 +407,9 @@ const Encounter = observer(() => {
                   store.errors.clearSectionErrors("date");
                 }}
                 content={<DateSectionEdit store={store} />}
+                styles={{
+                  overflow: "visible",
+                }}
               />
             ) : (
               <CardWithEditButton
