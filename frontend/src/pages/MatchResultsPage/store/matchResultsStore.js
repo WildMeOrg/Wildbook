@@ -9,7 +9,7 @@ export default class MatchResultsStore {
   _encounterId = "";
   _individualId = null;
   _projectName = "";
-  _numResults = 2;
+  _numResults = 12;
   _numCandidates = 0;
   _thisEncounterImageUrl = "";
   _selectedMatchImageUrlByAlgo = new Map();

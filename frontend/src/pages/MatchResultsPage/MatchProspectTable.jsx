@@ -22,6 +22,7 @@ const styles = {
   matchRank: {
     width: "24px",
     textAlign: "right",
+    marginRight: "8px",
   },
   matchScore: {
     width: "64px",
@@ -232,10 +233,10 @@ const MatchProspectTable = ({
   return (
     <div className="mb-4" id={key}>
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <div className="small text-muted d-flex">
-          <div>{algorithm}</div>
-          <div style={{ marginLeft: "auto" }}>
-            against {numCandidates} candidates <span>{date}</span>
+        <div className="d-flex w-100">
+          <div style={{ fontWeight: "500" }}>{`Matches based on ${algorithm} Algorithm`}</div>
+          <div style={{ marginLeft: "auto", fontWeight: "500" }}>
+            against {numCandidates} candidates <span>{date.slice(0,16).replace("T", " ")}</span>
           </div>
         </div>
       </div>
@@ -267,14 +268,26 @@ const MatchProspectTable = ({
                       handleRowClick(candidateEncounterId, candidateImageUrl)
                     }
                   >
-                    <span style={styles.matchRank}>{candidate.displayIndex}</span>
-                    <span style={styles.matchScore}>
+                    <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>
+                    <button style={styles.matchScore}
+                      onClick ={(e) => {
+                        e.stopPropagation();
+                        // const url = `/encounter?number=${candidateEncounterId}`;
+                        const url = `/encounters/encounter.jsp?number=${candidateEncounterId}`;
+                        window.open(url, "_blank");
+                      }}
+                    >
                       {candidate.score.toFixed(4)}
-                    </span>
+                    </button>
                     <button
                       type="button"
                       style={styles.idPill(themeColor)}
                       className="btn btn-sm p-0 px-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const url = `/individuals.jsp?id=${candidateEncounterId}`;
+                        window.open(url, "_blank");
+                      }}
                     >
                       {candidateIndividualDisplayName}
                     </button>
