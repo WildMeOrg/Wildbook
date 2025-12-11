@@ -64,6 +64,7 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
         return rtn;
     }
 
+    // used in sorting
     @Override public int compareTo(MatchResultProspect other) {
         // we invert this so higher score is first
         return Double.compare(other.score, this.score);

@@ -110,7 +110,6 @@ public class MatchResult implements java.io.Serializable {
         score_list is for indiv scores but on dannot_uuid_list (same length)
         name_score_list <=> unique_name_uuid_list ???
  */
-        this.prospects = new HashSet<MatchResultProspect>();
         this.populateProspects("annot", results.optJSONArray("dannot_uuid_list"),
             results.optJSONArray("annot_score_list"), results.optJSONArray("dannot_extern_list"),
             results.optString("dannot_extern_reference", null), myShepherd);
@@ -120,7 +119,6 @@ public class MatchResult implements java.io.Serializable {
         System.out.println("[DEBUG] createFromJsonResult() created " + this);
     }
 
-    // must initialize this.propsects first!!
     private int populateProspects(String type, JSONArray annotIds, JSONArray scores,
         JSONArray externs, String externRef, Shepherd myShepherd)
     throws IOException {
@@ -128,6 +126,8 @@ public class MatchResult implements java.io.Serializable {
             throw new IOException("null annotIds or scores");
         if (annotIds.length() != scores.length())
             throw new IOException("mismatch in size of annotIds/scores");
+        if (this.prospects == null)
+            this.prospects = new HashSet<MatchResultProspect>();
         int num = 0;
         for (int i = 0; i < annotIds.length(); i++) {
             double score = scores.optDouble(i, -Double.MAX_VALUE);
