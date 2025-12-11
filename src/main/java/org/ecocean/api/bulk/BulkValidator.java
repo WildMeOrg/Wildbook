@@ -120,8 +120,15 @@ public class BulkValidator {
     private int indexInt = -3;
     private String indexPrefix = null;
 
-    // public BulkValidator(String fieldName, JSONObject jvalue) throws BulkValidatorException {
-
+/*
+    // this constructor should only be used by sub-classes, as it does not
+    // do any actual validation (in sub-classes it is done by those constructors)
+    public BulkValidator(String fieldName, Object value)
+    throws BulkValidatorException {
+        this.fieldName = fieldName;
+        this.value = value;
+    }
+ */
     public BulkValidator(String fieldNamePassed, Object valuePassed, Shepherd myShepherd)
     throws BulkValidatorException {
         indexInt = indexIntValue(fieldNamePassed); // bonus: this throws exception if invalid fieldName
@@ -212,7 +219,7 @@ public class BulkValidator {
         if (!isValidFieldName(fieldName))
             throw new BulkValidatorException("invalid fieldName: " + fieldName,
                     ApiException.ERROR_RETURN_CODE_INVALID,
-                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME);
+                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME, fieldName);
         String raw = getRawIndexableFieldName(fieldName);
         if (raw == null) return -1;
         Pattern p = Pattern.compile(rawToRegex(raw));
@@ -230,7 +237,7 @@ public class BulkValidator {
         if (!isValidFieldName(fieldName))
             throw new BulkValidatorException("invalid fieldName: " + fieldName,
                     ApiException.ERROR_RETURN_CODE_INVALID,
-                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME);
+                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME, fieldName);
         String raw = getRawIndexableFieldName(fieldName);
         if (raw == null) return null;
         return raw.replace("#", "");
@@ -254,14 +261,14 @@ public class BulkValidator {
         if (!isValidFieldName(fieldName))
             throw new BulkValidatorException("invalid fieldName: " + fieldName,
                     ApiException.ERROR_RETURN_CODE_INVALID,
-                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME);
+                    BulkValidatorException.TYPE_UNKNOWN_FIELDNAME, fieldName);
         switch (fieldName) {
         case "Encounter.id":
         case "Encounter.catalogNumber":
             if (value == null) return null;
             if (!Util.isUUID(value.toString()))
                 throw new BulkValidatorException("must be proper UUID",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value.toString();
 
         case "Encounter.year":
@@ -270,7 +277,7 @@ public class BulkValidator {
             if (intVal == null) return null;
             if (intVal < 1000)
                 throw new BulkValidatorException("year value too small",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return intVal;
 
         case "Encounter.month":
@@ -279,10 +286,10 @@ public class BulkValidator {
             if (intVal == null) return null;
             if (intVal < 1)
                 throw new BulkValidatorException("month value too small",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             if (intVal > 12)
                 throw new BulkValidatorException("month value too large",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return intVal;
 
         case "Encounter.day":
@@ -291,10 +298,10 @@ public class BulkValidator {
             if (intVal == null) return null;
             if (intVal < 1)
                 throw new BulkValidatorException("day value too small",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             if (intVal > 31)
                 throw new BulkValidatorException("day value too large",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             // note: to validate upper bound based on month, this must be done through BulkImportUtil.validateRow()
             return intVal;
 
@@ -304,10 +311,10 @@ public class BulkValidator {
             if (intVal == null) return null;
             if (intVal < 0)
                 throw new BulkValidatorException("hour value too small",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             if (intVal > 23)
                 throw new BulkValidatorException("hour value too large",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return intVal;
 
         case "Encounter.minutes":
@@ -316,10 +323,10 @@ public class BulkValidator {
             if (intVal == null) return null;
             if (intVal < 0)
                 throw new BulkValidatorException("minutes value too small",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             if (intVal > 59)
                 throw new BulkValidatorException("minutes value too large",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return intVal;
 
         case "Sighting.dateInMilliseconds":
@@ -329,7 +336,7 @@ public class BulkValidator {
             if (longVal == null) return null;
             if (longVal > System.currentTimeMillis())
                 throw new BulkValidatorException("date cannot be in the future",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return longVal;
 
         case "Encounter.decimalLatitude":
@@ -339,7 +346,7 @@ public class BulkValidator {
             if (doubleVal == null) return null;
             if (!Util.isValidDecimalLatitude(doubleVal))
                 throw new BulkValidatorException("invalid " + fieldName + " value: " + doubleVal,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return doubleVal;
 
         case "Encounter.decimalLongitude":
@@ -349,53 +356,59 @@ public class BulkValidator {
             if (doubleVal == null) return null;
             if (!Util.isValidDecimalLongitude(doubleVal))
                 throw new BulkValidatorException("invalid " + fieldName + " value: " + doubleVal,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return doubleVal;
 
         case "Encounter.locationID":
             if ((value != null) && !LocationID.isValidLocationID(value.toString()))
                 throw new BulkValidatorException("invalid location value: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
         case "Encounter.sex":
             if ((value != null) && !Arrays.asList(SiteSettings.VALUES_SEX).contains(value))
                 throw new BulkValidatorException("invalid sex value: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
         case "Encounter.state":
             if ((value != null) &&
                 !Arrays.asList(SiteSettings.VALUES_ENCOUNTER_STATES).contains(value))
                 throw new BulkValidatorException("invalid state value: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
         case "Encounter.lifeStage":
             if ((value != null) && !CommonConfiguration.getIndexedPropertyValues("lifeStage",
                 myShepherd.getContext()).contains(value))
                 throw new BulkValidatorException("invalid lifeStage value: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
         case "Encounter.livingStatus":
             if ((value != null) && !CommonConfiguration.getIndexedPropertyValues("livingStatus",
                 myShepherd.getContext()).contains(value))
                 throw new BulkValidatorException("invalid livingStatus value: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
         case "Encounter.country":
             if ((value != null) && !Util.getCountries().contains(value))
                 throw new BulkValidatorException("invalid country value: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
+            return value;
+
+        case "Encounter.identificationRemarks":
+            if ((value != null) && !Util.getIdentificationRemarksValues().contains(value))
+                throw new BulkValidatorException("invalid identificationRemarks value: " + value,
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
         case "Encounter.submitterID":
             if ("public".equals(value)) return value;
             if ((value != null) && (myShepherd.getUser(value.toString()) == null))
                 throw new BulkValidatorException("invalid username: " + value,
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return value;
 
         // generic (positive) ints
@@ -416,7 +429,7 @@ public class BulkValidator {
             intVal = tryInteger(value);
             if (intVal < 0)
                 throw new BulkValidatorException("integer must be 0 or larger",
-                        ApiException.ERROR_RETURN_CODE_INVALID);
+                        ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
             return intVal;
 
         // generic (can be negative) ints
@@ -447,7 +460,7 @@ public class BulkValidator {
                 if (value == null) return null;
                 if (!Util.isValidEmailAddress(value.toString()))
                     throw new BulkValidatorException("invalid email address",
-                            ApiException.ERROR_RETURN_CODE_INVALID);
+                            ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
                 return value;
 
 /* no longer supported
@@ -469,7 +482,7 @@ public class BulkValidator {
             if (value == null) return null; // null is okay (just dont set keyword)
             if (BulkImportUtil.isValidLabeledKeywordValue(kwLabel, value.toString())) return value;
             throw new BulkValidatorException("LabeledKeyword " + kwLabel + " cannot accept value " +
-                    value, ApiException.ERROR_RETURN_CODE_INVALID);
+                    value, ApiException.ERROR_RETURN_CODE_INVALID, null, fieldName);
         }
         // probably should never get to this point, so worth noting
         System.out.println("INFO: validateValue() fell through with fieldName=" + fieldName +
