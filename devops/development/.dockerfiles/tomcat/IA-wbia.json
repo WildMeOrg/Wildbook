@@ -54,7 +54,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.5,
           "nms_thresh": 0.5,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "jaguar": {
@@ -85,7 +85,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
           "nms_thresh": 0.5,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "leopard": {
@@ -116,7 +116,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
           "nms_thresh": 0.4,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "snow_leopard": {
@@ -148,7 +148,7 @@
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
           "nms_aware": "ispart",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "lion": {
@@ -230,7 +230,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
           "nms_thresh": 0.5,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "leopard": {
@@ -265,7 +265,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.44,
           "nms_thresh": 0.4,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "snow_leopard": {
@@ -300,7 +300,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
           "nms_thresh": 0.5,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "leopard": {
@@ -337,7 +337,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.73,
           "nms_thresh": 0.5,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
 
@@ -375,7 +375,7 @@
           "model_tag_new": "spotted_hyena_v0",
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
 
         }
       ],
@@ -418,7 +418,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.74,
           "nms_thresh": 0.7,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "hyaena": {
@@ -456,7 +456,7 @@
           "labeler_model_tag": "hyaena_v0",
           "sensitivity": 0.74,
           "nms_thresh": 0.4,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "hyaena": {
@@ -501,7 +501,7 @@
           "sensitivity": 0.7,
           "nms_thresh": 0.4,
           "nms_aware": "ispart",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "lion": {
@@ -594,7 +594,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.64,
           "nms_thresh": 0.4,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "cheetah": {
@@ -632,7 +632,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.64,
           "nms_thresh": 0.4,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "genet": {
@@ -667,7 +667,7 @@
           "labeler_algo": "densenet",
           "sensitivity": 0.64,
           "nms_thresh": 0.4,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "cheetah": {
@@ -706,7 +706,7 @@
           "sensitivity": 0.64,
           "nms_thresh": 0.4,
           "nms_aware": "byclass",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "cheetah": {
@@ -743,7 +743,7 @@
           "nms_thresh": 0.5,
           "sensitivity": 0.48,
           "use_labeler_species": true,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "wild_dog": {
@@ -949,7 +949,7 @@
           "nms_aware": null,
           "nms_thresh": 0.5,
           "sensitivity": 0.48,
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "maned_wolf": {
@@ -984,7 +984,7 @@
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
           "labeler_model_tag": "lynx_v3",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "lynx_pardinus": {
@@ -1020,7 +1020,7 @@
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
           "labeler_model_tag": "lynx_v3",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "lynx_pardinus": {
@@ -1056,7 +1056,7 @@
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
           "labeler_model_tag": "lynx_v3",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "lynx_pardinus": {
@@ -1092,7 +1092,7 @@
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
           "labeler_model_tag": "lynx_v3",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "lynx_pardinus": {
@@ -1126,7 +1126,7 @@
           "nms_thresh": 0.4,
           "sensitivity": 0.21,
           "labeler_model_tag": "forestcat_v0",
-          "architecture": "new_wbia"
+          "architecture": "new_wbia_local"
         }
       ],
       "lynx_pardinus": {
@@ -1150,6 +1150,40 @@
       },
       "forest_cat": {
         "_id_conf": "@Felis.sp.lynx_pardinus._id_conf"
+      }
+    }
+  },
+  "Myrmecophaga": {
+    "tridactyla": {
+      "_detect_conf": [
+        {
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "giantanteater_v0",
+          "model_tag": "giantanteater_v0",
+          "model_tag_new": "giantanteater_v0",
+          "nms_aware": null,
+          "nms_thresh": 0.5,
+          "sensitivity": 0.48,
+          "architecture": "new_wbia_local"
+        }
+      ],
+      "giant_anteater": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "pipeline_root": "MiewId"
+            },
+            "description": "MiewID Matcher",
+            "default": true
+          },
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": false
+          }
+        ]
       }
     }
   },
