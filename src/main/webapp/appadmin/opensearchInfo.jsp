@@ -56,7 +56,6 @@ org.ecocean.shepherd.core.*
                         if (value.startsWith(".")) formatted.append("<td style='color: #6c757d; font-style: italic;'>" + value + "</td>");
                         else formatted.append("<td style='font-weight: 500;'>" + value + "</td>");
                     } else if (field.equals("pri") || field.equals("rep") || field.contains("docs") || field.contains("size")) {
-                        // User requested strict left alignment, so we do not apply 'numeric-cell' class here
                         formatted.append("<td>" + value + "</td>");
                     } else {
                         formatted.append("<td>" + value + "</td>");
@@ -138,13 +137,9 @@ org.ecocean.shepherd.core.*
         .status-red { color: #dc3545; }
 
         h2 { margin-top: 30px; padding: 10px 15px; background: #495057; color: white; border-radius: 3px; font-size: 1.2em; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
-
-        /* Restored original styling for H3 to space-between to push Copy button to right */
         h3 { color: #495057; margin: 15px 0 10px 0; font-size: 1em; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
 
         .section-wrapper { background: white; padding: 15px; border-radius: 3px; margin-bottom: 15px; border: 1px solid #dee2e6; }
-
-        /* Restored original dimensions */
         .json-viewer { width: 100%; min-height: 200px; max-height: 400px; padding: 10px; border: 1px solid #dee2e6; border-radius: 3px; background: #2b2b2b; color: #f8f8f2; font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace; font-size: 12px; line-height: 1.4; resize: vertical; overflow: auto; white-space: pre; }
 
         .copy-button { padding: 5px 10px; background: #6c757d; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 500; transition: background 0.2s ease; }
@@ -177,23 +172,17 @@ org.ecocean.shepherd.core.*
         try {
             Shepherd myShepherd = new Shepherd(request);
             OpenSearch os = new OpenSearch();
-
-            // --- DATA FETCHING (Batch Optimized) ---
-
             // 1. Cluster Health
             JSONObject clusterHealth = safeGetJSON(os, "_cluster/health");
             String status = clusterHealth.optString("status", "red");
             String statusColor = "green".equals(status) ? "#28a745" : ("yellow".equals(status) ? "#ffc107" : "#dc3545");
-
             // 2. Pending Tasks
             JSONArray pendingTasks = safeGetJSONArray(os, "_cat/pending_tasks?format=json");
             int pendingCount = pendingTasks.length();
             String pendingColor = pendingCount > 0 ? (pendingCount > 50 ? "#dc3545" : "#ffc107") : "#28a745";
-
             // 3. Indices Stats
             Request indicesReq = new Request("GET", "_cat/indices?format=json");
             String indicesData = os.getRestResponse(indicesReq);
-
             // 4. Bulk Mappings & Settings
             JSONObject allMappings = safeGetJSON(os, "_all/_mappings");
             JSONObject allSettings = safeGetJSON(os, "_all/_settings");
@@ -271,7 +260,6 @@ org.ecocean.shepherd.core.*
                 <strong>Administrative Actions:</strong>
                 <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 15px;">
                     <%
-                        // DYNAMICALLY GENERATE SYNC LINKS
                         for (String validIndex : OpenSearch.VALID_INDICES) {
                             String displayName = validIndex.replace("_", " ");
                             displayName = Character.toUpperCase(displayName.charAt(0)) + displayName.substring(1);
@@ -349,7 +337,6 @@ org.ecocean.shepherd.core.*
 </div>
 
 <script>
-    // Restored Original Copy Functionality
     function copyToClipboard(textareaId, button) {
         const textarea = document.getElementById(textareaId);
         const tempTextarea = document.createElement('textarea');
@@ -376,8 +363,6 @@ org.ecocean.shepherd.core.*
         document.body.removeChild(tempTextarea);
     }
 
-    // New Dynamic Toggle Function
-    // Handles toggling display AND updating button text
     function toggleSection(sectionId, btn) {
         const section = document.getElementById(sectionId);
         if (section.style.display === 'none') {
@@ -400,7 +385,6 @@ org.ecocean.shepherd.core.*
         }
     }
 
-    // Restored Original Auto-Resize Script
     document.addEventListener('DOMContentLoaded', function() {
         const textareas = document.querySelectorAll('.json-viewer');
         textareas.forEach(textarea => {
