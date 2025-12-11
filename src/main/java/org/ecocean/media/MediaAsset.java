@@ -759,15 +759,15 @@ public class MediaAsset extends Base implements java.io.Serializable {
     public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request,
         String bestType) {
         if (store == null) return null;
+        if ((bestType == null) && AccessControl.isAnonymous(request)) bestType = "mid";
         if (bestType == null) bestType = "master";
-        // note, this next line means bestType may get bumped *up* for anon user
-        if (AccessControl.isAnonymous(request)) bestType = "mid";
         if (store instanceof URLAssetStore) bestType = "original"; // this is cuz it is assumed to be a "public" url
-
+/*
+        // why is this here??! killing this 2025-09-10  -jon
         // hack for flukebook
         bestType = "master";
-        // System.out.println("bestSafeAsset: ma #"+getId()+" has bestType "+bestType);
-        // gotta consider that wre are the best!
+ */
+        // gotta consider that we are the best!
         if (this.hasLabel("_" + bestType)) return this;
         // if we are a child asset, we need to find our parent then find best from there!
         MediaAsset top = this; // assume we are the parent-est
@@ -963,6 +963,25 @@ public class MediaAsset extends Base implements java.io.Serializable {
         // myShepherd.closeDBTransaction();
 
         return jobj;
+    }
+
+    // a little redundancy with code in sanitizeJSON above; TODO could cleanup/consolidate?
+    public JSONArray getKeywordsJSONArray() {
+        JSONArray kwa = new JSONArray();
+
+        if (Util.collectionSize(this.getKeywords()) < 1) return kwa;
+        for (Keyword kw : this.getKeywords()) {
+            JSONObject kj = new JSONObject();
+            kj.put("id", kw.getIndexname());
+            kj.put("displayName", kw.getDisplayName());
+            kj.put("name", kw.getReadableName());
+            if (kw instanceof LabeledKeyword) {
+                LabeledKeyword lkw = (LabeledKeyword)kw;
+                kj.put("label", lkw.getLabel());
+            }
+            kwa.put(kj);
+        }
+        return kwa;
     }
 
     // carefree, safe json version
@@ -1183,6 +1202,17 @@ public class MediaAsset extends Base implements java.io.Serializable {
         new Thread(rn).start();
         System.out.println("updateStandardChildrenBackground() [" + tid + "] out of fork for ct=" +
             ids.size() + " <<<<");
+    }
+
+    // convenience when you have list of MediaAssets
+    public static void updateStandardChildrenBackgroundAssets(String context,
+        List<MediaAsset> assets) {
+        if (Util.collectionIsEmptyOrNull(assets)) return;
+        List<Integer> maIds = new ArrayList<Integer>();
+        for (MediaAsset ma : assets) {
+            maIds.add(ma.getIdInt());
+        }
+        updateStandardChildrenBackground(context, maIds);
     }
 
     // convenience, XXX  BUT see not above about sending multiple ids when possible!  XXX
