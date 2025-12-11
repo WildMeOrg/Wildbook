@@ -117,7 +117,8 @@ public class GenericObject extends ApiBase {
                             rtn.put("success", true);
                             rtn.put("statusCode", 200);
                             // this means we created on-the-fly some MatchResult(s) that need persisting
-                            commitShepherd = mrJson.optBoolean("_commitShepherd", false);
+                            commitShepherd = (mrJson != null) &&
+                                mrJson.optBoolean("_commitShepherd", false);
                             if (commitShepherd) myShepherd.commitDBTransaction();
                         }
                     } else {
