@@ -403,6 +403,7 @@ var lastIndivAutoData = {};
 function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
     var args = {
+        minLength: 2,
         resMap: function(data) {
             var taxString = $('#displayTax').text();
 
