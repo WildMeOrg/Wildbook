@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 
@@ -38,9 +39,11 @@ class ImageModalStore {
   }
 
   get encounterAnnotations() {
-    return (this.encounterData?.mediaAssets || []).flatMap(
-      (asset) => asset.annotations || [],
-    ) || [];
+    return (
+      (this.encounterData?.mediaAssets || []).flatMap(
+        (asset) => asset.annotations || [],
+      ) || []
+    );
   }
 
   get selectedAnnotationId() {
@@ -61,9 +64,10 @@ class ImageModalStore {
     this._showAnnotations = show;
   }
 
-  get tags() {    
+  get tags() {
     return (
-      this.encounterStore.currentPageItems?.[this.selectedImageIndex]?.mediaAssetKeywords || []
+      this.encounterStore.currentPageItems?.[this.selectedImageIndex]
+        ?.mediaAssetKeywords || []
     );
   }
 
@@ -90,16 +94,14 @@ class ImageModalStore {
   }
 
   get availabelLabeledKeywords() {
-    return Object.keys(
-      this.siteSettingsData?.labeledKeyword || {},
-    );
+    return Object.keys(this.siteSettingsData?.labeledKeyword || {});
   }
 
   get labeledKeywordAllowedValues() {
     const siteSettings = this.siteSettingsData;
     return (
       siteSettings?.labeledKeywordAllowedValues?.[
-      this._selectedLabeledKeyword
+        this._selectedLabeledKeyword
       ] || []
     );
   }
@@ -207,7 +209,7 @@ class ImageModalStore {
         return response.data;
       }
     } catch (error) {
-      console.error('Failed to refresh encounter data:', error);
+      console.error("Failed to refresh encounter data:", error);
       throw error;
     }
   }
@@ -222,4 +224,3 @@ class ImageModalStore {
 }
 
 export default ImageModalStore;
-

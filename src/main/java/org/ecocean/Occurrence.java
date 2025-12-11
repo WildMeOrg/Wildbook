@@ -618,14 +618,16 @@ public class Occurrence extends Base implements java.io.Serializable {
     public List<String> getAllSpeciesDeep() {
         List<String> result = new ArrayList<String>();
 
-        if (taxonomies != null) for (Taxonomy tax : taxonomies) {
-            String sciName = tax.getScientificName();
-            if (sciName != null && !result.contains(sciName)) result.add(sciName);
-        }
-        if (encounters != null) for (Encounter enc : encounters) {
-            String sciName = enc.getTaxonomyString();
-            if (sciName != null && !result.contains(sciName)) result.add(sciName);
-        }
+        if (taxonomies != null)
+            for (Taxonomy tax : taxonomies) {
+                String sciName = tax.getScientificName();
+                if (sciName != null && !result.contains(sciName)) result.add(sciName);
+            }
+        if (encounters != null)
+            for (Encounter enc : encounters) {
+                String sciName = enc.getTaxonomyString();
+                if (sciName != null && !result.contains(sciName)) result.add(sciName);
+            }
         return result;
     }
 
@@ -836,15 +838,20 @@ public class Occurrence extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessOccurrence(this, request);
     }
 
+    public boolean canUserAccess(User user, Shepherd myShepherd) {
+        return Collaboration.canUserAccessOccurrence(this, user, myShepherd);
+    }
+
+    public boolean canUserView(User user, Shepherd myShepherd) {
+        return Collaboration.canUserViewOccurrence(this, user, myShepherd);
+    }
+
     // see note on Base class
     public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-/* TODO: we do not have user-flavored Collaboration.canUserAccessOccurrence yet
-            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
- */
-            if (user.getId() != null) ids.add(user.getId());
+            if ((user.getId() != null) && canUserView(user, myShepherd)) ids.add(user.getId());
         }
         return ids;
     }
@@ -854,10 +861,8 @@ public class Occurrence extends Base implements java.io.Serializable {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-/* TODO: we do not have edit stuff for occurrence
-            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
- */
-            if (user.getId() != null) ids.add(user.getId());
+            // i think in this case, "edit" and "access" are synonymous?
+            if ((user.getId() != null) && canUserAccess(user, myShepherd)) ids.add(user.getId());
         }
         return ids;
     }
@@ -1316,6 +1321,14 @@ public class Occurrence extends Base implements java.io.Serializable {
         }
     }
 
+    public boolean pruneIfNeeded(Shepherd myShepherd) {
+        if (this.getNumberEncounters() > 0) return false;
+        System.out.println("[INFO] pruneIfNeeded() deleting " + this);
+        // this also removes from opensearch index
+        myShepherd.throwAwayOccurrence(this);
+        return true;
+    }
+
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         jobj.put("_sanitized", true);
@@ -1386,6 +1399,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         // (ints, dates, etc are all sortable)
         // note: "id" is done in Base.java
         map.put("taxonomies", keywordType);
+        map.put("submitterId", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("groupBehavior", keywordNormalType);
@@ -1426,6 +1440,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         }
         jgen.writeEndArray();
 
+        jgen.writeStringField("submitterId", this.getSubmitterID());
         jgen.writeStringField("groupBehavior", this.getGroupBehavior());
         jgen.writeStringField("groupComposition", this.getGroupComposition());
         jgen.writeStringField("initialCue", this.getInitialCue());
