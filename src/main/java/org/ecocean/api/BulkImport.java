@@ -896,12 +896,13 @@ public class BulkImport extends ApiBase {
         Set<String> indivIds = new HashSet<String>();
         if (task.numberEncounters() > 0) {
             JSONArray encArr = new JSONArray();
-            for (Encounter enc : task.getEncounters()) {
+            for (Encounter enc : task.getEncountersOrderByCreated()) {
                 JSONObject encj = new JSONObject();
                 encj.put("id", enc.getId());
                 if (detailed) {
                     encj.put("id", enc.getId());
                     encj.put("date", enc.getDate());
+                    encj.put("createdMillis", enc.getDWCDateAddedLong());
                     encj.put("occurrenceId", enc.getOccurrenceID());
                     if (enc.hasMarkedIndividual()) {
                         indivIds.add(enc.getIndividualID());

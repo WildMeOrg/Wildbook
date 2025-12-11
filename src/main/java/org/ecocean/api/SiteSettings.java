@@ -31,6 +31,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.Setting;
+import org.ecocean.Taxonomy;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
@@ -93,11 +94,17 @@ public class SiteSettings extends ApiBase {
             settings.put("livingStatus",
                 CommonConfiguration.getIndexedPropertyValues("livingStatus", context));
             settings.put("country", Util.getCountries());
+            settings.put("identificationRemarks", Util.getIdentificationRemarksValues());
             settings.put("annotationViewpoint", Annotation.getAllValidViewpointsSorted());
             settings.put("patterningCode",
                 CommonConfiguration.getIndexedPropertyValues("patterningCode", context));
             settings.put("measurement",
                 CommonConfiguration.getIndexedPropertyValues("measurement", context));
+            settings.put("measurementUnits", BulkImportUtil.getMeasurementUnits());
+            settings.put("samplingProtocol", ccIndexedWithLabels("samplingProtocol", context));
+            // these are for future potential use
+            // settings.put("_measurement", ccIndexedWithLabels("measurement", context));
+            // settings.put("_measurementUnits", ccIndexedWithLabels("measurementUnits", context));
 
             // TODO: there was some discussion in slack about this being derived differently
             // NOTE: historically this list was generated via CommonConfiguration using
@@ -111,12 +118,34 @@ public class SiteSettings extends ApiBase {
             settings.put("iaClass", iac);
 
             JSONObject iaForTx = new JSONObject();
+            JSONObject iaConfigJson = new JSONObject();
             for (String sn : sciNames) {
                 String snSpaces = sn.replaceAll("_", " ");
-                iaForTx.put(snSpaces,
-                    iaConfig.getValidIAClassesIgnoreRedirects(new org.ecocean.Taxonomy(snSpaces)));
+                Taxonomy tx = new Taxonomy(snSpaces);
+                iaForTx.put(snSpaces, iaConfig.getValidIAClassesIgnoreRedirects(tx));
+                // this part is for iaConfig
+                Map<String, JSONObject> identConfigs = new HashMap<String, JSONObject>();
+                try {
+                    for (String iaClass : iaConfig.getValidIAClasses(tx)) {
+                        for (JSONObject idOpt : iaConfig.identOpts(tx, iaClass)) {
+                            String key = idOpt.toString();
+                            if (identConfigs.containsKey(key)) {
+                                identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+                            } else {
+                                JSONArray iacls = new JSONArray();
+                                iacls.put(iaClass);
+                                idOpt.put("_iaClasses", iacls);
+                                identConfigs.put(key, idOpt);
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                iaConfigJson.put(snSpaces, identConfigs.values());
             }
             settings.put("iaClassesForTaxonomy", iaForTx);
+            settings.put("iaConfig", iaConfigJson);
 
             List<String> behavs = myShepherd.getAllBehaviors();
             behavs.remove(null);
@@ -124,16 +153,33 @@ public class SiteSettings extends ApiBase {
             Arrays.sort(barr);
             settings.put("behavior", behavs);
 
+            settings.put("behaviorOptions", new JSONObject(myShepherd.getTaxonomicBehaviors()));
+
             settings.put("bulkImportFieldNameSynonyms", BulkValidator.fieldNameSynonymsJson());
 
+            // kwId maps Keyword name to id so we can build the id-list *after we sort* by name
+            // this hackily assumes no duplicate names (some data backs this up?)... but i will
+            // claim this is fine, since if we have duplicate-named Keywords, it really doesnt
+            // matter which id we use for the sake of adding a new one
+            Map<String, String> kwId = new HashMap<String, String>();
             List<String> kws = new ArrayList<String>();
             // this seems like less desirable method: getAllKeywordsNoLabeledKeywords()
             for (Keyword kw : myShepherd.getSortedKeywordList()) {
-                if (!kws.contains(kw.getDisplayName())) kws.add(kw.getDisplayName());
+                if (!kws.contains(kw.getDisplayName())) {
+                    kws.add(kw.getDisplayName());
+                    kwId.put(kw.getDisplayName(), kw.getIndexname());
+                }
             }
             Object[] sortArray = kws.toArray();
             Arrays.sort(sortArray);
             settings.put("keyword", sortArray);
+            // build parallel id list post-sorting
+            JSONArray kwIdArr = new JSONArray();
+            for (Object kwName : sortArray) {
+                if (kwName == null) kwName = ""; // snh, but dont want to mess up ordering/length
+                kwIdArr.put(kwId.get(kwName.toString()));
+            }
+            settings.put("keywordId", kwIdArr);
 
             // we map to a Set here so we keep values unique (remove duplicates: issue 1279)
             Map<String,Set<String>> allLK = new HashMap<String, Set<String>>();
@@ -154,6 +200,9 @@ public class SiteSettings extends ApiBase {
             }
             settings.put("labeledKeyword", lkeyword);
             // these are values which are allowed for a given labeledKeyword
+            // TODO the sub-arrays are ordered correctly here, but the labels (since it is a map)
+            // loses its ordering when converted to JSONObject ... could be fixed by iterating thru
+            // keys (which should be in correct order) rather than all-in-one json conversion
             settings.put("labeledKeywordAllowedValues", BulkImportUtil.getLabeledKeywordMap());
 
             JSONObject orgs = new JSONObject();
@@ -396,5 +445,41 @@ public class SiteSettings extends ApiBase {
             }
             myShepherd.closeDBTransaction();
         }
+    }
+
+/*
+    NOTE: the labels files (e.g. en/commonConfigurationLabels.properties) are frustratingly
+    inconsistent. *most* things seem to key off of VALUE.label ... and yet, samplingProtocols
+    seem to key off of the commonConfiguration key, rather than value. :(
+
+    compare:
+        :)  Salinity.label = Salinity
+        :)  WaterTemperature.label = Water Temperature
+        :(  samplingProtocol0.label=personal guess
+
+    so this makes this code way more complicated and requires potentially two calls (per lang)
+    to find the labels
+ */
+    private JSONArray ccIndexedWithLabels(String key, String context) {
+        JSONArray arr = new JSONArray();
+        int offset = 0;
+
+        for (String value : CommonConfiguration.getIndexedPropertyValues(key, context)) {
+            arr.put(ccValueAndLabel(value, key + offset, context));
+            offset++;
+        }
+        return arr;
+    }
+
+    // fallback is basically the original key plus our offset, so like: samplingProtocol5
+    // as we need to test this when lookup *via value* fails. see note above.
+    private JSONObject ccValueAndLabel(String value, String fallback, String context) {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("value", value);
+        Map<String, String> lmap = CommonConfiguration.getLangMap(value, context);
+        if (lmap == null) lmap = CommonConfiguration.getLangMap(fallback, context);
+        rtn.put("label", lmap);
+        return rtn;
     }
 }
