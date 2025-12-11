@@ -3,6 +3,7 @@ package org.ecocean.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -180,10 +181,22 @@ public class SiteSettings extends ApiBase {
             }
             settings.put("keywordId", kwIdArr);
 
-            JSONObject lkeyword = new JSONObject();
+            // we map to a Set here so we keep values unique (remove duplicates: issue 1279)
+            Map<String,Set<String>> allLK = new HashMap<String, Set<String>>();
             for (LabeledKeyword lkw : myShepherd.getAllLabeledKeywords()) {
-                if (!lkeyword.has(lkw.getLabel())) lkeyword.put(lkw.getLabel(), new JSONArray());
-                lkeyword.getJSONArray(lkw.getLabel()).put(lkw.getValue());
+                if (!allLK.containsKey(lkw.getLabel())) allLK.put(lkw.getLabel(), new HashSet<String>());
+                allLK.get(lkw.getLabel()).add(lkw.getValue());
+            }
+            JSONObject lkeyword = new JSONObject();
+            for (String lkKey : allLK.keySet()) {
+                // sort our Set of values so it is not chaotic
+                List<String> lkValues = new ArrayList<String>(allLK.get(lkKey));
+                Collections.sort(lkValues);
+                JSONArray lkArr = new JSONArray();
+                for (String lkVal : lkValues) {
+                    lkArr.put(lkVal);
+                }
+                lkeyword.put(lkKey, lkArr);
             }
             settings.put("labeledKeyword", lkeyword);
             // these are values which are allowed for a given labeledKeyword
