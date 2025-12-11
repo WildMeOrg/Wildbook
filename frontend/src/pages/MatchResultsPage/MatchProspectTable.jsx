@@ -114,7 +114,7 @@ const MatchProspectTable = ({
   onToggleSelected,
   thisEncounterImageUrl,
   themeColor,
-  columns, 
+  columns,
   algorithm,
 }) => {
   const [previewedEncounterId, setPreviewedEncounterId] = React.useState(
@@ -133,7 +133,7 @@ const MatchProspectTable = ({
   const [isDragging, setIsDragging] = React.useState(null);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
 
-  
+
   const handleZoomIn = (side) => {
     if (side === "left") {
       setLeftImageZoom((prev) => Math.min(prev + 0.25, 3));
@@ -213,7 +213,7 @@ const MatchProspectTable = ({
 
   const handleRowClick = (encounterId, imageUrl) => {
     setPreviewedEncounterId(encounterId);
-   setSelectedMatchImageUrl(imageUrl); 
+    setSelectedMatchImageUrl(imageUrl);
   };
 
   React.useEffect(() => {
@@ -234,9 +234,15 @@ const MatchProspectTable = ({
     <div className="mb-4" id={key}>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div className="d-flex w-100">
-          <div style={{ fontWeight: "500" }}>{`Matches based on ${algorithm} Algorithm`}</div>
+          <div style={{ fontWeight: "500" }}>
+            {methodName
+              ? `Matches based on ${methodName}`
+              : `Matches based on ${algorithm}`}
+            {/* {methodDescription ? ` – ${methodDescription}` : ""} */}
+          </div>
           <div style={{ marginLeft: "auto", fontWeight: "500" }}>
-            against {numCandidates} candidates <span>{date.slice(0,16).replace("T", " ")}</span>
+            against {numCandidates} candidates{" "}
+            <span>{date?.slice(0, 16).replace("T", " ")}</span>
           </div>
         </div>
       </div>
@@ -270,7 +276,7 @@ const MatchProspectTable = ({
                   >
                     <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>
                     <button style={styles.matchScore}
-                      onClick ={(e) => {
+                      onClick={(e) => {
                         e.stopPropagation();
                         // const url = `/encounter?number=${candidateEncounterId}`;
                         const url = `/encounters/encounter.jsp?number=${candidateEncounterId}`;

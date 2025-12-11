@@ -171,6 +171,10 @@ const MatchResults = observer(() => {
             numCandidates={metadata.numCandidates}
             date={metadata.date}
             thisEncounterImageUrl={metadata.queryImageUrl}
+            methodName={metadata.methodName}
+            methodDescription={metadata.methodDescription}
+            taskStatus={metadata.taskStatus}
+            taskStatusOverall={metadata.taskStatusOverall}
             themeColor={themeColor}
             columns={columns}
             selectedMatch={store.selectedMatch}
@@ -178,6 +182,7 @@ const MatchResults = observer(() => {
               store.setSelectedMatch(checked, encounterId, individualId)
             }
           />
+
         </div>
       ))}
       <MatchResultsBottomBar store={store} themeColor={themeColor} />

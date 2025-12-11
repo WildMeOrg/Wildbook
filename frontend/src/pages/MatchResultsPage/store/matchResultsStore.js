@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 import { MAX_ROWS_PER_COLUMN } from "../constants";
-import { MOCK_DATA1, getAllAnnot, getAllIndiv } from "../mockupdata";
+import { getAllAnnot, getAllIndiv } from "../helperFunctions";
 
 
 export default class MatchResultsStore {
@@ -16,8 +16,8 @@ export default class MatchResultsStore {
   _selectedMatch = [];
   _taskId = null;
   _newIndividualName = "";
-  _rawAnnots = [];  
-  _rawIndivs = []; 
+  _rawAnnots = [];
+  _rawIndivs = [];
   _loading = true;
 
   constructor() {
@@ -25,11 +25,17 @@ export default class MatchResultsStore {
   }
 
   loadData(result) {
-    const annotResults1 = getAllAnnot(MOCK_DATA1.matchResultsRoot);
-    const indivResults1 = getAllIndiv(MOCK_DATA1.matchResultsRoot);
-
     const annotResults = getAllAnnot(result.matchResultsRoot);
     const indivResults = getAllIndiv(result.matchResultsRoot);
+
+    const firstAnnot = annotResults[0];
+    const firstIndiv = indivResults[0];
+    const first = firstAnnot ?? firstIndiv;
+
+    if (!first) {
+      this._loading = false;
+      return;
+    }
 
     this._encounterId = annotResults[0].queryEncounterId || indivResults[0].queryEncounterId;
     this._individualId = annotResults[0].queryIndividualId || indivResults[0].queryIndividualId;
@@ -39,12 +45,12 @@ export default class MatchResultsStore {
     this._possibleMatchImageUrl = this.viewMode === "individual" ? annotResults[0].annotation?.asset?.url : indivResults[0].annotation?.asset?.url;
 
     this._rawAnnots = annotResults;
-    this._rawIndivs = indivResults;    
+    this._rawIndivs = indivResults;
   }
 
   _processData(rawData) {
     // 1.filter by project name if set
-    const filtered = this._projectName 
+    const filtered = this._projectName
       ? rawData.filter(item => item.projectName === this._projectName)
       : rawData;
 
@@ -67,7 +73,7 @@ export default class MatchResultsStore {
           .slice(i, i + MAX_ROWS_PER_COLUMN)
           .map((match, index) => ({
             ...match,
-            displayIndex: i + index + 1,  
+            displayIndex: i + index + 1,
           }));
         columns.push(columnData);
       }
@@ -77,6 +83,10 @@ export default class MatchResultsStore {
           numCandidates: data[0].numberCandidates,
           date: data[0].date,
           queryImageUrl: data[0].queryEncounterImageAsset?.url,
+          methodName: data[0].methodName,
+          methodDescription: data[0].methodDescription,
+          taskStatus: data[0].taskStatus,
+          taskStatusOverall: data[0].taskStatusOverall,
         }
       });
     }
@@ -92,8 +102,8 @@ export default class MatchResultsStore {
   }
 
   get currentViewData() {
-    return this._viewMode === "individual" 
-      ? this.processedIndivs 
+    return this._viewMode === "individual"
+      ? this.processedIndivs
       : this.processedAnnots;
   }
 
