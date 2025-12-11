@@ -31,6 +31,19 @@ const MatchResults = observer(() => {
     return <p>Loading</p>
   }
 
+  if (!store.hasResults) {
+    return (
+      <Container className="mt-3 mb-5">
+        <h2>
+          <FormattedMessage id="MATCH_RESULT" />
+        </h2>
+        <p className="mt-3">
+          No match results available for this job.
+        </p>
+      </Container>
+    );
+  }
+
   return (
     <Container className="mt-3 mb-5">
       <Modal

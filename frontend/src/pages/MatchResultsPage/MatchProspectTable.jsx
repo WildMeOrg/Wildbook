@@ -116,6 +116,10 @@ const MatchProspectTable = ({
   themeColor,
   columns,
   algorithm,
+  methodName,
+  methodDescription,
+  taskStatus,
+  taskStatusOverall,
 }) => {
   const [previewedEncounterId, setPreviewedEncounterId] = React.useState(
     columns[0]?.[0]?.annotation?.encounter?.id
@@ -274,17 +278,23 @@ const MatchProspectTable = ({
                       handleRowClick(candidateEncounterId, candidateImageUrl)
                     }
                   >
-                    <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>
-                    <button style={styles.matchScore}
-                      onClick={(e) => {
+                    <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>                    
+                    <a
+                      href={`/encounters/encounter.jsp?number=${candidateEncounterId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-block",
+                        textDecoration: "none",
+                        textAlign: "left",   
+                        cursor: "pointer"
+                      }}
+                      onClick={(e) => {                       
                         e.stopPropagation();
-                        // const url = `/encounter?number=${candidateEncounterId}`;
-                        const url = `/encounters/encounter.jsp?number=${candidateEncounterId}`;
-                        window.open(url, "_blank");
                       }}
                     >
                       {candidate.score.toFixed(4)}
-                    </button>
+                    </a>
                     <button
                       type="button"
                       style={styles.idPill(themeColor)}
