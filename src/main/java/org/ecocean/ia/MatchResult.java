@@ -160,9 +160,9 @@ public class MatchResult implements java.io.Serializable {
         Shepherd myShepherd) {
         if (externRef == null) return null;
         String url = "/api/query/graph/match/thumb/?extern_reference=" + externRef;
-        url += "&query_annot_uuid=" + this.queryAnnotation.getId();
+        url += "&query_annot_uuid=" + this.queryAnnotation.getAcmId();
         url += "&database_annot_uuid=" + annotId;
-        url += "&version=heatmap";
+        url += "&version=heatmask";
         URL fullUrl = IBEISIA.iaURL(myShepherd.getContext(), url);
         File tmpFile = new File("/tmp/extern-" + this.id + "-" + externRef + "-" +
             this.queryAnnotation.getId() + "-" + annotId + ".jpg");
