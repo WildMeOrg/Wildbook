@@ -25,6 +25,11 @@
 									"locationID": []
 								},
 								{
+									"name": "Mateloueres",
+									"id": "Mateloueres",
+									"locationID": []
+								},
+								{
 									"name": "Poterie",
 									"id": "Poterie",
 									"locationID": []
@@ -345,6 +350,21 @@
 					"locationID": []
 				},
 				{
+					"name": "Mülheimer Wald",
+					"id": "Mülheimer Wald",
+					"locationID": [
+						{
+							"name": "Rottbachtal",
+							"id": "Rottbachtal",
+							"geospatialInfo": {
+								"lat": 51.3811,
+								"long": 6.8425
+							},
+							"locationID": []
+						}
+					]
+				},
+				{
 					"name": "Nerenbos",
 					"id": "Nerenbos",
 					"locationID": [
@@ -392,6 +412,15 @@
 					]
 				},
 				{
+					"name": "Ratinger Wald",
+					"id": "Ratinger Wald",
+					"geospatialInfo": {
+						"lat": 51.3133, 
+						"long": 6.8650
+					},
+					"locationID": []
+				},
+				{
 					"name": "Reifenstein",
 					"id": "Reifenstein",
 					"locationID":[]
@@ -400,6 +429,15 @@
 					"name": "Remscheid",
 					"id": "Remscheid",
 					"locationID": [
+						{
+							"name": "Eschbachtal",
+							"id": "Eschbachtal",
+							"geospatialInfo": {
+								"lat": 51.1555,
+								"long": 7.1635
+							},
+							"locationID": []
+						},
 						{
 							"name": "Hohenhagen",
 							"id": "Hohenhagen",
@@ -477,6 +515,15 @@
 				{
 					"name": "Waldheim",
 					"id": "Waldheim",
+					"locationID": []
+				},
+				{
+					"name": "Weser Bergland",
+					"id": "Weser Bergland",
+					"geospatialInfo": {
+						"lat": 51.8157,
+						"long": 9.4982
+					},
 					"locationID": []
 				},
 				{
@@ -873,44 +920,6 @@
 											"locationID": []
 										}
 									]
-								}
-							]
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "France",
-			"id": "France",
-			"locationID": [
-				{
-					"name": "Brittany",
-					"id": "Brittany",
-					"locationID":[
-						{
-							"name": "Rennes Metropole",
-							"id": "Rennes Metropole",
-							"locationID": [
-								{
-									"name": "Bois de Soeuvres",
-									"id": "Bois de Soeuvres",
-									"locationID": []
-								},
-								{
-									"name": "Mateloueres",
-									"id": "Mateloueres",
-									"locationID": []
-								},
-								{
-									"name": "Poterie",
-									"id": "Poterie",
-									"locationID": []
-								},
-								{
-									"name": "Prevalaye",
-									"id": "Prevalaye",
-									"locationID": []
 								}
 							]
 						}
