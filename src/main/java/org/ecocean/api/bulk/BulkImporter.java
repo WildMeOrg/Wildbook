@@ -603,6 +603,46 @@ public class BulkImporter {
                 }
                 break;
 
+            case "Sighting.vegetation":
+                occ.setVegetation(bv.getValueString());
+                break;
+
+            case "Sighting.terrain":
+                occ.setTerrain(bv.getValueString());
+                break;
+
+            case "Sighting.monitoringZone":
+                occ.setMonitoringZone(bv.getValueString());
+                break;
+
+            case "Sighting.groupSize":
+                occ.setGroupSize(bv.getValueInteger());
+                break;
+
+            case "Sighting.numAdultMales":
+                occ.setNumAdultMales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numAdultFemales":
+                occ.setNumAdultFemales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numSubMales":
+                occ.setNumSubMales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numSubFemales":
+                occ.setNumSubFemales(bv.getValueInteger());
+                break;
+
+            case "Sighting.numSubAdults":
+                occ.setNumSubAdults(bv.getValueInteger());
+                break;
+
+            case "Sighting.wp":
+                occ.setWp(bv.getValueInteger());
+                break;
+
             case "Survey.comments":
                 if (!bv.valueIsNull() &&
                     ((occ.getComments() == null) ||
