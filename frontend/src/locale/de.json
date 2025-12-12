@@ -375,7 +375,6 @@
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2": "Nur die Formate JPEG, JPG und PNG werden unterstützt. Dateien in anderen Formaten werden ignoriert.",
   "BULK_IMPORT_PHOTO_INSTRUCTION": "Ziehe deine Ordner oder Dateien hierher oder durchsuchen zum Hochladen",
   "SEE_INSTRUCTIONS": "Anleitung anzeigen",
-  "BULK_IMPORT_UPLOAD_IMAGE_DESC": "Die Bildnamen müssen der Spalte „Encounter.MediaAsset“ in deiner Wildbook-Standardformat-Tabelle entsprechen. Bilder müssen kleiner als 3 MB sein. Du kannst nur 200 Bilder auf einmal hochladen.",
   "BULK_IMPORT_UPLOAD_SPREADSHEET": "Tabelle hochladen",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART1": "Lade deine Tabellen-Datei (.csv, .xlsx, .xls) im ",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART2": "Wildbook-Standardformat hoch.",
@@ -398,8 +397,8 @@
   "BULK_IMPORT_INSTRUCTIONS_STEP1_PLACE_IMAGES": "Lege alle Bilder in einen einzigen Ordner",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_IMAGE_REQUIREMENTS": "Bilder müssen:",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT": "Im JPEG-, JPG- oder PNG-Format sein",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Weniger als 3 MB sein",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Nicht mehr als 200 Dateien pro Upload",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Weniger als {maxSize}MB sein",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Nicht mehr als {maxImageCount} Dateien pro Upload",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FILENAME_REQUIREMENTS": "Dateinamen müssen",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_LETTERS_NUMBERS": "Nur englische Buchstaben, Zahlen, Punkte und Leerzeichen verwenden",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_MATCH_ENTRIES": "Genau mit den Einträgen in der Encounter.mediaAsset-Spalte übereinstimmen",
@@ -700,6 +699,5 @@
   "REQUEST_REJECTED": "Ihre Anfrage zur Zusammenarbeit mit diesem Benutzer wurde abgelehnt.",
   "ACCESS_PENDING": "Ihre Anfrage zur Zusammenarbeit ist ausstehend",
   "CALENDAR_VIEW_DESC": "Zeige die Suchergebnisse der Encounters in einem Kalender nach Encounter-Datum an. Klicke auf eine Encounter-ID, um die Details zu öffnen.",
-  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Wähle ein oder mehrere Encounters aus, um sie zu einem Projekt hinzuzufügen.",
-  "RESULTS_PER_PAGE": "Ergebnisse pro Seite"
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Wähle ein oder mehrere Encounters aus, um sie zu einem Projekt hinzuzufügen."
 }

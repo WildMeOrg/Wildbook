@@ -1,13 +1,17 @@
+
 // PillWithButton.jsx
 import React from "react";
 import ThemeColorContext from "../ThemeColorProvider";
 
-export default function PillWithButton({ text, onClick, onClose }) {
+export default function PillWithButton({
+  text,
+  onClick,
+  onClose,
+}) {
   const theme = React.useContext(ThemeColorContext);
 
   return (
-    <div
-      className="d-flex align-items-center me-3 mb-2"
+    <div className="d-flex align-items-center me-3 mb-2"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -16,8 +20,7 @@ export default function PillWithButton({ text, onClick, onClose }) {
         color: "#000",
         borderRadius: "20px",
         cursor: onClick ? "pointer" : "default",
-        boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,.5), 0 1px 2px rgba(0,0,0,.08)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,.5), 0 1px 2px rgba(0,0,0,.08)",
       }}
     >
       <span>{text}</span>
@@ -38,3 +41,4 @@ export default function PillWithButton({ text, onClick, onClose }) {
     </div>
   );
 }
+

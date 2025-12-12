@@ -1,3 +1,4 @@
+
 const SECTION_FIELD_PATHS = {
   date: ["date", "verbatimEventDate"],
   identify: [
@@ -8,7 +9,12 @@ const SECTION_FIELD_PATHS = {
     "sightingId",
     "individualId",
   ],
-  metadata: ["id", "submitterID", "state", "observationComments"],
+  metadata: [
+    "id",
+    "submitterID",
+    "state",
+    "observationComments",
+  ],
   location: [
     "verbatimLocality",
     "locationId",
@@ -31,7 +37,7 @@ const SECTION_FIELD_PATHS = {
 
 const LOCAL_FIELD_ERRORS = {
   date: {
-    date: "invalid date",
+    date: "invalid date"
   },
   location: {
     latitude: "please enter invalid latitude and longitude",
@@ -39,7 +45,7 @@ const LOCAL_FIELD_ERRORS = {
   },
   measurements: {
     measurements: "please enter valid values",
-  },
+  }
 };
 
 export { SECTION_FIELD_PATHS, LOCAL_FIELD_ERRORS };

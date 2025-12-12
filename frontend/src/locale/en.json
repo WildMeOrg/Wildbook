@@ -313,7 +313,8 @@
     "FILTER_BY_MAP": "Filter by Map",
     "LOCATION_ID_DESCRIPTION": "Find the location id using the text or the map. Try to be as specific as possible.",
     "LOCATION_ID_REQUIRED_WARNING": "Location ID is required to establish match sets.",
-    "MISSING_REQUIRED_FIELDS": "Missing required fields. Review the form and try again.",
+    "MISSING_REQUIRED_FIELDS": "Missing required fields or incorrect field values. Please review the form and try again.",
+    "INVALID_EMAIL_FORMAT": "Invalid email format", 
     "INVALID_LAT": "Latitude must be between -90 and 90",
     "INVALID_LONG": "Longitude must be between -180 and 180",
     "BEERROR_REQUIRED": "Could not submit; missing required field: ",
@@ -396,8 +397,8 @@
     "BULK_IMPORT_INSTRUCTIONS_STEP1_PLACE_IMAGES": "Place all your images in a single folder",
     "BULK_IMPORT_INSTRUCTIONS_STEP1_IMAGE_REQUIREMENTS": "Images must be:",
     "BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT": "JPEG, JPG or PNG format",
-    "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Under 3MB",
-    "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Not exceed 200 files per import",
+    "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Under {maxSize}MB",
+    "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Not exceed {maxImageCount} files per import",
     "BULK_IMPORT_INSTRUCTIONS_STEP1_FILENAME_REQUIREMENTS": "Filenames must",
     "BULK_IMPORT_INSTRUCTIONS_STEP1_LETTERS_NUMBERS": "Use only letters from the English alphabet, numbers, periods and spaces",
     "BULK_IMPORT_INSTRUCTIONS_STEP1_MATCH_ENTRIES": "Exactly match entries in the Encounter.mediaAsset column of your spreadsheet",
@@ -698,6 +699,5 @@
     "REQUEST_REJECTED": "Your request to collaborate with this user has been rejected.",
     "ACCESS_PENDING": "Your request to collaborate is pending",
     "CALENDAR_VIEW_DESC": "View encounter search results on a calendar by encounter date. Click an encounter ID to open its details.",
-    "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project.",
-    "RESULTS_PER_PAGE": "Results per page"
+    "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project."
 }

@@ -30,7 +30,7 @@ export const FollowUpSection = observer(({ store }) => {
                 store.setSubmitterName(e.target.value);
               }}
               value={store.followUpSection?.submitter?.name}
-            ></Form.Control>
+            />
           </Form.Group>
         </Col>
         <Col>
@@ -39,13 +39,20 @@ export const FollowUpSection = observer(({ store }) => {
               <FormattedMessage id="CONTACT_EMAIL" />
             </Form.Label>
             <Form.Control
-              type="text"
+              type="email"
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
                 store.setSubmitterEmail(e.target.value);
+                if (store.followUpSection?.submitter?.emailError) {
+                  store.setSubmitterEmailError(false);
+                }
               }}
               value={store.followUpSection?.submitter?.email}
-            ></Form.Control>
+              isInvalid={store.followUpSection?.submitter?.emailError}
+            />
+            <Form.Control.Feedback type="invalid">
+              <FormattedMessage id="INVALID_EMAIL_FORMAT" />
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
       </Row>
@@ -66,7 +73,7 @@ export const FollowUpSection = observer(({ store }) => {
                 store.setPhotographerName(e.target.value);
               }}
               value={store.followUpSection?.photographer?.name}
-            ></Form.Control>
+            />
           </Form.Group>
         </Col>
         <Col>
@@ -75,13 +82,20 @@ export const FollowUpSection = observer(({ store }) => {
               <FormattedMessage id="CONTACT_EMAIL" />
             </Form.Label>
             <Form.Control
-              type="text"
+              type="email"
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
                 store.setPhotographerEmail(e.target.value);
+                if (store.followUpSection?.photographer?.emailError) {
+                  store.setPhotographerEmailError(false);
+                }
               }}
               value={store.followUpSection?.photographer?.email}
-            ></Form.Control>
+              isInvalid={store.followUpSection?.photographer?.emailError}
+            />
+            <Form.Control.Feedback type="invalid">
+              <FormattedMessage id="INVALID_EMAIL_FORMAT" />
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
       </Row>
@@ -100,9 +114,16 @@ export const FollowUpSection = observer(({ store }) => {
           placeholder={intl.formatMessage({ id: "CSL_EMAILS_EXAMPLE" })}
           onChange={(e) => {
             store.setAdditionalEmails(e.target.value);
+            if (store.followUpSection?.additionalEmailsError) {
+              store.setAdditionalEmailsError(false);
+            }
           }}
           value={store.followUpSection?.additionalEmails}
+          isInvalid={store.followUpSection?.additionalEmailsError}
         />
+        <Form.Control.Feedback type="invalid">
+          <FormattedMessage id="INVALID_EMAIL_FORMAT" />
+        </Form.Control.Feedback>
       </Form.Group>
     </div>
   );

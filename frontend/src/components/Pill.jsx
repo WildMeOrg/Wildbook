@@ -19,7 +19,7 @@ export default function Pill({ text, onClick, style, active }) {
         ...style,
       }}
     >
-      {<FormattedMessage id={text} />}
+      {<FormattedMessage id={text}/>}
     </div>
   );
 }
