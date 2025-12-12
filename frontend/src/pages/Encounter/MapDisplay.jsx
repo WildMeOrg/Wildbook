@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
@@ -26,8 +27,12 @@ export const MapDisplay = observer(
         const el = mapElRef.current;
         if (!el || !el.isConnected) return;
 
-        const hasCoords = Number.isFinite(Number(store.lat)) && Number.isFinite(Number(store.lon));
-        const center = hasCoords ? { lat: Number(store.lat), lng: Number(store.lon) } : fallbackCenter;
+        const hasCoords =
+          Number.isFinite(Number(store.lat)) &&
+          Number.isFinite(Number(store.lon));
+        const center = hasCoords
+          ? { lat: Number(store.lat), lng: Number(store.lon) }
+          : fallbackCenter;
 
         map = new window.google.maps.Map(el, {
           center,
@@ -54,7 +59,6 @@ export const MapDisplay = observer(
       store.lat,
       store.lon,
     ]);
-
 
     return (
       <div

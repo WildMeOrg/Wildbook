@@ -312,7 +312,7 @@
   "FILTER_BY_MAP": "Filtrer par carte",
   "LOCATION_ID_DESCRIPTION": "Trouvez l'ID de l'emplacement en utilisant le texte ou la carte. Essayez d'être aussi précis que possible.",
   "LOCATION_ID_REQUIRED_WARNING": "L'ID de l'emplacement est requis pour établir des ensembles de correspondances.",
-  "MISSING_REQUIRED_FIELDS": "Champs obligatoires manquants ou valeurs incorrectes. Veuillez vérifier le formulaire et réessayer.",  "INVALID_LAT": "La latitude doit être comprise entre -90 et 90",
+  "MISSING_REQUIRED_FIELDS": "Champs obligatoires manquants ou valeurs incorrectes. Veuillez vérifier le formulaire et réessayer.", 
     "INVALID_EMAIL_FORMAT": "Format d'email invalide",
     "INVALID_LAT": "La latitude doit être comprise entre -90 et 90",
   "INVALID_LONG": "La longitude doit être comprise entre -180 et 180",
@@ -396,8 +396,8 @@
   "BULK_IMPORT_INSTRUCTIONS_STEP1_PLACE_IMAGES": "Placez toutes vos images dans un seul dossier",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_IMAGE_REQUIREMENTS": "Les images doivent :",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT": "Format JPEG, JPG ou PNG",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Moins de {maxSize}Mo",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Ne pas dépasser {maxImageCount} fichiers par importation",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Moins de 3 Mo",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Ne pas dépasser 200 fichiers par importation",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FILENAME_REQUIREMENTS": "Les noms de fichiers doivent",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_LETTERS_NUMBERS": "Utiliser uniquement des lettres anglaises, des chiffres, des points et des espaces",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_MATCH_ENTRIES": "Correspondre exactement aux entrées de la colonne Encounter.mediaAsset",
@@ -698,5 +698,6 @@
   "REQUEST_REJECTED": "Votre demande de collaboration avec cet utilisateur a été refusée.",
   "ACCESS_PENDING": "Votre demande de collaboration est en attente",
   "CALENDAR_VIEW_DESC": "Afficher les résultats de recherche des rencontres dans un calendrier par date de rencontre. Cliquez sur un ID de rencontre pour en afficher les détails.",
-  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Sélectionnez une ou plusieurs rencontres à ajouter à un projet."
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Sélectionnez une ou plusieurs rencontres à ajouter à un projet.",
+  "RESULTS_PER_PAGE": "Résultats par page"
 }
