@@ -916,7 +916,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             List<String> behaviors = CommonConfiguration.getSequentialPropertyValues("behavior", context);
             if (behaviors.size()>0) {
             %>
-              <select class="form-control" name="lifeStage" id="lifeStage">
+              <select class="form-control" name="behavior" id="behavior">
                 <option value="" selected="selected"></option>
             <%
             for (int i=0;i<behaviors.size();i++) {
