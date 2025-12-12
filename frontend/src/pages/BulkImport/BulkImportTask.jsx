@@ -428,13 +428,11 @@ const BulkImportTask = observer(() => {
           </label>
         </div>
 
-        <div className="overflow-auto" style={{ maxHeight: "85vh" }}>
-          <SimpleDataTable
-            columns={columns}
-            data={sortedTableData}
-            perPage={rowsPerPage}
-          />
-        </div>
+        <SimpleDataTable
+          columns={columns}
+          data={sortedTableData}
+          perPage={rowsPerPage}
+        />
       </section>
 
       <Row>
