@@ -3,9 +3,9 @@ import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { Container, Form, Modal } from "react-bootstrap";
 import ThemeColorContext from "../../ThemeColorProvider";
-import MatchResultsStore from "./store/matchResultsStore";
-import MatchProspectTable from "./MatchProspectTable";
-import MatchResultsBottomBar from "./MatchResultsBottomBar";
+import MatchResultsStore from "./stores/matchResultsStore";
+import MatchProspectTable from "./components/MatchProspectTable";
+import MatchResultsBottomBar from "./components/MatchResultsBottomBar";
 import { useSearchParams } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
 
@@ -28,7 +28,7 @@ const MatchResults = observer(() => {
   }, [taskId]);
 
   if (store.loading) {
-    return <p>Loading</p>
+    return <p>Loading</p>;
   }
 
   if (!store.hasResults) {
@@ -37,9 +37,7 @@ const MatchResults = observer(() => {
         <h2>
           <FormattedMessage id="MATCH_RESULT" />
         </h2>
-        <p className="mt-3">
-          No match results available for this job.
-        </p>
+        <p className="mt-3">No match results available for this job.</p>
       </Container>
     );
   }
@@ -159,7 +157,6 @@ const MatchResults = observer(() => {
               value={store.projectName}
               onChange={(e) => {
                 store.setProjectName(e.target.value);
-
               }}
               style={{ minWidth: "220px" }}
             >
@@ -176,28 +173,29 @@ const MatchResults = observer(() => {
         </div>
       </div>
 
-      {[...store.currentViewData].map(([algorithmName, { columns, metadata }]) => (
-        <div key={algorithmName}>
-          <MatchProspectTable
-            key={`${store.viewMode}-${algorithmName}`}
-            algorithm={algorithmName}
-            numCandidates={metadata.numCandidates}
-            date={metadata.date}
-            thisEncounterImageUrl={metadata.queryImageUrl}
-            methodName={metadata.methodName}
-            methodDescription={metadata.methodDescription}
-            taskStatus={metadata.taskStatus}
-            taskStatusOverall={metadata.taskStatusOverall}
-            themeColor={themeColor}
-            columns={columns}
-            selectedMatch={store.selectedMatch}
-            onToggleSelected={(checked, encounterId, individualId) =>
-              store.setSelectedMatch(checked, encounterId, individualId)
-            }
-          />
-
-        </div>
-      ))}
+      {[...store.currentViewData].map(
+        ([algorithmName, { columns, metadata }]) => (
+          <div key={algorithmName}>
+            <MatchProspectTable
+              key={`${store.viewMode}-${algorithmName}`}
+              algorithm={algorithmName}
+              numCandidates={metadata.numCandidates}
+              date={metadata.date}
+              thisEncounterImageUrl={metadata.queryImageUrl}
+              methodName={metadata.methodName}
+              methodDescription={metadata.methodDescription}
+              taskStatus={metadata.taskStatus}
+              taskStatusOverall={metadata.taskStatusOverall}
+              themeColor={themeColor}
+              columns={columns}
+              selectedMatch={store.selectedMatch}
+              onToggleSelected={(checked, encounterId, individualId) =>
+                store.setSelectedMatch(checked, encounterId, individualId)
+              }
+            />
+          </div>
+        ),
+      )}
       <MatchResultsBottomBar store={store} themeColor={themeColor} />
     </Container>
   );
