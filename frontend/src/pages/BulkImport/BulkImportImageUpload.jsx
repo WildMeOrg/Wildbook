@@ -14,10 +14,6 @@ import { observer } from "mobx-react-lite";
 import BulkImportSeeInstructionsButton from "./BulkImportSeeInstructionsButton";
 import { FixedSizeList as List } from "react-window";
 import { BulkImportImageUploadInfo } from "./BulkImportImageUploadInfo";
-import {
-  defaultMaxMediaSize,
-  defaultMaxMediaCount,
-} from "../../constants/photoUpload.js";
 
 const handleDragOver = (e) => {
   e.preventDefault();
@@ -34,13 +30,11 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
-  const maxSize = data?.maximumMediaSizeMegabytes || defaultMaxMediaSize;
+  const maxSize = data?.maximumMediaSizeMegabytes || 40;
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 50;
-  store.setMaxImageCount(
-    data?.maximumMediaCountEncounter || defaultMaxMediaCount,
-  );
+  store.setMaxImageCount(data?.maximumMediaCountEncounter || 200);
   const currentCount = store.imagePreview.length;
 
   useEffect(() => {

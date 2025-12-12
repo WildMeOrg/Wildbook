@@ -2,13 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
-import { FormLabel, FormGroup } from "react-bootstrap";
+import { FormLabel, FormGroup, FormControl } from "react-bootstrap";
 import { observer } from "mobx-react-lite";
-import { DatePicker } from "antd";
-import dayjs from "dayjs";
-
-const FMT = "YYYY-MM-DD";
-const toDayjs = (s) => (s ? dayjs(s) : null);
 
 const DateFilter = observer(({ data, store }) => {
   const [startDate, setStartDate] = useState("");
@@ -100,45 +95,34 @@ const DateFilter = observer(({ data, store }) => {
             <p>
               <FormattedMessage id="FILTER_FROM" defaultMessage="From" />
             </p>
-            <DatePicker
-              className="w-100"
-              value={toDayjs(
+            <FormControl
+              type="date"
+              value={
                 store.formFilters
-                  .find((f) => f.filterId === "date")
-                  ?.query?.range?.date?.gte?.split("T")[0] || startDate,
-              )}
-              format={FMT}
-              placeholder={FMT}
-              allowClear
-              onChange={(d) => {
-                const iso = d ? d.format(FMT) : "";
-                setStartDate(iso);
+                  .find((filter) => filter.filterId === "date")
+                  ?.query?.range?.date?.gte?.split("T")[0] || startDate
+              }
+              onChange={(e) => {
+                setStartDate(e.target.value);
                 updateQuery1();
               }}
-              getPopupContainer={(trigger) => trigger.parentElement}
             />
           </FormGroup>
-
           <FormGroup className="w-50">
             <p>
               <FormattedMessage id="FILTER_TO" defaultMessage="To" />
             </p>
-            <DatePicker
-              className="w-100"
-              value={toDayjs(
+            <FormControl
+              type="date"
+              value={
                 store.formFilters
-                  .find((f) => f.filterId === "date")
-                  ?.query?.range?.date?.lte?.split("T")[0] || endDate,
-              )}
-              format={FMT}
-              placeholder={FMT}
-              allowClear
-              onChange={(d) => {
-                const iso = d ? d.format(FMT) : "";
-                setEndDate(iso);
+                  .find((filter) => filter.filterId === "date")
+                  ?.query?.range?.date?.lte?.split("T")[0] || endDate
+              }
+              onChange={(e) => {
+                setEndDate(e.target.value);
                 updateQuery1();
               }}
-              getPopupContainer={(trigger) => trigger.parentElement}
             />
           </FormGroup>
         </div>
@@ -156,54 +140,47 @@ const DateFilter = observer(({ data, store }) => {
       />
 
       <>
-        <FormLabel className="mt-3">
-          <FormattedMessage id="FILTER_ENCOUNTER_SUBMISSION_DATE" />
-        </FormLabel>
+        <p>
+          <FormLabel class="mt-3">
+            <FormattedMessage id="FILTER_ENCOUNTER_SUBMISSION_DATE" />
+          </FormLabel>
+        </p>
+
         <div className="d-flex flex-row w-100 mb-2">
           <FormGroup className="w-50" style={{ marginRight: "10px" }}>
             <p>
               <FormattedMessage id="FILTER_FROM" defaultMessage="From" />
             </p>
-            <DatePicker
-              className="w-100"
-              value={toDayjs(
+            <FormControl
+              type="date"
+              value={
                 store.formFilters
                   .find((filter) => filter.filterId === "dateSubmitted")
                   ?.query?.range?.dateSubmitted?.gte?.split("T")[0] ||
-                  submissionStartDate,
-              )}
-              format={FMT}
-              placeholder={FMT}
-              allowClear
-              onChange={(d) => {
-                const iso = d ? d.format(FMT) : "";
+                submissionStartDate
+              }
+              onChange={(e) => {
                 updateQuery2();
-                setSubmissionStartDate(iso);
+                setSubmissionStartDate(e.target.value);
               }}
-              getPopupContainer={(trigger) => trigger.parentElement}
             />
           </FormGroup>
           <FormGroup className="w-50">
             <p>
               <FormattedMessage id="FILTER_TO" defaultMessage="To" />
             </p>
-            <DatePicker
-              className="w-100"
-              value={toDayjs(
+            <FormControl
+              type="date"
+              value={
                 store.formFilters
                   .find((filter) => filter.filterId === "dateSubmitted")
                   ?.query?.range?.dateSubmitted?.lte?.split("T")[0] ||
-                  submissionEndDate,
-              )}
-              format={FMT}
-              placeholder={FMT}
-              allowClear
-              onChange={(d) => {
-                const iso = d ? d.format(FMT) : "";
+                submissionEndDate
+              }
+              onChange={(e) => {
                 updateQuery2();
-                setSubmissionEndDate(iso);
+                setSubmissionEndDate(e.target.value);
               }}
-              getPopupContainer={(trigger) => trigger.parentElement}
             />
           </FormGroup>
         </div>

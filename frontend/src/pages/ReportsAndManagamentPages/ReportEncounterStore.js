@@ -53,16 +53,13 @@ export class ReportEncounterStore {
       submitter: {
         name: "",
         email: "",
-        emailError: false,
       },
       photographer: {
         name: "",
         email: "",
-        emailError: false,
       },
       additionalEmails: "",
       error: false,
-      additionalEmailsError: false,
     };
     this._success = false;
     this._finished = false;
@@ -221,18 +218,6 @@ export class ReportEncounterStore {
     this._followUpSection.value = value;
   }
 
-  setSubmitterEmailError(error) {
-    this._followUpSection.submitter.emailError = error;
-  }
-
-  setPhotographerEmailError(error) {
-    this._followUpSection.photographer.emailError = error;
-  }
-
-  setAdditionalEmailsError(error) {
-    this._followUpSection.additionalEmailsError = error;
-  }
-
   setCommentsSectionValue(value) {
     this._additionalCommentsSection.value = value;
   }
@@ -279,38 +264,26 @@ export class ReportEncounterStore {
 
   validateEmails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    let isValid = true;
-
-    this.setSubmitterEmailError(false);
-    this.setPhotographerEmailError(false);
-    this.setAdditionalEmailsError(false);
 
     if (this._followUpSection.submitter.email) {
-      if (!emailPattern.test(this._followUpSection.submitter.email)) {
-        this.setSubmitterEmailError(true);
-        isValid = false;
-      }
+      if (!emailPattern.test(this._followUpSection.submitter.email))
+        return false;
     }
 
     if (this._followUpSection.photographer.email) {
-      if (!emailPattern.test(this._followUpSection.photographer.email)) {
-        this.setPhotographerEmailError(true);
-        isValid = false;
-      }
+      if (!emailPattern.test(this._followUpSection.photographer.email))
+        return false;
     }
 
     if (this._followUpSection.additionalEmails) {
-      const allEmailsValid = this._followUpSection.additionalEmails
+      return this._followUpSection.additionalEmails
         .split(",")
-        .every((email) => emailPattern.test(email.trim()));
-
-      if (!allEmailsValid) {
-        this.setAdditionalEmailsError(true);
-        isValid = false;
-      }
+        .every((email) => {
+          return emailPattern.test(email.trim());
+        });
     }
 
-    return isValid;
+    return true;
   }
 
   validateFields() {
