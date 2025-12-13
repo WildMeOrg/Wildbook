@@ -17,6 +17,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   const theme = useContext(ThemeColorContext);
   const [currentPage, setCurrentPage] = useState(0);
   const [pagedData, setPagedData] = useState([]);
+  const [dataset, setDataset] = useState([]);
 
   const pageCount = Math.ceil(data.length / perPage);
 
@@ -25,10 +26,19 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   }, [perPage]);
 
   useEffect(() => {
+    const indexedData = data.map((row, index) => ({
+      ...row,
+      tableID: row.tableID ?? index + 1,
+    }));
+    setDataset(indexedData);
+    setCurrentPage(0);
+  }, [data]);
+
+  useEffect(() => {
     const start = currentPage * perPage;
     const end = start + perPage;
-    setPagedData(data.slice(start, end));
-  }, [data, currentPage]);
+    setPagedData(dataset.slice(start, end));
+  }, [data, currentPage, dataset]);
 
   const userColumns = columns.map((col) => ({
     id: col.selector,
@@ -37,6 +47,26 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     sortable: col.sortable ?? true,
     cell: col.cell || ((row) => row[col.selector] || "-"),
   }));
+
+  const dataSortFunction = (column, sortDirection) => {
+    let sortedData = dataset.sort((rowA, rowB) => {
+      let comparison = 0;
+
+      if (column.selector(rowA) > column.selector(rowB)) {
+        comparison = 1;
+      } else if (column.selector(rowA) < column.selector(rowB)) {
+        comparison = -1;
+      }
+
+      return sortDirection === "desc" ? comparison * -1 : comparison;
+    });
+    setDataset(sortedData);
+    const dataPage = dataset.slice(
+      currentPage * perPage,
+      (currentPage + 1) * perPage,
+    );
+    setPagedData(dataPage);
+  };
 
   const conditionalRowStyles = [
     {
@@ -59,18 +89,15 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     },
   ];
 
-  const dataWithIndex = pagedData.map((row, index) => ({
-    ...row,
-    tableID: row.tableID ?? currentPage * perPage + index + 1,
-  }));
-
   return (
     <div className="container mt-3">
       <DataTable
         columns={userColumns}
-        data={dataWithIndex}
+        data={pagedData}
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
+        onSort={dataSortFunction}
+        keyField="tableID"
         highlightOnHover
         fixedHeader
         fixedHeaderScrollHeight="85vh"
