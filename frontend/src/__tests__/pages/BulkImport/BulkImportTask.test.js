@@ -112,6 +112,7 @@ describe("BulkImportTask", () => {
     expect(
       screen.getByText("BULK_IMPORT_TASK_STATUS_in_progress"),
     ).toBeInTheDocument();
+    expect(screen.getByText("RESULTS_PER_PAGE")).toBeInTheDocument();
     expect(screen.getByTestId("simple-table")).toBeInTheDocument();
     expect(screen.getByText("E123")).toBeInTheDocument();
   });

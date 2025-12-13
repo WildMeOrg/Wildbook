@@ -374,6 +374,7 @@
   "BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_2": "Sono supportati solo i formati JPEG, JPG e PNG. I file in altri formati verranno ignorati.",
   "BULK_IMPORT_PHOTO_INSTRUCTION": "Trascina qui la cartella o i file oppure sfoglia per selezionare i file da caricare",
   "SEE_INSTRUCTIONS": "Vedi istruzioni",
+  "BULK_IMPORT_UPLOAD_IMAGE_DESC": "I nomi delle immagini devono corrispondere alla colonna “Encounter.MediaAsset” del tuo foglio di calcolo nel formato standard di Wildbook. Le immagini devono essere inferiori a 3 MB. Puoi caricare solo 200 immagini alla volta.",
   "BULK_IMPORT_UPLOAD_SPREADSHEET": "Carica foglio di calcolo",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART1": "Carica il tuo file foglio di calcolo (.csv, .xlsx, .xls) nel ",
   "BULK_IMPORT_UPLOAD_SPREADSHEET_DESC_PART2": "Formato standard di Wildbook.",
@@ -396,8 +397,8 @@
   "BULK_IMPORT_INSTRUCTIONS_STEP1_PLACE_IMAGES": "Inserisci tutte le immagini in un'unica cartella",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_IMAGE_REQUIREMENTS": "Le immagini devono:",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT": "Essere in formato JPEG, JPG o PNG",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Essere inferiori a {maxSize}MB",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Non superare i {maxImageCount} file per importazione",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Essere inferiori a 3 MB",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "Non superare i 200 file per importazione",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FILENAME_REQUIREMENTS": "I nomi dei file devono",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_LETTERS_NUMBERS": "Usare solo lettere inglesi, numeri, punti e spazi",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_MATCH_ENTRIES": "Corrispondere esattamente alle voci nella colonna Encounter.mediaAsset",
@@ -698,5 +699,6 @@
   "REQUEST_REJECTED": "La tua richiesta di collaborare con questo utente è stata rifiutata.",
   "ACCESS_PENDING": "La tua richiesta di collaborazione è in sospeso",
   "CALENDAR_VIEW_DESC": "Visualizza i risultati della ricerca degli encounter in un calendario per data dell’incontro. Fai clic su un ID di encounter per aprirne i dettagli.",
-  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Seleziona uno o più encounter da aggiungere a un progetto."
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Seleziona uno o più encounter da aggiungere a un progetto.",
+  "RESULTS_PER_PAGE": "Risultati per pagina"
 }

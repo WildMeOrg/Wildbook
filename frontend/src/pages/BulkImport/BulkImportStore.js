@@ -116,43 +116,14 @@ export class BulkImportStore {
     "Encounter.year": {
       required: true,
       validate: (val) => {
-        if (val == null) return false;
-        const FLEXIBLE_DATE_RE =
-          /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2})(?:T(\d{1,2})(?::(\d{1,2}))?)?)?)?$/;
-
-        const str = String(val).trim();
-        if (!str) return false;
-
-        const m = str.match(FLEXIBLE_DATE_RE);
-        if (!m) {
-          return false;
-        }
-
-        const [, year, month, day, hour, minute] = m;
-
-        let normalized = year;
-        let format = "YYYY";
-
-        if (month !== undefined) {
-          normalized += "-" + month.padStart(2, "0");
-          format += "-MM";
-        }
-
-        if (day !== undefined) {
-          normalized += "-" + day.padStart(2, "0");
-          format += "-DD";
-        }
-
-        if (hour !== undefined) {
-          normalized += "T" + hour.padStart(2, "0");
-          format += "[T]HH";
-        }
-
-        if (minute !== undefined) {
-          normalized += ":" + minute.padStart(2, "0");
-          format += ":mm";
-        }
-        const parsed = dayjs(normalized, format, true);
+        const FORMATS = [
+          "YYYY",
+          "YYYY-MM",
+          "YYYY-MM-DD",
+          "YYYY-MM-DDTHH",
+          "YYYY-MM-DDTHH:mm",
+        ];
+        const parsed = dayjs(val, FORMATS, true);
         return parsed.isValid() && !parsed.isAfter(dayjs());
       },
       message: "BULKIMPORT_ERROR_INVALID_DATEFORMAT",

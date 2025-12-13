@@ -231,15 +231,6 @@ const authenticatedMenu = (
       {
         name: (
           <FormattedMessage
-            id="MENU_ADMINISTER_MANAGEACCOUNTS"
-            defaultMessage="Manage My Accounts"
-          />
-        ),
-        href: "/myUsers.jsp",
-      },
-      {
-        name: (
-          <FormattedMessage
             id="MENU_ADMINISTER_USERMANAGEMENT"
             defaultMessage="User Management"
           />

@@ -18,7 +18,7 @@ function Tooltip({ show, x, y, children }) {
         fontSize: 12,
         lineHeight: 1.4,
         zIndex: 9999,
-        whiteSpace: "pre-line", 
+        whiteSpace: "pre-line",
       }}
     >
       {children}
