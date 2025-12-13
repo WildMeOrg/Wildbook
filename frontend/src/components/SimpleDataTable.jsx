@@ -70,7 +70,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
 
   const conditionalRowStyles = [
     {
-      when: (row) => row.tableID % 2 === 0,
+      when: (row) => dataset.indexOf(row) % 2 === 0,
       style: {
         backgroundColor: "#ffffff",
         "&:hover": {
@@ -79,7 +79,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
       },
     },
     {
-      when: (row) => row.tableID % 2 !== 0,
+      when: (row) => dataset.indexOf(row) % 2 !== 0,
       style: {
         backgroundColor: "#f2f2f2",
         "&:hover": {
