@@ -22,23 +22,23 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   const pageCount = Math.ceil(data.length / perPage);
 
   useEffect(() => {
-    setCurrentPage(0);
-  }, [perPage]);
-
-  useEffect(() => {
-    const indexedData = data.map((row, index) => ({
-      ...row,
-      tableID: row.tableID ?? index + 1,
-    }));
-    setDataset(indexedData);
-    setCurrentPage(0);
+    if (dataset.length === 0) {
+      const indexedData = data.map((row, index) => ({
+        ...row,
+        tableID: row.tableID ?? index + 1,
+      }));
+      setDataset(indexedData);
+      setCurrentPage(0);
+      console.log("Dataset Initialized:");
+    }
+    setPagedData([...dataset].slice(0, perPage));
   }, [data]);
 
   useEffect(() => {
     const start = currentPage * perPage;
     const end = start + perPage;
-    setPagedData(dataset.slice(start, end));
-  }, [data, currentPage, dataset]);
+    setPagedData([...dataset].slice(start, end));
+  }, [dataset, currentPage]);
 
   const userColumns = columns.map((col) => ({
     id: col.selector,
@@ -49,7 +49,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   }));
 
   const dataSortFunction = (column, sortDirection) => {
-    let sortedData = dataset.sort((rowA, rowB) => {
+    let sortedData = [...dataset].sort((rowA, rowB) => {
       let comparison = 0;
 
       if (column.selector(rowA) > column.selector(rowB)) {
@@ -61,11 +61,6 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
       return sortDirection === "desc" ? comparison * -1 : comparison;
     });
     setDataset(sortedData);
-    const dataPage = dataset.slice(
-      currentPage * perPage,
-      (currentPage + 1) * perPage,
-    );
-    setPagedData(dataPage);
   };
 
   const conditionalRowStyles = [
