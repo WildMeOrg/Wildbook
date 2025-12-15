@@ -2,7 +2,7 @@
 import { makeAutoObservable } from "mobx";
 
 class ModalStore {
-  encounterStore;
+  encounterStore; 
 
   _openContactInfoModal = false;
   _openEncounterHistoryModal = false;

@@ -21,14 +21,10 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   const pageCount = Math.ceil(data.length / perPage);
 
   useEffect(() => {
-    setCurrentPage(0);
-  }, [perPage]);
-
-  useEffect(() => {
     const start = currentPage * perPage;
     const end = start + perPage;
     setPagedData(data.slice(start, end));
-  }, [data, currentPage]);
+  }, [data, currentPage, perPage]);
 
   const userColumns = columns.map((col) => ({
     id: col.selector,
@@ -72,8 +68,6 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
         highlightOnHover
-        fixedHeader
-        fixedHeaderScrollHeight="85vh"
       />
       <Row className="mt-3 d-flex justify-content-center">
         <Col xs="auto">

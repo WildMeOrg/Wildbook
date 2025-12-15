@@ -23,7 +23,7 @@ export function expandIds(locationOptions, values = []) {
   (values || []).forEach((val) => {
     if (!val) return;
     set.add(val);
-    const node = findNodeByValue(locationOptions, val);
+    const node = findNodeByValue(locationOptions, val); 
     if (node) {
       getAllDescendantValues(node).forEach((cid) => {
         if (cid != null) set.add(cid);

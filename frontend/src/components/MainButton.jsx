@@ -14,8 +14,8 @@ export default function MainButton({
   className = "",
   children,
   style,
-  noArrow,
-  target = false, // If true, opens link in a new tab
+  noArrow,  
+  target = false, // If true, opens link in a new tab  
   ...rest
 }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -56,7 +56,6 @@ export default function MainButton({
         target={target ? "_blank" : "_self"}
         className="d-flex align-items-center justify-content-center text-decoration-none w-100 h-100"
         style={{ color: "inherit" }}
-        rel="noreferrer"
       >
         {children}
         <span className="ms-2"></span>
