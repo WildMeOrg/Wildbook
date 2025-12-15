@@ -396,8 +396,8 @@
   "BULK_IMPORT_INSTRUCTIONS_STEP1_PLACE_IMAGES": "Coloca todas tus imágenes en una sola carpeta",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_IMAGE_REQUIREMENTS": "Las imágenes deben:",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT": "Formato JPEG, JPG o PNG",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Menos de 3 MB",
-  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "No exceder 200 archivos por importación",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE": "Menos de {maxSize}MB",
+  "BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT": "No exceder {maxImageCount} archivos por importación",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_FILENAME_REQUIREMENTS": "Los nombres de archivo deben",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_LETTERS_NUMBERS": "Usar solo letras en inglés, números, puntos y espacios",
   "BULK_IMPORT_INSTRUCTIONS_STEP1_MATCH_ENTRIES": "Coincidir exactamente con las entradas en la columna Encounter.mediaAsset de tu hoja de cálculo",
@@ -698,6 +698,5 @@
   "REQUEST_REJECTED": "Tu solicitud de colaboración con este usuario ha sido rechazada.",
   "ACCESS_PENDING": "Tu solicitud de colaboración está pendiente",
   "CALENDAR_VIEW_DESC": "Ver los resultados de la búsqueda de encuentros en un calendario por fecha del encuentro. Haz clic en un ID de encuentro para abrir sus detalles.",
-  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Selecciona uno o varios encuentros para añadirlos a un proyecto.",
-  "RESULTS_PER_PAGE": "Resultados por página"
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Selecciona uno o varios encuentros para añadirlos a un proyecto."
 }
