@@ -1,3 +1,5 @@
+
+
 import React from "react";
 import PropTypes from "prop-types";
 import ThemeColorContext from "../ThemeColorProvider";
@@ -14,7 +16,7 @@ export default function InactivePill({ text, onClick, style }) {
         color: "#000",
         borderRadius: "20px",
         cursor: "pointer",
-        ...style,
+        ...style, 
       }}
     >
       {text}
