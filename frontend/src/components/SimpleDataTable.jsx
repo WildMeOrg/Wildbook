@@ -29,7 +29,6 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
       }));
       setDataset(indexedData);
       setCurrentPage(0);
-      console.log("Dataset Initialized:");
     }
     setPagedData([...dataset].slice(0, perPage));
   }, [data]);
