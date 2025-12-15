@@ -55,7 +55,7 @@ export const CoordinatesInput = observer(({ store }) => {
 
         return () => {
           window.google.maps.removeListener(clickListener);
-        }
+        };
       })
       .catch((error) => {
         console.error("Error loading Google Maps", error);
@@ -86,20 +86,15 @@ export const CoordinatesInput = observer(({ store }) => {
   }, [store.lat, store.lon, map, pan]);
 
   useEffect(() => {
-    if (!store.lat || !store.lon) return;
-    if (store.lat) {
-      store.setFieldValue("location", "locationGeoPoint", {
-        ...store.getFieldValue("location","locationGeoPoint") || {},
-        lat: store.lat,
-      });
-    }
+    const hasLat = store.lat !== null && store.lat !== undefined;
+    const hasLon = store.lon !== null && store.lon !== undefined;
 
-    if (store.lon) {
-      store.setFieldValue("location", "locationGeoPoint", {
-        ...store.getFieldValue("location","locationGeoPoint") || {},
-        lon: store.lon,
-      });
-    }
+    if (!hasLat || !hasLon) return;
+
+    store.setFieldValue("location", "locationGeoPoint", {
+      lat: store.lat,
+      lon: store.lon,
+    });
   }, [store.lat, store.lon]);
 
   return (
@@ -120,14 +115,14 @@ export const CoordinatesInput = observer(({ store }) => {
               onChange={(e) => {
                 let newLat = e.target.value;
                 setPan(true);
-                store.setLat(newLat);                
+                store.setLat(newLat);
               }}
             />
             {store.errors.getFieldError("location", "latitude") && (
               <div className="invalid-feedback d-block">
                 {store.errors.getFieldError("location", "latitude") || ""}
               </div>
-            )}            
+            )}
           </div>
           <div className="w-50">
             <Form.Control
@@ -140,7 +135,7 @@ export const CoordinatesInput = observer(({ store }) => {
               onChange={(e) => {
                 const newLon = e.target.value;
                 setPan(true);
-                store.setLon(newLon);                
+                store.setLon(newLon);
               }}
             />
             {store.errors.getFieldError("location", "longitude") && (
