@@ -242,7 +242,7 @@ describe("EncounterStore", () => {
 
       axios.post.mockResolvedValue({ data: { hits: mockResults } });
 
-      await store.searchIndividualsByName("Whale");
+      await store.searchIndividualsByNameAndId("Whale");
 
       expect(axios.post).toHaveBeenCalledWith(
         "/api/v3/search/individual?size=20&from=0",
@@ -312,7 +312,9 @@ describe("EncounterStore", () => {
     it("should handle individual search error", async () => {
       axios.post.mockRejectedValue(new Error("Search failed"));
 
-      await expect(store.searchIndividualsByName("test")).rejects.toThrow();
+      await expect(
+        store.searchIndividualsByNameAndId("test"),
+      ).rejects.toThrow();
       expect(toast.error).toHaveBeenCalled();
       expect(store.individualSearchResults).toEqual([]);
     });

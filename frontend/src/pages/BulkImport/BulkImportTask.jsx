@@ -33,7 +33,6 @@ const BulkImportTask = observer(() => {
   const { task, isLoading, error, refetch } = useGetBulkImportTask(taskId);
   const { data: siteData } = useGetSiteSettings();
   const [userRoles, setUserRoles] = useState(null);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const store = useLocalObservable(() => new BulkImportTaskStore());
 
   const previousLocationID = task?.matchingLocations || [];
@@ -406,34 +405,7 @@ const BulkImportTask = observer(() => {
           />
         </div>
 
-        <div className="mb-2">
-          <label>
-            <h6 className="mb-2">
-              <FormattedMessage
-                id="RESULTS_PER_PAGE"
-                defaultMessage="Results per page"
-              />
-            </h6>
-
-            <select
-              value={rowsPerPage}
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={250}>250</option>
-              <option value={sortedTableData.length}>All</option>
-            </select>
-          </label>
-        </div>
-
-        <SimpleDataTable
-          columns={columns}
-          data={sortedTableData}
-          perPage={rowsPerPage}
-        />
+        <SimpleDataTable columns={columns} data={sortedTableData} />
       </section>
 
       <Row>
