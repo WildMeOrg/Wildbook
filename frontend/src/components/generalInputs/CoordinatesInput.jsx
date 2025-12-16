@@ -55,7 +55,7 @@ export const CoordinatesInput = observer(({ store }) => {
 
         return () => {
           window.google.maps.removeListener(clickListener);
-        }
+        };
       })
       .catch((error) => {
         console.error("Error loading Google Maps", error);
@@ -86,20 +86,21 @@ export const CoordinatesInput = observer(({ store }) => {
   }, [store.lat, store.lon, map, pan]);
 
   useEffect(() => {
-    if (!store.lat || !store.lon) return;
-    if (store.lat) {
-      store.setFieldValue("location", "locationGeoPoint", {
-        ...store.getFieldValue("location","locationGeoPoint") || {},
-        lat: store.lat,
-      });
+    if (store.lat == null && store.lon == null) return;
+
+    const currentGeoPoint =
+      store.getFieldValue("location", "locationGeoPoint") || {};
+    const newGeoPoint = { ...currentGeoPoint };
+
+    if (store.lat != null) {
+      newGeoPoint.lat = store.lat;
     }
 
-    if (store.lon) {
-      store.setFieldValue("location", "locationGeoPoint", {
-        ...store.getFieldValue("location","locationGeoPoint") || {},
-        lon: store.lon,
-      });
+    if (store.lon != null) {
+      newGeoPoint.lon = store.lon;
     }
+
+    store.setFieldValue("location", "locationGeoPoint", newGeoPoint);
   }, [store.lat, store.lon]);
 
   return (
@@ -114,33 +115,29 @@ export const CoordinatesInput = observer(({ store }) => {
               type="number"
               required
               placeholder="##.##"
-              value={
-                store.lat !== null && store.lat !== undefined ? store.lat : ""
-              }
+              value={store.lat ?? ""}
               onChange={(e) => {
                 let newLat = e.target.value;
                 setPan(true);
-                store.setLat(newLat);                
+                store.setLat(newLat);
               }}
             />
             {store.errors.getFieldError("location", "latitude") && (
               <div className="invalid-feedback d-block">
                 {store.errors.getFieldError("location", "latitude") || ""}
               </div>
-            )}            
+            )}
           </div>
           <div className="w-50">
             <Form.Control
               type="number"
               required
               placeholder="##.##"
-              value={
-                store.lon !== null && store.lon !== undefined ? store.lon : ""
-              }
+              value={store.lon ?? ""}
               onChange={(e) => {
                 const newLon = e.target.value;
                 setPan(true);
-                store.setLon(newLon);                
+                store.setLon(newLon);
               }}
             />
             {store.errors.getFieldError("location", "longitude") && (

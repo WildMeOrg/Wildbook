@@ -24,12 +24,12 @@ export const LocationSectionReview = observer(({ store }) => {
           <FormattedMessage id="COORDINATES" />
         </h6>
         <div>
-          {store.getFieldValue("location", "locationGeoPoint") &&
-            `latitude: ${store.getFieldValue("location", "locationGeoPoint")?.lat || ""}`}
+          {store.getFieldValue("location", "locationGeoPoint")?.lat != null &&
+            `latitude: ${store.getFieldValue("location", "locationGeoPoint").lat}`}
         </div>
         <div>
-          {store.getFieldValue("location", "locationGeoPoint") &&
-            `longitude: ${store.getFieldValue("location", "locationGeoPoint")?.lon || ""}`}
+          {store.getFieldValue("location", "locationGeoPoint")?.lon != null &&
+            `longitude: ${store.getFieldValue("location", "locationGeoPoint").lon}`}
         </div>
       </div>
       <div>
