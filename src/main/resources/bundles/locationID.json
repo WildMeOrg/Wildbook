@@ -228,7 +228,9 @@
 		  {"name": "Persian Gulf", "id": "Persian Gulf" },
 		  {"name": "Red Sea", "id":"Red Sea",
 		  "locationID":[
-		    {"name":"Israel","id":"Israel"}
+		    {"name":"Israel","id":"Israel"},
+			{"name": "Saudi Arabia", "id": "Saudi Arabia", "locationID": [
+				{"name": "Ras Baridi", "id": "Ras Baridi", "prefix": "KSA-RB-", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 24.254205, "long": 37.572626},"locationID":[]}
 		  ]},
 		  {"name": "Réunion", "id": "Reunion"},
           {"name": "Seychelles", "id": "Seychelles" },
