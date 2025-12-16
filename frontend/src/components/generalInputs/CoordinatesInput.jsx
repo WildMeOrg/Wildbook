@@ -86,15 +86,21 @@ export const CoordinatesInput = observer(({ store }) => {
   }, [store.lat, store.lon, map, pan]);
 
   useEffect(() => {
-    const hasLat = store.lat !== null && store.lat !== undefined;
-    const hasLon = store.lon !== null && store.lon !== undefined;
+    if (store.lat == null && store.lon == null) return;
 
-    if (!hasLat || !hasLon) return;
+    const currentGeoPoint =
+      store.getFieldValue("location", "locationGeoPoint") || {};
+    const newGeoPoint = { ...currentGeoPoint };
 
-    store.setFieldValue("location", "locationGeoPoint", {
-      lat: store.lat,
-      lon: store.lon,
-    });
+    if (store.lat != null) {
+      newGeoPoint.lat = store.lat;
+    }
+
+    if (store.lon != null) {
+      newGeoPoint.lon = store.lon;
+    }
+
+    store.setFieldValue("location", "locationGeoPoint", newGeoPoint);
   }, [store.lat, store.lon]);
 
   return (
@@ -109,9 +115,7 @@ export const CoordinatesInput = observer(({ store }) => {
               type="number"
               required
               placeholder="##.##"
-              value={
-                store.lat !== null && store.lat !== undefined ? store.lat : ""
-              }
+              value={store.lat ?? ""}
               onChange={(e) => {
                 let newLat = e.target.value;
                 setPan(true);
@@ -129,9 +133,7 @@ export const CoordinatesInput = observer(({ store }) => {
               type="number"
               required
               placeholder="##.##"
-              value={
-                store.lon !== null && store.lon !== undefined ? store.lon : ""
-              }
+              value={store.lon ?? ""}
               onChange={(e) => {
                 const newLon = e.target.value;
                 setPan(true);

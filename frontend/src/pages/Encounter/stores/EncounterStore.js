@@ -134,8 +134,8 @@ class EncounterStore {
   }
   setEncounterData(newEncounterData) {
     this._encounterData = newEncounterData;
-    this._lat = newEncounterData?.locationGeoPoint?.lat || null;
-    this._lon = newEncounterData?.locationGeoPoint?.lon || null;
+    this._lat = newEncounterData?.locationGeoPoint?.lat ?? null;
+    this._lon = newEncounterData?.locationGeoPoint?.lon ?? null;
     this._metalTagValues = newEncounterData?.metalTags || [];
     this._acousticTagValues = newEncounterData?.acousticTag || {};
     this._satelliteTagValues = newEncounterData?.satelliteTag || {};
