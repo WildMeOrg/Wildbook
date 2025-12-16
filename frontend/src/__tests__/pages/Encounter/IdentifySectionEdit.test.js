@@ -58,7 +58,7 @@ const makeStore = (overrides = {}) => ({
   identificationRemarksOptions: ["auto", "manual"],
   individualOptions: [],
   setIndividualOptions: jest.fn(),
-  searchIndividualsByName: jest.fn(),
+  searchIndividualsByNameAndId: jest.fn(),
   searchSightingsById: jest.fn(),
   setFieldValue: jest.fn(),
   setEditIdentifyCard: jest.fn(),
@@ -134,7 +134,7 @@ describe("IdentifySectionEdit", () => {
 
   test("INDIVIDUAL_ID loadOptions maps search results and sets individual options", async () => {
     const store = makeStore();
-    store.searchIndividualsByName.mockResolvedValueOnce({
+    store.searchIndividualsByNameAndId.mockResolvedValueOnce({
       data: {
         hits: [
           { id: 5, displayName: "Ind5" },
@@ -148,7 +148,7 @@ describe("IdentifySectionEdit", () => {
     const props = global.__SEARCH_PROPS__["INDIVIDUAL_ID"];
     const res = await props.loadOptions("in");
 
-    expect(store.searchIndividualsByName).toHaveBeenCalledWith("in");
+    expect(store.searchIndividualsByNameAndId).toHaveBeenCalledWith("in");
     expect(store.setIndividualOptions).toHaveBeenCalledWith([
       { value: "5", label: "Ind5" },
       { value: "6", label: "Ind6" },

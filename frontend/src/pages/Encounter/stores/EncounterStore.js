@@ -260,7 +260,7 @@ class EncounterStore {
 
   debouncedSearchIndividuals = debounce(async (inputValue) => {
     if (inputValue && inputValue.length >= 2) {
-      await this.searchIndividualsByName(inputValue);
+      await this.searchIndividualsByNameAndId(inputValue);
     } else {
       this.clearIndividualSearchResults();
     }
@@ -1144,7 +1144,7 @@ class EncounterStore {
     this._encounterData = nextEncounter;
   }
 
-  async searchIndividualsByName(inputValue) {
+  async searchIndividualsByNameAndId(inputValue) {
     this._searchingIndividuals = true;
 
     try {
@@ -1161,6 +1161,8 @@ class EncounterStore {
                     },
                   ]
                 : []),
+            ],
+            should: [
               {
                 wildcard: {
                   names: {
@@ -1169,7 +1171,16 @@ class EncounterStore {
                   },
                 },
               },
+              {
+                wildcard: {
+                  id: {
+                    value: `*${inputValue}*`,
+                    case_insensitive: true,
+                  },
+                },
+              },
             ],
+            minimum_should_match: 1,
           },
         },
       };

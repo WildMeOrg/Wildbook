@@ -55,7 +55,7 @@ export const IdentifySectionEdit = observer(({ store }) => {
         onChange={(v) => store.setFieldValue("identify", "individualId", v)}
         options={store.individualOptions}
         loadOptions={async (q) => {
-          const resp = await store.searchIndividualsByName(q);
+          const resp = await store.searchIndividualsByNameAndId(q);
           const options = (resp.data.hits || []).map((it) => ({
             value: String(it.id),
             label: it.displayName,
