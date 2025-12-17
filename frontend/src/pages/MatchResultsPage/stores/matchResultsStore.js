@@ -23,7 +23,6 @@ export default class MatchResultsStore {
   _rawAnnots = [];
   _rawIndivs = [];
 
-  // loading / result flags
   _loading = true;
   _hasResults = false;
 
@@ -31,7 +30,6 @@ export default class MatchResultsStore {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
-  // --- data loading & transformation ---
 
   loadData(result) {
     const annotResults = getAllAnnot(result.matchResultsRoot);
@@ -66,11 +64,6 @@ export default class MatchResultsStore {
     this._hasResults = true;
   }
 
-  /**
-   * Normalize raw prospect list into:
-   * - grouped by algorithm
-   * - split into columns with displayIndex
-   */
   _processData(rawData) {
     // 1. filter by project name if set
     const filtered = this._projectName
@@ -184,7 +177,7 @@ export default class MatchResultsStore {
     return this._taskId;
   }
 
-  // --- async actions ---
+  // actions
 
   async fetchMatchResults() {
     this.setLoading(true);
@@ -196,13 +189,12 @@ export default class MatchResultsStore {
       this.loadData(result.data);
     } catch (e) {
       console.error(e);
-      // for now: just log and fall back to "no results" state
     } finally {
       this.setLoading(false);
     }
   }
 
-  // --- simple setters / UI actions ---
+  // setters and actions 
 
   setLoading(loading) {
     this._loading = loading;
@@ -228,15 +220,10 @@ export default class MatchResultsStore {
     this._newIndividualName = name;
   }
 
-  // --- selection state (for bottom bar logic) ---
-
   get selectedMatch() {
     return this._selectedMatch;
   }
 
-  /**
-   * Track which candidates the user has selected, by encounter + individual id.
-   */
   setSelectedMatch(selected, encounterId, individualId) {
     if (selected) {
       this._selectedMatch = [...this._selectedMatch, { encounterId, individualId }];
@@ -263,10 +250,6 @@ export default class MatchResultsStore {
     return Array.from(ids);
   }
 
-  /**
-   * High-level matching state used by bottom bar
-   * (e.g. merge / link / create new individual).
-   */
   get matchingState() {
     if (this._selectedMatch.length === 0) {
       return "no_selection";
