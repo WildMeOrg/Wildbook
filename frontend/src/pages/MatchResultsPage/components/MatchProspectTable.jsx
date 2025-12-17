@@ -5,7 +5,8 @@ import ZoomOutIcon from "../icons/ZoomOutIcon";
 import Icon4 from "../icons/Icon4";
 import Icon5 from "../icons/Icon5";
 import Icon7 from "../icons/Icon7";
-import { FormattedMessage } from "react-intl"; 
+import { FormattedMessage } from "react-intl";
+import InteractiveAnnotationOverlay from "../components/MatchResultsBottomBar";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -122,12 +123,12 @@ const MatchProspectTable = ({
   taskStatus,
   taskStatusOverall,
 }) => {
-  console.log("columns", JSON.stringify(columns));
 
   const [selectedRow, setSelectedRow] = React.useState(
     columns[0]?.[0]
   );
   const [inspectionModalOpen, setInspectionModalOpen] = useState(false);
+  const [hoveredRow, setHoveredRow] = React.useState(null);
 
   const [leftImageZoom, setLeftImageZoom] = React.useState(1);
   const [rightImageZoom, setRightImageZoom] = React.useState(1);
@@ -242,6 +243,7 @@ const MatchProspectTable = ({
                   candidate.annotation?.individual?.displayName;
                 const isRowSelected = isSelected(candidateEncounterId);
                 const isRowPreviewed = candidateEncounterId === selectedRow?.annotation?.encounter?.id;
+                const isHovered = hoveredRow === candidateEncounterId;
 
                 return (
                   <div
@@ -256,6 +258,10 @@ const MatchProspectTable = ({
                     onClick={() =>
                       handleRowClick(candidate)
                     }
+                    onMouseEnter={() => {
+                      setHoveredRow(candidateEncounterId)
+                    }}
+                    onMouseLeave={() => setHoveredRow(null)}
                   >
                     <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>
                     <a
@@ -286,19 +292,21 @@ const MatchProspectTable = ({
                     >
                       {candidateIndividualDisplayName}
                     </button>
-                    { candidate?.asset?.url &&
-                      <button
-                        type="button"
-                        style={styles.idPill(themeColor)}
-                        className="btn btn-sm p-0 px-2 ms-auto"
-                        onClick={() => {
-                          setInspectionModalOpen(true);
-                        }}                        
-                      >
-                        {<FormattedMessage id="INSPECT" />}
-                      </button>
-                    }
-                    <div className="ms-auto" onClick={(e) => e.stopPropagation()}>
+                    <div style={{ flexGrow: 1 }} />
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "20px" }} onClick={(e) => e.stopPropagation()}>
+                      {candidate?.asset?.url && isHovered && (
+                        <button
+                          type="button"
+                          style={styles.idPill(themeColor)}
+                          className="btn btn-sm p-0 px-2"
+                          onClick={() => {
+                            setInspectionModalOpen(true);
+                          }}
+                        >
+                          {<FormattedMessage id="INSPECT" />}
+                        </button>
+                      )}
                       <Form.Check
                         type="checkbox"
                         checked={isRowSelected}
@@ -331,7 +339,8 @@ const MatchProspectTable = ({
               onMouseDown={(e) => handleMouseDown("left", e)}
             >
               <img
-                src={thisEncounterImageUrl}
+                // +++++++++++++temporary workaround, don't forget to remove +++++++++++++
+                src={thisEncounterImageUrl.replace("http://frontend.scribble.com", "https://zebra.wildme.org")}
                 alt="This encounter"
                 style={{
                   ...styles.matchImage,
@@ -379,7 +388,8 @@ const MatchProspectTable = ({
               onMouseDown={(e) => handleMouseDown("right", e)}
             >
               <img
-                src={selectedRow?.annotation?.asset?.url}
+                // +++++++++++++temporary workaround, don't forget to remove +++++++++++++
+                src={selectedRow?.annotation?.asset?.url?.replace("http://frontend.scribble.com", "https://zebra.wildme.org")}
                 alt="Possible match"
                 style={{
                   ...styles.matchImage,
