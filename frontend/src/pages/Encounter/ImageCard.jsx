@@ -58,7 +58,30 @@ const ImageCard = observer(({ store = {} }) => {
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
     const r = boxRef.current.getBoundingClientRect();
-    setTip((s) => ({ ...s, x: e.clientX - r.left, y: e.clientY - r.top }));
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+
+    const tooltipWidth = 150;
+    const tooltipHeight = 60;
+    const padding = 30;
+
+    let finalX = x + padding;
+    let finalY = y + padding;
+
+    if (x + tooltipWidth + padding > r.width) {
+      finalX = x - tooltipWidth - padding;
+    }
+    if (y + tooltipHeight + padding > r.height) {
+      finalY = y - tooltipHeight - padding;
+    }
+    if (finalX < 0) {
+      finalX = padding;
+    }
+    if (finalY < 0) {
+      finalY = padding;
+    }
+
+    setTip((s) => ({ ...s, x: finalX, y: finalY }));
   };
   const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
 
