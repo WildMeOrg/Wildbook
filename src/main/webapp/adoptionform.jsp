@@ -108,7 +108,7 @@
 
 	String servletURL = " ../AdoptionAction"; %>
 
-        <link rel="stylesheet" href="css/createadoption.css">
+<%--        <link rel="stylesheet" href="css/createadoption.css">--%>
         <%
             if(Util.stringExists(donorboxId) && Util.stringExists(shark)){ //TODO I could cross check this against the donorbox api (for an additional $17/month), but I don't think warranted. As is, an evil user could just but an id in the url and pass this check. But, let's not over-engineer. Who is trying to hoodwink a non-profit just to be able to nickname an animal?
         %>
@@ -199,10 +199,10 @@
             }
             else{
                 %>
-                <script type="text/javascript">
-                    //redirect to payment page
-                    window.location.href = "/createadoption.jsp";
-                </script>
+<%--                <script type="text/javascript">--%>
+<%--                    //redirect to payment page--%>
+<%--                    window.location.href = "/createadoption.jsp";--%>
+<%--                </script>--%>
                 <%
             }
         %>

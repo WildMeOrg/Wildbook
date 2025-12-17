@@ -170,7 +170,7 @@ if(request.getUserPrincipal()!=null){
 
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
-      <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
+<%--      <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">--%>
       <link rel="stylesheet" href="<%=urlLoc %>/css/multipleSubmit.css">
 
 
@@ -406,7 +406,7 @@ if(request.getUserPrincipal()!=null){
                       <%
                       if(CommonConfiguration.allowAdoptions(context)){
                       %>
-                        <a id="adoption-header-link" href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><span><%=props.getProperty("adoptAnAnimal") %>&nbsp</span></button></a>
+<%--                        <a id="adoption-header-link" href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><span><%=props.getProperty("adoptAnAnimal") %>&nbsp</span></button></a>--%>
                       <%
                       }
                       %>
@@ -612,7 +612,7 @@ if(request.getUserPrincipal()!=null){
                         <%
                         if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                         %>
-                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+<%--                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>--%>
                         <%
                         }
                         %>
@@ -735,7 +735,7 @@ if(request.getUserPrincipal()!=null){
                               <%
                               if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                               %>
-                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+<%--                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>--%>
                               <%
                               }
                               %>

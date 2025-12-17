@@ -159,9 +159,9 @@ new_message.append("<html><body>");
 
 <hr>
 <p>You can adopt a sand tiger shark and give it a nickname. To search for adoptable sharks and select one or more sharks to adopt, click the button below. </p>
-<a href="adoptananimal.jsp">
-    <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
-</a>
+<%--<a href="adoptananimal.jsp">--%>
+<%--    <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>--%>
+<%--</a>--%>
 <%
 
 
