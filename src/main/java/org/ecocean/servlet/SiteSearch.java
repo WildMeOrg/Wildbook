@@ -18,14 +18,12 @@ import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
 public class SiteSearch extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private final Logger logger = LoggerFactory.getLogger(SiteSearch.class);
+//    private final Logger logger = LoggerFactory.getLogger(SiteSearch.class);
 
     @Override public void init(final ServletConfig config)
     throws ServletException {

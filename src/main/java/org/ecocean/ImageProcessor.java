@@ -7,15 +7,13 @@ import java.util.Calendar;
 import org.ecocean.media.MediaAsset;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 // Does actual comparison processing of batch-uploaded images.
 public final class ImageProcessor implements Runnable {
-    private static Logger log = LoggerFactory.getLogger(ImageProcessor.class);
+//    private static Logger log = LoggerFactory.getLogger(ImageProcessor.class);
 
     private String context = "context0";
     private String command = null;
@@ -82,15 +80,15 @@ public final class ImageProcessor implements Runnable {
     public void run() {
 // status = Status.INIT;
         if (StringUtils.isBlank(this.command)) {
-            log.warn("Can't run processor due to empty command");
+//            log.warn("Can't run processor due to empty command");
             return;
         }
         if (StringUtils.isBlank(this.imageSourcePath)) {
-            log.warn("Can't run processor due to empty source path");
+//            log.warn("Can't run processor due to empty source path");
             return;
         }
         if (StringUtils.isBlank(this.imageTargetPath)) {
-            log.warn("Can't run processor due to empty target path");
+//            log.warn("Can't run processor due to empty target path");
             return;
         }
         String comment = CommonConfiguration.getProperty("imageComment", this.context);
@@ -164,7 +162,7 @@ public final class ImageProcessor implements Runnable {
             }
             proc.waitFor();
         } catch (Exception ioe) {
-            log.error("Trouble running processor [" + command + "]", ioe);
+//            log.error("Trouble running processor [" + command + "]", ioe);
         }
     }
 }

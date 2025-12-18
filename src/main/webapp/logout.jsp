@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
 <%
 
@@ -38,8 +38,8 @@ context=ServletUtilities.getContext(request);
         <p><%=props.getProperty("loggedOut") %></p>
         
             <%
-		        Logger log = LoggerFactory.getLogger(getClass());
-		        log.info(request.getRemoteUser()+" logged out.");
+//		        Logger log = LoggerFactory.getLogger(getClass());
+//		        log.info(request.getRemoteUser()+" logged out.");
 	
 	    %>
         <p><a href="<%= request.getContextPath() %>/react/login/"><%=props.getProperty("clickHere") %></a></p>

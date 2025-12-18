@@ -1,8 +1,5 @@
 package org.ecocean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +12,6 @@ import java.util.regex.Pattern;
  * @author Giles Winstanley
  */
 public final class SpamChecker {
-    /** SLF4J logger instance for writing log entries. */
-    private static final Logger log = LoggerFactory.getLogger(SpamChecker.class);
     /** Enumeration of possible spam detection outcomes. */
     public enum Result { SPAM, POSSIBLE_SPAM, NOT_SPAM };
     /** Name of text file resource containing spam filter definitions (definite spam). */
@@ -32,12 +27,12 @@ public final class SpamChecker {
         try {
             this.spamPatterns = loadPatterns(RESOURCE_DEFINITE_SPAM);
         } catch (IOException ex) {
-            log.warn("Failed to find SpamChecker configuration file: " + RESOURCE_DEFINITE_SPAM);
+//            log.warn("Failed to find SpamChecker configuration file: " + RESOURCE_DEFINITE_SPAM);
         }
         try {
             this.possibleSpamPatterns = loadPatterns(RESOURCE_POSSIBLE_SPAM);
         } catch (IOException ex) {
-            log.warn("Failed to find SpamChecker configuration file: " + RESOURCE_POSSIBLE_SPAM);
+//            log.warn("Failed to find SpamChecker configuration file: " + RESOURCE_POSSIBLE_SPAM);
         }
     }
 

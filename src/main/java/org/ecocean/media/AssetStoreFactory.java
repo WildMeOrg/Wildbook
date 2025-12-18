@@ -6,11 +6,8 @@ import java.util.List;
 import javax.jdo.*;
 import org.ecocean.shepherd.core.Shepherd;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class AssetStoreFactory {
-    private static Logger logger = LoggerFactory.getLogger(AssetStoreFactory.class);
+//    private static Logger logger = LoggerFactory.getLogger(AssetStoreFactory.class);
 
     private AssetStoreFactory() {
         // do not instantiate

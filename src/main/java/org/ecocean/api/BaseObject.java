@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -37,6 +41,9 @@ import org.ecocean.Util;
 
 // note: this is for use on any Base object (MarkedIndividual, Encounter, Occurrence)
 public class BaseObject extends ApiBase {
+
+    private static final Logger logger = LogManager.getLogger(BaseObject.class);
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         doPost(request, response);
@@ -49,48 +56,102 @@ public class BaseObject extends ApiBase {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        long startTime = System.currentTimeMillis();
+        String requestId = java.util.UUID.randomUUID().toString();
+        String context = ServletUtilities.getContext(request);
+        String clientIp = getClientIpAddress(request);
         String uri = request.getRequestURI();
-        String[] args = uri.substring(8).split("/");
 
-        if (args.length < 1) throw new ServletException("Bad path");
-        // System.out.println("args => " + java.util.Arrays.toString(args));
+        // Set thread context for all logs in this request
+        ThreadContext.put("request_id", requestId);
+        ThreadContext.put("endpoint", uri); // Use the full URI as the endpoint
+        ThreadContext.put("http_method", request.getMethod());
+        ThreadContext.put("client_ip", clientIp);
+        ThreadContext.put("domain", context);
 
-        JSONObject payload = null;
-        JSONArray payloadArray = null;
-        String requestMethod = request.getMethod();
-        if (requestMethod.equals("POST")) {
-            payload = ServletUtilities.jsonFromHttpServletRequest(request);
-        } else if (requestMethod.equals("PATCH")) {
-            payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
-        }
-        // GET is allowed through without user/captcha
-        if (!requestMethod.equals("GET") && !ReCAPTCHA.sessionIsHuman(request)) {
-            response.setStatus(401);
-            response.setHeader("Content-Type", "application/json");
-            response.getWriter().write("{\"success\": false}");
-            return;
-        }
-/*
-        if (!(args[0].equals("encounters") || args[0].equals("individuals") || args[0].equals("occurrences")))
-            throw new ServletException("Bad class");
- */
-        if (payload != null) payload.put("_class", args[0]);
         JSONObject rtn = null;
-        if (requestMethod.equals("POST")) {
-            rtn = processPost(request, args, payload);
-        } else if (requestMethod.equals("PATCH")) {
-            rtn = processPatch(request, args, payloadArray);
-        } else if (requestMethod.equals("GET")) {
-            rtn = processGet(request, args);
-        } else {
-            throw new ServletException("Invalid method");
-        }
-        int statusCode = rtn.optInt("statusCode", 500);
+        int statusCode = 500; // Default to error
+        boolean success = false;
 
-        response.setStatus(statusCode);
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Type", "application/json");
-        response.getWriter().write(rtn.toString());
+        try {
+            String[] args = uri.substring(8).split("/");
+
+            if (args.length < 1) throw new ServletException("Bad path");
+            // System.out.println("args => " + java.util.Arrays.toString(args));
+
+            JSONObject payload = null;
+            JSONArray payloadArray = null;
+
+            String requestMethod = request.getMethod();
+            if (requestMethod.equals("POST")) {
+                payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            } else if (requestMethod.equals("PATCH")) {
+                payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
+            }
+            // GET is allowed through without user/captcha
+            if (!ReCAPTCHA.sessionIsHuman(request)) {
+                statusCode = 401;
+                rtn = new JSONObject("{\"success\": false, \"error\": \"recaptcha_failed\"}");
+                // Log this failure
+                ThreadContext.put("action", "recaptcha_failed");
+                ThreadContext.put("error_type", "recaptcha_failed");
+                logger.warn("ReCAPTCHA validation failed");
+            }
+            else {
+                payload.put("_class", args[0]);
+
+                if (requestMethod.equals("POST")) {
+                    rtn = processPost(request, args, payload);
+                } else if (requestMethod.equals("PATCH")) {
+                    rtn = processPatch(request, args, payloadArray);
+                }
+                else if (requestMethod.equals("GET")) {
+                    rtn = processGet(request, args);
+                } else {
+                    throw new ServletException("Invalid method");
+                }
+                statusCode = rtn.optInt("statusCode", 500);
+            }
+        }
+        catch (Exception ex) {
+            statusCode = 500;
+            if (rtn == null) {
+                rtn = new JSONObject();
+            }
+            rtn.put("success", false);
+            rtn.put("error", "internal_server_error");
+            rtn.put("debug", ex.getMessage());
+
+            ThreadContext.put("action", "api_request_error");
+            ThreadContext.put("error_type", ex.getClass().getSimpleName());
+            ThreadContext.put("error_message", ex.getMessage());
+            logger.error("Unhandled exception in BaseObject.doPost", ex);
+        }
+        finally {
+            if (rtn == null) {
+                // Should not happen, but as a fallback
+                rtn = new JSONObject("{\"success\": false, \"error\": \"unknown_error\"}");
+                statusCode = 500;
+            }
+
+            response.setStatus(statusCode);
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write(rtn.toString());
+
+            long totalDuration = System.currentTimeMillis() - startTime;
+            ThreadContext.put("duration_ms", String.valueOf(totalDuration));
+            ThreadContext.put("status_code", String.valueOf(statusCode));
+            ThreadContext.put("action", "api_request_completed");
+
+            if (statusCode >= 200 && statusCode < 300) {
+                logger.info("API request completed");
+            } else {
+                logger.warn("API request completed");
+            }
+
+            ThreadContext.clearAll();
+        }
     }
 
     protected JSONObject processPost(HttpServletRequest request, String[] args, JSONObject payload)
@@ -121,12 +182,15 @@ public class BaseObject extends ApiBase {
         // for background child assets, which has to be after all persisted
         List<Integer> maIds = new ArrayList<Integer>();
         Base obj = null;
+        String cls = payload.optString("_class");
         try {
-            String cls = payload.optString("_class");
             switch (cls) {
             case "encounters":
-                // we need to know the id ahead of time for the file strucure
+                // we need to know the id ahead of time for the file structure
                 String encId = Util.generateUUID();
+                ThreadContext.put("encounter_id", encId);
+                ThreadContext.put("action", "api-encounter-processing");
+                logger.info("Starting encounter processing");
                 payload.put("_id", encId);
                 Map<File, MediaAsset> mas = makeMediaAssets(encId, files, myShepherd);
                 JSONArray invalidFilesArr = new JSONArray();
@@ -143,6 +207,8 @@ public class BaseObject extends ApiBase {
                 }
                 rtn.put("invalidFiles", invalidFilesArr);
                 if ((validMAs.size() < 1) && (currentUser == null)) {
+                    ThreadContext.put("action", "api-encounter-missing-files");
+                    logger.warn("Anonymous submission requires valid files");
                     JSONObject error = new JSONObject();
                     error.put("fieldName", "assetFilenames");
                     error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
@@ -173,6 +239,11 @@ public class BaseObject extends ApiBase {
                 // these are needed for display in results
                 rtn.put("locationId", enc.getLocationID());
                 rtn.put("submissionDate", enc.getDWCDateAdded());
+                ThreadContext.put("taxonomyString", txStr);
+                ThreadContext.put("locationId", enc.getLocationID());
+                ThreadContext.put("submissionDate", enc.getDWCDateAdded());
+                ThreadContext.put("action", "api-encounter-complete-processing");
+                logger.info("Completing encounter processing");
                 break;
             case "occurrences":
                 if (currentUser == null) {
@@ -209,15 +280,20 @@ public class BaseObject extends ApiBase {
                 rtn.put("success", true);
             }
         } catch (ApiException apiEx) {
-            System.out.println("BaseObject.processPost() returning 400 due to " + apiEx +
-                " [errors=" + apiEx.getErrors() + "] on payload " + payload);
+            ThreadContext.put("action", payload.optString("_class") + "_creation_failed");
+            ThreadContext.put("error_type", "ApiException");
+            ThreadContext.put("error_message", apiEx.getMessage());
+            logger.warn("API validation exception for class: " + payload.optString("_class"), apiEx);
+
             rtn.put("statusCode", 400);
             rtn.put("errors", apiEx.getErrors());
             rtn.put("debug", apiEx.toString());
         }
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
-            System.out.println("BaseObject.processPost() success (200) creating " + obj +
-                " from payload " + payload);
+            ThreadContext.put("action", cls + "_creation_success");
+            ThreadContext.put("object_id", obj.getId());
+            logger.info("Successfully created object, class: {}, id: {}", cls, obj.getId());
+
             if (encounterForIA != null) { // encounter-specific needs
                 OpenSearch.setPermissionsNeeded(myShepherd, true);
                 myShepherd.commitDBTransaction();
@@ -350,8 +426,12 @@ public class BaseObject extends ApiBase {
         AssetStore astore = AssetStore.getDefault(myShepherd);
 
         for (File file : files) {
+            long assetStartTime = System.currentTimeMillis();
             if (!AssetStore.isValidImage(file)) {
-                System.out.println("BaseObject.makeMediaAssets() failed isValidImage() on " + file);
+                ThreadContext.put("action", "media_asset_invalid");
+                ThreadContext.put("filename", file.getName());
+                ThreadContext.put("reason", "invalid_image_format");
+                logger.warn("Media asset processing failed: invalid image file");
                 results.put(file, null);
                 continue;
             }
@@ -367,18 +447,47 @@ public class BaseObject extends ApiBase {
                 ma.copyIn(file);
                 valid = ma.validateSourceImage();
                 ma.updateMetadata();
+
+                long assetDuration = System.currentTimeMillis() - assetStartTime;
+                ThreadContext.put("action", "media_asset_created");
+                ThreadContext.put("filename", ma.getFilename());
+                ThreadContext.put("file_size_bytes", String.valueOf(file.length()));
+                ThreadContext.put("media_asset_uuid", ma.getUUID());
+                ThreadContext.put("duration_ms", String.valueOf(assetDuration));
+                logger.info("Media asset created");
+
                 results.put(file, ma);
             } catch (IOException ioe) {
-                System.out.println("BaseObject.makeMediaAssets() failed on " + file + ": " + ioe);
-                ioe.printStackTrace();
+                ThreadContext.put("action", "media_asset_invalid");
+                ThreadContext.put("filename", file.getName());
+                ThreadContext.put("reason", "io_exception");
+                ThreadContext.put("error_message", ioe.getMessage());
+                logger.warn("Media asset processing failed: copyIn failed", ioe);
+
                 results.put(file, null);
             }
             if (!valid) {
-                System.out.println("BaseObject.makeMediaAssets() failed on " + file +
-                    ": failed validateSourceImage()");
+                ThreadContext.put("action", "media_asset_invalid");
+                ThreadContext.put("filename", file.getName());
+                ThreadContext.put("reason", "validation_failed");
+                logger.warn("Media asset processing failed: validateSourceImage failed");
+
                 results.put(file, null);
             }
         }
         return results;
+    }
+    private String getClientIpAddress(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip != null ? ip : "unknown";
     }
 }

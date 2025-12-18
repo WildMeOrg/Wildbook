@@ -12,14 +12,11 @@ import java.io.*;
 
 import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.json.JSONObject;
 
 public class MediaAssetModify extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(WorkspaceDelete.class);
+//    public static Logger log = LoggerFactory.getLogger(WorkspaceDelete.class);
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -89,7 +86,7 @@ public class MediaAssetModify extends HttpServlet {
             res.put("success", "true");
         } catch (Exception edel) {
             locked = true;
-            log.warn("Failed to modify MediaAsset: " + request.getParameter("id"), edel);
+//            log.warn("Failed to modify MediaAsset: " + request.getParameter("id"), edel);
             edel.printStackTrace();
             myShepherd.rollbackDBTransaction();
         }
