@@ -12,9 +12,9 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <datanucleus.version>5.2.10</datanucleus.version>
-    <datanucleus.jdo.version>5.2.8</datanucleus.jdo.version>
-    <datanucleus.jpa.version>5.2.8</datanucleus.jpa.version>
+    <datanucleus.version>5.2.7</datanucleus.version>
+    <datanucleus.jdo.version>5.2.7</datanucleus.jdo.version>
+    <datanucleus.jpa.version>5.2.7</datanucleus.jpa.version>
     <javax.jdo.version>3.2.0-release</javax.jdo.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
