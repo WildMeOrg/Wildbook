@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "../../components/DataTable";
 import useFilterEncounters from "../../models/encounters/useFilterEncounters";
+import useFilterEncountersWithMediaAssets from "../../models/encounters/useFilterEncountersWithMediaAssets";
 import FilterPanel from "../../components/FilterPanel";
 import useEncounterSearchSchemas from "../../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../../components/filterFields/SideBar";
@@ -11,13 +12,13 @@ import axios from "axios";
 import { get } from "lodash-es";
 import ThemeColorContext from "../../ThemeColorProvider";
 import { encounterSearchColumns } from "../../constants/searchPageColumns";
-import { encounterSearchPagetabs } from "../../constants/searchPageTabs";
-import { globalEncounterFormStore as store } from "./encounterFormStore";
+import { globalEncounterFormStore as store } from "./stores/EncounterFormStore";
 import { helperFunction } from "./getAllSearchParamsAndParse";
+import ExportModal from "./components/ExportModal";
+import { observer } from "mobx-react-lite";
 
-export default function EncounterSearch() {
+const EncounterSearch = observer(() => {
   const columns = encounterSearchColumns;
-  const tabs = encounterSearchPagetabs;
   const intl = useIntl();
   const schemas = useEncounterSearchSchemas();
   const theme = React.useContext(ThemeColorContext);
@@ -42,9 +43,16 @@ export default function EncounterSearch() {
   const [searchIdSortName, setSearchIdSortName] = useState("date");
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
   const [tempFormFilters, setTempFormFilters] = useState([]);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
-    helperFunction(searchParams, store, setFilterPanel, setTempFormFilters);
+    helperFunction(
+      searchParams,
+      store,
+      setFilterPanel,
+      setTempFormFilters,
+      encounterData,
+    );
   }, [searchParams]);
 
   useEffect(() => {
@@ -71,35 +79,69 @@ export default function EncounterSearch() {
     },
   });
 
-  const encounters = queryID ? searchData || [] : encounterData?.results || [];
-
-  const sortedEncounters = encounters.sort((a, b) => {
-    if (!a[sortname] || !b[sortname]) return 0;
-
-    const valueA = a[sortname];
-    const valueB = b[sortname];
-
-    if (sortorder === "asc") {
-      return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
-    } else if (sortorder === "desc") {
-      return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
-    } else {
-      return 0; // Default to no sorting if sortorder is invalid
-    }
+  const { refetch: refetchMediaAssets } = useFilterEncountersWithMediaAssets({
+    queries: store.mediaAssetsSearchQuery || [],
+    params: {
+      sort: encounterSortName,
+      sortOrder: encounterSortOrder,
+      size: store.pageSize,
+      from: store.start,
+    },
   });
+
+  const pg = async () => {
+    const response = await refetchMediaAssets();
+    const fetchedData = response?.data?.data?.hits || [];
+    if (!fetchedData || !fetchedData.length) {
+      store.setCurrentPageItems([]);
+      return;
+    }
+    let offset = 0;
+    let contents = [];
+
+    if (fetchedData[offset].mediaAssets.length <= store.assetOffset) {
+      store.setAssetOffset(0);
+    }
+
+    while (contents.length < store.pageSize && offset < fetchedData.length) {
+      if (fetchedData[offset].mediaAssets.length > store.assetOffset) {
+        const encounter = fetchedData[offset];
+        const data = encounter.mediaAssets[store.assetOffset];
+        data.__k = `${encounter.id}-${store.assetOffset}-${data.uuid ?? data.id ?? ""}`;
+        data.encounterId = encounter.id;
+        data.individualId = encounter.individualId;
+        data.date = encounter.date;
+        data.individualDisplayName = encounter.individualDisplayName;
+        data.verbatimDate = encounter.verbatimDate;
+        contents.push(data);
+        const newOffset = store.assetOffset + 1;
+        store.setAssetOffset(newOffset);
+      } else {
+        offset++;
+        store.setAssetOffset(0);
+      }
+    }
+    store.setCurrentPageItems(contents);
+    const start = store.start + offset;
+    store.setStart(start);
+  };
+
+  const encounters = queryID ? searchData || [] : encounterData?.results || [];
+  const sortedEncounters = React.useMemo(() => {
+    const list = (encounters || []).slice();
+    if (!sortname || !sortorder) return list;
+    return list.sort((a, b) => {
+      const va = a?.[sortname],
+        vb = b?.[sortname];
+      if (va == null || vb == null) return 0;
+      if (sortorder === "asc") return va > vb ? 1 : va < vb ? -1 : 0;
+      if (sortorder === "desc") return va < vb ? 1 : va > vb ? -1 : 0;
+      return 0;
+    });
+  }, [encounters, sortname, sortorder]);
 
   const totalEncounters = encounterData?.resultCount || 0;
   const searchQueryId = encounterData?.searchQueryId || "";
-
-  const updatedTabs = tabs.map((tab) => {
-    const [name, url] = tab.split(":");
-    const updatedUrl = queryID
-      ? `${url}?searchQueryId=${queryID}`
-      : searchQueryId
-        ? `${url}?searchQueryId=${searchQueryId}&regularQuery=true`
-        : url;
-    return `${name}:${updatedUrl}`;
-  });
 
   useEffect(() => {
     if (queryID) {
@@ -172,6 +214,10 @@ export default function EncounterSearch() {
         store={store}
       />
       <DataTable
+        store={store}
+        searchQueryId={searchQueryId}
+        refetchMediaAssets={refetchMediaAssets}
+        pg={pg}
         isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",
@@ -183,7 +229,6 @@ export default function EncounterSearch() {
           />
         }
         columnNames={columns}
-        tabs={updatedTabs}
         searchText={intl.formatMessage({ id: "SEARCH" })}
         tableData={sortedEncounters}
         totalItems={queryID ? totalItems : totalEncounters}
@@ -193,6 +238,7 @@ export default function EncounterSearch() {
         onPerPageChange={queryID ? setSearchIdResultPerPage1 : setPerPage}
         setSort={setSort}
         loading={false}
+        setExportModalOpen={setExportModalOpen}
         extraStyles={[
           {
             when: (row) => row.access === "none",
@@ -205,11 +251,11 @@ export default function EncounterSearch() {
           },
         ]}
         onRowClicked={(row) => {
-          const url = `/encounters/encounter.jsp?number=${row.id}`;
+          const url = `/react/encounter?number=${row.id}`;
           window.open(url, "_blank");
         }}
         onSelectedRowsChange={(selectedRows) => {
-          console.log("Selected Rows: ", selectedRows);
+          store.setSelectedRows(selectedRows?.selectedRows || []);
         }}
       />
       <SideBar
@@ -219,6 +265,13 @@ export default function EncounterSearch() {
         store={store}
         tempFormFilters={tempFormFilters}
       />
+      <ExportModal
+        open={exportModalOpen}
+        setOpen={setExportModalOpen}
+        searchQueryId={searchQueryId}
+      />
     </div>
   );
-}
+});
+
+export default EncounterSearch;
