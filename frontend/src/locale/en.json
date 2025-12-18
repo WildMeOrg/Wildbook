@@ -223,7 +223,7 @@
     "INDIVIDUAL_ID": "Individual ID",
     "SIGHTING_ID": "Sighting ID",
     "ALTERNATIVE_ID": "Alternative ID",
-    "CREATED_DATE": "Created Date",
+    "CREATED_DATE": "Encounter Date",
     "LOCATION_ID": "Location ID",
     "SPECIES": "Species",
     "SUBMITTER": "Submitter",
