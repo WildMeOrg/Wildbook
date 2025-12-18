@@ -10,6 +10,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
       logging: "alloy"
       service: "postgresql"
@@ -104,6 +109,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
       logging: "alloy"
       service: "opensearch"
@@ -146,8 +156,18 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "smtp"
+      environment: "production"
+      domain: "${DOMAIN_NAME}"
+      log_type: "infrastructure"
+      autoheal: "true"
     networks:
       - intranet
     ports:
@@ -174,6 +194,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
       logging: "alloy"
       service: "nginx"

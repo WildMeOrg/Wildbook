@@ -69,35 +69,63 @@ public class BaseObject extends ApiBase {
         ThreadContext.put("client_ip", clientIp);
         ThreadContext.put("domain", context);
 
-        JSONObject payload = null;
-        JSONArray payloadArray = null;
-        String requestMethod = request.getMethod();
-        if (requestMethod.equals("POST")) {
-            payload = ServletUtilities.jsonFromHttpServletRequest(request);
-        } else if (requestMethod.equals("PATCH")) {
-            payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
-        }
-        // GET is allowed through without user/captcha
-        if (!requestMethod.equals("GET") && !ReCAPTCHA.sessionIsHuman(request)) {
-            response.setStatus(401);
-            response.setHeader("Content-Type", "application/json");
-            response.getWriter().write("{\"success\": false}");
-            return;
-        }
-/*
-        if (!(args[0].equals("encounters") || args[0].equals("individuals") || args[0].equals("occurrences")))
-            throw new ServletException("Bad class");
- */
-        if (payload != null) payload.put("_class", args[0]);
         JSONObject rtn = null;
-        if (requestMethod.equals("POST")) {
-            rtn = processPost(request, args, payload);
-        } else if (requestMethod.equals("PATCH")) {
-            rtn = processPatch(request, args, payloadArray);
-        } else if (requestMethod.equals("GET")) {
-            rtn = processGet(request, args);
-        } else {
-            throw new ServletException("Invalid method");
+        int statusCode = 500; // Default to error
+        boolean success = false;
+
+        try {
+            String[] args = uri.substring(8).split("/");
+
+            if (args.length < 1) throw new ServletException("Bad path");
+            // System.out.println("args => " + java.util.Arrays.toString(args));
+
+            JSONObject payload = null;
+            JSONArray payloadArray = null;
+
+            String requestMethod = request.getMethod();
+            if (requestMethod.equals("POST")) {
+                payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            } else if (requestMethod.equals("PATCH")) {
+                payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
+            }
+            // GET is allowed through without user/captcha
+            if (!ReCAPTCHA.sessionIsHuman(request)) {
+                statusCode = 401;
+                rtn = new JSONObject("{\"success\": false, \"error\": \"recaptcha_failed\"}");
+                // Log this failure
+                ThreadContext.put("action", "recaptcha_failed");
+                ThreadContext.put("error_type", "recaptcha_failed");
+                logger.warn("ReCAPTCHA validation failed");
+            }
+            else {
+                payload.put("_class", args[0]);
+
+                if (requestMethod.equals("POST")) {
+                    rtn = processPost(request, args, payload);
+                } else if (requestMethod.equals("PATCH")) {
+                    rtn = processPatch(request, args, payloadArray);
+                }
+                else if (requestMethod.equals("GET")) {
+                    rtn = processGet(request, args);
+                } else {
+                    throw new ServletException("Invalid method");
+                }
+                statusCode = rtn.optInt("statusCode", 500);
+            }
+        }
+        catch (Exception ex) {
+            statusCode = 500;
+            if (rtn == null) {
+                rtn = new JSONObject();
+            }
+            rtn.put("success", false);
+            rtn.put("error", "internal_server_error");
+            rtn.put("debug", ex.getMessage());
+
+            ThreadContext.put("action", "api_request_error");
+            ThreadContext.put("error_type", ex.getClass().getSimpleName());
+            ThreadContext.put("error_message", ex.getMessage());
+            logger.error("Unhandled exception in BaseObject.doPost", ex);
         }
         finally {
             if (rtn == null) {
