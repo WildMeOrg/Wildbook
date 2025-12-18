@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import DataTable from "react-data-table-component";
 import ReactPaginate from "react-paginate";
 import { Row, Col } from "react-bootstrap";
@@ -26,26 +26,13 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     setPagedData(data.slice(start, end));
   }, [data, currentPage, perPage]);
 
-  const wrappedColumns = useMemo(() => {
-    const indexColumn = {
-      id: "__index",
-      name: "#",
-      selector: (_, index) => index + 1 + currentPage * perPage,
-      sortable: false,
-      width: "60px",
-      cell: (_, index) => index + 1 + currentPage * perPage,
-    };
-
-    const userColumns = columns.map((col) => ({
-      id: col.selector,
-      name: col.name,
-      selector: col.selector,
-      sortable: col.sortable ?? true,
-      cell: col.cell || ((row) => row[col.selector] || "-"),
-    }));
-
-    return [indexColumn, ...userColumns];
-  }, [columns, currentPage, perPage]);
+  const userColumns = columns.map((col) => ({
+    id: col.selector,
+    name: col.name,
+    selector: col.selector,
+    sortable: col.sortable ?? true,
+    cell: col.cell || ((row) => row[col.selector] || "-"),
+  }));
 
   const conditionalRowStyles = [
     {
@@ -70,13 +57,13 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
 
   const dataWithIndex = pagedData.map((row, index) => ({
     ...row,
-    tableID: currentPage * perPage + index,
+    tableID: row.tableID ?? currentPage * perPage + index + 1,
   }));
 
   return (
     <div className="container mt-3">
       <DataTable
-        columns={wrappedColumns}
+        columns={userColumns}
         data={dataWithIndex}
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}

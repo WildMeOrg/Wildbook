@@ -125,69 +125,22 @@ public class Login extends ApiBase {
                 String salt = user.getSalt();
                 String hashedPassword = ServletUtilities.hashAndSaltPassword(password, salt);
                 UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
+                try {
+                    // get the user (aka subject) associated with this request.
+                    Subject subject = SecurityUtils.getSubject();
+                    Session session = subject.getSession();
+                    subject.login(token);
+                    user.setLastLogin((new Date()).getTime());
+                    myShepherd.commitDBTransaction();
+                    token.clear();
+                    success = true;
+                    results = user.infoJSONObject(myShepherd, true, false);
+                    results.put("success", true);
 
-
-                // Get the subject and attempt login
-                Subject subject = SecurityUtils.getSubject();
-                Session session = subject.getSession();
-                String sessionId = session.getId().toString();
-
-                ThreadContext.put("session_id", sessionId);
-                ThreadContext.put("user_id", user.getUsername());
-                ThreadContext.put("action", "login_attempting_authentication");
-                logger.debug("Attempting authentication");
-
-                subject.login(token);
-
-                // Login successful
-                user.setLastLogin((new Date()).getTime());
-                myShepherd.commitDBTransaction();
-                token.clear();
-
-                success = true;
-                results = user.infoJSONObject(myShepherd, true);
-                results.put("success", true);
-
-                // Check for redirect URL
-                SavedRequest saved = WebUtils.getAndClearSavedRequest(request);
-                String redirectUrl = null;
-                if (saved != null) {
-                    redirectUrl = saved.getRequestUrl();
-                    results.put("redirectUrl", redirectUrl);
-                }
-
-                long duration = System.currentTimeMillis() - startTime;
-                ThreadContext.put("has_redirect", String.valueOf(redirectUrl != null));
-                ThreadContext.put("duration_ms", String.valueOf(duration));
-                ThreadContext.put("action", "login_success");
-                logger.info("Login success");
-            } catch (UnknownAccountException ex) {
-                ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
-                ThreadContext.put("error_type", "unknown_account");
-                ThreadContext.put("action", "login_failed");
-                logger.warn("Login failed - unknown account");
-                results.put("error", "unknown_account");
-                results.put("success", false);
-
-            } catch (IncorrectCredentialsException ex) {
-                ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
-                ThreadContext.put("error_type", "incorrect_password");
-                ThreadContext.put("action", "login_failed");
-                logger.warn("Login failed - incorrect password");
-                results.put("error", "incorrect_password");
-                results.put("success", false);
-            } catch (Exception ex) {
-                ThreadContext.put("duration_ms", String.valueOf(System.currentTimeMillis() - startTime));
-                ThreadContext.put("error_type", ex.getClass().getSimpleName());
-                ThreadContext.put("error_message", ex.getMessage());
-                ThreadContext.put("action", "login_failed");
-                logger.warn("Login failed - authentication error");
-                results.put("error", "authentication_error");
-                results.put("success", false);
-            } finally {
-                if (myShepherd != null) {
-                    if (!success && myShepherd.isDBTransactionActive()) {
-                        myShepherd.rollbackDBTransaction();
+                    // check for redirect URL
+                    SavedRequest saved = WebUtils.getAndClearSavedRequest(request);
+                    if (saved != null) {
+                        results.put("redirectUrl", saved.getRequestUrl());
                     }
                     myShepherd.closeDBTransaction();
                 }

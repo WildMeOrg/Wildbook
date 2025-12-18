@@ -21,6 +21,7 @@ import org.apache.logging.log4j.ThreadContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.api.bulk.BulkValidatorException;
 import org.ecocean.Annotation;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
@@ -48,6 +49,11 @@ public class BaseObject extends ApiBase {
         doPost(request, response);
     }
 
+    protected void doPatch(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        doPost(request, response);
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         long startTime = System.currentTimeMillis();
@@ -63,55 +69,35 @@ public class BaseObject extends ApiBase {
         ThreadContext.put("client_ip", clientIp);
         ThreadContext.put("domain", context);
 
-        JSONObject rtn = null;
-        int statusCode = 500; // Default to error
-        boolean success = false;
-
-        try {
-            String[] args = uri.substring(8).split("/");
-
-            if (args.length < 1) throw new ServletException("Bad path");
-            // System.out.println("args => " + java.util.Arrays.toString(args));
-
-            JSONObject payload = null;
-            String requestMethod = request.getMethod();
-            if (requestMethod.equals("POST")) {
-                payload = ServletUtilities.jsonFromHttpServletRequest(request);
-            }
-            if (!ReCAPTCHA.sessionIsHuman(request)) {
-                statusCode = 401;
-                rtn = new JSONObject("{\"success\": false, \"error\": \"recaptcha_failed\"}");
-                // Log this failure
-                ThreadContext.put("action", "recaptcha_failed");
-                ThreadContext.put("error_type", "recaptcha_failed");
-                logger.warn("ReCAPTCHA validation failed");
-            }
-            else {
-                payload.put("_class", args[0]);
-
-                if (requestMethod.equals("POST")) {
-                    rtn = processPost(request, args, payload);
-                } else if (requestMethod.equals("GET")) {
-                    rtn = processGet(request, args);
-                } else {
-                    throw new ServletException("Invalid method");
-                }
-                statusCode = rtn.optInt("statusCode", 500);
-            }
+        JSONObject payload = null;
+        JSONArray payloadArray = null;
+        String requestMethod = request.getMethod();
+        if (requestMethod.equals("POST")) {
+            payload = ServletUtilities.jsonFromHttpServletRequest(request);
+        } else if (requestMethod.equals("PATCH")) {
+            payloadArray = ServletUtilities.jsonArrayFromHttpServletRequest(request);
         }
-        catch (Exception ex) {
-            statusCode = 500;
-            if (rtn == null) {
-                rtn = new JSONObject();
-            }
-            rtn.put("success", false);
-            rtn.put("error", "internal_server_error");
-            rtn.put("debug", ex.getMessage());
-
-            ThreadContext.put("action", "api_request_error");
-            ThreadContext.put("error_type", ex.getClass().getSimpleName());
-            ThreadContext.put("error_message", ex.getMessage());
-            logger.error("Unhandled exception in BaseObject.doPost", ex);
+        // GET is allowed through without user/captcha
+        if (!requestMethod.equals("GET") && !ReCAPTCHA.sessionIsHuman(request)) {
+            response.setStatus(401);
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write("{\"success\": false}");
+            return;
+        }
+/*
+        if (!(args[0].equals("encounters") || args[0].equals("individuals") || args[0].equals("occurrences")))
+            throw new ServletException("Bad class");
+ */
+        if (payload != null) payload.put("_class", args[0]);
+        JSONObject rtn = null;
+        if (requestMethod.equals("POST")) {
+            rtn = processPost(request, args, payload);
+        } else if (requestMethod.equals("PATCH")) {
+            rtn = processPatch(request, args, payloadArray);
+        } else if (requestMethod.equals("GET")) {
+            rtn = processGet(request, args);
+        } else {
+            throw new ServletException("Invalid method");
         }
         finally {
             if (rtn == null) {
@@ -302,50 +288,109 @@ public class BaseObject extends ApiBase {
     throws ServletException, IOException {
         JSONObject rtn = new JSONObject();
 
+        rtn.put("success", false);
+        rtn.put("statusCode", 500);
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.BaseObject.processGet");
+        myShepherd.beginDBTransaction();
+
+        try {
+            User currentUser = myShepherd.getUser(request);
+            Base obj = null;
+            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if (obj == null) {
+                rtn.put("statusCode", 404);
+                rtn.put("error", "not found");
+/*
+    we now let jsonForApiGet() handle this, as some objects non-logged-in users can see
+    part of. therefore, jsonForApiGet() must set statusCode/error as needed.
+
+            } else if (!obj.canUserView(currentUser, myShepherd)) {
+                rtn.put("statusCode", 401);
+                rtn.put("error", "access denied");
+ */
+            } else {
+                rtn = obj.jsonForApiGet(myShepherd, currentUser);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            rtn.put("error", ex.toString());
+        } finally {
+            myShepherd.rollbackAndClose();
+        }
         return rtn;
     }
 
-/*
-    private List<File> findFiles(HttpServletRequest request, JSONObject payload)
-    throws IOException {
-        List<File> files = new ArrayList<File>();
+    protected JSONObject processPatch(HttpServletRequest request, String[] args,
+        JSONArray payloadArray)
+    throws ServletException, IOException {
+        JSONObject rtn = new JSONObject();
 
-        if (payload == null) return files;
-        String submissionId = payload.optString("submissionId", null);
-        if (!Util.isUUID(submissionId)) {
-            System.out.println("WARNING: valid submissionId required; no files possible");
-            return files;
+        rtn.put("success", false);
+        rtn.put("statusCode", 500);
+        // handle this silly case without bothering all the rest
+        if ((payloadArray == null) || (payloadArray.length() == 0)) {
+            rtn.put("statusCode", 400);
+            rtn.put("error", "empty payload array");
+            return rtn;
         }
-        Map<String, String> values = new HashMap<String, String>();
-        values.put("submissionId", submissionId);
-        File uploadDir = new File(UploadServlet.getUploadDir(request, values));
-        System.out.println("findFiles() uploadDir=" + uploadDir);
-        if (!uploadDir.exists())
-            throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
-        List<String> filenames = new ArrayList<String>();
-        JSONArray fnArr = payload.optJSONArray("assetFilenames");
-        if (fnArr != null) {
-            for (int i = 0; i < fnArr.length(); i++) {
-                String fn = fnArr.optString(i, null);
-                if (fn != null) filenames.add(fn);
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.BaseObject.processPatch");
+        myShepherd.beginDBTransaction();
+
+        Base obj = null;
+        try {
+            User currentUser = myShepherd.getUser(request);
+            obj = null;
+            if (args.length > 0) obj = Base.getByClassnameAndId(myShepherd, args[0], args[1]);
+            if (obj == null) {
+                rtn.put("statusCode", 404);
+                rtn.put("error", "not found");
+            } else if (!obj.canUserEdit(currentUser, myShepherd)) {
+                rtn.put("statusCode", 401);
+                rtn.put("error", "access denied");
+            } else {
+                rtn = obj.processPatch(payloadArray, currentUser, myShepherd);
+                rtn.put("statusCode", 200);
+                rtn.put("success", true);
             }
-   /  right now we *require* explicitly listed assetFilenames, so we dont do this "add all" option
-        } else {
-            for (File f : uploadDir.listFiles()) {
-                filenames.add(f.getName());
+        } catch (ApiException bve) {
+            // these are the typical 400 error that comes with invalid op/path/value etc
+            rtn.put("statusCode", 400);
+            JSONArray errors = bve.getErrors();
+            // the price we pay for recycling these validations :(
+            // we have to truncate the fieldname from bulk-flavor
+            if (bve instanceof BulkValidatorException) {
+                for (int i = 0; i < errors.length(); i++) {
+                    try {
+                        String fname = errors.getJSONObject(i).getString("fieldName");
+                        int dot = fname.indexOf(".");
+                        if (dot > -1)
+                            errors.getJSONObject(i).put("fieldName", fname.substring(dot + 1));
+                    } catch (org.json.JSONException jex) {}
+                }
             }
-   /
+            rtn.put("errors", errors);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            rtn.put("error", ex.toString());
+        } finally {
+            if (rtn.optInt("statusCode", 500) == 200) {
+                myShepherd.commitDBTransaction();
+                if (obj != null) Util.merge(rtn, obj.afterPatch(myShepherd));
+                myShepherd.closeDBTransaction();
+                // this has to be done *after* db transaction closed, so background
+                // stuff can be done (e.g. IA pipeline)
+                if (obj != null) Util.merge(rtn, obj.afterPatchTransaction(context));
+            } else {
+                myShepherd.rollbackAndClose();
+            }
         }
-        if (filenames.size() < 1) return files;
-        for (String fname : filenames) {
-            File file = new File(uploadDir, fname);
-            if (!file.exists()) throw new IOException(file + " does not exist in uploadDir");
-            files.add(file);
-        }
-        System.out.println("findFiles(): files=" + files);
-        return files;
+        return rtn;
     }
- */
+
     private Map<File, MediaAsset> makeMediaAssets(String encounterId, List<File> files,
         Shepherd myShepherd)
     throws ApiException {
