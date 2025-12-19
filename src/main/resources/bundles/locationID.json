@@ -172,8 +172,103 @@
             "id": "South Africa",
             "locationID": [
                 {
+                    "name": "Anysberg",
+                    "id": "Anysberg",
+                    "prefix": "ANYS",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo":{
+                        "lat": -33.45111,
+                        "long": 20.76194
+                    },
+                    "locationID":[]
+                },
+                {
+                    "name": "Bakkrans",
+                    "id": "Bakkrans",
+                    "geospatialInfo": {
+                        "lat": -32.48861,
+                        "long": 19.58806
+                    },
+                    "locationID":[]
+                },
+                {
+                    "name": "Baviaanskloof Private Reserve",
+                    "id": "Baviaanskloof Private Reserve",
+                    "prefix": "BKPR",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -32.15972,
+                        "long": 19.14972
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Bontebok National Park",
+                    "id": "Bontebok National Park",
+                    "prefix": "BNP",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -32.20111,
+                        "long": 24.53556
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Camdeboo National Park",
+                    "id": "Camdeboo National Park",
+                    "prefix": "CNP",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -32.23778,
+                        "long": 24.59667
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Commando Drift",
+                    "id": "Commando Drift",
+                    "prefix": "CDR",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -32.11444,
+                        "long": 26.21361
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "De Hoop",
+                    "id": "De Hoop",
+                    "prefix": "DHR",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -34.48222,
+                        "long": 20.45050
+                    },
+                    "locationID": []
+                },
+                {
                     "name": "Elandsberg Nature Reserve",
                     "id": "Elandsberg Nature Reserve",
+                    "locationID": []
+                },
+                {
+                    "name": "Gamkaberg Nature Reserve",
+                    "id": "Gamkaberg Nature Reserve",
+                    "prefix": "GNR",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -33.84861,
+                        "long": 22.11750
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Gourikwa",
+                    "id": "Gourikwa",
+                    "geospatialInfo": {
+                        "lat": -34.38050,
+                        "long": 21.76027
+                    },
                     "locationID": []
                 },
                 {
@@ -182,13 +277,62 @@
                     "locationID": []
                 },
                 {
+                    "name": "Karoo",
+                    "id": "Karoo",
+                    "geospatialInfo": {
+                        "lat": -32.44083,
+                        "long": 22.51000
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Koktyls",
+                    "id": "Koktyls",
+                    "geospatialInfo": {
+                        "lat": -33.82250,
+                        "long": 20.67111
+                    },
+                    "locationID": []
+                },
+                {
                     "name": "Kosierskraal",
                     "id": "Kosierskraal",
                     "locationID": []
                 },
                 {
+                    "name": "Kuzuko",
+                    "id": "Kuzuko",
+                    "geospatialInfo": {
+                        "lat": -33.22056,
+                        "long": 25.38750
+                    },
+                    "locationID": []
+                },
+                {
                     "name": "KwaZulu-Natal",
                     "id": "KwaZulu-Natal",
+                    "locationID": []
+                },
+                {
+                    "name": "Mount Camdeboo Private Reserve",
+                    "id": "Mount Camdeboo Private Reserve",
+                    "prefix": "MCPR",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo":{
+                        "lat": -32.21649,
+                        "long": 24.56454
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Mountain Zebra National Park",
+                    "id": "Mountain Zebra National Park",
+                    "prefix": "MZNP",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -32.38778,
+                        "long": 25.45028
+                    },
                     "locationID": []
                 },
                 {
@@ -212,8 +356,64 @@
                     "locationID": []
                 },
                 {
+                    "name": "Samara Karoo Reserve",
+                    "id": "Samara Karoo Reserve",
+                    "geospatialInfo": {
+                        "lat": -32.33994,
+                        "long": 24.56089
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Sanbona",
+                    "id": "Sanbona",
+                    "geospatialInfo": {
+                        "lat": -33.80139,
+                        "long": 20.53917
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "SwartbergPR",
+                    "id": "SwartbergPR",
+                    "geospatialInfo": {
+                        "lat": -33.26140,
+                        "long": 21.57085
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "SwartbergWR",
+                    "id": "SwartbergWR",
+                    "prefix": "SWT",
+                    "prefixDigitPadding": 4,
+                    "geospatialInfo": {
+                        "lat": -33.24402,
+                        "long": 21.57487
+                    },
+                    "locationID": []
+                },
+                {
+                    "name": "Touwsberg",
+                    "id": "Touwsberg",
+                    "geospatialInfo": {
+                        "lat": -33.73944,
+                        "long": 21.04250
+                    },
+                    "locationID": []
+                },
+                {
                     "name": "Vlakkenhuiwel",
                     "id": "Vlakkenhuiwel",
+                    "locationID": []
+                },
+                {
+                    "name": "Zebraskop",
+                    "id": "Zebraskop",
+                    "geospatialInfo": {
+                        "lat": -33.62361,
+                        "long": 22.08917
+                    },
                     "locationID": []
                 }
             ]
