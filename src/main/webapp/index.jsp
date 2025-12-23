@@ -470,9 +470,6 @@ finally{
             <a href="submit.jsp">
                 <button class="large">Share My Images<span class="button-icon" aria-hidden="true"></button>
             </a>
-            <a href="adoptananimal.jsp">
-                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
-            </a>
             <br>
         </div> 
     </div>
@@ -748,59 +745,6 @@ finally{
       <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
 </div>
 
-<div class="container-fluid">
-    <section class="container main-section">
-        <h2 class="section-header">How can I help?</h2>
-        <p class="lead text-center">If you don't have any images to share, there are other ways to help</p>
-
-        <section class="adopt-section row">
-
-            <!-- Complete text body for adoption section in index properties file -->
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase">Adopt a Sand Tiger Shark</h3>
-                <ul>
-                    <li>Support sand tiget shar research programs</li>
-					<li>Receive email updates when we resight your adopted animal</li>
-					<li>Display your photo and a quote on the animal's page in our database</li>
-</ul>
-                <a href="http://"+<%=CommonConfiguration.getURLLocation(request)%>+"adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
-            </div>
-            <%
-            myShepherd.beginDBTransaction();
-            try{
-	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-	            if(adopt!=null){
-	            %>
-	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-		                <div class="focusbox-inner" style="overflow: hidden;">
-		                	<%
-		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-		                	%>
-		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
-		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-		                    <%
-		                    if(adopt.getAdopterQuote()!=null){
-		                    %>
-			                    <blockquote>
-			                        <%=adopt.getAdopterQuote() %>
-			                    </blockquote>
-		                    <%
-		                    }
-		                    %>
-		                </div>
-		            </div>
-
-	            <%
-				}
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
-
-            %>
-        </section>
-        <hr />
-    </section>
-</div>
 <%
 //}
 

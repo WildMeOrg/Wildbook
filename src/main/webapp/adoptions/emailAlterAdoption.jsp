@@ -60,7 +60,7 @@ context=ServletUtilities.getContext(request);
 
 
 <jsp:include page="../header.jsp" flush="true" />
-<link rel="stylesheet" href="css/createadoption.css">
+<%--<link rel="stylesheet" href="css/createadoption.css">--%>
 
 <div class="container maincontent">
   <form id="adoption-form" action="../AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">

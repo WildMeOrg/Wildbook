@@ -57,7 +57,7 @@ context=ServletUtilities.getContext(request);
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
-<link rel="stylesheet" href="css/createadoption.css">
+<%--<link rel="stylesheet" href="css/createadoption.css">--%>
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
