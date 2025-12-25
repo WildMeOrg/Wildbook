@@ -32,6 +32,7 @@ import org.opensearch.client.transport.rest_client.RestClientTransport;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
+import org.opensearch.client.opensearch.indices.IndexSettings;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.OpenSearchTransport;
 
@@ -198,11 +199,17 @@ public class OpenSearch {
     public void createIndex(String indexName, JSONObject mapping)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        IndexSettings indexSettings = null;
+        // a little hacky but meh
+        if (indexName.equals("annotation")) {
+            // also? "knn.algo_param.ef_search": 100
+            indexSettings = IndexSettings.of(is -> is.knn(true));
+        }
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(
-            indexName).build();
+            indexName).settings(indexSettings).build();
 
         client.indices().create(createIndexRequest);
-        // ideally we would pass these as settings() in CreateIndexRequest but that is kind of a mess
+        // TODO fold in this settings-change into indexSettings above
         indexClose(indexName);
         JSONObject analysis = new JSONObject(
             "{\"analysis\": {\"normalizer\": {\"wildbook_keyword_normalizer\": {\"type\": \"custom\", \"char_filter\": [], \"filter\": [\"lowercase\", \"asciifolding\"]} } } }");
