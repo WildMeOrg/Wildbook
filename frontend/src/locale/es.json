@@ -571,7 +571,7 @@
   "GROUP_ROLE": "Rol en el grupo",
   "MATCH_DESC_1": "Elige el algoritmo y ajusta los filtros para refinar tu búsqueda.",
   "OWNER": "Propietario",
-  "SELECT_ALGORITHM": "Seleccionar algoritmo",
+  "SELECT_ALGORITHM": "Seleccionar algoritmo(s)",
   "MATCH": "Coincidir",
   "SHOW_ANNOTATIONS": "Mostrar anotaciones",
   "EDIT_ANNOTATION": "Editar anotación",

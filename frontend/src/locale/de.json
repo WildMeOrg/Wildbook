@@ -572,7 +572,7 @@
   "GROUP_ROLE": "Gruppenrolle",
   "MATCH_DESC_1": "Wähle den Algorithmus und passe die Filter an, um die Suche zu verfeinern.",
   "OWNER": "Eigentümer",
-  "SELECT_ALGORITHM": "Algorithmus auswählen",
+  "SELECT_ALGORITHM": "Algorithmus/Algorithmen auswählen",
   "MATCH": "Abgleichen",
   "SHOW_ANNOTATIONS": "Anmerkungen anzeigen",
   "EDIT_ANNOTATION": "Anmerkung bearbeiten",

@@ -27,6 +27,22 @@ class NewMatchStore {
       },
       { fireImmediately: true },
     );
+
+    // Auto-select default algorithms when iaConfig becomes available
+    reaction(
+      () => this.iaConfigBasedOnTaxonomy,
+      (iaConfig) => {
+        if (this._algorithms.length === 0 && iaConfig?.length > 0) {
+          const defaults = iaConfig
+            .filter((d) => d.default === true)
+            .map((d) => d.description);
+          if (defaults.length > 0) {
+            this._algorithms = defaults;
+          }
+        }
+      },
+      { fireImmediately: true },
+    );
   }
 
   get locationId() {
