@@ -8,6 +8,7 @@
          org.datanucleus.api.jdo.JDOPersistenceManagerFactory" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%@ page import="org.ecocean.security.Collaboration" %>
 
 
 <style type="text/css">
@@ -773,6 +774,45 @@ try {
 	    </tr>
 		</table>
   <%
+  }
+
+  // Show collaborations for this user (admin/orgAdmin only)
+  if(request.getParameter("isEdit")!=null && request.getParameter("uuid")!=null){
+      User editUser = myShepherd.getUserByUUID(request.getParameter("uuid"));
+      if(editUser != null && editUser.getUsername() != null){
+          List<Collaboration> userCollabs = Collaboration.collaborationsForUser(myShepherd, editUser.getUsername());
+          if(userCollabs != null && userCollabs.size() > 0){
+  %>
+    <h2><%=props.getProperty("collaborations") != null ? props.getProperty("collaborations") : "Collaborations"%></h2>
+    <table class="tissueSample" width="100%">
+      <tr>
+        <th><%=props.getProperty("collaborator") != null ? props.getProperty("collaborator") : "Collaborator"%></th>
+        <th><%=props.getProperty("state") != null ? props.getProperty("state") : "State"%></th>
+        <th><%=props.getProperty("dateCreated") != null ? props.getProperty("dateCreated") : "Date Created"%></th>
+      </tr>
+      <%
+      for(Collaboration collab : userCollabs){
+          String otherUsername = collab.getOtherUsername(editUser.getUsername());
+          String state = collab.getState() != null ? collab.getState() : "unknown";
+          String dateCreated = collab.getDateStringCreated();
+      %>
+      <tr>
+        <td><%=otherUsername%></td>
+        <td><%=state%></td>
+        <td><%=dateCreated%></td>
+      </tr>
+      <%
+      }
+      %>
+    </table>
+  <%
+          } else {
+  %>
+    <h2><%=props.getProperty("collaborations") != null ? props.getProperty("collaborations") : "Collaborations"%></h2>
+    <p><em><%=props.getProperty("noCollaborations") != null ? props.getProperty("noCollaborations") : "No collaborations found for this user."%></em></p>
+  <%
+          }
+      }
   }
 } catch(Exception e){
 	e.printStackTrace();
