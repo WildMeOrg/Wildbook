@@ -834,7 +834,15 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			else{matchAgainstACMIDs=matchAgainstACMIDs+","+acmId;}
 		}
 		//now add the query annotation
-		matchAgainstACMIDs=matchAgainstACMIDs+","+qannotId;
+		// Use task's ACM ID if available (fixes UUID mismatch between WBIA and Wildbook)
+		var queryAcmId = qannotId;
+		if (tasks[taskId] && tasks[taskId].annotationAcmIds && tasks[taskId].annotationAcmIds.length > 0) {
+			queryAcmId = tasks[taskId].annotationAcmIds[0];
+			console.log("Using task's annotationAcmId for query annotation: " + queryAcmId + " (WBIA returned: " + qannotId + ")");
+		}
+		// Update global queryAnnotId to use the correct ACM ID for annotData lookups
+		queryAnnotId = queryAcmId;
+		matchAgainstACMIDs=matchAgainstACMIDs+","+queryAcmId;
 		
 		let paramString = 'iaResultsAnnotFeed.jsp?acmId=' + matchAgainstACMIDs;
 		let projectId = getSelectedProjectIdPrefix();
@@ -858,8 +866,9 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			}
 		});
 		
-		//display query annot
-		displayAnnot(res.taskId, qannotId, -1, -1, -1);
+		//display query annot (use queryAcmId which may differ from WBIA's qannotId)
+		console.log("DEBUG: About to call displayAnnot with queryAcmId=" + queryAcmId + ", qannotId=" + qannotId);
+		displayAnnot(res.taskId, queryAcmId, -1, -1, -1);
 
 		$(task_grabber).data("algorithm", algo_name);
 		$(task_grabber).addClass(algo_name)

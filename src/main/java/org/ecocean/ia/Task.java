@@ -361,10 +361,17 @@ public class Task implements java.io.Serializable {
         }
         if ((objectAnnotations != null) && (objectAnnotations.size() > 0)) {
             JSONArray jo = new JSONArray();
+            JSONArray acmIds = new JSONArray();
             for (Annotation ann : this.objectAnnotations) {
                 jo.put(ann.getId());
+                if (ann.getAcmId() != null) {
+                    acmIds.put(ann.getAcmId());
+                }
             }
             j.put("annotationIds", jo);
+            if (acmIds.length() > 0) {
+                j.put("annotationAcmIds", acmIds);
+            }
         }
         if (includeChildren && this.hasChildren()) {
             JSONArray jc = new JSONArray();
