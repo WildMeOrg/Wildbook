@@ -572,7 +572,7 @@
     "GROUP_ROLE": "Group Role",
     "MATCH_DESC_1": "Choose the algorithm and set filters to refine your search.",
     "OWNER": "Owner",
-    "SELECT_ALGORITHM": "Select Algorithm",
+    "SELECT_ALGORITHM": "Select Algorithm(s)",
     "MATCH": "Match",
     "SHOW_ANNOTATIONS": "Show Annotations",
     "EDIT_ANNOTATION": "Edit Annotation",
