@@ -106,11 +106,11 @@ export const CoordinatesInput = observer(({ store }) => {
   return (
     <div>
       <Form.Group>
-        <Form.Label>
-          <FormattedMessage id="FILTER_GPS_COORDINATES" />
-        </Form.Label>
         <div className="d-flex flex-row gap-3">
           <div className="w-50">
+            <h6>
+              <FormattedMessage id="LATITUDE" />
+            </h6>
             <Form.Control
               type="number"
               required
@@ -129,6 +129,9 @@ export const CoordinatesInput = observer(({ store }) => {
             )}
           </div>
           <div className="w-50">
+            <h6>
+              <FormattedMessage id="LONGITUDE" />
+            </h6>
             <Form.Control
               type="number"
               required

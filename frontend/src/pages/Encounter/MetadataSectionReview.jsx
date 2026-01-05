@@ -9,12 +9,14 @@ export const MetadataSectionReview = observer(({ store }) => {
       <div>
         <h6>
           <FormattedMessage id="ENCOUNTER_ID" />
+          {": "}
         </h6>
         <p>{store.encounterData?.id || ""}</p>
       </div>
       <div>
         <h6>
           <FormattedMessage id="DATE_CREATED" />
+          {": "}
         </h6>
         <p>
           {(() => {
@@ -32,6 +34,7 @@ export const MetadataSectionReview = observer(({ store }) => {
       <div>
         <h6>
           <FormattedMessage id="LAST_EDIT" />
+          {": "}
         </h6>
         <p>
           {(() => {
@@ -52,6 +55,7 @@ export const MetadataSectionReview = observer(({ store }) => {
       <div>
         <h6>
           <FormattedMessage id="IMPORTED_VIA" />
+          {": "}
         </h6>
         <p>
           {store.encounterData?.importTaskId ? (
