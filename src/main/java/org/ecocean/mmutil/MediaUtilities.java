@@ -34,8 +34,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class providing centralized image-related services, such as image rescaling, JPEG saving, thumbnail generation, etc.
@@ -43,8 +41,7 @@ import org.slf4j.LoggerFactory;
  * @author Giles Winstanley
  */
 public final class MediaUtilities {
-    /** SLF4J logger instance for writing log entries. */
-    private static Logger log = LoggerFactory.getLogger(MediaUtilities.class);
+//    private static Logger log = LoggerFactory.getLogger(MediaUtilities.class);
     /** ColorSpace for sRGB images (used for conversions). */
     private static final ICC_ColorSpace CS_sRGB = new ICC_ColorSpace(ICC_Profile.getInstance(
         ColorSpace.CS_sRGB));
@@ -246,10 +243,10 @@ public final class MediaUtilities {
             }
         } catch (ImageProcessingException ex) {
             // Warn, and return original.
-            log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
+//            log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
         } catch (MetadataException ex) {
             // Warn, and return original.
-            log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
+//            log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
         }
         // Return image.
         return img;
@@ -479,8 +476,8 @@ public final class MediaUtilities {
         Paint paintStrip = new Color(0x99, 0xCC, 0xFF, 0x4D);
         Rectangle2D rectStrip = new Rectangle2D.Float(0, yPos, tw, 13);
         Rectangle2D textBounds = fm.getStringBounds(text, g2);
-        if (textBounds.getWidth() > tw)
-            log.warn("Text overlay too long for image width.");
+//        if (textBounds.getWidth() > tw)
+//            log.warn("Text overlay too long for image width.");
         g2.drawImage(img, 0, 0, tw, th, null);
         g2.setPaint(paintWash);
         g2.fill(rectWash);

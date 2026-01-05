@@ -32,8 +32,6 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jdo.*;
 
@@ -48,7 +46,7 @@ import org.ecocean.Util;
  * @see LocalAssetStore
  */
 public abstract class AssetStore implements java.io.Serializable {
-    private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
+//    private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
 
     private static Map<Integer, AssetStore> stores;
 
@@ -83,7 +81,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
     private static Map<Integer, AssetStore> getMap() {
         if (stores == null) {
-            logger.warn("Asset Stores were not set up!");
+//            logger.warn("Asset Stores were not set up!");
             return Collections.emptyMap();
         }
         return stores;

@@ -23,9 +23,6 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.ecocean.Util;
 
 /**
@@ -38,8 +35,7 @@ import org.ecocean.Util;
  * If you have only one asset store defined, it will be considered the default (see AssetStore.loadDefault()).
  */
 public class S3AssetStore extends AssetStore {
-    private static final Logger logger = LoggerFactory.getLogger(
-        org.ecocean.media.S3AssetStore.class);
+//    private static final Logger logger = LoggerFactory.getLogger(org.ecocean.media.S3AssetStore.class);
 
     /**
         possibly allow per-AssetStore or even per-MediaAsset credentials. these should be passed by reference 
