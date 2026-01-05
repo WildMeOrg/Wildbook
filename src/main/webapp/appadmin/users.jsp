@@ -760,17 +760,22 @@ try {
     <table class="tissueSample" width="100%">
       <tr>
         <th><%=props.getProperty("collaborator") != null ? props.getProperty("collaborator") : "Collaborator"%></th>
+        <th><%=props.getProperty("type") != null ? props.getProperty("type") : "Type"%></th>
         <th><%=props.getProperty("state") != null ? props.getProperty("state") : "State"%></th>
         <th><%=props.getProperty("dateCreated") != null ? props.getProperty("dateCreated") : "Date Created"%></th>
       </tr>
       <%
+      String collabTypeEdit = props.getProperty("collabTypeEdit") != null ? props.getProperty("collabTypeEdit") : "Edit";
+      String collabTypeView = props.getProperty("collabTypeView") != null ? props.getProperty("collabTypeView") : "View";
       for(Collaboration collab : userCollabs){
           String otherUsername = collab.getOtherUsername(editUser.getUsername());
           String state = collab.getState() != null ? collab.getState() : "unknown";
+          String collabType = (Collaboration.STATE_EDIT_PRIV.equals(state) || Collaboration.STATE_EDIT_PENDING_PRIV.equals(state)) ? collabTypeEdit : collabTypeView;
           String dateCreated = collab.getDateStringCreated();
       %>
       <tr>
         <td><%=otherUsername%></td>
+        <td><%=collabType%></td>
         <td><%=state%></td>
         <td><%=dateCreated%></td>
       </tr>
