@@ -2,9 +2,10 @@ import React from "react";
 import { observer } from "mobx-react-lite";
 import MapDisplay from "./MapDisplay";
 import { AttributesAndValueComponent } from "../../components/AttributesAndValueComponent";
-import { FormattedMessage } from "react-intl";
 
 export const LocationSectionReview = observer(({ store }) => {
+  const lat = store.getFieldValue("location", "locationGeoPoint")?.lat;
+  const lon = store.getFieldValue("location", "locationGeoPoint")?.lon;
   return (
     <div>
       <AttributesAndValueComponent
@@ -20,24 +21,15 @@ export const LocationSectionReview = observer(({ store }) => {
         value={store.getFieldValue("location", "country")}
       />
       <div>
-        <h6>
-          <FormattedMessage id="COORDINATES" />
-        </h6>
-        <div>
-          {store.getFieldValue("location", "locationGeoPoint")?.lat != null &&
-            `latitude: ${store.getFieldValue("location", "locationGeoPoint").lat}`}
-        </div>
-        <div>
-          {store.getFieldValue("location", "locationGeoPoint")?.lon != null &&
-            `longitude: ${store.getFieldValue("location", "locationGeoPoint").lon}`}
-        </div>
+        <AttributesAndValueComponent
+          attributeId="LATITUDE"
+          value={typeof lat === "number" ? lat : ""}
+        />
+        <AttributesAndValueComponent
+          attributeId="LONGITUDE"
+          value={typeof lon === "number" ? lon : ""}
+        />
       </div>
-      <div>
-        <h6>
-          <FormattedMessage id="MAP" />
-        </h6>
-      </div>
-      <div></div>
       <MapDisplay store={store} />
     </div>
   );
