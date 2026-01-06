@@ -8,7 +8,6 @@ import useGetMe from "./models/auth/users/useGetMe";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
-const Profile = lazy(() => import("./pages/Profile"));
 const Home = lazy(() => import("./pages/Home"));
 const EncounterSearch = lazy(
   () => import("./pages/SearchPages/EncounterSearch"),
@@ -27,7 +26,9 @@ const EditAnnotation = lazy(() => import("./pages/EditAnnotation"));
 
 const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
-const MatchResults = lazy(() => import("./pages/MatchResultsPage/MatchResults"));
+const MatchResults = lazy(
+  () => import("./pages/MatchResultsPage/MatchResults"),
+);
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
 
@@ -73,7 +74,6 @@ export default function AuthenticatedSwitch({
       >
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
-            
             <Route path="/match-results" element={<MatchResults />} />
             <Route path="/citation" element={<Citation />} />
             <Route path="/projects/overview" element={<ProjectList />} />
