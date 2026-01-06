@@ -16,6 +16,7 @@ import org.ecocean.shepherd.core.ShepherdProperties;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.jdo.Query;
@@ -923,6 +924,27 @@ public class ServletUtilities {
 
     public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request)
     throws IOException {
+        String j = stringPayloadFromHttpServletRequest(request);
+
+        return new JSONObject(j);
+    }
+
+    public static JSONArray jsonArrayFromHttpServletRequest(HttpServletRequest request)
+    throws IOException {
+        String j = stringPayloadFromHttpServletRequest(request);
+
+        // we do NOT do this swallowing of exception for the JSONObject version above
+        // because it was not there historically. but TODO it could/should be worked in later.
+        try {
+            return new JSONArray(j);
+        } catch (org.json.JSONException ex) {
+            System.out.println("could not parse JSONArray from: " + j);
+        }
+        return null;
+    }
+
+    public static String stringPayloadFromHttpServletRequest(HttpServletRequest request)
+    throws IOException {
         StringBuilder sb = new StringBuilder();
         BufferedReader reader = request.getReader();
 
@@ -931,15 +953,13 @@ public class ServletUtilities {
             while ((line = reader.readLine()) != null) {
                 sb.append(line).append('\n');
             }
-        }
-        // ParseException
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Errored state of sb is: " + sb.toString());
         } finally {
             reader.close();
         }
-        return new JSONObject(sb.toString());
+        return sb.toString();
     }
 
     public static void printParams(HttpServletRequest request) {
