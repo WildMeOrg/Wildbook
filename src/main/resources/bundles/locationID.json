@@ -408,6 +408,11 @@
 								"locationID":[]
 							},
 							{
+								"name": "Lady Elliot Island",
+								"id": "Lady Elliot Island",
+								"locationID":[]
+							},
+							{
 								"name": "North Stradbroke Island",
 								"id": "North Stradbroke Island",
 								"geospatialInfo":{
