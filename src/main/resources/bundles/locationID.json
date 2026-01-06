@@ -158,6 +158,21 @@
 					]
 				},
 				{
+					"name": "Gummersbach",
+					"id": "Gummersbach",
+					"locationID": [
+						{
+							"name": "Grotenbach",
+							"id": "Grotenbach",
+							"geospatialInfo": {
+								"lat": 51.036410,
+								"long": 7.568259
+							},
+							"locationID":[]
+						}
+					]
+				},
+				{
 					"name": "Heßles",
 					"id": "Heßles",
 					"locationID": []
