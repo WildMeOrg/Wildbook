@@ -164,7 +164,6 @@ function expandOperations(operations) {
     }
 
     if (op.path === "locationGeoPoint" && op.value) {
-      if (op.value.lat == null || op.value.lon == null) continue;
       out.push({ op: "replace", path: "decimalLatitude", value: op.value.lat });
       out.push({
         op: "replace",
