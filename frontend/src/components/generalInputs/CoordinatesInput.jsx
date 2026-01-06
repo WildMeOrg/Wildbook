@@ -86,19 +86,14 @@ export const CoordinatesInput = observer(({ store }) => {
   }, [store.lat, store.lon, map, pan]);
 
   useEffect(() => {
-    if (store.lat == null && store.lon == null) return;
-
     const currentGeoPoint =
       store.getFieldValue("location", "locationGeoPoint") || {};
-    const newGeoPoint = { ...currentGeoPoint };
 
-    if (store.lat != null) {
-      newGeoPoint.lat = store.lat;
-    }
-
-    if (store.lon != null) {
-      newGeoPoint.lon = store.lon;
-    }
+    const newGeoPoint = {
+      ...currentGeoPoint,
+      lat: store.lat ?? null,
+      lon: store.lon ?? null,
+    };
 
     store.setFieldValue("location", "locationGeoPoint", newGeoPoint);
   }, [store.lat, store.lon]);
@@ -117,9 +112,15 @@ export const CoordinatesInput = observer(({ store }) => {
               placeholder="##.##"
               value={store.lat ?? ""}
               onChange={(e) => {
-                let newLat = e.target.value;
+                const v = e.target.value.trim();
                 setPan(true);
-                store.setLat(newLat);
+
+                if (v === "") {
+                  store.setLat(null);
+                } else {
+                  const n = Number(v);
+                  store.setLat(Number.isFinite(n) ? n : null);
+                }
               }}
             />
             {store.errors.getFieldError("location", "latitude") && (
@@ -138,9 +139,15 @@ export const CoordinatesInput = observer(({ store }) => {
               placeholder="##.##"
               value={store.lon ?? ""}
               onChange={(e) => {
-                const newLon = e.target.value;
+                const v = e.target.value.trim();
                 setPan(true);
-                store.setLon(newLon);
+
+                if (v === "") {
+                  store.setLon(null);
+                } else {
+                  const n = Number(v);
+                  store.setLon(Number.isFinite(n) ? n : null);
+                }
               }}
             />
             {store.errors.getFieldError("location", "longitude") && (
