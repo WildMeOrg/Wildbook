@@ -5068,7 +5068,7 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "hour":
             if (value == null) {
-                setHour(0);
+                setHour(-1); // grr
             } else {
                 setHour((Integer)value);
             }
