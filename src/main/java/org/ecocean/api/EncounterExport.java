@@ -74,7 +74,8 @@ public class EncounterExport extends ApiBase {
      * in a single efficient query.
      */
     private static Map<String, MarkedIndividual> buildEncounterIndividualMap(Shepherd myShepherd,
-        List<Encounter> encounters) {
+        List<Encounter> encounters)
+    throws Exception {
         Map<String, MarkedIndividual> map = new HashMap<>();
 
         if (encounters.isEmpty()) {
@@ -106,17 +107,18 @@ public class EncounterExport extends ApiBase {
         indvGrp.addMember("individualID").addMember("names").addMember("encounters");
         pm.getFetchPlan().addGroup("individualWithEncounters");
 
-        Query query = pm.newQuery(MarkedIndividual.class);
-        query.setFilter("encounters.contains(enc) && :catalogNumbers.contains(enc.catalogNumber)");
-        query.declareVariables("org.ecocean.Encounter enc");
+        try (Query query = pm.newQuery(MarkedIndividual.class)) {
+            query.setFilter(
+                "encounters.contains(enc) && :catalogNumbers.contains(enc.catalogNumber)");
+            query.declareVariables("org.ecocean.Encounter enc");
 
-        @SuppressWarnings("unchecked") List<MarkedIndividual> individuals =
-            (List<MarkedIndividual>)query.execute(encountersNeedingIndividuals);
-        // Map encounters to individuals
-        for (MarkedIndividual individual : individuals) {
-            for (Encounter enc : individual.getEncounters()) {
-                if (encountersNeedingIndividuals.contains(enc.getCatalogNumber())) {
-                    map.put(enc.getCatalogNumber(), individual);
+            @SuppressWarnings("unchecked") List<MarkedIndividual> individuals = (List<MarkedIndividual>)query.execute(encountersNeedingIndividuals);
+            // Map encounters to individuals
+            for (MarkedIndividual individual : individuals) {
+                for (Encounter enc : individual.getEncounters()) {
+                    if (encountersNeedingIndividuals.contains(enc.getCatalogNumber())) {
+                        map.put(enc.getCatalogNumber(), individual);
+                    }
                 }
             }
         }
