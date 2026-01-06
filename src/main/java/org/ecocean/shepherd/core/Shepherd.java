@@ -4106,6 +4106,23 @@ public class Shepherd {
         return al;
     }
 
+    // how many more behavior-related lists can we make?
+    public Map<String, List<String> > getTaxonomicBehaviors() {
+        Map<String, List<String> > rtn = new HashMap<String, List<String> >();
+
+        // empty key is behaviors with no taxonomy
+        rtn.put("", getDefinedBehaviors());
+        // iaClassesForTaxonomy seems to key off taxonomies with spaces, so....
+        for (String sciName : getAllTaxonomyCommonNames(true).get(0)) {
+            // in CommonConfiguration.properties, key is like: Foo.bar.bar2.behavior0
+            String prefix = sciName.replaceAll(" ", ".") + ".behavior";
+            List<String> behaviors = CommonConfiguration.getIndexedPropertyValues(prefix,
+                this.getContext());
+            if (Util.collectionSize(behaviors) > 0) rtn.put(sciName, behaviors);
+        }
+        return rtn;
+    }
+
     public List<String> getAllVerbatimEventDates() {
         Query q = pm.newQuery(Encounter.class);
 

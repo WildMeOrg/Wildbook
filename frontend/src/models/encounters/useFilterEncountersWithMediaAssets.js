@@ -33,7 +33,10 @@ function buildQuery(queries) {
   };
 }
 
-export default function useFilterEncountersWithMediaAssets({ queries, params = {} }) {
+export default function useFilterEncountersWithMediaAssets({
+  queries,
+  params = {},
+}) {
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
   const { sortOrder, sort, size, from } = params;
@@ -46,8 +49,8 @@ export default function useFilterEncountersWithMediaAssets({ queries, params = {
     params: {
       sort: sort?.sortname || "date",
       sortOrder: sort?.sortorder || "desc",
-      size: size || 20, 
-      from: from || 0, 
+      size: size || 20,
+      from: from || 0,
     },
     dataAccessor: (result) => {
       const resultCount = parseInt(
