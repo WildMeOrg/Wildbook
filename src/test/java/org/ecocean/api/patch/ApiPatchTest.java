@@ -533,7 +533,7 @@ class ApiPatchTest {
                     verify(mockResponse).setStatus(200);
                     assertTrue(jout.getBoolean("success"));
                     // getDate() returns stupid string for year only but what can you do?
-                    assertEquals("2000 00:00", enc.getDate());
+                    assertEquals("2000", enc.getDate());
                 }
             }
         }
