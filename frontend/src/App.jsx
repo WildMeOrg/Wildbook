@@ -14,7 +14,7 @@ import LocaleContext from "./IntlProvider";
 import FooterVisibilityContext from "./FooterVisibilityContext";
 import Cookies from "js-cookie";
 import FilterContext from "./FilterContextProvider";
-import { SiteSettingsProvider } from "./SiteSettingsContext";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const messageMap = {
@@ -73,20 +73,27 @@ function App() {
               defaultLocale="en"
               messages={messageMap[locale]}
             >
-              <SiteSettingsProvider>
-                <FooterVisibilityContext.Provider
-                  value={{ visible, setVisible }}
+              <FooterVisibilityContext.Provider value={{ visible, setVisible }}>
+                <FilterContext.Provider
+                  value={{ filters, updateFilter, resetFilters }}
                 >
-                  <FilterContext.Provider
-                    value={{ filters, updateFilter, resetFilters }}
-                  >
-                    <FrontDesk
-                      adminUserInitialized={true}
-                      setLocale={setLocale}
-                    />
-                  </FilterContext.Provider>
-                </FooterVisibilityContext.Provider>
-              </SiteSettingsProvider>
+                  <FrontDesk
+                    adminUserInitialized={true}
+                    setLocale={setLocale}
+                  />
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                  />
+                </FilterContext.Provider>
+              </FooterVisibilityContext.Provider>
             </IntlProvider>
           </BrowserRouter>
         </div>
