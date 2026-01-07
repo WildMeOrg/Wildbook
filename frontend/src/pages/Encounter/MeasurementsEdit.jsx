@@ -63,7 +63,6 @@ export const MeasurementsEdit = observer(({ store }) => {
                   <Divider />
                   {store.errors.getFieldError("measurement", type) && (
                     <div className="invalid-feedback d-block">
-                      {/* {store.errors.getFieldError("measurement", type) || ""} */}
                       {intl.formatMessage({
                         id: store.errors.getFieldError("measurement", type),
                       })}

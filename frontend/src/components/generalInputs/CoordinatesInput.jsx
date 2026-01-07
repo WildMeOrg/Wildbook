@@ -156,7 +156,6 @@ export const CoordinatesInput = observer(({ store }) => {
             />
             {store.errors.getFieldError("location", "longitude") && (
               <div className="invalid-feedback d-block">
-                {/* {store.errors.getFieldError("location", "longitude") || ""} */}
                 {intl.formatMessage({
                   id: store.errors.getFieldError("location", "longitude"),
                 })}
