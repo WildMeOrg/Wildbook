@@ -81,8 +81,10 @@ export const CoordinatesInput = observer(({ store }) => {
   }, [mapCenterLat, mapCenterLon, mapZoom, mapKey]);
 
   useEffect(() => {
-    const lat = Number(store.lat);
-    const lng = Number(store.lon);
+    const lat =
+      store.lat === null || store.lat === "" ? NaN : Number(store.lat);
+    const lng =
+      store.lon === null || store.lon === "" ? NaN : Number(store.lon);
 
     if (map && Number.isFinite(lat) && Number.isFinite(lng)) {
       if (pan) {
