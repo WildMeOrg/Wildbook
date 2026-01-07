@@ -26,17 +26,27 @@ export const CoordinatesInput = observer(({ store }) => {
     const loader = new Loader({
       apiKey: mapKey,
     });
+    let clickListener = null;
 
     loader
       .load()
       .then(() => {
         if (!mapRef.current || !mapRef.current.isConnected) return;
+        const lat =
+          store.lat === null || store.lat === "" ? NaN : Number(store.lat);
+        const lng =
+          store.lon === null || store.lon === "" ? NaN : Number(store.lon);
+        const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+        const initialCenter = hasCoords
+          ? { lat, lng }
+          : { lat: mapCenterLat, lng: mapCenterLon };
+
         const googleMap = new window.google.maps.Map(mapRef.current, {
-          center: { lat: mapCenterLat, lng: mapCenterLon },
+          center: initialCenter,
           zoom: mapZoom,
         });
 
-        const clickListener = googleMap.addListener("click", (e) => {
+        clickListener = googleMap.addListener("click", (e) => {
           setPan(false);
           const lat = e.latLng.lat();
           const lng = e.latLng.lng();
@@ -45,6 +55,7 @@ export const CoordinatesInput = observer(({ store }) => {
 
           if (markerRef.current) {
             markerRef.current.setPosition({ lat, lng });
+            markerRef.current.setMap(googleMap);
           } else {
             markerRef.current = new window.google.maps.Marker({
               position: { lat, lng },
@@ -54,27 +65,33 @@ export const CoordinatesInput = observer(({ store }) => {
         });
 
         setMap(googleMap);
-
-        return () => {
-          window.google.maps.removeListener(clickListener);
-        };
       })
       .catch((error) => {
         console.error("Error loading Google Maps", error);
       });
+    return () => {
+      if (clickListener) {
+        window.google.maps.event.removeListener(clickListener);
+      }
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+        markerRef.current = null;
+      }
+    };
   }, [mapCenterLat, mapCenterLon, mapZoom, mapKey]);
 
   useEffect(() => {
-    const lat = parseFloat(store.lat);
-    const lng = parseFloat(store.lon);
+    const lat = Number(store.lat);
+    const lng = Number(store.lon);
 
-    if (map && !isNaN(lat) && !isNaN(lng)) {
+    if (map && Number.isFinite(lat) && Number.isFinite(lng)) {
       if (pan) {
         map.panTo({ lat, lng });
       }
 
       if (markerRef.current) {
         markerRef.current.setPosition({ lat, lng });
+        markerRef.current.setMap(map);
       } else {
         markerRef.current = new window.google.maps.Marker({
           position: { lat, lng },
