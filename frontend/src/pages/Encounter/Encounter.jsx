@@ -45,14 +45,18 @@ const Encounter = observer(() => {
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);
   const intl = useIntl();
+
   const encounterStates = store.siteSettingsData?.encounterState;
-  const encounterStatesOptions =
-    store.encounterData?.state && encounterStates?.length > 0
-      ? encounterStates.map((state) => ({
-          value: state,
-          label: state,
-        }))
-      : [{ value: "loading", label: "loading" }];
+  const encounterStatesLoaded = encounterStates !== undefined;
+  const encounterStatesOptions = encounterStatesLoaded
+    ? encounterStates.map((state) => ({ value: state, label: state }))
+    : [{ value: "loading", label: "loading" }];
+  const rawState = store.encounterData?.state || "";
+  const selectedState = !encounterStatesLoaded
+    ? "loading"
+    : encounterStates.includes(rawState)
+      ? rawState
+      : "";
 
   useEffect(() => {
     if (!siteSettings) return;
@@ -336,7 +340,7 @@ const Encounter = observer(() => {
         <Col md={6} className="text-end">
           <PillWithDropdown
             options={encounterStatesOptions}
-            selectedOption={store.encounterData?.state || "loading"}
+            selectedOption={selectedState}
             onSelect={(value) => {
               if (value === "loading") return;
               setEncounterState(value, store.encounterData?.id);

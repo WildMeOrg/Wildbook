@@ -93,10 +93,53 @@ class EncounterApiTest {
                 doReturn(emptyMap).when(encSpy).getBiologicalMeasurementsByType();
                 Shepherd myShepherd = new Shepherd("context0");
                 JSONObject json = encSpy.jsonForApiGet(myShepherd, null);
-                assertEquals(json.length(), 33);
+                assertEquals(json.length(), 34);
                 assertEquals(json.getString("id"), encId);
             }
         }
+    }
+
+    @Test void encounterDateValuesTest() {
+        Encounter enc = new Encounter();
+
+        // hour and minutes are set by default, sigh
+        enc.setHour(-1);
+        enc.setMinutes("0");
+        JSONObject dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 0); // empty
+        enc.setYear(1901);
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 1);
+        // set day but we have no month
+        enc.setDay(11);
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 1);
+        // set a month, but invalid
+        enc.setMonth(22);
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 1);
+        // now set proper month, so we should get y/m/d values
+        enc.setMonth(2);
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 3);
+        // set invalid hour
+        enc.setHour(99);
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 3);
+        // set valid hour
+        enc.setHour(23);
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 5);
+        // set invalid minutes
+        enc.setMinutes("99");
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 5);
+        assertEquals(dv.getInt("minutes"), 0);
+        // set a valid minutes
+        enc.setMinutes("15");
+        dv = enc.getDateValuesJson();
+        assertEquals(dv.length(), 5);
+        assertEquals(dv.getInt("minutes"), 15);
     }
 
     @Test void encounterApiGetTest()
