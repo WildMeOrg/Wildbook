@@ -4,8 +4,10 @@ import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useIntl } from "react-intl";
 
 export const CoordinatesInput = observer(({ store }) => {
+  const intl = useIntl();
   const { data } = useGetSiteSettings();
   const mapCenterLat = data?.mapCenterLat || 51;
   const mapCenterLon = data?.mapCenterLon || 7;
@@ -125,7 +127,9 @@ export const CoordinatesInput = observer(({ store }) => {
             />
             {store.errors.getFieldError("location", "latitude") && (
               <div className="invalid-feedback d-block">
-                {store.errors.getFieldError("location", "latitude") || ""}
+                {intl.formatMessage({
+                  id: store.errors.getFieldError("location", "latitude"),
+                })}
               </div>
             )}
           </div>
@@ -152,7 +156,10 @@ export const CoordinatesInput = observer(({ store }) => {
             />
             {store.errors.getFieldError("location", "longitude") && (
               <div className="invalid-feedback d-block">
-                {store.errors.getFieldError("location", "longitude") || ""}
+                {/* {store.errors.getFieldError("location", "longitude") || ""} */}
+                {intl.formatMessage({
+                  id: store.errors.getFieldError("location", "longitude"),
+                })}
               </div>
             )}
           </div>

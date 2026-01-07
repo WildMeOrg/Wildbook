@@ -4,8 +4,10 @@ import DateInput from "../../components/generalInputs/DateInput";
 import TextInput from "../../components/generalInputs/TextInput";
 import { Alert } from "react-bootstrap";
 import { formatDateValues } from "./stores/helperFunctions";
+import { useIntl } from "react-intl";
 
 export const DateSectionEdit = observer(({ store }) => {
+  const intl = useIntl();
   return (
     <div>
       <DateInput
@@ -25,9 +27,12 @@ export const DateSectionEdit = observer(({ store }) => {
       />
       {store.errors.getFieldError("date", "dateValues") && (
         <div className="invalid-feedback d-block">
-          {store.errors.getFieldError("date", "dateValues")}
+          {intl.formatMessage({
+            id: store.errors.getFieldError("date", "dateValues"),
+          })}
         </div>
       )}
+
       <TextInput
         label="VERBATIM_EVENT_DATE"
         value={store.getFieldValue("date", "verbatimEventDate") ?? ""}

@@ -31,14 +31,14 @@ const SECTION_FIELD_PATHS = {
 
 const LOCAL_FIELD_ERRORS = {
   date: {
-    dateValues: "invalid date",
+    dateValues: "INVALID_DATE",
   },
   location: {
-    latitude: "please enter invalid latitude and longitude",
-    longitude: "please enter invalid latitude and longitude",
+    latitude: "INVALID_LAT_LON",
+    longitude: "INVALID_LAT_LON",
   },
   measurements: {
-    measurements: "please enter valid values",
+    measurements: "INVALID_MEASUREMENTS",
   },
 };
 
