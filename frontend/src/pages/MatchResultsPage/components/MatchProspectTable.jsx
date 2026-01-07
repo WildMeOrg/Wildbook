@@ -265,7 +265,7 @@ const MatchProspectTable = ({
                   >
                     <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>
                     <a
-                      href={`/encounters/encounter.jsp?number=${candidateEncounterId}`}
+                      href={`/react/encounter?number=${candidateEncounterId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{

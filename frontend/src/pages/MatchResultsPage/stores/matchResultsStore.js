@@ -8,13 +8,14 @@ export default class MatchResultsStore {
   _viewMode = "individual"; // "individual" | "image"
   _encounterId = "";
   _individualId = null;
+  _individualDisplayName = null;
   _projectName = "";
-  _numResults = 12; 
+  _numResults = 12;
   _numCandidates = 0;
   _matchDate = null;
   _thisEncounterImageUrl = "";
   _possibleMatchImageUrl = "";
-  _selectedMatchImageUrlByAlgo = new Map(); 
+  _selectedMatchImageUrlByAlgo = new Map();
   _selectedMatch = [];
   _taskId = null;
   _newIndividualName = "";
@@ -24,6 +25,8 @@ export default class MatchResultsStore {
   _rawIndivs = [];
 
   _loading = true;
+  _matchRequestLoading = false;
+  _matchRequestError = null;
   _hasResults = false;
 
   constructor() {
@@ -37,11 +40,12 @@ export default class MatchResultsStore {
 
     // safety: there might be no results at all
     if ((!annotResults || annotResults.length === 0) &&
-        (!indivResults || indivResults.length === 0)) {
+      (!indivResults || indivResults.length === 0)) {
       this._rawAnnots = [];
       this._rawIndivs = [];
       this._encounterId = null;
       this._individualId = null;
+      this._individualDisplayName = null;
       this._thisEncounterImageUrl = "";
       this._possibleMatchImageUrl = "";
       this._numCandidates = 0;
@@ -54,6 +58,7 @@ export default class MatchResultsStore {
 
     this._encounterId = first.queryEncounterId;
     this._individualId = first.queryIndividualId;
+    this._individualDisplayName = first.queryIndividualDisplayName;
     this._matchDate = first.date;
     this._numCandidates = first.numberCandidates;
     this._thisEncounterImageUrl = first.queryEncounterImageUrl;
@@ -137,6 +142,10 @@ export default class MatchResultsStore {
     return this._individualId;
   }
 
+  get individualDisplayName() {
+    return this._individualDisplayName;
+  }
+
   get projectName() {
     return this._projectName;
   }
@@ -163,6 +172,14 @@ export default class MatchResultsStore {
 
   get loading() {
     return this._loading;
+  }
+
+  get matchRequestLoading() {
+    return this._matchRequestLoading;
+  }
+
+  get matchRequestError() {
+    return this._matchRequestError;
   }
 
   get hasResults() {
@@ -231,6 +248,45 @@ export default class MatchResultsStore {
       this._selectedMatch = this._selectedMatch.filter(
         (data) => data.encounterId !== encounterId,
       );
+    }
+  }
+
+  // merge functions
+
+  //one individual
+  async handleMatch() {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
+
+    try {
+      const selectedIndividualId =
+        this._individualId ??
+        this._selectedMatch.find((d) => d.individualId)?.individualId ??
+        null;
+      const selectedEncounterIds = (this._selectedMatch || [])
+        .filter((d) => d?.encounterId)
+        .filter((d) => (this._encounterId ? d.encounterId !== this._encounterId : true))
+        .filter((d) => !d?.individualId)
+        .map((d) => d.encounterId);
+      const params = new URLSearchParams();
+      if (this._encounterId) params.set("number", this._encounterId);
+      if (this._taskId) params.set("taskId", this._taskId);
+      if (selectedIndividualId) params.set("individualID", selectedIndividualId);
+      selectedEncounterIds.forEach((id) => params.append("encOther", id));
+
+      const url = `/iaResultsSetID.jsp?${params.toString()}`;
+
+      const res = await axios.get(url, {
+        headers: { Accept: "application/json" },
+      })
+
+      return res.data;
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = e;
+      return null;
+    } finally {
+      this._matchRequestLoading = false;
     }
   }
 

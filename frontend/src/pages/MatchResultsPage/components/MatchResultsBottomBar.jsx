@@ -1,7 +1,7 @@
 import React from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
-import { Form, Button } from "react-bootstrap";
+import { Form, Spinner } from "react-bootstrap";
 import MainButton from "../../../components/MainButton";
 
 const styles = {
@@ -67,7 +67,6 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             >
               <FormattedMessage
                 id="CONFIRM_NO_MATCH"
-                defaultMessage="Confirm No Match"
               />
             </MainButton>
           </>
@@ -89,36 +88,57 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
               noArrow={true}
               backgroundColor={themeColor.primaryColors.primary500}
               color="white"
-              onClick={store.handleConfirmNoMatch}
+              onClick={() => { }}
               disabled={!store.newIndividualName.trim()}
               style={{ marginTop: "0", marginBottom: "0" }}
             >
               <FormattedMessage
                 id="CONFIRM_NO_MATCH"
-                defaultMessage="Confirm No Match"
               />
             </MainButton>
           </>
         );
 
+      //don't forget another case: 
+      //All encounters already assigned to the same individual ID. No further action is needed to confirm this match.
+
       case "single_individual":
         return (
-          <Button variant="primary" size="sm" onClick={store.handleConfirmMatch}>
+          <MainButton
+            noArrow={true}
+            backgroundColor={themeColor.primaryColors.primary500}
+            color="white"
+            onClick={async () => {
+              const data = await store.handleMatch();
+              console.log("match response:", data);
+            }}
+            disabled={(!store.individualId && !store.selectedMatch.some(data => data.individualId)) || store.matchRequestLoading}
+            style={{ marginTop: "0", marginBottom: "0" }}
+          >
             <FormattedMessage
               id="CONFIRM_MATCH"
               defaultMessage="Confirm Match"
             />
-          </Button>
+            {store.matchRequestLoading && <Spinner
+              animation="border"
+              size="sm"
+              role="status"
+              aria-hidden="true"
+              className="ms-2"
+            />}
+          </MainButton>
         );
 
       case "two_individuals":
         return (
-          <Button variant="success" size="sm" onClick={store.handleMerge}>
-            <FormattedMessage
-              id="MERGE_INDIVIDUALS"
-              defaultMessage="Merge Individuals"
-            />
-          </Button>
+          <MainButton
+            color="white"
+            backgroundColor={themeColor.primaryColors.primary700}
+            noArrow
+            onClick={() => { }}
+          >
+            <FormattedMessage id="MERGE_INDIVIDUALS" />
+          </MainButton>
         );
 
       case "too_many_individuals":
@@ -127,7 +147,6 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             <i className="bi bi-exclamation-triangle-fill me-2"></i>
             <FormattedMessage
               id="TOO_MANY_INDIVIDUALS_WARNING"
-              defaultMessage="You cannot merge more than two individuals"
             />
           </div>
         );
@@ -142,7 +161,6 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
       <div style={styles.bottomText}>
         <FormattedMessage
           id="MATCH_RESULTS_FOR"
-          defaultMessage="Match results for"
         />{" "}
         <span
           style={{
