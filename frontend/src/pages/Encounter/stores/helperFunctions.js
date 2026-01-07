@@ -131,12 +131,42 @@ function parseYMDHM(val) {
   };
 }
 
+const pad2 = (n) => String(n).padStart(2, "0");
+
+function formatDateValues({ year, month, day, hour, minutes } = {}) {
+  if (
+    year == null &&
+    month == null &&
+    day == null &&
+    hour == null &&
+    minutes == null
+  ) {
+    return "";
+  }
+
+  let dateStr = "";
+  if (year != null) {
+    const parts = [String(year)];
+    if (month != null) parts.push(pad2(month));
+    if (day != null) parts.push(pad2(day));
+    dateStr = parts.join("-");
+  }
+
+  let timeStr = "";
+  if (hour != null) {
+    timeStr = pad2(hour);
+    if (minutes != null) timeStr += `:${pad2(minutes)}`;
+  }
+
+  return [dateStr, timeStr].filter(Boolean).join(" ").trim();
+}
+
 function expandOperations(operations) {
   const base = operations.slice();
   const out = [];
 
   for (const op of base) {
-    if (op.path === "date") {
+    if (op.path === "dateValues") {
       const p = parseYMDHM(op.value);
       if (!p) continue;
       out.push({ op: "replace", path: "year", value: String(p.year) });
@@ -164,7 +194,6 @@ function expandOperations(operations) {
     }
 
     if (op.path === "locationGeoPoint" && op.value) {
-      if (op.value.lat == null || op.value.lon == null) continue;
       out.push({ op: "replace", path: "decimalLatitude", value: op.value.lat });
       out.push({
         op: "replace",
@@ -208,6 +237,7 @@ export {
   setValueAtPath,
   deleteValueAtPath,
   parseYMDHM,
+  formatDateValues,
   expandOperations,
   setEncounterState,
 };
