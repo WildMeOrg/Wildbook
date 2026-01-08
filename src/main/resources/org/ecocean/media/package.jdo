@@ -104,13 +104,6 @@
  		</inheritance>
  	</class>
 
- 	<class name="TwitterAssetStore">
- 		<inheritance strategy="superclass-table">
- 			<discriminator value="Twitter"/>
- 		</inheritance>
- 	</class>
-
-
 	<class name="MediaAssetSet">
 		<field name="id" primary-key="true">
 			<column length="36" />
