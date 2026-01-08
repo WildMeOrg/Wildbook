@@ -314,7 +314,7 @@ const MatchProspectTable = ({
                           onToggleSelected(
                             e.target.checked,
                             candidateEncounterId,
-                            candidateIndividualDisplayName
+                            candidateIndividualId,
                           )
                         }
                       />

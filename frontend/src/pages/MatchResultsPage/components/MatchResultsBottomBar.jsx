@@ -62,7 +62,7 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
               backgroundColor={themeColor.primaryColors.primary500}
               color="white"
               onClick={store.handleConfirmNoMatch}
-              disabled={(!store.newIndividualName || "").trim() || !!store.individualId}
+              disabled={!(store.newIndividualName || "").trim() || !!store.individualId}
               style={{ marginTop: "0", marginBottom: "0" }}
             >
               <FormattedMessage
@@ -110,7 +110,6 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             color="white"
             onClick={async () => {
               const data = await store.handleMatch();
-              console.log("match response:", data);
             }}
             disabled={(!store.individualId && !store.selectedMatch.some(data => data.individualId)) || store.matchRequestLoading}
             style={{ marginTop: "0", marginBottom: "0" }}
@@ -135,7 +134,7 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             color="white"
             backgroundColor={themeColor.primaryColors.primary700}
             noArrow
-            onClick={() => { }}
+            onClick={store.handleMerge}
           >
             <FormattedMessage id="MERGE_INDIVIDUALS" />
           </MainButton>

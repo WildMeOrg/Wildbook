@@ -253,6 +253,55 @@ export default class MatchResultsStore {
 
   // merge functions
 
+
+  //no match
+  async handleConfirmNoMatch() {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
+
+    try {
+      const newName = (this._newIndividualName || "").trim();
+      if (!newName) {
+        this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
+        return null;
+      }
+
+      const selectedEncounterIds = Array.from(
+        new Set((this._selectedMatch || []).map((m) => m?.encounterId).filter(Boolean)),
+      )
+      const allEncountedIds = selectedEncounterIds.push({
+        encounterId: this._encounterId ?? null,
+      });
+
+      const patchOps = [{ op: "replace", path: "/individual", value: newName }];
+
+      for (const id of allEncountedIds) {
+        try {
+          await axios.patch(
+            `/api/v3/encounters/${encodeURIComponent(id)}`,
+            patchOps,
+            {
+              headers: {
+                "Content-Type": "application/json-patch+json",
+                Accept: "application/json",
+              },
+            },
+          );
+        } catch (e) {
+          console.error("patch failed:", id, e);
+          this._matchRequestError = "PATCH_FAILED";
+          return null;
+        }
+      }
+
+      this._selectedMatch = [];
+      this._newIndividualName = "";
+
+    } finally {
+      this._matchRequestLoading = false;
+    }
+  }
+
   //one individual
   async handleMatch() {
     this._matchRequestLoading = true;
@@ -290,55 +339,54 @@ export default class MatchResultsStore {
     }
   }
 
-  //no match
-  async handleConfirmNoMatch() {
-  this._matchRequestLoading = true;
-  this._matchRequestError = null;
+  //two individuals + optional encounters
+  async handleMerge() {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
 
-  try {
-    const newName = (this._newIndividualName || "").trim();
-    if (!newName) {
-      this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
-      return null;
-    }
+    try {
+      const selected = Array.isArray(this._selectedMatch) ? this._selectedMatch : [];
 
-    const encounterIds = Array.from(
-      new Set((this._selectedMatch || []).map((m) => m?.encounterId).filter(Boolean)),
-    );
+      const individualIds = selected
+        .filter((d) => d?.individualId)
+        .map((d) => d.individualId)
+      if(this._individualId) {
+        individualIds.push(this._individualId);
+      }
 
-    if (encounterIds.length === 0) {
-      this._matchRequestError = "NO_SELECTED_ENCOUNTERS";
-      return null;
-    }
+      const uniqueIndividuals = Array.from(new Set(individualIds)).filter(Boolean);
 
-    const patchOps = [{ op: "replace", path: "/individual", value: newName }];
-
-    for (const id of encounterIds) {
-      try {
-        await axios.patch(
-          `/api/v3/encounters/${encodeURIComponent(id)}`,
-          patchOps,
-          {
-            headers: {
-              "Content-Type": "application/json-patch+json",
-              Accept: "application/json",
-            },
-          },
-        );
-      } catch (e) {
-        console.error("patch failed:", id, e);
-        this._matchRequestError = "PATCH_FAILED";
+      if (uniqueIndividuals.length !== 2) {
+        this._matchRequestError = "MERGE_REQUIRES_TWO_INDIVIDUALS";
         return null;
       }
+
+      const [individualA, individualB] = uniqueIndividuals;
+
+      const encounterIds = selected
+        .filter((d) => d?.encounterId && !d?.individualId)
+        .map((d) => d.encounterId);
+
+      const uniqueEncounterIds = Array.from(new Set(encounterIds)).filter(Boolean);
+
+      const params = new URLSearchParams();
+      params.set("individualA", individualA);
+      params.set("individualB", individualB);
+      uniqueEncounterIds.forEach((id) => params.append("encounterId", id));
+
+      const url = `/merge.jsp?${params.toString()}`;
+      window.open(url, "_blank");
+
+      this._selectedMatch = [];
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = "MERGE_FAILED";
+      return null;
+    } finally {
+      this._matchRequestLoading = false;
     }
-
-    this._selectedMatch = [];    
-    this._newIndividualName = "";
-
-  } finally {
-    this._matchRequestLoading = false;
   }
-}
+
   get uniqueIndividualIds() {
     const ids = new Set();
 

@@ -8,6 +8,7 @@ import MatchProspectTable from "./components/MatchProspectTable";
 import MatchResultsBottomBar from "./components/MatchResultsBottomBar";
 import { useSearchParams } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
+import MainButton from "../../components/MainButton";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -62,9 +63,30 @@ const MatchResults = observer(() => {
       </Modal>
 
       <div className="d-flex flex-row justify-content-between align-items-center mb-3">
-        <h2>
-          <FormattedMessage id="MATCH_RESULT" />
-        </h2>
+        <div className="d-flex flex-row align-items-center">
+          <h2>
+            <FormattedMessage id="MATCH_RESULT" />
+          </h2>
+          <a
+            href={`/react/encounter?number=${store.encounterId}`}
+            className="text-decoration-none"
+            target="_blank"
+            rel="noopener noreferrer"
+          >{` for ${store.encounterId}`}</a>
+          {
+            store._individualDisplayName && <MainButton
+              color="white"
+              backgroundColor={themeColor.primaryColors.primary500}
+              noArrow
+              onClick={() => {
+                const url = `/individuals.jsp?id=${store.individualId}`;
+                window.open(url, "_blank");
+              }}
+            >
+              {store._individualDisplayName}
+            </MainButton>
+          }
+        </div>
         <span>
           <i
             className="bi bi-info-circle-fill"
