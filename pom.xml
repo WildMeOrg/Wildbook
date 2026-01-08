@@ -447,13 +447,6 @@
       <version>${slf4j.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.twitter4j</groupId>
-      <artifactId>twitter4j-core</artifactId>
-      <version>4.0.7</version>
-    </dependency>
-
-
     <!-- START QR code generating dependencies-->
     <dependency>
       <groupId>com.google.zxing</groupId>

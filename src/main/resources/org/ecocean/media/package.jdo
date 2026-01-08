@@ -86,12 +86,6 @@
 		</inheritance>
 	</class>
 
-	<class name="S3AssetStore">
-		<inheritance strategy="superclass-table">
-			<discriminator value="S3"/>
-		</inheritance>
-	</class>
-
  	<class name="URLAssetStore">
  		<inheritance strategy="superclass-table">
  			<discriminator value="URL"/>

@@ -828,8 +828,6 @@ public class IBEISIA {
             // return ma.localPath().toString(); //nah, lets skip local and go for "url" flavor?
             if (curl == null) return null;
             return curl.toString();
-        } else if (ma.getStore() instanceof S3AssetStore) {
-            return ma.getParameters();
         } else {
             if (curl == null) return null;
             return curl.toString();

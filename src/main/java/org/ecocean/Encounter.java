@@ -1411,7 +1411,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
         org.json.JSONObject sp = astore.createParameters(fullPath);
-        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName); // note: this really only applies to S3 AssetStores, but shouldnt hurt
+        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);
                                                                           // others?
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma == null) {
