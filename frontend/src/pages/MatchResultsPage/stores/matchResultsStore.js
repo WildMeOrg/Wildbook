@@ -290,6 +290,55 @@ export default class MatchResultsStore {
     }
   }
 
+  //no match
+  async handleConfirmNoMatch() {
+  this._matchRequestLoading = true;
+  this._matchRequestError = null;
+
+  try {
+    const newName = (this._newIndividualName || "").trim();
+    if (!newName) {
+      this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
+      return null;
+    }
+
+    const encounterIds = Array.from(
+      new Set((this._selectedMatch || []).map((m) => m?.encounterId).filter(Boolean)),
+    );
+
+    if (encounterIds.length === 0) {
+      this._matchRequestError = "NO_SELECTED_ENCOUNTERS";
+      return null;
+    }
+
+    const patchOps = [{ op: "replace", path: "/individual", value: newName }];
+
+    for (const id of encounterIds) {
+      try {
+        await axios.patch(
+          `/api/v3/encounters/${encodeURIComponent(id)}`,
+          patchOps,
+          {
+            headers: {
+              "Content-Type": "application/json-patch+json",
+              Accept: "application/json",
+            },
+          },
+        );
+      } catch (e) {
+        console.error("patch failed:", id, e);
+        this._matchRequestError = "PATCH_FAILED";
+        return null;
+      }
+    }
+
+    this._selectedMatch = [];    
+    this._newIndividualName = "";
+
+  } finally {
+    this._matchRequestLoading = false;
+  }
+}
   get uniqueIndividualIds() {
     const ids = new Set();
 

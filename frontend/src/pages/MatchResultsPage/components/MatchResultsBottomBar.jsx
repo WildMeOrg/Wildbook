@@ -62,7 +62,7 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
               backgroundColor={themeColor.primaryColors.primary500}
               color="white"
               onClick={store.handleConfirmNoMatch}
-              disabled={!store.newIndividualName.trim()}
+              disabled={(!store.newIndividualName || "").trim() || !!store.individualId}
               style={{ marginTop: "0", marginBottom: "0" }}
             >
               <FormattedMessage

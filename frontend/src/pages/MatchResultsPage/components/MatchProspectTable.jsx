@@ -286,7 +286,7 @@ const MatchProspectTable = ({
                       className="btn btn-sm p-0 px-2"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const url = `/individuals.jsp?id=${candidateEncounterId}`;
+                        const url = `/individuals.jsp?id=${candidateIndividualId}`;
                         window.open(url, "_blank");
                       }}
                     >
