@@ -2451,6 +2451,14 @@ public class Encounter extends Base implements java.io.Serializable {
         return myShepherd.getProjectsForEncounter(this);
     }
 
+    public boolean isInProjects(Set<String> projectIds, Shepherd myShepherd) {
+        // if we dont have any ids, here we are going to consider it false
+        // NOTE: opposite logic in MatchResultProspect.isInProject()
+        if (Util.collectionIsEmptyOrNull(projectIds)) return false;
+        // FIXME do actual logic via jdo query
+        return true;
+    }
+
     public void addTissueSample(TissueSample dce) {
         if (tissueSamples == null) { tissueSamples = new ArrayList<TissueSample>(); }
         if (!tissueSamples.contains(dce)) { tissueSamples.add(dce); }

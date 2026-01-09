@@ -2,6 +2,9 @@ package org.ecocean.api;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
@@ -106,13 +109,20 @@ public class GenericObject extends ApiBase {
                         } else {
                             // TODO do we have security on match results ??
                             int prospectsSize = org.ecocean.ia.MatchResult.DEFAULT_PROSPECTS_CUTOFF;
+                            Set<String> projectIds = null;
+                            String[] pvals = request.getParameterValues("projectId");
+                            if ((pvals != null) && (pvals.length > 0))
+                                projectIds = new HashSet<String>(Arrays.asList(
+                                    request.getParameterValues("projectId")));
                             try {
                                 // note: negative size means all of them (no cutoff)
                                 prospectsSize = Integer.parseInt(request.getParameter(
                                     "prospectsSize"));
                             } catch (NumberFormatException ex) {}
                             rtn.put("prospectsSize", prospectsSize);
-                            JSONObject mrJson = task.matchResultsJson(prospectsSize, myShepherd);
+                            JSONObject mrJson = task.matchResultsJson(prospectsSize, projectIds,
+                                myShepherd);
+                            rtn.put("projectIds", projectIds);
                             rtn.put("matchResultsRoot", mrJson);
                             rtn.put("success", true);
                             rtn.put("statusCode", 200);

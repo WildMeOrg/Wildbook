@@ -64,13 +64,13 @@ class MatchResultTest {
         assertTrue(mr.numberProspects() == 4);
         assertTrue(mr.prospectScoreTypes().contains("indiv"));
         assertTrue(mr.prospectScoreTypes().contains("annot"));
-        JSONObject pj = mr.prospectsForApiGet(-1, myShepherd);
+        JSONObject pj = mr.prospectsForApiGet(-1, null, myShepherd);
         // verify ordering is correct
         assertTrue(pj.getJSONArray("indiv").getJSONObject(0).getDouble("score") == 0.4);
         assertTrue(pj.getJSONArray("indiv").getJSONObject(1).getDouble("score") == 0.3);
         assertTrue(pj.getJSONArray("annot").getJSONObject(0).getDouble("score") == 0.2);
         assertTrue(pj.getJSONArray("annot").getJSONObject(1).getDouble("score") == 0.1);
-        JSONObject full = mr.jsonForApiGet(-1, myShepherd);
+        JSONObject full = mr.jsonForApiGet(-1, null, myShepherd);
         assertTrue(full.getInt("numberTotalProspects") == 4);
         assertTrue(full.getInt("numberCandidates") == 3);
     }

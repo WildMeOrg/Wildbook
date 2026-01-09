@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
@@ -44,6 +45,15 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
     public boolean isType(String type) {
         if (type == null) return (this.scoreType == null);
         return type.equals(this.scoreType);
+    }
+
+    public boolean isInProjects(Set<String> projectIds, Shepherd myShepherd) {
+        // if we have no projects to filter on, we consider this to be in it
+        if (Util.collectionIsEmptyOrNull(projectIds)) return true;
+        if (annotation == null) return false;
+        Encounter enc = annotation.findEncounter(myShepherd);
+        if (enc == null) return false;
+        return enc.isInProjects(projectIds, myShepherd);
     }
 
     public String toString() {

@@ -217,24 +217,25 @@ public class MatchResult implements java.io.Serializable {
     }
 
     // if cutoff < 0 then it will not be truncated at all
-    public List<MatchResultProspect> prospectsSorted(String type, int cutoff) {
+    public List<MatchResultProspect> prospectsSorted(String type, int cutoff,
+        Set<String> projectIds, Shepherd myShepherd) {
         List<MatchResultProspect> pros = new ArrayList<MatchResultProspect>();
 
         if (numberProspects() == 0) return pros;
         for (MatchResultProspect mrp : prospects) {
-            if (mrp.isType(type)) pros.add(mrp);
+            if (mrp.isType(type) && mrp.isInProjects(projectIds, myShepherd)) pros.add(mrp);
         }
         Collections.sort(pros);
         if ((cutoff > 0) && (pros.size() > cutoff)) return pros.subList(0, cutoff);
         return pros;
     }
 
-    public JSONObject prospectsForApiGet(int cutoff, Shepherd myShepherd) {
+    public JSONObject prospectsForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
         JSONObject sj = new JSONObject();
 
         for (String type : prospectScoreTypes()) {
             JSONArray jarr = new JSONArray();
-            for (MatchResultProspect mrp : prospectsSorted(type, cutoff)) {
+            for (MatchResultProspect mrp : prospectsSorted(type, cutoff, projectIds, myShepherd)) {
                 jarr.put(mrp.jsonForApiGet(myShepherd));
             }
             sj.put(type, jarr);
@@ -242,7 +243,7 @@ public class MatchResult implements java.io.Serializable {
         return sj;
     }
 
-    public JSONObject jsonForApiGet(int cutoff, Shepherd myShepherd) {
+    public JSONObject jsonForApiGet(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", id);
@@ -250,7 +251,8 @@ public class MatchResult implements java.io.Serializable {
         rtn.put("numberTotalProspects", numberProspects());
         rtn.put("numberCandidates", getNumberCandidates());
         rtn.put("created", Util.millisToISO8601String(created));
-        rtn.put("prospects", prospectsForApiGet(cutoff, myShepherd));
+        rtn.put("prospects", prospectsForApiGet(cutoff, projectIds, myShepherd));
+        rtn.put("projectIds", projectIds);
         return rtn;
     }
 

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
@@ -662,7 +663,7 @@ public class Task implements java.io.Serializable {
         return mrs;
     }
 
-    public JSONObject matchResultsJson(int cutoff, Shepherd myShepherd) {
+    public JSONObject matchResultsJson(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
 
         rtn.put("id", getId());
@@ -699,14 +700,15 @@ public class Task implements java.io.Serializable {
                     rtn.put("_commitShepherd", true);
                 }
             }
-            if (mr != null) rtn.put("matchResults", mr.jsonForApiGet(cutoff, myShepherd));
+            if (mr != null)
+                rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
         }
         // now we recurse thru children if applicable
         if (hasChildren()) {
             JSONArray charr = new JSONArray();
             for (Task child : children) {
                 // TODO decide if we need to process child????
-                JSONObject childJson = child.matchResultsJson(cutoff, myShepherd);
+                JSONObject childJson = child.matchResultsJson(cutoff, projectIds, myShepherd);
                 // we have to bubble this up all the way to the toplevel  :/
                 if (childJson.optBoolean("_commitShepherd", false))
                     rtn.put("_commitShepherd", true);
