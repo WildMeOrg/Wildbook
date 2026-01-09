@@ -38,7 +38,6 @@ export default class MatchResultsStore {
     const annotResults = getAllAnnot(result.matchResultsRoot);
     const indivResults = getAllIndiv(result.matchResultsRoot);
 
-    // safety: there might be no results at all
     if ((!annotResults || annotResults.length === 0) &&
       (!indivResults || indivResults.length === 0)) {
       this._rawAnnots = [];
@@ -67,6 +66,8 @@ export default class MatchResultsStore {
     this._rawAnnots = annotResults;
     this._rawIndivs = indivResults;
     this._hasResults = true;
+
+    this.resetSelectionToQuery();
   }
 
   _processData(rawData) {
@@ -194,7 +195,92 @@ export default class MatchResultsStore {
     return this._taskId;
   }
 
-  // actions
+  get selectedEncounterIds() {
+    const ids = (this._selectedMatch || [])
+      .map((m) => m?.encounterId)
+      .filter(Boolean);
+    return Array.from(new Set(ids));
+  }
+
+  get selectedUnnamedEncounterIds() {
+    const ids = (this._selectedMatch || [])
+      .filter((m) => m?.encounterId && !m?.individualId)
+      .map((m) => m.encounterId);
+    return Array.from(new Set(ids));
+  }
+
+  get selectedIndividualIdsOnly() {
+    const ids = (this._selectedMatch || [])
+      .map((m) => m?.individualId)
+      .filter(Boolean);
+    return Array.from(new Set(ids));
+  }
+
+  get uniqueIndividualsIncludingQuery() {
+    const ids = new Set();
+    if (this._individualId) ids.add(this._individualId);
+    for (const id of this.selectedIndividualIdsOnly) ids.add(id);
+    return Array.from(ids);
+  }
+
+  get singleIndividualIdToUse() {
+    const unique = this.uniqueIndividualsIncludingQuery;
+    return unique.length === 1 ? unique[0] : null;
+  }
+
+  get allSelectedAlreadySameIndividual() {
+    const single = this.singleIndividualIdToUse;
+    if (!single) return false;
+    if (this.selectedUnnamedEncounterIds.length > 0) return false;
+
+    if (this._individualId && this._individualId !== single) return false;
+
+    return (this._selectedMatch || [])
+      .filter((m) => m?.individualId)
+      .every((m) => m.individualId === single);
+  }
+
+  get selectedMatch() {
+    return this._selectedMatch;
+  }
+
+  get uniqueIndividualIds() {
+    const ids = new Set();
+
+    if (this._individualId) {
+      ids.add(this._individualId);
+    }
+
+    this._selectedMatch.forEach((match) => {
+      if (match.individualId) {
+        ids.add(match.individualId);
+      }
+    });
+
+    return Array.from(ids);
+  }
+
+  get querySelectionItem() {
+    if (!this._encounterId) return null;
+    return {
+      encounterId: this._encounterId,
+      individualId: this._individualId || null,
+    };
+  }
+
+  get selectedIncludingQuery() {
+    const selected = Array.isArray(this._selectedMatch) ? this._selectedMatch : [];
+    const q = this.querySelectionItem;
+    if (!q) return selected;
+
+    const withoutQueryDup = selected.filter(
+      (m) => m?.encounterId && m.encounterId !== q.encounterId,
+    );
+
+    return [q, ...withoutQueryDup];
+  }
+
+  // actions  
 
   async fetchMatchResults() {
     this.setLoading(true);
@@ -237,24 +323,39 @@ export default class MatchResultsStore {
     this._newIndividualName = name;
   }
 
-  get selectedMatch() {
-    return this._selectedMatch;
+  setSelectedMatch(selected, encounterId, individualId) {
+    if (!encounterId) return;
+
+    if (encounterId === this._encounterId && !selected) return;
+
+    if (selected) {
+      const exists = this._selectedMatch.some((m) => m.encounterId === encounterId);
+      if (exists) return;
+      this._selectedMatch = [
+        ...this._selectedMatch,
+        { encounterId, individualId: individualId || null },
+      ];
+    } else {
+      this._selectedMatch = this._selectedMatch.filter((m) => m.encounterId !== encounterId);
+    }
   }
 
-  setSelectedMatch(selected, encounterId, individualId) {
-    if (selected) {
-      this._selectedMatch = [...this._selectedMatch, { encounterId, individualId }];
-    } else {
-      this._selectedMatch = this._selectedMatch.filter(
-        (data) => data.encounterId !== encounterId,
-      );
-    }
+  clearSelection() {
+    this._selectedMatch = [];
+    this._matchRequestError = null;
   }
 
   // merge functions
 
+  //no further action needed, two cases: 
+  //1. query encounter has individual ID, no match result selected
+  //2. all encounters have same individual ID
+  handleNoFurtherActionNeeded() {
+    this.clearSelection();
+    return { ok: true, noop: true };
+  }
 
-  //no match
+  //confirm no match
   async handleConfirmNoMatch() {
     this._matchRequestLoading = true;
     this._matchRequestError = null;
@@ -266,37 +367,28 @@ export default class MatchResultsStore {
         return null;
       }
 
-      const selectedEncounterIds = Array.from(
-        new Set((this._selectedMatch || []).map((m) => m?.encounterId).filter(Boolean)),
-      )
-      const allEncountedIds = selectedEncounterIds.push({
-        encounterId: this._encounterId ?? null,
-      });
+      const encounterIds = Array.from(
+        new Set(this.selectedIncludingQuery.map((m) => m.encounterId).filter(Boolean)),
+      );
 
       const patchOps = [{ op: "replace", path: "/individual", value: newName }];
 
-      for (const id of allEncountedIds) {
-        try {
-          await axios.patch(
-            `/api/v3/encounters/${encodeURIComponent(id)}`,
-            patchOps,
-            {
-              headers: {
-                "Content-Type": "application/json-patch+json",
-                Accept: "application/json",
-              },
-            },
-          );
-        } catch (e) {
-          console.error("patch failed:", id, e);
-          this._matchRequestError = "PATCH_FAILED";
-          return null;
-        }
+      for (const id of encounterIds) {
+        await axios.patch(`/api/v3/encounters/${encodeURIComponent(id)}`, patchOps, {
+          headers: {
+            "Content-Type": "application/json-patch+json",
+            Accept: "application/json",
+          },
+        });
       }
 
-      this._selectedMatch = [];
       this._newIndividualName = "";
-
+      this.resetSelectionToQuery();
+      return { ok: true };
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = "PATCH_FAILED";
+      return null;
     } finally {
       this._matchRequestLoading = false;
     }
@@ -308,53 +400,62 @@ export default class MatchResultsStore {
     this._matchRequestError = null;
 
     try {
-      const selectedIndividualId =
-        this._individualId ??
-        this._selectedMatch.find((d) => d.individualId)?.individualId ??
-        null;
-      const selectedEncounterIds = (this._selectedMatch || [])
-        .filter((d) => d?.encounterId)
-        .filter((d) => (this._encounterId ? d.encounterId !== this._encounterId : true))
-        .filter((d) => !d?.individualId)
-        .map((d) => d.encounterId);
+      const all = this.selectedIncludingQuery;
+
+      const uniqueIndividuals = Array.from(
+        new Set(all.map((m) => m?.individualId).filter(Boolean)),
+      );
+
+      if (uniqueIndividuals.length !== 1) {
+        this._matchRequestError = "MATCH_REQUIRES_SINGLE_INDIVIDUAL";
+        return null;
+      }
+
+      const targetIndividualId = uniqueIndividuals[0];
+
+      const unnamedEncounterIds = Array.from(
+        new Set(
+          all
+            .filter((m) => m?.encounterId && !m?.individualId)
+            .map((m) => m.encounterId)
+            .filter(Boolean),
+        ),
+      );
+
       const params = new URLSearchParams();
       if (this._encounterId) params.set("number", this._encounterId);
       if (this._taskId) params.set("taskId", this._taskId);
-      if (selectedIndividualId) params.set("individualID", selectedIndividualId);
-      selectedEncounterIds.forEach((id) => params.append("encOther", id));
+      params.set("individualID", targetIndividualId);
+
+      unnamedEncounterIds
+        .filter((id) => id !== this._encounterId)
+        .forEach((id) => params.append("encOther", id));
 
       const url = `/iaResultsSetID.jsp?${params.toString()}`;
 
-      const res = await axios.get(url, {
-        headers: { Accept: "application/json" },
-      })
-
+      const res = await axios.get(url, { headers: { Accept: "application/json" } });
+      this.resetSelectionToQuery();
       return res.data;
     } catch (e) {
       console.error(e);
-      this._matchRequestError = e;
+      this._matchRequestError = "MATCH_FAILED";
       return null;
     } finally {
       this._matchRequestLoading = false;
     }
   }
 
-  //two individuals + optional encounters
+  //merge two individuals and encounters
   async handleMerge() {
     this._matchRequestLoading = true;
     this._matchRequestError = null;
 
     try {
-      const selected = Array.isArray(this._selectedMatch) ? this._selectedMatch : [];
+      const all = this.selectedIncludingQuery;
 
-      const individualIds = selected
-        .filter((d) => d?.individualId)
-        .map((d) => d.individualId)
-      if(this._individualId) {
-        individualIds.push(this._individualId);
-      }
-
-      const uniqueIndividuals = Array.from(new Set(individualIds)).filter(Boolean);
+      const uniqueIndividuals = Array.from(
+        new Set(all.map((m) => m?.individualId).filter(Boolean)),
+      );
 
       if (uniqueIndividuals.length !== 2) {
         this._matchRequestError = "MERGE_REQUIRES_TWO_INDIVIDUALS";
@@ -363,21 +464,25 @@ export default class MatchResultsStore {
 
       const [individualA, individualB] = uniqueIndividuals;
 
-      const encounterIds = selected
-        .filter((d) => d?.encounterId && !d?.individualId)
-        .map((d) => d.encounterId);
-
-      const uniqueEncounterIds = Array.from(new Set(encounterIds)).filter(Boolean);
+      const unnamedEncounterIds = Array.from(
+        new Set(
+          all
+            .filter((m) => m?.encounterId && !m?.individualId)
+            .map((m) => m.encounterId)
+            .filter(Boolean),
+        ),
+      );
 
       const params = new URLSearchParams();
       params.set("individualA", individualA);
       params.set("individualB", individualB);
-      uniqueEncounterIds.forEach((id) => params.append("encounterId", id));
+      unnamedEncounterIds.forEach((id) => params.append("encounterId", id));
 
       const url = `/merge.jsp?${params.toString()}`;
       window.open(url, "_blank");
 
-      this._selectedMatch = [];
+      this.resetSelectionToQuery();
+      return { ok: true };
     } catch (e) {
       console.error(e);
       this._matchRequestError = "MERGE_FAILED";
@@ -387,38 +492,27 @@ export default class MatchResultsStore {
     }
   }
 
-  get uniqueIndividualIds() {
-    const ids = new Set();
-
-    if (this._individualId) {
-      ids.add(this._individualId);
-    }
-
-    this._selectedMatch.forEach((match) => {
-      if (match.individualId) {
-        ids.add(match.individualId);
-      }
-    });
-
-    return Array.from(ids);
+  resetSelectionToQuery() {
+    const q = this.querySelectionItem;
+    this._selectedMatch = q ? [q] : [];
+    this._matchRequestError = null;
   }
 
   get matchingState() {
-    if (this._selectedMatch.length === 0) {
-      return "no_selection";
-    }
+    const all = this.selectedIncludingQuery;
 
-    const uniqueIds = this.uniqueIndividualIds;
-    const idCount = uniqueIds.length;
+    const uniqueIndividuals = Array.from(
+      new Set(all.map((m) => m?.individualId).filter(Boolean)),
+    );
 
-    if (idCount === 0) {
-      return "no_individuals";
-    } else if (idCount === 1) {
-      return "single_individual";
-    } else if (idCount === 2) {
-      return "two_individuals";
-    } else {
-      return "too_many_individuals";
+    const allHaveIndividual =
+      all.length > 0 && all.every((m) => m?.encounterId && m?.individualId);
+
+    if (uniqueIndividuals.length === 0) return "no_individuals";
+    if (uniqueIndividuals.length === 1) {
+      return allHaveIndividual ? "no_further_action_needed" : "single_individual";
     }
+    if (uniqueIndividuals.length === 2) return "two_individuals";
+    return "too_many_individuals";
   }
 }

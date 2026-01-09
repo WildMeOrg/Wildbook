@@ -302,6 +302,9 @@ const MatchProspectTable = ({
                           className="btn btn-sm p-0 px-2"
                           onClick={() => {
                             setInspectionModalOpen(true);
+                            const url = candidate?.asset?.url;
+                            console.log("url", JSON.stringify(url));
+                            window.open(url, "_blank");
                           }}
                         >
                           {<FormattedMessage id="INSPECT" />}

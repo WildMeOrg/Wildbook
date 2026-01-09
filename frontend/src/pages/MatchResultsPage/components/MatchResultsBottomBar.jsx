@@ -40,38 +40,11 @@ const styles = {
 };
 
 const MatchResultsBottomBar = observer(({ store, themeColor }) => {
-
+  
   const renderActions = () => {
     const matchingState = store.matchingState;
 
     switch (matchingState) {
-      case "no_selection":
-        return (
-          <>
-            <Form.Control
-              type="text"
-              placeholder="New Individual Name"
-              value={store.newIndividualName}
-              onChange={(e) => store.setNewIndividualName(e.target.value)}
-              style={{ maxWidth: "300px" }}
-              size="sm"
-            />
-
-            <MainButton
-              noArrow={true}
-              backgroundColor={themeColor.primaryColors.primary500}
-              color="white"
-              onClick={store.handleConfirmNoMatch}
-              disabled={!(store.newIndividualName || "").trim() || !!store.individualId}
-              style={{ marginTop: "0", marginBottom: "0" }}
-            >
-              <FormattedMessage
-                id="CONFIRM_NO_MATCH"
-              />
-            </MainButton>
-          </>
-        );
-
       case "no_individuals":
         return (
           <>
@@ -85,46 +58,47 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             />
 
             <MainButton
-              noArrow={true}
+              noArrow
               backgroundColor={themeColor.primaryColors.primary500}
               color="white"
-              onClick={() => { }}
-              disabled={!store.newIndividualName.trim()}
+              onClick={store.handleConfirmNoMatch}
+              disabled={!String(store.newIndividualName || "").trim() || store.matchRequestLoading}
               style={{ marginTop: "0", marginBottom: "0" }}
             >
-              <FormattedMessage
-                id="CONFIRM_NO_MATCH"
-              />
+              <FormattedMessage id="CONFIRM_NO_MATCH" />
+              {store.matchRequestLoading && (
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="ms-2"
+                />
+              )}
             </MainButton>
           </>
         );
 
-      //don't forget another case: 
-      //All encounters already assigned to the same individual ID. No further action is needed to confirm this match.
-
       case "single_individual":
         return (
           <MainButton
-            noArrow={true}
+            noArrow
             backgroundColor={themeColor.primaryColors.primary500}
             color="white"
-            onClick={async () => {
-              const data = await store.handleMatch();
-            }}
-            disabled={(!store.individualId && !store.selectedMatch.some(data => data.individualId)) || store.matchRequestLoading}
+            onClick={store.handleMatch}
+            disabled={store.matchRequestLoading}
             style={{ marginTop: "0", marginBottom: "0" }}
           >
-            <FormattedMessage
-              id="CONFIRM_MATCH"
-              defaultMessage="Confirm Match"
-            />
-            {store.matchRequestLoading && <Spinner
-              animation="border"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-              className="ms-2"
-            />}
+            <FormattedMessage id="CONFIRM_MATCH" defaultMessage="Confirm Match" />
+            {store.matchRequestLoading && (
+              <Spinner
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+                className="ms-2"
+              />
+            )}
           </MainButton>
         );
 
@@ -135,8 +109,19 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             backgroundColor={themeColor.primaryColors.primary700}
             noArrow
             onClick={store.handleMerge}
+            disabled={store.matchRequestLoading}
+            style={{ marginTop: "0", marginBottom: "0" }}
           >
-            <FormattedMessage id="MERGE_INDIVIDUALS" />
+            <FormattedMessage id="MERGE_INDIVIDUALS" defaultMessage="Merge Individuals" />
+            {store.matchRequestLoading && (
+              <Spinner
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+                className="ms-2"
+              />
+            )}
           </MainButton>
         );
 
@@ -145,7 +130,18 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
           <div style={styles.warningText}>
             <i className="bi bi-exclamation-triangle-fill me-2"></i>
             <FormattedMessage
-              id="TOO_MANY_INDIVIDUALS_WARNING"
+              id="CANNOT_MERGE_MORE_THAN_TWO"
+              defaultMessage="Can't merge more than 2 individuals."
+            />
+          </div>
+        );
+
+      case "no_further_action_needed":
+        return (
+          <div style={styles.bottomText}>
+            <FormattedMessage
+              id="NO_FURTHER_ACTION_NEEDED"
+              defaultMessage="No further action needed."
             />
           </div>
         );

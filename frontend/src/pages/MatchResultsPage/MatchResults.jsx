@@ -119,7 +119,10 @@ const MatchResults = observer(() => {
                   ? "white"
                   : themeColor.primaryColors.primary500,
             }}
-            onClick={() => store.setViewMode("individual")}
+            onClick={() => {
+              store.setViewMode("individual");
+              store.resetSelectionToQuery();
+            }}
           >
             <FormattedMessage id="INDIVIDUAL_SCORE" />
           </button>
@@ -139,7 +142,10 @@ const MatchResults = observer(() => {
                   ? "white"
                   : themeColor.primaryColors.primary700,
             }}
-            onClick={() => store.setViewMode("image")}
+            onClick={() => {
+              store.setViewMode("image");
+              store.resetSelectionToQuery();
+            }}
           >
             <FormattedMessage id="IMAGE_SCORE" />
           </button>
@@ -185,11 +191,11 @@ const MatchResults = observer(() => {
               <option value="">
                 <FormattedMessage id="SELECT_A_PROJECT" />
               </option>
-              {Object.entries(projectsForUser).map(([key, value]) => (
+              {/* {Object.entries(projectsForUser).map(([key, value]) => (
                 <option key={key} value={key}>
                   {value}
                 </option>
-              ))}
+              ))} */}
             </Form.Select>
           </Form.Group>
         </div>
