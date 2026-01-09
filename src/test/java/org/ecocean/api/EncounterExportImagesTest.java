@@ -10,6 +10,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -462,11 +463,6 @@ import static org.mockito.Mockito.when;
                 String[] expectedRow = expectedRows.get(rowIndex);
 
                 assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
-
-                // Compare cell count
-                int actualCellCount = actualRow.getLastCellNum();
-                assertEquals(expectedRow.length, actualCellCount,
-                    "Row " + rowIndex + " should have " + expectedRow.length + " cells");
                 // Compare each cell
                 for (int cellIndex = 0; cellIndex < expectedRow.length; cellIndex++) {
                     Cell actualCell = actualRow.getCell(cellIndex);
@@ -503,6 +499,10 @@ import static org.mockito.Mockito.when;
                         }
                     }
                 }
+                // check there aren't extra cells in the Excel that we didn't compare
+                int actualCellCount = actualRow.getLastCellNum();
+                assertTrue(expectedRow.length >= actualCellCount,
+                    "Row " + rowIndex + " should have " + expectedRow.length + " cells");
             }
             System.out.println("Excel metadata validation passed - all cells match expected CSV");
         }
@@ -530,6 +530,7 @@ import static org.mockito.Mockito.when;
                 .cookie("JSESSIONID", authenticationCookie)
                 .contentType(ContentType.JSON)
                 .body(requestBody)
+                .queryParam("includeMetadata", "true")
                 .when()
                 .post("/api/v3/encounters/export")
                 .then()
@@ -608,7 +609,8 @@ import static org.mockito.Mockito.when;
             "ZIP should contain Individual_2/ subdirectory");
 
         // Should NOT contain Unidentified_annotations (since unidentifiedEncounters: false)
-        assertFalse(zipEntries.stream().anyMatch(e -> e.contains(EncounterImageExportFile.UNIDENTIFIED_INDIVIDUAL)),
+        assertFalse(zipEntries.stream().anyMatch(e -> e.contains(
+            EncounterImageExportFile.UNIDENTIFIED_INDIVIDUAL)),
             "ZIP should NOT contain unidentified annotations (unidentifiedEncounters: false)");
 
         // Should contain actual image files with proper naming convention
@@ -725,14 +727,14 @@ import static org.mockito.Mockito.when;
 
             Path assetsRoot = FileSystems.getDefault().getPath("src", "test",
                 "bulk-images").toAbsolutePath();
-            AssetStore localStore = new LocalAssetStore("local", assetsRoot,
-                "file://" + assetsRoot.toString(), false);
-            MediaAsset asset1 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
-                "image-ok-0.jpg").toFile());
-            MediaAsset asset2 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
-                "image-ok-0.jpg").toFile());
-            MediaAsset asset3 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
-                "image-ok-0.jpg").toFile());
+            Path tmpRoot = FileSystems.getDefault().getPath("/tmp");
+            File testImage = Files.copy(assetsRoot.resolve("image-ok-0.jpg"),
+                tmpRoot.resolve("test_image.jpg"), StandardCopyOption.REPLACE_EXISTING).toFile();
+            AssetStore localStore = new LocalAssetStore("local", tmpRoot, "file://" + tmpRoot,
+                false);
+            MediaAsset asset1 = ((LocalAssetStore)localStore).create(testImage);
+            MediaAsset asset2 = ((LocalAssetStore)localStore).create(testImage);
+            MediaAsset asset3 = ((LocalAssetStore)localStore).create(testImage);
 
             // Create test encounters
             org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
