@@ -1,6 +1,7 @@
 import React from "react";
 import { observer } from "mobx-react-lite";
 import { AttributesAndValueComponent } from "../../components/AttributesAndValueComponent";
+import { formatDateValues } from "./stores/helperFunctions";
 
 export const DateSectionReview = observer(({ store }) => {
   return (
@@ -8,14 +9,8 @@ export const DateSectionReview = observer(({ store }) => {
       <AttributesAndValueComponent
         attributeId="DATE"
         value={(() => {
-          const iso = store.getFieldValue("date", "date");
-          return iso
-            ? iso
-                .replace("T", " ")
-                .replace(/\.\d+/, "")
-                .replace(/Z|([+-]\d{2}:\d{2})$/, "")
-                .trim()
-            : "";
+          const iso = store.getFieldValue("date", "dateValues");
+          return formatDateValues(iso);
         })()}
       />
       <AttributesAndValueComponent
