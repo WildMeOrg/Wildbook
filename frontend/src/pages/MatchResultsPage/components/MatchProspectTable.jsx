@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Row, Col, Form } from "react-bootstrap";
 import ZoomInIcon from "../icons/ZoomInIcon";
 import ZoomOutIcon from "../icons/ZoomOutIcon";
-import Icon4 from "../icons/Icon4";
 import Icon5 from "../icons/Icon5";
 import Icon7 from "../icons/Icon7";
 import { FormattedMessage } from "react-intl";
@@ -422,9 +421,6 @@ const MatchProspectTable = ({
               title="Zoom Out"
             >
               <ZoomOutIcon />
-            </div>
-            <div style={styles.iconButton}>
-              <Icon4 />
             </div>
             <div style={styles.iconButton}>
               <Icon5 />

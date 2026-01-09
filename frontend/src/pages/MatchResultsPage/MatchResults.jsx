@@ -9,6 +9,7 @@ import MatchResultsBottomBar from "./components/MatchResultsBottomBar";
 import { useSearchParams } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
 import MainButton from "../../components/MainButton";
+  import FullScreenLoader from "../../components/FullScreenLoader";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -29,7 +30,7 @@ const MatchResults = observer(() => {
   }, [taskId]);
 
   if (store.loading) {
-    return <p>Loading</p>;
+    return <FullScreenLoader />;
   }
 
   if (!store.hasResults) {
