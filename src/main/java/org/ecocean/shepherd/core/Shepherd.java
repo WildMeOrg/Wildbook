@@ -68,11 +68,13 @@ public class Shepherd {
     private String shepherdID = "";
 
     // Constructor to create a new shepherd thread object
-    public Shepherd(String context) {
+    public Shepherd(String context) { this(context, null); }
+
+    public Shepherd(String context, Properties properties) {
         if (pm == null || pm.isClosed()) {
             localContext = context;
             try {
-                pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+                pm = ShepherdPMF.getPMF(localContext, properties).getPersistenceManager();
                 this.shepherdID = Util.generateUUID();
 
                 ShepherdState.setShepherdState(action + "_" + shepherdID, "new");

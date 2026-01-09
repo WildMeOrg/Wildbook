@@ -433,6 +433,9 @@
 				/api/v3/bulk-import = authc
 				/api/v3/bulk-import/** = authc
 
+                /api/v3/bulk-export = authc
+                /api/v3/bulk-export/** = authc
+
 				/DeleteImportTask = authc, roles[researcher]
 
 				/MergeIndividual = authc, roles[researcher]
@@ -562,14 +565,22 @@
 		<url-pattern>/api/v3/tasks/*</url-pattern>
 	</servlet-mapping>
 
+    <servlet>
+        <servlet-name>ApiBaseObject</servlet-name>
+        <servlet-class>org.ecocean.api.BaseObject</servlet-class>
+    </servlet>
 	<servlet>
-		<servlet-name>ApiBaseObject</servlet-name>
-		<servlet-class>org.ecocean.api.BaseObject</servlet-class>
+		<servlet-name>BulkExport</servlet-name>
+		<servlet-class>org.ecocean.api.EncounterExport</servlet-class>
 	</servlet>
-	<servlet-mapping>
-		<servlet-name>ApiBaseObject</servlet-name>
-		<url-pattern>/api/v3/encounters/*</url-pattern>
-	</servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BulkExport</servlet-name>
+        <url-pattern>/api/v3/bulk-export/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ApiBaseObject</servlet-name>
+        <url-pattern>/api/v3/encounters/*</url-pattern>
+    </servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>ApiBaseObject</servlet-name>
 		<url-pattern>/api/v3/individuals/*</url-pattern>
