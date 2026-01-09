@@ -10,6 +10,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -726,14 +727,14 @@ import static org.mockito.Mockito.when;
 
             Path assetsRoot = FileSystems.getDefault().getPath("src", "test",
                 "bulk-images").toAbsolutePath();
-            AssetStore localStore = new LocalAssetStore("local", assetsRoot,
-                "file://" + assetsRoot.toString(), false);
-            MediaAsset asset1 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
-                "image-ok-0.jpg").toFile());
-            MediaAsset asset2 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
-                "image-ok-0.jpg").toFile());
-            MediaAsset asset3 = ((LocalAssetStore)localStore).create(assetsRoot.resolve(
-                "image-ok-0.jpg").toFile());
+            Path tmpRoot = FileSystems.getDefault().getPath("/tmp");
+            File testImage = Files.copy(assetsRoot.resolve("image-ok-0.jpg"),
+                tmpRoot.resolve("test_image.jpg"), StandardCopyOption.REPLACE_EXISTING).toFile();
+            AssetStore localStore = new LocalAssetStore("local", tmpRoot, "file://" + tmpRoot,
+                false);
+            MediaAsset asset1 = ((LocalAssetStore)localStore).create(testImage);
+            MediaAsset asset2 = ((LocalAssetStore)localStore).create(testImage);
+            MediaAsset asset3 = ((LocalAssetStore)localStore).create(testImage);
 
             // Create test encounters
             org.ecocean.Encounter enc1 = new org.ecocean.Encounter();
