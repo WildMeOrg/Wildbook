@@ -294,13 +294,13 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			}
 
 
-			String matchMsg = enc.getMatchedBy();
-			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
-			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg);
-                        for (Encounter oenc : otherEncs) {
-			    oenc.setMatchedBy(matchMsg);
-                        }
+			//String matchMsg = enc.getMatchedBy();
+			//if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+			//matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+			//enc.setMatchedBy(matchMsg);
+            //            for (Encounter oenc : otherEncs) {
+			//    oenc.setMatchedBy(matchMsg);
+            //            }
 
 			if (res.optString("error", null) == null) res.put("success", true);
 
