@@ -108,7 +108,7 @@ const styles = {
 };
 
 const MatchProspectTable = ({
-  key,
+  sectionId,
   numCandidates,
   date,
   selectedMatch,
@@ -126,6 +126,9 @@ const MatchProspectTable = ({
   const [selectedRow, setSelectedRow] = React.useState(
     columns[0]?.[0]
   );
+  React.useEffect(() => {
+    setSelectedRow(columns?.[0]?.[0] ?? null);
+  }, [columns]);
   const [inspectionModalOpen, setInspectionModalOpen] = useState(false);
   const [hoveredRow, setHoveredRow] = React.useState(null);
 
@@ -215,7 +218,7 @@ const MatchProspectTable = ({
     selectedMatch?.some((d) => d.encounterId === encounterId);
 
   return (
-    <div className="mb-4" id={key}>
+    <div className="mb-4" id={sectionId}>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div className="d-flex w-100">
           <div style={{ fontWeight: "500" }}>
@@ -294,14 +297,14 @@ const MatchProspectTable = ({
                     <div style={{ flexGrow: 1 }} />
 
                     <div style={{ display: "flex", alignItems: "center", gap: "20px" }} onClick={(e) => e.stopPropagation()}>
-                      {candidate?.asset?.url && isHovered && (
+                      {candidate.annotation?.asset?.url && isHovered && (
                         <button
                           type="button"
                           style={styles.idPill(themeColor)}
                           className="btn btn-sm p-0 px-2"
                           onClick={() => {
                             setInspectionModalOpen(true);
-                            const url = candidate?.asset?.url;
+                            const url = candidate.annotation?.asset?.url;
                             console.log("url", JSON.stringify(url));
                             window.open(url, "_blank");
                           }}

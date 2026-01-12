@@ -71,48 +71,54 @@ export default class MatchResultsStore {
   }
 
   _processData(rawData) {
+
+    console.log("rawdata", JSON.stringify(rawData));
     // 1. filter by project name if set
     const filtered = this._projectName
       ? rawData.filter((item) => item.projectName === this._projectName)
       : rawData;
 
-    // 2. group by algorithm
-    const grouped = new Map();
-    filtered.forEach((item) => {
-      const algorithm = item.algorithm;
-      if (!grouped.has(algorithm)) {
-        grouped.set(algorithm, []);
-      }
-      grouped.get(algorithm).push(item);
-    });
+    // 2. group by task
+    const groupedByTask = new Map();
+    for (const item of filtered) {
+      const taskId = item.taskId || "unknown-task";
+      if (!groupedByTask.has(taskId)) groupedByTask.set(taskId, []);
+      groupedByTask.get(taskId).push(item);
+    }
 
-    // 3. organize into columns with metadata per algorithm
-    const organized = new Map();
-    for (const [algorithm, data] of grouped) {
+    //3. divide to columns
+    const sections = [];
+
+    for (const [taskId, items] of groupedByTask) {
+      const sorted = items;
+
       const columns = [];
-      for (let i = 0; i < data.length; i += MAX_ROWS_PER_COLUMN) {
-        const columnData = data
-          .slice(i, i + MAX_ROWS_PER_COLUMN)
-          .map((match, index) => ({
-            ...match,
-            displayIndex: i + index + 1,
-          }));
+      for (let i = 0; i < sorted.length; i += MAX_ROWS_PER_COLUMN) {
+        const columnData = sorted.slice(i, i + MAX_ROWS_PER_COLUMN).map((data, index) => ({
+          ...data,
+          displayIndex: i + index + 1,
+        }));
         columns.push(columnData);
       }
-      organized.set(algorithm, {
+
+      const first = sorted[0] || {};
+      sections.push({
+        taskId,
         columns,
         metadata: {
-          numCandidates: data[0].numberCandidates,
-          date: data[0].date,
-          queryImageUrl: data[0].queryEncounterImageAsset?.url,
-          methodName: data[0].methodName,
-          methodDescription: data[0].methodDescription,
-          taskStatus: data[0].taskStatus,
-          taskStatusOverall: data[0].taskStatusOverall,
+          numCandidates: first.numberCandidates,
+          date: first.date,
+          queryImageUrl: first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
+          methodName: first.methodName,
+          methodDescription: first.methodDescription,
+          taskStatus: first.taskStatus,
+          taskStatusOverall: first.taskStatusOverall,
+          algorithm: first.algorithm,
         },
       });
     }
-    return organized;
+    sections.sort((a, b) => new Date(b.metadata.date || 0) - new Date(a.metadata.date || 0));
+    return sections;
   }
 
   // --- computed data for UI ---
@@ -516,3 +522,4 @@ export default class MatchResultsStore {
     return "too_many_individuals";
   }
 }
+

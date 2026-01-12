@@ -9,7 +9,7 @@ import MatchResultsBottomBar from "./components/MatchResultsBottomBar";
 import { useSearchParams } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
 import MainButton from "../../components/MainButton";
-  import FullScreenLoader from "../../components/FullScreenLoader";
+import FullScreenLoader from "../../components/FullScreenLoader";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -27,7 +27,7 @@ const MatchResults = observer(() => {
     return () => {
       // store.resetStore();
     };
-  }, [taskId]);
+  }, [taskId, store]);
 
   if (store.loading) {
     return <FullScreenLoader />;
@@ -75,7 +75,7 @@ const MatchResults = observer(() => {
             rel="noopener noreferrer"
           >{` for ${store.encounterId}`}</a>
           {
-            store._individualDisplayName && <MainButton
+            store.individualDisplayName && <MainButton
               color="white"
               backgroundColor={themeColor.primaryColors.primary500}
               noArrow
@@ -202,29 +202,29 @@ const MatchResults = observer(() => {
         </div>
       </div>
 
-      {[...store.currentViewData].map(
-        ([algorithmName, { columns, metadata }]) => (
-          <div key={algorithmName}>
-            <MatchProspectTable
-              key={`${store.viewMode}-${algorithmName}`}
-              algorithm={algorithmName}
-              numCandidates={metadata.numCandidates}
-              date={metadata.date}
-              thisEncounterImageUrl={metadata.queryImageUrl}
-              methodName={metadata.methodName}
-              methodDescription={metadata.methodDescription}
-              taskStatus={metadata.taskStatus}
-              taskStatusOverall={metadata.taskStatusOverall}
-              themeColor={themeColor}
-              columns={columns}
-              selectedMatch={store.selectedMatch}
-              onToggleSelected={(checked, encounterId, individualId) =>
-                store.setSelectedMatch(checked, encounterId, individualId)
-              }
-            />
-          </div>
-        ),
-      )}
+      {store.currentViewData.map(({ taskId, columns, metadata }) => (
+        <div key={`${store.viewMode}-${taskId}`}>
+          <MatchProspectTable
+            sectionId={`${store.viewMode}-${taskId}`}
+            taskId={taskId}
+            algorithm={metadata.algorithm}
+            numCandidates={metadata.numCandidates}
+            date={metadata.date}
+            thisEncounterImageUrl={metadata.queryImageUrl}
+            methodName={metadata.methodName}
+            methodDescription={metadata.methodDescription}
+            taskStatus={metadata.taskStatus}
+            taskStatusOverall={metadata.taskStatusOverall}
+            themeColor={themeColor}
+            columns={columns}
+            selectedMatch={store.selectedMatch}
+            onToggleSelected={(checked, encounterId, individualId) =>
+              store.setSelectedMatch(checked, encounterId, individualId)
+            }
+          />
+        </div>
+      ))}
+
       <MatchResultsBottomBar store={store} themeColor={themeColor} />
     </Container>
   );
