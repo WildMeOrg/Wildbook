@@ -72,7 +72,6 @@ export default class MatchResultsStore {
 
   _processData(rawData) {
 
-    console.log("rawdata", JSON.stringify(rawData));
     // 1. filter by project name if set
     const filtered = this._projectName
       ? rawData.filter((item) => item.projectName === this._projectName)
@@ -117,7 +116,7 @@ export default class MatchResultsStore {
         },
       });
     }
-    sections.sort((a, b) => new Date(b.metadata.date || 0) - new Date(a.metadata.date || 0));
+    // sections.sort((a, b) => new Date(b.metadata.date || 0) - new Date(a.metadata.date || 0));
     return sections;
   }
 
@@ -329,20 +328,18 @@ export default class MatchResultsStore {
     this._newIndividualName = name;
   }
 
-  setSelectedMatch(selected, encounterId, individualId) {
-    if (!encounterId) return;
-
-    if (encounterId === this._encounterId && !selected) return;
+  setSelectedMatch(selected, key, encounterId, individualId) {
+    if (!key || !encounterId) return;
+    // if (encounterId === this._encounterId && !selected) return;
 
     if (selected) {
-      const exists = this._selectedMatch.some((m) => m.encounterId === encounterId);
-      if (exists) return;
+      if (this._selectedMatch.some((m) => m.key === key)) return;
       this._selectedMatch = [
         ...this._selectedMatch,
-        { encounterId, individualId: individualId || null },
+        { key, encounterId, individualId: individualId || null },
       ];
     } else {
-      this._selectedMatch = this._selectedMatch.filter((m) => m.encounterId !== encounterId);
+      this._selectedMatch = this._selectedMatch.filter((m) => m.key !== key);
     }
   }
 
@@ -499,8 +496,7 @@ export default class MatchResultsStore {
   }
 
   resetSelectionToQuery() {
-    const q = this.querySelectionItem;
-    this._selectedMatch = q ? [q] : [];
+    this._selectedMatch = [];
     this._matchRequestError = null;
   }
 

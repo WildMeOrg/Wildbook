@@ -69,7 +69,7 @@ const styles = {
     padding: "2px 8px",
     borderRadius: "2px",
     fontSize: "0.75rem",
-    zIndex: 1000,
+    zIndex: 10,
   }),
   toolsBarLeft: {
     position: "absolute",
@@ -127,8 +127,15 @@ const MatchProspectTable = ({
     columns[0]?.[0]
   );
   React.useEffect(() => {
-    setSelectedRow(columns?.[0]?.[0] ?? null);
+    const first = columns?.[0]?.[0] ?? null;
+    if (!first) {
+      setSelectedRow(null);
+      return;
+    }
+    const firstKey = `${first.annotation?.id}-${first.displayIndex}`;
+    setSelectedRow({ ...first, _rowKey: firstKey });
   }, [columns]);
+
   const [inspectionModalOpen, setInspectionModalOpen] = useState(false);
   const [hoveredRow, setHoveredRow] = React.useState(null);
 
@@ -199,8 +206,8 @@ const MatchProspectTable = ({
     setIsDragging(null);
   };
 
-  const handleRowClick = (rowData) => {
-    setSelectedRow(rowData);
+  const handleRowClick = (rowData, rowKey) => {
+    setSelectedRow({ ...rowData, _rowKey: rowKey });
   };
 
   React.useEffect(() => {
@@ -214,8 +221,7 @@ const MatchProspectTable = ({
     }
   }, [isDragging, dragStart]);
 
-  const isSelected = (encounterId) =>
-    selectedMatch?.some((d) => d.encounterId === encounterId);
+  const isSelected = (rowKey) => selectedMatch?.some((d) => d.key === rowKey);
 
   return (
     <div className="mb-4" id={sectionId}>
@@ -243,13 +249,16 @@ const MatchProspectTable = ({
                 const candidateIndividualId = candidate.annotation?.individual?.id;
                 const candidateIndividualDisplayName =
                   candidate.annotation?.individual?.displayName;
-                const isRowSelected = isSelected(candidateEncounterId);
-                const isRowPreviewed = candidateEncounterId === selectedRow?.annotation?.encounter?.id;
-                const isHovered = hoveredRow === candidateEncounterId;
+
+                const rowKey =
+                  `${candidate.annotation?.id}-${candidate.displayIndex}`;
+                const isRowSelected = isSelected(rowKey);
+                const isRowPreviewed = rowKey === selectedRow?._rowKey;
+                const isHovered = hoveredRow === rowKey;
 
                 return (
                   <div
-                    key={candidateEncounterId}
+                    key={rowKey}
                     style={{
                       ...styles.matchRow(isRowSelected, themeColor),
                       cursor: "pointer",
@@ -257,12 +266,8 @@ const MatchProspectTable = ({
                         ? themeColor.primaryColors.primary50
                         : "transparent",
                     }}
-                    onClick={() =>
-                      handleRowClick(candidate)
-                    }
-                    onMouseEnter={() => {
-                      setHoveredRow(candidateEncounterId)
-                    }}
+                    onClick={() => handleRowClick(candidate, rowKey)}
+                    onMouseEnter={() => setHoveredRow(rowKey)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
                     <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>
@@ -280,7 +285,7 @@ const MatchProspectTable = ({
                         e.stopPropagation();
                       }}
                     >
-                      {candidate.score.toFixed(4)}
+                      {(Math.trunc(candidate.score * 10000) / 10000).toFixed(4)}
                     </a>
                     <button
                       type="button"
@@ -318,6 +323,7 @@ const MatchProspectTable = ({
                         onChange={(e) =>
                           onToggleSelected(
                             e.target.checked,
+                            rowKey,
                             candidateEncounterId,
                             candidateIndividualId,
                           )

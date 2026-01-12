@@ -1,6 +1,6 @@
 const collectProspects = (node, type, result = []) => {
   const hasMethod = !!node.method;
-  const methodName = node.method?.name ?? null;
+  const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
 
   const prospects = node.matchResults?.prospects?.[type];
