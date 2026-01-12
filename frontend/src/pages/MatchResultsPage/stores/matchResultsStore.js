@@ -330,7 +330,6 @@ export default class MatchResultsStore {
 
   setSelectedMatch(selected, key, encounterId, individualId) {
     if (!key || !encounterId) return;
-    // if (encounterId === this._encounterId && !selected) return;
 
     if (selected) {
       if (this._selectedMatch.some((m) => m.key === key)) return;
