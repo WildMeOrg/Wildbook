@@ -268,7 +268,7 @@ const MyDataTable = observer(
 
     const projectOptions = Object.entries(
       store?.siteSettingsData?.projectsForUser ?? {},
-    ).map(([value, label]) => ({ value, label }));
+    ).map(([value, label]) => ({ value, label: label?.name }));
 
     const handleSort = (column, sortDirection) => {
       const columnName =

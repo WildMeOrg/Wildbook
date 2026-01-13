@@ -74,8 +74,8 @@ const MatchResults = observer(() => {
             target="_blank"
             rel="noopener noreferrer"
           >{` for ${store.encounterId}`}</a>
-          {
-            store.individualDisplayName && <MainButton
+          {store.individualDisplayName && (
+            <MainButton
               color="white"
               backgroundColor={themeColor.primaryColors.primary500}
               noArrow
@@ -86,7 +86,7 @@ const MatchResults = observer(() => {
             >
               {store._individualDisplayName}
             </MainButton>
-          }
+          )}
         </div>
         <span>
           <i
@@ -155,10 +155,7 @@ const MatchResults = observer(() => {
         <div className="ms-auto d-flex align-items-center flex-wrap">
           <Form.Group className="d-flex align-items-center me-3 mb-2 mb-sm-0">
             <Form.Label className="me-2 mb-0 small">
-              <FormattedMessage
-                id="NUMBER_OF_RESULTS"
-                defaultMessage="Number of Results"
-              />
+              <FormattedMessage id="NUMBER_OF_RESULTS" />
             </Form.Label>
             <Form.Control
               type="number"
@@ -187,16 +184,16 @@ const MatchResults = observer(() => {
               onChange={(e) => {
                 store.setProjectName(e.target.value);
               }}
-              style={{ minWidth: "220px" }}
+              style={{ minWidth: "220px", maxWidth: "400px" }}
             >
               <option value="">
                 <FormattedMessage id="SELECT_A_PROJECT" />
               </option>
-              {/* {Object.entries(projectsForUser).map(([key, value]) => (
+              {Object.entries(projectsForUser).map(([key, value]) => (
                 <option key={key} value={key}>
-                  {value}
+                  {value?.name}
                 </option>
-              ))} */}
+              ))}
             </Form.Select>
           </Form.Group>
         </div>
@@ -220,11 +217,9 @@ const MatchResults = observer(() => {
             themeColor={themeColor}
             columns={columns}
             selectedMatch={store.selectedMatch}
-            onToggleSelected={(checked, key, encounterId, individualId) =>{
+            onToggleSelected={(checked, key, encounterId, individualId) => {
               store.setSelectedMatch(checked, key, encounterId, individualId);
-            }
-              
-            }
+            }}
           />
         </div>
       ))}
