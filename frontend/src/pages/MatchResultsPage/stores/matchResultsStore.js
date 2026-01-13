@@ -1,4 +1,3 @@
-
 import { makeAutoObservable } from "mobx";
 import axios from "axios";
 import { MAX_ROWS_PER_COLUMN } from "../constants";
@@ -33,13 +32,14 @@ export default class MatchResultsStore {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
-
   loadData(result) {
     const annotResults = getAllAnnot(result.matchResultsRoot);
     const indivResults = getAllIndiv(result.matchResultsRoot);
 
-    if ((!annotResults || annotResults.length === 0) &&
-      (!indivResults || indivResults.length === 0)) {
+    if (
+      (!annotResults || annotResults.length === 0) &&
+      (!indivResults || indivResults.length === 0)
+    ) {
       this._rawAnnots = [];
       this._rawIndivs = [];
       this._encounterId = null;
@@ -71,21 +71,15 @@ export default class MatchResultsStore {
   }
 
   _processData(rawData) {
-
-    // 1. filter by project name if set
-    const filtered = this._projectName
-      ? rawData.filter((item) => item.projectName === this._projectName)
-      : rawData;
-
-    // 2. group by task
+    // 1. group by task
     const groupedByTask = new Map();
-    for (const item of filtered) {
+    for (const item of rawData) {
       const taskId = item.taskId || "unknown-task";
       if (!groupedByTask.has(taskId)) groupedByTask.set(taskId, []);
       groupedByTask.get(taskId).push(item);
     }
 
-    //3. divide to columns
+    //2. divide to columns
     const sections = [];
 
     for (const [taskId, items] of groupedByTask) {
@@ -93,10 +87,12 @@ export default class MatchResultsStore {
 
       const columns = [];
       for (let i = 0; i < sorted.length; i += MAX_ROWS_PER_COLUMN) {
-        const columnData = sorted.slice(i, i + MAX_ROWS_PER_COLUMN).map((data, index) => ({
-          ...data,
-          displayIndex: i + index + 1,
-        }));
+        const columnData = sorted
+          .slice(i, i + MAX_ROWS_PER_COLUMN)
+          .map((data, index) => ({
+            ...data,
+            displayIndex: i + index + 1,
+          }));
         columns.push(columnData);
       }
 
@@ -107,7 +103,8 @@ export default class MatchResultsStore {
         metadata: {
           numCandidates: first.numberCandidates,
           date: first.date,
-          queryImageUrl: first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
+          queryImageUrl:
+            first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
           queryEncounterImageAsset: first.queryEncounterImageAsset,
           queryEncounterAnnotation: first.queryEncounterAnnotation,
           methodName: first.methodName,
@@ -202,51 +199,6 @@ export default class MatchResultsStore {
     return this._taskId;
   }
 
-  // get selectedEncounterIds() {
-  //   const ids = (this._selectedMatch || [])
-  //     .map((m) => m?.encounterId)
-  //     .filter(Boolean);
-  //   return Array.from(new Set(ids));
-  // }
-
-  // get selectedUnnamedEncounterIds() {
-  //   const ids = (this._selectedMatch || [])
-  //     .filter((m) => m?.encounterId && !m?.individualId)
-  //     .map((m) => m.encounterId);
-  //   return Array.from(new Set(ids));
-  // }
-
-  // get selectedIndividualIdsOnly() {
-  //   const ids = (this._selectedMatch || [])
-  //     .map((m) => m?.individualId)
-  //     .filter(Boolean);
-  //   return Array.from(new Set(ids));
-  // }
-
-  // get uniqueIndividualsIncludingQuery() {
-  //   const ids = new Set();
-  //   if (this._individualId) ids.add(this._individualId);
-  //   for (const id of this.selectedIndividualIdsOnly) ids.add(id);
-  //   return Array.from(ids);
-  // }
-
-  // get singleIndividualIdToUse() {
-  //   const unique = this.uniqueIndividualsIncludingQuery;
-  //   return unique.length === 1 ? unique[0] : null;
-  // }
-
-  // get allSelectedAlreadySameIndividual() {
-  //   const single = this.singleIndividualIdToUse;
-  //   if (!single) return false;
-  //   if (this.selectedUnnamedEncounterIds.length > 0) return false;
-
-  //   if (this._individualId && this._individualId !== single) return false;
-
-  //   return (this._selectedMatch || [])
-  //     .filter((m) => m?.individualId)
-  //     .every((m) => m.individualId === single);
-  // }
-
   get selectedMatch() {
     return this._selectedMatch;
   }
@@ -276,7 +228,9 @@ export default class MatchResultsStore {
   }
 
   get selectedIncludingQuery() {
-    const selected = Array.isArray(this._selectedMatch) ? this._selectedMatch : [];
+    const selected = Array.isArray(this._selectedMatch)
+      ? this._selectedMatch
+      : [];
     const q = this.querySelectionItem;
     if (!q) return selected;
 
@@ -287,14 +241,22 @@ export default class MatchResultsStore {
     return [q, ...withoutQueryDup];
   }
 
-  // actions  
+  // actions
 
   async fetchMatchResults() {
+    if (!this._taskId) return;
+
     this.setLoading(true);
     this._hasResults = false;
+
     try {
+      const params = new URLSearchParams();
+      params.set("prospectsSize", String(this.numResults));
+      if (this._projectName) {
+        params.set("projectId", this._projectName);
+      }
       const result = await axios.get(
-        `/api/v3/tasks/${this._taskId}/match-results?prospectsSize=${this.numResults}`,
+        `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
       );
       this.loadData(result.data);
     } catch (e) {
@@ -304,7 +266,7 @@ export default class MatchResultsStore {
     }
   }
 
-  // setters and actions 
+  // setters and actions
 
   setLoading(loading) {
     this._loading = loading;
@@ -323,7 +285,11 @@ export default class MatchResultsStore {
   }
 
   setProjectName(name) {
+    if (this._projectName === name) return;
     this._projectName = name;
+    if (this._taskId) {
+      this.fetchMatchResults();
+    }
   }
 
   setNewIndividualName(name) {
@@ -351,7 +317,7 @@ export default class MatchResultsStore {
 
   // merge functions
 
-  //no further action needed, two cases: 
+  //no further action needed, two cases:
   //1. query encounter has individual ID, no match result selected
   //2. all encounters have same individual ID
   handleNoFurtherActionNeeded() {
@@ -372,18 +338,24 @@ export default class MatchResultsStore {
       }
 
       const encounterIds = Array.from(
-        new Set(this.selectedIncludingQuery.map((m) => m.encounterId).filter(Boolean)),
+        new Set(
+          this.selectedIncludingQuery.map((m) => m.encounterId).filter(Boolean),
+        ),
       );
 
       const patchOps = [{ op: "replace", path: "/individual", value: newName }];
 
       for (const id of encounterIds) {
-        await axios.patch(`/api/v3/encounters/${encodeURIComponent(id)}`, patchOps, {
-          headers: {
-            "Content-Type": "application/json-patch+json",
-            Accept: "application/json",
+        await axios.patch(
+          `/api/v3/encounters/${encodeURIComponent(id)}`,
+          patchOps,
+          {
+            headers: {
+              "Content-Type": "application/json-patch+json",
+              Accept: "application/json",
+            },
           },
-        });
+        );
       }
 
       this._newIndividualName = "";
@@ -437,7 +409,9 @@ export default class MatchResultsStore {
 
       const url = `/iaResultsSetID.jsp?${params.toString()}`;
 
-      const res = await axios.get(url, { headers: { Accept: "application/json" } });
+      const res = await axios.get(url, {
+        headers: { Accept: "application/json" },
+      });
       this.resetSelectionToQuery();
       return res.data;
     } catch (e) {
@@ -513,10 +487,11 @@ export default class MatchResultsStore {
 
     if (uniqueIndividuals.length === 0) return "no_individuals";
     if (uniqueIndividuals.length === 1) {
-      return allHaveIndividual ? "no_further_action_needed" : "single_individual";
+      return allHaveIndividual
+        ? "no_further_action_needed"
+        : "single_individual";
     }
     if (uniqueIndividuals.length === 2) return "two_individuals";
     return "too_many_individuals";
   }
 }
-
