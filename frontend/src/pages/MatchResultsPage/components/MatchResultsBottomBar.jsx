@@ -16,6 +16,7 @@ const styles = {
     display: "flex",
     gap: "24px",
     zIndex: 1000,
+    height: "70px"
   }),
   bottomText: {
     fontSize: "0.9rem",

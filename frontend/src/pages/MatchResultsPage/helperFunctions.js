@@ -8,7 +8,7 @@ const collectProspects = (node, type, result = []) => {
   if (hasResults && hasMethod) {
     const common = {
       algorithm: methodName,
-      date: node.matchResults.created,
+      date: node.dateCreated,
       numberCandidates: node.matchResults.numberCandidates || 0,
       queryEncounterId:
         node.matchResults.queryAnnotation?.encounter?.id || null,

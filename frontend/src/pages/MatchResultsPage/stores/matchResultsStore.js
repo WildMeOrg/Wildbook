@@ -10,7 +10,7 @@ export default class MatchResultsStore {
   _individualId = null;
   _individualDisplayName = null;
   _projectName = "";
-  _numResults = 1;
+  _numResults = 12;
   _numCandidates = 0;
   _matchDate = null;
   _thisEncounterImageUrl = "";

@@ -6,6 +6,7 @@ import Icon4 from "../icons/Icon4";
 import Icon5 from "../icons/Icon5";
 import Icon7 from "../icons/Icon7";
 import InteractiveAnnotationOverlay from "../../../components/AnnotationOverlay";
+import { FormattedMessage, useIntl } from "react-intl";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -120,6 +121,8 @@ const MatchProspectTable = ({
   algorithm,
   methodName,
 }) => {
+  const intl = useIntl();
+  const matchesBasedOnText = intl.formatMessage({id: "MATCHED_BASED_ON"});
   const leftOverlayRef = useRef(null);
   const rightOverlayRef = useRef(null);
 
@@ -194,10 +197,10 @@ const MatchProspectTable = ({
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div className="d-flex w-100">
           <div style={{ fontWeight: "500" }}>
-            {methodName ? `Matches based on ${methodName}` : `Matches based on ${algorithm}`}
+            {methodName ? `${matchesBasedOnText}${" "} ${methodName}` : `${matchesBasedOnText}${" "} ${algorithm}`}
           </div>
           <div style={{ marginLeft: "auto", fontWeight: "500" }}>
-            against {numCandidates} candidates{" "}
+            <FormattedMessage id="AGAINST"/> {numCandidates} <FormattedMessage id="CANDIDATES"/>{" "}
             <span>{date?.slice(0, 16).replace("T", " ")}</span>
           </div>
         </div>
@@ -287,7 +290,7 @@ const MatchProspectTable = ({
         {/* Left */}
         <Col md={6} className="mb-3 mb-md-0" style={{ position: "relative" }}>
           <div style={styles.matchImageCard}>
-            <div style={styles.cornerLabel(themeColor)}>This encounter</div>
+            <div style={styles.cornerLabel(themeColor)}><FormattedMessage id="THIS_ENCOUNTER"/></div>
             <div style={styles.imageContainer}>
               <InteractiveAnnotationOverlay
                 ref={leftOverlayRef}
@@ -321,7 +324,7 @@ const MatchProspectTable = ({
         {/* Right */}
         <Col md={6} style={{ position: "relative" }}>
           <div style={styles.matchImageCard}>
-            <div style={{ ...styles.cornerLabel(themeColor) }}>Possible Match</div>
+            <div style={{ ...styles.cornerLabel(themeColor) }}><FormattedMessage id="POSSIBLE_MATCH"/></div>
             <div style={styles.imageContainer}>
               <InteractiveAnnotationOverlay
                 ref={rightOverlayRef}

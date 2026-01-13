@@ -20,7 +20,7 @@ const InteractiveAnnotationOverlay = forwardRef(
       maxZoom = 3,
       zoomStep = 0.25,
       showAnnotations: showAnnotationsProp,
-      strokeColor = "yellow",
+      strokeColor = "red",
       lineWidth = 2,
       containerStyle = {},
       imageStyle = {},
