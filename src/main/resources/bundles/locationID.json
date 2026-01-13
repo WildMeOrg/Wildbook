@@ -52,6 +52,9 @@
                 {"name": "Herzelia", "id": "Herzelia", "locationID":[]}
             ]}
           ]},
+          {"name": "Portugal", "id": "Portugal", "locationID": [
+            {"name": "Faro", "id": "Faro", "geospatialInfo": {"lat": 36.96105556, "long": -7.868527778}, "locationID":[]}
+            ]},
           {"name": "Spain", "id": "Spain", "locationID":[
             {"name": "Balearic Islands", "id": "Balearic Islands", "locationID":[]}
           ]}
