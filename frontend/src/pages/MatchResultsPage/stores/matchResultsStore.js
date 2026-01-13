@@ -10,7 +10,7 @@ export default class MatchResultsStore {
   _individualId = null;
   _individualDisplayName = null;
   _projectName = "";
-  _numResults = 12;
+  _numResults = 1;
   _numCandidates = 0;
   _matchDate = null;
   _thisEncounterImageUrl = "";
@@ -108,6 +108,8 @@ export default class MatchResultsStore {
           numCandidates: first.numberCandidates,
           date: first.date,
           queryImageUrl: first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
+          queryEncounterImageAsset: first.queryEncounterImageAsset,
+          queryEncounterAnnotation: first.queryEncounterAnnotation,
           methodName: first.methodName,
           methodDescription: first.methodDescription,
           taskStatus: first.taskStatus,
@@ -200,50 +202,50 @@ export default class MatchResultsStore {
     return this._taskId;
   }
 
-  get selectedEncounterIds() {
-    const ids = (this._selectedMatch || [])
-      .map((m) => m?.encounterId)
-      .filter(Boolean);
-    return Array.from(new Set(ids));
-  }
+  // get selectedEncounterIds() {
+  //   const ids = (this._selectedMatch || [])
+  //     .map((m) => m?.encounterId)
+  //     .filter(Boolean);
+  //   return Array.from(new Set(ids));
+  // }
 
-  get selectedUnnamedEncounterIds() {
-    const ids = (this._selectedMatch || [])
-      .filter((m) => m?.encounterId && !m?.individualId)
-      .map((m) => m.encounterId);
-    return Array.from(new Set(ids));
-  }
+  // get selectedUnnamedEncounterIds() {
+  //   const ids = (this._selectedMatch || [])
+  //     .filter((m) => m?.encounterId && !m?.individualId)
+  //     .map((m) => m.encounterId);
+  //   return Array.from(new Set(ids));
+  // }
 
-  get selectedIndividualIdsOnly() {
-    const ids = (this._selectedMatch || [])
-      .map((m) => m?.individualId)
-      .filter(Boolean);
-    return Array.from(new Set(ids));
-  }
+  // get selectedIndividualIdsOnly() {
+  //   const ids = (this._selectedMatch || [])
+  //     .map((m) => m?.individualId)
+  //     .filter(Boolean);
+  //   return Array.from(new Set(ids));
+  // }
 
-  get uniqueIndividualsIncludingQuery() {
-    const ids = new Set();
-    if (this._individualId) ids.add(this._individualId);
-    for (const id of this.selectedIndividualIdsOnly) ids.add(id);
-    return Array.from(ids);
-  }
+  // get uniqueIndividualsIncludingQuery() {
+  //   const ids = new Set();
+  //   if (this._individualId) ids.add(this._individualId);
+  //   for (const id of this.selectedIndividualIdsOnly) ids.add(id);
+  //   return Array.from(ids);
+  // }
 
-  get singleIndividualIdToUse() {
-    const unique = this.uniqueIndividualsIncludingQuery;
-    return unique.length === 1 ? unique[0] : null;
-  }
+  // get singleIndividualIdToUse() {
+  //   const unique = this.uniqueIndividualsIncludingQuery;
+  //   return unique.length === 1 ? unique[0] : null;
+  // }
 
-  get allSelectedAlreadySameIndividual() {
-    const single = this.singleIndividualIdToUse;
-    if (!single) return false;
-    if (this.selectedUnnamedEncounterIds.length > 0) return false;
+  // get allSelectedAlreadySameIndividual() {
+  //   const single = this.singleIndividualIdToUse;
+  //   if (!single) return false;
+  //   if (this.selectedUnnamedEncounterIds.length > 0) return false;
 
-    if (this._individualId && this._individualId !== single) return false;
+  //   if (this._individualId && this._individualId !== single) return false;
 
-    return (this._selectedMatch || [])
-      .filter((m) => m?.individualId)
-      .every((m) => m.individualId === single);
-  }
+  //   return (this._selectedMatch || [])
+  //     .filter((m) => m?.individualId)
+  //     .every((m) => m.individualId === single);
+  // }
 
   get selectedMatch() {
     return this._selectedMatch;

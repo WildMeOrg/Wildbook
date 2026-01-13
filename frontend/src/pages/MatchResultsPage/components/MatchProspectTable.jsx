@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Row, Col, Form } from "react-bootstrap";
 import ZoomInIcon from "../icons/ZoomInIcon";
 import ZoomOutIcon from "../icons/ZoomOutIcon";
+import Icon4 from "../icons/Icon4";
 import Icon5 from "../icons/Icon5";
 import Icon7 from "../icons/Icon7";
-import { FormattedMessage } from "react-intl";
-import InteractiveAnnotationOverlay from "../components/MatchResultsBottomBar";
+import InteractiveAnnotationOverlay from "../../../components/AnnotationOverlay";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -16,17 +16,12 @@ const styles = {
     fontSize: "0.9rem",
     marginTop: "4px",
     borderRadius: "5px",
-    backgroundColor: selected
-      ? themeColor.primaryColors.primary50
-      : "transparent",
+    backgroundColor: selected ? themeColor.primaryColors.primary50 : "transparent",
   }),
   matchRank: {
     width: "24px",
     textAlign: "right",
     marginRight: "8px",
-  },
-  matchScore: {
-    width: "64px",
   },
   idPill: (themeColor) => ({
     borderRadius: "5px",
@@ -51,14 +46,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#f8f9fa",
-  },
-  matchImage: {
-    width: "100%",
-    height: "100% ",
-    display: "block",
-    objectFit: "contain",
-    backgroundColor: "#f8f9fa",
-    transformOrigin: "center center",
   },
   cornerLabel: (themeColor) => ({
     position: "absolute",
@@ -89,6 +76,18 @@ const styles = {
     flexDirection: "column",
     gap: "6px",
   },
+  iconButton: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "8px",
+    background: "white",
+    border: "1px solid #dee2e6",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+  },
   matchListScrollContainer: {
     overflowX: "auto",
     overflowY: "hidden",
@@ -114,18 +113,23 @@ const MatchProspectTable = ({
   selectedMatch,
   onToggleSelected,
   thisEncounterImageUrl,
+  thisEncounterAnnotations,
+  thisEncounterImageAsset,
   themeColor,
   columns,
   algorithm,
   methodName,
-  methodDescription,
-  taskStatus,
-  taskStatusOverall,
 }) => {
+  const leftOverlayRef = useRef(null);
+  const rightOverlayRef = useRef(null);
 
-  const [selectedRow, setSelectedRow] = React.useState(
-    columns[0]?.[0]
-  );
+  const [selectedRow, setSelectedRow] = useState(() => {
+    const first = columns?.[0]?.[0] ?? null;
+    if (!first) return null;
+    const firstKey = `${first.annotation?.id}-${first.displayIndex}`;
+    return { ...first, _rowKey: firstKey };
+  });
+
   React.useEffect(() => {
     const first = columns?.[0]?.[0] ?? null;
     if (!first) {
@@ -136,102 +140,61 @@ const MatchProspectTable = ({
     setSelectedRow({ ...first, _rowKey: firstKey });
   }, [columns]);
 
-  const [inspectionModalOpen, setInspectionModalOpen] = useState(false);
   const [hoveredRow, setHoveredRow] = React.useState(null);
-
-  const [leftImageZoom, setLeftImageZoom] = React.useState(1);
-  const [rightImageZoom, setRightImageZoom] = React.useState(1);
-  const [leftPanPosition, setLeftPanPosition] = React.useState({ x: 0, y: 0 });
-  const [rightPanPosition, setRightPanPosition] = React.useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = React.useState(null);
-  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
-
-  const handleZoomIn = (side) => {
-    if (side === "left") {
-      setLeftImageZoom((prev) => Math.min(prev + 0.25, 3));
-    } else {
-      setRightImageZoom((prev) => Math.min(prev + 0.25, 3));
-    }
-  };
-
-  const handleZoomOut = (side) => {
-    if (side === "left") {
-      setLeftImageZoom((prev) => Math.max(prev - 0.25, 0.5));
-    } else {
-      setRightImageZoom((prev) => Math.max(prev - 0.25, 0.5));
-    }
-  };
-
-  const handleResetZoom = (side) => {
-    if (side === "left") {
-      setLeftImageZoom(1);
-    } else {
-      setRightImageZoom(1);
-    }
-  };
-
-  const handleMouseDown = (side, e) => {
-    setIsDragging(side);
-    setDragStart({
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-
-    const deltaX = e.clientX - dragStart.x;
-    const deltaY = e.clientY - dragStart.y;
-
-    if (isDragging === "left") {
-      setLeftPanPosition((prev) => ({
-        x: prev.x + deltaX,
-        y: prev.y + deltaY,
-      }));
-    } else {
-      setRightPanPosition((prev) => ({
-        x: prev.x + deltaX,
-        y: prev.y + deltaY,
-      }));
-    }
-
-    setDragStart({
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(null);
-  };
 
   const handleRowClick = (rowData, rowKey) => {
     setSelectedRow({ ...rowData, _rowKey: rowKey });
+    rightOverlayRef.current?.reset?.();
   };
 
-  React.useEffect(() => {
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-      return () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
-  }, [isDragging, dragStart]);
-
   const isSelected = (rowKey) => selectedMatch?.some((d) => d.key === rowKey);
+
+  const rightAnnotations = React.useMemo(() => {
+    const ann = selectedRow?.annotation;
+    if (!ann) return [];
+    return [
+      {
+        id: ann.id,
+        boundingBox: ann.boundingBox,
+        x: ann.x,
+        y: ann.y,
+        width: ann.width,
+        height: ann.height,
+        theta: ann.theta,
+        trivial: ann.isTrivial || ann.trivial,
+      },
+    ];
+  }, [selectedRow]);
+
+  const rightImageUrl =
+    selectedRow?.annotation?.asset?.url?.replace(
+      "http://frontend.scribble.com",
+      "https://zebra.wildme.org",
+    ) || "";
+
+  const leftOrigW = thisEncounterImageAsset?.attributes?.width ?? thisEncounterImageAsset?.width;
+  const leftOrigH = thisEncounterImageAsset?.attributes?.height ?? thisEncounterImageAsset?.height;
+
+  const leftAnnotations = thisEncounterAnnotations;
+
+  const rightOrigW =
+    selectedRow?.annotation?.asset?.width ?? selectedRow?.annotation?.asset?.attributes?.width;
+  const rightOrigH =
+    selectedRow?.annotation?.asset?.height ?? selectedRow?.annotation?.asset?.attributes?.height;
+
+  // +++++++++ temporary workaround +++++++++
+  const leftImageUrl =
+    (thisEncounterImageUrl || "").replace(
+      "http://frontend.scribble.com",
+      "https://zebra.wildme.org",
+    ) || "";
 
   return (
     <div className="mb-4" id={sectionId}>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div className="d-flex w-100">
           <div style={{ fontWeight: "500" }}>
-            {methodName
-              ? `Matches based on ${methodName}`
-              : `Matches based on ${algorithm}`}
-            {/* {methodDescription ? ` – ${methodDescription}` : ""} */}
+            {methodName ? `Matches based on ${methodName}` : `Matches based on ${algorithm}`}
           </div>
           <div style={{ marginLeft: "auto", fontWeight: "500" }}>
             against {numCandidates} candidates{" "}
@@ -250,11 +213,9 @@ const MatchProspectTable = ({
                 const candidateIndividualDisplayName =
                   candidate.annotation?.individual?.displayName;
 
-                const rowKey =
-                  `${candidate.annotation?.id}-${candidate.displayIndex}`;
+                const rowKey = `${candidate.annotation?.id}-${candidate.displayIndex}`;
                 const isRowSelected = isSelected(rowKey);
                 const isRowPreviewed = rowKey === selectedRow?._rowKey;
-                const isHovered = hoveredRow === rowKey;
 
                 return (
                   <div
@@ -270,23 +231,18 @@ const MatchProspectTable = ({
                     onMouseEnter={() => setHoveredRow(rowKey)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
-                    <span style={styles.matchRank}>{candidate.displayIndex}{"."}</span>
+                    <span style={styles.matchRank}>{candidate.displayIndex}.</span>
+
                     <a
                       href={`/react/encounter?number=${candidateEncounterId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{
-                        display: "inline-block",
-                        textDecoration: "none",
-                        textAlign: "left",
-                        cursor: "pointer"
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
+                      style={{ textDecoration: "none" }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {(Math.trunc(candidate.score * 10000) / 10000).toFixed(4)}
                     </a>
+
                     <button
                       type="button"
                       style={styles.idPill(themeColor)}
@@ -299,24 +255,13 @@ const MatchProspectTable = ({
                     >
                       {candidateIndividualDisplayName}
                     </button>
+
                     <div style={{ flexGrow: 1 }} />
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "20px" }} onClick={(e) => e.stopPropagation()}>
-                      {candidate.annotation?.asset?.url && isHovered && (
-                        <button
-                          type="button"
-                          style={styles.idPill(themeColor)}
-                          className="btn btn-sm p-0 px-2"
-                          onClick={() => {
-                            setInspectionModalOpen(true);
-                            const url = candidate.annotation?.asset?.url;
-                            console.log("url", JSON.stringify(url));
-                            window.open(url, "_blank");
-                          }}
-                        >
-                          {<FormattedMessage id="INSPECT" />}
-                        </button>
-                      )}
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: "20px" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Form.Check
                         type="checkbox"
                         checked={isRowSelected}
@@ -339,45 +284,32 @@ const MatchProspectTable = ({
       </div>
 
       <Row>
+        {/* Left */}
         <Col md={6} className="mb-3 mb-md-0" style={{ position: "relative" }}>
           <div style={styles.matchImageCard}>
             <div style={styles.cornerLabel(themeColor)}>This encounter</div>
-            <div
-              style={{
-                ...styles.imageContainer,
-                cursor: "grab",
-              }}
-              onMouseDown={(e) => handleMouseDown("left", e)}
-            >
-              <img
-                // +++++++++++++temporary workaround, don't forget to remove +++++++++++++
-                src={thisEncounterImageUrl.replace("http://frontend.scribble.com", "https://zebra.wildme.org")}
-                alt="This encounter"
-                style={{
-                  ...styles.matchImage,
-                  transform: `scale(${leftImageZoom}) translate(${leftPanPosition.x}px, ${leftPanPosition.y}px)`,
-                  transition:
-                    isDragging === "left" ? "none" : "transform 0.2s ease",
-                  cursor: isDragging === "left"
-                    ? "grabbing"
-                    : "grab"
-
-                }}
-                draggable={false}
+            <div style={styles.imageContainer}>
+              <InteractiveAnnotationOverlay
+                ref={leftOverlayRef}
+                imageUrl={leftImageUrl}
+                originalWidth={leftOrigW}
+                originalHeight={leftOrigH}
+                annotations={leftAnnotations}
+                showAnnotations
               />
             </div>
           </div>
 
           <div style={styles.toolsBarLeft}>
             <div
-              onClick={() => handleZoomIn("left")}
+              onClick={() => leftOverlayRef.current?.zoomIn?.()}
               style={styles.iconButton}
               title="Zoom In"
             >
               <ZoomInIcon />
             </div>
             <div
-              onClick={() => handleZoomOut("left")}
+              onClick={() => leftOverlayRef.current?.zoomOut?.()}
               style={styles.iconButton}
               title="Zoom Out"
             >
@@ -386,54 +318,58 @@ const MatchProspectTable = ({
           </div>
         </Col>
 
+        {/* Right */}
         <Col md={6} style={{ position: "relative" }}>
           <div style={styles.matchImageCard}>
-            <div style={{ ...styles.cornerLabel(themeColor) }}>
-              Possible Match
-            </div>
-            <div
-              style={{
-                ...styles.imageContainer,
-                cursor: "grab",
-              }}
-              onMouseDown={(e) => handleMouseDown("right", e)}
-            >
-              <img
-                // +++++++++++++temporary workaround, don't forget to remove +++++++++++++
-                src={selectedRow?.annotation?.asset?.url?.replace("http://frontend.scribble.com", "https://zebra.wildme.org")}
-                alt="Possible match"
-                style={{
-                  ...styles.matchImage,
-                  transform: `scale(${rightImageZoom}) translate(${rightPanPosition.x}px, ${rightPanPosition.y}px)`,
-                  transition:
-                    isDragging === "right" ? "none" : "transform 0.2s ease",
-                  cursor: isDragging === "right"
-                    ? "grabbing"
-                    : "grab"
-                }}
-                draggable={false}
+            <div style={{ ...styles.cornerLabel(themeColor) }}>Possible Match</div>
+            <div style={styles.imageContainer}>
+              <InteractiveAnnotationOverlay
+                ref={rightOverlayRef}
+                imageUrl={rightImageUrl}
+                originalWidth={rightOrigW}
+                originalHeight={rightOrigH}
+                annotations={rightAnnotations}
+                rotationInfo={selectedRow?.annotation?.asset?.rotationInfo ?? null}
               />
             </div>
           </div>
 
           <div style={styles.toolsBarRight}>
             <div
-              onClick={() => handleZoomIn("right")}
+              onClick={() => rightOverlayRef.current?.zoomIn?.()}
               style={styles.iconButton}
               title="Zoom In"
             >
               <ZoomInIcon />
             </div>
             <div
-              onClick={() => handleZoomOut("right")}
+              onClick={() => rightOverlayRef.current?.zoomOut?.()}
               style={styles.iconButton}
               title="Zoom Out"
             >
               <ZoomOutIcon />
             </div>
-            <div style={styles.iconButton}>
+
+            <div
+              style={styles.iconButton}
+              title="Open asset"
+              onClick={() => {
+                if (!selectedRow?.asset?.url) return;
+                const url = selectedRow.asset.url;
+                window.open(url, "_blank");
+              }}
+            >
+              <Icon4 />
+            </div>
+
+            <div
+              style={styles.iconButton}
+              title="Toggle annotation"
+              onClick={() => rightOverlayRef.current?.toggleAnnotations?.()}
+            >
               <Icon5 />
             </div>
+
             <div style={styles.iconButton}>
               <Icon7 />
             </div>

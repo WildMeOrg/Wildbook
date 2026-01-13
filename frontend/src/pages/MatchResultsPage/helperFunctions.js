@@ -2,9 +2,7 @@ const collectProspects = (node, type, result = []) => {
   const hasMethod = !!node.method;
   const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
-
   const prospects = node.matchResults?.prospects?.[type];
-
   const hasResults = Array.isArray(prospects) && prospects.length > 0;
 
   if (hasResults && hasMethod) {
@@ -22,6 +20,14 @@ const collectProspects = (node, type, result = []) => {
         node.matchResults.queryAnnotation?.asset || null,
       queryEncounterImageUrl:
         node.matchResults.queryAnnotation?.asset?.url || null,
+      queryEncounterAnnotation:
+        {
+          x: node.matchResults.queryAnnotation?.x,
+          y: node.matchResults.queryAnnotation?.y,
+          width: node.matchResults.queryAnnotation?.width,
+          height: node.matchResults.queryAnnotation?.height,
+          theta:node.matchResults.queryAnnotation?.theta,
+        },
 
       methodName,
       methodDescription,

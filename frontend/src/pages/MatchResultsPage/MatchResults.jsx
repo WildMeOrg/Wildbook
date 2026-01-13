@@ -211,6 +211,8 @@ const MatchResults = observer(() => {
             numCandidates={metadata.numCandidates}
             date={metadata.date}
             thisEncounterImageUrl={metadata.queryImageUrl}
+            thisEncounterAnnotations={[metadata.queryEncounterAnnotation]}
+            thisEncounterImageAsset={metadata.queryEncounterImageAsset}
             methodName={metadata.methodName}
             methodDescription={metadata.methodDescription}
             taskStatus={metadata.taskStatus}
