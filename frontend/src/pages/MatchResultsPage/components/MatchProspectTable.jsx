@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Row, Col, Form } from "react-bootstrap";
+import { Row, Col, Form, Modal } from "react-bootstrap";
 import ZoomInIcon from "../icons/ZoomInIcon";
 import ZoomOutIcon from "../icons/ZoomOutIcon";
 import Icon4 from "../icons/Icon4";
@@ -105,6 +105,64 @@ const styles = {
     display: "flex",
     flexDirection: "column",
   },
+  fullscreenBody: {
+    padding: 12,
+    background: "#111",
+    height: "100vh",
+  },
+  fullscreenGrid: {
+    height: "calc(100vh - 24px)",
+    display: "flex",
+    gap: 12,
+  },
+  fullscreenPanel: {
+    flex: 1,
+    minWidth: 0,
+    borderRadius: 10,
+    overflow: "hidden",
+    background: "#1a1a1a",
+    position: "relative",
+    boxShadow: "0 2px 14px rgba(0,0,0,0.35)",
+  },
+  fullscreenLabel: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    zIndex: 5,
+    background: "rgba(255,255,255,0.92)",
+    padding: "3px 10px",
+    borderRadius: 6,
+    fontSize: 12,
+  },
+  fullscreenImageWrap: {
+    position: "relative",
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#111",
+  },
+  fullscreenTopRight: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 80,
+    display: "flex",
+    gap: 8,
+  },
+  fullscreenIconBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    background: "rgba(255,255,255,0.92)",
+    border: "1px solid rgba(0,0,0,0.10)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
+  },
 };
 
 const MatchProspectTable = ({
@@ -122,9 +180,13 @@ const MatchProspectTable = ({
   methodName,
 }) => {
   const intl = useIntl();
-  const matchesBasedOnText = intl.formatMessage({id: "MATCHED_BASED_ON"});
+  const matchesBasedOnText = intl.formatMessage({ id: "MATCHED_BASED_ON" });
   const leftOverlayRef = useRef(null);
   const rightOverlayRef = useRef(null);
+
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const fsLeftRef = useRef(null);
+  const fsRightRef = useRef(null);
 
   const [selectedRow, setSelectedRow] = useState(() => {
     const first = columns?.[0]?.[0] ?? null;
@@ -192,6 +254,14 @@ const MatchProspectTable = ({
       "https://zebra.wildme.org",
     ) || "";
 
+  const openFullscreen = () => {
+    setFullscreenOpen(true);
+    setTimeout(() => {
+      fsLeftRef.current?.reset?.();
+      fsRightRef.current?.reset?.();
+    }, 0);
+  };
+
   return (
     <div className="mb-4" id={sectionId}>
       <div className="d-flex justify-content-between align-items-center mb-2">
@@ -200,7 +270,7 @@ const MatchProspectTable = ({
             {methodName ? `${matchesBasedOnText}${" "} ${methodName}` : `${matchesBasedOnText}${" "} ${algorithm}`}
           </div>
           <div style={{ marginLeft: "auto", fontWeight: "500" }}>
-            <FormattedMessage id="AGAINST"/> {numCandidates} <FormattedMessage id="CANDIDATES"/>{" "}
+            <FormattedMessage id="AGAINST" /> {numCandidates} <FormattedMessage id="CANDIDATES" />{" "}
             <span>{date?.slice(0, 16).replace("T", " ")}</span>
           </div>
         </div>
@@ -287,10 +357,9 @@ const MatchProspectTable = ({
       </div>
 
       <Row>
-        {/* Left */}
         <Col md={6} className="mb-3 mb-md-0" style={{ position: "relative" }}>
           <div style={styles.matchImageCard}>
-            <div style={styles.cornerLabel(themeColor)}><FormattedMessage id="THIS_ENCOUNTER"/></div>
+            <div style={styles.cornerLabel(themeColor)}><FormattedMessage id="THIS_ENCOUNTER" /></div>
             <div style={styles.imageContainer}>
               <InteractiveAnnotationOverlay
                 ref={leftOverlayRef}
@@ -321,10 +390,9 @@ const MatchProspectTable = ({
           </div>
         </Col>
 
-        {/* Right */}
         <Col md={6} style={{ position: "relative" }}>
           <div style={styles.matchImageCard}>
-            <div style={{ ...styles.cornerLabel(themeColor) }}><FormattedMessage id="POSSIBLE_MATCH"/></div>
+            <div style={{ ...styles.cornerLabel(themeColor) }}><FormattedMessage id="POSSIBLE_MATCH" /></div>
             <div style={styles.imageContainer}>
               <InteractiveAnnotationOverlay
                 ref={rightOverlayRef}
@@ -373,12 +441,129 @@ const MatchProspectTable = ({
               <Icon5 />
             </div>
 
-            <div style={styles.iconButton}>
+            <div
+              style={styles.iconButton}
+              title="Fullscreen compare"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!selectedRow) return;
+                openFullscreen();
+              }}
+            >
               <Icon7 />
             </div>
           </div>
         </Col>
       </Row>
+      <Modal
+        show={fullscreenOpen}
+        onHide={() => setFullscreenOpen(false)}
+        fullscreen
+        centered={false}
+        keyboard
+        contentClassName="border-0 rounded-0"
+      >
+        <div style={styles.fullscreenBody}>
+          <div style={styles.fullscreenGrid}>
+            <div style={styles.fullscreenPanel}>
+              <div style={styles.fullscreenImageWrap}>
+                <div style={styles.fullscreenLabel}>
+                  <FormattedMessage id="THIS_ENCOUNTER" />
+                </div>
+
+                <div style={styles.fullscreenTopRight}>
+                  <div
+                    style={styles.iconButton}
+                    title="Zoom In"
+                    onClick={() => fsLeftRef.current?.zoomIn?.()}
+                  >
+                    <ZoomInIcon />
+                  </div>
+                  <div
+                    style={styles.iconButton}
+                    title="Zoom Out"
+                    onClick={() => fsLeftRef.current?.zoomOut?.()}
+                  >
+                    <ZoomOutIcon />
+                  </div>
+                </div>
+
+                <InteractiveAnnotationOverlay
+                  ref={fsLeftRef}
+                  imageUrl={leftImageUrl}
+                  originalWidth={leftOrigW}
+                  originalHeight={leftOrigH}
+                  annotations={leftAnnotations}
+                  showAnnotations
+                />
+              </div>
+            </div>
+
+            <div style={styles.fullscreenPanel}>
+              <div style={styles.fullscreenImageWrap}>
+                <div style={styles.fullscreenLabel}>
+                  <FormattedMessage id="POSSIBLE_MATCH" />
+                </div>
+
+                <div style={styles.fullscreenTopRight}>
+                  <div
+                    style={styles.fullscreenIconBtn}
+                    title="Zoom In"
+                    onClick={() => fsRightRef.current?.zoomIn?.()}
+                  >
+                    <ZoomInIcon />
+                  </div>
+                  <div
+                    style={styles.fullscreenIconBtn}
+                    title="Zoom Out"
+                    onClick={() => fsRightRef.current?.zoomOut?.()}
+                  >
+                    <ZoomOutIcon />
+                  </div>
+                  <div
+                    style={styles.fullscreenIconBtn}
+                    title="Open asset"
+                    onClick={() => {
+                      if (!selectedRow?.asset?.url) return;
+                      const url = selectedRow.asset.url;
+                      window.open(url, "_blank");
+                    }}
+                  >
+                    <Icon4 />
+                  </div>
+                  <div
+                    style={styles.fullscreenIconBtn}
+                    title="Toggle annotation"
+                    onClick={() => {
+                      fsRightRef.current?.toggleAnnotations?.();
+                      rightOverlayRef.current?.toggleAnnotations?.();
+                    }}
+                  >
+                    <Icon5 />
+                  </div>
+                  <div
+                    style={styles.fullscreenIconBtn}
+                    title="Exit fullscreen"
+                    onClick={() => setFullscreenOpen(false)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M1 11H3V13C3 13.55 3.45 14 4 14C4.55 14 5 13.55 5 13V10C5 9.45 4.55 9 4 9H1C0.45 9 0 9.45 0 10C0 10.55 0.45 11 1 11ZM3 3H1C0.45 3 0 3.45 0 4C0 4.55 0.45 5 1 5H4C4.55 5 5 4.55 5 4V1C5 0.45 4.55 0 4 0C3.45 0 3 0.45 3 1V3ZM10 14C10.55 14 11 13.55 11 13V11H13C13.55 11 14 10.55 14 10C14 9.45 13.55 9 13 9H10C9.45 9 9 9.45 9 10V13C9 13.55 9.45 14 10 14ZM11 3V1C11 0.45 10.55 0 10 0C9.45 0 9 0.45 9 1V4C9 4.55 9.45 5 10 5H13C13.55 5 14 4.55 14 4C14 3.45 13.55 3 13 3H11Z" fill="#00ACCE" />
+                    </svg>
+                  </div>
+                </div>
+                <InteractiveAnnotationOverlay
+                  ref={fsRightRef}
+                  imageUrl={rightImageUrl}
+                  originalWidth={rightOrigW}
+                  originalHeight={rightOrigH}
+                  annotations={rightAnnotations}
+                  rotationInfo={selectedRow?.annotation?.asset?.rotationInfo ?? null}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
