@@ -7,6 +7,7 @@ import Icon5 from "../icons/Icon5";
 import Icon7 from "../icons/Icon7";
 import InteractiveAnnotationOverlay from "../../../components/AnnotationOverlay";
 import { FormattedMessage, useIntl } from "react-intl";
+import InspectorModal from "./InspectorModal";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -196,6 +197,11 @@ const MatchProspectTable = ({
     const firstKey = `${first.annotation?.id}-${first.displayIndex}`;
     return { ...first, _rowKey: firstKey };
   });
+
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const inspectorUrl = previewedRow?.asset?.url;
+  const inspectorOrigW = previewedRow?.asset?.width;
+  const inspectorOrigH = previewedRow?.asset?.height;
 
   React.useEffect(() => {
     const first = columns?.[0]?.[0] ?? null;
@@ -447,7 +453,7 @@ const MatchProspectTable = ({
             >
               <ZoomOutIcon />
             </div>
-            {previewedRow?.asset?.url && (
+            {/* {previewedRow?.asset?.url && (
               <div
                 style={styles.iconButton}
                 title="View Hotspotter Visualization"
@@ -456,6 +462,15 @@ const MatchProspectTable = ({
                   const url = previewedRow.asset.url;
                   window.open(url, "_blank");
                 }}
+              >
+                <Icon4 />
+              </div>
+            )} */}
+            {inspectorUrl && (
+              <div
+                style={styles.iconButton}
+                title="View Hotspotter Visualization"
+                onClick={() => setInspectorOpen(true)}
               >
                 <Icon4 />
               </div>
@@ -548,7 +563,7 @@ const MatchProspectTable = ({
                   >
                     <ZoomOutIcon />
                   </div>
-                  {previewedRow?.asset?.url && (
+                  {/* {previewedRow?.asset?.url && (
                     <div
                       style={styles.fullscreenIconBtn}
                       title="View Hotspotter Visualization"
@@ -557,6 +572,15 @@ const MatchProspectTable = ({
                         const url = previewedRow.asset.url;
                         window.open(url, "_blank");
                       }}
+                    >
+                      <Icon4 />
+                    </div>
+                  )} */}
+                  {inspectorUrl && (
+                    <div
+                      style={styles.iconButton}
+                      title="View Hotspotter Visualization"
+                      onClick={() => setInspectorOpen(true)}
                     >
                       <Icon4 />
                     </div>
@@ -604,6 +628,13 @@ const MatchProspectTable = ({
           </div>
         </div>
       </Modal>
+      <InspectorModal
+        show={inspectorOpen}
+        onHide={() => setInspectorOpen(false)}
+        imageUrl={inspectorUrl}
+        originalWidth={inspectorOrigW}
+        originalHeight={inspectorOrigH}
+      />
     </div>
   );
 };
