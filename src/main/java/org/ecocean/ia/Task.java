@@ -617,7 +617,8 @@ public class Task implements java.io.Serializable {
             conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
                 "queryConfigDict");
         JSONObject rtn = new JSONObject();
-        if (conf != null) rtn.put("name", conf.optString("pipeline_root", null)); // null conf means that we have no name
+        // we set HotSpotter if pipeline_root is not set here
+        if (conf != null) rtn.put("name", conf.optString("pipeline_root", "HotSpotter"));
         rtn.put("description",
             getParameters().getJSONObject("ibeis.identification").optString("description",
             "unknown algorith/method"));
