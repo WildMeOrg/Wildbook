@@ -190,7 +190,7 @@ const MatchProspectTable = ({
   const fsLeftRef = useRef(null);
   const fsRightRef = useRef(null);
 
-  const [selectedRow, setSelectedRow] = useState(() => {
+  const [previewedRow, setPreviewedRow] = useState(() => {
     const first = columns?.[0]?.[0] ?? null;
     if (!first) return null;
     const firstKey = `${first.annotation?.id}-${first.displayIndex}`;
@@ -200,24 +200,24 @@ const MatchProspectTable = ({
   React.useEffect(() => {
     const first = columns?.[0]?.[0] ?? null;
     if (!first) {
-      setSelectedRow(null);
+      setPreviewedRow(null);
       return;
     }
     const firstKey = `${first.annotation?.id}-${first.displayIndex}`;
-    setSelectedRow({ ...first, _rowKey: firstKey });
+    setPreviewedRow({ ...first, _rowKey: firstKey });
   }, [columns]);
 
   const [hoveredRow, setHoveredRow] = React.useState(null);
 
   const handleRowClick = (rowData, rowKey) => {
-    setSelectedRow({ ...rowData, _rowKey: rowKey });
+    setPreviewedRow({ ...rowData, _rowKey: rowKey });
     rightOverlayRef.current?.reset?.();
   };
 
   const isSelected = (rowKey) => selectedMatch?.some((d) => d.key === rowKey);
 
   const rightAnnotations = React.useMemo(() => {
-    const ann = selectedRow?.annotation;
+    const ann = previewedRow?.annotation;
     if (!ann) return [];
     return [
       {
@@ -231,10 +231,10 @@ const MatchProspectTable = ({
         trivial: ann.isTrivial || ann.trivial,
       },
     ];
-  }, [selectedRow]);
+  }, [previewedRow]);
 
   const rightImageUrl =
-    selectedRow?.annotation?.asset?.url?.replace(
+    previewedRow?.annotation?.asset?.url?.replace(
       "http://frontend.scribble.com",
       "https://zebra.wildme.org",
     ) || "";
@@ -249,11 +249,11 @@ const MatchProspectTable = ({
   const leftAnnotations = thisEncounterAnnotations;
 
   const rightOrigW =
-    selectedRow?.annotation?.asset?.width ??
-    selectedRow?.annotation?.asset?.attributes?.width;
+    previewedRow?.annotation?.asset?.width ??
+    previewedRow?.annotation?.asset?.attributes?.width;
   const rightOrigH =
-    selectedRow?.annotation?.asset?.height ??
-    selectedRow?.annotation?.asset?.attributes?.height;
+    previewedRow?.annotation?.asset?.height ??
+    previewedRow?.annotation?.asset?.attributes?.height;
 
   // +++++++++ temporary workaround +++++++++
   const leftImageUrl =
@@ -301,7 +301,7 @@ const MatchProspectTable = ({
 
                 const rowKey = `${candidate.annotation?.id}-${candidate.displayIndex}`;
                 const isRowSelected = isSelected(rowKey);
-                const isRowPreviewed = rowKey === selectedRow?._rowKey;
+                const isRowPreviewed = rowKey === previewedRow?._rowKey;
                 const isRowHovered = rowKey === hoveredRow;
 
                 return (
@@ -312,7 +312,7 @@ const MatchProspectTable = ({
                       ...styles.matchRow(isRowSelected, themeColor),
                       cursor: "pointer",
                       backgroundColor:
-                        isRowPreviewed || isRowHovered || isRowSelected
+                        isRowPreviewed || isRowHovered
                           ? themeColor.primaryColors.primary50
                           : "transparent",
                     }}
@@ -426,7 +426,7 @@ const MatchProspectTable = ({
                 originalHeight={rightOrigH}
                 annotations={rightAnnotations}
                 rotationInfo={
-                  selectedRow?.annotation?.asset?.rotationInfo ?? null
+                  previewedRow?.annotation?.asset?.rotationInfo ?? null
                 }
               />
             </div>
@@ -447,18 +447,19 @@ const MatchProspectTable = ({
             >
               <ZoomOutIcon />
             </div>
-
-            <div
-              style={styles.iconButton}
-              title="View Hotspotter Visualization"
-              onClick={() => {
-                if (!selectedRow?.asset?.url) return;
-                const url = selectedRow.asset.url;
-                window.open(url, "_blank");
-              }}
-            >
-              <Icon4 />
-            </div>
+            {previewedRow?.asset?.url && (
+              <div
+                style={styles.iconButton}
+                title="View Hotspotter Visualization"
+                onClick={() => {
+                  if (!previewedRow?.asset?.url) return;
+                  const url = previewedRow.asset.url;
+                  window.open(url, "_blank");
+                }}
+              >
+                <Icon4 />
+              </div>
+            )}
 
             <div
               style={styles.iconButton}
@@ -473,7 +474,7 @@ const MatchProspectTable = ({
               title="Fullscreen"
               onClick={(e) => {
                 e.stopPropagation();
-                if (!selectedRow) return;
+                if (!previewedRow) return;
                 openFullscreen();
               }}
             >
@@ -547,17 +548,19 @@ const MatchProspectTable = ({
                   >
                     <ZoomOutIcon />
                   </div>
-                  <div
-                    style={styles.fullscreenIconBtn}
-                    title="View Hotspotter Visualization"
-                    onClick={() => {
-                      if (!selectedRow?.asset?.url) return;
-                      const url = selectedRow.asset.url;
-                      window.open(url, "_blank");
-                    }}
-                  >
-                    <Icon4 />
-                  </div>
+                  {previewedRow?.asset?.url && (
+                    <div
+                      style={styles.fullscreenIconBtn}
+                      title="View Hotspotter Visualization"
+                      onClick={() => {
+                        if (!previewedRow?.asset?.url) return;
+                        const url = previewedRow.asset.url;
+                        window.open(url, "_blank");
+                      }}
+                    >
+                      <Icon4 />
+                    </div>
+                  )}
                   <div
                     style={styles.fullscreenIconBtn}
                     title="View Annotations"
@@ -593,7 +596,7 @@ const MatchProspectTable = ({
                   originalHeight={rightOrigH}
                   annotations={rightAnnotations}
                   rotationInfo={
-                    selectedRow?.annotation?.asset?.rotationInfo ?? null
+                    previewedRow?.annotation?.asset?.rotationInfo ?? null
                   }
                 />
               </div>
