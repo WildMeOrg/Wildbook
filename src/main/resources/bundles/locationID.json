@@ -420,6 +420,7 @@
 			{"name": "Romania", "id": "Romania", "locationID":[
 				{"name": "Fagaras Mountains", "id": "Fagaras Mountains", "geospatialInfo": {"lat": 45.5833, "long": 24.74999}, "locationID": [] }
 			]},
+			{"name": "South-eastern Alps", "id": "South-eastern Alps", "prefix": "SEA-", "prefixDigitPadding": 4, "locationID": []},
 			{"name": "Spain", "id": "Spain", "locationID":[] },
 			{"name": "Sweden", "id": "Sweden", "locationID":[] },
 			{"name": "Switzerland", "id": "Switzerland", "locationID":[] }
