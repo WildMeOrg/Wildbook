@@ -33,17 +33,6 @@ const MatchResults = observer(() => {
     return <FullScreenLoader />;
   }
 
-  if (!store.hasResults) {
-    return (
-      <Container className="mt-3 mb-5">
-        <h2>
-          <FormattedMessage id="MATCH_RESULT" />
-        </h2>
-        <p className="mt-3">No match results available for this job.</p>
-      </Container>
-    );
-  }
-
   return (
     <Container className="mt-3 mb-5">
       <Modal
@@ -68,7 +57,7 @@ const MatchResults = observer(() => {
           <h2>
             <FormattedMessage id="MATCH_RESULT" />
           </h2>
-          <a
+          {/* <a
             href={`/react/encounter?number=${store.encounterId}`}
             className="text-decoration-none"
             target="_blank"
@@ -86,7 +75,7 @@ const MatchResults = observer(() => {
             >
               {store._individualDisplayName}
             </MainButton>
-          )}
+          )} */}
         </div>
         <span>
           <i
@@ -198,33 +187,35 @@ const MatchResults = observer(() => {
           </Form.Group>
         </div>
       </div>
-
-      {store.currentViewData.map(({ taskId, columns, metadata }) => (
-        <div key={`${store.viewMode}-${taskId}`}>
-          <MatchProspectTable
-            sectionId={`${store.viewMode}-${taskId}`}
-            taskId={taskId}
-            algorithm={metadata.algorithm}
-            numCandidates={metadata.numCandidates}
-            date={metadata.date}
-            thisEncounterImageUrl={metadata.queryImageUrl}
-            thisEncounterAnnotations={[metadata.queryEncounterAnnotation]}
-            thisEncounterImageAsset={metadata.queryEncounterImageAsset}
-            methodName={metadata.methodName}
-            methodDescription={metadata.methodDescription}
-            taskStatus={metadata.taskStatus}
-            taskStatusOverall={metadata.taskStatusOverall}
-            themeColor={themeColor}
-            columns={columns}
-            selectedMatch={store.selectedMatch}
-            onToggleSelected={(checked, key, encounterId, individualId) => {
-              store.setSelectedMatch(checked, key, encounterId, individualId);
-            }}
-          />
-        </div>
-      ))}
-
-      <MatchResultsBottomBar store={store} themeColor={themeColor} />
+      {!store.hasResults ? (
+        <p className="mt-3">No match results available for this job.</p>
+      ) : (
+        store.currentViewData.map(({ taskId, columns, metadata }) => (
+          <div key={`${store.viewMode}-${taskId}`}>
+            <MatchProspectTable
+              sectionId={`${store.viewMode}-${taskId}`}
+              taskId={taskId}
+              algorithm={metadata.algorithm}
+              numCandidates={metadata.numCandidates}
+              date={metadata.date}
+              thisEncounterImageUrl={metadata.queryImageUrl}
+              thisEncounterAnnotations={[metadata.queryEncounterAnnotation]}
+              thisEncounterImageAsset={metadata.queryEncounterImageAsset}
+              methodName={metadata.methodName}
+              methodDescription={metadata.methodDescription}
+              taskStatus={metadata.taskStatus}
+              taskStatusOverall={metadata.taskStatusOverall}
+              themeColor={themeColor}
+              columns={columns}
+              selectedMatch={store.selectedMatch}
+              onToggleSelected={(checked, key, encounterId, individualId) => {
+                store.setSelectedMatch(checked, key, encounterId, individualId);
+              }}
+            />
+          </div>
+        )))}
+      {store.hasResults &&
+        <MatchResultsBottomBar store={store} themeColor={themeColor} />}
     </Container>
   );
 });
