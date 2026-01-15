@@ -1,5 +1,8 @@
 package org.ecocean.tag;
 
+import java.util.List;
+import org.ecocean.CommonConfiguration;
+
 public class MetalTag extends AbstractTag {
     static final long serialVersionUID = 9015223799239301859L;
     private String tagNumber;
@@ -26,5 +29,9 @@ public class MetalTag extends AbstractTag {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public static List<String> getValidLocations(String context) {
+        return CommonConfiguration.getIndexedPropertyValues("metalTagLocation", context);
     }
 }
