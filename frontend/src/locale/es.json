@@ -571,7 +571,7 @@
   "GROUP_ROLE": "Rol en el grupo",
   "MATCH_DESC_1": "Elige el algoritmo y ajusta los filtros para refinar tu búsqueda.",
   "OWNER": "Propietario",
-  "SELECT_ALGORITHM": "Seleccionar algoritmo",
+  "SELECT_ALGORITHM": "Seleccionar algoritmo(s)",
   "MATCH": "Coincidir",
   "SHOW_ANNOTATIONS": "Mostrar anotaciones",
   "EDIT_ANNOTATION": "Editar anotación",
@@ -698,5 +698,8 @@
   "REQUEST_REJECTED": "Tu solicitud de colaboración con este usuario ha sido rechazada.",
   "ACCESS_PENDING": "Tu solicitud de colaboración está pendiente",
   "CALENDAR_VIEW_DESC": "Ver los resultados de la búsqueda de encuentros en un calendario por fecha del encuentro. Haz clic en un ID de encuentro para abrir sus detalles.",
-  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Selecciona uno o varios encuentros para añadirlos a un proyecto."
+  "ADD_ENCOUNTER_TO_PROJECT_DESC": "Selecciona uno o más encuentros para añadirlos a un proyecto.",
+  "INVALID_DATE": "Fecha no válida",
+  "INVALID_LAT_LON": "Por favor, introduce una latitud y una longitud válidas",
+  "INVALID_MEASUREMENTS": "Por favor, introduce valores válidos"
 }

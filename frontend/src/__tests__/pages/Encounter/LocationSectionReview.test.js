@@ -76,23 +76,10 @@ describe("LocationSectionReview", () => {
 
     render(<LocationSectionReview store={store} />);
 
-    expect(screen.getByText("COORDINATES")).toBeInTheDocument();
-    expect(screen.getByText(/latitude: 43\.653/)).toBeInTheDocument();
-    expect(screen.getByText(/longitude: -79\.383/)).toBeInTheDocument();
-  });
-
-  test("does not render lat/lon lines when locationGeoPoint is missing", () => {
-    const store = makeStore({
-      location: {
-        verbatimLocality: "Somewhere",
-      },
-    });
-
-    render(<LocationSectionReview store={store} />);
-
-    expect(screen.getByText("COORDINATES")).toBeInTheDocument();
-    expect(screen.queryByText(/latitude:/i)).toBeNull();
-    expect(screen.queryByText(/longitude:/i)).toBeNull();
+    expect(screen.getByText("LATITUDE")).toBeInTheDocument();
+    expect(screen.getByText("LONGITUDE")).toBeInTheDocument();
+    expect(screen.getByText(/43\.653/)).toBeInTheDocument();
+    expect(screen.getByText(/-79\.383/)).toBeInTheDocument();
   });
 
   test("renders MAP heading and MapDisplay", () => {

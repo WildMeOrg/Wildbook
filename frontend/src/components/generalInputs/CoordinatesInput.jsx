@@ -4,8 +4,10 @@ import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import { Loader } from "@googlemaps/js-api-loader";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useIntl } from "react-intl";
 
 export const CoordinatesInput = observer(({ store }) => {
+  const intl = useIntl();
   const { data } = useGetSiteSettings();
   const mapCenterLat = data?.mapCenterLat || 51;
   const mapCenterLon = data?.mapCenterLon || 7;
@@ -24,17 +26,27 @@ export const CoordinatesInput = observer(({ store }) => {
     const loader = new Loader({
       apiKey: mapKey,
     });
+    let clickListener = null;
 
     loader
       .load()
       .then(() => {
         if (!mapRef.current || !mapRef.current.isConnected) return;
+        const lat =
+          store.lat === null || store.lat === "" ? NaN : Number(store.lat);
+        const lng =
+          store.lon === null || store.lon === "" ? NaN : Number(store.lon);
+        const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+        const initialCenter = hasCoords
+          ? { lat, lng }
+          : { lat: mapCenterLat, lng: mapCenterLon };
+
         const googleMap = new window.google.maps.Map(mapRef.current, {
-          center: { lat: mapCenterLat, lng: mapCenterLon },
+          center: initialCenter,
           zoom: mapZoom,
         });
 
-        const clickListener = googleMap.addListener("click", (e) => {
+        clickListener = googleMap.addListener("click", (e) => {
           setPan(false);
           const lat = e.latLng.lat();
           const lng = e.latLng.lng();
@@ -43,6 +55,7 @@ export const CoordinatesInput = observer(({ store }) => {
 
           if (markerRef.current) {
             markerRef.current.setPosition({ lat, lng });
+            markerRef.current.setMap(googleMap);
           } else {
             markerRef.current = new window.google.maps.Marker({
               position: { lat, lng },
@@ -52,27 +65,35 @@ export const CoordinatesInput = observer(({ store }) => {
         });
 
         setMap(googleMap);
-
-        return () => {
-          window.google.maps.removeListener(clickListener);
-        };
       })
       .catch((error) => {
         console.error("Error loading Google Maps", error);
       });
+    return () => {
+      if (clickListener) {
+        window.google.maps.event.removeListener(clickListener);
+      }
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+        markerRef.current = null;
+      }
+    };
   }, [mapCenterLat, mapCenterLon, mapZoom, mapKey]);
 
   useEffect(() => {
-    const lat = parseFloat(store.lat);
-    const lng = parseFloat(store.lon);
+    const lat =
+      store.lat === null || store.lat === "" ? NaN : Number(store.lat);
+    const lng =
+      store.lon === null || store.lon === "" ? NaN : Number(store.lon);
 
-    if (map && !isNaN(lat) && !isNaN(lng)) {
+    if (map && Number.isFinite(lat) && Number.isFinite(lng)) {
       if (pan) {
         map.panTo({ lat, lng });
       }
 
       if (markerRef.current) {
         markerRef.current.setPosition({ lat, lng });
+        markerRef.current.setMap(map);
       } else {
         markerRef.current = new window.google.maps.Marker({
           position: { lat, lng },
@@ -86,19 +107,14 @@ export const CoordinatesInput = observer(({ store }) => {
   }, [store.lat, store.lon, map, pan]);
 
   useEffect(() => {
-    if (store.lat == null && store.lon == null) return;
-
     const currentGeoPoint =
       store.getFieldValue("location", "locationGeoPoint") || {};
-    const newGeoPoint = { ...currentGeoPoint };
 
-    if (store.lat != null) {
-      newGeoPoint.lat = store.lat;
-    }
-
-    if (store.lon != null) {
-      newGeoPoint.lon = store.lon;
-    }
+    const newGeoPoint = {
+      ...currentGeoPoint,
+      lat: store.lat ?? null,
+      lon: store.lon ?? null,
+    };
 
     store.setFieldValue("location", "locationGeoPoint", newGeoPoint);
   }, [store.lat, store.lon]);
@@ -106,43 +122,62 @@ export const CoordinatesInput = observer(({ store }) => {
   return (
     <div>
       <Form.Group>
-        <Form.Label>
-          <FormattedMessage id="FILTER_GPS_COORDINATES" />
-        </Form.Label>
         <div className="d-flex flex-row gap-3">
           <div className="w-50">
+            <h6>
+              <FormattedMessage id="LATITUDE" />
+            </h6>
             <Form.Control
               type="number"
               required
               placeholder="##.##"
               value={store.lat ?? ""}
               onChange={(e) => {
-                let newLat = e.target.value;
+                const v = e.target.value.trim();
                 setPan(true);
-                store.setLat(newLat);
+
+                if (v === "") {
+                  store.setLat(null);
+                } else {
+                  const n = Number(v);
+                  store.setLat(Number.isFinite(n) ? n : null);
+                }
               }}
             />
             {store.errors.getFieldError("location", "latitude") && (
               <div className="invalid-feedback d-block">
-                {store.errors.getFieldError("location", "latitude") || ""}
+                {intl.formatMessage({
+                  id: store.errors.getFieldError("location", "latitude"),
+                })}
               </div>
             )}
           </div>
           <div className="w-50">
+            <h6>
+              <FormattedMessage id="LONGITUDE" />
+            </h6>
             <Form.Control
               type="number"
               required
               placeholder="##.##"
               value={store.lon ?? ""}
               onChange={(e) => {
-                const newLon = e.target.value;
+                const v = e.target.value.trim();
                 setPan(true);
-                store.setLon(newLon);
+
+                if (v === "") {
+                  store.setLon(null);
+                } else {
+                  const n = Number(v);
+                  store.setLon(Number.isFinite(n) ? n : null);
+                }
               }}
             />
             {store.errors.getFieldError("location", "longitude") && (
               <div className="invalid-feedback d-block">
-                {store.errors.getFieldError("location", "longitude") || ""}
+                {intl.formatMessage({
+                  id: store.errors.getFieldError("location", "longitude"),
+                })}
               </div>
             )}
           </div>
