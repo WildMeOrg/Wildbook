@@ -11,6 +11,8 @@ import { useSiteSettings } from "../../SiteSettingsContext";
 import FullScreenLoader from "../../components/FullScreenLoader";
 import InstructionsModal from "./components/InstructionsModal";
 import InfoIcon from "./icons/InfoIcon";
+import FilterIcon from "./icons/FilterIcon";
+import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -19,6 +21,7 @@ const MatchResults = observer(() => {
   const [params] = useSearchParams();
   const taskId = params.get("taskId");
   const { projectsForUser = {} } = useSiteSettings() || {};
+  const [filterVisible, setFilterVisible] = React.useState(false);
 
   useEffect(() => {
     if (taskId) {
@@ -42,6 +45,12 @@ const MatchResults = observer(() => {
         taskId={taskId}
         themeColor={themeColor}
       />
+
+      <MatchCriteriaDrawer
+        show={filterVisible}
+        onHide={() => setFilterVisible(false)}
+      />
+
       <div className="d-flex flex-row justify-content-between align-items-center mb-3">
         <div className="d-flex flex-row align-items-center">
           <h2>
@@ -68,18 +77,21 @@ const MatchResults = observer(() => {
           )} */}
         </div>
         <span>
-          {/* <i
-            className="bi bi-info-circle-fill"
+          <div
+            title="Match Criteria"
             style={{
+              display: "inline-flex",
               cursor: "pointer",
-              color: themeColor.primaryColors.primary500,
-              fontSize: "1.6rem",
+              marginRight: "10px",
             }}
-            title="Help"
-            onClick={() => setInstructionsVisible(true)}
-          ></i> */}
-
-          <div title="Match Page Instructions">
+            onClick={() => setFilterVisible(true)}
+          >
+            <FilterIcon />
+          </div>
+          <div
+            title="Match Page Instructions"
+            style={{ display: "inline-flex", cursor: "pointer" }}
+          >
             <InfoIcon onClick={() => setInstructionsVisible(true)} />
           </div>
         </span>
