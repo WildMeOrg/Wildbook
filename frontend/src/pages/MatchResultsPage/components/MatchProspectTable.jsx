@@ -268,10 +268,26 @@ const MatchProspectTable = ({
               ? `${matchesBasedOnText}${" "} ${methodName}`
               : `${matchesBasedOnText}${" "} ${algorithm}`}
           </div>
-          <div style={{ marginLeft: "auto", fontWeight: "500" }}>
-            <FormattedMessage id="AGAINST" /> {numCandidates}{" "}
-            <FormattedMessage id="CANDIDATES" />{" "}
-            <span>{date?.slice(0, 16).replace("T", " ")}</span>
+          <div className="d-flex flex-row gap-3" style={{ marginLeft: "auto" }}>
+            <div
+              style={{
+                backgroundColor: themeColor.primaryColors.primary50,
+                borderRadius: "4px",
+                padding: "4px",
+              }}
+            >
+              <FormattedMessage id="AGAINST" /> {numCandidates}{" "}
+              <FormattedMessage id="CANDIDATES" />{" "}
+            </div>
+            <div
+              style={{
+                backgroundColor: themeColor.primaryColors.primary50,
+                borderRadius: "4px",
+                padding: "4px",
+              }}
+            >
+              <span>{date?.slice(0, 16).replace("T", " ")}</span>
+            </div>
           </div>
         </div>
       </div>
