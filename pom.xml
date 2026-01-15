@@ -343,6 +343,9 @@
     </dependency>
 
     <!-- wildbook local jars, not in public maven repos -->
+<!--    di is still used in spot matching ... check these depends before removing -->
+<!--    src/main/webapp/encounters/encounterSpotVisualizer.jsp:<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>-->
+<!--    src/main/webapp/encounters/spotMatchingAlgorithm.jsp:<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>-->
     <dependency>
       <groupId>dilib</groupId>
       <artifactId>dilib</artifactId>
