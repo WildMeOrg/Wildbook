@@ -1,15 +1,16 @@
 import React, { useMemo, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
-import { Container, Form, Modal } from "react-bootstrap";
+import { Container, Form } from "react-bootstrap";
 import ThemeColorContext from "../../ThemeColorProvider";
 import MatchResultsStore from "./stores/matchResultsStore";
 import MatchProspectTable from "./components/MatchProspectTable";
 import MatchResultsBottomBar from "./components/MatchResultsBottomBar";
 import { useSearchParams } from "react-router-dom";
 import { useSiteSettings } from "../../SiteSettingsContext";
-import MainButton from "../../components/MainButton";
 import FullScreenLoader from "../../components/FullScreenLoader";
+import InstructionsModal from "./components/InstructionsModal";
+import InfoIcon from "./icons/InfoIcon";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -35,23 +36,12 @@ const MatchResults = observer(() => {
 
   return (
     <Container className="mt-3 mb-5">
-      <Modal
+      <InstructionsModal
         show={instructionsVisible}
-        size="lg"
         onHide={() => setInstructionsVisible(false)}
-      >
-        <Modal.Header closeButton onHide={() => setInstructionsVisible(false)}>
-          <Modal.Title>
-            <FormattedMessage id="MATCHING_PAGE_INSTRUCTIONS" />
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            <FormattedMessage id="MATCH_RESULT_INSTRUCTIONS_TEXT" />
-          </p>
-        </Modal.Body>
-      </Modal>
-
+        taskId={taskId}
+        themeColor={themeColor}
+      />
       <div className="d-flex flex-row justify-content-between align-items-center mb-3">
         <div className="d-flex flex-row align-items-center">
           <h2>
@@ -78,7 +68,7 @@ const MatchResults = observer(() => {
           )} */}
         </div>
         <span>
-          <i
+          {/* <i
             className="bi bi-info-circle-fill"
             style={{
               cursor: "pointer",
@@ -87,7 +77,11 @@ const MatchResults = observer(() => {
             }}
             title="Help"
             onClick={() => setInstructionsVisible(true)}
-          ></i>
+          ></i> */}
+
+          <div title="Match Page Instructions">
+            <InfoIcon onClick={() => setInstructionsVisible(true)} />
+          </div>
         </span>
       </div>
 
@@ -213,9 +207,11 @@ const MatchResults = observer(() => {
               }}
             />
           </div>
-        )))}
-      {store.hasResults &&
-        <MatchResultsBottomBar store={store} themeColor={themeColor} />}
+        ))
+      )}
+      {store.hasResults && (
+        <MatchResultsBottomBar store={store} themeColor={themeColor} />
+      )}
     </Container>
   );
 });
