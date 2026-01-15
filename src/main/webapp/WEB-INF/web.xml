@@ -338,8 +338,6 @@
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/pictureBook.jsp = authc, roles[researcher]
 
-				/ExportWekaPredictorARFF = authc, roles[admin]
-
 				/pictureBook.jsp = authc, roles[researcher]
 				/projects/projectList.jsp = authc, roles[researcher]
 				/projects/project.jsp = authc, roles[researcher]
@@ -858,13 +856,6 @@
         <servlet-name>UserRemoveProfileImage</servlet-name>
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
-
-  <!--
-   <servlet>
-          <servlet-name>GenerateQRCodeImage</servlet-name>
-          <servlet-class>org.ecocean.servlet.GenerateQRCodeImage</servlet-class>
-    </servlet>
--->
 
 
 <!--
@@ -1778,23 +1769,6 @@
   <servlet-mapping>
     <servlet-name>ImgSyncServlet1</servlet-name>
     <url-pattern>/ImgSyncServlet1</url-pattern>
-  </servlet-mapping>
-
-  <!--
-    <servlet-mapping>
-      <servlet-name>SideFeed</servlet-name>
-      <url-pattern>/SideFeed</url-pattern>
-  </servlet-mapping>
-  -->
-
-    <servlet>
-    <servlet-name>ExportWekaPredictorARFF</servlet-name>
-    <servlet-class>org.ecocean.ai.servlet.export.ExportWekaPredictorARFF</servlet-class>
-  </servlet>
-
-    <servlet-mapping>
-    <servlet-name>ExportWekaPredictorARFF</servlet-name>
-    <url-pattern>/ExportWekaPredictorARFF</url-pattern>
   </servlet-mapping>
 
   <servlet>

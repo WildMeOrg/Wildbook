@@ -86,12 +86,6 @@
 		</inheritance>
 	</class>
 
-	<class name="S3AssetStore">
-		<inheritance strategy="superclass-table">
-			<discriminator value="S3"/>
-		</inheritance>
-	</class>
-
  	<class name="URLAssetStore">
  		<inheritance strategy="superclass-table">
  			<discriminator value="URL"/>
@@ -103,13 +97,6 @@
  			<discriminator value="YouTube"/>
  		</inheritance>
  	</class>
-
- 	<class name="TwitterAssetStore">
- 		<inheritance strategy="superclass-table">
- 			<discriminator value="Twitter"/>
- 		</inheritance>
- 	</class>
-
 
 	<class name="MediaAssetSet">
 		<field name="id" primary-key="true">
