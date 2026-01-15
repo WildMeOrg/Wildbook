@@ -36,6 +36,7 @@ public class EncounterAnnotationExportFile {
     private int numNameCols = 0;
     private int numSubmitters = 0;
     private int numSocialUnits = 1;
+    private int numKeywords;
 
     private List<String> measurementColTitles = new ArrayList<String>();
 
@@ -64,11 +65,9 @@ public class EncounterAnnotationExportFile {
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
         IllegalAccessException, IOException {
         String context = ServletUtilities.getContext(request);
-        Vector rEncounters;
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request,
             "year descending, month descending, day descending");
-
-        rEncounters = queryResult.getResult();
+        Vector rEncounters = queryResult.getResult();
         int numMatchingEncounters = rEncounters.size();
 
         // Security: categorize hidden encounters with the initializer
@@ -188,10 +187,10 @@ public class EncounterAnnotationExportFile {
 
         newEasyColumn("Encounter.state", columns);
 
-        ExportColumn keywordCol = new ExportColumn(Keyword.class, "Reference keyword",
+        ExportColumn refKeywordCol = new ExportColumn(Keyword.class, "Reference keyword",
             keywordGetName, columns);
-        keywordCol.setKwNum(0);
-        keywordCol.setMaNum(0);
+        refKeywordCol.setKwNum(0);
+        refKeywordCol.setMaNum(0);
 
         // ExportColumn maPathK = new ExportColumn(User.class, submitterAffiliationName, submitterAffiliation, columns);
 
@@ -204,7 +203,21 @@ public class EncounterAnnotationExportFile {
             ExportColumn maimageUrlK = new ExportColumn(MediaAsset.class, imageUrl, maImgUrl,
                 columns);
             maimageUrlK.setMaNum(maNum);
-
+            for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
+                String keywordColName = "Encounter.mediaAsset" + maNum + ".keyword" + kwNum;
+                ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName,
+                    keywordGetName, columns);
+                keywordCol.setMaNum(maNum);
+                keywordCol.setKwNum(kwNum);
+            }
+            List<String> labels = myShepherd.getAllKeywordLabels();
+            for (String label : labels) {
+                String keywordColName = "Encounter.mediaAsset" + maNum + "." + label;
+                ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName,
+                    labeledKeywordGetValue, columns);
+                keywordCol.setMaNum(maNum);
+                keywordCol.setLabeledKwName(label);
+            }
             ExportColumn aanBboxK = new ExportColumn(Annotation.class, bBox, annBbox, columns);
             aanBboxK.setMaNum(maNum);
 
@@ -329,16 +342,28 @@ public class EncounterAnnotationExportFile {
                 }
                 // end add labeled keywords
                 else if (exportCol.isFor(Keyword.class)) {
-                    boolean keywordFound = false;
-                    for (MediaAsset ma : mas) {
-                        for (Keyword kw : ma.getKeywordsStrict()) {
-                            if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
-                                exportCol.writeLabel(kw, row, sheet);
-                                keywordFound = true;
-                                break;
+                    if (Objects.equals(exportCol.header, "Reference keyword")) {
+                        boolean keywordFound = false;
+                        for (MediaAsset ma : mas) {
+                            for (Keyword kw : ma.getKeywordsStrict()) {
+                                if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
+                                    exportCol.writeLabel(kw, row, sheet);
+                                    keywordFound = true;
+                                    break;
+                                }
                             }
+                            if (keywordFound) break;
                         }
-                        if (keywordFound) break;
+                    } else {
+                        int maNum = exportCol.getMaNum();
+                        if (maNum >= mas.size()) continue;
+                        MediaAsset ma = mas.get(maNum);
+                        if (ma == null) continue; // on to next column
+                        int kwNum = exportCol.getKwNum();
+                        if (kwNum >= ma.numKeywordsStrict() || kwNum == -1) continue;
+                        Keyword kw = ma.getKeywordStrict(kwNum);
+                        if (kw == null) continue;
+                        exportCol.writeLabel(kw, row, sheet);
                     }
                 } else if (exportCol.isFor(Measurement.class)) {
                     int measurementNumber = exportCol.getMeasurementNum();
@@ -427,6 +452,7 @@ public class EncounterAnnotationExportFile {
         numNameCols = maxNumNames;
         numSubmitters = maxSubmitters;
         numSocialUnits = maxSocialUnits;
+        numKeywords = maxNumKeywords;
         System.out.println(
             "EncounterAnnotationExportExcelFile: environment vars numMediaAssetCols = " +
             numMediaAssetCols + "; maxNumKeywords = " + maxNumKeywords + " and maxNumNames = " +
