@@ -41,6 +41,9 @@
         {"name":"Iceland", "id":"Iceland", "locationID":[
           {"name": "Breiðafjörður", "id": "Breiðafjörður", "locationID":[]}
         ]},
+        {"name": "Portugal", "id": "Portugal", "locationID": [
+           {"name": "Faro", "id": "Faro", "geospatialInfo": {"lat": 36.96105556, "long": -7.868527778}, "locationID":[]}
+        ]},
         {"name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID":[
           {"name": "Golfe du Lion", "id": "Golfe du Lion", "locationID":[]},
           {"name": "North Mediterranean", "id": "North Mediterranean", "locationID":[]},
@@ -52,9 +55,6 @@
                 {"name": "Herzelia", "id": "Herzelia", "locationID":[]}
             ]}
           ]},
-          {"name": "Portugal", "id": "Portugal", "locationID": [
-            {"name": "Faro", "id": "Faro", "geospatialInfo": {"lat": 36.96105556, "long": -7.868527778}, "locationID":[]}
-            ]},
           {"name": "Spain", "id": "Spain", "locationID":[
             {"name": "Balearic Islands", "id": "Balearic Islands", "locationID":[]}
           ]}
