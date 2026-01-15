@@ -89,10 +89,43 @@ const InteractiveAnnotationOverlay = forwardRef(
       return { scale, offsetX, offsetY, renderW, renderH };
     }, [box.w, box.h, originalWidth, originalHeight]);
 
+    const canRenderAnnotations = useMemo(() => {
+      const iw = Number(originalWidth);
+      const ih = Number(originalHeight);
+      return (
+        showAnn &&
+        Number.isFinite(iw) &&
+        Number.isFinite(ih) &&
+        iw > 0 &&
+        ih > 0 &&
+        box.w > 0 &&
+        box.h > 0 &&
+        Number.isFinite(fit.scale) &&
+        fit.scale > 0
+      );
+    }, [showAnn, originalWidth, originalHeight, box.w, box.h, fit.scale]);
+
+
     const visibleAnnotations = useMemo(() => {
       if (!Array.isArray(annotations)) return [];
-      return annotations.filter((a) => a && !a.trivial && !a.isTrivial);
+
+      const isFiniteNum = (v) => Number.isFinite(Number(v));
+
+      return annotations
+        .filter((a) => a && !a.trivial && !a.isTrivial)
+        .filter((a) => {
+          const x = Number(a.x);
+          const y = Number(a.y);
+          const w = Number(a.width);
+          const h = Number(a.height);
+
+          if (![x, y, w, h].every(isFiniteNum)) return false;
+          if (w <= 0 || h <= 0) return false;
+
+          return true;
+        });
     }, [annotations]);
+
 
     const clampZoom = (z) => Math.max(minZoom, Math.min(maxZoom, z));
 
@@ -186,7 +219,7 @@ const InteractiveAnnotationOverlay = forwardRef(
             }}
           />
 
-          {showAnn && (
+          {canRenderAnnotations && (
             <div
               style={{
                 position: "absolute",
@@ -196,15 +229,20 @@ const InteractiveAnnotationOverlay = forwardRef(
               }}
             >
               {visibleAnnotations.map((a, idx) => {
-                const x0 = a.x;
-                const y0 = a.y;
-                const w0 = a.width;
-                const h0 = a.height;
+                const x0 = Number(a.x);
+                const y0 = Number(a.y);
+                const w0 = Number(a.width);
+                const h0 = Number(a.height);
+
 
                 const x = fit.offsetX + x0 * fit.scale;
                 const y = fit.offsetY + y0 * fit.scale;
                 const w = w0 * fit.scale;
                 const h = h0 * fit.scale;
+
+                if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+                  return null;
+                }
 
                 const theta = Number(a.theta || 0);
 
