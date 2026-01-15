@@ -45,6 +45,8 @@ const InteractiveAnnotationOverlay = forwardRef(
         ? showAnnotationsProp
         : internalShowAnn;
 
+    const hasRotation = !!rotationInfo;
+
     useEffect(() => {
       const el = containerRef.current;
       if (!el) return;
@@ -73,8 +75,12 @@ const InteractiveAnnotationOverlay = forwardRef(
     const fit = useMemo(() => {
       const cw = box.w;
       const ch = box.h;
-      const iw = Number(originalWidth) || 0;
-      const ih = Number(originalHeight) || 0;
+
+      const baseW = Number(originalWidth) || 0;
+      const baseH = Number(originalHeight) || 0;
+
+      const iw = hasRotation ? baseH : baseW;
+      const ih = hasRotation ? baseW : baseH;
 
       if (!cw || !ch || !iw || !ih) {
         return { scale: 1, offsetX: 0, offsetY: 0, renderW: cw, renderH: ch };
@@ -87,11 +93,15 @@ const InteractiveAnnotationOverlay = forwardRef(
       const offsetY = (ch - renderH) / 2;
 
       return { scale, offsetX, offsetY, renderW, renderH };
-    }, [box.w, box.h, originalWidth, originalHeight]);
+    }, [box.w, box.h, originalWidth, originalHeight, hasRotation]);
 
     const canRenderAnnotations = useMemo(() => {
-      const iw = Number(originalWidth);
-      const ih = Number(originalHeight);
+      const baseW = Number(originalWidth);
+      const baseH = Number(originalHeight);
+
+      const iw = hasRotation ? baseH : baseW;
+      const ih = hasRotation ? baseW : baseH;
+
       return (
         showAnn &&
         Number.isFinite(iw) &&
@@ -103,8 +113,15 @@ const InteractiveAnnotationOverlay = forwardRef(
         Number.isFinite(fit.scale) &&
         fit.scale > 0
       );
-    }, [showAnn, originalWidth, originalHeight, box.w, box.h, fit.scale]);
-
+    }, [
+      showAnn,
+      originalWidth,
+      originalHeight,
+      hasRotation,
+      box.w,
+      box.h,
+      fit.scale,
+    ]);
 
     const visibleAnnotations = useMemo(() => {
       if (!Array.isArray(annotations)) return [];
@@ -125,7 +142,6 @@ const InteractiveAnnotationOverlay = forwardRef(
           return true;
         });
     }, [annotations]);
-
 
     const clampZoom = (z) => Math.max(minZoom, Math.min(maxZoom, z));
 
@@ -229,18 +245,35 @@ const InteractiveAnnotationOverlay = forwardRef(
               }}
             >
               {visibleAnnotations.map((a, idx) => {
-                const x0 = Number(a.x);
-                const y0 = Number(a.y);
-                const w0 = Number(a.width);
-                const h0 = Number(a.height);
+                const baseW = Number(originalWidth) || 0;
+                const baseH = Number(originalHeight) || 0;
 
+                let x0 = Number(a.x);
+                let y0 = Number(a.y);
+                let w0 = Number(a.width);
+                let h0 = Number(a.height);
+
+                if (hasRotation && baseW > 0 && baseH > 0) {
+                  const adjW = baseH / baseW;
+                  const adjH = baseW / baseH;
+
+                  x0 = x0 / adjW;
+                  w0 = w0 / adjW;
+                  y0 = y0 / adjH;
+                  h0 = h0 / adjH;
+                }
 
                 const x = fit.offsetX + x0 * fit.scale;
                 const y = fit.offsetY + y0 * fit.scale;
                 const w = w0 * fit.scale;
                 const h = h0 * fit.scale;
 
-                if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+                if (
+                  !Number.isFinite(w) ||
+                  !Number.isFinite(h) ||
+                  w <= 0 ||
+                  h <= 0
+                ) {
                   return null;
                 }
 
@@ -249,7 +282,7 @@ const InteractiveAnnotationOverlay = forwardRef(
                 const key =
                   a.id ??
                   a.annotationId ??
-                  `${idx}-${x0}-${y0}-${w0}-${h0}`;
+                  `${idx}-${Number(a.x)}-${Number(a.y)}-${Number(a.width)}-${Number(a.height)}`;
 
                 return (
                   <div
@@ -276,4 +309,5 @@ const InteractiveAnnotationOverlay = forwardRef(
   },
 );
 
+InteractiveAnnotationOverlay.displayName = "InteractiveAnnotationOverlay";
 export default InteractiveAnnotationOverlay;

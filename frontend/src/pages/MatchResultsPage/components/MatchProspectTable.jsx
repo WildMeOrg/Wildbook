@@ -236,6 +236,7 @@ const MatchProspectTable = ({
     thisEncounterImageAsset?.height;
 
   const leftAnnotations = thisEncounterAnnotations;
+  const leftRotationInfo = thisEncounterImageAsset?.attributes?.rotationInfo;
 
   const rightOrigW =
     previewedRow?.annotation?.asset?.width ??
@@ -396,6 +397,7 @@ const MatchProspectTable = ({
                 originalHeight={leftOrigH}
                 annotations={leftAnnotations}
                 showAnnotations
+                rotationInfo={leftRotationInfo}
               />
             </div>
           </div>
@@ -524,6 +526,7 @@ const MatchProspectTable = ({
                   originalHeight={leftOrigH}
                   annotations={leftAnnotations}
                   showAnnotations
+                  rotationInfo={leftRotationInfo}
                 />
               </div>
             </div>
