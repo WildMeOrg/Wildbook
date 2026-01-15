@@ -2,12 +2,13 @@ import React, { useRef, useState } from "react";
 import { Row, Col, Form, Modal } from "react-bootstrap";
 import ZoomInIcon from "../icons/ZoomInIcon";
 import ZoomOutIcon from "../icons/ZoomOutIcon";
-import Icon4 from "../icons/Icon4";
-import Icon5 from "../icons/Icon5";
-import Icon7 from "../icons/Icon7";
+import HatchMarkIcon from "../icons/HatchMarkIcon";
+import ToggoleAnnotationIcon from "../icons/ToggoleAnnotationIcon";
+import FullScreenIcon from "../icons/FullScreenIcon";
 import InteractiveAnnotationOverlay from "../../../components/AnnotationOverlay";
 import { FormattedMessage, useIntl } from "react-intl";
 import InspectorModal from "./InspectorModal";
+import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -84,13 +85,7 @@ const styles = {
     width: "32px",
     height: "32px",
     borderRadius: "8px",
-    background: "white",
-    border: "1px solid #dee2e6",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     cursor: "pointer",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
   },
   matchListScrollContainer: {
     overflowX: "auto",
@@ -153,18 +148,6 @@ const styles = {
     zIndex: 80,
     display: "flex",
     gap: 8,
-  },
-  fullscreenIconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    background: "rgba(255,255,255,0.92)",
-    border: "1px solid rgba(0,0,0,0.10)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
   },
 };
 
@@ -453,26 +436,13 @@ const MatchProspectTable = ({
             >
               <ZoomOutIcon />
             </div>
-            {/* {previewedRow?.asset?.url && (
-              <div
-                style={styles.iconButton}
-                title="View Hotspotter Visualization"
-                onClick={() => {
-                  if (!previewedRow?.asset?.url) return;
-                  const url = previewedRow.asset.url;
-                  window.open(url, "_blank");
-                }}
-              >
-                <Icon4 />
-              </div>
-            )} */}
             {inspectorUrl && (
               <div
                 style={styles.iconButton}
                 title="View Hotspotter Visualization"
                 onClick={() => setInspectorOpen(true)}
               >
-                <Icon4 />
+                <HatchMarkIcon />
               </div>
             )}
 
@@ -481,7 +451,7 @@ const MatchProspectTable = ({
               title="View Annotations"
               onClick={() => rightOverlayRef.current?.toggleAnnotations?.()}
             >
-              <Icon5 />
+              <ToggoleAnnotationIcon />
             </div>
 
             <div
@@ -493,7 +463,7 @@ const MatchProspectTable = ({
                 openFullscreen();
               }}
             >
-              <Icon7 />
+              <FullScreenIcon />
             </div>
           </div>
         </Col>
@@ -550,67 +520,43 @@ const MatchProspectTable = ({
 
                 <div style={styles.fullscreenTopRight}>
                   <div
-                    style={styles.fullscreenIconBtn}
+                    style={styles.iconButton}
                     title="Zoom In"
                     onClick={() => fsRightRef.current?.zoomIn?.()}
                   >
                     <ZoomInIcon />
                   </div>
                   <div
-                    style={styles.fullscreenIconBtn}
+                    style={styles.iconButton}
                     title="Zoom Out"
                     onClick={() => fsRightRef.current?.zoomOut?.()}
                   >
                     <ZoomOutIcon />
                   </div>
-                  {/* {previewedRow?.asset?.url && (
-                    <div
-                      style={styles.fullscreenIconBtn}
-                      title="View Hotspotter Visualization"
-                      onClick={() => {
-                        if (!previewedRow?.asset?.url) return;
-                        const url = previewedRow.asset.url;
-                        window.open(url, "_blank");
-                      }}
-                    >
-                      <Icon4 />
-                    </div>
-                  )} */}
                   {inspectorUrl && (
                     <div
                       style={styles.iconButton}
                       title="View Hotspotter Visualization"
                       onClick={() => setInspectorOpen(true)}
                     >
-                      <Icon4 />
+                      <HatchMarkIcon />
                     </div>
                   )}
                   <div
-                    style={styles.fullscreenIconBtn}
+                    style={styles.iconButton}
                     title="View Annotations"
                     onClick={() => {
                       fsRightRef.current?.toggleAnnotations?.();
                     }}
                   >
-                    <Icon5 />
+                    <ToggoleAnnotationIcon />
                   </div>
                   <div
-                    style={styles.fullscreenIconBtn}
+                    style={styles.iconButton}
                     title="Exit fullscreen"
                     onClick={() => setFullscreenOpen(false)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                    >
-                      <path
-                        d="M1 11H3V13C3 13.55 3.45 14 4 14C4.55 14 5 13.55 5 13V10C5 9.45 4.55 9 4 9H1C0.45 9 0 9.45 0 10C0 10.55 0.45 11 1 11ZM3 3H1C0.45 3 0 3.45 0 4C0 4.55 0.45 5 1 5H4C4.55 5 5 4.55 5 4V1C5 0.45 4.55 0 4 0C3.45 0 3 0.45 3 1V3ZM10 14C10.55 14 11 13.55 11 13V11H13C13.55 11 14 10.55 14 10C14 9.45 13.55 9 13 9H10C9.45 9 9 9.45 9 10V13C9 13.55 9.45 14 10 14ZM11 3V1C11 0.45 10.55 0 10 0C9.45 0 9 0.45 9 1V4C9 4.55 9.45 5 10 5H13C13.55 5 14 4.55 14 4C14 3.45 13.55 3 13 3H11Z"
-                        fill="#00ACCE"
-                      />
-                    </svg>
+                    <ExitFullScreenIcon />
                   </div>
                 </div>
                 <InteractiveAnnotationOverlay
