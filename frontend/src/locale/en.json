@@ -702,5 +702,15 @@
     "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project.",
     "INVALID_DATE": "Invalid date",
     "INVALID_LAT_LON": "Please enter a valid latitude and longitude",
-    "INVALID_MEASUREMENTS": "Please enter valid values"
+    "INVALID_MEASUREMENTS": "Please enter valid values",
+    "MATCH_RESULT": "Match Result",
+    "INDIVIDUAL_SCORE": "Individual Score",
+    "IMAGE_SCORE": "Image Score",
+    "NUMBER_OF_RESULTS": "Number of results",
+    "SELECT_A_PROJECT": "select a project",
+    "MATCHED_BASED_ON": "Matched based on ",
+    "POSSIBLE_MATCH": "Possible Match",
+    "AGAINST": "Against",
+    "CANDIDATES": "candidates",
+    "MATCHING_PAGE_INSTRUCTIONS": "Matching Page Instructions"
 }

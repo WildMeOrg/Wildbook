@@ -1,0 +1,313 @@
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+const InteractiveAnnotationOverlay = forwardRef(
+  (
+    {
+      imageUrl,
+      annotations = [],
+      originalWidth,
+      originalHeight,
+      rotationInfo = null,
+      initialZoom = 1,
+      minZoom = 0.5,
+      maxZoom = 3,
+      zoomStep = 0.25,
+      showAnnotations: showAnnotationsProp,
+      strokeColor = "red",
+      lineWidth = 2,
+      containerStyle = {},
+      imageStyle = {},
+      overlayStyle = {},
+      alt = "Image with annotations",
+    },
+    ref,
+  ) => {
+    const containerRef = useRef(null);
+    const [box, setBox] = useState({ w: 0, h: 0 });
+    const [zoom, setZoom] = useState(
+      Number.isFinite(initialZoom) ? initialZoom : 1,
+    );
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [dragging, setDragging] = useState(false);
+    const dragStartRef = useRef({ x: 0, y: 0 });
+    const panStartRef = useRef({ x: 0, y: 0 });
+
+    const [internalShowAnn, setInternalShowAnn] = useState(true);
+    const showAnn =
+      typeof showAnnotationsProp === "boolean"
+        ? showAnnotationsProp
+        : internalShowAnn;
+
+    const hasRotation = !!rotationInfo;
+
+    useEffect(() => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      const update = () => {
+        const r = el.getBoundingClientRect();
+        setBox({ w: r.width, h: r.height });
+      };
+
+      update();
+
+      let ro;
+      if (typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver(update);
+        ro.observe(el);
+      } else {
+        window.addEventListener("resize", update);
+      }
+
+      return () => {
+        if (ro) ro.disconnect();
+        window.removeEventListener("resize", update);
+      };
+    }, []);
+
+    const fit = useMemo(() => {
+      const cw = box.w;
+      const ch = box.h;
+
+      const baseW = Number(originalWidth) || 0;
+      const baseH = Number(originalHeight) || 0;
+
+      const iw = hasRotation ? baseH : baseW;
+      const ih = hasRotation ? baseW : baseH;
+
+      if (!cw || !ch || !iw || !ih) {
+        return { scale: 1, offsetX: 0, offsetY: 0, renderW: cw, renderH: ch };
+      }
+
+      const scale = Math.min(cw / iw, ch / ih);
+      const renderW = iw * scale;
+      const renderH = ih * scale;
+      const offsetX = (cw - renderW) / 2;
+      const offsetY = (ch - renderH) / 2;
+
+      return { scale, offsetX, offsetY, renderW, renderH };
+    }, [box.w, box.h, originalWidth, originalHeight, hasRotation]);
+
+    const canRenderAnnotations = useMemo(() => {
+      const baseW = Number(originalWidth);
+      const baseH = Number(originalHeight);
+
+      const iw = hasRotation ? baseH : baseW;
+      const ih = hasRotation ? baseW : baseH;
+
+      return (
+        showAnn &&
+        Number.isFinite(iw) &&
+        Number.isFinite(ih) &&
+        iw > 0 &&
+        ih > 0 &&
+        box.w > 0 &&
+        box.h > 0 &&
+        Number.isFinite(fit.scale) &&
+        fit.scale > 0
+      );
+    }, [
+      showAnn,
+      originalWidth,
+      originalHeight,
+      hasRotation,
+      box.w,
+      box.h,
+      fit.scale,
+    ]);
+
+    const visibleAnnotations = useMemo(() => {
+      if (!Array.isArray(annotations)) return [];
+
+      const isFiniteNum = (v) => Number.isFinite(Number(v));
+
+      return annotations
+        .filter((a) => a && !a.trivial && !a.isTrivial)
+        .filter((a) => {
+          const x = Number(a.x);
+          const y = Number(a.y);
+          const w = Number(a.width);
+          const h = Number(a.height);
+
+          if (![x, y, w, h].every(isFiniteNum)) return false;
+          if (w <= 0 || h <= 0) return false;
+
+          return true;
+        });
+    }, [annotations]);
+
+    const clampZoom = (z) => Math.max(minZoom, Math.min(maxZoom, z));
+
+    const zoomIn = () => setZoom((z) => clampZoom(z + zoomStep));
+    const zoomOut = () => setZoom((z) => clampZoom(z - zoomStep));
+    const reset = () => {
+      setZoom(clampZoom(initialZoom || 1));
+      setPan({ x: 0, y: 0 });
+    };
+    const toggleAnnotations = () => {
+      if (typeof showAnnotationsProp === "boolean") return;
+      setInternalShowAnn((v) => !v);
+    };
+    const setAnnotationsVisible = (v) => {
+      if (typeof showAnnotationsProp === "boolean") return;
+      setInternalShowAnn(!!v);
+    };
+
+    useImperativeHandle(ref, () => ({
+      zoomIn,
+      zoomOut,
+      reset,
+      toggleAnnotations,
+      setAnnotationsVisible,
+      getState: () => ({ zoom, pan, showAnn }),
+    }));
+
+    const onMouseDown = (e) => {
+      setDragging(true);
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+      panStartRef.current = { ...pan };
+    };
+
+    useEffect(() => {
+      if (!dragging) return;
+
+      const onMove = (e) => {
+        const dx = e.clientX - dragStartRef.current.x;
+        const dy = e.clientY - dragStartRef.current.y;
+        setPan({
+          x: panStartRef.current.x + dx,
+          y: panStartRef.current.y + dy,
+        });
+      };
+
+      const onUp = () => setDragging(false);
+
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      return () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+    }, [dragging, pan]);
+
+    const panZoomTransform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+
+    return (
+      <div
+        ref={containerRef}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+          cursor: dragging ? "grabbing" : "grab",
+          ...containerStyle,
+        }}
+        onMouseDown={onMouseDown}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            transform: panZoomTransform,
+            transformOrigin: "center center",
+            transition: dragging ? "none" : "transform 0.15s ease",
+          }}
+        >
+          <img
+            src={imageUrl || ""}
+            alt={alt}
+            draggable={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "block",
+              objectFit: "contain",
+              userSelect: "none",
+              ...imageStyle,
+            }}
+          />
+
+          {canRenderAnnotations && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                ...overlayStyle,
+              }}
+            >
+              {visibleAnnotations.map((a, idx) => {
+                const baseW = Number(originalWidth) || 0;
+                const baseH = Number(originalHeight) || 0;
+
+                let x0 = Number(a.x);
+                let y0 = Number(a.y);
+                let w0 = Number(a.width);
+                let h0 = Number(a.height);
+
+                if (hasRotation && baseW > 0 && baseH > 0) {
+                  const adjW = baseH / baseW;
+                  const adjH = baseW / baseH;
+
+                  x0 = x0 / adjW;
+                  w0 = w0 / adjW;
+                  y0 = y0 / adjH;
+                  h0 = h0 / adjH;
+                }
+
+                const x = fit.offsetX + x0 * fit.scale;
+                const y = fit.offsetY + y0 * fit.scale;
+                const w = w0 * fit.scale;
+                const h = h0 * fit.scale;
+
+                if (
+                  !Number.isFinite(w) ||
+                  !Number.isFinite(h) ||
+                  w <= 0 ||
+                  h <= 0
+                ) {
+                  return null;
+                }
+
+                const theta = Number(a.theta || 0);
+
+                const key =
+                  a.id ??
+                  a.annotationId ??
+                  `${idx}-${Number(a.x)}-${Number(a.y)}-${Number(a.width)}-${Number(a.height)}`;
+
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      position: "absolute",
+                      left: x,
+                      top: y,
+                      width: w,
+                      height: h,
+                      border: `${lineWidth}px solid ${strokeColor}`,
+                      boxSizing: "border-box",
+                      transform: theta ? `rotate(${theta}rad)` : undefined,
+                      transformOrigin: "center",
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  },
+);
+
+InteractiveAnnotationOverlay.displayName = "InteractiveAnnotationOverlay";
+export default InteractiveAnnotationOverlay;
