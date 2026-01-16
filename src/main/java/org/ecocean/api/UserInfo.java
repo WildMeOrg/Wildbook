@@ -56,10 +56,11 @@ public class UserInfo extends ApiBase {
             myShepherd.closeDBTransaction();
             return;
         }
+        boolean hideEmail = !currentUser.isAdmin(myShepherd);
         JSONObject results = null;
         String arg = request.getPathInfo();
         if ((arg == null) || arg.equals("/")) { // current user (no guid)
-            results = currentUser.infoJSONObject(myShepherd, true);
+            results = currentUser.infoJSONObject(myShepherd, true, false);
         } else {
             User otherUser = myShepherd.getUserByUUID(arg.substring(1));
             if (otherUser == null) {
@@ -70,9 +71,9 @@ public class UserInfo extends ApiBase {
                 myShepherd.closeDBTransaction();
                 return;
             } else if (otherUser.getId().equals(currentUser.getId())) {
-                results = currentUser.infoJSONObject(myShepherd, true);
+                results = currentUser.infoJSONObject(myShepherd, true, false);
             } else {
-                results = otherUser.infoJSONObject(myShepherd, false);
+                results = otherUser.infoJSONObject(myShepherd, false, hideEmail);
             }
         }
         myShepherd.rollbackDBTransaction();

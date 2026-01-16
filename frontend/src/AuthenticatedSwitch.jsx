@@ -23,9 +23,12 @@ const ReportConfirm = lazy(
 );
 const ProjectList = lazy(() => import("./pages/ProjectList"));
 const ManualAnnotation = lazy(() => import("./pages/ManualAnnotation"));
+const EditAnnotation = lazy(() => import("./pages/EditAnnotation"));
 
 const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
+
+const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
@@ -75,9 +78,12 @@ export default function AuthenticatedSwitch({
             <Route path="/home" element={<Home />} />
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
+            <Route path="/encounter" element={<Encounter />} />
+
             <Route path="/encounter-search" element={<EncounterSearch />} />
             <Route path="/admin/logs" element={<AdminLogs />} />
             <Route path="/manual-annotation" element={<ManualAnnotation />} />
+            <Route path="/edit-annotation" element={<EditAnnotation />} />
             <Route path="/bulk-import" element={<BulkImport />} />
             <Route path="/bulk-import-task" element={<BulkImportTask />} />
             <Route path="/login" element={<Login />} />
