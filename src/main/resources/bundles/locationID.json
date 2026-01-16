@@ -472,7 +472,12 @@
         {"name": "Mar de Grau", "id": "Mar de Grau", "locationID":[]},
         {"name": "Molucca Sea", "id": "Molucca Sea", "locationID":[]},
         {"name": "Philippine Sea", "id": "Philippine Sea", "locationID":[]},
-        {"name": "Philippines", "id": "Philippines", "locationID":[]},
+        {"name": "Philippines", "id": "Philippines", "locationID":[
+          {"name":"Honday Bay", "id": "Honday Bay", "prefix": "HB", "prefixDigitPadding": 4, "locationID":[]},
+          {"name": "Malampaya Sound", "id": "Malampaya Sound", "prefix": "MS", "prefixDigitPadding": 4, "locationID": []},
+          {"name": "Negros Occidental", "id": "Negros Occidental", "prefix": "NO", "prefixDigitPadding": 4, "locationID": []},
+          {"name": "Quezon-Rizal", "id": "Quezon-Rizal", "prefix": "QR", "prefixDigitPadding": 4, "locationID":[]}
+		]},
         {"name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
           {"name": "Gulf of Alaska", "id": "Gulf of Alaska", "locationID":[
             {"name": "Cook Inlet", "id": "Cook Inlet", "locationID":[] }
