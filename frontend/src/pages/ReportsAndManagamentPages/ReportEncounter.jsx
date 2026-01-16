@@ -186,30 +186,51 @@ const ReportEncounter = observer(() => {
   useEffect(() => {
     if (store.isHumanLocal) return;
 
+    let cancelled = false;
     let isCaptchaRendered = false;
+
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    const getRender = () => {
+      return (
+        window?.procaptcha?.render ||
+        window?.Procaptcha?.render ||
+        window?.prosopo?.render
+      );
+    };
+
+    const waitForRender = async () => {
+      for (let i = 0; i < 200; i++) {
+        if (cancelled) return null;
+        const render = getRender();
+        if (typeof render === "function") return render;
+        await sleep(50);
+      }
+      return null;
+    };
+
     const loadProCaptcha = async () => {
       if (isCaptchaRendered || !captchaRef.current) return;
-      const { render } = await import(
-        "https://js.prosopo.io/js/procaptcha.bundle.js"
-      );
-      if (procaptchaSiteKey) {
-        render(captchaRef.current, {
-          siteKey: procaptchaSiteKey,
-          callback: onCaptchaVerified,
-        });
-        isCaptchaRendered = true;
-      }
+      if (!procaptchaSiteKey) return;
+
+      const render = await waitForRender();
+      if (cancelled || typeof render !== "function") return;
+
+      render(captchaRef.current, {
+        siteKey: procaptchaSiteKey,
+        callback: onCaptchaVerified,
+      });
+      isCaptchaRendered = true;
     };
 
     loadProCaptcha();
 
     return () => {
-      if (captchaRef.current) {
-        captchaRef.current.innerHTML = "";
-      }
+      cancelled = true;
+      if (captchaRef.current) captchaRef.current.innerHTML = "";
       isCaptchaRendered = false;
     };
-  }, [procaptchaSiteKey]);
+  }, [procaptchaSiteKey, store.isHumanLocal]);
 
   const onCaptchaVerified = async (output) => {
     const payload = { procaptchaValue: output };
