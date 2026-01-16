@@ -394,6 +394,13 @@ public class Annotation extends Base implements java.io.Serializable {
         return enc.getTaxonomy(myShepherd);
     }
 
+    public String getTaxonomyString(Shepherd myShepherd) {
+        Encounter enc = findEncounter(myShepherd);
+
+        if (enc == null) return null;
+        return enc.getTaxonomyString();
+    }
+
     public boolean isTrivial() {
         MediaAsset ma = this.getMediaAsset();
 
