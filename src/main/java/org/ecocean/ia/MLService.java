@@ -58,8 +58,9 @@ public class MLService {
     throws IAException {
         IAJsonProperties iac = getIAConfig();
 
-        if (iac == null) return null;
-        if (passedTxStr == null) return null;
+        if (iac == null) throw new IAException("MLService.getConfigs() iac configuration problem");
+        if (passedTxStr == null)
+            throw new IAException("MLService.getConfigs() null passed taxonomy");
         String taxonomyString = passedTxStr.replaceAll(" ", "."); // need dots, not spaces
         Object mlc = iac.get(taxonomyString + "._mlservice_conf");
         if (mlc == null)
