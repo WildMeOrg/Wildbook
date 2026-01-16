@@ -444,9 +444,6 @@ import static org.mockito.Mockito.when;
     }
 
     private void assertCsvFilesEqual(List<String[]> actualRows, List<String[]> expectedRows) {
-        // Compare row count
-        assertEquals(expectedRows.size(), actualRows.size(),
-            "CSV should have same number of rows as expected");
         // Compare each row and cell
         for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
             String[] actualRow = actualRows.get(rowIndex);
@@ -492,6 +489,11 @@ import static org.mockito.Mockito.when;
             assertEquals(expectedRow.length, actualRow.length,
                 "Row " + rowIndex + " should have " + expectedRow.length + " cells");
         }
+
+        // Compare row count
+        assertEquals(expectedRows.size(), actualRows.size(),
+                "CSV should have same number of rows as expected");
+
         System.out.println("CSV metadata validation passed - all cells match expected CSV");
     }
 
@@ -539,6 +541,7 @@ import static org.mockito.Mockito.when;
         // Parse the ZIP file and verify its structure
         Set<String> zipEntries = new HashSet<>();
         byte[] metadataCsvBytes = null;
+        byte[] hiddenDataCsvBytes = null;
         int croppedImageCount = 0;
 
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
@@ -555,6 +558,17 @@ import static org.mockito.Mockito.when;
                         baos.write(buffer, 0, len);
                     }
                     metadataCsvBytes = baos.toByteArray();
+                }
+
+                // Extract hidden_data.csv for validation
+                if (entry.getName().equals("hidden_data.csv")){
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ( (len = zis.read(buffer)) > 0){
+                        baos.write(buffer, 0, len);
+                    }
+                    hiddenDataCsvBytes = baos.toByteArray();
                 }
                 // Validate cropped image dimensions
                 if (entry.getName().startsWith("images/") && entry.getName().endsWith(".jpg")) {
@@ -581,7 +595,10 @@ import static org.mockito.Mockito.when;
 
         // Should contain metadata file (if includeMetadata: true)
         assertTrue(zipEntries.stream().anyMatch(e -> e.equals("metadata.csv")),
-            "ZIP should contain metadata.csv");
+                "ZIP should contain metadata.csv");
+
+        assertTrue(zipEntries.stream().anyMatch(e -> e.equals("hidden_data.csv")),
+            "ZIP should contain hidden_data.csv");
 
         // Should contain images directory
         assertTrue(zipEntries.stream().anyMatch(e -> e.startsWith("images/")),

@@ -5,9 +5,8 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 
-import jxl.write.*;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.ecocean.*;
 import org.ecocean.media.*;
 import org.ecocean.security.*;
@@ -20,13 +19,6 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
     // The goal of this class is to make it so we can define a column in one place
     // and each row of the export be generated automatically from the list of
     // ExportColumns
-
-    // this would be a static method of above subclass if java allowed that
-    public static ExportColumn newEasyColumn(String classDotFieldNameHeader,
-        List<ExportColumn> columns)
-    throws ClassNotFoundException, NoSuchMethodException {
-        return ExportColumn.newEasyColumn(classDotFieldNameHeader, columns);
-    }
 
     private static final int BYTES_DOWNLOAD = 1024;
 
@@ -109,7 +101,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         Vector rEncounters = new Vector();
 
         // set up the files
-        String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xls";
+        String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".csv";
         // setup data dir
         String rootWebappPath = getServletContext().getRealPath("/");
         File webappsDir = new File(rootWebappPath).getParentFile();
@@ -122,7 +114,9 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         File excelFile = new File(encountersDir.getAbsolutePath() + "/" + filename);
         myShepherd.beginDBTransaction();
 
-        try {
+        try (FileOutputStream fs = new FileOutputStream(excelFile);
+        OutputStreamWriter sw = new OutputStreamWriter(fs);
+        CSVPrinter sheet = new CSVPrinter(sw, CSVFormat.EXCEL)) {
             EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd,
                 request, "year descending, month descending, day descending");
             rEncounters = queryResult.getResult();
@@ -137,69 +131,66 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             // so we know how many name columns we need
 
             // business logic start here
-            WorkbookSettings ws = new WorkbookSettings();
-            ws.setEncoding("UTF-8");
-            WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile, ws);
-            WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
             List<ExportColumn> columns = new ArrayList<ExportColumn>();
-            newEasyColumn("Encounter.catalogNumber", columns); // adds Encounter.catalogNumber to columns
+            // adds Encounter.catalogNumber to columns
+            ExportColumn.newEasyColumn("Encounter.catalogNumber", columns);
             // newEasyColumn("Encounter.individualID", columns);
             // newEasyColumn("Encounter.alternateID", columns);
             MultiValueExportColumn.addNameColumns(numNameCols, columns);
-            newEasyColumn("Occurrence.occurrenceID", columns);
-            newEasyColumn("Occurrence.sightingPlatform", columns);
-            newEasyColumn("Occurrence.fieldSurveyCode", columns);
-            newEasyColumn("Encounter.decimalLatitude", columns);
-            newEasyColumn("Encounter.decimalLongitude", columns);
-            newEasyColumn("Encounter.locationID", columns);
-            newEasyColumn("Encounter.verbatimLocality", columns);
-            newEasyColumn("Encounter.country", columns);
+            ExportColumn.newEasyColumn("Occurrence.occurrenceID", columns);
+            ExportColumn.newEasyColumn("Occurrence.sightingPlatform", columns);
+            ExportColumn.newEasyColumn("Occurrence.fieldSurveyCode", columns);
+            ExportColumn.newEasyColumn("Encounter.decimalLatitude", columns);
+            ExportColumn.newEasyColumn("Encounter.decimalLongitude", columns);
+            ExportColumn.newEasyColumn("Encounter.locationID", columns);
+            ExportColumn.newEasyColumn("Encounter.verbatimLocality", columns);
+            ExportColumn.newEasyColumn("Encounter.country", columns);
 
             Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a
                                                                                          // NPE
             ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth",
                 encDepthGetter, columns);
 
-            newEasyColumn("Encounter.dateInMilliseconds", columns);
-            newEasyColumn("Encounter.year", columns);
-            newEasyColumn("Encounter.month", columns);
-            newEasyColumn("Encounter.day", columns);
-            newEasyColumn("Encounter.hour", columns);
-            newEasyColumn("Encounter.minutes", columns);
-            newEasyColumn("Encounter.submitterOrganization", columns);
-            newEasyColumn("Encounter.submitterID", columns);
-            newEasyColumn("Encounter.recordedBy", columns);
-            newEasyColumn("Occurrence.groupComposition", columns);
-            newEasyColumn("Occurrence.groupBehavior", columns);
-            newEasyColumn("Occurrence.minGroupSizeEstimate", columns);
-            newEasyColumn("Occurrence.bestGroupSizeEstimate", columns);
-            newEasyColumn("Occurrence.maxGroupSizeEstimate", columns);
-            newEasyColumn("Occurrence.numAdults", columns);
-            newEasyColumn("Occurrence.numJuveniles", columns);
-            newEasyColumn("Occurrence.numCalves", columns);
-            newEasyColumn("Occurrence.initialCue", columns);
-            newEasyColumn("Occurrence.seaState", columns);
-            newEasyColumn("Occurrence.seaSurfaceTemp", columns);
-            newEasyColumn("Occurrence.swellHeight", columns);
-            newEasyColumn("Occurrence.visibilityIndex", columns);
-            newEasyColumn("Occurrence.effortCode", columns);
-            newEasyColumn("Occurrence.observer", columns);
-            newEasyColumn("Occurrence.transectName", columns);
-            newEasyColumn("Occurrence.transectBearing", columns);
-            newEasyColumn("Occurrence.distance", columns);
-            newEasyColumn("Occurrence.bearing", columns);
-            newEasyColumn("Occurrence.comments", columns);
-            newEasyColumn("Occurrence.humanActivityNearby", columns);
-            newEasyColumn("Encounter.patterningCode", columns);
-            newEasyColumn("Encounter.flukeType", columns);
-            newEasyColumn("Encounter.behavior", columns);
-            newEasyColumn("Encounter.groupRole", columns);
-            newEasyColumn("Encounter.sex", columns);
-            newEasyColumn("Encounter.lifeStage", columns);
-            newEasyColumn("Encounter.genus", columns);
-            newEasyColumn("Encounter.specificEpithet", columns);
-            newEasyColumn("Encounter.otherCatalogNumbers", columns);
-            newEasyColumn("Encounter.occurrenceRemarks", columns);
+            ExportColumn.newEasyColumn("Encounter.dateInMilliseconds", columns);
+            ExportColumn.newEasyColumn("Encounter.year", columns);
+            ExportColumn.newEasyColumn("Encounter.month", columns);
+            ExportColumn.newEasyColumn("Encounter.day", columns);
+            ExportColumn.newEasyColumn("Encounter.hour", columns);
+            ExportColumn.newEasyColumn("Encounter.minutes", columns);
+            ExportColumn.newEasyColumn("Encounter.submitterOrganization", columns);
+            ExportColumn.newEasyColumn("Encounter.submitterID", columns);
+            ExportColumn.newEasyColumn("Encounter.recordedBy", columns);
+            ExportColumn.newEasyColumn("Occurrence.groupComposition", columns);
+            ExportColumn.newEasyColumn("Occurrence.groupBehavior", columns);
+            ExportColumn.newEasyColumn("Occurrence.minGroupSizeEstimate", columns);
+            ExportColumn.newEasyColumn("Occurrence.bestGroupSizeEstimate", columns);
+            ExportColumn.newEasyColumn("Occurrence.maxGroupSizeEstimate", columns);
+            ExportColumn.newEasyColumn("Occurrence.numAdults", columns);
+            ExportColumn.newEasyColumn("Occurrence.numJuveniles", columns);
+            ExportColumn.newEasyColumn("Occurrence.numCalves", columns);
+            ExportColumn.newEasyColumn("Occurrence.initialCue", columns);
+            ExportColumn.newEasyColumn("Occurrence.seaState", columns);
+            ExportColumn.newEasyColumn("Occurrence.seaSurfaceTemp", columns);
+            ExportColumn.newEasyColumn("Occurrence.swellHeight", columns);
+            ExportColumn.newEasyColumn("Occurrence.visibilityIndex", columns);
+            ExportColumn.newEasyColumn("Occurrence.effortCode", columns);
+            ExportColumn.newEasyColumn("Occurrence.observer", columns);
+            ExportColumn.newEasyColumn("Occurrence.transectName", columns);
+            ExportColumn.newEasyColumn("Occurrence.transectBearing", columns);
+            ExportColumn.newEasyColumn("Occurrence.distance", columns);
+            ExportColumn.newEasyColumn("Occurrence.bearing", columns);
+            ExportColumn.newEasyColumn("Occurrence.comments", columns);
+            ExportColumn.newEasyColumn("Occurrence.humanActivityNearby", columns);
+            ExportColumn.newEasyColumn("Encounter.patterningCode", columns);
+            ExportColumn.newEasyColumn("Encounter.flukeType", columns);
+            ExportColumn.newEasyColumn("Encounter.behavior", columns);
+            ExportColumn.newEasyColumn("Encounter.groupRole", columns);
+            ExportColumn.newEasyColumn("Encounter.sex", columns);
+            ExportColumn.newEasyColumn("Encounter.lifeStage", columns);
+            ExportColumn.newEasyColumn("Encounter.genus", columns);
+            ExportColumn.newEasyColumn("Encounter.specificEpithet", columns);
+            ExportColumn.newEasyColumn("Encounter.otherCatalogNumbers", columns);
+            ExportColumn.newEasyColumn("Encounter.occurrenceRemarks", columns);
 
             Method maGetFilename = MediaAsset.class.getMethod("getUserFilename", null);
             Method maLocalPath = MediaAsset.class.getMethod("localPath", null);
@@ -354,11 +345,6 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                 }
             } // end for loop iterating encounters
 
-            // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
-            hiddenData.writeHiddenDataReport(excelWorkbook);
-
-            excelWorkbook.write();
-            excelWorkbook.close();
             // end Excel export and business logic ===============================================
             System.out.println("Done with EncounterSearchExportMetadataExcel. We hid " +
                 hiddenData.size() + " encounters.");
@@ -377,7 +363,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         myShepherd.closeDBTransaction();
 
         // now write out the file
-        response.setContentType("application/msexcel");
+        response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment;filename=" + filename);
         InputStream is = new FileInputStream(excelFile);
         int read = 0;
