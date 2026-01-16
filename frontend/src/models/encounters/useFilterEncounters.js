@@ -1,6 +1,6 @@
 import { get, partition } from "lodash-es";
-import useFetch from "../../hooks/useFetch";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
+import useFetch from "../../hooks/useFetch";
 
 function buildQuery(queries) {
   const mustNotQueries = queries.filter((q) => q.clause === "must_not");

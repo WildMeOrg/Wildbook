@@ -79,8 +79,6 @@ const authenticatedMenu = (
         ),
         href: "/photographing.jsp",
       },
-      // { name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
-      // { name: <FormattedMessage id="MENU_LEARN_TERMSOFUSE" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
     ],
   },
 
@@ -224,21 +222,12 @@ const authenticatedMenu = (
             defaultMessage="Animal Calendar"
           />
         ),
-        href: "/xcalendar/calendar.jsp",
+        href: "/react/encounter-search?calendar=true",
       },
     ],
   },
   {
     Administer: [
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_ADMINISTER_MANAGEACCOUNTS"
-            defaultMessage="Manage My Accounts"
-          />
-        ),
-        href: "/myUsers.jsp",
-      },
       {
         name: (
           <FormattedMessage
@@ -368,24 +357,6 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
         ),
         href: "/photographing.jsp",
       },
-      //   {
-      //     name: (
-      //       <FormattedMessage
-      //         id="MENU_LEARN_PRIVACYPOLICY"
-      //         defaultMessage="Privacy Policy"
-      //       />
-      //     ),
-      //     href: "/privacy-policy.jsp",
-      //   },
-      //   {
-      //     name: (
-      //       <FormattedMessage
-      //         id="MENU_LEARN_TERMSOFUSE"
-      //         defaultMessage="Terms of Use"
-      //       />
-      //     ),
-      //     href: "/terms-of-use.jsp",
-      //   },
     ],
   },
 
@@ -407,7 +378,7 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
             defaultMessage="Animal Calendar"
           />
         ),
-        href: "/xcalendar/calendar.jsp",
+        href: "/react/encounter-search?calendar=true",
       },
     ],
   },
