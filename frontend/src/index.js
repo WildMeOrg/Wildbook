@@ -1,36 +1,44 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import reportWebVitals from "./reportWebVitals";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
-if('serviceWorker' in navigator) {
-  console.log('Service worker supported');
-  navigator.serviceWorker.register(`${process.env.PUBLIC_URL}/service-worker.js`)
-  .then(reg => {
-    console.log('Service worker registered', reg);
-  })
-  .catch(err => {
-    console.log('Service worker not registered', err);
+// Service worker registration with auto-update on new versions
+// When a new version is detected, it will automatically reload the page
+
+let reloaded = false;
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloaded) return;
+    reloaded = true;
+    if (window.__WB_SW_RELOADED__) return;
+    window.__WB_SW_RELOADED__ = true;
+    window.location.reload();
   });
-}else {
-  console.log('Service worker not supported');
 }
 
-
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.register();
+serviceWorkerRegistration.register({
+  onUpdate: (registration) => {
+    console.log("New Wildbook version available!");
+    // Skip waiting and take control immediately
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+  },
+  onSuccess: () => {
+    console.log("Wildbook is ready for offline use.");
+  },
+});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
