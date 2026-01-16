@@ -1,31 +1,42 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import reportWebVitals from "./reportWebVitals";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 // Service worker registration with auto-update on new versions
 // When a new version is detected, it will automatically reload the page
+
+let reloaded = false;
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloaded) return;
+    reloaded = true;
+    if (window.__WB_SW_RELOADED__) return;
+    window.__WB_SW_RELOADED__ = true;
+    window.location.reload();
+  });
+}
+
 serviceWorkerRegistration.register({
   onUpdate: (registration) => {
-    console.log('New Wildbook version available!');
+    console.log("New Wildbook version available!");
     // Skip waiting and take control immediately
     if (registration.waiting) {
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
     }
-    // Reload the page to get the new version
-    window.location.reload();
   },
   onSuccess: () => {
-    console.log('Wildbook is ready for offline use.');
+    console.log("Wildbook is ready for offline use.");
   },
 });
 
