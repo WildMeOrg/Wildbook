@@ -12,25 +12,22 @@ root.render(
   </React.StrictMode>
 );
 
-if('serviceWorker' in navigator) {
-  console.log('Service worker supported');
-  navigator.serviceWorker.register(`${process.env.PUBLIC_URL}/service-worker.js`)
-  .then(reg => {
-    console.log('Service worker registered', reg);
-  })
-  .catch(err => {
-    console.log('Service worker not registered', err);
-  });
-}else {
-  console.log('Service worker not supported');
-}
-
-
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.register();
+// Service worker registration with auto-update on new versions
+// When a new version is detected, it will automatically reload the page
+serviceWorkerRegistration.register({
+  onUpdate: (registration) => {
+    console.log('New Wildbook version available!');
+    // Skip waiting and take control immediately
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    // Reload the page to get the new version
+    window.location.reload();
+  },
+  onSuccess: () => {
+    console.log('Wildbook is ready for offline use.');
+  },
+});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
