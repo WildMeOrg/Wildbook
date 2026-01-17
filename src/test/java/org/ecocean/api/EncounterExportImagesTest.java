@@ -24,11 +24,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -394,18 +389,19 @@ import static org.mockito.Mockito.when;
             }
 
             // validate file contents against expected CSV
-            File excelFile = outputFilePath.toFile();
-            assertTrue(excelFile.exists(), "Excel file should exist");
-            assertTrue(excelFile.length() > 0, "Excel file should not be empty");
+            File csvFile = outputFilePath.toFile();
+            assertTrue(csvFile.exists(), "CSV file should exist");
+            assertTrue(csvFile.length() > 0, "CSV file should not be empty");
 
             // Load expected CSV data
             File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
             List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
 
-            // Load actual Excel data
-            try (FileInputStream fis = new FileInputStream(excelFile)) {
-                assertExcelFileEquals(fis, expectedRows);
-            }
+            // Load actual CSV data
+            List<String[]> actualRows = loadExpectedCsv(csvFile);
+
+            // Compare CSV files
+            assertCsvFilesEqual(actualRows, expectedRows);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
@@ -447,66 +443,56 @@ import static org.mockito.Mockito.when;
         return expectedRows;
     }
 
-    private void assertExcelFileEquals(InputStream fis, List<String[]> expectedRows)
-    throws IOException {
-        try (Workbook workbook = new XSSFWorkbook(fis)) {
-            Sheet sheet = workbook.getSheet("Search Results");
-            assertNotNull(sheet, "Excel should contain 'Search Results' sheet");
+    private void assertCsvFilesEqual(List<String[]> actualRows, List<String[]> expectedRows) {
+        // Compare row count
+        assertEquals(expectedRows.size(), actualRows.size(),
+            "CSV should have same number of rows as expected");
+        // Compare each row and cell
+        for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
+            String[] actualRow = actualRows.get(rowIndex);
+            String[] expectedRow = expectedRows.get(rowIndex);
 
-            // Compare row count
-            int actualRowCount = sheet.getLastRowNum() + 1;
-            assertEquals(expectedRows.size(), actualRowCount,
-                "Excel should have same number of rows as expected CSV");
-            // Compare each row and cell
-            for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
-                Row actualRow = sheet.getRow(rowIndex);
-                String[] expectedRow = expectedRows.get(rowIndex);
-
-                assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
-                int actualCellCount = actualRow.getLastCellNum();
-                // Compare each cell
-                for (int cellIndex = 0; cellIndex < Math.min(expectedRow.length, actualCellCount);
-                    cellIndex++) {
-                    Cell actualCell = actualRow.getCell(cellIndex);
-                    String expectedValue = expectedRow[cellIndex];
-                    String actualValue = getCellValueAsString(actualCell);
-                    // Skip comparison for dynamic fields like Occurrence.occurrenceID and Encounter.sourceUrl
-                    if (rowIndex == 0) {
-                        // Header row - exact match required
-                        assertEquals(expectedValue, actualValue,
-                            "Header cell [" + rowIndex + "," + cellIndex + "] mismatch");
+            assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
+            // Compare each cell
+            for (int cellIndex = 0; cellIndex < Math.min(expectedRow.length, actualRow.length);
+                cellIndex++) {
+                String expectedValue = expectedRow[cellIndex];
+                String actualValue = actualRow[cellIndex];
+                // Skip comparison for dynamic fields like Occurrence.occurrenceID and Encounter.sourceUrl
+                if (rowIndex == 0) {
+                    // Header row - exact match required
+                    assertEquals(expectedValue, actualValue,
+                        "Header cell [" + rowIndex + "," + cellIndex + "] mismatch");
+                } else {
+                    // Data rows - skip UUID columns (column 0 and 1)
+                    if (cellIndex == 0 || cellIndex == 1) {
+                        assertNotNull(actualValue,
+                            "Cell [" + rowIndex + "," + cellIndex + "] should not be null");
                     } else {
-                        // Data rows - skip UUID columns (column 0 and 1)
-                        if (cellIndex == 0 || cellIndex == 1) {
-                            assertNotNull(actualValue,
-                                "Cell [" + rowIndex + "," + cellIndex + "] should not be null");
+                        // Compare other cells with tolerance for numeric precision
+                        if (expectedValue.isEmpty() &&
+                            (actualValue == null || actualValue.isEmpty())) {
+                            // Both empty - OK
+                            continue;
+                        } else if (isNumeric(expectedValue) && isNumeric(actualValue)) {
+                            // Compare numbers with tolerance
+                            double expected = Double.parseDouble(expectedValue);
+                            double actual = Double.parseDouble(actualValue);
+                            assertEquals(expected, actual, 0.0001,
+                                "Cell [" + rowIndex + "," + cellIndex + "] numeric value mismatch");
                         } else {
-                            // Compare other cells with tolerance for numeric precision
-                            if (expectedValue.isEmpty() &&
-                                (actualValue == null || actualValue.isEmpty())) {
-                                // Both empty - OK
-                                continue;
-                            } else if (isNumeric(expectedValue) && isNumeric(actualValue)) {
-                                // Compare numbers with tolerance
-                                double expected = Double.parseDouble(expectedValue);
-                                double actual = Double.parseDouble(actualValue);
-                                assertEquals(expected, actual, 0.0001,
-                                    "Cell [" + rowIndex + "," + cellIndex +
-                                    "] numeric value mismatch");
-                            } else {
-                                // String comparison
-                                assertEquals(expectedValue, actualValue,
-                                    "Cell [" + rowIndex + "," + cellIndex + "] mismatch");
-                            }
+                            // String comparison
+                            assertEquals(expectedValue, actualValue,
+                                "Cell [" + rowIndex + "," + cellIndex + "] mismatch");
                         }
                     }
                 }
-                // check there aren't extra cells in the Excel that we didn't compare
-                assertTrue(expectedRow.length >= actualCellCount,
-                    "Row " + rowIndex + " should have " + expectedRow.length + " cells");
             }
-            System.out.println("Excel metadata validation passed - all cells match expected CSV");
+            // Compare cell count
+            assertEquals(expectedRow.length, actualRow.length,
+                "Row " + rowIndex + " should have " + expectedRow.length + " cells");
         }
+        System.out.println("CSV metadata validation passed - all cells match expected CSV");
     }
 
     /**
@@ -552,7 +538,7 @@ import static org.mockito.Mockito.when;
 
         // Parse the ZIP file and verify its structure
         Set<String> zipEntries = new HashSet<>();
-        byte[] metadataExcelBytes = null;
+        byte[] metadataCsvBytes = null;
         int croppedImageCount = 0;
 
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
@@ -560,15 +546,15 @@ import static org.mockito.Mockito.when;
             while ((entry = zis.getNextEntry()) != null) {
                 zipEntries.add(entry.getName());
                 System.out.println("  Found ZIP entry: " + entry.getName());
-                // Extract metadata.xlsx for validation
-                if (entry.getName().equals("metadata.xlsx")) {
+                // Extract metadata.csv for validation
+                if (entry.getName().equals("metadata.csv")) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     byte[] buffer = new byte[1024];
                     int len;
                     while ((len = zis.read(buffer)) > 0) {
                         baos.write(buffer, 0, len);
                     }
-                    metadataExcelBytes = baos.toByteArray();
+                    metadataCsvBytes = baos.toByteArray();
                 }
                 // Validate cropped image dimensions
                 if (entry.getName().startsWith("images/") && entry.getName().endsWith(".jpg")) {
@@ -594,8 +580,8 @@ import static org.mockito.Mockito.when;
         System.out.println("Verifying ZIP structure...");
 
         // Should contain metadata file (if includeMetadata: true)
-        assertTrue(zipEntries.stream().anyMatch(e -> e.equals("metadata.xlsx")),
-            "ZIP should contain metadata.xlsx");
+        assertTrue(zipEntries.stream().anyMatch(e -> e.equals("metadata.csv")),
+            "ZIP should contain metadata.csv");
 
         // Should contain images directory
         assertTrue(zipEntries.stream().anyMatch(e -> e.startsWith("images/")),
@@ -641,39 +627,39 @@ import static org.mockito.Mockito.when;
         System.out.println("  Individual_2 images: " + individual2Images);
         System.out.println("  Validated cropped images: " + croppedImageCount);
 
-        // Validate Excel metadata file content
-        System.out.println("\nVerifying Excel metadata file content...");
-        assertNotNull(metadataExcelBytes, "metadata.xlsx should have been extracted from ZIP");
-        assertTrue(metadataExcelBytes.length > 0, "metadata.xlsx should not be empty");
+        // Validate CSV metadata file content
+        System.out.println("\nVerifying CSV metadata file content...");
+        assertNotNull(metadataCsvBytes, "metadata.csv should have been extracted from ZIP");
+        assertTrue(metadataCsvBytes.length > 0, "metadata.csv should not be empty");
 
         // Load expected CSV data
         File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
         List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
 
-        try (InputStream inputStream = new ByteArrayInputStream(metadataExcelBytes)) {
-            assertExcelFileEquals(inputStream, expectedRows);
+        // Parse actual CSV from bytes
+        List<String[]> actualRows;
+        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(metadataCsvBytes));
+        CSVParser parser = CSVFormat.EXCEL.parse(reader)) {
+            actualRows = new ArrayList<>();
+            boolean firstRow = true;
+            for (CSVRecord record : parser) {
+                String[] row = new String[record.size()];
+                for (int i = 0; i < record.size(); i++) {
+                    String value = record.get(i);
+                    // Strip BOM from first cell of first row
+                    if (firstRow && i == 0 && value.startsWith("\uFEFF")) {
+                        value = value.substring(1);
+                    }
+                    row[i] = value;
+                }
+                actualRows.add(row);
+                firstRow = false;
+            }
         }
+
+        assertCsvFilesEqual(actualRows, expectedRows);
 
         System.out.println("\nHappy path test completed successfully");
-    }
-
-    /**
-     * Helper method to get cell value as string, handling different cell types.
-     */
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) return null;
-        switch (cell.getCellType()) {
-        case Cell.CELL_TYPE_STRING:
-            return cell.getStringCellValue();
-        case Cell.CELL_TYPE_NUMERIC:
-            return String.valueOf(cell.getNumericCellValue());
-        case Cell.CELL_TYPE_BOOLEAN:
-            return String.valueOf(cell.getBooleanCellValue());
-        case Cell.CELL_TYPE_FORMULA:
-            return cell.getCellFormula();
-        default:
-            return null;
-        }
     }
 
     // =========================================================================
