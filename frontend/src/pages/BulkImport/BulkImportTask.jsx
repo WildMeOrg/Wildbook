@@ -104,24 +104,40 @@ const BulkImportTask = observer(() => {
     }
   };
 
-  const tableData = task?.encounters?.map((item) => {
-    const taskArray =
-      task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
-    const classArray =
-      Array.isArray(taskArray) && taskArray?.length > 0 ? taskArray[0] : [];
-    return {
-      encounterID: item.id,
-      encounterDate: item.date,
-      user: item.submitter?.displayName || "-",
-      occurrenceID: item.occurrenceId || "-",
-      individualID: item.individualId || "-",
-      individualName: item.individualDisplayName || item.individualId || "-",
-      imageCount: item.numberMediaAssets,
-      class: classArray,
-    };
-  });
+  const tableData =
+    task?.encounters?.map((item) => {
+      const taskArray =
+        task?.iaSummary?.statsAnnotations?.encounterTaskInfo?.[item.id] || [];
+      const classArray =
+        Array.isArray(taskArray) && taskArray?.length > 0 ? taskArray[0] : [];
+      return {
+        encounterID: item.id,
+        encounterDate: item.date,
+        user: item.submitter?.displayName || "-",
+        occurrenceID: item.occurrenceId || "-",
+        individualID: item.individualId || "-",
+        individualName: item.individualDisplayName || item.individualId || "-",
+        imageCount: item.numberMediaAssets,
+        class: classArray,
+        createdMillis: item.createdMillis || "-",
+      };
+    }) || [];
+
+  const sortedTableData = tableData
+    ?.sort((a, b) => {
+      return new Date(a.createdMillis) - new Date(b.createdMillis);
+    })
+    .map((item, index) => ({
+      tableID: index + 1,
+      ...item,
+    }));
 
   const columns = [
+    {
+      name: "#",
+      cell: (row) => row.tableID,
+      selector: (row) => row.tableID,
+    },
     {
       name: "Encounter ID",
       selector: (row) => row.encounterID,
@@ -389,7 +405,7 @@ const BulkImportTask = observer(() => {
           />
         </div>
 
-        <SimpleDataTable columns={columns} data={tableData} />
+        <SimpleDataTable columns={columns} data={sortedTableData} />
       </section>
 
       <Row>
