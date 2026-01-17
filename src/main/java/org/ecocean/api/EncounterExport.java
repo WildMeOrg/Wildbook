@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ecocean.*;
 import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.export.EncounterImageExportFile;
+import org.ecocean.security.HiddenEncReporter;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.joda.time.Instant;
@@ -131,15 +132,26 @@ public class EncounterExport extends ApiBase {
         IllegalAccessException {
         EncounterAnnotationExportFile exportFile = new EncounterAnnotationExportFile(request,
             myShepherd);
+        HiddenEncReporter hiddenData;
 
         // Write Excel file to ByteArrayOutputStream first to avoid nested ZIP issues
-        try (ByteArrayOutputStream excelBytes = new ByteArrayOutputStream()) {
-            exportFile.writeToStream(excelBytes);
+        try (ByteArrayOutputStream metadataBytes = new ByteArrayOutputStream()) {
+            hiddenData = exportFile.writeToStream(metadataBytes);
 
             // Now write the complete Excel file as a single ZIP entry
-            ZipEntry metadataFile = new ZipEntry("metadata.xlsx");
+            ZipEntry metadataFile = new ZipEntry("metadata.csv");
             outputStream.putNextEntry(metadataFile);
-            outputStream.write(excelBytes.toByteArray());
+            outputStream.write(metadataBytes.toByteArray());
+            outputStream.closeEntry();
+        }
+
+        // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
+        try (ByteArrayOutputStream hiddenDataBytes = new ByteArrayOutputStream()) {
+            hiddenData.writeHiddenDataReport(hiddenDataBytes);
+
+            ZipEntry hiddenDataFile = new ZipEntry("hidden_data.csv");
+            outputStream.putNextEntry(hiddenDataFile);
+            outputStream.write(hiddenDataBytes.toByteArray());
             outputStream.closeEntry();
         }
     }

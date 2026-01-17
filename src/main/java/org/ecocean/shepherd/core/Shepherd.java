@@ -1438,8 +1438,9 @@ public class Shepherd {
 
     public LabeledKeyword getLabeledKeyword(String label, String readableName) {
         try {
-            String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \"" +
-                readableName + "\" && this.label == \"" + label + "\"";
+            String filter = String.format(
+                "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \"%s\" && this.label == \"%s\"",
+                readableName, label);
             Query query = pm.newQuery(filter);
             List<Keyword> ans = (List)query.execute();
             LabeledKeyword lk = null;
