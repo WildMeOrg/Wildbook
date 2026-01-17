@@ -76,6 +76,7 @@ public class EncounterDelete extends HttpServlet {
                 message, context);
             Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
             setDateLastModified(enc2trash);
+            enc2trash.setSkipAutoIndexing(true);
             if (enc2trash.getIndividualID() == null) {
                 // myShepherd.beginDBTransaction();
 
@@ -176,6 +177,7 @@ public class EncounterDelete extends HttpServlet {
                     }
                     // now delete for good
                     myShepherd.beginDBTransaction();
+                    enc2trash.setSkipAutoIndexing(false);
                     myShepherd.throwAwayEncounter(enc2trash);
 
                     // remove from grid too
@@ -202,9 +204,8 @@ public class EncounterDelete extends HttpServlet {
                     if (allStatesSize > 0) {
                         for (int i = 0; i < allStatesSize; i++) {
                             String stateName = allStates.get(i);
-                            out.println("<p><a href=\"/react/encounter-search?state=" +
-                                stateName + "\">View all " + stateName +
-                                " encounters</a></font></p>");
+                            out.println("<p><a href=\"/react/encounter-search?state=" + stateName +
+                                "\">View all " + stateName + " encounters</a></font></p>");
                         }
                     }
                     out.println(ServletUtilities.getFooter(context));
