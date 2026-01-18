@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Wildbook v3 API
-  version: 3.0.1
+  version: 3.0.3
   description: |
     API for the Wildbook® photo-identification platform.
     
@@ -45,6 +45,8 @@ tags:
     description: Advanced search operations using OpenSearch/Elasticsearch
   - name: BulkImport
     description: Bulk data import operations
+  - name: BulkExport
+    description: Bulk data export operations
   - name: SiteSettings
     description: Site configuration and settings
 
@@ -416,6 +418,48 @@ components:
         query:
           $ref: '#/components/schemas/SearchQuery'
 
+    PatchOperation:
+      type: object
+      description: JSON Patch operation (RFC 6902)
+      required:
+        - op
+        - path
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace, move, copy]
+          description: The operation to perform
+        path:
+          type: string
+          description: |
+            JSON Pointer to the field to modify. Supported paths for Encounters include:
+            individualId, occurrenceId, assets, acousticTag, satelliteTag, metalTags,
+            measurements, annotations, and standard encounter fields (genus, specificEpithet,
+            year, month, day, hour, minutes, sex, lifeStage, country, locationId, verbatimLocality,
+            decimalLatitude, decimalLongitude, behavior, etc.)
+          example: "/locationId"
+        value:
+          description: The value for add/replace operations (type depends on the path)
+        from:
+          type: string
+          description: Source path for move/copy operations
+
+    PatchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        statusCode:
+          type: integer
+        patchResults:
+          type: array
+          items:
+            type: object
+            properties:
+              _patch:
+                type: object
+                description: The original patch operation that was applied
+
 paths:
   /api/v3/login:
     post:
@@ -659,6 +703,98 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+    patch:
+      tags:
+        - Encounters
+      summary: Update encounter fields
+      description: |
+        Apply JSON Patch operations (RFC 6902) to modify encounter fields.
+        Supports operations: add, remove, replace, move, copy.
+
+        Common updatable fields include: genus, specificEpithet, year, month, day,
+        sex, lifeStage, country, locationId, verbatimLocality, decimalLatitude,
+        decimalLongitude, individualId, occurrenceId, behavior, and more.
+
+        Special fields like acousticTag, satelliteTag, metalTags, measurements,
+        and assets can also be modified. Some fields (genus, specificEpithet, year,
+        submitterID) cannot be removed.
+      operationId: patchEncounter
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: encounterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Encounter UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PatchOperation'
+            examples:
+              updateLocation:
+                summary: Update location
+                value:
+                  - op: replace
+                    path: "/locationId"
+                    value: "new-location-id"
+              addIndividual:
+                summary: Associate with individual
+                value:
+                  - op: add
+                    path: "/individualId"
+                    value: "individual-uuid-here"
+              multipleUpdates:
+                summary: Multiple field updates
+                value:
+                  - op: replace
+                    path: "/sex"
+                    value: "female"
+                  - op: replace
+                    path: "/lifeStage"
+                    value: "adult"
+      responses:
+        '200':
+          description: Patch applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchResponse'
+        '400':
+          description: Invalid patch operation or validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fieldName:
+                          type: string
+                        code:
+                          type: string
+                        message:
+                          type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/v3/individuals:
     post:
       tags:
@@ -685,6 +821,36 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/individuals/{individualId}:
+    get:
+      tags:
+        - Individuals
+      summary: Get individual details
+      description: Retrieve details of a specific marked individual
+      operationId: getIndividual
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: individualId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Individual UUID
+      responses:
+        '200':
+          description: Individual details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /api/v3/occurrences:
     post:
@@ -713,6 +879,36 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /api/v3/occurrences/{occurrenceId}:
+    get:
+      tags:
+        - Occurrences
+      summary: Get occurrence details
+      description: Retrieve details of a specific occurrence
+      operationId: getOccurrence
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: occurrenceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Occurrence UUID
+      responses:
+        '200':
+          description: Occurrence details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/v3/annotations:
     post:
       tags:
@@ -739,6 +935,36 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/annotations/{annotationId}:
+    get:
+      tags:
+        - Annotations
+      summary: Get annotation details
+      description: Retrieve details of a specific annotation
+      operationId: getAnnotation
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: annotationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Annotation UUID
+      responses:
+        '200':
+          description: Annotation details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /api/v3/media-assets/{assetId}:
     get:
@@ -791,6 +1017,35 @@ paths:
                       $ref: '#/components/schemas/ProjectSummary'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/projects/{projectId}:
+    get:
+      tags:
+        - Projects
+      summary: Get project details
+      description: Retrieve details of a specific project
+      operationId: getProject
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project UUID
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /api/v3/search/{indexName}:
     post:
@@ -1012,6 +1267,55 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+
+  /api/v3/bulk-export/{exportId}:
+    get:
+      tags:
+        - BulkExport
+      summary: Export encounter data
+      description: Export encounters and related data in bulk format (requires authentication)
+      operationId: bulkExport
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: exportId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Export identifier or query parameter
+      responses:
+        '200':
+          description: Export data
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/docs/openapi.yaml:
+    get:
+      tags:
+        - SiteSettings
+      summary: Get OpenAPI specification
+      description: Retrieve the OpenAPI 3.0 specification for this API (served from resources)
+      operationId: getApiSpec
+      responses:
+        '200':
+          description: OpenAPI specification
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Specification not found
+        '500':
+          description: Error reading API spec
 
   /api/v3/site-settings:
     get:
