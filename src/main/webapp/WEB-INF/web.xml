@@ -514,8 +514,13 @@
 	<servlet>
 		<servlet-name>ApiDocs</servlet-name>
 		<servlet-class>org.ecocean.api.ApiDocsServlet</servlet-class>
-		<description>Serves the openapi.yaml spec for testing tools</description>
+		<description>Serves the openapi.yaml spec and Swagger UI documentation</description>
 	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ApiDocs</servlet-name>
+		<url-pattern>/api/v3/docs</url-pattern>
+	</servlet-mapping>
 
 	<servlet-mapping>
 		<servlet-name>ApiDocs</servlet-name>

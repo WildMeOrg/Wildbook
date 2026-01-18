@@ -1297,12 +1297,40 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /api/v3/docs:
+    get:
+      tags:
+        - SiteSettings
+      summary: View API documentation (Swagger UI)
+      description: |
+        Interactive API documentation using Swagger UI. Provides a human-readable
+        interface for exploring and testing the API endpoints.
+
+        Features:
+        - Browse all available endpoints
+        - View request/response schemas
+        - Test endpoints directly from the browser (Try it out)
+        - Authenticate and maintain session for testing
+      operationId: getApiDocs
+      responses:
+        '200':
+          description: Swagger UI HTML page
+          content:
+            text/html:
+              schema:
+                type: string
+                format: binary
+
   /api/v3/docs/openapi.yaml:
     get:
       tags:
         - SiteSettings
-      summary: Get OpenAPI specification
-      description: Retrieve the OpenAPI 3.0 specification for this API (served from resources)
+      summary: Get OpenAPI specification (YAML)
+      description: |
+        Retrieve the raw OpenAPI 3.0 specification for this API in YAML format.
+
+        This endpoint is intended for programmatic access by tools like
+        Schemathesis, Postman, or other API testing frameworks.
       operationId: getApiSpec
       responses:
         '200':
