@@ -3,11 +3,11 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Footer from "./components/Footer";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import EncounterPageViewOnly from "./pages/Encounter/EncounterPageViewOnly";
+import PoliciesAndData from "./pages/PoliciesAndData/PoliciesAndData";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
 const Unauthorized = lazy(() => import("./pages/errorPages/Unauthorized"));
-const Citation = lazy(() => import("./pages/Citation"));
 const ReportEncounter = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
 );
@@ -55,7 +55,7 @@ export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
               element={<Unauthorized setHeader={setHeader} />}
             />
             <Route path="/encounter" element={<EncounterPageViewOnly />} />
-            <Route path="/citation" element={<Citation />} />
+            <Route path="/policies-and-data" element={<PoliciesAndData />} />
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
             <Route path="/login" element={<Login />} />

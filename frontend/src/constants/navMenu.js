@@ -64,11 +64,11 @@ const authenticatedMenu = (
       {
         name: (
           <FormattedMessage
-            id="MENU_LEARN_CITINGWILDBOOK"
-            defaultMessage="Citing Wildbook"
+            id="POLICIES_AND_DATA"
+            defaultMessage="Policies and Data"
           />
         ),
-        href: `${process.env.PUBLIC_URL}/citation`,
+        href: `${process.env.PUBLIC_URL}/policies-and-data`,
       },
       {
         name: (
@@ -342,11 +342,11 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
       {
         name: (
           <FormattedMessage
-            id="MENU_LEARN_CITINGWILDBOOK"
-            defaultMessage="Citing Wildbook"
+            id="POLICIES_AND_DATA"
+            defaultMessage="Policies and Data"
           />
         ),
-        href: `${process.env.PUBLIC_URL}/citation`,
+        href: `${process.env.PUBLIC_URL}/policies-and-data`,
       },
       {
         name: (
