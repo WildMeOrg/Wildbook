@@ -127,17 +127,19 @@ public class User implements Serializable {
     }
 
     public org.json.JSONObject infoJSONObject(Shepherd myShepherd) {
-        return this.infoJSONObject(myShepherd, false);
+        return this.infoJSONObject(myShepherd, false, true);
     }
 
-    // only admin and user-themself should have includeSensitive=true
-    public org.json.JSONObject infoJSONObject(Shepherd myShepherd, boolean includeSensitive) {
+    // includeSensitive=false means the safest level (anon users) - and basically implies hideEmail=true
+    // includeSensitive=true adds more, but email can be specifically blocked with hideEmail=true
+    public org.json.JSONObject infoJSONObject(Shepherd myShepherd, boolean includeSensitive,
+        boolean hideEmail) {
         org.json.JSONObject info = new org.json.JSONObject();
         info.put("id", this.uuid);
         info.put("displayName", this.getDisplayName());
         info.put("imageURL", Util.jsonNull(this.getUserImageURL(myShepherd.getContext())));
         if (includeSensitive) {
-            info.put("email", this.getEmailAddress());
+            if (!hideEmail) info.put("email", this.getEmailAddress());
             info.put("username", this.getUsername());
             JSONArray roleArr = new JSONArray();
             for (Role role : myShepherd.getAllRolesForUser(this.getUsername())) {

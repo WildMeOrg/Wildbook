@@ -186,7 +186,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
             List<ExportColumn> columns = new ArrayList<ExportColumn>();
 
             newEasyColumn("Occurrence.occurrenceID", columns);
-
+            newEasyColumn("Occurrence.sightingPlatform", columns);
+            newEasyColumn("Occurrence.fieldSurveyCode", columns);
             // added new Column for Encounter weburl
             // method is null as we current approach does not support parameters
             // used Encounter.getWebUrl(request, enc.getCatalogNumber()

@@ -1894,20 +1894,20 @@ function negativeButtonClick(encId, oldDisplayName) {
 			dataType: 'json',
 			complete: function(d) {
 				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName, encId);
+				updateNameCallback(d, oldDisplayName, encId, nextName);
 			}
 		})
 	}
 }
 
-function updateNameCallback(d, oldDisplayName, encId) {
+function updateNameCallback(d, oldDisplayName, encId, assignedName) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
   let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
   if(d && d.responseJSON && d.responseJSON.success){
     if(oldDisplayName!=="undefined" && oldDisplayName){
-        alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName;
+        alertMsg = "Success! Added name " + assignedName + " to "+oldDisplayName;
     } else{
-      alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to the new individual.";
+      alertMsg = "Success! Added name " + assignedName + " to the new individual.";
     }
 
   }

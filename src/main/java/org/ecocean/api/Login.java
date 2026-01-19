@@ -72,7 +72,7 @@ public class Login extends ApiBase {
                     myShepherd.commitDBTransaction();
                     token.clear();
                     success = true;
-                    results = user.infoJSONObject(myShepherd, true);
+                    results = user.infoJSONObject(myShepherd, true, false);
                     results.put("success", true);
 
                     // check for redirect URL

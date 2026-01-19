@@ -543,6 +543,25 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return this.numberEncounters;
     }
 
+    public boolean pruneIfNeeded(Shepherd myShepherd) {
+        if (this.numEncounters() > 0) return false;
+        System.out.println("[INFO] pruneIfNeeded() deleting " + this);
+        this.removeFromNamesCache(); // so name no longer appears in auto-complete
+        this.removeFromAllSocialUnits(myShepherd);
+        // this also removes from opensearch index
+        myShepherd.throwAwayMarkedIndividual(this);
+        return true;
+    }
+
+    // we would not need this if foreign key constraints were the way they should be
+    public void removeFromAllSocialUnits(Shepherd myShepherd) {
+        for (SocialUnit unit : myShepherd.getAllSocialUnitsForMarkedIndividual(this)) {
+            boolean success = unit.removeMember(this, myShepherd);
+            System.out.println("[INFO] removeFromAllSocialUnits() on " + this + " for " + unit +
+                ": success=" + success);
+        }
+    }
+
     public String getDateFirstIdentified() {
         return this.dateFirstIdentified;
     }
