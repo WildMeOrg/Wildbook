@@ -4,9 +4,19 @@ import { FormattedMessage } from "react-intl";
 import { observer } from "mobx-react-lite";
 import MainButton from "../../components/MainButton";
 import ThemeColorContext from "../../ThemeColorProvider";
+import useGetSiteSettings from "../../models/useGetSiteSettings";
+import {
+  defaultMaxMediaSize,
+  defaultMaxMediaCount,
+} from "../../constants/photoUpload.js";
 
 const BulkImportInstructionsModal = observer(({ store }) => {
   const theme = React.useContext(ThemeColorContext);
+  const { data } = useGetSiteSettings();
+  const maxSize = data?.maximumMediaSizeMegabytes || defaultMaxMediaSize;
+  const maxImageCount =
+    data?.maximumMediaCountEncounter || defaultMaxMediaCount;
+
   return (
     <Modal
       show={store.showInstructions}
@@ -62,10 +72,20 @@ const BulkImportInstructionsModal = observer(({ store }) => {
                 <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_FORMAT" />
               </li>
               <li>
-                <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE" />
+                <FormattedMessage
+                  id="BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_SIZE"
+                  values={{
+                    maxSize: maxSize,
+                  }}
+                />
               </li>
               <li>
-                <FormattedMessage id="BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT" />
+                <FormattedMessage
+                  id="BULK_IMPORT_INSTRUCTIONS_STEP1_MAX_COUNT"
+                  values={{
+                    maxImageCount: maxImageCount,
+                  }}
+                />
               </li>
             </ul>
           </li>
