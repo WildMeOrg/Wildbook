@@ -32,10 +32,5 @@ public class MeasurementEvent extends DataCollectionEvent {
         return "type: " + getType().toString() + "; value: " + value.toString() + "; units: " +
                    units;
     }
-
-    //IoT Customization compatibility
-    public void setUnits(String u) {
-        if (u == null) { this.units = null; } else { this.units = u; }
-    }
     
 }

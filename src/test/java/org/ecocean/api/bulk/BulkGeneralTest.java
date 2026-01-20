@@ -6,9 +6,6 @@ import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdPMF;
 import org.ecocean.social.*;
 
-//IoT customization
-import org.ecocean.datacollection.MeasurementEvent;
-
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServletRequest;
@@ -730,12 +727,7 @@ class BulkGeneralTest {
                     BulkImporter bimp = (BulkImporter)res.get("_BulkImporter");
                     Encounter enc = bimp.getEncounters().get(0);
                     assertEquals(Util.collectionSize(enc.getMeasurements()), 1);
-                    //Measurement meas = enc.getMeasurements().get(0);
-
-                    //IoT customization
-                    //Measurement meas = enc.getMeasurements().get(0);
-                    MeasurementEvent meas = enc.getMeasurements().get(0);
-
+                    Measurement meas = enc.getMeasurements().get(0);
                     assertEquals(meas.getValue(), (Double)99.9);
                 }
             }

@@ -2552,23 +2552,23 @@ public class Encounter extends Base implements java.io.Serializable {
         }
     }
 
-    public MeasurementEvent removeMeasurementByType(String type) {
+    public Measurement removeMeasurementByType(String type) {
         // findMeasurementOfType() seems to return even ones with value=null
         // (versus getMeasurement())... so this seems the better choice?
-        MeasurementEvent m = findMeasurementOfType(type);
+        Measurement m = findMeasurementOfType(type);
 
         if (m != null) measurements.remove(m);
         return m;
     }
 
     // will find the Measurement (by type) and modify it *or* make a new one
-    public MeasurementEvent getOrCreateMeasurement(org.json.JSONObject jdata) {
+    public Measurement getOrCreateMeasurement(org.json.JSONObject jdata) {
         if (jdata == null) return null;
         String type = jdata.optString("type", null);
         if (type == null) return null;
-        MeasurementEvent m = findMeasurementOfType(type);
+        Measurement m = findMeasurementOfType(type);
         if (m == null) {
-            m = new MeasurementEvent(this.getId(), type, jdata.optDouble("value", 0.0D),
+            m = new Measurement(this.getId(), type, jdata.optDouble("value", 0.0D),
                 jdata.optString("units", null), jdata.optString("samplingProtocol", null));
         } else {
             m.setValue(jdata.optDouble("value", 0.0D));
@@ -2596,9 +2596,9 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // like above but less..... checky (trust the caller!)
-    public void addMeasurement(MeasurementEvent meas) {
+    public void addMeasurement(Measurement meas) {
         if (meas == null) return;
-        if (measurements == null) measurements = new ArrayList<MeasurementEvent>();
+        if (measurements == null) measurements = new ArrayList<Measurement>();
         measurements.add(meas);
     }
 
@@ -5161,7 +5161,7 @@ public class Encounter extends Base implements java.io.Serializable {
             } else if (value instanceof Measurement) {
                 // for op=add or op=replace, if it has the measurement (i.e. by type), it means
                 // it should be changed in place already so dont do anything
-                MeasurementEvent meas = (MeasurementEvent)value;
+                Measurement meas = (Measurement)value;
                 if (findMeasurementOfType(meas.getType()) == null) addMeasurement(meas);
             }
             break;
