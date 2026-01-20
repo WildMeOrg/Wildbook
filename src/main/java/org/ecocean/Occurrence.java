@@ -98,18 +98,7 @@ public class Occurrence extends Base implements java.io.Serializable {
     private Integer numCalves;
     private String observer;
 	
-	//**GiraffeSpotter legacy**/
-    private String vegetation;
-    private String terrain;
-    private String monitoringZone;
-    private Integer groupSize;
-    private Integer numAdultMales;
-    private Integer numAdultFemales;
-    private Integer numSubMales;
-    private Integer numSubFemales;
-    private Integer numSubAdults;
-    private Integer wp;  //i think this is waypoint???
-    //**GiraffeSpotter legacy**/
+
 
     private String submitterID;
     private List<User> submitters;
