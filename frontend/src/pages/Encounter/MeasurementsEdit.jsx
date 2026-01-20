@@ -31,13 +31,6 @@ export const MeasurementsEdit = observer(({ store }) => {
                     value={cur.value ?? ""}
                     onChange={(value) => {
                       store.errors.setFieldError("measurement", type, null);
-                      if (value === "") {
-                        store.errors.setFieldError(
-                          "measurement",
-                          type,
-                          "Value cannot be empty",
-                        );
-                      }
                       store.setMeasurementValue(type, value);
                     }}
                   />
@@ -47,13 +40,6 @@ export const MeasurementsEdit = observer(({ store }) => {
                     options={samplingProtocolOptions}
                     onChange={(samplingProtocol) => {
                       store.errors.setFieldError("measurement", type, null);
-                      if (!samplingProtocol || samplingProtocol === "") {
-                        store.errors.setFieldError(
-                          "measurement",
-                          type,
-                          "Value cannot be empty",
-                        );
-                      }
                       store.setMeasurementSamplingProtocol(
                         type,
                         samplingProtocol,
