@@ -109,11 +109,11 @@ public class MetricsBot {
 
         myShepherd.setAction("MetricsBot_buildGauge_" + name);
         myShepherd.beginDBTransaction();
+        Query q = null;
         try {
             Long myValue = null;
-            Query q = myShepherd.getPM().newQuery(filter);
+            q = myShepherd.getPM().newQuery(filter);
             myValue = (Long)q.execute();
-            q.closeAll();
             if (myValue != null) {
                 line = name + "," + myValue.toString() + "," + "gauge" + "," + help;
             }
@@ -124,6 +124,7 @@ public class MetricsBot {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            if (q != null) q.closeAll();
             myShepherd.rollbackAndClose();
         }
         // System.out.println("   -- Done: "+ line);
@@ -498,16 +499,16 @@ public class MetricsBot {
             String idCompleteFilter =
                 "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "
                 + (System.currentTimeMillis() - TwoFourHours);
+            Query qD = null;
+            Query qID = null;
             try {
                 Long detectValue = null;
                 Long idValue = null;
-                Query qD = myShepherd.getPM().newQuery(detectionsCompleteFilter);
+                qD = myShepherd.getPM().newQuery(detectionsCompleteFilter);
                 detectValue = (Long)qD.execute();
-                qD.closeAll();
                 if (detectValue != null) numDetectionCompletedLast24 = detectValue.intValue();
-                Query qID = myShepherd.getPM().newQuery(idCompleteFilter);
+                qID = myShepherd.getPM().newQuery(idCompleteFilter);
                 idValue = (Long)qID.execute();
-                qID.closeAll();
                 if (idValue != null)
                     numIDCompletedLast24 = idValue.intValue() - detectValue.intValue();
                 csvLines.add("wildbook_identification_tasks_completed_last24, " +
@@ -521,6 +522,9 @@ public class MetricsBot {
                 badArg.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (qD != null) qD.closeAll();
+                if (qID != null) qID.closeAll();
             }
             IAJsonProperties iaConfig = new IAJsonProperties();
             List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);
@@ -560,10 +564,14 @@ public class MetricsBot {
             // WB-1968: filter to only users who have logged in
             // List<User> users = myShepherd.getAllUsers();
             String filterTasksUsers = "SELECT FROM org.ecocean.User where lastLogin > 0";
-            Query filterTasksUsersQuery = myShepherd.getPM().newQuery(filterTasksUsers);
-            Collection c = (Collection)filterTasksUsersQuery.execute();
-            List<User> users = new ArrayList<User>(c);
-            filterTasksUsersQuery.closeAll();
+            Query filterTasksUsersQuery = null;
+            try {
+                filterTasksUsersQuery = myShepherd.getPM().newQuery(filterTasksUsers);
+                Collection c = (Collection)filterTasksUsersQuery.execute();
+                List<User> users = new ArrayList<User>(c);
+            } finally {
+                if (filterTasksUsersQuery != null) filterTasksUsersQuery.closeAll();
+            }
             // end WB-1968
 
         } catch (Exception exy) { exy.printStackTrace(); } finally {
