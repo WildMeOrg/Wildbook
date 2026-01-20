@@ -14,6 +14,8 @@
 -- ============================================
 -- Always backup before migration
 
+BEGIN;
+
 CREATE TABLE "MEASUREMENTEVENT_BACKUP" AS SELECT * FROM "MEASUREMENTEVENT";
 CREATE TABLE "ENCOUNTER_MEASUREMENTS_BACKUP" AS SELECT * FROM "ENCOUNTER_MEASUREMENTS";
 CREATE TABLE "DATACOLLECTIONEVENT_BACKUP" AS SELECT * FROM "DATACOLLECTIONEVENT";
@@ -129,6 +131,7 @@ GROUP BY em."CATALOGNUMBER_OID"
 ORDER BY measurement_count DESC
 LIMIT 10;
 
+END;
 
 -- ============================================
 -- STEP 4: Cleanup (ONLY after full verification!)
