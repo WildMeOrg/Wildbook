@@ -35,6 +35,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.metrics.Prometheus;
 import org.ecocean.queue.QueueUtil;
 import org.ecocean.shepherd.core.Shepherd;
+import org.json.JSONObject;
 
 public class MetricsBot {
     private static long collectorStartTime = 0l;
@@ -240,6 +241,33 @@ public class MetricsBot {
             addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual",
                 "wildbook_individuals_total", "Number of marked individuals", context, indyLabels));
 
+            // Database vs OpenSearch sync drift metrics
+            try {
+                // Encounter sync drift
+                long dbEncounterCount = getDatabaseCount("org.ecocean.Encounter", context);
+                long osEncounterCount = getOpenSearchIndexCount("encounter");
+                if (dbEncounterCount >= 0 && osEncounterCount >= 0) {
+                    long encounterDrift = dbEncounterCount - osEncounterCount;
+                    csvLines.add("wildbook_encounters_db_count," + dbEncounterCount + ",gauge,Database encounter count");
+                    csvLines.add("wildbook_encounters_opensearch_count," + osEncounterCount + ",gauge,OpenSearch encounter count");
+                    csvLines.add("wildbook_encounters_sync_drift," + encounterDrift + ",gauge,Encounter count difference (DB minus OpenSearch)");
+                    System.out.println("MetricsBot: Encounter sync - DB: " + dbEncounterCount + " OS: " + osEncounterCount + " Drift: " + encounterDrift);
+                }
+
+                // Individual sync drift
+                long dbIndividualCount = getDatabaseCount("org.ecocean.MarkedIndividual", context);
+                long osIndividualCount = getOpenSearchIndexCount("individual");
+                if (dbIndividualCount >= 0 && osIndividualCount >= 0) {
+                    long individualDrift = dbIndividualCount - osIndividualCount;
+                    csvLines.add("wildbook_individuals_db_count," + dbIndividualCount + ",gauge,Database individual count");
+                    csvLines.add("wildbook_individuals_opensearch_count," + osIndividualCount + ",gauge,OpenSearch individual count");
+                    csvLines.add("wildbook_individuals_sync_drift," + individualDrift + ",gauge,Individual count difference (DB minus OpenSearch)");
+                    System.out.println("MetricsBot: Individual sync - DB: " + dbIndividualCount + " OS: " + osIndividualCount + " Drift: " + individualDrift);
+                }
+            } catch (Exception syncEx) {
+                System.out.println("MetricsBot: Error calculating sync drift metrics: " + syncEx.getMessage());
+            }
+
             // User analysis
             String userLabels = "";
             String dayLabel = buildGauge(
@@ -400,6 +428,49 @@ public class MetricsBot {
     private static void addLineIfNotNull(ArrayList<String> csvLines, String line) {
         if (line != null) {
             csvLines.add(line);
+        }
+    }
+
+    // Helper method to get total document count from an OpenSearch index
+    private static long getOpenSearchIndexCount(String indexName) {
+        try {
+            OpenSearch os = new OpenSearch();
+            // Query with size=0 to just get count, not documents
+            JSONObject query = new JSONObject();
+            query.put("query", new JSONObject().put("match_all", new JSONObject()));
+            JSONObject result = os.queryPit(indexName, query, 0, 0, null, null);
+
+            // Extract total count from response: hits.total.value
+            JSONObject hits = result.optJSONObject("hits");
+            if (hits != null) {
+                JSONObject total = hits.optJSONObject("total");
+                if (total != null) {
+                    return total.optLong("value", -1);
+                }
+                // Some versions return total as a number directly
+                return hits.optLong("total", -1);
+            }
+        } catch (Exception e) {
+            System.out.println("MetricsBot.getOpenSearchIndexCount(" + indexName + ") failed: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    // Helper method to get database count for a class
+    private static long getDatabaseCount(String className, String context) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MetricsBot_dbCount_" + className);
+        myShepherd.beginDBTransaction();
+        try {
+            Query q = myShepherd.getPM().newQuery("SELECT count(this) FROM " + className);
+            Long count = (Long) q.execute();
+            q.closeAll();
+            return count != null ? count : -1;
+        } catch (Exception e) {
+            System.out.println("MetricsBot.getDatabaseCount(" + className + ") failed: " + e.getMessage());
+            return -1;
+        } finally {
+            myShepherd.rollbackAndClose();
         }
     }
 
