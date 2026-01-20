@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { observer } from "mobx-react-lite";
 import SelectInput from "../../components/generalInputs/SelectInput";
-import TextInput from "../../components/generalInputs/TextInput";
+import NumberInput from "../../components/generalInputs/NumberInput";
 import { Divider } from "../../components/Divider";
 import LocaleContext from "../../IntlProvider";
 import { useIntl } from "react-intl";
@@ -26,7 +26,7 @@ export const MeasurementsEdit = observer(({ store }) => {
               return (
                 <div key={type}>
                   <h6>{type}</h6>
-                  <TextInput
+                  <NumberInput
                     label={unitLabel}
                     value={cur.value ?? ""}
                     onChange={(value) => {
