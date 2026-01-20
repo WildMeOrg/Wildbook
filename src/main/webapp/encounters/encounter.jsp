@@ -146,6 +146,8 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
 String num = request.getParameter("number").replaceAll("\\+", "").trim();
+response.sendRedirect("/react/encounter?number=" + num); 
+out.println("<meta http-equiv=\"refresh\" content=\"0; url=/react/encounter?number=" + num + "\" />");   
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");

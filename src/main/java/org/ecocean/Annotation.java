@@ -198,7 +198,8 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // TODO should this also be limited by matchAgainst and acmId?
     @Override public String getAllVersionsSql() {
-        return "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
+        return
+                "SELECT \"ID\", \"VERSION\" AS version FROM \"ANNOTATION\" ORDER BY \"MATCHAGAINST\" DESC, version";
     }
 
     @Override public Base getById(Shepherd myShepherd, String id) {
@@ -254,6 +255,11 @@ public class Annotation extends Base implements java.io.Serializable {
 
     public ArrayList<Feature> getFeatures() {
         return features;
+    }
+
+    public Feature getFeature() {
+        if (Util.collectionSize(features) < 1) return null;
+        return features.get(0);
     }
 
     public void setFeatures(ArrayList<Feature> f) {
@@ -358,14 +364,21 @@ public class Annotation extends Base implements java.io.Serializable {
                    (getHeight() == (int)ma.getHeight()));
     }
 
+// .theta property on Annotation usage is deprecated, instead we get
+// the value from the Feature [ and likewise deprecate setTheta() ]
     public double getTheta() {
-        return theta;
+        Feature ft = getFeature();
+
+        if (ft == null) return 0.0d;
+        if (ft.getParameters() == null) return 0.0d;
+        return ft.getParameters().optDouble("theta", 0.0d);
     }
 
+/*
     public void setTheta(double t) {
         theta = t;
     }
-
+ */
     public boolean isIAReady() {
         MediaAsset ma = this.getMediaAsset();
 
@@ -733,6 +746,10 @@ public class Annotation extends Base implements java.io.Serializable {
         return this.sanitizeMedia(request, false);
     }
 
+    public boolean isPart() {
+        return ((this.iaClass != null) && this.iaClass.contains("+"));
+    }
+
     public String getPartIfPresent() {
         String thisPart = "";
 
@@ -785,20 +802,19 @@ public class Annotation extends Base implements java.io.Serializable {
                 "ignoreViewpointMatching", this.getTaxonomy(myShepherd)))) {
                 String[] viewpoints = this.getViewpointAndNeighbors();
                 if (viewpoints != null) {
-
-	                arg = new JSONObject();
-	                arg.put("viewpoint", new JSONArray(viewpoints));
-	                wrapper = new JSONObject();
-	                wrapper.put("terms", arg);
-	                // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
-	                // to handle allowing null viewpoint, opensearch query gets messy!
-	                JSONArray should = new JSONArray(
-	                    "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
-	                should.put(wrapper);
-	                JSONObject bool = new JSONObject("{\"bool\": {}}");
-	                bool.getJSONObject("bool").put("should", should);
-	                query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(bool);
-
+                    arg = new JSONObject();
+                    arg.put("viewpoint", new JSONArray(viewpoints));
+                    wrapper = new JSONObject();
+                    wrapper.put("terms", arg);
+                    // query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(wrapper);
+                    // to handle allowing null viewpoint, opensearch query gets messy!
+                    JSONArray should = new JSONArray(
+                        "[{\"bool\": {\"must_not\": {\"exists\": {\"field\": \"viewpoint\"}}}}]");
+                    should.put(wrapper);
+                    JSONObject bool = new JSONObject("{\"bool\": {}}");
+                    bool.getJSONObject("bool").put("should", should);
+                    query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+                        bool);
                 }
             }
             // this does either/or part/iaClass - unsure if this is correct
@@ -1284,11 +1300,11 @@ public class Annotation extends Base implements java.io.Serializable {
         }
  */
         // NOTE: manualAnnotation.jsp once allowed featureId to be passed; that functionality is not handled here
-        //
-        // we replace trivial if applicable; otherwise this logic determines if we should
-        // clone the encounter (based off historic logic in manualAnnotation.jsp)
-        if (enc != null) {
+        if (enc != null) { // note: we currently *require* enc, so this should always be true
             ann.setMatchAgainst(true);
+            // !NOTE! this first set of logic to set cloneEncounter is copied from manualAnnotation.jsp
+            // i believe this logic is flawed! it is left for reference/research/consideration
+            // please see instead the block following this where new logic is applied  -jon 2025-10-17
             boolean cloneEncounter = false;
             // we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
             if ((annots.size() > 1) && (iaClass != null)) {
@@ -1314,6 +1330,27 @@ public class Annotation extends Base implements java.io.Serializable {
                 Annotation annot1 = annots.get(0);
                 if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
                     System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [4]");
+                    cloneEncounter = true;
+                }
+            }
+            // here is the new logic. this will hopefully side-step the problem where the enc was getting
+            // cloned far more often than it should. i believe this was due to the fact that annots was
+            // from the media asset and therefore could be pointing to all kinds of *other* encounters,
+            // rather than just focusing on the connection between ma and enc
+            cloneEncounter = false; // start over
+            if (!ann.isPart()) { // we can skip this whole thing if we are adding a part
+                List<Annotation> encAnnots = enc.getAnnotations(ma);
+                System.out.println("DEBUG Annotation.createFromApi(): encAnnots = " + encAnnots);
+                // we see if we have a non-part annot, which would force us to clone (parts we ignore)
+                for (Annotation eann : encAnnots) {
+                    if (eann.isPart()) continue;
+                    // trivial *should* be replaced below (see foundTrivial) ... i guess there is a weird
+                    // chance of more than one trivial being on this asset, but thats probably bad news anyway
+                    // we dont clone encounter since we will drop this trivial annot (then add new one to enc)
+                    if (eann.isTrivial()) continue;
+                    System.out.println(
+                        "DEBUG Annotation.createFromApi(): cloneEncounter [5] forcing cloneEncounter due to "
+                        + eann);
                     cloneEncounter = true;
                 }
             }
@@ -1466,6 +1503,16 @@ public class Annotation extends Base implements java.io.Serializable {
         return Task.getRootTasksFor(this, myShepherd);
     }
 
+    public int detachFromTasks(Shepherd myShepherd) {
+        List<Task> tasks = Task.getTasksFor(this, myShepherd);
+
+        if (Util.collectionIsEmptyOrNull(tasks)) return 0;
+        for (Task task : tasks) {
+            task.removeObject(this);
+        }
+        return tasks.size();
+    }
+
     public static boolean isValidViewpoint(String vp) {
         if (vp == null) return true;
         return getAllValidViewpoints().contains(vp);
@@ -1576,15 +1623,14 @@ public class Annotation extends Base implements java.io.Serializable {
         System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
         if (nonTrivial.size() < 1) return false;
         if (nonTrivial.size() == 1) return true;
-        //if they're a body and a part, consider them contiguous
+        // if they're a body and a part, consider them contiguous
         if (nonTrivial.size() == 2) {
-        	String iaClass0=nonTrivial.get(0).getIAClass();
-        	String iaClass1=nonTrivial.get(1).getIAClass();
-        	if(iaClass0!=null && iaClass1!=null) {
-        		if(iaClass0.indexOf("+")>-1&&iaClass1.indexOf("+")==-1) return true;
-        		if(iaClass1.indexOf("+")>-1&&iaClass0.indexOf("+")==-1) return true;
-        	}
-        	
+            String iaClass0 = nonTrivial.get(0).getIAClass();
+            String iaClass1 = nonTrivial.get(1).getIAClass();
+            if (iaClass0 != null && iaClass1 != null) {
+                if (iaClass0.indexOf("+") > -1 && iaClass1.indexOf("+") == -1) return true;
+                if (iaClass1.indexOf("+") > -1 && iaClass0.indexOf("+") == -1) return true;
+            }
         }
         Annotation first = nonTrivial.remove(0);
         return (first.intersectsAtLeastOne(nonTrivial) && areContiguous(nonTrivial)); // yay recursion!
@@ -1603,16 +1649,6 @@ public class Annotation extends Base implements java.io.Serializable {
             nfe.printStackTrace();
         }
         return null;
-    }
-
-    // need these two so we can use things like List.contains()
-    // note: this basically is "id-equivalence" rather than *content* equivalence, so will not compare semantic similarity of 2 annots
-    public boolean equals(final Object o2) {
-        if (o2 == null) return false;
-        if (!(o2 instanceof Annotation)) return false;
-        Annotation two = (Annotation)o2;
-        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
-        return this.id.equals(two.getId());
     }
 
     public int hashCode() {
