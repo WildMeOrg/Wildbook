@@ -6,6 +6,7 @@ import { getAllAnnot, getAllIndiv } from "../helperFunctions";
 export default class MatchResultsStore {
   _viewMode = "individual"; // "individual" | "image"
   _encounterId = "";
+  _matchingSetFilter = {};
   _individualId = null;
   _individualDisplayName = null;
   _projectName = "";
@@ -43,6 +44,7 @@ export default class MatchResultsStore {
       this._rawAnnots = [];
       this._rawIndivs = [];
       this._encounterId = null;
+      this._matchingSetFilter = {};
       this._individualId = null;
       this._individualDisplayName = null;
       this._thisEncounterImageUrl = "";
@@ -53,9 +55,11 @@ export default class MatchResultsStore {
       return;
     }
 
-    const first = annotResults[0] ?? indivResults[0];
+    const first =
+      this._viewMode === "image" ? annotResults[0] : indivResults[0];
 
     this._encounterId = first.queryEncounterId;
+    this._matchingSetFilter = first.matchingSetFilter;
     this._individualId = first.queryIndividualId;
     this._individualDisplayName = first.queryIndividualDisplayName;
     this._matchDate = first.date;
@@ -115,7 +119,6 @@ export default class MatchResultsStore {
         },
       });
     }
-    // sections.sort((a, b) => new Date(b.metadata.date || 0) - new Date(a.metadata.date || 0));
     return sections;
   }
 
@@ -141,6 +144,10 @@ export default class MatchResultsStore {
 
   get encounterId() {
     return this._encounterId;
+  }
+
+  get matchingSetFilter() {
+    return this._matchingSetFilter;
   }
 
   get individualId() {

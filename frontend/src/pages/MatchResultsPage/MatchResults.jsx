@@ -49,6 +49,7 @@ const MatchResults = observer(() => {
       <MatchCriteriaDrawer
         show={filterVisible}
         onHide={() => setFilterVisible(false)}
+        filter={store.matchingSetFilter}
       />
 
       <div className="d-flex flex-row justify-content-between align-items-center mb-3">
@@ -107,7 +108,7 @@ const MatchResults = observer(() => {
               backgroundColor:
                 store.viewMode === "individual"
                   ? themeColor.primaryColors.primary500
-                  : "white",
+                  : themeColor.primaryColors.primary50,
               border: "none",
               padding: "5px 10px",
               color:

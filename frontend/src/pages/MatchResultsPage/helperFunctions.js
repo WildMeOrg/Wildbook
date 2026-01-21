@@ -12,6 +12,7 @@ const collectProspects = (node, type, result = []) => {
       numberCandidates: node.matchResults.numberCandidates || 0,
       queryEncounterId:
         node.matchResults.queryAnnotation?.encounter?.id || null,
+      matchingSetFilter: node.matchingSetFilter,
       queryIndividualId:
         node.matchResults.queryAnnotation?.individual?.id || null,
       queryIndividualDisplayName:
@@ -20,14 +21,13 @@ const collectProspects = (node, type, result = []) => {
         node.matchResults.queryAnnotation?.asset || null,
       queryEncounterImageUrl:
         node.matchResults.queryAnnotation?.asset?.url || null,
-      queryEncounterAnnotation:
-        {
-          x: node.matchResults.queryAnnotation?.x,
-          y: node.matchResults.queryAnnotation?.y,
-          width: node.matchResults.queryAnnotation?.width,
-          height: node.matchResults.queryAnnotation?.height,
-          theta:node.matchResults.queryAnnotation?.theta,
-        },
+      queryEncounterAnnotation: {
+        x: node.matchResults.queryAnnotation?.x,
+        y: node.matchResults.queryAnnotation?.y,
+        width: node.matchResults.queryAnnotation?.width,
+        height: node.matchResults.queryAnnotation?.height,
+        theta: node.matchResults.queryAnnotation?.theta,
+      },
 
       methodName,
       methodDescription,
