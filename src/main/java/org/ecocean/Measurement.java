@@ -1,7 +1,5 @@
 package org.ecocean;
 
-import org.ecocean.datacollection.DataCollectionEvent;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
 

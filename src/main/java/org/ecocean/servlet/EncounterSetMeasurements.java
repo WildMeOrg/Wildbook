@@ -15,12 +15,8 @@ import javax.servlet.ServletException;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-
-import org.ecocean.datacollection.MeasurementEvent;
-
 import org.ecocean.Measurement;
 import org.ecocean.shepherd.core.Shepherd;
-
 
 public class EncounterSetMeasurements extends HttpServlet {
     private static final Pattern MEASUREMENT_NAME = Pattern.compile(
@@ -54,14 +50,14 @@ public class EncounterSetMeasurements extends HttpServlet {
             try {
                 while (requestEventValues != null) {
                     list.add(requestEventValues);
-                    MeasurementEvent measurement;
+                    Measurement measurement;
                     if (requestEventValues.id == null ||
                         requestEventValues.id.trim().length() == 0) {
                         // New Event -- the user didn't enter any values the first time.
-                        measurement = new MeasurementEvent(encNum, requestEventValues.type,
+                        measurement = new Measurement(encNum, requestEventValues.type,
                             requestEventValues.value, requestEventValues.units,
                             requestEventValues.samplingProtocol);
-                        enc.setMeasurementEvent(measurement, myShepherd);
+                        enc.setMeasurement(measurement, myShepherd);
                         // log the new measurement addition
                         enc.addComments("<p><em>" + request.getRemoteUser() + " on " +
                             (new java.util.Date()).toString() +
@@ -69,7 +65,8 @@ public class EncounterSetMeasurements extends HttpServlet {
                             requestEventValues.value + " " + requestEventValues.units + " (" +
                             requestEventValues.samplingProtocol + ")</i></p>");
                     } else {
-                        measurement = myShepherd.findDataCollectionEvent(org.ecocean.datacollection.MeasurementEvent.class,requestEventValues.id);
+                        measurement = myShepherd.findDataCollectionEvent(Measurement.class,
+                            requestEventValues.id);
 
                         String oldValue = "null";
                         if (measurement.getValue() != null) {

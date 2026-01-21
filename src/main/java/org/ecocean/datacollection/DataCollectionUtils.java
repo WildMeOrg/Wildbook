@@ -31,11 +31,7 @@ public class DataCollectionUtils {
         return (measurementsForThisClass.toArray(new String[measurements.size()]));
     }
 
-    public static boolean classHasMeasurementEvent(String className, int measurementNum,
-        String context) {
-        // String classNamesCommaDelim = CommonConfiguration.getProperty("className"+"Classes")
-        return true;
-    }
+
 
     public static String[] getClassNamesFor(int measurementNum, String context) {
         String classNamesCommaDelim = CommonConfiguration.getProperty("measurementClasses" +

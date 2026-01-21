@@ -18,7 +18,6 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.genetics.*;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
@@ -1395,7 +1394,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         for (int c = 0; c < encounters.size(); c++) {
             Encounter temp = (Encounter)encounters.get(c);
             if (temp.hasMeasurement(measurementType)) {
-                List<MeasurementEvent> measures = temp.getMeasurements();
+                List<Measurement> measures = temp.getMeasurements();
                 if ((temp.getYear() > startYear) && (temp.getYear() < endYear)) {
                     if (temp.getMeasurement(measurementType) != null) {
                         avgMeasurement += temp.getMeasurement(measurementType).getValue();

@@ -9,7 +9,6 @@ import jxl.write.*;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import org.ecocean.*;
-import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.media.*;
 import org.ecocean.security.*;
 import org.ecocean.servlet.ServletUtilities;
@@ -51,7 +50,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         for (int i = 0; i < rEncounters.size() && i < rowLimit; i++) {
             Encounter enc = (Encounter)rEncounters.get(i);
             if (enc.getMeasurements().size() > 0) {
-                for (MeasurementEvent currentMeasurement : enc.getMeasurements()) { // populate a list of measurementColName with measurements in current
+                for (Measurement currentMeasurement : enc.getMeasurements()) { // populate a list of measurementColName with measurements in current
                                                                                // encounter set only
                     String currentMeasurementType = currentMeasurement.getType();
                     if (currentMeasurementType != null &&
@@ -260,11 +259,11 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             }
             // end sorting
 
-            Method getMeasurementValue = MeasurementEvent.class.getMethod("toExcelFormat");
+            Method getMeasurementValue = Measurement.class.getMethod("toExcelFormat");
             if (sortedMeasurementColTitles.size() > 0) {
                 for (String currentSortedColTitle : sortedMeasurementColTitles) {
                     String measurementColName = "Encounter.measurement." + currentSortedColTitle;
-                    ExportColumn measurementCol = new ExportColumn(MeasurementEvent.class,
+                    ExportColumn measurementCol = new ExportColumn(Measurement.class,
                         measurementColName, getMeasurementValue, columns);
                     String modifiedColumnName = measurementColName.replace("Encounter.measurement.",
                         "");
@@ -342,7 +341,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                             measurementNumber < enc.getMeasurements().size()) {
                             String whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList =
                                 sortedMeasurementColTitles.get(measurementNumber);
-                            MeasurementEvent currentMeasurement = enc.getMeasurement(
+                            Measurement currentMeasurement = enc.getMeasurement(
                                 whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.
                                     replace("Encounter.measurement.", ""));
                             if (currentMeasurement == null) continue;

@@ -239,15 +239,6 @@
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
 
-	<!--
-      <field name="dataSheets" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.datacollection.DataSheet"/>
-        <column name="DATASHEETS"/>
-        <join/>
-      </field>
-    -->
-
-	
 	      <field name="submitters" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
@@ -434,7 +425,7 @@
       </field>
 
       <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.datacollection.MeasurementEvent" dependent-element="true"/>
+        <collection element-type="org.ecocean.Measurement" dependent-element="false"/>
         <join/>
       </field>
 
@@ -553,10 +544,9 @@
         <column name="IACLASS"/>
       </field>
 
-      <field name="acmId">
-        <column length="100"/>
-      </field>
-
+	<field name="acmId">
+		<column length="100"/>
+	</field>
 		<field name="isExemplar">
 <!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here: -->
 <!--			<column default-value="0" /> -->
@@ -603,7 +593,7 @@
 -->
     </class>
 
-<class name="DataCollectionEvent" identity-type="application">
+    <class name="DataCollectionEvent" identity-type="application">
       <inheritance strategy="new-table"/>
       <field name="correspondingEncounterNumber">
         <column name="CORRESPONDINGENCOUNTERNUMBER"/>
@@ -683,8 +673,8 @@
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
     </class>
-    
-    <class name="Observation" table="DPOBSERVATION" identity-type="data-store">
+
+    <class name="Observation" identity-type="data-store">
       <inheritance strategy="new-table"/>
       <field name="observationID" primary-key="true">
         <column length="100"/>
@@ -752,53 +742,6 @@
       </field>
       <field name="units">
         <column name="UNITS"/>
-      </field>
-    </class>
-
-    <class name="Nest" identity-type="application">
-      <inheritance strategy="new-table"/>
-      <field name="id" primary-key="true">
-        <column name="ID"/>
-      </field>
-
-      <field name="dataSheets" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.datacollection.DataSheet" dependent-element="false"/>
-        <column name="DATASHEETS"/>
-        <join/>
-      </field>
-
-      <field name="name">
-        <column name="NAME"/>
-      </field>
-      <field name="locationID">
-        <column name="LOCATIONID"/>
-      </field>
-      <field name="locationNote">
-        <column name="LOCATIONNOTE"/>
-      </field>
-      <field name="latitude">
-        <column name="LATITUDE"/>
-      </field>
-      <field name="longitude">
-        <column name="LONGITUDE"/>
-      </field>
-      <field name="year">
-        <column name="YEAR"/>
-      </field>
-      <field name="species">
-        <column name="SPECIES"/>
-      </field>
-      <field name="country">
-        <column name="COUNTRY"/>
-      </field>
-      <field name="province">
-        <column name="PROVINCE"/>
-      </field>
-      <field name="organization">
-        <column name="ORGANIZATION"/>
-      </field>
-      <field name="beachName">
-        <column name="BEACHNAME"/>
       </field>
     </class>
 

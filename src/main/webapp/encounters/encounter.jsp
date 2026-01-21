@@ -26,7 +26,7 @@
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
-         org.ecocean.metrics.Prometheus,org.ecocean.datacollection.MeasurementEvent,
+         org.ecocean.metrics.Prometheus,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
@@ -3284,33 +3284,33 @@ else {
         <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
-        List<MeasurementEvent> list = (List<MeasurementEvent>) enc.getMeasurements();
+        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
 
         %>
         <c:forEach items="${items}" var="item">
           <%
           MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-          MeasurementEvent measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
           if (measurement == null) {
-            measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
-          pageContext.setAttribute("measurementEvent", measurement);
+          pageContext.setAttribute("Measurement", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
           %>
           <tr>
             <td class="form_label">
             <c:out value="${item.label}"/>
-            <input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/>
+            <input type="hidden" name="measurement${index}(id)" value="${Measurement.dataCollectionEventID}"/>
           </td>
             <td>
-            <input name="measurement${index}(value)" value="${measurementEvent.value}" id="measurementEvent${index}"/>
+            <input name="measurement${index}(value)" value="${Measurement.value}" id="Measurement${index}"/>
             <input type="hidden" name="measurement${index}(type)" value="${item.type}"/>
             <input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/>
             <c:out value="(${item.unitsLabel})"/>
             <select name="measurement${index}(samplingProtocol)" id="selectMeasurement">
               <c:forEach items="${optionDescs}" var="optionDesc">
                 <c:choose>
-                  <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
+                  <c:when test="${Measurement.samplingProtocol eq optionDesc.name}">
                     <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
                   </c:when>
                   <c:otherwise>

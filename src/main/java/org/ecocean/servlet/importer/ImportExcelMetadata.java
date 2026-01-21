@@ -3,7 +3,6 @@ package org.ecocean.servlet.importer;
 import com.oreilly.servlet.multipart.*;
 
 import org.ecocean.*;
-import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.media.*;
 import org.ecocean.servlet.*;
 
@@ -688,24 +687,24 @@ public class ImportExcelMetadata extends HttpServlet {
         Double lengthD = getDouble(row, 11);
         out.println("Weight : " + weightD.toString() + "Length : " + lengthD.toString());
 
-        MeasurementEvent weight = new MeasurementEvent(encNumString, "Weight", weightD, "Gram",
+        Measurement weight = new Measurement(encNumString, "Weight", weightD, "Gram",
             "directly measured");
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(weight);
         myShepherd.commitDBTransaction();
 
-        MeasurementEvent length = new MeasurementEvent(encNumString, "Length", lengthD, "Millimeter",
+        Measurement length = new Measurement(encNumString, "Length", lengthD, "Millimeter",
             "directly measured");
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(length);
         myShepherd.commitDBTransaction();
 
         myShepherd.beginDBTransaction();
-        enc.setMeasurementEvent(weight, myShepherd);
+        enc.setMeasurement(weight, myShepherd);
         myShepherd.commitDBTransaction();
 
         myShepherd.beginDBTransaction();
-        enc.setMeasurementEvent(length, myShepherd);
+        enc.setMeasurement(length, myShepherd);
         myShepherd.commitDBTransaction();
 
         Date encDate = resolveDate(rossDate, vickiDate);
