@@ -83,6 +83,15 @@ public class MatchResult implements java.io.Serializable {
         createFromJsonResult(res, myShepherd);
     }
 
+    // this is for vector-based list of matches (annots)
+    // TODO FIXME also list of scores of prospects (vector hit?)
+    public void createFromProspectAnnotations(List<Annotation> annots, int numberCandidates,
+        Shepherd myShepherd)
+    throws IOException {
+        this.numberCandidates = numberCandidates;
+        this.populateProspects(annots);
+    }
+
     // json_result section should be passed here
     public void createFromJsonResult(JSONObject res, Shepherd myShepherd)
     throws IOException {
@@ -146,6 +155,20 @@ public class MatchResult implements java.io.Serializable {
             num++;
         }
         return num;
+    }
+
+    // we just have a list of annots which matched (e.g. via vectors in opensearch)
+    private int populateProspects(List<Annotation> annots)
+    throws IOException {
+        if (Util.collectionIsEmptyOrNull(annots)) return 0;
+        if (this.prospects == null)
+            this.prospects = new HashSet<MatchResultProspect>();
+        for (Annotation ann : annots) {
+            // FIXME what is score for vectors???
+            // inspect asset is null for vector matching i guess?
+            this.prospects.add(new MatchResultProspect(ann, 0.0d, "annot", null));
+        }
+        return annots.size();
     }
 
     private Annotation getAnnotationFromAcmId(String acmId, Shepherd myShepherd) {
