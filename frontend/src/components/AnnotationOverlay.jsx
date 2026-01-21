@@ -29,8 +29,8 @@ const InteractiveAnnotationOverlay = forwardRef(
     },
     ref,
   ) => {
-    const containerRef = useRef(null);
-    const [box, setBox] = useState({ w: 0, h: 0 });
+    const outerContainerRef = useRef(null);
+    const imgRef = useRef(null);
     const [zoom, setZoom] = useState(
       Number.isFinite(initialZoom) ? initialZoom : 1,
     );
@@ -38,6 +38,8 @@ const InteractiveAnnotationOverlay = forwardRef(
     const [dragging, setDragging] = useState(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
     const panStartRef = useRef({ x: 0, y: 0 });
+    const [scaleX, setScaleX] = useState(1);
+    const [scaleY, setScaleY] = useState(1);
 
     const [internalShowAnn, setInternalShowAnn] = useState(true);
     const showAnn =
@@ -48,80 +50,45 @@ const InteractiveAnnotationOverlay = forwardRef(
     const hasRotation = !!rotationInfo;
 
     useEffect(() => {
-      const el = containerRef.current;
-      if (!el) return;
+      if (!imgRef.current) return;
 
-      const update = () => {
-        const r = el.getBoundingClientRect();
-        setBox({ w: r.width, h: r.height });
+      const handleImageLoad = () => {
+        if (imgRef.current) {
+          const naturalWidth = Number(originalWidth);
+          const naturalHeight = Number(originalHeight);
+          const displayWidth = imgRef.current.clientWidth;
+          const displayHeight = imgRef.current.clientHeight;
+
+          if (naturalWidth && naturalHeight && displayWidth && displayHeight) {
+            setScaleX(naturalWidth / displayWidth);
+            setScaleY(naturalHeight / displayHeight);
+          }
+        }
       };
 
-      update();
-
-      let ro;
-      if (typeof ResizeObserver !== "undefined") {
-        ro = new ResizeObserver(update);
-        ro.observe(el);
-      } else {
-        window.addEventListener("resize", update);
+      const imgElement = imgRef.current;
+      if (imgElement && imgElement.complete) {
+        handleImageLoad();
+      } else if (imgElement) {
+        imgElement.addEventListener("load", handleImageLoad);
       }
 
       return () => {
-        if (ro) ro.disconnect();
-        window.removeEventListener("resize", update);
+        if (imgElement) {
+          imgElement.removeEventListener("load", handleImageLoad);
+        }
       };
-    }, []);
-
-    const fit = useMemo(() => {
-      const cw = box.w;
-      const ch = box.h;
-
-      const baseW = Number(originalWidth) || 0;
-      const baseH = Number(originalHeight) || 0;
-
-      const iw = hasRotation ? baseH : baseW;
-      const ih = hasRotation ? baseW : baseH;
-
-      if (!cw || !ch || !iw || !ih) {
-        return { scale: 1, offsetX: 0, offsetY: 0, renderW: cw, renderH: ch };
-      }
-
-      const scale = Math.min(cw / iw, ch / ih);
-      const renderW = iw * scale;
-      const renderH = ih * scale;
-      const offsetX = (cw - renderW) / 2;
-      const offsetY = (ch - renderH) / 2;
-
-      return { scale, offsetX, offsetY, renderW, renderH };
-    }, [box.w, box.h, originalWidth, originalHeight, hasRotation]);
+    }, [originalWidth, originalHeight, imageUrl]);
 
     const canRenderAnnotations = useMemo(() => {
-      const baseW = Number(originalWidth);
-      const baseH = Number(originalHeight);
-
-      const iw = hasRotation ? baseH : baseW;
-      const ih = hasRotation ? baseW : baseH;
-
       return (
         showAnn &&
-        Number.isFinite(iw) &&
-        Number.isFinite(ih) &&
-        iw > 0 &&
-        ih > 0 &&
-        box.w > 0 &&
-        box.h > 0 &&
-        Number.isFinite(fit.scale) &&
-        fit.scale > 0
+        Number.isFinite(scaleX) &&
+        Number.isFinite(scaleY) &&
+        scaleX > 0 &&
+        scaleY > 0
       );
-    }, [
-      showAnn,
-      originalWidth,
-      originalHeight,
-      hasRotation,
-      box.w,
-      box.h,
-      fit.scale,
-    ]);
+    }, [showAnn, scaleX, scaleY]);
 
     const visibleAnnotations = useMemo(() => {
       if (!Array.isArray(annotations)) return [];
@@ -201,11 +168,10 @@ const InteractiveAnnotationOverlay = forwardRef(
 
     return (
       <div
-        ref={containerRef}
+        ref={outerContainerRef}
         style={{
           position: "relative",
           width: "100%",
-          height: "100%",
           overflow: "hidden",
           cursor: dragging ? "grabbing" : "grab",
           ...containerStyle,
@@ -214,22 +180,22 @@ const InteractiveAnnotationOverlay = forwardRef(
       >
         <div
           style={{
-            position: "absolute",
-            inset: 0,
+            position: "relative",
+            width: "100%",
             transform: panZoomTransform,
-            transformOrigin: "center center",
+            transformOrigin: "top left",
             transition: dragging ? "none" : "transform 0.15s ease",
           }}
         >
           <img
+            ref={imgRef}
             src={imageUrl || ""}
             alt={alt}
             draggable={false}
             style={{
               width: "100%",
-              height: "100%",
+              height: "auto",
               display: "block",
-              objectFit: "contain",
               userSelect: "none",
               ...imageStyle,
             }}
@@ -239,45 +205,54 @@ const InteractiveAnnotationOverlay = forwardRef(
             <div
               style={{
                 position: "absolute",
-                inset: 0,
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 pointerEvents: "none",
                 ...overlayStyle,
               }}
             >
               {visibleAnnotations.map((a, idx) => {
-                const baseW = Number(originalWidth) || 0;
-                const baseH = Number(originalHeight) || 0;
+                let rect = {
+                  x: Number(a.x),
+                  y: Number(a.y),
+                  width: Number(a.width),
+                  height: Number(a.height),
+                  rotation: Number(a.theta || 0),
+                };
 
-                let x0 = Number(a.x);
-                let y0 = Number(a.y);
-                let w0 = Number(a.width);
-                let h0 = Number(a.height);
+                if (hasRotation) {
+                  const imgW = Number(originalWidth);
+                  const imgH = Number(originalHeight);
+                  const adjW = imgH / imgW;
+                  const adjH = imgW / imgH;
 
-                if (hasRotation && baseW > 0 && baseH > 0) {
-                  const adjW = baseH / baseW;
-                  const adjH = baseW / baseH;
-
-                  x0 = x0 / adjW;
-                  w0 = w0 / adjW;
-                  y0 = y0 / adjH;
-                  h0 = h0 / adjH;
+                  rect = {
+                    x: rect.x / scaleX / adjW,
+                    width: rect.width / scaleX / adjW,
+                    y: rect.y / scaleY / adjH,
+                    height: rect.height / scaleY / adjH,
+                    rotation: rect.rotation,
+                  };
+                } else {
+                  rect = {
+                    x: rect.x / scaleX,
+                    y: rect.y / scaleY,
+                    width: rect.width / scaleX,
+                    height: rect.height / scaleY,
+                    rotation: rect.rotation,
+                  };
                 }
 
-                const x = fit.offsetX + x0 * fit.scale;
-                const y = fit.offsetY + y0 * fit.scale;
-                const w = w0 * fit.scale;
-                const h = h0 * fit.scale;
-
                 if (
-                  !Number.isFinite(w) ||
-                  !Number.isFinite(h) ||
-                  w <= 0 ||
-                  h <= 0
+                  !Number.isFinite(rect.width) ||
+                  !Number.isFinite(rect.height) ||
+                  rect.width <= 0 ||
+                  rect.height <= 0
                 ) {
                   return null;
                 }
-
-                const theta = Number(a.theta || 0);
 
                 const key =
                   a.id ??
@@ -289,13 +264,15 @@ const InteractiveAnnotationOverlay = forwardRef(
                     key={key}
                     style={{
                       position: "absolute",
-                      left: x,
-                      top: y,
-                      width: w,
-                      height: h,
+                      left: rect.x,
+                      top: rect.y,
+                      width: rect.width,
+                      height: rect.height,
                       border: `${lineWidth}px solid ${strokeColor}`,
                       boxSizing: "border-box",
-                      transform: theta ? `rotate(${theta}rad)` : undefined,
+                      transform: rect.rotation
+                        ? `rotate(${(rect.rotation * 180) / Math.PI}deg)`
+                        : undefined,
                       transformOrigin: "center",
                     }}
                   />

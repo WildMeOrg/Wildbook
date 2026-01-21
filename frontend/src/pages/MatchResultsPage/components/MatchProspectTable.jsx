@@ -41,7 +41,7 @@ const styles = {
     borderRadius: "8px",
     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
     overflow: "hidden",
-    height: "400px",
+    // height: "400px",
   },
   imageContainer: {
     width: "100%",
@@ -236,7 +236,7 @@ const MatchProspectTable = ({
     thisEncounterImageAsset?.height;
 
   const leftAnnotations = thisEncounterAnnotations;
-  const leftRotationInfo = thisEncounterImageAsset?.attributes?.rotationInfo;
+  const leftRotationInfo = thisEncounterImageAsset?.rotationInfo;
 
   const rightOrigW =
     previewedRow?.annotation?.asset?.width ??
