@@ -7,17 +7,52 @@ import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
 public class ShepherdProperties {
+
+    // The "catalina.home" property is the path to the Tomcat install ("Catalina Server").
+    // This is often set as the working directory.
+    // Property files are resolved relative to this directory.
+    // Can throw IllegalStateException if Tomcat is not running ... i.e., unit testing
+    private static Path propertiesBase;
+
+    static {
+        initializePropertiesBase();
+    }
+
+    private static void initializePropertiesBase() {
+        String catalinaHome = System.getProperty("catalina.home");
+        if (catalinaHome != null && !catalinaHome.isEmpty()) {
+            propertiesBase = Paths.get(catalinaHome);
+        } else {
+            // Fall back to temp directory during unit tests or non-Tomcat runs
+            propertiesBase = Paths.get(System.getProperty("java.io.tmpdir"), "shepherd-properties");
+            System.err.println("[ShepherdProperties] Warning: 'catalina.home' not set. Using temp directory: " + propertiesBase);
+        }
+    }
+
+    public static Path getPropertiesBase() {
+        return propertiesBase;
+    }
+
+    // Allow unit tests to override the base path
+    public static void setPropertiesBaseForTesting(Path basePath) {
+        propertiesBase = basePath;
+    }
+
     public static Properties getProperties(String fileName) {
         return getProperties(fileName, "en");
     }
@@ -36,11 +71,13 @@ public class ShepherdProperties {
     // + overwrite files are in wildbook_data_dir/classes/bundles/<organization>.properties
     public static Properties getOrgProperties(String fileName, String langCode, String context,
         HttpServletRequest request) {
+        // todo:  getOverwriteStringForUser(request) is always null
         return getProperties(fileName, langCode, context, getOverwriteStringForUser(request));
     }
 
     public static Properties getOrgProperties(String fileName, String langCode, String context,
         HttpServletRequest request, Shepherd myShepherd) {
+        // todo:  getOverwriteStringForUser(request, myShepherd) is always null
         return getProperties(fileName, langCode, context,
                 getOverwriteStringForUser(request, myShepherd));
     }
@@ -59,15 +96,18 @@ public class ShepherdProperties {
         return (Properties)loadProperties(fullPath);
     }
 
+    // todo:  bug - since getOverwriteStringForUser(user) always returns null, this method always returns null
     public static String getOverwriteStringForUser(HttpServletRequest request,
         Shepherd myShepherd) {
         if (request == null) return null;
         // now try based on the user's organizations
         User user = myShepherd.getUser(request);
         if (user == null) return null;
+        // getOverwriteStringForUser(user) always returns null?!
         return getOverwriteStringForUser(user);
     }
 
+    // todo:  bug - since getOverwriteStringForUser(request, myShepherd) always returns null, this method always returns null
     public static String getOverwriteStringForUser(HttpServletRequest request) {
         Shepherd myShepherd = new Shepherd(request);
 
@@ -79,6 +119,7 @@ public class ShepherdProperties {
         return myString;
     }
 
+    // todo:  bug - this method always returns null
     public static String getOverwriteStringForUser(User user) {
         if (user == null || user.getOrganizations() == null) return null;
         for (Organization org : user.getOrganizations()) {
@@ -90,18 +131,16 @@ public class ShepherdProperties {
     }
 
     public static boolean userHasOverrideString(User user) {
+        // getOverwriteStringForUser(user) always returns null so this always returns false
         return (getOverwriteStringForUser(user) != null);
     }
 
-    public static boolean userHasOverrideString(HttpServletRequest request) {
-        return (getOverwriteStringForUser(request) != null);
-    }
-
+    // todo:  overridePrefix is always null due to upstream code issues
     public static Properties getProperties(String fileName, String langCode, String context,
         String overridePrefix) {
         // initialize props as empty (no override provided) or the default values (if override provided)
         // initializing
-        boolean verbose = (Util.stringExists(overridePrefix));
+        boolean verbose = (Util.stringExists(overridePrefix));  // todo:  unused
         String shepherdDataDir = "wildbook_data_dir";
         Properties contextsProps = getContextsProperties();
 
@@ -135,24 +174,29 @@ public class ShepherdProperties {
         }
         Properties props = loadProperties(overridePathStr, defaultProps);
         if (!Util.stringExists(overridePrefix)) return (Properties)props;
+        // todo:  the following code is unreachable since overridePrefix will always be null
         String customUserPathString = "webapps/" + shepherdDataDir + "/WEB-INF/classes/bundles/" +
             overridePrefix;
         return (Properties)loadProperties(customUserPathString, props);
     }
 
-    public static Properties loadProperties(String pathStr, Properties defaults) {
-        // System.out.println("loadProperties called for path "+pathStr);
-        File propertiesFile = new File(pathStr);
+        /**
+          * Loads the properties file at the specified path, returning a default value upon failure.
+          * @param pathStr The path to the properties file, relative to the Tomcat install.
+          * @param defaults The value to return if the properties cannot be read or parsed.
+          * @return The parsed properties from the path provided, or the default value.
+         * */
+        public static Properties loadProperties(@Nonnull String pathStr, Properties defaults) {
 
-        if (propertiesFile == null || !propertiesFile.exists()) return defaults;
+        File propertiesFile = propertiesBase.resolve(pathStr).toFile();
+        if (!propertiesFile.exists()) return defaults;
         try {
-            InputStream inputStream = new FileInputStream(propertiesFile);
-            if (inputStream == null) return null;
+            InputStream inputStream = Files.newInputStream(propertiesFile.toPath());
             LinkedProperties props = (defaults !=
                 null) ? new LinkedProperties(defaults) : new LinkedProperties();
-            props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
-            if (inputStream != null) inputStream.close();
-            return (Properties)props;
+            props.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            inputStream.close();
+            return props;
         } catch (Exception e) {
             System.out.println("Exception on loadProperties()");
             e.printStackTrace();
@@ -160,7 +204,8 @@ public class ShepherdProperties {
         return defaults;
     }
 
-    public static Properties loadProperties(String pathStr) {
+    @Nullable
+    public static Properties loadProperties(@Nonnull String pathStr) {
         return loadProperties(pathStr, null);
     }
 

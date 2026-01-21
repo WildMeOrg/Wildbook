@@ -81,7 +81,7 @@ public class LocalAssetStore extends AssetStore {
     public Path root() {
         if (root == null) {
             root = config.getPath(KEY_ROOT);
-            logger.info("Asset Store [" + name + "] using root [" + root + "]");
+            logger.debug("Asset Store [" + name + "] using root [" + root + "]");
         }
         return root;
     }
@@ -90,7 +90,7 @@ public class LocalAssetStore extends AssetStore {
     public String webRoot() {
         if (webRoot == null) {
             webRoot = config.getString(KEY_WEB_ROOT);
-            logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
+            logger.debug("Asset Store [" + name + "] using web root [" + webRoot + "]");
         }
         return webRoot;
     }
