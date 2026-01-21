@@ -22,6 +22,9 @@ export default function MatchCriteriaDrawer({ show, onHide, filter }) {
             <div>Location IDs: {filter?.locationIds?.join(", ")}</div>
           )}
           {filter?.owner && <div>Owner: filter?.owner</div>}
+          {!filter?.owner && !filter?.locationIds && (
+            <div>no filter set for this task</div>
+          )}
         </div>
       </Offcanvas.Body>
     </Offcanvas>
