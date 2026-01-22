@@ -215,8 +215,20 @@ const MatchResults = observer(() => {
               themeColor={themeColor}
               columns={columns}
               selectedMatch={store.selectedMatch}
-              onToggleSelected={(checked, key, encounterId, individualId) => {
-                store.setSelectedMatch(checked, key, encounterId, individualId);
+              onToggleSelected={(
+                checked,
+                key,
+                encounterId,
+                individualId,
+                individualDisplayName,
+              ) => {
+                store.setSelectedMatch(
+                  checked,
+                  key,
+                  encounterId,
+                  individualId,
+                  individualDisplayName,
+                );
               }}
             />
           </div>

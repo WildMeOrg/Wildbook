@@ -231,6 +231,7 @@ export default class MatchResultsStore {
     return {
       encounterId: this._encounterId,
       individualId: this._individualId || null,
+      individualDisplayName: this.individualDisplayName || null,
     };
   }
 
@@ -303,14 +304,25 @@ export default class MatchResultsStore {
     this._newIndividualName = name;
   }
 
-  setSelectedMatch(selected, key, encounterId, individualId) {
+  setSelectedMatch(
+    selected,
+    key,
+    encounterId,
+    individualId,
+    individualDisplayName,
+  ) {
     if (!key || !encounterId) return;
 
     if (selected) {
       if (this._selectedMatch.some((m) => m.key === key)) return;
       this._selectedMatch = [
         ...this._selectedMatch,
-        { key, encounterId, individualId: individualId || null },
+        {
+          key,
+          encounterId,
+          individualId: individualId || null,
+          individualDisplayName: individualDisplayName || null,
+        },
       ];
     } else {
       this._selectedMatch = this._selectedMatch.filter((m) => m.key !== key);
@@ -325,7 +337,7 @@ export default class MatchResultsStore {
   // merge functions
 
   //no further action needed, two cases:
-  //1. query encounter has individual ID, no match result selected
+  //1. query encounter has individual ID, no match result selected -- in this case we display set match for xxx
   //2. all encounters have same individual ID
   handleNoFurtherActionNeeded() {
     this.clearSelection();

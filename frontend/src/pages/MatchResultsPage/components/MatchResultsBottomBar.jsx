@@ -16,22 +16,10 @@ const styles = {
     display: "flex",
     gap: "24px",
     zIndex: 1000,
-    height: "70px"
+    height: "70px",
   }),
   bottomText: {
     fontSize: "0.9rem",
-  },
-  idPill: (themeColor) => ({
-    borderRadius: "5px",
-    border: "none",
-    padding: "2px 10px",
-    fontSize: "0.8rem",
-    background: themeColor.wildMeColors.teal100,
-    color: themeColor.wildMeColors.teal800,
-  }),
-  idPillOutline: {
-    background: "transparent",
-    border: "1px solid #ccc",
   },
   warningText: {
     color: "#dc3545",
@@ -41,32 +29,64 @@ const styles = {
 };
 
 const MatchResultsBottomBar = observer(({ store, themeColor }) => {
-  
-  const renderActions = () => {
-    const matchingState = store.matchingState;
+  const matchingState = store.matchingState;
 
+  const getActionContent = () => {
     switch (matchingState) {
-      case "no_individuals":
-        return (
+      case "no_individuals": {
+        const encId = store.encounterId || "";
+        const shortEncId = encId.slice(0, 5);
+
+        const left = (
+          <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+            <FormattedMessage id="SET_MATCH_FOR" />{" "}
+            {store.individualDisplayName ? (
+              <a
+                href={`/individuals.jsp?id=${encodeURIComponent(encId)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+                title={encId}
+              >
+                {store.individualDisplayName}
+              </a>
+            ) : (
+              <a
+                href={`/react/encounter?number=${encodeURIComponent(encId)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+                title={encId}
+              >
+                {shortEncId}
+              </a>
+            )}
+            <FormattedMessage id="OR" />
+          </div>
+        );
+
+        const right = (
           <>
             <Form.Control
               type="text"
               placeholder="New Individual Name"
               value={store.newIndividualName}
               onChange={(e) => store.setNewIndividualName(e.target.value)}
-              style={{ maxWidth: "300px" }}
               size="sm"
+              style={{ width: 280 }}
             />
-
             <MainButton
               noArrow
               backgroundColor={themeColor.primaryColors.primary500}
               color="white"
               onClick={store.handleConfirmNoMatch}
-              disabled={!String(store.newIndividualName || "").trim() || store.matchRequestLoading}
-              style={{ marginTop: "0", marginBottom: "0" }}
+              disabled={
+                !String(store.newIndividualName || "").trim() ||
+                store.matchRequestLoading
+              }
+              style={{ marginTop: 0, marginBottom: 0 }}
             >
-              <FormattedMessage id="CONFIRM_NO_MATCH" />
+              <FormattedMessage id="MARK_AS_NEW_INDIVIDUAL" />
               {store.matchRequestLoading && (
                 <Spinner
                   animation="border"
@@ -80,99 +100,223 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
           </>
         );
 
-      case "single_individual":
-        return (
-          <MainButton
-            noArrow
-            backgroundColor={themeColor.primaryColors.primary500}
-            color="white"
-            onClick={store.handleMatch}
-            disabled={store.matchRequestLoading}
-            style={{ marginTop: "0", marginBottom: "0" }}
-          >
-            <FormattedMessage id="CONFIRM_MATCH" defaultMessage="Confirm Match" />
-            {store.matchRequestLoading && (
-              <Spinner
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-                className="ms-2"
+        return { left, right };
+      }
+
+      case "single_individual": {
+        const all = store.selectedIncludingQuery || [];
+
+        const individualItem = all.find((x) => x?.individualId);
+        const individualName =
+          (individualItem?.encounterId === store.encounterId
+            ? store.individualDisplayName
+            : null) ||
+          individualItem?.individualDisplayName ||
+          individualItem?.individualId ||
+          "";
+
+        const encounterNum = all.filter(
+          (x) => x?.encounterId && !x?.individualId,
+        ).length;
+
+        return {
+          left: (
+            <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+              {`Merge individual ${individualName}${
+                encounterNum ? ` and ${encounterNum} encounters` : ""
+              }`}
+            </div>
+          ),
+          right: (
+            <MainButton
+              noArrow
+              backgroundColor={themeColor.primaryColors.primary500}
+              color="white"
+              onClick={store.handleMatch}
+              disabled={store.matchRequestLoading}
+              style={{ marginTop: 0, marginBottom: 0 }}
+            >
+              <FormattedMessage
+                id="CONFIRM_MATCH"
+                defaultMessage="Confirm Match"
               />
-            )}
-          </MainButton>
+              {store.matchRequestLoading && (
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="ms-2"
+                />
+              )}
+            </MainButton>
+          ),
+        };
+      }
+
+      case "two_individuals": {
+        const all = store.selectedIncludingQuery || [];
+
+        const individualsRaw = all.filter((x) => x?.individualId);
+        const individuals = Array.from(
+          new Map(individualsRaw.map((x) => [x.individualId, x])).values(),
         );
 
-      case "two_individuals":
-        return (
-          <MainButton
-            color="white"
-            backgroundColor={themeColor.primaryColors.primary700}
-            noArrow
-            onClick={store.handleMerge}
-            disabled={store.matchRequestLoading}
-            style={{ marginTop: "0", marginBottom: "0" }}
-          >
-            <FormattedMessage id="MERGE_INDIVIDUALS" defaultMessage="Merge Individuals" />
-            {store.matchRequestLoading && (
-              <Spinner
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-                className="ms-2"
-              />
-            )}
-          </MainButton>
+        individuals.sort((x) =>
+          x?.encounterId === store.encounterId ? -1 : 1,
         );
+
+        const a = individuals[0];
+        const b = individuals[1];
+
+        const nameA =
+          (a?.encounterId === store.encounterId
+            ? store.individualDisplayName
+            : null) ||
+          a?.individualDisplayName ||
+          a?.individualId ||
+          "Individual A";
+
+        const nameB =
+          (b?.encounterId === store.encounterId
+            ? store.individualDisplayName
+            : null) ||
+          b?.individualDisplayName ||
+          b?.individualId ||
+          "Individual B";
+
+        const encounters = all.filter(
+          (x) => x?.encounterId && !x?.individualId,
+        );
+        const mergeMessage =
+          encounters.length > 0
+            ? `Merge ${nameA} and ${nameB} and ${encounters.length} encounters`
+            : `Merge ${nameA} and ${nameB}`;
+
+        return {
+          left: (
+            <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+              {mergeMessage}
+            </div>
+          ),
+          right: (
+            <MainButton
+              color="white"
+              backgroundColor={themeColor.primaryColors.primary700}
+              noArrow
+              onClick={store.handleMerge}
+              disabled={store.matchRequestLoading}
+              style={{ marginTop: 0, marginBottom: 0 }}
+            >
+              <FormattedMessage
+                id="MERGE_INDIVIDUALS"
+                defaultMessage="Merge Individuals"
+              />
+              {store.matchRequestLoading && (
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="ms-2"
+                />
+              )}
+            </MainButton>
+          ),
+        };
+      }
 
       case "too_many_individuals":
-        return (
-          <div style={styles.warningText}>
-            <i className="bi bi-exclamation-triangle-fill me-2"></i>
-            <FormattedMessage
-              id="CANNOT_MERGE_MORE_THAN_TWO"
-              defaultMessage="Can't merge more than 2 individuals."
-            />
-          </div>
-        );
+        return {
+          left: (
+            <div
+              className="text-truncate"
+              style={{ ...styles.warningText, whiteSpace: "nowrap" }}
+            >
+              <FormattedMessage id="CANNOT_MERGE_MORE_THAN_TWO" />
+            </div>
+          ),
+          right: null,
+        };
 
       case "no_further_action_needed":
-        return (
-          <div style={styles.bottomText}>
-            <FormattedMessage
-              id="NO_FURTHER_ACTION_NEEDED"
-              defaultMessage="No further action needed."
-            />
-          </div>
-        );
+        if (store.selectedMatch.length === 0) {
+          const encId = store.encounterId || "";
+          const shortEncId = encId.slice(0, 5);
+          return {
+            left: (
+              <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+                <FormattedMessage id="SET_MATCH_FOR" />{" "}
+                {store.individualDisplayName ? (
+                  <a
+                    href={`/individuals.jsp?id=${encodeURIComponent(encId)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-decoration-none"
+                    title={encId}
+                  >
+                    {store.individualDisplayName}
+                  </a>
+                ) : (
+                  <a
+                    href={`/react/encounter?number=${encodeURIComponent(encId)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-decoration-none"
+                    title={encId}
+                  >
+                    {shortEncId}
+                  </a>
+                )}
+              </div>
+            ),
+            right: null,
+          };
+        }
+        return {
+          left: (
+            <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
+              <FormattedMessage id="NO_FURTHER_ACTION_NEEDED" />
+            </div>
+          ),
+          right: null,
+        };
 
       default:
-        return null;
+        return { left: null, right: null };
     }
   };
 
+  const { left, right } = getActionContent();
+
   return (
     <div style={styles.bottomBar(themeColor)}>
-      <div style={styles.bottomText}>
-        <FormattedMessage
-          id="MATCH_RESULTS_FOR"
-        />{" "}
-        <span
-          style={{
-            ...styles.idPill(themeColor),
-            ...styles.idPillOutline,
-            marginRight: "4px",
-          }}
-        >
-          {store.encounterId}
-        </span>
-      </div>
       <div
-        className="d-flex align-items-center"
-        style={{ gap: "12px", marginLeft: "auto" }}
+        className="d-flex align-items-center w-100"
+        style={{ marginLeft: 20, marginRight: 20 }}
       >
-        {renderActions()}
+        <div
+          className="me-3 flex-grow-1 text-truncate"
+          style={{ whiteSpace: "nowrap", minWidth: 0 }}
+        >
+          {left}
+        </div>
+
+        <div
+          className="ms-auto d-flex align-items-center flex-nowrap"
+          style={{ gap: 12 }}
+        >
+          {right}
+          <MainButton
+            noArrow
+            backgroundColor="white"
+            color={themeColor.primaryColors.primary500}
+            onClick={() => window.close()}
+            style={{ marginTop: 0, marginBottom: 0 }}
+          >
+            <FormattedMessage id="CANCEL" />
+          </MainButton>
+        </div>
       </div>
     </div>
   );
