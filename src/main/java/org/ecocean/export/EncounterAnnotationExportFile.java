@@ -252,7 +252,7 @@ public class EncounterAnnotationExportFile {
         }
         sheet.printRecord();
 
-        // Excel export =========================================================
+        // CSV export =========================================================
         int row = 0;
         for (int i = 0; i < numMatchingEncounters && i < ROW_LIMIT; i++) {
             // get the Encounter and check if user
@@ -384,7 +384,7 @@ public class EncounterAnnotationExportFile {
                     }
                 } else
                     System.out.println(
-                        "EncounterAnnotationExportExcelFile: no object found for class " +
+                        "EncounterAnnotationExportFile: no object found for class " +
                         exportCol.getDeclaringClass());
             }
             sheet.printRecord();
@@ -392,15 +392,15 @@ public class EncounterAnnotationExportFile {
 
         // Note: Don't close fileOut - let the caller manage stream lifecycle
 
-        // end Excel export and business logic ===============================================
-        System.out.println("Done with EncounterAnnotationExportExcelFile. We hid " +
+        // end CSV export and business logic ===============================================
+        System.out.println("Done with EncounterAnnotationExportFile. We hid " +
             hiddenData.size() + " encounters.");
 
         return hiddenData;
     }
 
     void setMediaAssetCounts(Vector rEncounters, Shepherd myShepherd) {
-        System.out.println("EncounterAnnotationExportExcelFile: setting environment vars for " +
+        System.out.println("EncounterAnnotationExportFile: setting environment vars for " +
             Math.max(rEncounters.size(), ROW_LIMIT) + " encs.");
         int maxNumMedia = 0;
         int maxNumKeywords = 0;
@@ -456,7 +456,7 @@ public class EncounterAnnotationExportFile {
         numSocialUnits = maxSocialUnits;
         numKeywords = maxNumKeywords;
         System.out.println(
-            "EncounterAnnotationExportExcelFile: environment vars numMediaAssetCols = " +
+            "EncounterAnnotationExportFile: environment vars numMediaAssetCols = " +
             numMediaAssetCols + "; maxNumKeywords = " + maxNumKeywords + " and maxNumNames = " +
             numNameCols);
     }

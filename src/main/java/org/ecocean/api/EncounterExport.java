@@ -134,18 +134,18 @@ public class EncounterExport extends ApiBase {
             myShepherd);
         HiddenEncReporter hiddenData;
 
-        // Write Excel file to ByteArrayOutputStream first to avoid nested ZIP issues
+        // Write CSV file to ByteArrayOutputStream first to avoid nested ZIP issues
         try (ByteArrayOutputStream metadataBytes = new ByteArrayOutputStream()) {
             hiddenData = exportFile.writeToStream(metadataBytes);
 
-            // Now write the complete Excel file as a single ZIP entry
+            // Now write the complete CSV file as a single ZIP entry
             ZipEntry metadataFile = new ZipEntry("metadata.csv");
             outputStream.putNextEntry(metadataFile);
             outputStream.write(metadataBytes.toByteArray());
             outputStream.closeEntry();
         }
 
-        // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
+        // Security: log the hidden data report in CSV so the user can request collaborations with owners of hidden data
         try (ByteArrayOutputStream hiddenDataBytes = new ByteArrayOutputStream()) {
             hiddenData.writeHiddenDataReport(hiddenDataBytes);
 

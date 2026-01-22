@@ -48,12 +48,12 @@ public class ExportColumn {
             value = getter.invoke(declaringClass.cast(obj)); // this is why we need declaringClass
         } catch (InvocationTargetException e) {
             System.out.println(
-                "EncounterSearchExportMetadataExcel got an InvocationTargetException on column " +
+                "ExportColumn got an InvocationTargetException on column " +
                 header + " and object " + obj);
             return null;
         } catch (Error e) {
             System.out.println(
-                "EncounterSearchExportMetadataExcel got a more generic error on column " + header +
+                "ExportColumn got an error on column " + header +
                 " and object " + obj);
             e.printStackTrace();
             return null;
