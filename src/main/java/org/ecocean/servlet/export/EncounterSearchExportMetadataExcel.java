@@ -102,277 +102,271 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
         // set up the files
         String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".csv";
-        // setup data dir
-        String rootWebappPath = getServletContext().getRealPath("/");
-        File webappsDir = new File(rootWebappPath).getParentFile();
-        File shepherdDataDir = new File(webappsDir,
-            CommonConfiguration.getDataDirectoryName(context));
 
-        if (!shepherdDataDir.exists()) { shepherdDataDir.mkdirs(); }
-        File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
-        if (!encountersDir.exists()) { encountersDir.mkdirs(); }
-        File excelFile = new File(encountersDir.getAbsolutePath() + "/" + filename);
-        myShepherd.beginDBTransaction();
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            myShepherd.beginDBTransaction();
 
-        try (FileOutputStream fs = new FileOutputStream(excelFile);
-        OutputStreamWriter sw = new OutputStreamWriter(fs);
-        CSVPrinter sheet = new CSVPrinter(sw, CSVFormat.EXCEL)) {
-            EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd,
-                request, "year descending, month descending, day descending");
-            rEncounters = queryResult.getResult();
-            int numMatchingEncounters = rEncounters.size();
+            try (OutputStreamWriter sw = new OutputStreamWriter(outputStream);
+            CSVPrinter sheet = new CSVPrinter(sw, CSVFormat.EXCEL)) {
+                EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd,
+                    request, "year descending, month descending, day descending");
+                rEncounters = queryResult.getResult();
+                int numMatchingEncounters = rEncounters.size();
 
-            // Security: categorize hidden encounters with the initializer
-            HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
+                // Security: categorize hidden encounters with the initializer
+                HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request,
+                    myShepherd);
 
-            // so we know how many MA columns we need
-            setMediaAssetCounts(rEncounters);
+                // so we know how many MA columns we need
+                setMediaAssetCounts(rEncounters);
 
-            // so we know how many name columns we need
+                // so we know how many name columns we need
 
-            // business logic start here
-            List<ExportColumn> columns = new ArrayList<ExportColumn>();
-            // adds Encounter.catalogNumber to columns
-            ExportColumn.newEasyColumn("Encounter.catalogNumber", columns);
-            // newEasyColumn("Encounter.individualID", columns);
-            // newEasyColumn("Encounter.alternateID", columns);
-            MultiValueExportColumn.addNameColumns(numNameCols, columns);
-            ExportColumn.newEasyColumn("Occurrence.occurrenceID", columns);
-            ExportColumn.newEasyColumn("Occurrence.sightingPlatform", columns);
-            ExportColumn.newEasyColumn("Occurrence.fieldSurveyCode", columns);
-            ExportColumn.newEasyColumn("Encounter.decimalLatitude", columns);
-            ExportColumn.newEasyColumn("Encounter.decimalLongitude", columns);
-            ExportColumn.newEasyColumn("Encounter.locationID", columns);
-            ExportColumn.newEasyColumn("Encounter.verbatimLocality", columns);
-            ExportColumn.newEasyColumn("Encounter.country", columns);
+                // business logic start here
+                List<ExportColumn> columns = new ArrayList<ExportColumn>();
+                // adds Encounter.catalogNumber to columns
+                ExportColumn.newEasyColumn("Encounter.catalogNumber", columns);
+                // newEasyColumn("Encounter.individualID", columns);
+                // newEasyColumn("Encounter.alternateID", columns);
+                MultiValueExportColumn.addNameColumns(numNameCols, columns);
+                ExportColumn.newEasyColumn("Occurrence.occurrenceID", columns);
+                ExportColumn.newEasyColumn("Occurrence.sightingPlatform", columns);
+                ExportColumn.newEasyColumn("Occurrence.fieldSurveyCode", columns);
+                ExportColumn.newEasyColumn("Encounter.decimalLatitude", columns);
+                ExportColumn.newEasyColumn("Encounter.decimalLongitude", columns);
+                ExportColumn.newEasyColumn("Encounter.locationID", columns);
+                ExportColumn.newEasyColumn("Encounter.verbatimLocality", columns);
+                ExportColumn.newEasyColumn("Encounter.country", columns);
 
-            Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a
-                                                                                         // NPE
-            ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth",
-                encDepthGetter, columns);
+                Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a
+                // NPE
+                ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth",
+                    encDepthGetter, columns);
 
-            ExportColumn.newEasyColumn("Encounter.dateInMilliseconds", columns);
-            ExportColumn.newEasyColumn("Encounter.year", columns);
-            ExportColumn.newEasyColumn("Encounter.month", columns);
-            ExportColumn.newEasyColumn("Encounter.day", columns);
-            ExportColumn.newEasyColumn("Encounter.hour", columns);
-            ExportColumn.newEasyColumn("Encounter.minutes", columns);
-            ExportColumn.newEasyColumn("Encounter.submitterOrganization", columns);
-            ExportColumn.newEasyColumn("Encounter.submitterID", columns);
-            ExportColumn.newEasyColumn("Encounter.recordedBy", columns);
-            ExportColumn.newEasyColumn("Occurrence.groupComposition", columns);
-            ExportColumn.newEasyColumn("Occurrence.groupBehavior", columns);
-            ExportColumn.newEasyColumn("Occurrence.minGroupSizeEstimate", columns);
-            ExportColumn.newEasyColumn("Occurrence.bestGroupSizeEstimate", columns);
-            ExportColumn.newEasyColumn("Occurrence.maxGroupSizeEstimate", columns);
-            ExportColumn.newEasyColumn("Occurrence.numAdults", columns);
-            ExportColumn.newEasyColumn("Occurrence.numJuveniles", columns);
-            ExportColumn.newEasyColumn("Occurrence.numCalves", columns);
-            ExportColumn.newEasyColumn("Occurrence.initialCue", columns);
-            ExportColumn.newEasyColumn("Occurrence.seaState", columns);
-            ExportColumn.newEasyColumn("Occurrence.seaSurfaceTemp", columns);
-            ExportColumn.newEasyColumn("Occurrence.swellHeight", columns);
-            ExportColumn.newEasyColumn("Occurrence.visibilityIndex", columns);
-            ExportColumn.newEasyColumn("Occurrence.effortCode", columns);
-            ExportColumn.newEasyColumn("Occurrence.observer", columns);
-            ExportColumn.newEasyColumn("Occurrence.transectName", columns);
-            ExportColumn.newEasyColumn("Occurrence.transectBearing", columns);
-            ExportColumn.newEasyColumn("Occurrence.distance", columns);
-            ExportColumn.newEasyColumn("Occurrence.bearing", columns);
-            ExportColumn.newEasyColumn("Occurrence.comments", columns);
-            ExportColumn.newEasyColumn("Occurrence.humanActivityNearby", columns);
-            ExportColumn.newEasyColumn("Encounter.patterningCode", columns);
-            ExportColumn.newEasyColumn("Encounter.flukeType", columns);
-            ExportColumn.newEasyColumn("Encounter.behavior", columns);
-            ExportColumn.newEasyColumn("Encounter.groupRole", columns);
-            ExportColumn.newEasyColumn("Encounter.sex", columns);
-            ExportColumn.newEasyColumn("Encounter.lifeStage", columns);
-            ExportColumn.newEasyColumn("Encounter.genus", columns);
-            ExportColumn.newEasyColumn("Encounter.specificEpithet", columns);
-            ExportColumn.newEasyColumn("Encounter.otherCatalogNumbers", columns);
-            ExportColumn.newEasyColumn("Encounter.occurrenceRemarks", columns);
+                ExportColumn.newEasyColumn("Encounter.dateInMilliseconds", columns);
+                ExportColumn.newEasyColumn("Encounter.year", columns);
+                ExportColumn.newEasyColumn("Encounter.month", columns);
+                ExportColumn.newEasyColumn("Encounter.day", columns);
+                ExportColumn.newEasyColumn("Encounter.hour", columns);
+                ExportColumn.newEasyColumn("Encounter.minutes", columns);
+                ExportColumn.newEasyColumn("Encounter.submitterOrganization", columns);
+                ExportColumn.newEasyColumn("Encounter.submitterID", columns);
+                ExportColumn.newEasyColumn("Encounter.recordedBy", columns);
+                ExportColumn.newEasyColumn("Occurrence.groupComposition", columns);
+                ExportColumn.newEasyColumn("Occurrence.groupBehavior", columns);
+                ExportColumn.newEasyColumn("Occurrence.minGroupSizeEstimate", columns);
+                ExportColumn.newEasyColumn("Occurrence.bestGroupSizeEstimate", columns);
+                ExportColumn.newEasyColumn("Occurrence.maxGroupSizeEstimate", columns);
+                ExportColumn.newEasyColumn("Occurrence.numAdults", columns);
+                ExportColumn.newEasyColumn("Occurrence.numJuveniles", columns);
+                ExportColumn.newEasyColumn("Occurrence.numCalves", columns);
+                ExportColumn.newEasyColumn("Occurrence.initialCue", columns);
+                ExportColumn.newEasyColumn("Occurrence.seaState", columns);
+                ExportColumn.newEasyColumn("Occurrence.seaSurfaceTemp", columns);
+                ExportColumn.newEasyColumn("Occurrence.swellHeight", columns);
+                ExportColumn.newEasyColumn("Occurrence.visibilityIndex", columns);
+                ExportColumn.newEasyColumn("Occurrence.effortCode", columns);
+                ExportColumn.newEasyColumn("Occurrence.observer", columns);
+                ExportColumn.newEasyColumn("Occurrence.transectName", columns);
+                ExportColumn.newEasyColumn("Occurrence.transectBearing", columns);
+                ExportColumn.newEasyColumn("Occurrence.distance", columns);
+                ExportColumn.newEasyColumn("Occurrence.bearing", columns);
+                ExportColumn.newEasyColumn("Occurrence.comments", columns);
+                ExportColumn.newEasyColumn("Occurrence.humanActivityNearby", columns);
+                ExportColumn.newEasyColumn("Encounter.patterningCode", columns);
+                ExportColumn.newEasyColumn("Encounter.flukeType", columns);
+                ExportColumn.newEasyColumn("Encounter.behavior", columns);
+                ExportColumn.newEasyColumn("Encounter.groupRole", columns);
+                ExportColumn.newEasyColumn("Encounter.sex", columns);
+                ExportColumn.newEasyColumn("Encounter.lifeStage", columns);
+                ExportColumn.newEasyColumn("Encounter.genus", columns);
+                ExportColumn.newEasyColumn("Encounter.specificEpithet", columns);
+                ExportColumn.newEasyColumn("Encounter.otherCatalogNumbers", columns);
+                ExportColumn.newEasyColumn("Encounter.occurrenceRemarks", columns);
 
-            Method maGetFilename = MediaAsset.class.getMethod("getUserFilename", null);
-            Method maLocalPath = MediaAsset.class.getMethod("localPath", null);
-            // This will include labels in a labeledKeyword value
-            Method keywordGetName = Keyword.class.getMethod("getDisplayName");
-            Method labeledKeywordGetValue = LabeledKeyword.class.getMethod("getValue");
-            for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
-                String mediaAssetColName = "Encounter.mediaAsset" + maNum;
-                String fullPathName = "Encounter.mediaAsset" + maNum + ".filePath";
-                ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName,
-                    maGetFilename, columns);
-                maFilenameK.setMaNum(maNum); // important for later!
-                ExportColumn maPathK = new ExportColumn(MediaAsset.class, fullPathName, maLocalPath,
-                    columns);
-                maPathK.setMaNum(maNum);
-                for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
-                    String keywordColName = "Encounter.mediaAsset" + maNum + ".keyword" + kwNum;
-                    ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName,
-                        keywordGetName, columns);
-                    keywordCol.setMaNum(maNum);
-                    keywordCol.setKwNum(kwNum);
-                }
-                List<String> labels = myShepherd.getAllKeywordLabels();
-                for (String label : labels) {
-                    String keywordColName = "Encounter.mediaAsset" + maNum + "." + label;
-                    ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName,
-                        labeledKeywordGetValue, columns);
-                    keywordCol.setMaNum(maNum);
-                    keywordCol.setLabeledKwName(label);
-                }
-            }
-            // add measurements to export
-
-            // sort measurementColTitles (a subset of all possible measureVals that's currently not in the same order as they appear in measureVals)
-            // by order in which they will appear in enc.getMeasurements, which is dictated by commonConfig array (i.e., measureVals). If this doesn't
-            // happen, some encounters with a measurements list beginning with a rare measurement will end up misplaced in the colunns
-            List<String> sortedMeasurementColTitles = new ArrayList<String>();
-            if (measurementColTitles.size() > 0) {
-                List<String> measureVals =
-                    (List<String>)CommonConfiguration.getIndexedPropertyValues("measurement",
-                    context);
-                List<Integer> measurementColTitlesRanked = new ArrayList<Integer>();
-                for (String currentMeasurementTitle : measurementColTitles) {
-                    int currentIndexInMeasureVals = measureVals.indexOf(currentMeasurementTitle);
-                    measurementColTitlesRanked.add(currentIndexInMeasureVals); // an array of indeces, a copy of which will be sorted
-                }
-                List<Integer> measurementColTitlesRankedSorted = measurementColTitlesRanked;
-                if (measurementColTitlesRankedSorted != null &&
-                    measurementColTitlesRankedSorted.size() > 0) {
-                    Collections.sort(measurementColTitlesRankedSorted);
-                    for (Integer currentIndex : measurementColTitlesRankedSorted) {
-                        if (currentIndex != null && currentIndex.intValue() != -1)
-                            sortedMeasurementColTitles.add(measureVals.get(
-                                currentIndex.intValue()));
+                Method maGetFilename = MediaAsset.class.getMethod("getUserFilename", null);
+                Method maLocalPath = MediaAsset.class.getMethod("localPath", null);
+                // This will include labels in a labeledKeyword value
+                Method keywordGetName = Keyword.class.getMethod("getDisplayName");
+                Method labeledKeywordGetValue = LabeledKeyword.class.getMethod("getValue");
+                for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
+                    String mediaAssetColName = "Encounter.mediaAsset" + maNum;
+                    String fullPathName = "Encounter.mediaAsset" + maNum + ".filePath";
+                    ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName,
+                        maGetFilename, columns);
+                    maFilenameK.setMaNum(maNum); // important for later!
+                    ExportColumn maPathK = new ExportColumn(MediaAsset.class, fullPathName,
+                        maLocalPath, columns);
+                    maPathK.setMaNum(maNum);
+                    for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
+                        String keywordColName = "Encounter.mediaAsset" + maNum + ".keyword" + kwNum;
+                        ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName,
+                            keywordGetName, columns);
+                        keywordCol.setMaNum(maNum);
+                        keywordCol.setKwNum(kwNum);
+                    }
+                    List<String> labels = myShepherd.getAllKeywordLabels();
+                    for (String label : labels) {
+                        String keywordColName = "Encounter.mediaAsset" + maNum + "." + label;
+                        ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class,
+                            keywordColName, labeledKeywordGetValue, columns);
+                        keywordCol.setMaNum(maNum);
+                        keywordCol.setLabeledKwName(label);
                     }
                 }
-            }
-            // end sorting
+                // add measurements to export
 
-            Method getMeasurementValue = Measurement.class.getMethod("toExcelFormat");
-            if (sortedMeasurementColTitles.size() > 0) {
-                for (String currentSortedColTitle : sortedMeasurementColTitles) {
-                    String measurementColName = "Encounter.measurement." + currentSortedColTitle;
-                    ExportColumn measurementCol = new ExportColumn(Measurement.class,
-                        measurementColName, getMeasurementValue, columns);
-                    String modifiedColumnName = measurementColName.replace("Encounter.measurement.",
-                        "");
-                    int matchingMeasurementColNum = sortedMeasurementColTitles.indexOf(
-                        modifiedColumnName);
-                    measurementCol.setMeasurementNum(matchingMeasurementColNum);
-                }
-            }
-            // End measurements export
-            for (ExportColumn exportCol : columns) {
-                exportCol.writeHeaderLabel(sheet);
-            }
-            // Excel export =========================================================
-            int row = 0;
-            for (int i = 0; i < numMatchingEncounters && i < rowLimit; i++) {
-                Encounter enc = (Encounter)rEncounters.get(i);
-                // Security: skip this row if user doesn't have permission to view this encounter
-                if (hiddenData.contains(enc)) continue;
-                row++;
-
-                // get attached objects
-                Occurrence occ = myShepherd.getOccurrence(enc);
-                MarkedIndividual ind = myShepherd.getMarkedIndividual(enc);
-                MultiValue names = (ind != null) ? ind.getNames() : null;
-                List<String> sortedNameKeys = (names != null) ? names.getSortedKeys() : null;
-                List<MediaAsset> mas = enc.getMedia();
-                // use exportColumns, passing in the appropriate object for each column
-                // (can't use switch statement bc Class is not a java primitive type)
-                for (ExportColumn exportCol : columns) {
-                    if (exportCol.isFor(Encounter.class)) exportCol.writeLabel(enc, row, sheet);
-                    else if (exportCol.isFor(Occurrence.class))
-                        exportCol.writeLabel(occ, row, sheet);
-                    else if (exportCol.isFor(MarkedIndividual.class))
-                        exportCol.writeLabel(ind, row, sheet);
-                    else if (exportCol.isFor(MultiValue.class)) {
-                        MultiValueExportColumn multiValCol = (MultiValueExportColumn)exportCol;
-                        multiValCol.writeLabel(sortedNameKeys, names, row, sheet);
-                    } else if (exportCol.isFor(MediaAsset.class)) {
-                        int num = exportCol.getMaNum();
-                        if (num >= mas.size()) continue;
-                        MediaAsset ma = mas.get(num);
-                        if (ma == null) continue; // on to next column
-                        exportCol.writeLabel(ma, row, sheet);
+                // sort measurementColTitles (a subset of all possible measureVals that's currently not in the same order as they appear in measureVals)
+                // by order in which they will appear in enc.getMeasurements, which is dictated by commonConfig array (i.e., measureVals). If this doesn't
+                // happen, some encounters with a measurements list beginning with a rare measurement will end up misplaced in the colunns
+                List<String> sortedMeasurementColTitles = new ArrayList<String>();
+                if (measurementColTitles.size() > 0) {
+                    List<String> measureVals =
+                        (List<String>)CommonConfiguration.getIndexedPropertyValues("measurement",
+                        context);
+                    List<Integer> measurementColTitlesRanked = new ArrayList<Integer>();
+                    for (String currentMeasurementTitle : measurementColTitles) {
+                        int currentIndexInMeasureVals = measureVals.indexOf(
+                            currentMeasurementTitle);
+                        measurementColTitlesRanked.add(currentIndexInMeasureVals); // an array of indeces, a copy of which will be sorted
                     }
-                    // add labeled keywords
-                    else if (exportCol.isFor(LabeledKeyword.class)) {
-                        int maNum = exportCol.getMaNum();
-                        if (maNum >= mas.size()) continue;
-                        MediaAsset ma = mas.get(maNum);
-                        if (ma == null) continue; // on to next column
-                        // String kwNum = exportCol.getLabeledKwName();
-                        // if (kwNum >= ma.numKeywords()) continue;
-                        String lkwValue = ma.getLabeledKeywordValue(exportCol.getlabeledKwName());
-                        if (lkwValue == null) continue;
-                        LabeledKeyword lkw = myShepherd.getLabeledKeyword(
-                            exportCol.getlabeledKwName(), lkwValue);
-                        if (lkw == null) continue;
-                        exportCol.writeLabel(lkw, row, sheet);
-                    }
-                    // end add labeled keywords
-                    else if (exportCol.isFor(Keyword.class)) {
-                        int maNum = exportCol.getMaNum();
-                        if (maNum >= mas.size()) continue;
-                        MediaAsset ma = mas.get(maNum);
-                        if (ma == null) continue; // on to next column
-                        int kwNum = exportCol.getKwNum();
-                        if (kwNum >= ma.numKeywordsStrict() || kwNum == -1) continue;
-                        Keyword kw = ma.getKeywordStrict(kwNum);
-                        if (kw == null) continue;
-                        exportCol.writeLabel(kw, row, sheet);
-                    } else if (exportCol.isFor(Measurement.class)) {
-                        int measurementNumber = exportCol.getMeasurementNum();
-                        if (measurementNumber < 0) continue;
-                        if (enc.getMeasurements() != null && enc.getMeasurements().size() > 0 &&
-                            measurementNumber < enc.getMeasurements().size()) {
-                            String whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList =
-                                sortedMeasurementColTitles.get(measurementNumber);
-                            Measurement currentMeasurement = enc.getMeasurement(
-                                whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.
-                                    replace("Encounter.measurement.", ""));
-                            if (currentMeasurement == null) continue;
-                            exportCol.writeLabel(currentMeasurement, row, sheet);
+                    List<Integer> measurementColTitlesRankedSorted = measurementColTitlesRanked;
+                    if (measurementColTitlesRankedSorted != null &&
+                        measurementColTitlesRankedSorted.size() > 0) {
+                        Collections.sort(measurementColTitlesRankedSorted);
+                        for (Integer currentIndex : measurementColTitlesRankedSorted) {
+                            if (currentIndex != null && currentIndex.intValue() != -1)
+                                sortedMeasurementColTitles.add(measureVals.get(
+                                    currentIndex.intValue()));
                         }
-                    } else
-                        System.out.println(
-                            "EncounterSearchExportMetadataExcel: no object found for class " +
-                            exportCol.getDeclaringClass());
+                    }
                 }
-            } // end for loop iterating encounters
+                // end sorting
 
-            // end Excel export and business logic ===============================================
-            System.out.println("Done with EncounterSearchExportMetadataExcel. We hid " +
-                hiddenData.size() + " encounters.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setContentType("text/html");
-            PrintWriter out = response.getWriter();
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<html><body><p><strong>Error encountered</strong></p>");
-            out.println(
-                "<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
-            out.println(ServletUtilities.getFooter(context));
-            out.close();
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+                Method getMeasurementValue = Measurement.class.getMethod("toExcelFormat");
+                if (sortedMeasurementColTitles.size() > 0) {
+                    for (String currentSortedColTitle : sortedMeasurementColTitles) {
+                        String measurementColName = "Encounter.measurement." +
+                            currentSortedColTitle;
+                        ExportColumn measurementCol = new ExportColumn(Measurement.class,
+                            measurementColName, getMeasurementValue, columns);
+                        String modifiedColumnName = measurementColName.replace(
+                            "Encounter.measurement.", "");
+                        int matchingMeasurementColNum = sortedMeasurementColTitles.indexOf(
+                            modifiedColumnName);
+                        measurementCol.setMeasurementNum(matchingMeasurementColNum);
+                    }
+                }
+                // End measurements export
+                for (ExportColumn exportCol : columns) {
+                    exportCol.writeHeaderLabel(sheet);
+                }
+                sheet.printRecord();
+                // Excel export =========================================================
+                int row = 0;
+                for (int i = 0; i < numMatchingEncounters && i < rowLimit; i++) {
+                    Encounter enc = (Encounter)rEncounters.get(i);
+                    // Security: skip this row if user doesn't have permission to view this encounter
+                    if (hiddenData.contains(enc)) continue;
+                    row++;
 
-        // now write out the file
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment;filename=" + filename);
-        InputStream is = new FileInputStream(excelFile);
-        int read = 0;
-        byte[] bytes = new byte[BYTES_DOWNLOAD];
-        OutputStream os = response.getOutputStream();
-        while ((read = is.read(bytes)) != -1) {
-            os.write(bytes, 0, read);
+                    // get attached objects
+                    Occurrence occ = myShepherd.getOccurrence(enc);
+                    MarkedIndividual ind = myShepherd.getMarkedIndividual(enc);
+                    MultiValue names = (ind != null) ? ind.getNames() : null;
+                    List<String> sortedNameKeys = (names != null) ? names.getSortedKeys() : null;
+                    List<MediaAsset> mas = enc.getMedia();
+                    // use exportColumns, passing in the appropriate object for each column
+                    // (can't use switch statement bc Class is not a java primitive type)
+                    for (ExportColumn exportCol : columns) {
+                        if (exportCol.isFor(Encounter.class)) exportCol.writeLabel(enc, row, sheet);
+                        else if (exportCol.isFor(Occurrence.class))
+                            exportCol.writeLabel(occ, row, sheet);
+                        else if (exportCol.isFor(MarkedIndividual.class))
+                            exportCol.writeLabel(ind, row, sheet);
+                        else if (exportCol.isFor(MultiValue.class)) {
+                            MultiValueExportColumn multiValCol = (MultiValueExportColumn)exportCol;
+                            multiValCol.writeLabel(sortedNameKeys, names, row, sheet);
+                        } else if (exportCol.isFor(MediaAsset.class)) {
+                            int num = exportCol.getMaNum();
+                            MediaAsset ma = null;
+                            if (num < mas.size()) {
+                                ma = mas.get(num);
+                            }
+                            exportCol.writeLabel(ma, row, sheet);
+                        }
+                        // add labeled keywords
+                        else if (exportCol.isFor(LabeledKeyword.class)) {
+                            int maNum = exportCol.getMaNum();
+                            LabeledKeyword lkw = null;
+                            if (maNum < mas.size()) {
+                                MediaAsset ma = mas.get(maNum);
+                                if (ma != null) {
+                                    String lkwValue = ma.getLabeledKeywordValue(
+                                        exportCol.getlabeledKwName());
+                                    lkw = myShepherd.getLabeledKeyword(exportCol.getlabeledKwName(),
+                                        lkwValue);
+                                }
+                            }
+                            exportCol.writeLabel(lkw, row, sheet);
+                        }
+                        // end add labeled keywords
+                        else if (exportCol.isFor(Keyword.class)) {
+                            int maNum = exportCol.getMaNum();
+                            Keyword kw = null;
+                            if (maNum < mas.size()) {
+                                MediaAsset ma = mas.get(maNum);
+                                int kwNum = exportCol.getKwNum();
+                                if (ma != null && kwNum < ma.numKeywordsStrict() && kwNum != -1) {
+                                    kw = ma.getKeywordStrict(kwNum);
+                                }
+                            }
+                            exportCol.writeLabel(kw, row, sheet);
+                        } else if (exportCol.isFor(Measurement.class)) {
+                            int measurementNumber = exportCol.getMeasurementNum();
+                            Measurement currentMeasurement = null;
+                            if (measurementNumber >= 0 && enc.getMeasurements() != null &&
+                                enc.getMeasurements().size() > 0 &&
+                                measurementNumber < enc.getMeasurements().size()) {
+                                String whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList
+                                    = sortedMeasurementColTitles.get(measurementNumber);
+                                currentMeasurement = enc.getMeasurement(
+                                    whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.
+                                        replace("Encounter.measurement.", ""));
+                            }
+                            exportCol.writeLabel(currentMeasurement, row, sheet);
+                        } else
+                            System.out.println(
+                                "EncounterSearchExportMetadataExcel: no object found for class " +
+                                exportCol.getDeclaringClass());
+                    }
+                    sheet.printRecord();
+                } // end for loop iterating encounters
+
+                // end Excel export and business logic ===============================================
+                System.out.println("Done with EncounterSearchExportMetadataExcel. We hid " +
+                    hiddenData.size() + " encounters.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setContentType("text/html");
+                PrintWriter out = response.getWriter();
+                out.println(ServletUtilities.getHeader(request));
+                out.println("<html><body><p><strong>Error encountered</strong></p>");
+                out.println(
+                    "<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
+                out.println(ServletUtilities.getFooter(context));
+                out.close();
+            }
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            // now write out the file
+            response.setContentType("text/csv");
+            response.setHeader("Content-Disposition", "attachment;filename=" + filename);
+            byte[] bytes = outputStream.toByteArray();
+            OutputStream os = response.getOutputStream();
+            os.write(bytes, 0, bytes.length);
+            os.flush();
+            os.close();
         }
-        os.flush();
-        os.close();
     }
 }

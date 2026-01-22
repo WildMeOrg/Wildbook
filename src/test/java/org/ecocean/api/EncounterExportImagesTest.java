@@ -8,9 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,13 +26,13 @@ import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.export.EncounterImageExportFile;
 import org.ecocean.media.*;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
+import org.ecocean.servlet.export.EncounterSearchExportMetadataExcel;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.jetbrains.annotations.NotNull;
@@ -45,14 +43,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.annotation.JsonAppend;
 import org.testcontainers.utility.DockerImageName;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.net.InetSocketAddress;
-import java.nio.file.FileSystems;
 import java.util.*;
 
 import static io.restassured.RestAssured.*;
@@ -103,6 +99,7 @@ import static org.mockito.Mockito.when;
         Properties commonConfiguration = new Properties();
         commonConfiguration.setProperty("collaborationSecurityEnabled", "true");
         commonConfiguration.setProperty("releaseDateFormat", "yyyy-MM-dd");
+        commonConfiguration.setProperty("htmlTitle", "Unit Test");
         CommonConfiguration.initialize("context0", commonConfiguration);
 
         System.out.println("PostgreSQL started at: " + postgres.getJdbcUrl());
@@ -129,6 +126,8 @@ import static org.mockito.Mockito.when;
         ctx.addServlet(new ServletHolder(new Login()), "/api/v3/login");
         ctx.addServlet(new ServletHolder(new SearchApi()), "/api/v3/search/*");
         ctx.addServlet(new ServletHolder(new EncounterExport()), "/api/v3/encounters/export");
+        ctx.addServlet(new ServletHolder(new EncounterSearchExportMetadataExcel()),
+            "/EncounterSearchExportMetadataExcel");
         server.setHandler(ctx);
         try {
             server.start();
@@ -395,10 +394,10 @@ import static org.mockito.Mockito.when;
 
             // Load expected CSV data
             File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
-            List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
+            List<String[]> expectedRows = loadCsv(expectedCsvFile);
 
             // Load actual CSV data
-            List<String[]> actualRows = loadExpectedCsv(csvFile);
+            List<String[]> actualRows = loadCsv(csvFile);
 
             // Compare CSV files
             assertCsvFilesEqual(actualRows, expectedRows);
@@ -417,7 +416,7 @@ import static org.mockito.Mockito.when;
         }
     }
 
-    private static @NotNull List<String[]> loadExpectedCsv(File expectedCsvFile)
+    private static @NotNull List<String[]> loadCsv(File expectedCsvFile)
     throws IOException {
         List<String[]> expectedRows = new ArrayList<>();
 
@@ -439,7 +438,8 @@ import static org.mockito.Mockito.when;
             }
         }
 
-        System.out.println("  Loaded " + expectedRows.size() + " rows from expected CSV");
+        System.out.println("  Loaded " + expectedRows.size() + " rows from CSV: " +
+            expectedCsvFile.toString());
         return expectedRows;
     }
 
@@ -489,10 +489,9 @@ import static org.mockito.Mockito.when;
             assertEquals(expectedRow.length, actualRow.length,
                 "Row " + rowIndex + " should have " + expectedRow.length + " cells");
         }
-
         // Compare row count
         assertEquals(expectedRows.size(), actualRows.size(),
-                "CSV should have same number of rows as expected");
+            "CSV should have same number of rows as expected");
 
         System.out.println("CSV metadata validation passed - all cells match expected CSV");
     }
@@ -559,13 +558,12 @@ import static org.mockito.Mockito.when;
                     }
                     metadataCsvBytes = baos.toByteArray();
                 }
-
                 // Extract hidden_data.csv for validation
-                if (entry.getName().equals("hidden_data.csv")){
+                if (entry.getName().equals("hidden_data.csv")) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     byte[] buffer = new byte[1024];
                     int len;
-                    while ( (len = zis.read(buffer)) > 0){
+                    while ((len = zis.read(buffer)) > 0) {
                         baos.write(buffer, 0, len);
                     }
                     hiddenDataCsvBytes = baos.toByteArray();
@@ -595,7 +593,7 @@ import static org.mockito.Mockito.when;
 
         // Should contain metadata file (if includeMetadata: true)
         assertTrue(zipEntries.stream().anyMatch(e -> e.equals("metadata.csv")),
-                "ZIP should contain metadata.csv");
+            "ZIP should contain metadata.csv");
 
         assertTrue(zipEntries.stream().anyMatch(e -> e.equals("hidden_data.csv")),
             "ZIP should contain hidden_data.csv");
@@ -651,7 +649,7 @@ import static org.mockito.Mockito.when;
 
         // Load expected CSV data
         File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
-        List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
+        List<String[]> expectedRows = loadCsv(expectedCsvFile);
 
         // Parse actual CSV from bytes
         List<String[]> actualRows;
@@ -677,6 +675,52 @@ import static org.mockito.Mockito.when;
         assertCsvFilesEqual(actualRows, expectedRows);
 
         System.out.println("\nHappy path test completed successfully");
+    }
+
+    /**
+     * Test the EncounterSearchExportMetadataExcel servlet.
+     * Verifies that the CSV export has proper row separators (not one long row).
+     */
+    @Test @Order(4) void testEncounterSearchExportMetadataExcel_CsvFormat()
+    throws Exception {
+        System.out.println("\n--- Test: EncounterSearchExportMetadataExcel CSV Format ---");
+
+        // Make the export request with genus filter
+        Response response = given()
+                .cookie("JSESSIONID", authenticationCookie)
+                .queryParam("genus", "lynx")
+                .when()
+                .get("/EncounterSearchExportMetadataExcel")
+                .then()
+                .statusCode(200)
+                .contentType("text/csv")
+                .log().ifValidationFails()
+                .extract()
+                .response();
+
+        System.out.println("Export request successful, verifying CSV format...");
+
+        // Get the CSV content as string
+        String csvContent = response.getBody().asString();
+        assertNotNull(csvContent, "CSV content should not be null");
+        assertFalse(csvContent.isEmpty(), "CSV content should not be empty");
+
+        try (FileOutputStream output = new FileOutputStream("/tmp/actual_search_export.csv");
+        OutputStreamWriter streamWriter = new OutputStreamWriter(output)) {
+            streamWriter.write(csvContent);
+            System.out.println("Wrote to: /tmp/actual_search_export.csv");
+        }
+
+        File expectedCsvFile = new File("src/test/resources/expected_search_export.csv");
+        List<String[]> expectedData = loadCsv(expectedCsvFile);
+        List<String[]> actualData = loadCsv(new File("/tmp/actual_search_export.csv"));
+
+        assertCsvFilesEqual(actualData, expectedData);
+
+        System.out.println("CSV format test passed:");
+        System.out.println("  ✓ Multiple rows (not one long row)");
+        System.out.println("  ✓ Header row with expected columns");
+        System.out.println("  ✓ Consistent column count across all rows");
     }
 
     // =========================================================================
