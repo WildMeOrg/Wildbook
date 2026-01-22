@@ -448,8 +448,9 @@ public class CommonConfiguration {
         return getProperty("htmlDescription", context).trim();
     }
 
+    // Refer to PhotoUploadDevNotes.md for information/where else to change
     public static int getMaxMediaSizeInMegabytes(String context) {
-        int maxSize = 10;
+        int maxSize = 3;
 
         try {
             String sMaxSize = getProperty("maxMediaSize", context);
@@ -464,6 +465,8 @@ public class CommonConfiguration {
         }
         return maxSize;
     }
+
+    // Refer to PhotoUploadDevNotes.md for information/where else to change
     public static int getMaxMediaCountEncounter(String context) {
         int maxCount = 200;
 
@@ -795,6 +798,23 @@ public class CommonConfiguration {
     public static String appendEmailRemoveHashString(HttpServletRequest request,
         String originalString, String emailAddress, String context) {
         return null;
+    }
+
+    // given a "key" (e.g. "right" or "samplingProtocol1"), returns a map keyed off of
+    // each supported language code. if no value is found for a lang, it will be unset
+    public static Map<String, String> getLangMap(String key, String context) {
+        Map<String, String> langMap = new HashMap<String, String>();
+        boolean foundSomething = false;
+
+        for (String langCode : org.ecocean.Setting.ALL_LANGUAGES_SUPPORTED) {
+            String label = Util.findLabel(key, langCode, context);
+            if (label != null) {
+                langMap.put(langCode, Util.findLabel(key, langCode, context));
+                foundSomething = true;
+            }
+        }
+        if (!foundSomething) return null;
+        return langMap;
     }
 
     public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
