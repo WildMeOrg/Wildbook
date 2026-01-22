@@ -132,6 +132,14 @@ public class Task implements java.io.Serializable {
         return objectAnnotations;
     }
 
+    public int numberMediaAssets() {
+        return Util.collectionSize(objectMediaAssets);
+    }
+
+    public int numberAnnotations() {
+        return Util.collectionSize(objectAnnotations);
+    }
+
     // kinda for convenience?
     public boolean addObject(MediaAsset ma) {
         if (ma == null) return false;
