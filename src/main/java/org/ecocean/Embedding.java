@@ -1,15 +1,21 @@
 package org.ecocean;
 
 import com.pgvector.PGvector;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import javax.jdo.Query;
+import org.json.JSONObject;
 import org.postgresql.jdbc.PgArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import org.ecocean.ia.IAException;
+import org.ecocean.ia.MLService;
+import org.ecocean.ia.Task;
 import org.ecocean.shepherd.core.Shepherd;
 
 // https://github.com/pgvector/pgvector
@@ -25,6 +31,10 @@ public class Embedding implements java.io.Serializable {
     private String method;
     private String methodVersion;
     private long created;
+
+    // for trying to query vectors of annots without embeddings
+    public static int BACKGROUND_SLICE_SIZE = 10;
+    public static int BACKGROUND_MINUTES = 30;
 
     public Embedding() {}
 
@@ -191,6 +201,65 @@ public class Embedding implements java.io.Serializable {
     public boolean hasEqualVector(Embedding emb) {
         if (emb == null) return false;
         return Arrays.equals(this.vectorFloatArray, emb.vectorFloatArray);
+    }
+
+    // returns final annot id
+    public static String catchUpEmbeddings(Shepherd myShepherd, String startId) {
+        JSONObject embData = SystemValue.getJSONObject(myShepherd, "EMBEDDING_CATCHUP");
+
+        if (embData == null) embData = new JSONObject();
+        String sql =
+            "select \"ANNOTATION\".\"ID\" as \"ID\" from \"ANNOTATION\" left join \"EMBEDDING\" on (\"ANNOTATION\".\"ID\" = \"ANNOTATION_ID\") where \"VECTORFLOATARRAY\" is null";
+        if (startId != null) sql += " AND \"ANNOTATION\".\"ID\" > '" + startId + "'";
+        sql += " order by \"ANNOTATION\".\"ID\" limit " + BACKGROUND_SLICE_SIZE;
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        q.setClass(Annotation.class);
+        Collection c = (Collection)q.execute();
+        List<Annotation> anns = new ArrayList(c);
+        q.closeAll();
+        MLService mls = new MLService();
+        for (Annotation ann : anns) {
+            String txStr = ann.getTaxonomyString(myShepherd);
+            if (txStr == null) {
+                embData.put(ann.getId(), "null taxonomy");
+                continue;
+            }
+            try {
+                mls.send(ann, txStr, myShepherd);
+                System.out.println("catchUpEmbeddings: completed " + ann);
+                /// maybe set on embData when we have *no embeddings* but did not have exception??
+            } catch (IAException ex) {
+                // certain cases we store in embData, so they *will not be retried later*
+                // TODO decide actual cases!!
+                embData.put(ann.getId(), ex.toString());
+                System.out.println("catchUpEmbeddings: exception " + ann + " -> " + ex);
+            }
+        }
+        // embData.put("_lastId", xxxx);
+        SystemValue.set(myShepherd, "EMBEDDING_CATCHUP", embData);
+        return null;
+    }
+
+    public static boolean findMatchProspects(JSONObject iaConfig, Task task, Shepherd myShepherd) {
+        if ((iaConfig == null) || (iaConfig.optString("api_endpoint", null) == null)) return false;
+        System.out.println("findMatchProspects() has embedding match: " + iaConfig + ", " + task);
+        if ((task == null) || (task.numberAnnotations() < 1)) return true;
+        for (Annotation ann : task.getObjectAnnotations()) {
+            boolean useClauses = false;
+            String[] methodValues = MLService.getMethodValues(iaConfig);
+            List<Annotation> prospects = ann.getMatches(myShepherd, task.getParameters(),
+                useClauses, methodValues[0], methodValues[1]);
+            // we build this even if empty, cuz that means we got results; just not nice ones
+            Task subTask = new Task(task);
+            System.out.println("findMatchProspects() on " + ann + " created " + subTask);
+/*
+            FOR FUTURE EXPANSION FIXME
+            MatchResult mr = new MatchResult(subTask, prospects, numberCandidates, myShepherd);
+            myShepherd.getPM().makePersistent(mr);
+ */
+            myShepherd.getPM().makePersistent(subTask);
+        }
+        return true;
     }
 
     public String toString() {
