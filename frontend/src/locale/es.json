@@ -313,7 +313,7 @@
   "LOCATION_ID_DESCRIPTION": "Encuentra el ID de ubicación utilizando el texto o el mapa. Intenta ser lo más específico posible.",
   "LOCATION_ID_REQUIRED_WARNING": "Se requiere el ID de ubicación para establecer conjuntos de coincidencias.",
   "MISSING_REQUIRED_FIELDS": "Faltan campos obligatorios o los valores son incorrectos. Por favor, revise el formulario e inténtelo de nuevo.",
-    "INVALID_EMAIL_FORMAT": "Formato de correo electrónico inválido",
+  "INVALID_EMAIL_FORMAT": "Formato de correo electrónico inválido",
   "INVALID_LAT": "La latitud debe estar entre -90 y 90",
   "INVALID_LONG": "La longitud debe estar entre -180 y 180",
   "BEERROR_REQUIRED": "No se ha podido enviar; falta el campo obligatorio: ",
@@ -733,5 +733,18 @@
   "TOOLS": "Herramientas",
   "ZOOM_IN": "Acercar",
   "ZOOM_OUT": "Alejar",
-  "WILDBOOK_DOCUMENTATION": "Documentación de Wildbook"
+  "WILDBOOK_DOCUMENTATION": "Documentación de Wildbook",
+  "SET_MATCH_FOR": "Establecer coincidencia para",
+  "NO_FURTHER_ACTION_NEEDED": "No se requiere ninguna acción adicional",
+  "OR": "o",
+  "MARK_AS_NEW_INDIVIDUAL": "Marcar como nuevo individuo",
+  "CONFIRM_MATCH": "Confirmar coincidencia",
+  "MERGE_INDIVIDUALS": "Fusionar individuos",
+  "CANNOT_MERGE_MORE_THAN_TWO": "No se pueden fusionar más de dos individuos",
+  "MERGE": "Fusionar",
+  "MERGE_INDIVIDUAL": "Fusionar individuo",
+  "AND": "y",
+  "AND_N_ENCOUNTERS": "y {count, plural, one {# encuentro} other {# encuentros}}",
+  "INDIVIDUAL_A": "Individuo A",
+  "INDIVIDUAL_B": "Individuo B"
 }

@@ -313,7 +313,7 @@
   "LOCATION_ID_DESCRIPTION": "Trova l'ID della posizione usando il testo o la mappa. Cerca di essere il più specifico possibile.",
   "LOCATION_ID_REQUIRED_WARNING": "L'ID della posizione è necessario per stabilire set di corrispondenze.",
   "MISSING_REQUIRED_FIELDS": "Campi obbligatori mancanti o valori non corretti. Si prega di rivedere il modulo e riprovare.",
-    "INVALID_EMAIL_FORMAT": "Formato email non valido",
+  "INVALID_EMAIL_FORMAT": "Formato email non valido",
   "INVALID_LAT": "La latitudine deve essere compresa tra -90 e 90",
   "INVALID_LONG": "La longitudine deve essere compresa tra -180 e 180",
   "BEERROR_REQUIRED": "Impossibile inviare; manca un campo obbligatorio: ",
@@ -733,5 +733,18 @@
   "TOOLS": "Strumenti",
   "ZOOM_IN": "Ingrandisci",
   "ZOOM_OUT": "Riduci",
-  "WILDBOOK_DOCUMENTATION": "Documentazione Wildbook"
+  "WILDBOOK_DOCUMENTATION": "Documentazione Wildbook",
+  "SET_MATCH_FOR": "Imposta corrispondenza per",
+  "NO_FURTHER_ACTION_NEEDED": "Nessuna ulteriore azione necessaria",
+  "OR": "o",
+  "MARK_AS_NEW_INDIVIDUAL": "Contrassegna come nuovo individuo",
+  "CONFIRM_MATCH": "Conferma corrispondenza",
+  "MERGE_INDIVIDUALS": "Unisci individui",
+  "CANNOT_MERGE_MORE_THAN_TWO": "Non è possibile unire più di due individui",
+  "MERGE": "Unisci",
+  "MERGE_INDIVIDUAL": "Unisci individuo",
+  "AND": "e",
+  "AND_N_ENCOUNTERS": "e {count, plural, one {# incontro} other {# incontri}}",
+  "INDIVIDUAL_A": "Individuo A",
+  "INDIVIDUAL_B": "Individuo B"
 }

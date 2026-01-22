@@ -314,7 +314,7 @@
   "LOCATION_ID_DESCRIPTION": "Finden Sie die Standort-ID mithilfe des Textes oder der Karte. Versuchen Sie, so spezifisch wie möglich zu sein.",
   "LOCATION_ID_REQUIRED_WARNING": "Die Standort-ID ist erforderlich, um Abgleichsgruppen zu erstellen.",
   "MISSING_REQUIRED_FIELDS": "Erforderliche Felder fehlen oder Feldwerte sind falsch. Bitte überprüfen Sie das Formular und versuchen Sie es erneut.",
-    "INVALID_EMAIL_FORMAT": "Ungültiges E-Mail-Format",
+  "INVALID_EMAIL_FORMAT": "Ungültiges E-Mail-Format",
   "INVALID_LAT": "Der Breitengrad muss zwischen -90 und 90 liegen",
   "INVALID_LONG": "Der Längengrad muss zwischen -180 und 180 liegen",
   "BEERROR_REQUIRED": "Konnte nicht übermittelt werden; erforderliches Feld fehlt: ",
@@ -734,5 +734,18 @@
   "TOOLS": "Werkzeuge",
   "ZOOM_IN": "Vergrößern",
   "ZOOM_OUT": "Verkleinern",
-  "WILDBOOK_DOCUMENTATION": "Wildbook-Dokumentation"
+  "WILDBOOK_DOCUMENTATION": "Wildbook-Dokumentation",
+  "SET_MATCH_FOR": "Zuordnung festlegen für",
+  "NO_FURTHER_ACTION_NEEDED": "Keine weitere Aktion erforderlich",
+  "OR": "oder",
+  "MARK_AS_NEW_INDIVIDUAL": "Als neues Individuum markieren",
+  "CONFIRM_MATCH": "Übereinstimmung bestätigen",
+  "MERGE_INDIVIDUALS": "Individuen zusammenführen",
+  "CANNOT_MERGE_MORE_THAN_TWO": "Es können nicht mehr als zwei Individuen zusammengeführt werden",
+  "MERGE": "Zusammenführen",
+  "MERGE_INDIVIDUAL": "Individuum zusammenführen",
+  "AND": "und",
+  "AND_N_ENCOUNTERS": "und {count, plural, one {# Begegnung} other {# Begegnungen}}",
+  "INDIVIDUAL_A": "Individuum A",
+  "INDIVIDUAL_B": "Individuum B"
 }

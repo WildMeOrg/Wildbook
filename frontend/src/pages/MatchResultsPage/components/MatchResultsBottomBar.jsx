@@ -42,11 +42,12 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             <FormattedMessage id="SET_MATCH_FOR" />{" "}
             {store.individualDisplayName ? (
               <a
-                href={`/individuals.jsp?id=${encodeURIComponent(encId)}`}
+                href={`/individuals.jsp?id=${encodeURIComponent(
+                  store.individualId,
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-decoration-none"
-                title={encId}
               >
                 {store.individualDisplayName}
               </a>
@@ -56,11 +57,10 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-decoration-none"
-                title={encId}
               >
                 {shortEncId}
               </a>
-            )}
+            )}{" "}
             <FormattedMessage id="OR" />
           </div>
         );
@@ -105,8 +105,8 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
 
       case "single_individual": {
         const all = store.selectedIncludingQuery || [];
-
         const individualItem = all.find((x) => x?.individualId);
+
         const individualName =
           (individualItem?.encounterId === store.encounterId
             ? store.individualDisplayName
@@ -122,9 +122,26 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
         return {
           left: (
             <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
-              {`Merge individual ${individualName}${
-                encounterNum ? ` and ${encounterNum} encounters` : ""
-              }`}
+              <FormattedMessage id="MERGE_INDIVIDUAL" />{" "}
+              <a
+                href={`/individuals.jsp?id=${encodeURIComponent(
+                  individualItem?.individualId,
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                {individualName}
+              </a>
+              {encounterNum > 0 && (
+                <>
+                  {" "}
+                  <FormattedMessage
+                    id="AND_N_ENCOUNTERS"
+                    values={{ count: encounterNum }}
+                  />
+                </>
+              )}
             </div>
           ),
           right: (
@@ -136,10 +153,7 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
               disabled={store.matchRequestLoading}
               style={{ marginTop: 0, marginBottom: 0 }}
             >
-              <FormattedMessage
-                id="CONFIRM_MATCH"
-                defaultMessage="Confirm Match"
-              />
+              <FormattedMessage id="CONFIRM_MATCH" />
               {store.matchRequestLoading && (
                 <Spinner
                   animation="border"
@@ -156,7 +170,6 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
 
       case "two_individuals": {
         const all = store.selectedIncludingQuery || [];
-
         const individualsRaw = all.filter((x) => x?.individualId);
         const individuals = Array.from(
           new Map(individualsRaw.map((x) => [x.individualId, x])).values(),
@@ -169,34 +182,56 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
         const a = individuals[0];
         const b = individuals[1];
 
-        const nameA =
-          (a?.encounterId === store.encounterId
-            ? store.individualDisplayName
-            : null) ||
+        const nameA = (a?.encounterId === store.encounterId
+          ? store.individualDisplayName
+          : null) ||
           a?.individualDisplayName ||
-          a?.individualId ||
-          "Individual A";
+          a?.individualId || <FormattedMessage id="INDIVIDUAL_A" />;
 
-        const nameB =
-          (b?.encounterId === store.encounterId
-            ? store.individualDisplayName
-            : null) ||
+        const nameB = (b?.encounterId === store.encounterId
+          ? store.individualDisplayName
+          : null) ||
           b?.individualDisplayName ||
-          b?.individualId ||
-          "Individual B";
+          b?.individualId || <FormattedMessage id="INDIVIDUAL_B" />;
 
         const encounters = all.filter(
           (x) => x?.encounterId && !x?.individualId,
         );
-        const mergeMessage =
-          encounters.length > 0
-            ? `Merge ${nameA} and ${nameB} and ${encounters.length} encounters`
-            : `Merge ${nameA} and ${nameB}`;
 
         return {
           left: (
             <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
-              {mergeMessage}
+              <FormattedMessage id="MERGE" />{" "}
+              <a
+                href={`/individuals.jsp?id=${encodeURIComponent(
+                  a?.individualId,
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                {nameA}
+              </a>{" "}
+              <FormattedMessage id="AND" />{" "}
+              <a
+                href={`/individuals.jsp?id=${encodeURIComponent(
+                  b?.individualId,
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                {nameB}
+              </a>
+              {encounters.length > 0 && (
+                <>
+                  {" "}
+                  <FormattedMessage
+                    id="AND_N_ENCOUNTERS"
+                    values={{ count: encounters.length }}
+                  />
+                </>
+              )}
             </div>
           ),
           right: (
@@ -208,10 +243,7 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
               disabled={store.matchRequestLoading}
               style={{ marginTop: 0, marginBottom: 0 }}
             >
-              <FormattedMessage
-                id="MERGE_INDIVIDUALS"
-                defaultMessage="Merge Individuals"
-              />
+              <FormattedMessage id="MERGE_INDIVIDUALS" />
               {store.matchRequestLoading && (
                 <Spinner
                   animation="border"
@@ -243,17 +275,19 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
         if (store.selectedMatch.length === 0) {
           const encId = store.encounterId || "";
           const shortEncId = encId.slice(0, 5);
+
           return {
             left: (
               <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>
                 <FormattedMessage id="SET_MATCH_FOR" />{" "}
                 {store.individualDisplayName ? (
                   <a
-                    href={`/individuals.jsp?id=${encodeURIComponent(encId)}`}
+                    href={`/individuals.jsp?id=${encodeURIComponent(
+                      store.individualId,
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-decoration-none"
-                    title={encId}
                   >
                     {store.individualDisplayName}
                   </a>
@@ -263,7 +297,6 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-decoration-none"
-                    title={encId}
                   >
                     {shortEncId}
                   </a>
@@ -273,6 +306,7 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
             right: null,
           };
         }
+
         return {
           left: (
             <div className="text-truncate" style={{ whiteSpace: "nowrap" }}>

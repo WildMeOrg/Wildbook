@@ -734,5 +734,18 @@
     "TOOLS": "Tools",
     "ZOOM_IN": "Zoom In",
     "ZOOM_OUT": "Zoom Out",
-    "WILDBOOK_DOCUMENTATION": "Wildbook Documentation"
+    "WILDBOOK_DOCUMENTATION": "Wildbook Documentation",
+    "SET_MATCH_FOR": "Set match for",
+    "NO_FURTHER_ACTION_NEEDED": "No further action needed",
+    "OR": "or",
+    "MARK_AS_NEW_INDIVIDUAL": "Mark As New Individual",
+    "CONFIRM_MATCH": "Confrim Match",
+    "MERGE_INDIVIDUALS": "Merge Individuals",
+    "CANNOT_MERGE_MORE_THAN_TWO": "Cannot merge more than two individuals",
+    "MERGE": "Merge",
+    "MERGE_INDIVIDUAL": "Merge individual",
+    "AND": "and",
+    "AND_N_ENCOUNTERS": "and {count, plural, one {# encounter} other {# encounters}}",
+    "INDIVIDUAL_A": "Individual A",
+    "INDIVIDUAL_B": "Individual B"
 }
