@@ -326,15 +326,8 @@ public class MLService {
         if ((embs.length() < 1) || (embs.optJSONArray(0) == null))
             throw new IAException("results has no embeddings array[0]: " + res);
         JSONArray vecArr = embs.getJSONArray(0);
-        String method = res.optString("model_id", null);
-        String methodVersion = null;
-        // kinda hack version splitting here but...
-        if ((method != null) && method.contains("-")) {
-            String[] parts = method.split("\\-");
-            method = parts[0];
-            methodVersion = parts[1];
-        }
-        Embedding emb = new Embedding(ann, method, methodVersion, vecArr);
+        String[] methodValues = getMethodValues(res);
+        Embedding emb = new Embedding(ann, methodValues[0], methodValues[1], vecArr);
         // maybe this is unwise? could 2 embeddings *from different methods* have same vectors? TODO
         Embedding exists = ann.findEmbeddingByVector(emb);
         if (exists != null) {
@@ -346,6 +339,20 @@ public class MLService {
         // FIXME persist or whatever????
         System.out.println("[DEBUG] MLService.processAnnotationResults(): added " + emb + " to " +
             ann);
+    }
+
+    public static String[] getMethodValues(JSONObject conf) {
+        String[] mv = { null, null };
+
+        if (conf == null) return mv;
+        mv[0] = conf.optString("model_id", null);
+        // kinda hack version splitting here but... and i think some might not have dash, like "msv3"  :(
+        if ((mv[0] != null) && mv[0].contains("-")) {
+            String[] parts = mv[0].split("\\-");
+            mv[0] = parts[0];
+            mv[1] = parts[1];
+        }
+        return mv;
     }
 
     private JSONObject sendPayload(String endpoint, JSONObject payload)
