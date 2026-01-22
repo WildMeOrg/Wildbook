@@ -371,6 +371,7 @@ const MatchProspectTable = ({
                             rowKey,
                             candidateEncounterId,
                             candidateIndividualId,
+                            candidateIndividualDisplayName,
                           )
                         }
                       />
