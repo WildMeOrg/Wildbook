@@ -64,6 +64,15 @@ public class MatchResult implements java.io.Serializable {
         this.createFromJsonResult(jsonResult, myShepherd);
     }
 
+    // FIXME will need scores and other stuff here?
+    public MatchResult(Task task, List<Annotation> annots, int numberCandidates,
+        Shepherd myShepherd)
+    throws IOException {
+        this();
+        this.task = task;
+        this.createFromProspectAnnotations(annots, numberCandidates, myShepherd);
+    }
+
     public int getNumberCandidates() {
         return numberCandidates;
     }
