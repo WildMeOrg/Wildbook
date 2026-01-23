@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>10.8.1.2</version>
+  <version>10.9.2</version>
   <packaging>war</packaging>
 
   <properties>
@@ -18,6 +18,9 @@
     <slf4j.version>1.7.12</slf4j.version>
     <junit.version>5.11.0</junit.version>
     <mockito.version>4.11.0</mockito.version>
+    <testcontainers.version>1.19.3</testcontainers.version>
+    <rest-assured.version>5.4.0</rest-assured.version>
+    <wiremock.version>3.3.1</wiremock.version>
   </properties>
 
   <repositories>
@@ -402,6 +405,56 @@
       <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Testcontainers for integration testing -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- REST Assured for API testing -->
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <version>${rest-assured.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-server</artifactId>
+          <version>9.4.58.v20250814</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlet</artifactId>
+          <version>9.4.58.v20250814</version>
+          <scope>test</scope>
+      </dependency>
+
+    <!-- Apache Commons CSV for proper CSV parsing in tests -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>1.11.0</version>
+      <scope>test</scope>
+    </dependency>
+
 
     <dependency>
       <groupId>org.geotools</groupId>

@@ -5,14 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -651,7 +644,9 @@ public class Annotation extends Base implements java.io.Serializable {
 
     // if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
-        if (getMediaAsset() == null) return null;
+        MediaAsset ma = getMediaAsset();
+
+        if (ma == null) return null;
         Feature found = null;
         for (Feature ft : getFeatures()) {
             if (ft.isUnity() || ft.isType("org.ecocean.boundingBox")) {
@@ -664,8 +659,8 @@ public class Annotation extends Base implements java.io.Serializable {
         if (found.isUnity()) {
             bbox[0] = 0;
             bbox[1] = 0;
-            bbox[2] = (int)getMediaAsset().getWidth();
-            bbox[3] = (int)getMediaAsset().getHeight();
+            bbox[2] = (int)ma.getWidth();
+            bbox[3] = (int)ma.getHeight();
         } else {
             // guess we derive from feature!
             if (found.getParameters() == null) return null;
@@ -744,6 +739,10 @@ public class Annotation extends Base implements java.io.Serializable {
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request)
     throws org.datanucleus.api.rest.orgjson.JSONException {
         return this.sanitizeMedia(request, false);
+    }
+
+    public boolean isPart() {
+        return ((this.iaClass != null) && this.iaClass.contains("+"));
     }
 
     public String getPartIfPresent() {
@@ -1296,11 +1295,11 @@ public class Annotation extends Base implements java.io.Serializable {
         }
  */
         // NOTE: manualAnnotation.jsp once allowed featureId to be passed; that functionality is not handled here
-        //
-        // we replace trivial if applicable; otherwise this logic determines if we should
-        // clone the encounter (based off historic logic in manualAnnotation.jsp)
-        if (enc != null) {
+        if (enc != null) { // note: we currently *require* enc, so this should always be true
             ann.setMatchAgainst(true);
+            // !NOTE! this first set of logic to set cloneEncounter is copied from manualAnnotation.jsp
+            // i believe this logic is flawed! it is left for reference/research/consideration
+            // please see instead the block following this where new logic is applied  -jon 2025-10-17
             boolean cloneEncounter = false;
             // we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
             if ((annots.size() > 1) && (iaClass != null)) {
@@ -1326,6 +1325,27 @@ public class Annotation extends Base implements java.io.Serializable {
                 Annotation annot1 = annots.get(0);
                 if ((annot1.getIAClass() != null) && (annot1.getIAClass().indexOf("+") != -1)) {
                     System.out.println("DEBUG Annotation.createFromApi(): cloneEncounter [4]");
+                    cloneEncounter = true;
+                }
+            }
+            // here is the new logic. this will hopefully side-step the problem where the enc was getting
+            // cloned far more often than it should. i believe this was due to the fact that annots was
+            // from the media asset and therefore could be pointing to all kinds of *other* encounters,
+            // rather than just focusing on the connection between ma and enc
+            cloneEncounter = false; // start over
+            if (!ann.isPart()) { // we can skip this whole thing if we are adding a part
+                List<Annotation> encAnnots = enc.getAnnotations(ma);
+                System.out.println("DEBUG Annotation.createFromApi(): encAnnots = " + encAnnots);
+                // we see if we have a non-part annot, which would force us to clone (parts we ignore)
+                for (Annotation eann : encAnnots) {
+                    if (eann.isPart()) continue;
+                    // trivial *should* be replaced below (see foundTrivial) ... i guess there is a weird
+                    // chance of more than one trivial being on this asset, but thats probably bad news anyway
+                    // we dont clone encounter since we will drop this trivial annot (then add new one to enc)
+                    if (eann.isTrivial()) continue;
+                    System.out.println(
+                        "DEBUG Annotation.createFromApi(): cloneEncounter [5] forcing cloneEncounter due to "
+                        + eann);
                     cloneEncounter = true;
                 }
             }
@@ -1478,6 +1498,16 @@ public class Annotation extends Base implements java.io.Serializable {
         return Task.getRootTasksFor(this, myShepherd);
     }
 
+    public int detachFromTasks(Shepherd myShepherd) {
+        List<Task> tasks = Task.getTasksFor(this, myShepherd);
+
+        if (Util.collectionIsEmptyOrNull(tasks)) return 0;
+        for (Task task : tasks) {
+            task.removeObject(this);
+        }
+        return tasks.size();
+    }
+
     public static boolean isValidViewpoint(String vp) {
         if (vp == null) return true;
         return getAllValidViewpoints().contains(vp);
@@ -1614,16 +1644,6 @@ public class Annotation extends Base implements java.io.Serializable {
             nfe.printStackTrace();
         }
         return null;
-    }
-
-    // need these two so we can use things like List.contains()
-    // note: this basically is "id-equivalence" rather than *content* equivalence, so will not compare semantic similarity of 2 annots
-    public boolean equals(final Object o2) {
-        if (o2 == null) return false;
-        if (!(o2 instanceof Annotation)) return false;
-        Annotation two = (Annotation)o2;
-        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
-        return this.id.equals(two.getId());
     }
 
     public int hashCode() {
