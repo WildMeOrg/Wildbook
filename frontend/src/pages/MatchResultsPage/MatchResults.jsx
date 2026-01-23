@@ -20,7 +20,8 @@ const MatchResults = observer(() => {
   const [instructionsVisible, setInstructionsVisible] = React.useState(false);
   const [params] = useSearchParams();
   const taskId = params.get("taskId");
-  const { projectsForUser = {} } = useSiteSettings() || {};
+  const { projectsForUser = {}, identificationRemarks = [] } =
+    useSiteSettings() || {};
   const [filterVisible, setFilterVisible] = React.useState(false);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ const MatchResults = observer(() => {
         <MatchResultsBottomBar
           store={store}
           themeColor={themeColor}
-          isTopPosition={true}
+          identificationRemarks={identificationRemarks}
         />
       )}
 

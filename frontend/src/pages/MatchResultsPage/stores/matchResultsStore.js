@@ -304,6 +304,61 @@ export default class MatchResultsStore {
     this._newIndividualName = name;
   }
 
+  async handleCreateNewIndividual(selectedRemark) {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
+
+    try {
+      const newName = (this._newIndividualName || "").trim();
+      if (!newName) {
+        this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
+        return { ok: false, error: "ENTER_INDIVIDUAL_NAME" };
+      }
+
+      const encounterIds = Array.from(
+        new Set(
+          this.selectedIncludingQuery
+            .filter((m) => !m.individualId)
+            .map((m) => m.encounterId),
+        ),
+      );
+
+      const patchOps = [
+        { op: "replace", path: "individualId", value: newName },
+      ];
+
+      if (selectedRemark && selectedRemark.trim() !== "") {
+        patchOps.push({
+          op: "replace",
+          path: "identificationRemarks",
+          value: selectedRemark,
+        });
+      }
+
+      for (const id of encounterIds) {
+        await axios.patch(
+          `/api/v3/encounters/${encodeURIComponent(id)}`,
+          patchOps,
+          {
+            headers: {
+              "Content-Type": "application/json-patch+json",
+              Accept: "application/json",
+            },
+          },
+        );
+      }
+
+      this.resetSelectionToQuery();
+      return { ok: true };
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
+      return { ok: false, error: "CREATE_NEW_INDIVIDUAL_FAILED" };
+    } finally {
+      this._matchRequestLoading = false;
+    }
+  }
+
   setSelectedMatch(
     selected,
     key,
