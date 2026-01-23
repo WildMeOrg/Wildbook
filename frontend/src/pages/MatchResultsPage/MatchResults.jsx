@@ -20,7 +20,8 @@ const MatchResults = observer(() => {
   const [instructionsVisible, setInstructionsVisible] = React.useState(false);
   const [params] = useSearchParams();
   const taskId = params.get("taskId");
-  const { projectsForUser = {} } = useSiteSettings() || {};
+  const { projectsForUser = {}, identificationRemarks = [] } =
+    useSiteSettings() || {};
   const [filterVisible, setFilterVisible] = React.useState(false);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const MatchResults = observer(() => {
   }
 
   return (
-    <Container className="mt-3 mb-5">
+    <Container className="mt-2 mb-5">
       <InstructionsModal
         show={instructionsVisible}
         onHide={() => setInstructionsVisible(false)}
@@ -52,43 +53,23 @@ const MatchResults = observer(() => {
         filter={store.matchingSetFilter}
       />
 
+      {store.hasResults && (
+        <MatchResultsBottomBar
+          store={store}
+          themeColor={themeColor}
+          identificationRemarks={identificationRemarks}
+        />
+      )}
+
+      {store.hasResults && <div style={{ height: "70px" }} />}
+
       <div className="d-flex flex-row justify-content-between align-items-center mb-3">
         <div className="d-flex flex-row align-items-center">
           <h2>
             <FormattedMessage id="MATCH_RESULT" />
           </h2>
-          {/* <a
-            href={`/react/encounter?number=${store.encounterId}`}
-            className="text-decoration-none"
-            target="_blank"
-            rel="noopener noreferrer"
-          >{` for ${store.encounterId}`}</a>
-          {store.individualDisplayName && (
-            <MainButton
-              color="white"
-              backgroundColor={themeColor.primaryColors.primary500}
-              noArrow
-              onClick={() => {
-                const url = `/individuals.jsp?id=${store.individualId}`;
-                window.open(url, "_blank");
-              }}
-            >
-              {store._individualDisplayName}
-            </MainButton>
-          )} */}
         </div>
         <span>
-          <div
-            title="Match Criteria"
-            style={{
-              display: "inline-flex",
-              cursor: "pointer",
-              marginRight: "10px",
-            }}
-            onClick={() => setFilterVisible(true)}
-          >
-            <FilterIcon />
-          </div>
           <div
             title="Match Page Instructions"
             style={{ display: "inline-flex", cursor: "pointer" }}
@@ -192,6 +173,17 @@ const MatchResults = observer(() => {
               ))}
             </Form.Select>
           </Form.Group>
+          <div
+            title="Match Criteria"
+            style={{
+              display: "inline-flex",
+              cursor: "pointer",
+              marginRight: "10px",
+            }}
+            onClick={() => setFilterVisible(true)}
+          >
+            <FilterIcon />
+          </div>
         </div>
       </div>
       {!store.hasResults ? (
@@ -233,9 +225,6 @@ const MatchResults = observer(() => {
             />
           </div>
         ))
-      )}
-      {store.hasResults && (
-        <MatchResultsBottomBar store={store} themeColor={themeColor} />
       )}
     </Container>
   );
