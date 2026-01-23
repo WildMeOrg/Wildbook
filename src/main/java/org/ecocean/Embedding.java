@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import com.pgvector.PGvector;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -258,10 +259,16 @@ public class Embedding implements java.io.Serializable {
                     " due to no suitable embeddings for " + iaConfig);
                 return true;
             }
+            OpenSearch os = new OpenSearch();
+            int numberCandidates = -1;
+            try {
+                numberCandidates = os.queryCount("annotation", matchingSetQuery);
+            } catch (IOException ex) {}
             List<Annotation> prospects = ann.getMatches(myShepherd, matchQuery);
             Task subTask = new Task(task);
             System.out.println("findMatchProspects() on " + ann + " found " +
-                Util.collectionSize(prospects) + " prospects for " + subTask);
+                Util.collectionSize(prospects) + " prospects (in " + numberCandidates +
+                " candidates) for " + subTask);
 /*
             FOR FUTURE EXPANSION FIXME
             // we build this even if empty, cuz that means we got results; just not nice ones
