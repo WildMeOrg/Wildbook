@@ -317,7 +317,7 @@ if (allSpotMAs != null) {
 						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
 									
 									//iInfo=new ImageInfo();
-									Dimension imageDimensions = hackSanselanGetImageSize(uploadedRightFile, null);
+									Dimension imageDimensions = Util.hackSanselanGetImageSize(uploadedRightFile, null);
 		 				
 
 									//iInfo.setInput(new FileInputStream(uploadedRightFile));
