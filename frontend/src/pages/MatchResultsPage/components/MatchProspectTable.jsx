@@ -87,6 +87,13 @@ const styles = {
     borderRadius: "8px",
     cursor: "pointer",
   },
+  iconButtonDisabled: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "8px",
+    cursor: "not-allowed",
+    opacity: 0.4,
+  },
   matchListScrollContainer: {
     overflowX: "auto",
     overflowY: "hidden",
@@ -455,15 +462,23 @@ const MatchProspectTable = ({
             >
               <ZoomOutIcon />
             </div>
-            {inspectorUrl && (
-              <div
-                style={styles.iconButton}
-                title="View Hotspotter Visualization"
-                onClick={() => setInspectorOpen(true)}
-              >
-                <HatchMarkIcon />
-              </div>
-            )}
+            <div
+              style={
+                inspectorUrl ? styles.iconButton : styles.iconButtonDisabled
+              }
+              title={
+                inspectorUrl
+                  ? "View Hotspotter Visualization"
+                  : "No visualization available"
+              }
+              onClick={() => {
+                if (inspectorUrl) {
+                  setInspectorOpen(true);
+                }
+              }}
+            >
+              <HatchMarkIcon />
+            </div>
 
             <div
               style={styles.iconButton}
@@ -553,15 +568,25 @@ const MatchProspectTable = ({
                   >
                     <ZoomOutIcon />
                   </div>
-                  {inspectorUrl && (
-                    <div
-                      style={styles.iconButton}
-                      title="View Hotspotter Visualization"
-                      onClick={() => setInspectorOpen(true)}
-                    >
-                      <HatchMarkIcon />
-                    </div>
-                  )}
+                  <div
+                    style={
+                      inspectorUrl
+                        ? styles.iconButton
+                        : styles.iconButtonDisabled
+                    }
+                    title={
+                      inspectorUrl
+                        ? "View Hotspotter Visualization"
+                        : "No visualization available"
+                    }
+                    onClick={() => {
+                      if (inspectorUrl) {
+                        setInspectorOpen(true);
+                      }
+                    }}
+                  >
+                    <HatchMarkIcon />
+                  </div>
                   <div
                     style={styles.iconButton}
                     title="View Annotations"

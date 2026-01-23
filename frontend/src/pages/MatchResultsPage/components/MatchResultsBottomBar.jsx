@@ -18,11 +18,12 @@ const styles = {
     padding: "10px 24px",
     display: "flex",
     gap: "24px",
-    zIndex: 1000,
+    zIndex: 20,
     height: "60px",
   }),
   bottomText: {
-    fontSize: "0.9rem",
+    fontSize: "1.2rem",
+    fontWeight: "500",
   },
   warningText: {
     color: "#dc3545",
@@ -107,7 +108,7 @@ const MatchResultsBottomBar = observer(
                   {"encounter"} {shortEncId}
                 </a>
               )}{" "}
-              <FormattedMessage id="OR" />
+              <FormattedMessage id="OR_CHOOSE_FROM_RESULTS_BELOW" />
             </div>
           );
 
@@ -367,7 +368,11 @@ const MatchResultsBottomBar = observer(
           >
             <div
               className="me-3 flex-grow-1 text-truncate"
-              style={{ whiteSpace: "nowrap", minWidth: 0 }}
+              style={{
+                ...styles.bottomText,
+                whiteSpace: "nowrap",
+                minWidth: 0,
+              }}
             >
               {left}
             </div>

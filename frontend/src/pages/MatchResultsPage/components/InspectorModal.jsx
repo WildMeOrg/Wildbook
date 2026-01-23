@@ -120,14 +120,16 @@ export default function InspectorModal({
                 </div>
               </div>
 
-              <InteractiveAnnotationOverlay
-                ref={overlayRef}
-                imageUrl={imageUrl}
-                originalWidth={originalWidth}
-                originalHeight={originalHeight}
-                annotations={[]}
-                showAnnotations={false}
-              />
+              <div style={{ overflow: "auto", width: "100%", height: "100%" }}>
+                <InteractiveAnnotationOverlay
+                  ref={overlayRef}
+                  imageUrl={imageUrl}
+                  originalWidth={originalWidth}
+                  originalHeight={originalHeight}
+                  annotations={[]}
+                  showAnnotations={false}
+                />
+              </div>
             </div>
           </div>
         </div>
