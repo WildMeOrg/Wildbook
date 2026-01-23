@@ -9,14 +9,14 @@ const styles = {
     position: "fixed",
     left: 0,
     right: 0,
-    bottom: 0,
+    top: "50px",
     background: themeColor.primaryColors.primary50,
     borderTop: "1px solid #dee2e6",
     padding: "10px 24px",
     display: "flex",
     gap: "24px",
     zIndex: 1000,
-    height: "70px",
+    height: "60px",
   }),
   bottomText: {
     fontSize: "0.9rem",
@@ -344,6 +344,7 @@ const MatchResultsBottomBar = observer(({ store, themeColor }) => {
           <MainButton
             noArrow
             backgroundColor="white"
+            shadowColor={themeColor.primaryColors.primary500}
             color={themeColor.primaryColors.primary500}
             onClick={() => window.close()}
             style={{ marginTop: 0, marginBottom: 0 }}
