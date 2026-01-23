@@ -5,6 +5,7 @@ import { Spinner } from "react-bootstrap";
 import MainButton from "../../../components/MainButton";
 import CreateNewIndividualModal from "./CreateNewIndividualModal";
 import NewIndividualCreatedModal from "./NewIndividualCreatedModal";
+import MatchConfirmedModal from "./MatchConfirmedModal";
 
 const styles = {
   bottomBar: (themeColor) => ({
@@ -35,6 +36,9 @@ const MatchResultsBottomBar = observer(
     const matchingState = store.matchingState;
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showMatchConfirmedModal, setShowMatchConfirmedModal] =
+      useState(false);
+    const [matchConfirmedData, setMatchConfirmedData] = useState(null);
 
     const handleCreateNewIndividual = async (selectedRemark) => {
       const result = await store.handleCreateNewIndividual(selectedRemark);
@@ -44,6 +48,32 @@ const MatchResultsBottomBar = observer(
         setShowSuccessModal(true);
       } else {
         console.error("Failed to create new individual:", result?.error);
+      }
+    };
+
+    const handleMatch = async () => {
+      const all = store.selectedIncludingQuery || [];
+      const individualItem = all.find((x) => x?.individualId);
+
+      const encounterCount = all.filter(
+        (x) => x?.encounterId && !x?.individualId,
+      ).length;
+
+      const modalData = {
+        encounterId: store.encounterId,
+        encounterCount,
+        individualId: individualItem?.individualId,
+        individualName:
+          individualItem?.individualDisplayName || individualItem?.individualId,
+      };
+
+      const result = await store.handleMatch();
+
+      if (result) {
+        setMatchConfirmedData(modalData);
+        setShowMatchConfirmedModal(true);
+      } else {
+        console.error("Match failed");
       }
     };
 
@@ -154,7 +184,7 @@ const MatchResultsBottomBar = observer(
                 noArrow
                 backgroundColor={themeColor.primaryColors.primary500}
                 color="white"
-                onClick={store.handleMatch}
+                onClick={handleMatch}
                 disabled={store.matchRequestLoading}
                 style={{ marginTop: 0, marginBottom: 0 }}
               >
@@ -383,6 +413,21 @@ const MatchResultsBottomBar = observer(
           individualName={store.newIndividualName}
           themeColor={themeColor}
         />
+
+        {matchConfirmedData && (
+          <MatchConfirmedModal
+            show={showMatchConfirmedModal}
+            onHide={() => {
+              setShowMatchConfirmedModal(false);
+              setMatchConfirmedData(null);
+            }}
+            encounterId={matchConfirmedData.encounterId}
+            encounterCount={matchConfirmedData.encounterCount}
+            individualId={matchConfirmedData.individualId}
+            individualName={matchConfirmedData.individualName}
+            themeColor={themeColor}
+          />
+        )}
       </>
     );
   },
