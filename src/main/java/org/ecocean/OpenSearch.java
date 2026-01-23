@@ -448,6 +448,24 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
 
+    // when you only care about how many this would return
+    public int queryCount(String indexName, final JSONObject query)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        Request searchRequest = new Request("POST", indexName + "/_count");
+        searchRequest.setJsonEntity(query.toString());
+        JSONObject res = new JSONObject();
+        try {
+            res = new JSONObject(getRestResponse(searchRequest));
+        } catch (Exception ex) {
+            System.out.println("queryCount() on index " + indexName + " using query=" + query +
+                " failed with: " + ex);
+            ex.printStackTrace();
+            throw new IOException("queryCount() failed");
+        }
+        return res.optInt("count", -1);
+    }
+
     public Map<String, Long> getAllVersions(String indexName)
     throws IOException {
         Map<String, Long> versions = new HashMap<String, Long>();
