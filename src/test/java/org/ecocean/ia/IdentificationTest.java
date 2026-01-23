@@ -1,8 +1,7 @@
 package org.ecocean;
 
-// import com.pgvector.PGvector;
 import org.ecocean.Annotation;
-// import org.ecocean.Embedding;
+import org.ecocean.Encounter;
 import org.ecocean.ia.*;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.shepherd.core.Shepherd;
@@ -42,10 +41,14 @@ class IdentificationTest {
         Shepherd myShepherd = mock(Shepherd.class);
         when(myShepherd.getPM()).thenReturn(mockPM);
 
+        Encounter enc = new Encounter();
+        enc.setTaxonomyFromString("Genus specific");
+
         List<JSONObject> fakeOpts = new ArrayList<JSONObject>();
         fakeOpts.add(new JSONObject(
             "{\"query_config_dict\": {\"sv_on\": true}, \"default\": true}"));
-        fakeOpts.add(new JSONObject("{\"api_endpoint\": \"fake-mlservice-endpoint\"}"));
+        fakeOpts.add(new JSONObject(
+            "{\"api_endpoint\": \"fake-mlservice-endpoint\", \"model_id\": \"method0-version0\" }"));
         IAJsonProperties mockIAConfig = mock(IAJsonProperties.class);
         when(mockIAConfig.identOpts(any(Shepherd.class),
             any(Annotation.class))).thenReturn(fakeOpts);
@@ -56,7 +59,12 @@ class IdentificationTest {
                 "/fake/url");
             try (MockedStatic<IAJsonProperties> mockJP = mockStatic(IAJsonProperties.class)) {
                 mockJP.when(() -> IAJsonProperties.iaConfig()).thenReturn(mockIAConfig);
-                Task resTask = IA.intakeAnnotations(myShepherd, anns, parentTask, false);
+                try (MockedStatic<Encounter> mockEnc = mockStatic(Encounter.class,
+                        org.mockito.Answers.CALLS_REAL_METHODS)) {
+                    mockEnc.when(() -> Encounter.findByAnnotation(any(Annotation.class),
+                        any(Shepherd.class))).thenReturn(enc);
+                    Task resTask = IA.intakeAnnotations(myShepherd, anns, parentTask, false);
+                }
             }
         }
     }

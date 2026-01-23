@@ -245,15 +245,26 @@ public class Embedding implements java.io.Serializable {
         System.out.println("findMatchProspects() has embedding match: " + iaConfig + ", " + task);
         if ((task == null) || (task.numberAnnotations() < 1)) return true;
         for (Annotation ann : task.getObjectAnnotations()) {
-            boolean useClauses = false;
+            // first we get matchingSetQuery to find number of candidates
+            boolean useClauses = false; // TODO how??
+            JSONObject matchingSetQuery = ann.getMatchingSetQuery(myShepherd, task.getParameters(),
+                useClauses);
+            // then we use matchingSetQuery to get matchQuery (to find prospect matches)
             String[] methodValues = MLService.getMethodValues(iaConfig);
-            List<Annotation> prospects = ann.getMatches(myShepherd, task.getParameters(),
-                useClauses, methodValues[0], methodValues[1]);
-            // we build this even if empty, cuz that means we got results; just not nice ones
+            JSONObject matchQuery = ann.getMatchQuery(methodValues[0], methodValues[1],
+                matchingSetQuery);
+            if (matchQuery == null) {
+                System.out.println("findMatchProspects() cannot getMatches() on " + ann +
+                    " due to no suitable embeddings for " + iaConfig);
+                return true;
+            }
+            List<Annotation> prospects = ann.getMatches(myShepherd, matchQuery);
             Task subTask = new Task(task);
-            System.out.println("findMatchProspects() on " + ann + " created " + subTask);
+            System.out.println("findMatchProspects() on " + ann + " found " +
+                Util.collectionSize(prospects) + " prospects for " + subTask);
 /*
             FOR FUTURE EXPANSION FIXME
+            // we build this even if empty, cuz that means we got results; just not nice ones
             MatchResult mr = new MatchResult(subTask, prospects, numberCandidates, myShepherd);
             myShepherd.getPM().makePersistent(mr);
  */

@@ -1103,12 +1103,23 @@ public class Annotation extends Base implements java.io.Serializable {
     // a variation of matchingSet query, but includes the vector stuff - thus returns actual matches(!)
     // method and methodVersion are used to determine *which* embedding to use; if null it will use 1st embedding
     // return null when this annot has no embeddings to match, sorry!
+
+    // this version will construct matchingSetQuery
     public JSONObject getMatchQuery(Shepherd myShepherd, JSONObject taskParams, boolean useClauses,
         String method, String methodVersion) {
         Embedding emb = getEmbeddingByMethod(method, methodVersion);
 
         if (emb == null) return null;
-        JSONObject query = getMatchingSetQuery(myShepherd, taskParams, useClauses);
+        return getMatchQuery(method, methodVersion,
+                getMatchingSetQuery(myShepherd, taskParams, useClauses));
+    }
+
+    // this version if you already have matchingSetQuery
+    public JSONObject getMatchQuery(String method, String methodVersion,
+        JSONObject matchingSetQuery) {
+        Embedding emb = getEmbeddingByMethod(method, methodVersion);
+
+        if (emb == null) return null;
         JSONObject nested = new JSONObject(
             "{\"nested\": {\"path\": \"embeddings\", \"query\": {\"bool\": {}}}}");
         JSONArray must = new JSONArray();
@@ -1124,18 +1135,23 @@ public class Annotation extends Base implements java.io.Serializable {
                 "\"}}"));
         nested.getJSONObject("nested").getJSONObject("query").getJSONObject("bool").put("must",
             must);
-        query.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(nested);
-        return query;
+        matchingSetQuery.getJSONObject("query").getJSONObject("bool").getJSONArray("filter").put(
+            nested);
+        return matchingSetQuery;
     }
 
     // finds annotations based on embedding vector matches
     // null means we didnt have an embedding to query with
     public List<Annotation> getMatches(Shepherd myShepherd, JSONObject taskParams,
         boolean useClauses, String method, String methodVersion) {
-        List<Annotation> anns = new ArrayList<Annotation>();
-        JSONObject query = getMatchQuery(myShepherd, taskParams, useClauses, method, methodVersion);
+        return getMatches(myShepherd,
+                getMatchQuery(myShepherd, taskParams, useClauses, method, methodVersion));
+    }
 
-        if (query == null) return null;
+    // where we already have the query
+    public List<Annotation> getMatches(Shepherd myShepherd, JSONObject matchQuery) {
+        if (matchQuery == null) return null;
+        List<Annotation> anns = new ArrayList<Annotation>();
         OpenSearch os = new OpenSearch();
         long startTime = System.currentTimeMillis();
         JSONObject queryRes = null;
@@ -1146,7 +1162,7 @@ public class Annotation extends Base implements java.io.Serializable {
                 pageSize = os.getSettings("annotation").optInt("max_result_window", 10000);
             } catch (Exception ex) {}
             os.deletePit("annotation");
-            queryRes = os.queryPit("annotation", query, 0, pageSize, null, null);
+            queryRes = os.queryPit("annotation", matchQuery, 0, pageSize, null, null);
             hitSize = queryRes.optJSONObject("hits").optJSONObject("total").optInt("value");
         } catch (Exception ex) {
             System.out.println("getMatches() exception: " + ex);
