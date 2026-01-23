@@ -36,6 +36,7 @@ import org.ecocean.servlet.export.EncounterSearchExportMetadataExcel;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.jetbrains.annotations.NotNull;
+import org.joda.time.Instant;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
@@ -813,7 +814,7 @@ import static org.mockito.Mockito.when;
             enc1.setVerbatimLocality("iberia");
             enc1.setDecimalLatitude(37.15414445923345);
             enc1.setDecimalLongitude(-6.730740044168456);
-            enc1.setDateFromISO8601String("2024-06-01");
+            enc1.setDateInMilliseconds(Instant.parse("2024-06-01T00:00:00Z").getMillis());
             myShepherd.storeNewEncounter(enc1);
 
             enc1.opensearchIndexDeep();
@@ -827,7 +828,7 @@ import static org.mockito.Mockito.when;
             enc2.setVerbatimLocality("iberia");
             enc2.setDecimalLatitude(37.15414445923345);
             enc2.setDecimalLongitude(-6.730740044168456);
-            enc2.setDateFromISO8601String("2025-05-02");
+            enc2.setDateInMilliseconds(Instant.parse("2025-05-02T00:00:00Z").getMillis());
             myShepherd.storeNewEncounter(enc2);
 
             enc2.opensearchIndexDeep();
@@ -841,7 +842,7 @@ import static org.mockito.Mockito.when;
             enc3.setVerbatimLocality("iberia");
             enc3.setDecimalLatitude(37.15414445923345);
             enc3.setDecimalLongitude(-6.730740044168456);
-            enc3.setDateFromISO8601String("2025-05-03");
+            enc3.setDateInMilliseconds(Instant.parse("2025-05-03T00:00:00Z").getMillis());
             myShepherd.storeNewEncounter(enc3);
 
             enc3.opensearchIndexDeep();
