@@ -47,14 +47,12 @@ public class ExportColumn {
         try {
             value = getter.invoke(declaringClass.cast(obj)); // this is why we need declaringClass
         } catch (InvocationTargetException e) {
-            System.out.println(
-                "ExportColumn got an InvocationTargetException on column " +
-                header + " and object " + obj);
+            System.out.println("ExportColumn got an InvocationTargetException on column " + header +
+                " and object " + obj);
             return null;
         } catch (Error e) {
-            System.out.println(
-                "ExportColumn got an error on column " + header +
-                " and object " + obj);
+            System.out.println("ExportColumn got an error on column " + header + " and object " +
+                obj);
             e.printStackTrace();
             return null;
         }
@@ -98,9 +96,16 @@ public class ExportColumn {
         return getStringValue(obj);
     }
 
-    public void writeLabel(Object obj, int rowNum, CSVPrinter file)
-    throws IOException, InvocationTargetException, IllegalAccessException {
-        file.print(getLabel(obj, rowNum));
+    /**
+     * Writes the label value to the row array at this column's position.
+     * This method uses colNum to place the value at the correct index,
+     * ensuring proper column alignment even when some values are null.
+     */
+    public void writeLabel(Object obj, int rowNum, String[] row)
+    throws InvocationTargetException, IllegalAccessException {
+        String value = getLabel(obj, rowNum);
+
+        row[colNum] = (value != null) ? value : "";
     }
 
     // this would be a static method of above subclass if java allowed that

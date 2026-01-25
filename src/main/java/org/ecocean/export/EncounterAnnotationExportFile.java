@@ -254,6 +254,7 @@ public class EncounterAnnotationExportFile {
 
         // CSV export =========================================================
         int row = 0;
+        int numColumns = columns.size();
         for (int i = 0; i < numMatchingEncounters && i < ROW_LIMIT; i++) {
             // get the Encounter and check if user
             // has permission otherwise hide the encounter
@@ -261,6 +262,10 @@ public class EncounterAnnotationExportFile {
             Encounter enc = (Encounter)rEncounters.get(i);
             if (hiddenData.contains(enc)) continue;
             row++;
+
+            // Initialize row array - each column writes to its own index
+            String[] rowData = new String[numColumns];
+            Arrays.fill(rowData, "");
 
             // get attached objects
             Occurrence occ = myShepherd.getOccurrence(enc);
@@ -280,28 +285,28 @@ public class EncounterAnnotationExportFile {
                     // added new column which holds the encounter url
                     if (exportCol.header.contains("Encounter.sourceUrl")) {
                         String EncUrl = Encounter.getWebUrl(enc.getCatalogNumber(), request);
-                        exportCol.writeLabel(EncUrl, row, sheet);
+                        exportCol.writeLabel(EncUrl, row, rowData);
                     } else {
-                        exportCol.writeLabel(enc, row, sheet);
+                        exportCol.writeLabel(enc, row, rowData);
                     }
                 } else if (exportCol.isFor(Occurrence.class))
-                    exportCol.writeLabel(occ, row, sheet);
+                    exportCol.writeLabel(occ, row, rowData);
                 else if (exportCol.isFor(MarkedIndividual.class))
-                    exportCol.writeLabel(ind, row, sheet);
+                    exportCol.writeLabel(ind, row, rowData);
                 else if (exportCol.isFor(MultiValue.class)) {
                     MultiValueExportColumn multiValCol = (MultiValueExportColumn)exportCol;
-                    multiValCol.writeLabel(sortedNameKeys, names, row, sheet);
+                    multiValCol.writeLabel(sortedNameKeys, names, row, rowData);
                 } else if (exportCol.isFor(MediaAsset.class)) {
                     int num = exportCol.getMaNum();
                     if (num >= mas.size()) {
-                        exportCol.writeLabel(null, row, sheet);
+                        exportCol.writeLabel(null, row, rowData);
                     } else {
-                        exportCol.writeLabel(mas.get(num), row, sheet);
+                        exportCol.writeLabel(mas.get(num), row, rowData);
                     }
                 } else if (exportCol.isFor(Annotation.class)) {
                     int num = exportCol.getMaNum();
                     if (num >= mas.size()) {
-                        exportCol.writeLabel(null, row, sheet);
+                        exportCol.writeLabel(null, row, rowData);
                     } else {
                         MediaAsset ma = mas.get(num);
                         List<Annotation> anns = enc.getAnnotations(ma);
@@ -311,7 +316,7 @@ public class EncounterAnnotationExportFile {
                                 result = ann;
                             }
                         }
-                        exportCol.writeLabel(result, row, sheet);
+                        exportCol.writeLabel(result, row, rowData);
                     }
                 } else if (exportCol.isFor(User.class)) {
                     int num = exportCol.getMaNum();
@@ -325,14 +330,14 @@ public class EncounterAnnotationExportFile {
                             user = submitters.get(num);
                         }
                     }
-                    exportCol.writeLabel(user, row, sheet);
+                    exportCol.writeLabel(user, row, rowData);
                 } else if (exportCol.isFor(SocialUnit.class)) {
                     int num = exportCol.getMaNum();
                     if (socialUnits != null && num < socialUnits.size()) {
                         SocialUnit social = socialUnits.get(num);
-                        exportCol.writeLabel(social, row, sheet);
+                        exportCol.writeLabel(social, row, rowData);
                     } else {
-                        exportCol.writeLabel(null, row, sheet);
+                        exportCol.writeLabel(null, row, rowData);
                     }
                 }
                 // add labeled keywords
@@ -344,11 +349,11 @@ public class EncounterAnnotationExportFile {
                         String lkwValue = ma.getLabeledKeywordValue(exportCol.getlabeledKwName());
                         lkw = myShepherd.getLabeledKeyword(exportCol.getlabeledKwName(), lkwValue);
                     }
-                    exportCol.writeLabel(lkw, row, sheet);
+                    exportCol.writeLabel(lkw, row, rowData);
                 }
                 // end add labeled keywords
                 else if (exportCol.isFor(Keyword.class)) {
-					Keyword keyword = null;
+                    Keyword keyword = null;
                     if (Objects.equals(exportCol.header, "Reference keyword")) {
                         for (MediaAsset ma : mas) {
                             for (Keyword kw : ma.getKeywordsStrict()) {
@@ -361,15 +366,15 @@ public class EncounterAnnotationExportFile {
                         }
                     } else {
                         int maNum = exportCol.getMaNum();
-						MediaAsset ma;
+                        MediaAsset ma;
                         if (maNum < mas.size() && (ma = mas.get(maNum)) != null) {
-	                        int kwNum = exportCol.getKwNum();
-	                        if (kwNum < ma.numKeywordsStrict() && kwNum != -1) {
-	                            keyword = ma.getKeywordStrict(kwNum);
-	                        }
-						}
+                            int kwNum = exportCol.getKwNum();
+                            if (kwNum < ma.numKeywordsStrict() && kwNum != -1) {
+                                keyword = ma.getKeywordStrict(kwNum);
+                            }
+                        }
                     }
-                    exportCol.writeLabel(keyword, row, sheet);
+                    exportCol.writeLabel(keyword, row, rowData);
                 } else if (exportCol.isFor(Measurement.class)) {
                     int measurementNumber = exportCol.getMeasurementNum();
                     if (enc.getMeasurements() != null && enc.getMeasurements().size() > 0 &&
@@ -380,21 +385,21 @@ public class EncounterAnnotationExportFile {
                         Measurement currentMeasurement = enc.getMeasurement(
                             whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.replace(
                             "Encounter.measurement.", ""));
-                        exportCol.writeLabel(currentMeasurement, row, sheet);
+                        exportCol.writeLabel(currentMeasurement, row, rowData);
                     }
                 } else
-                    System.out.println(
-                        "EncounterAnnotationExportFile: no object found for class " +
+                    System.out.println("EncounterAnnotationExportFile: no object found for class " +
                         exportCol.getDeclaringClass());
             }
-            sheet.printRecord();
+            // Write the complete row at once
+            sheet.printRecord((Object[])rowData);
         } // end for loop iterating encounters
 
         // Note: Don't close fileOut - let the caller manage stream lifecycle
 
         // end CSV export and business logic ===============================================
-        System.out.println("Done with EncounterAnnotationExportFile. We hid " +
-            hiddenData.size() + " encounters.");
+        System.out.println("Done with EncounterAnnotationExportFile. We hid " + hiddenData.size() +
+            " encounters.");
 
         return hiddenData;
     }
@@ -455,8 +460,7 @@ public class EncounterAnnotationExportFile {
         numSubmitters = maxSubmitters;
         numSocialUnits = maxSocialUnits;
         numKeywords = maxNumKeywords;
-        System.out.println(
-            "EncounterAnnotationExportFile: environment vars numMediaAssetCols = " +
+        System.out.println("EncounterAnnotationExportFile: environment vars numMediaAssetCols = " +
             numMediaAssetCols + "; maxNumKeywords = " + maxNumKeywords + " and maxNumNames = " +
             numNameCols);
     }

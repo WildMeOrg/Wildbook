@@ -849,6 +849,26 @@ import static org.mockito.Mockito.when;
             enc3.addMediaAsset(asset3);
             asset3.opensearchIndexDeep();
 
+            // Create encounter without individual assignment (to test column alignment bug)
+            MediaAsset asset4 = ((LocalAssetStore)localStore).create(testImage);
+            asset4.setId(4);
+            asset4.addKeyword(fieldKeyword);
+
+            org.ecocean.Encounter enc4 = new org.ecocean.Encounter();
+            enc4.setGenus("lynx");
+            enc4.setSpecificEpithet("pardinus");
+            enc4.setLifeStage("juvenile");
+            enc4.setVerbatimLocality("iberia");
+            enc4.setDecimalLatitude(37.15414445923345);
+            enc4.setDecimalLongitude(-6.730740044168456);
+            enc4.setDateInMilliseconds(Instant.parse("2025-05-04T00:00:00Z").getMillis());
+            myShepherd.storeNewEncounter(enc4);
+            // NOTE: enc4 is intentionally NOT assigned to any individual
+
+            enc4.opensearchIndexDeep();
+            enc4.addMediaAsset(asset4);
+            asset4.opensearchIndexDeep();
+
             // Create test individuals
             org.ecocean.MarkedIndividual ind1 = new org.ecocean.MarkedIndividual("Individual_1",
                 enc1);
@@ -892,6 +912,16 @@ import static org.mockito.Mockito.when;
             myShepherd.storeNewAnnotation(ann3);
             ann3.opensearchIndexDeep();
 
+            // Annotation for encounter without individual
+            org.ecocean.Annotation ann4 = new org.ecocean.Annotation("l. pardinus",
+                createBbox(asset4, 250, 250, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
+            ann4.setId("b7d3c8f1-5e2a-4b9c-8d6e-1a2b3c4d5e6f");
+            ann4.setViewpoint("back");
+            ann4.setMatchAgainst(true);
+            enc4.addAnnotation(ann4);
+            myShepherd.storeNewAnnotation(ann4);
+            ann4.opensearchIndexDeep();
+
             org.ecocean.Occurrence occ1 = new Occurrence("9cf5a4e7-4c81-466e-a788-8d976f869086");
             occ1.addEncounter(enc1);
             occ1.addAsset(asset1);
@@ -913,9 +943,18 @@ import static org.mockito.Mockito.when;
             myShepherd.storeNewOccurrence(occ3);
             occ3.opensearchIndexDeep();
 
+            // Occurrence for encounter without individual
+            org.ecocean.Occurrence occ4 = new Occurrence("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+            occ4.addEncounter(enc4);
+            occ4.addAsset(asset4);
+            asset4.setOccurrence(occ4);
+            myShepherd.storeNewOccurrence(occ4);
+            occ4.opensearchIndexDeep();
+
             myShepherd.getPM().makePersistent(asset1);
             myShepherd.getPM().makePersistent(asset2);
             myShepherd.getPM().makePersistent(asset3);
+            myShepherd.getPM().makePersistent(asset4);
 
             myShepherd.commitDBTransaction();
             System.out.println("Test data initialized successfully");

@@ -24,19 +24,22 @@ public class MultiValueExportColumn extends ExportColumn {
         return "Name" + nameNum + ".value";
     }
 
-    // it saves time to only sort the keys once per MultiValue by shortcutting into this method
-    public void writeLabel(List<String> sortedKeys, MultiValue names, int rowNum, CSVPrinter sheet)
-    throws IOException {
-        if (names == null || sortedKeys.size() < (nameNum + 1)) {
-            return; // out of bounds for this names list
-        }
-        String key = sortedKeys.get(nameNum);
-        String value = names.getValue(key);
-        if (!Util.stringExists(value)) return; // don't print out names without values
+    /**
+     * Writes the label value to the row array at this column's position.
+     * Uses colNum to ensure correct column alignment even when names is null.
+     */
+    public void writeLabel(List<String> sortedKeys, MultiValue names, int rowNum, String[] row) {
+        String writeValue = "";
 
-        String writeValue = (isLabel) ? key : value; // are we writing the key or value
-        writeValue = cleanWriteValue(writeValue);
-        sheet.print(writeValue);
+        if (names != null && sortedKeys != null && sortedKeys.size() > nameNum) {
+            String key = sortedKeys.get(nameNum);
+            String value = names.getValue(key);
+            if (Util.stringExists(value)) {
+                writeValue = (isLabel) ? key : value;
+                writeValue = cleanWriteValue(writeValue);
+            }
+        }
+        row[colNum] = writeValue;
     }
 
     private String cleanWriteValue(String writeValue) {

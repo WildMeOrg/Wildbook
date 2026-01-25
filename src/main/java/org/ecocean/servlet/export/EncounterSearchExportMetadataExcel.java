@@ -264,11 +264,16 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                 sheet.printRecord();
                 // Excel export =========================================================
                 int row = 0;
+                int numColumns = columns.size();
                 for (int i = 0; i < numMatchingEncounters && i < rowLimit; i++) {
                     Encounter enc = (Encounter)rEncounters.get(i);
                     // Security: skip this row if user doesn't have permission to view this encounter
                     if (hiddenData.contains(enc)) continue;
                     row++;
+
+                    // Initialize row array - each column writes to its own index
+                    String[] rowData = new String[numColumns];
+                    Arrays.fill(rowData, "");
 
                     // get attached objects
                     Occurrence occ = myShepherd.getOccurrence(enc);
@@ -279,21 +284,22 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                     // use exportColumns, passing in the appropriate object for each column
                     // (can't use switch statement bc Class is not a java primitive type)
                     for (ExportColumn exportCol : columns) {
-                        if (exportCol.isFor(Encounter.class)) exportCol.writeLabel(enc, row, sheet);
+                        if (exportCol.isFor(Encounter.class))
+                            exportCol.writeLabel(enc, row, rowData);
                         else if (exportCol.isFor(Occurrence.class))
-                            exportCol.writeLabel(occ, row, sheet);
+                            exportCol.writeLabel(occ, row, rowData);
                         else if (exportCol.isFor(MarkedIndividual.class))
-                            exportCol.writeLabel(ind, row, sheet);
+                            exportCol.writeLabel(ind, row, rowData);
                         else if (exportCol.isFor(MultiValue.class)) {
                             MultiValueExportColumn multiValCol = (MultiValueExportColumn)exportCol;
-                            multiValCol.writeLabel(sortedNameKeys, names, row, sheet);
+                            multiValCol.writeLabel(sortedNameKeys, names, row, rowData);
                         } else if (exportCol.isFor(MediaAsset.class)) {
                             int num = exportCol.getMaNum();
                             MediaAsset ma = null;
                             if (num < mas.size()) {
                                 ma = mas.get(num);
                             }
-                            exportCol.writeLabel(ma, row, sheet);
+                            exportCol.writeLabel(ma, row, rowData);
                         }
                         // add labeled keywords
                         else if (exportCol.isFor(LabeledKeyword.class)) {
@@ -308,7 +314,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                                         lkwValue);
                                 }
                             }
-                            exportCol.writeLabel(lkw, row, sheet);
+                            exportCol.writeLabel(lkw, row, rowData);
                         }
                         // end add labeled keywords
                         else if (exportCol.isFor(Keyword.class)) {
@@ -321,7 +327,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                                     kw = ma.getKeywordStrict(kwNum);
                                 }
                             }
-                            exportCol.writeLabel(kw, row, sheet);
+                            exportCol.writeLabel(kw, row, rowData);
                         } else if (exportCol.isFor(Measurement.class)) {
                             int measurementNumber = exportCol.getMeasurementNum();
                             Measurement currentMeasurement = null;
@@ -334,13 +340,14 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
                                     whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.
                                         replace("Encounter.measurement.", ""));
                             }
-                            exportCol.writeLabel(currentMeasurement, row, sheet);
+                            exportCol.writeLabel(currentMeasurement, row, rowData);
                         } else
                             System.out.println(
                                 "EncounterSearchExportMetadataExcel: no object found for class " +
                                 exportCol.getDeclaringClass());
                     }
-                    sheet.printRecord();
+                    // Write the complete row at once
+                    sheet.printRecord((Object[])rowData);
                 } // end for loop iterating encounters
 
                 // end Excel export and business logic ===============================================

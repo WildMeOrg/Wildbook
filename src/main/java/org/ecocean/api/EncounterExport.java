@@ -108,7 +108,8 @@ public class EncounterExport extends ApiBase {
         indvGrp.addMember("individualID").addMember("names").addMember("encounters");
         pm.getFetchPlan().addGroup("individualWithEncounters");
 
-        try (Query query = pm.newQuery(MarkedIndividual.class)) {
+        Query query = pm.newQuery(MarkedIndividual.class);
+        try {
             query.setFilter(
                 "encounters.contains(enc) && :catalogNumbers.contains(enc.catalogNumber)");
             query.declareVariables("org.ecocean.Encounter enc");
@@ -122,8 +123,10 @@ public class EncounterExport extends ApiBase {
                     }
                 }
             }
+            return map;
+        } finally {
+            query.closeAll();
         }
-        return map;
     }
 
     private static void writeMetadataFile(HttpServletRequest request, Shepherd myShepherd,
