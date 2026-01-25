@@ -3,6 +3,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 
 import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.servlet.ServletUtilities;
