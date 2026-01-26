@@ -1335,6 +1335,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
+    if ($('#agreeToTerms').length && !$('#agreeToTerms').is(':checked')) {
+      window.setTimeout(function () {
+        alert('Please agree to the Terms of Use and Privacy Policy before submitting.');
+      }, 100);
+      return false;
+    }
+
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
 		$('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
@@ -1399,6 +1406,37 @@ function sendButtonClicked() {
 }
 </script>
 
+    <% if (request.getRemoteUser() == null) { %>
+      <!-- Terms / Privacy agreement  -->
+      <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
+        <div class="col-xs-12" style="display:flex; align-items:flex-start; gap:8px;">
+          <input
+            type="checkbox"
+            id="agreeToTerms"
+            name="agreeToTerms"
+            style="margin-top: 3px;"
+          />
+          <label for="agreeToTerms" style="font-weight: normal; margin: 0;">
+            I agree to
+            <a
+              href="<%=request.getContextPath()%>/policies-and-data?section=terms_of_use"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Terms of Use
+            </a>
+            and
+            <a
+              href="<%=request.getContextPath()%>/policies-and-data?section=privacy_policy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Privacy Policy
+            </a>
+          </label>
+        </div>
+      </div>
+    <% } %>
 
       <p class="text-center">
         <button id="submitEncounterButton" class="large" type="submit" onclick="sendButtonClicked();">
