@@ -170,6 +170,16 @@
 			"name": "West Brook",
 			"id": "West Brook",
 			"locationID":[]
+		},
+		{
+			"name": "Michigan",
+			"id": "Michigan",
+			"locationID":[]
+		},
+		{
+			"name": "Wisconsin",
+			"id": "Wisconsin",
+			"locationID":[]
 		}
   ]
 }
