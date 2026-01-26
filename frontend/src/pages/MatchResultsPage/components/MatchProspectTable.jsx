@@ -9,6 +9,7 @@ import InteractiveAnnotationOverlay from "../../../components/AnnotationOverlay"
 import { FormattedMessage, useIntl } from "react-intl";
 import InspectorModal from "./InspectorModal";
 import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
+import ExitIcon from "../../../components/icons/ExitIcon";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -35,6 +36,17 @@ const styles = {
     fontSize: "0.8rem",
     background: themeColor.wildMeColors.teal100,
     color: themeColor.wildMeColors.teal800,
+  }),
+  encounterButton: (themeColor) => ({
+    borderRadius: "5px",
+    border: "none",
+    padding: "2px 10px",
+    fontSize: "0.8rem",
+    background: themeColor.primaryColors.primary500,
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
   }),
   matchImageCard: {
     position: "relative",
@@ -357,6 +369,20 @@ const MatchProspectTable = ({
                       }}
                     >
                       {candidateIndividualDisplayName}
+                    </button>
+
+                    <button
+                      type="button"
+                      style={styles.encounterButton(themeColor)}
+                      className="btn btn-sm p-0 px-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const url = `/react/encounter?number=${candidateEncounterId}`;
+                        window.open(url, "_blank");
+                      }}
+                    >
+                      <FormattedMessage id="ENC" />
+                      <ExitIcon width={12} height={12} />
                     </button>
 
                     <div style={{ flexGrow: 1 }} />
