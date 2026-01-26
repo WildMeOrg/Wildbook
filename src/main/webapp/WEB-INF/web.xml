@@ -346,7 +346,6 @@
 
 				# ===== Logs and System Admin =====
 				/logs/** = authc, roles[admin]
-				/xcalendar/** = authc, roles[researcher]
 
 				# ===== Mass Operations =====
 				#/MassSetInformOthers = authc, roles[admin]
@@ -357,9 +356,7 @@
 				# ===== System Reset/Recovery =====
 				/ResetCommonConfiguration = authc, roles[admin]
 
-				# ===== Calendar and Translation =====
-				/CalendarXMLServer = authc, roles[researcher]
-				/CalendarXMLServer2 = authc, roles[researcher]
+				# ===== Translation =====
 				/TranslateQuery = authc, roles[researcher]
 
 				# ===== CMR Sessions =====
@@ -1806,14 +1803,6 @@
 		<url-pattern>/MassExposeGBIF</url-pattern>
 	</servlet-mapping>
 
-	<servlet>
-		<servlet-name>CalendarXMLServer</servlet-name>
-		<servlet-class>org.ecocean.servlet.CalendarXMLServer</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>CalendarXMLServer</servlet-name>
-		<url-pattern>/CalendarXMLServer</url-pattern>
-	</servlet-mapping>
 	<servlet>
 		<servlet-name>ResurrectDeletedEncounter</servlet-name>
 		<servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
