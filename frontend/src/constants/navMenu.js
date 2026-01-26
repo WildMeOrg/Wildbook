@@ -64,7 +64,7 @@ const authenticatedMenu = (
       {
         name: (
           <FormattedMessage
-            id="POLICIES_AND_DATA"
+            id="MENU_POLICIES_AND_DATA"
             defaultMessage="Policies and Data"
           />
         ),
@@ -342,7 +342,7 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
       {
         name: (
           <FormattedMessage
-            id="POLICIES_AND_DATA"
+            id="MENU_POLICIES_AND_DATA"
             defaultMessage="Policies and Data"
           />
         ),

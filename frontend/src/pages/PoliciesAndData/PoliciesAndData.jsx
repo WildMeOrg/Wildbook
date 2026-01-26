@@ -9,19 +9,19 @@ import CitingWildbook from "../../pages/Citation";
 const SECTIONS = [
   {
     key: "PRIVACY_POLICY",
-    labelId: "PRIVACY_POLICY",
+    labelId: "MENU_LEARN_PRIVACYPOLICY",
     baseName: "privacy_policy",
     type: "pdf",
   },
   {
     key: "TERMS_OF_USE",
-    labelId: "TERMS_OF_USE",
+    labelId: "MENU_LEARN_TERMSOFUSE",
     baseName: "terms_of_use",
     type: "pdf",
   },
   {
     key: "CITING_WILDBOOK",
-    labelId: "CITING_WILDBOOK",
+    labelId: "MENU_LEARN_CITINGWILDBOOK",
     type: "component",
     Component: CitingWildbook,
   },
@@ -150,7 +150,7 @@ export default function PoliciesAndData() {
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = (e) => {
     if (!pdfUrl) return;
     const w = window.open(pdfUrl, "_blank", "noopener,noreferrer");
     if (!w) return;
@@ -184,7 +184,7 @@ export default function PoliciesAndData() {
         <Col xs={12} md={2} lg={2} className="pe-4">
           <div>
             <div className="fw-semibold mb-2">
-              <FormattedMessage id="policies.title" defaultMessage="POLICIES_AND_DATA" />
+              <FormattedMessage id="MENU_POLICIES_AND_DATA" />
             </div>
 
             <ListGroup variant="flush">
