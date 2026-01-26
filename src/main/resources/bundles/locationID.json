@@ -122,6 +122,13 @@
 			},
 			"locationID": []
 		},
+		{
+			"name": "Dry Creek, ID",
+			"id": "Dry Creek, ID",
+			"geospatialInfo": {
+			},
+			"locationID": []
+		},
 	    {
 			"name": "Dry-Tex Creek",
 			"id": "Dry-Tex Creek",
