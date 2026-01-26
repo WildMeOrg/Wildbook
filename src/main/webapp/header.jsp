@@ -656,7 +656,7 @@ if(request.getUserPrincipal()!=null){
                         <ul class="dropdown-menu" role="menu">
 
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("individualGallery")%></a></li>
-                          <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+                          <li><a href="<%=urlLoc %>/react/encounter-search?calendar=true"><%=props.getProperty("encounterCalendar")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">
