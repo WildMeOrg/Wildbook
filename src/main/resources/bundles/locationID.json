@@ -146,18 +146,6 @@
 			"locationID": []
 		},
 		{
-			"name": "Rock Creek, MT",
-			"id": "Rock Creek, MT",
-			"locationID": []
-		},
-		{
-			"name": "Southwest Rivers, MT",
-			"id": "Southwest Rivers MT",
-			"geospatialInfo": {
-			},
-			"locationID": []
-		},
-		{
 			"name": "Sun Creek, OR",
 			"id": "Sun Creek, OR",
 			"geospatialInfo":{
@@ -180,6 +168,23 @@
 			"name": "Wisconsin",
 			"id": "Wisconsin",
 			"locationID":[]
+		},
+		{
+			"name": "Montana",
+			"id": "Montana",
+			"locationID":[
+						{
+							"name": "Rock Creek, MT",
+							"id": "Rock Creek, MT",
+							"locationID": []
+						},
+						{
+							"name": "Southwest Rivers, MT",
+							"id": "Southwest Rivers MT",
+							"geospatialInfo": {},
+							"locationID": []
+						}
+			]
 		}
   ]
 }
