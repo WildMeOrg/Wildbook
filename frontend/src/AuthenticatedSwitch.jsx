@@ -13,7 +13,6 @@ const Home = lazy(() => import("./pages/Home"));
 const EncounterSearch = lazy(
   () => import("./pages/SearchPages/EncounterSearch"),
 );
-const Citation = lazy(() => import("./pages/Citation"));
 const AdminLogs = lazy(() => import("./pages/AdminLogs"));
 const ReportEncounter = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
@@ -29,6 +28,9 @@ const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
+const PoliciesAndData = lazy(
+  () => import("./pages/PoliciesAndData/PoliciesAndData"),
+);
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
@@ -73,7 +75,7 @@ export default function AuthenticatedSwitch({
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
             <Route path="/profile" element={<Profile />} />
-            <Route path="/citation" element={<Citation />} />
+            <Route path="/policies-and-data" element={<PoliciesAndData />} />
             <Route path="/projects/overview" element={<ProjectList />} />
             <Route path="/home" element={<Home />} />
             <Route path="/report" element={<ReportEncounter />} />

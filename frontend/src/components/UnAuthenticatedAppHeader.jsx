@@ -9,7 +9,9 @@ import { FormattedMessage } from "react-intl";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader({ showclassicsubmit }) {
+import HeaderDropdownItems from "./header/HeaderDropdownItems";
+
+export default function UnAuthenticatedAppHeader({ showclassicsubmit }) {
   const { visible } = useContext(FooterVisibilityContext);
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,
@@ -102,17 +104,7 @@ export default function AuthenticatedAppHeader({ showclassicsubmit }) {
                       }
                       show={dropdownShows[`dropdown${idx + 1}`]}
                     >
-                      {Object.values(item)[0].map((subItem) => {
-                        return (
-                          <NavDropdown.Item
-                            key={subItem.name}
-                            href={subItem.href}
-                            style={{ color: "black", fontSize: "0.9rem" }}
-                          >
-                            {subItem.name}
-                          </NavDropdown.Item>
-                        );
-                      })}
+                      <HeaderDropdownItems items={Object.values(item)[0]} />
                     </NavDropdown>
                   </Nav>
                 ))}
