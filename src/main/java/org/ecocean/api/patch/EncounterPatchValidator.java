@@ -233,8 +233,21 @@ public class EncounterPatchValidator {
                 if (ann == null)
                     throw new ApiException("no such annotation id=" + value.toString(),
                             ApiException.ERROR_RETURN_CODE_INVALID);
+                MediaAsset ma = ann.getMediaAsset();
                 ann.detachFromTasks(myShepherd);
                 enc.removeAnnotation(ann);
+                ann.detachFromMediaAsset();
+                // "most likely" this encounter is now detached from the asset, but we want them still connected
+                // TODO parts might be connecting these, but how do we determine if we still need to add the trivial?
+                if (ma != null) {
+                    // note this kind of replicates ann.revertToTrivial() but that searches out the enc, which we already have
+                    System.out.println(
+                        "[INFO] applyPatch() removed annotation, reconnecting with trivial annotation to "
+                        + enc);
+                    Annotation triv = new Annotation(enc.getTaxonomyString(), ma);
+                    enc.addAnnotation(triv);
+                    myShepherd.getPM().makePersistent(triv);
+                }
                 myShepherd.getPM().deletePersistent(ann);
                 value = ann;
             } else if (path.equals("occurrenceId")) {

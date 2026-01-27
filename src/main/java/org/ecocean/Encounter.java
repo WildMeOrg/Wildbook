@@ -1098,6 +1098,32 @@ public class Encounter extends Base implements java.io.Serializable {
         return date;
     }
 
+    public org.json.JSONObject getDateValuesJson() {
+        org.json.JSONObject dv = new org.json.JSONObject();
+        // in theory we *always* should have at least a year, but our data probably says otherwise
+        // sadly we just bail empty if we dont have a year
+        if (getYear() < 1900) return dv;
+        dv.put("year", getYear());
+        // from here on out we only add things if the previous one existed; hence the short-circuit return
+        // e.g. we do not add a day if there was no month
+        if ((getMonth() < 1) || (getMonth() > 12)) return dv;
+        dv.put("month", getMonth());
+        // sorry not checking actual days-per-month here
+        if ((getDay() < 1) || (getDay() > 31)) return dv;
+        dv.put("day", getDay());
+        if ((getHour() < 0) || (getHour() > 23)) return dv;
+        dv.put("hour", getHour());
+        // sigh, deal with string-based minutes...
+        Integer min = getMinutesInteger();
+        if ((min != null) && (min >= 0) && (min < 60)) {
+            dv.put("minutes", min);
+        } else {
+            // choosing to do this because we *must* have hour value here, so dumb to leave null?
+            dv.put("minutes", 0);
+        }
+        return dv;
+    }
+
     // @return a String with text about how the size of this animal was estimated/measured
     public String getSizeGuess() {
         return size_guess;
@@ -1120,6 +1146,13 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public String getMinutes() {
         return minutes;
+    }
+
+    public Integer getMinutesInteger() {
+        Integer min = null;
+
+        try { min = Integer.parseInt(minutes); } catch (Exception e) {}
+        return min;
     }
 
     public int getHour() {
@@ -4740,6 +4773,7 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         }
         // additional fields we want
+        rtn.put("dateValues", getDateValuesJson());
         rtn.put("researcherComments", getRComments());
         rtn.put("groupRole", getGroupRole());
         rtn.put("identificationRemarks", getIdentificationRemarks());
@@ -5034,7 +5068,7 @@ public class Encounter extends Base implements java.io.Serializable {
             break;
         case "hour":
             if (value == null) {
-                setHour(0);
+                setHour(-1); // grr
             } else {
                 setHour((Integer)value);
             }

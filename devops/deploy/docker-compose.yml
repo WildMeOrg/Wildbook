@@ -2,10 +2,14 @@ services:
   db:
     image: postgres:13.4
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 60
+      # More robust check: verify PostgreSQL can actually execute a query
+      # pg_isready only checks if accepting connections, not if responsive
+      test: [ "CMD-SHELL", "pg_isready -U ${WILDBOOK_DB_USER:-wildbook} -d ${WILDBOOK_DB_NAME:-wildbook} && psql -U ${WILDBOOK_DB_USER:-wildbook} -d ${WILDBOOK_DB_NAME:-wildbook} -c 'SELECT 1' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: always
     labels:
       - autoheal=true
     user: postgres
@@ -74,10 +78,14 @@ services:
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     healthcheck:
-      test: [ "CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 60
+      # Check cluster health and verify status is not "red"
+      # Green = all shards allocated, Yellow = primary shards ok, Red = cluster down
+      test: [ "CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: always
     labels:
       - autoheal=true
     volumes:
@@ -108,6 +116,16 @@ services:
   #  TODO dkim and spf needs to be added/supported
   smtp:
     image: boky/postfix
+    healthcheck:
+      # Check if postfix master process is running
+      test: [ "CMD-SHELL", "pgrep -x master || exit 1" ]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: always
+    labels:
+      - autoheal=true
     networks:
       - intranet
     ports:
@@ -125,11 +143,15 @@ services:
     image: nginx:1.23.4
     depends_on:
       - wildbook
-      #healthcheck:
-      #test: [ "CMD", "curl", "-f", "http://localhost:84/"]
-      #interval: 10s
-      #timeout: 5s
-      #retries: 60
+    healthcheck:
+      # Check if nginx master process is running and can accept connections
+      # nginx:1.23.4 doesn't include curl, so we check the pid file and use nginx -t
+      test: [ "CMD-SHELL", "nginx -t 2>/dev/null && kill -0 $(cat /var/run/nginx.pid 2>/dev/null) || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: always
     labels:
       - autoheal=true
     volumes:

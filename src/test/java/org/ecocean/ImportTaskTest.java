@@ -3,6 +3,7 @@ package org.ecocean;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 
 import org.json.JSONArray;

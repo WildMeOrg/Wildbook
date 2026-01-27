@@ -134,8 +134,8 @@ class EncounterStore {
   }
   setEncounterData(newEncounterData) {
     this._encounterData = newEncounterData;
-    this._lat = newEncounterData?.locationGeoPoint?.lat || null;
-    this._lon = newEncounterData?.locationGeoPoint?.lon || null;
+    this._lat = newEncounterData?.locationGeoPoint?.lat ?? null;
+    this._lon = newEncounterData?.locationGeoPoint?.lon ?? null;
     this._metalTagValues = newEncounterData?.metalTags || [];
     this._acousticTagValues = newEncounterData?.acousticTag || {};
     this._satelliteTagValues = newEncounterData?.satelliteTag || {};
@@ -260,7 +260,7 @@ class EncounterStore {
 
   debouncedSearchIndividuals = debounce(async (inputValue) => {
     if (inputValue && inputValue.length >= 2) {
-      await this.searchIndividualsByName(inputValue);
+      await this.searchIndividualsByNameAndId(inputValue);
     } else {
       this.clearIndividualSearchResults();
     }
@@ -954,25 +954,27 @@ class EncounterStore {
   async patchMeasurements() {
     const tasks = [];
     let hasErrors = false;
+
     for (const m of this.measurementValues) {
-      if (m.value == null || m.value === "") {
-        this.errors.setFieldError(
-          "measurement",
-          m.type,
-          "value cannot be empty",
-        );
-        continue;
-      }
-      const payload = {
-        op: "replace",
-        path: "measurements",
-        value: {
-          type: m.type,
-          units: m.units,
-          value: m.value,
-          samplingProtocol: m.samplingProtocol,
-        },
-      };
+      const isEmpty = m.value == null || m.value === "";
+
+      const payload = isEmpty
+        ? {
+            op: "remove",
+            path: "measurements",
+            value: m.type,
+          }
+        : {
+            op: "replace",
+            path: "measurements",
+            value: {
+              type: m.type,
+              units: m.units,
+              value: m.value,
+              samplingProtocol: m.samplingProtocol,
+            },
+          };
+
       tasks.push(
         axios
           .patch(`/api/v3/encounters/${this.encounterData.id}`, [payload], {
@@ -983,12 +985,15 @@ class EncounterStore {
             this.errors.setFieldError(
               "measurement",
               m.type,
-              "Failed to save measurement",
+              isEmpty
+                ? "Failed to remove measurement"
+                : "Failed to save measurement",
             );
             throw err;
           }),
       );
     }
+
     if (tasks.length > 0) {
       await Promise.allSettled(tasks);
     }
@@ -1144,7 +1149,7 @@ class EncounterStore {
     this._encounterData = nextEncounter;
   }
 
-  async searchIndividualsByName(inputValue) {
+  async searchIndividualsByNameAndId(inputValue) {
     this._searchingIndividuals = true;
 
     try {
@@ -1161,6 +1166,8 @@ class EncounterStore {
                     },
                   ]
                 : []),
+            ],
+            should: [
               {
                 wildcard: {
                   names: {
@@ -1169,7 +1176,16 @@ class EncounterStore {
                   },
                 },
               },
+              {
+                wildcard: {
+                  id: {
+                    value: `*${inputValue}*`,
+                    case_insensitive: true,
+                  },
+                },
+              },
             ],
+            minimum_should_match: 1,
           },
         },
       };

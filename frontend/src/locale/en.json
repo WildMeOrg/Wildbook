@@ -223,7 +223,7 @@
     "INDIVIDUAL_ID": "Individual ID",
     "SIGHTING_ID": "Sighting ID",
     "ALTERNATIVE_ID": "Alternative ID",
-    "CREATED_DATE": "Created Date",
+    "CREATED_DATE": "Encounter Date",
     "LOCATION_ID": "Location ID",
     "SPECIES": "Species",
     "SUBMITTER": "Submitter",
@@ -572,7 +572,7 @@
     "GROUP_ROLE": "Group Role",
     "MATCH_DESC_1": "Choose the algorithm and set filters to refine your search.",
     "OWNER": "Owner",
-    "SELECT_ALGORITHM": "Select Algorithm",
+    "SELECT_ALGORITHM": "Select Algorithm(s)",
     "MATCH": "Match",
     "SHOW_ANNOTATIONS": "Show Annotations",
     "EDIT_ANNOTATION": "Edit Annotation",
@@ -699,5 +699,8 @@
     "REQUEST_REJECTED": "Your request to collaborate with this user has been rejected.",
     "ACCESS_PENDING": "Your request to collaborate is pending",
     "CALENDAR_VIEW_DESC": "View encounter search results on a calendar by encounter date. Click an encounter ID to open its details.",
-    "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project."
+    "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project.",
+    "INVALID_DATE": "Invalid date",
+    "INVALID_LAT_LON": "Please enter a valid latitude and longitude",
+    "INVALID_MEASUREMENTS": "Please enter valid values"
 }
