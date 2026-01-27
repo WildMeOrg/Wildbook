@@ -4,6 +4,7 @@ import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.*;
 import org.ecocean.media.*;
@@ -618,6 +619,11 @@ public class IAGateway extends HttpServlet {
             IA.handleRest(jobj);
             return;
         }
+        if (jobj.optBoolean("MLService", false)) {
+            MLService mlserv = new MLService();
+            mlserv.processQueueJob(jobj);
+            return;
+        }
         boolean requeue = false;
         boolean requeueIncrement = false;
         if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
@@ -762,7 +768,7 @@ public class IAGateway extends HttpServlet {
                             Thread.sleep(whileSleepMillis);
                         } catch (java.lang.InterruptedException ex) {}
                         if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
-                            false)) {
+                            false) || jobj.optBoolean("MLService", false)) {
                             addToDetectionQueue(context, jobj.toString());
                         } else {
                             addToQueue(context, jobj.toString());
