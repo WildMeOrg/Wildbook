@@ -89,22 +89,11 @@ export default function HeaderQuickSearch() {
           )}
           {!loading &&
             searchResults.map((result, index) => {
-              const context = result?.id
-                ?.toLowerCase()
-                .includes(search.toLowerCase())
-                ? "SYSTEM_ID"
-                : "FILTER_NAME";
-
               let value = result.id;
-
-              if (context === "SYSTEM_ID") {
-                value = result.id;
-              } else {
-                value =
-                  result.names.find((name) =>
-                    name.toLowerCase().includes(search.toLowerCase()),
-                  ) || result.names.join(" | ");
-              }
+              value =
+                result.names.find((name) =>
+                  name.toLowerCase().includes(search.toLowerCase()),
+                ) || result.names.join(" | ");
 
               return (
                 <React.Fragment key={index}>
