@@ -86,7 +86,7 @@ import static org.mockito.Mockito.when;
             .withPassword("wildbook");
 
     @Container static GenericContainer<?> opensearch = new GenericContainer<>(DockerImageName.parse(
-        "opensearchproject/opensearch:2.15.0"))
+        "opensearchproject/opensearch:3.1.0"))
             .withExposedPorts(9200, 9300)
             .withEnv("discovery.type", "single-node")
             .withEnv("plugins.security.disabled", "true")
