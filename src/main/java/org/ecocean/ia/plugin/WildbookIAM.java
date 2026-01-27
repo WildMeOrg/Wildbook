@@ -389,8 +389,6 @@ public class WildbookIAM extends IAPlugin {
             urlStr = urlStr.replaceAll("\\?", "%3F");
             if (ma.getStore() instanceof LocalAssetStore) {
                 return urlStr;
-            } else if (ma.getStore() instanceof S3AssetStore) {
-                return ma.getParameters();
             } else {
                 return urlStr;
             }

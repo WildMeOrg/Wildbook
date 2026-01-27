@@ -737,6 +737,10 @@ import static org.mockito.Mockito.when;
             MediaAsset asset2 = ((LocalAssetStore)localStore).create(testImage);
             MediaAsset asset3 = ((LocalAssetStore)localStore).create(testImage);
 
+            asset1.setId(1);
+            asset2.setId(2);
+            asset3.setId(3);
+
             // Create keywords and add them to media assets
             org.ecocean.Keyword refKeyword = new org.ecocean.Keyword("Reference");
             org.ecocean.Keyword laboratoryKeyword = new org.ecocean.Keyword("Laboratory Study");
@@ -766,6 +770,7 @@ import static org.mockito.Mockito.when;
             myShepherd.storeNewEncounter(enc1);
 
             enc1.opensearchIndexDeep();
+            enc1.addMediaAsset(asset1);
             asset1.opensearchIndexDeep();
 
             org.ecocean.Encounter enc2 = new org.ecocean.Encounter();
@@ -779,7 +784,8 @@ import static org.mockito.Mockito.when;
             myShepherd.storeNewEncounter(enc2);
 
             enc2.opensearchIndexDeep();
-            enc1.addMediaAsset(asset2);
+            enc2.addMediaAsset(asset2);
+            asset2.opensearchIndexDeep();
 
             org.ecocean.Encounter enc3 = new org.ecocean.Encounter();
             enc3.setGenus("lynx");
@@ -788,10 +794,11 @@ import static org.mockito.Mockito.when;
             enc3.setVerbatimLocality("iberia");
             enc3.setDecimalLatitude(37.15414445923345);
             enc3.setDecimalLongitude(-6.730740044168456);
-            enc2.setDateFromISO8601String("2025-05-03");
+            enc3.setDateFromISO8601String("2025-05-03");
             myShepherd.storeNewEncounter(enc3);
 
             enc3.opensearchIndexDeep();
+            enc3.addMediaAsset(asset3);
             asset3.opensearchIndexDeep();
 
             // Create test individuals
@@ -812,6 +819,7 @@ import static org.mockito.Mockito.when;
             // Create annotations with bounding boxes
             org.ecocean.Annotation ann1 = new org.ecocean.Annotation("l. pardinus",
                 createBbox(asset1, 0, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
+            ann1.setId("0caa1e9b-be5e-4c9f-9e07-27ba98984997");
             ann1.setViewpoint("left");
             ann1.setMatchAgainst(true);
             enc1.addAnnotation(ann1);
@@ -820,6 +828,7 @@ import static org.mockito.Mockito.when;
 
             org.ecocean.Annotation ann2 = new org.ecocean.Annotation("l. pardinus",
                 createBbox(asset2, 500, 0, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
+            ann2.setId("6c1e1088-49b2-4535-b90c-a6b793f9da49");
             ann2.setViewpoint("right");
             ann2.setMatchAgainst(true);
             enc2.addAnnotation(ann2);
@@ -828,6 +837,7 @@ import static org.mockito.Mockito.when;
 
             org.ecocean.Annotation ann3 = new org.ecocean.Annotation("l. pardinus",
                 createBbox(asset3, 0, 500, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
+            ann3.setId("e0d19b0f-6d44-4969-a409-a00f2afe7b85");
             ann3.setViewpoint("front");
             ann3.setMatchAgainst(true);
             enc3.addAnnotation(ann3);

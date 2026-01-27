@@ -137,12 +137,13 @@ if (myShepherd.isEncounter(num)) {
   InputStream encStream = null;
   boolean canDirectMap = true;
   Dimension imageDimensions = null;
-  FileInputStream fip=new FileInputStream(new File(encounterDir.getAbsolutePath()+"/" + fileloc));
+  //FileInputStream fip=new FileInputStream(new File(encounterDir.getAbsolutePath()+"/" + fileloc));
+  File fip = new File(encounterDir.getAbsolutePath()+"/" + fileloc);
   try {
     //connEnc = encURL.openConnection();
     //System.out.println("Opened new encounter connection");
     //encStream = connEnc.getInputStream();
-    imageDimensions = org.apache.sanselan.Sanselan.getImageSize(fip, ("extract" + num + ".jpg"));
+    imageDimensions = Util.hackSanselanGetImageSize(fip, ("extract" + num + ".jpg"));
 
   } 
   catch (IOException ioe) {
@@ -153,7 +154,6 @@ if (myShepherd.isEncounter(num)) {
 
 	<%
   }
-  fip.close();
   fip=null;
 
   if (canDirectMap) {
