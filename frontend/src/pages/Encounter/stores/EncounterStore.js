@@ -981,25 +981,27 @@ class EncounterStore {
   async patchMeasurements() {
     const tasks = [];
     let hasErrors = false;
+
     for (const m of this.measurementValues) {
-      if (m.value == null || m.value === "") {
-        this.errors.setFieldError(
-          "measurement",
-          m.type,
-          "value cannot be empty",
-        );
-        continue;
-      }
-      const payload = {
-        op: "replace",
-        path: "measurements",
-        value: {
-          type: m.type,
-          units: m.units,
-          value: m.value,
-          samplingProtocol: m.samplingProtocol,
-        },
-      };
+      const isEmpty = m.value == null || m.value === "";
+
+      const payload = isEmpty
+        ? {
+            op: "remove",
+            path: "measurements",
+            value: m.type,
+          }
+        : {
+            op: "replace",
+            path: "measurements",
+            value: {
+              type: m.type,
+              units: m.units,
+              value: m.value,
+              samplingProtocol: m.samplingProtocol,
+            },
+          };
+
       tasks.push(
         axios
           .patch(`/api/v3/encounters/${this.encounterData.id}`, [payload], {
@@ -1010,12 +1012,15 @@ class EncounterStore {
             this.errors.setFieldError(
               "measurement",
               m.type,
-              "Failed to save measurement",
+              isEmpty
+                ? "Failed to remove measurement"
+                : "Failed to save measurement",
             );
             throw err;
           }),
       );
     }
+
     if (tasks.length > 0) {
       await Promise.allSettled(tasks);
     }

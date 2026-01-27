@@ -1349,6 +1349,24 @@ public class Annotation extends Base implements java.io.Serializable {
                     cloneEncounter = true;
                 }
             }
+            //handle multiple parts case, such as a pre-existing elphant+head 
+            // and a new elephant+head added in a single image
+            else{
+                List<Annotation> encAnnots = enc.getAnnotations(ma);
+                System.out.println("DEBUG Annotation.createFromApi(): encAnnots = " + encAnnots);
+                // we see if we have a non-part annot, which would force us to clone (parts we ignore)
+                for (Annotation eann : encAnnots) {
+                    if (!eann.isPart()) continue;
+                    // trivial *should* be replaced below (see foundTrivial) ... i guess there is a weird
+                    // chance of more than one trivial being on this asset, but thats probably bad news anyway
+                    // we dont clone encounter since we will drop this trivial annot (then add new one to enc)
+                    if (eann.isTrivial()) continue;
+                    System.out.println(
+                        "DEBUG Annotation.createFromApi(): cloneEncounter [5] forcing multiple partscloneEncounter due to "
+                        + eann);
+                    cloneEncounter = true;
+                }
+            }
             if (cloneEncounter) {
                 try {
                     Encounter clone = enc.cloneWithoutAnnotations(myShepherd);
