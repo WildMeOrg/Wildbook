@@ -176,9 +176,9 @@
 			{"name":"India","id":"India","locationID":[]},
 			{"name": "Indonesia", "id": "Indonesia", "locationID":[
 				{"name": "Andaman Sea", "id": "Andaman Sea" },
-				{"name": "Arafura Sea", "id": "6" },
+				{"name": "Arafura Sea", "id": "Arafura Sea" },
 				{"name": "Banda Sea", "id": "Banda Sea" },
-				{"name": "Bali Sea", "id": "7" },
+				{"name": "Bali Sea", "id": "Bali Sea" },
 				{"name": "Celebes Sea", "id": "Celebes Sea"  },
 				{"name": "Ceram Sea", "id": "Ceram Sea" },
 				{"name": "Flores Sea", "id": "Flores Sea" },
