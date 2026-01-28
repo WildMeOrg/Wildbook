@@ -64,13 +64,13 @@ public class MatchResult implements java.io.Serializable {
         this.createFromJsonResult(jsonResult, myShepherd);
     }
 
-    // FIXME will need scores and other stuff here?
-    public MatchResult(Task task, List<Annotation> annots, int numberCandidates,
-        Shepherd myShepherd)
+    // FIXME will need scores and other stuff here? currently scores from vectors all
+    // seem to be 0.0 but the ordering seems best-to-worst, so we skip scores for now
+    public MatchResult(Task task, List<Annotation> annots, int numberCandidates)
     throws IOException {
         this();
         this.task = task;
-        this.createFromProspectAnnotations(annots, numberCandidates, myShepherd);
+        this.createFromProspectAnnotations(annots, numberCandidates);
     }
 
     public int getNumberCandidates() {
@@ -93,9 +93,8 @@ public class MatchResult implements java.io.Serializable {
     }
 
     // this is for vector-based list of matches (annots)
-    // TODO FIXME also list of scores of prospects (vector hit?)
-    public void createFromProspectAnnotations(List<Annotation> annots, int numberCandidates,
-        Shepherd myShepherd)
+    // scores skipped for now: see note on MatchResult() constructor above
+    public void createFromProspectAnnotations(List<Annotation> annots, int numberCandidates)
     throws IOException {
         this.numberCandidates = numberCandidates;
         this.populateProspects(annots);
@@ -173,7 +172,7 @@ public class MatchResult implements java.io.Serializable {
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
         for (Annotation ann : annots) {
-            // FIXME what is score for vectors???
+            // seems vector scoring is all 0.0 for now
             // inspect asset is null for vector matching i guess?
             this.prospects.add(new MatchResultProspect(ann, 0.0d, "annot", null));
         }
