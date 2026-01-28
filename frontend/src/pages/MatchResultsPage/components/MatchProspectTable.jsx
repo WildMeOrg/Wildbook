@@ -77,18 +77,16 @@ const styles = {
   }),
   toolsBarLeft: {
     position: "absolute",
-    top: "50%",
+    top: "0",
     left: "-40px",
-    transform: "translateY(-50%)",
     display: "flex",
     flexDirection: "column",
     gap: "6px",
   },
   toolsBarRight: {
     position: "absolute",
-    top: "50%",
+    top: "0",
     right: "-40px",
-    transform: "translateY(-50%)",
     display: "flex",
     flexDirection: "column",
     gap: "6px",
@@ -241,11 +239,7 @@ const MatchProspectTable = ({
     ];
   }, [previewedRow]);
 
-  const rightImageUrl =
-    previewedRow?.annotation?.asset?.url?.replace(
-      "http://frontend.scribble.com",
-      "https://zebra.wildme.org",
-    ) || "";
+  const rightImageUrl = previewedRow?.annotation?.asset?.url;
 
   const leftOrigW =
     thisEncounterImageAsset?.attributes?.width ??
@@ -264,12 +258,7 @@ const MatchProspectTable = ({
     previewedRow?.annotation?.asset?.height ??
     previewedRow?.annotation?.asset?.attributes?.height;
 
-  // +++++++++ temporary workaround +++++++++
-  const leftImageUrl =
-    (thisEncounterImageUrl || "").replace(
-      "http://frontend.scribble.com",
-      "https://zebra.wildme.org",
-    ) || "";
+  const leftImageUrl = thisEncounterImageUrl;
 
   const openFullscreen = () => {
     setFullscreenOpen(true);
@@ -352,7 +341,10 @@ const MatchProspectTable = ({
                       href={`/react/encounter?number=${candidateEncounterId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ textDecoration: "none" }}
+                      style={{
+                        textDecoration: "none",
+                        color: themeColor.primaryColors.primary500,
+                      }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {(Math.trunc(candidate.score * 10000) / 10000).toFixed(4)}
@@ -381,7 +373,7 @@ const MatchProspectTable = ({
                         window.open(url, "_blank");
                       }}
                     >
-                      <FormattedMessage id="ENC" />
+                      <FormattedMessage id="E" />
                       <ExitIcon width={12} height={12} />
                     </button>
 
@@ -430,7 +422,6 @@ const MatchProspectTable = ({
                 originalWidth={leftOrigW}
                 originalHeight={leftOrigH}
                 annotations={leftAnnotations}
-                showAnnotations
                 rotationInfo={leftRotationInfo}
               />
             </div>
@@ -509,7 +500,10 @@ const MatchProspectTable = ({
             <div
               style={styles.iconButton}
               title="View Annotations"
-              onClick={() => rightOverlayRef.current?.toggleAnnotations?.()}
+              onClick={() => {
+                rightOverlayRef.current?.toggleAnnotations?.();
+                leftOverlayRef.current?.toggleAnnotations?.();
+              }}
             >
               <ToggoleAnnotationIcon />
             </div>
@@ -567,7 +561,6 @@ const MatchProspectTable = ({
                   originalWidth={leftOrigW}
                   originalHeight={leftOrigH}
                   annotations={leftAnnotations}
-                  showAnnotations
                   rotationInfo={leftRotationInfo}
                 />
               </div>
@@ -618,6 +611,7 @@ const MatchProspectTable = ({
                     title="View Annotations"
                     onClick={() => {
                       fsRightRef.current?.toggleAnnotations?.();
+                      fsLeftRef.current?.toggleAnnotations?.();
                     }}
                   >
                     <ToggoleAnnotationIcon />

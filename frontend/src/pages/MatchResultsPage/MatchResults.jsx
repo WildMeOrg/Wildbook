@@ -134,21 +134,48 @@ const MatchResults = observer(() => {
             <Form.Label className="me-2 mb-0 small">
               <FormattedMessage id="NUMBER_OF_RESULTS" />
             </Form.Label>
-            <Form.Control
-              type="number"
-              size="sm"
-              min="1"
-              value={store.numResults}
-              onChange={(e) => {
-                store.setNumResults(Number(e.target.value));
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  store.fetchMatchResults();
-                }
-              }}
-              style={{ width: "80px" }}
-            />
+            <div style={{ position: "relative", width: "80px" }}>
+              <Form.Control
+                type="text"
+                size="sm"
+                value={store.numResults}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^\d*$/.test(val)) {
+                    store.setNumResults(val === "" ? 1 : Number(val));
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    store.fetchMatchResults();
+                  }
+                }}
+                style={{
+                  width: "100%",
+                  paddingRight: "30px",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => store.fetchMatchResults()}
+                style={{
+                  position: "absolute",
+                  right: "4px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  padding: "0 4px",
+                  fontSize: "16px",
+                  color: themeColor.primaryColors.primary500,
+                  lineHeight: "1",
+                }}
+                title="Apply changes"
+              >
+                ✓
+              </button>
+            </div>
           </Form.Group>
 
           <Form.Group className="d-flex align-items-center me-3 mb-2 mb-sm-0">

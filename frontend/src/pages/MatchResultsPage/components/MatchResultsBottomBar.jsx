@@ -27,7 +27,7 @@ const styles = {
   },
   warningText: {
     color: "#dc3545",
-    fontSize: "0.9rem",
+    fontSize: "1.2rem",
     fontWeight: "500",
   },
 };
@@ -95,6 +95,9 @@ const MatchResultsBottomBar = observer(
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-decoration-none"
+                  style={{
+                    color: themeColor.primaryColors.primary500,
+                  }}
                 >
                   {store.individualDisplayName}
                 </a>
@@ -104,6 +107,9 @@ const MatchResultsBottomBar = observer(
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-decoration-none"
+                  style={{
+                    color: themeColor.primaryColors.primary500,
+                  }}
                 >
                   {"encounter"} {shortEncId}
                 </a>
@@ -166,6 +172,9 @@ const MatchResultsBottomBar = observer(
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-decoration-none"
+                  style={{
+                    color: themeColor.primaryColors.primary500,
+                  }}
                 >
                   {individualName}
                 </a>
@@ -245,6 +254,9 @@ const MatchResultsBottomBar = observer(
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-decoration-none"
+                  style={{
+                    color: themeColor.primaryColors.primary500,
+                  }}
                 >
                   {nameA}
                 </a>{" "}
@@ -256,6 +268,9 @@ const MatchResultsBottomBar = observer(
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-decoration-none"
+                  style={{
+                    color: themeColor.primaryColors.primary500,
+                  }}
                 >
                   {nameB}
                 </a>
@@ -298,8 +313,14 @@ const MatchResultsBottomBar = observer(
           return {
             left: (
               <div
-                className="text-truncate"
-                style={{ ...styles.warningText, whiteSpace: "nowrap" }}
+                className="alert alert-danger mb-0"
+                style={{
+                  whiteSpace: "nowrap",
+                  height: "40px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0 12px",
+                }}
               >
                 <FormattedMessage id="CANNOT_MERGE_MORE_THAN_TWO" />
               </div>
@@ -324,6 +345,9 @@ const MatchResultsBottomBar = observer(
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-decoration-none"
+                      style={{
+                        color: themeColor.primaryColors.primary500,
+                      }}
                     >
                       {store.individualDisplayName}
                     </a>
@@ -333,6 +357,9 @@ const MatchResultsBottomBar = observer(
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-decoration-none"
+                      style={{
+                        color: themeColor.primaryColors.primary500,
+                      }}
                     >
                       {"encounter"} {shortEncId}
                     </a>
