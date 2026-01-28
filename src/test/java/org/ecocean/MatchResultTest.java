@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class MatchResultTest {
-    @Test void testMatchResult()
+    @Test void testMatchResultClassic()
     throws IOException {
         Task task = mock(Task.class);
         MatchResult mr = new MatchResult(task);
@@ -73,6 +73,24 @@ class MatchResultTest {
         JSONObject full = mr.jsonForApiGet(-1, null, myShepherd);
         assertTrue(full.getInt("numberTotalProspects") == 4);
         assertTrue(full.getInt("numberCandidates") == 3);
+    }
+
+    // annotation-list style creation
+    @Test void testMatchResultVector()
+    throws IOException {
+        Task task = mock(Task.class);
+        int numCand = 99;
+        Annotation ann = mock(Annotation.class);
+        ArrayList<Annotation> annList = new ArrayList<Annotation>();
+
+        annList.add(ann);
+
+        MatchResult mr = new MatchResult(task, annList, numCand);
+        assertTrue(mr.getNumberCandidates() == numCand);
+        assertTrue(mr.numberProspects() == 1);
+        // FIXME someday we need to figure out indiv-vector-search
+        // assertTrue(mr.prospectScoreTypes().contains("indiv"));
+        assertTrue(mr.prospectScoreTypes().contains("annot"));
     }
 
     @Test void basicMatchResultProspect() {
