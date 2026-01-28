@@ -646,6 +646,7 @@ public class Annotation extends Base implements java.io.Serializable {
     public int[] getBbox() {
         MediaAsset ma = getMediaAsset();
 
+        System.out.println("getBbox() ma=" + ma);
         if (ma == null) return null;
         Feature found = null;
         for (Feature ft : getFeatures()) {
@@ -654,6 +655,7 @@ public class Annotation extends Base implements java.io.Serializable {
                 break;
             }
         }
+        System.out.println("getBbox() found=" + found);
         if (found == null) return null;
         int[] bbox = new int[4];
         if (found.isUnity()) {
