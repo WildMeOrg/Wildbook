@@ -4283,6 +4283,7 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeBooleanField("isTrivial", ann.isTrivial());
                     jgen.writeNumberField("theta", ann.getTheta());
                     jgen.writeArrayFieldStart("boundingBox");
+                    Feature ft = ann.getFeature(); // attempt force loading features for getBbox()
                     int[] bbox = ann.getBbox();
                     if (bbox != null)
                         for (int i : bbox) {
