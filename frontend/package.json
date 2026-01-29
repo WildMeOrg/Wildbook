@@ -94,7 +94,7 @@
     "bootstrap-icons": "^1.11.3",
     "css-loader": "^6.10.0",
     "date-fns": "^4.1.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.26.0",
     "eslint-plugin-react": "^7.35.0",
     "globals": "^15.9.0",
     "html-webpack-plugin": "^5.6.0",
