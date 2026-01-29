@@ -609,6 +609,20 @@ public class Task implements java.io.Serializable {
     public JSONObject getIdentificationMethodInfo() {
         if (getParameters() == null) return null;
         if (getParameters().optJSONObject("ibeis.identification") == null) return null;
+        JSONObject rtn = new JSONObject();
+        // vector/embed flavor
+        if (getParameters().getJSONObject("ibeis.identification").optString("api_endpoint",
+            null) != null) {
+            String modelId = getParameters().getJSONObject("ibeis.identification").optString(
+                "model_id", null);
+            if (modelId == null) {
+                rtn.put("description", "Vector embedding match");
+            } else {
+                rtn.put("description", "Vector embedding match (model: " + modelId + ")");
+                rtn.put("modelId", modelId);
+            }
+            return rtn;
+        }
         // it seems both of these are in most logs (and are identical), but being safe in case there are
         // examples in the wild with only one
         JSONObject conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
@@ -616,12 +630,11 @@ public class Task implements java.io.Serializable {
         if (conf == null)
             conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
                 "queryConfigDict");
-        JSONObject rtn = new JSONObject();
         // we set HotSpotter if pipeline_root is not set here
         if (conf != null) rtn.put("name", conf.optString("pipeline_root", "HotSpotter"));
         rtn.put("description",
             getParameters().getJSONObject("ibeis.identification").optString("description",
-            "unknown algorith/method"));
+            "unknown algorithm/method"));
         return rtn;
     }
 
@@ -684,7 +697,7 @@ public class Task implements java.io.Serializable {
         // we basically use this to determine if we are "identification-like" enough
         // to display extended details
         if (methodInfo != null) {
-            rtn.put("method", getIdentificationMethodInfo());
+            rtn.put("method", methodInfo);
             rtn.put("matchingSetFilter", getMatchingSetFilter());
             // unsure which of these two things is more accurate or useful; thus including both
             rtn.put("status", getStatus(myShepherd));
