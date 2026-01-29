@@ -63,8 +63,8 @@
 	<dependency>
 	    <groupId>org.apache.tika</groupId>
 	    <artifactId>tika-core</artifactId>
-            <!-- java 8 support is EOL, 2.9.4 is last one -->
-	    <version>2.9.4</version>
+            <!-- java 8 support is EOL, 3.2.2 is last one -->
+	    <version>3.2.2</version>
 	</dependency>
 
     <!--	 Dependencies related to prometheus.	 -->
