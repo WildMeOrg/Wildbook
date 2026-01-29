@@ -64,11 +64,25 @@ const authenticatedMenu = (
       {
         name: (
           <FormattedMessage
-            id="MENU_LEARN_CITINGWILDBOOK"
-            defaultMessage="Citing Wildbook"
+            id="MENU_POLICIES_AND_DATA"
+            defaultMessage="Policies and Data"
           />
         ),
-        href: `${process.env.PUBLIC_URL}/citation`,
+        href: `${process.env.PUBLIC_URL}/policies-and-data?section=citing_wildbook`,
+        sub: [
+          {
+            name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_TERMSOFUSE" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=terms_of_use`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_CITINGWILDBOOK" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=citing_wildbook`,
+          },
+        ],
       },
       {
         name: (
@@ -342,11 +356,25 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
       {
         name: (
           <FormattedMessage
-            id="MENU_LEARN_CITINGWILDBOOK"
-            defaultMessage="Citing Wildbook"
+            id="MENU_POLICIES_AND_DATA"
+            defaultMessage="Policies and Data"
           />
         ),
-        href: `${process.env.PUBLIC_URL}/citation`,
+        href: `${process.env.PUBLIC_URL}/policies-and-data?section=citing_wildbook`,
+        sub: [
+          {
+            name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_TERMSOFUSE" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=terms_of_use`,
+          },
+          {
+            name: <FormattedMessage id="MENU_LEARN_CITINGWILDBOOK" />,
+            href: `${process.env.PUBLIC_URL}/policies-and-data?section=citing_wildbook`,
+          },
+        ],
       },
       {
         name: (
