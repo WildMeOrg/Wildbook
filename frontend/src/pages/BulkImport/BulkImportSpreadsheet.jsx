@@ -426,17 +426,20 @@ export const BulkImportSpreadsheet = observer(({ store }) => {
               store.setValidationWarnings({});
               store.clearSubmissionErrors();
             }}
+            className="position-absolute bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm border"
             style={{
-              position: "absolute",
               top: "20px",
               right: "10px",
               cursor: "pointer",
-              zIndex: 1,
+              zIndex: 10,
+              height: 25,
+              width: 25,
             }}
           >
             <i
               style={{
                 color: theme.primaryColors.primary500,
+                WebkitTextStroke: "0.5px " + theme.primaryColors.primary500,
               }}
               className="bi bi-x-lg"
             ></i>

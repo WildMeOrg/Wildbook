@@ -3,6 +3,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -352,14 +353,15 @@ public class EncounterSearchExportExcelFile extends HttpServlet {
         response.setHeader("Content-Disposition", "attachment;filename=" + filename);
         ServletContext ctx = getServletContext();
         // InputStream is = ctx.getResourceAsStream("/encounters/"+filename);
-        InputStream is = new FileInputStream(excelFile);
-        int read = 0;
-        byte[] bytes = new byte[BYTES_DOWNLOAD];
-        OutputStream os = response.getOutputStream();
-        while ((read = is.read(bytes)) != -1) {
-            os.write(bytes, 0, read);
+
+        try (InputStream is = Files.newInputStream(excelFile.toPath())) {
+            int read = 0;
+            byte[] bytes = new byte[BYTES_DOWNLOAD];
+            OutputStream os = response.getOutputStream();
+            while ((read = is.read(bytes)) != -1) {
+                os.write(bytes, 0, read);
+            }
+            os.flush();
         }
-        os.flush();
-        os.close();
     }
 }

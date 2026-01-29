@@ -8,9 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,25 +22,21 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.shiro.web.servlet.IniShiroFilter;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.export.EncounterAnnotationExportFile;
 import org.ecocean.export.EncounterImageExportFile;
 import org.ecocean.media.*;
 import org.ecocean.Occurrence;
 import org.ecocean.OpenSearch;
+import org.ecocean.servlet.export.EncounterSearchExportMetadataExcel;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.jetbrains.annotations.NotNull;
+import org.joda.time.Instant;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
@@ -50,14 +44,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.annotation.JsonAppend;
 import org.testcontainers.utility.DockerImageName;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.net.InetSocketAddress;
-import java.nio.file.FileSystems;
 import java.util.*;
 
 import static io.restassured.RestAssured.*;
@@ -108,6 +100,7 @@ import static org.mockito.Mockito.when;
         Properties commonConfiguration = new Properties();
         commonConfiguration.setProperty("collaborationSecurityEnabled", "true");
         commonConfiguration.setProperty("releaseDateFormat", "yyyy-MM-dd");
+        commonConfiguration.setProperty("htmlTitle", "Unit Test");
         CommonConfiguration.initialize("context0", commonConfiguration);
 
         System.out.println("PostgreSQL started at: " + postgres.getJdbcUrl());
@@ -134,6 +127,8 @@ import static org.mockito.Mockito.when;
         ctx.addServlet(new ServletHolder(new Login()), "/api/v3/login");
         ctx.addServlet(new ServletHolder(new SearchApi()), "/api/v3/search/*");
         ctx.addServlet(new ServletHolder(new EncounterExport()), "/api/v3/encounters/export");
+        ctx.addServlet(new ServletHolder(new EncounterSearchExportMetadataExcel()),
+            "/EncounterSearchExportMetadataExcel");
         server.setHandler(ctx);
         try {
             server.start();
@@ -394,18 +389,19 @@ import static org.mockito.Mockito.when;
             }
 
             // validate file contents against expected CSV
-            File excelFile = outputFilePath.toFile();
-            assertTrue(excelFile.exists(), "Excel file should exist");
-            assertTrue(excelFile.length() > 0, "Excel file should not be empty");
+            File csvFile = outputFilePath.toFile();
+            assertTrue(csvFile.exists(), "CSV file should exist");
+            assertTrue(csvFile.length() > 0, "CSV file should not be empty");
 
             // Load expected CSV data
             File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
-            List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
+            List<String[]> expectedRows = loadCsv(expectedCsvFile);
 
-            // Load actual Excel data
-            try (FileInputStream fis = new FileInputStream(excelFile)) {
-                assertExcelFileEquals(fis, expectedRows);
-            }
+            // Load actual CSV data
+            List<String[]> actualRows = loadCsv(csvFile);
+
+            // Compare CSV files
+            assertCsvFilesEqual(actualRows, expectedRows);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
@@ -421,7 +417,7 @@ import static org.mockito.Mockito.when;
         }
     }
 
-    private static @NotNull List<String[]> loadExpectedCsv(File expectedCsvFile)
+    private static @NotNull List<String[]> loadCsv(File expectedCsvFile)
     throws IOException {
         List<String[]> expectedRows = new ArrayList<>();
 
@@ -443,70 +439,62 @@ import static org.mockito.Mockito.when;
             }
         }
 
-        System.out.println("  Loaded " + expectedRows.size() + " rows from expected CSV");
+        System.out.println("  Loaded " + expectedRows.size() + " rows from CSV: " +
+            expectedCsvFile.toString());
         return expectedRows;
     }
 
-    private void assertExcelFileEquals(InputStream fis, List<String[]> expectedRows)
-    throws IOException {
-        try (Workbook workbook = new XSSFWorkbook(fis)) {
-            Sheet sheet = workbook.getSheet("Search Results");
-            assertNotNull(sheet, "Excel should contain 'Search Results' sheet");
+    private void assertCsvFilesEqual(List<String[]> actualRows, List<String[]> expectedRows) {
+        // Compare each row and cell
+        for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
+            String[] actualRow = actualRows.get(rowIndex);
+            String[] expectedRow = expectedRows.get(rowIndex);
 
-            // Compare row count
-            int actualRowCount = sheet.getLastRowNum() + 1;
-            assertEquals(expectedRows.size(), actualRowCount,
-                "Excel should have same number of rows as expected CSV");
-            // Compare each row and cell
-            for (int rowIndex = 0; rowIndex < expectedRows.size(); rowIndex++) {
-                Row actualRow = sheet.getRow(rowIndex);
-                String[] expectedRow = expectedRows.get(rowIndex);
-
-                assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
-                int actualCellCount = actualRow.getLastCellNum();
-                // Compare each cell
-                for (int cellIndex = 0; cellIndex < Math.min(expectedRow.length, actualCellCount);
-                    cellIndex++) {
-                    Cell actualCell = actualRow.getCell(cellIndex);
-                    String expectedValue = expectedRow[cellIndex];
-                    String actualValue = getCellValueAsString(actualCell);
-                    // Skip comparison for dynamic fields like Occurrence.occurrenceID and Encounter.sourceUrl
-                    if (rowIndex == 0) {
-                        // Header row - exact match required
-                        assertEquals(expectedValue, actualValue,
-                            "Header cell [" + rowIndex + "," + cellIndex + "] mismatch");
+            assertNotNull(actualRow, "Row " + rowIndex + " should not be null");
+            // Compare each cell
+            for (int cellIndex = 0; cellIndex < Math.min(expectedRow.length, actualRow.length);
+                cellIndex++) {
+                String expectedValue = expectedRow[cellIndex];
+                String actualValue = actualRow[cellIndex];
+                // Skip comparison for dynamic fields like Occurrence.occurrenceID and Encounter.sourceUrl
+                if (rowIndex == 0) {
+                    // Header row - exact match required
+                    assertEquals(expectedValue, actualValue,
+                        "Header cell [" + rowIndex + "," + cellIndex + "] mismatch");
+                } else {
+                    // Data rows - skip UUID columns (column 0 and 1)
+                    if (cellIndex == 0 || cellIndex == 1) {
+                        assertNotNull(actualValue,
+                            "Cell [" + rowIndex + "," + cellIndex + "] should not be null");
                     } else {
-                        // Data rows - skip UUID columns (column 0 and 1)
-                        if (cellIndex == 0 || cellIndex == 1) {
-                            assertNotNull(actualValue,
-                                "Cell [" + rowIndex + "," + cellIndex + "] should not be null");
+                        // Compare other cells with tolerance for numeric precision
+                        if (expectedValue.isEmpty() &&
+                            (actualValue == null || actualValue.isEmpty())) {
+                            // Both empty - OK
+                            continue;
+                        } else if (isNumeric(expectedValue) && isNumeric(actualValue)) {
+                            // Compare numbers with tolerance
+                            double expected = Double.parseDouble(expectedValue);
+                            double actual = Double.parseDouble(actualValue);
+                            assertEquals(expected, actual, 0.0001,
+                                "Cell [" + rowIndex + "," + cellIndex + "] numeric value mismatch");
                         } else {
-                            // Compare other cells with tolerance for numeric precision
-                            if (expectedValue.isEmpty() &&
-                                (actualValue == null || actualValue.isEmpty())) {
-                                // Both empty - OK
-                                continue;
-                            } else if (isNumeric(expectedValue) && isNumeric(actualValue)) {
-                                // Compare numbers with tolerance
-                                double expected = Double.parseDouble(expectedValue);
-                                double actual = Double.parseDouble(actualValue);
-                                assertEquals(expected, actual, 0.0001,
-                                    "Cell [" + rowIndex + "," + cellIndex +
-                                    "] numeric value mismatch");
-                            } else {
-                                // String comparison
-                                assertEquals(expectedValue, actualValue,
-                                    "Cell [" + rowIndex + "," + cellIndex + "] mismatch");
-                            }
+                            // String comparison
+                            assertEquals(expectedValue, actualValue,
+                                "Cell [" + rowIndex + "," + cellIndex + "] mismatch");
                         }
                     }
                 }
-                // check there aren't extra cells in the Excel that we didn't compare
-                assertTrue(expectedRow.length >= actualCellCount,
-                    "Row " + rowIndex + " should have " + expectedRow.length + " cells");
             }
-            System.out.println("Excel metadata validation passed - all cells match expected CSV");
+            // Compare cell count
+            assertEquals(expectedRow.length, actualRow.length,
+                "Row " + rowIndex + " should have " + expectedRow.length + " cells");
         }
+        // Compare row count
+        assertEquals(expectedRows.size(), actualRows.size(),
+            "CSV should have same number of rows as expected");
+
+        System.out.println("CSV metadata validation passed - all cells match expected CSV");
     }
 
     /**
@@ -552,7 +540,8 @@ import static org.mockito.Mockito.when;
 
         // Parse the ZIP file and verify its structure
         Set<String> zipEntries = new HashSet<>();
-        byte[] metadataExcelBytes = null;
+        byte[] metadataCsvBytes = null;
+        byte[] hiddenDataCsvBytes = null;
         int croppedImageCount = 0;
 
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
@@ -560,15 +549,25 @@ import static org.mockito.Mockito.when;
             while ((entry = zis.getNextEntry()) != null) {
                 zipEntries.add(entry.getName());
                 System.out.println("  Found ZIP entry: " + entry.getName());
-                // Extract metadata.xlsx for validation
-                if (entry.getName().equals("metadata.xlsx")) {
+                // Extract metadata.csv for validation
+                if (entry.getName().equals("metadata.csv")) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     byte[] buffer = new byte[1024];
                     int len;
                     while ((len = zis.read(buffer)) > 0) {
                         baos.write(buffer, 0, len);
                     }
-                    metadataExcelBytes = baos.toByteArray();
+                    metadataCsvBytes = baos.toByteArray();
+                }
+                // Extract hidden_data.csv for validation
+                if (entry.getName().equals("hidden_data.csv")) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        baos.write(buffer, 0, len);
+                    }
+                    hiddenDataCsvBytes = baos.toByteArray();
                 }
                 // Validate cropped image dimensions
                 if (entry.getName().startsWith("images/") && entry.getName().endsWith(".jpg")) {
@@ -594,8 +593,11 @@ import static org.mockito.Mockito.when;
         System.out.println("Verifying ZIP structure...");
 
         // Should contain metadata file (if includeMetadata: true)
-        assertTrue(zipEntries.stream().anyMatch(e -> e.equals("metadata.xlsx")),
-            "ZIP should contain metadata.xlsx");
+        assertTrue(zipEntries.stream().anyMatch(e -> e.equals("metadata.csv")),
+            "ZIP should contain metadata.csv");
+
+        assertTrue(zipEntries.stream().anyMatch(e -> e.equals("hidden_data.csv")),
+            "ZIP should contain hidden_data.csv");
 
         // Should contain images directory
         assertTrue(zipEntries.stream().anyMatch(e -> e.startsWith("images/")),
@@ -641,39 +643,85 @@ import static org.mockito.Mockito.when;
         System.out.println("  Individual_2 images: " + individual2Images);
         System.out.println("  Validated cropped images: " + croppedImageCount);
 
-        // Validate Excel metadata file content
-        System.out.println("\nVerifying Excel metadata file content...");
-        assertNotNull(metadataExcelBytes, "metadata.xlsx should have been extracted from ZIP");
-        assertTrue(metadataExcelBytes.length > 0, "metadata.xlsx should not be empty");
+        // Validate CSV metadata file content
+        System.out.println("\nVerifying CSV metadata file content...");
+        assertNotNull(metadataCsvBytes, "metadata.csv should have been extracted from ZIP");
+        assertTrue(metadataCsvBytes.length > 0, "metadata.csv should not be empty");
 
         // Load expected CSV data
         File expectedCsvFile = new File("src/test/resources/expected_encounter_export.csv");
-        List<String[]> expectedRows = loadExpectedCsv(expectedCsvFile);
+        List<String[]> expectedRows = loadCsv(expectedCsvFile);
 
-        try (InputStream inputStream = new ByteArrayInputStream(metadataExcelBytes)) {
-            assertExcelFileEquals(inputStream, expectedRows);
+        // Parse actual CSV from bytes
+        List<String[]> actualRows;
+        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(metadataCsvBytes));
+        CSVParser parser = CSVFormat.EXCEL.parse(reader)) {
+            actualRows = new ArrayList<>();
+            boolean firstRow = true;
+            for (CSVRecord record : parser) {
+                String[] row = new String[record.size()];
+                for (int i = 0; i < record.size(); i++) {
+                    String value = record.get(i);
+                    // Strip BOM from first cell of first row
+                    if (firstRow && i == 0 && value.startsWith("\uFEFF")) {
+                        value = value.substring(1);
+                    }
+                    row[i] = value;
+                }
+                actualRows.add(row);
+                firstRow = false;
+            }
         }
+
+        assertCsvFilesEqual(actualRows, expectedRows);
 
         System.out.println("\nHappy path test completed successfully");
     }
 
     /**
-     * Helper method to get cell value as string, handling different cell types.
+     * Test the EncounterSearchExportMetadataExcel servlet.
+     * Verifies that the CSV export has proper row separators (not one long row).
      */
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) return null;
-        switch (cell.getCellType()) {
-        case Cell.CELL_TYPE_STRING:
-            return cell.getStringCellValue();
-        case Cell.CELL_TYPE_NUMERIC:
-            return String.valueOf(cell.getNumericCellValue());
-        case Cell.CELL_TYPE_BOOLEAN:
-            return String.valueOf(cell.getBooleanCellValue());
-        case Cell.CELL_TYPE_FORMULA:
-            return cell.getCellFormula();
-        default:
-            return null;
+    @Test @Order(4) void testEncounterSearchExportMetadataExcel_CsvFormat()
+    throws Exception {
+        System.out.println("\n--- Test: EncounterSearchExportMetadataExcel CSV Format ---");
+
+        // Make the export request with genus filter
+        Response response = given()
+                .cookie("JSESSIONID", authenticationCookie)
+                .queryParam("genus", "lynx")
+                .when()
+                .get("/EncounterSearchExportMetadataExcel")
+                .then()
+                .statusCode(200)
+                .contentType("text/csv")
+                .log().ifValidationFails()
+                .extract()
+                .response();
+
+        System.out.println("Export request successful, verifying CSV format...");
+
+        // Get the CSV content as string
+        String csvContent = response.getBody().asString();
+        assertNotNull(csvContent, "CSV content should not be null");
+        assertFalse(csvContent.isEmpty(), "CSV content should not be empty");
+
+        try (FileOutputStream output = new FileOutputStream("/tmp/actual_search_export.csv");
+        OutputStreamWriter streamWriter = new OutputStreamWriter(output)) {
+            streamWriter.write(csvContent);
+            System.out.println("Wrote to: /tmp/actual_search_export.csv");
         }
+
+        File expectedCsvFile = new File("src/test/resources/expected_search_export.csv");
+        List<String[]> expectedData = loadCsv(expectedCsvFile);
+        List<String[]> actualData = loadCsv(new File("/tmp/actual_search_export.csv"));
+
+        assertCsvFilesEqual(actualData, expectedData);
+
+        System.out.println("CSV format test passed:");
+        System.out.println("  ✓ Multiple rows (not one long row)");
+        System.out.println("  ✓ Header row with expected columns");
+        System.out.println("  ✓ Consistent column count across all rows");
     }
 
     // =========================================================================
@@ -766,7 +814,7 @@ import static org.mockito.Mockito.when;
             enc1.setVerbatimLocality("iberia");
             enc1.setDecimalLatitude(37.15414445923345);
             enc1.setDecimalLongitude(-6.730740044168456);
-            enc1.setDateFromISO8601String("2024-06-01");
+            enc1.setDateInMilliseconds(Instant.parse("2024-06-01T00:00:00Z").getMillis());
             myShepherd.storeNewEncounter(enc1);
 
             enc1.opensearchIndexDeep();
@@ -780,7 +828,7 @@ import static org.mockito.Mockito.when;
             enc2.setVerbatimLocality("iberia");
             enc2.setDecimalLatitude(37.15414445923345);
             enc2.setDecimalLongitude(-6.730740044168456);
-            enc2.setDateFromISO8601String("2025-05-02");
+            enc2.setDateInMilliseconds(Instant.parse("2025-05-02T00:00:00Z").getMillis());
             myShepherd.storeNewEncounter(enc2);
 
             enc2.opensearchIndexDeep();
@@ -794,12 +842,32 @@ import static org.mockito.Mockito.when;
             enc3.setVerbatimLocality("iberia");
             enc3.setDecimalLatitude(37.15414445923345);
             enc3.setDecimalLongitude(-6.730740044168456);
-            enc3.setDateFromISO8601String("2025-05-03");
+            enc3.setDateInMilliseconds(Instant.parse("2025-05-03T00:00:00Z").getMillis());
             myShepherd.storeNewEncounter(enc3);
 
             enc3.opensearchIndexDeep();
             enc3.addMediaAsset(asset3);
             asset3.opensearchIndexDeep();
+
+            // Create encounter without individual assignment (to test column alignment bug)
+            MediaAsset asset4 = ((LocalAssetStore)localStore).create(testImage);
+            asset4.setId(4);
+            asset4.addKeyword(fieldKeyword);
+
+            org.ecocean.Encounter enc4 = new org.ecocean.Encounter();
+            enc4.setGenus("lynx");
+            enc4.setSpecificEpithet("pardinus");
+            enc4.setLifeStage("juvenile");
+            enc4.setVerbatimLocality("iberia");
+            enc4.setDecimalLatitude(37.15414445923345);
+            enc4.setDecimalLongitude(-6.730740044168456);
+            enc4.setDateInMilliseconds(Instant.parse("2025-05-04T00:00:00Z").getMillis());
+            myShepherd.storeNewEncounter(enc4);
+            // NOTE: enc4 is intentionally NOT assigned to any individual
+
+            enc4.opensearchIndexDeep();
+            enc4.addMediaAsset(asset4);
+            asset4.opensearchIndexDeep();
 
             // Create test individuals
             org.ecocean.MarkedIndividual ind1 = new org.ecocean.MarkedIndividual("Individual_1",
@@ -844,6 +912,16 @@ import static org.mockito.Mockito.when;
             myShepherd.storeNewAnnotation(ann3);
             ann3.opensearchIndexDeep();
 
+            // Annotation for encounter without individual
+            org.ecocean.Annotation ann4 = new org.ecocean.Annotation("l. pardinus",
+                createBbox(asset4, 250, 250, TEST_IMAGE_WIDTH, TEST_IMAGE_HEIGHT));
+            ann4.setId("b7d3c8f1-5e2a-4b9c-8d6e-1a2b3c4d5e6f");
+            ann4.setViewpoint("back");
+            ann4.setMatchAgainst(true);
+            enc4.addAnnotation(ann4);
+            myShepherd.storeNewAnnotation(ann4);
+            ann4.opensearchIndexDeep();
+
             org.ecocean.Occurrence occ1 = new Occurrence("9cf5a4e7-4c81-466e-a788-8d976f869086");
             occ1.addEncounter(enc1);
             occ1.addAsset(asset1);
@@ -865,9 +943,18 @@ import static org.mockito.Mockito.when;
             myShepherd.storeNewOccurrence(occ3);
             occ3.opensearchIndexDeep();
 
+            // Occurrence for encounter without individual
+            org.ecocean.Occurrence occ4 = new Occurrence("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+            occ4.addEncounter(enc4);
+            occ4.addAsset(asset4);
+            asset4.setOccurrence(occ4);
+            myShepherd.storeNewOccurrence(occ4);
+            occ4.opensearchIndexDeep();
+
             myShepherd.getPM().makePersistent(asset1);
             myShepherd.getPM().makePersistent(asset2);
             myShepherd.getPM().makePersistent(asset3);
+            myShepherd.getPM().makePersistent(asset4);
 
             myShepherd.commitDBTransaction();
             System.out.println("Test data initialized successfully");
