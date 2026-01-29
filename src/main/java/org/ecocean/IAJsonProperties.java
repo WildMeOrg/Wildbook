@@ -14,6 +14,8 @@ import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.ia.IAException;
+import org.ecocean.ia.MLService;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
 
@@ -265,6 +267,22 @@ public class IAJsonProperties extends JsonProperties {
                 taxy.toString() + " and iaClass " + iaClass + ". Trying _default iaClass instead.");
             config = (JSONArray)this.get(identConfigKey(taxy, "_default"));
         }
+        // we add vector based here if applicable
+        try {
+            MLService mls = new MLService();
+            List<JSONObject> mlConfig = mls.getConfigs((taxy ==
+                null) ? null : taxy.getScientificName());
+            if (mlConfig != null) {
+                System.out.println("getIdentConfig() appending mlConfig=" + mlConfig);
+                if (config == null) {
+                    config = new JSONArray(mlConfig);
+                } else {
+                    for (int i = 0; i < mlConfig.size(); i++) {
+                        config.put(mlConfig.get(i));
+                    }
+                }
+            }
+        } catch (IAException iax) {}
         if (config == null)
             System.out.println(
                 "IAJsonProperties WARNING: could not find any identConfig for taxonomy " +
@@ -333,7 +351,7 @@ public class IAJsonProperties extends JsonProperties {
         for (int i = 0; i < identConfig.length(); i++) {
             JSONObject thisIdentOpt = copyJobj(identConfig.getJSONObject(i));
             // so we don't break lookups for queryConfigDict downstream (old world)
-            thisIdentOpt.put("queryConfigDict", thisIdentOpt.get("query_config_dict"));
+            thisIdentOpt.put("queryConfigDict", thisIdentOpt.opt("query_config_dict"));
             identOpts.add(thisIdentOpt);
         }
         return identOpts;
