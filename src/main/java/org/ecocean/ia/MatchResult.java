@@ -98,6 +98,21 @@ public class MatchResult implements java.io.Serializable {
     throws IOException {
         this.numberCandidates = numberCandidates;
         this.populateProspects(annots);
+        this.setQueryAnnotationFromTask();
+    }
+
+    public Annotation setQueryAnnotationFromTask()
+    throws IOException {
+        if (this.task == null)
+            throw new IOException("setQueryAnnotationFromTask() failed as task is null");
+        int numAnns = this.task.countObjectAnnotations();
+        if (numAnns < 1)
+            throw new IOException("setQueryAnnotationFromTask() failed as task has no annotations");
+        if (numAnns > 1)
+            System.out.println("WARNING: setQueryAnnotationFromTask() has " + numAnns +
+                " annotations; using first");
+        this.queryAnnotation = this.task.getObjectAnnotations().get(0);
+        return this.queryAnnotation;
     }
 
     // json_result section should be passed here
