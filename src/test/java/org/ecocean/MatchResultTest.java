@@ -79,11 +79,14 @@ class MatchResultTest {
     @Test void testMatchResultVector()
     throws IOException {
         Task task = mock(Task.class);
+
+        when(task.countObjectAnnotations()).thenReturn(1);
         int numCand = 99;
         Annotation ann = mock(Annotation.class);
         ArrayList<Annotation> annList = new ArrayList<Annotation>();
 
         annList.add(ann);
+        when(task.getObjectAnnotations()).thenReturn(annList);
 
         MatchResult mr = new MatchResult(task, annList, numCand);
         assertTrue(mr.getNumberCandidates() == numCand);
