@@ -447,12 +447,11 @@
           <scope>test</scope>
       </dependency>
 
-    <!-- Apache Commons CSV for proper CSV parsing in tests -->
+    <!-- Apache Commons CSV for CSV parsing -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
       <version>1.11.0</version>
-      <scope>test</scope>
     </dependency>
 
 
@@ -620,7 +619,6 @@
       <artifactId>jaxb-impl</artifactId>
       <version>2.3.0.1</version>
     </dependency>
-
   </dependencies>
 
   <scm>
