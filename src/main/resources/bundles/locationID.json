@@ -8,12 +8,9 @@
 			 {"name": "Bering Sea", "id": "Bering Sea" },
 			 {"name": "Bismarck Sea",  "id": "Bismarck Sea" },
 			 {"name": "Bohai Sea", "id": "Bohai Sea" },
-			 {"name": "Bohol Sea", "id": "Bohol Sea" },
 			 {"name": "French Polynesia", "id": "French Polynesia", "locationID":[
 				{"name": "Bora Bora", "id": "Bora Bora" }
 			  ] },
-			 {"name": "Mindanao Sea", "id": "Mindanao Sea" },
-			 {"name": "Camotes Sea", "id": "Camotes Sea" },
 			 {"name": "Chilean Sea","id":"Chilean Sea" },
 			 {"name": "Sea of Chiloé", "id": "Sea of Chiloé" },
 			 {"name": "Coral Sea", "id": "Coral Sea"  },
@@ -184,8 +181,7 @@
 				{"name": "Flores Sea", "id": "Flores Sea" },
 				{"name": "Halmahera Sea", "id": "Halmahera Sea" },
 				{"name": "Java Sea", "id": "Java Sea" },
-				{"name": "Molucca Sea", "id": "Molucca Sea" },
-				{"name": "Philippine Sea", "id": "Philippine Sea" }
+				{"name": "Molucca Sea", "id": "Molucca Sea" }
 		] },
 			{"name": "Laccadive Sea", "id": "Laccadive Sea" },
 			{"name":"Madagascar","id":"Madagascar",
@@ -231,6 +227,7 @@
 		    {"name":"Israel","id":"Israel"},
 			{"name": "Saudi Arabia", "id": "Saudi Arabia", "locationID": [
 				{"name": "Ras Baridi", "id": "Ras Baridi", "prefix": "KSA-RB-", "prefixDigitPadding": 4, "geospatialInfo": {"lat": 24.254205, "long": 37.572626},"locationID":[]}
+			]}
 		  ]},
 		  {"name": "Réunion", "id": "Reunion"},
           {"name": "Seychelles", "id": "Seychelles" },
@@ -275,7 +272,32 @@
 		{ "name":"Ionian Sea", "id":"Ionian Sea", "locationID":[] },
 		{ "name":"Tyrrhenian Sea", "id":"Tyrrhenian Sea", "locationID":[] }
 	]
-},
+    },
+	{"name": "Philippine Sea", "id": "Philippine Sea", "locationID": [
+		{"name": "Philippines", "id": "Philippines", "prefix": "PH-", "prefixDigitPadding": 4, "locationID": [
+			{"name": "Donsol", "id": "Donsol" },
+			{"name": "Luzon", "id": "Luzon", "prefix": "LZ-", "prefixDigitPadding": 4, "locationID":[
+				{"name": "West Philippines Sea", "id": "West Philippines Sea", "prefix": "LZWP-", "prefixDigitPadding": 4, "locationID":[]}
+			] },
+			{"name": "Mindanao", "id": "Mindanao", "prefix": "MN-", "prefixDigitPadding": 4, "locationID":[] },
+			{"name": "Palawan", "id": "Palawan", "prefix": "PL-", "prefixDigitPadding": 4, "locationID": [
+				{"name": "San Vicente", "id": "San Vicente", "prefix": "PLSV-", "prefixDigitPadding": 4, "locationID":[] },
+				{"name": "Tubbataha Reefs Natural Park", "id": "Tubbataha Reefs Natural Park", "prefix": "PLTR-", "prefixDigitPadding": 4, "locationID":[]}
+			] },
+			{"name": "Visayas", "id": "Visayas", "prefix": "VS-", "prefixDigitPadding": 4, "locationID": [
+				{"name": "Bohol", "id": "Bohol", "prefix": "VSBH-", "prefixDigitPadding": 4, "locationID": [
+					{"name": "Panglao", "id": "Panglao", "prefix": "VSBHPN-", "prefixDigitPadding": 4, "locationID": [] }
+				] },
+			    {"name": "Cebu", "id": "Cebu", "prefix": "VSCB-", "prefixDigitPadding": 4, "locationID": [
+					{"name": "Moalboal", "id": "Moalboal", "prefix": "VSCBML-", "prefixDigitPadding": 4, "locationID": [] }
+				] },
+				{"name": "Negros", "id": "Negros", "prefix": "VSNG-", "prefixDigitPadding":4, "locationID": [
+					{"name": "Apo Island", "id": "Apo Island", "prefix": "VSNGAP-", "prefixDigitPadding": 4, "locationID": [] },
+					{"name": "Dauis", "id": "Dauis", "prefix": "VSNGDA-", "prefixDigitPadding": 4, "locationID": [] }
+				] }
+			] }
+		] }
+	] },
 	{ "name":"Misc - Legacy Wildbook IDs", "id":"Misc", "locationID":[
 		{"name": "Malaysia", "id": "Malaysia" },
 		{"name": "Thailand", "id": "Thailand" },
@@ -303,11 +325,7 @@
 			{"name": "Tiwi Reef", "id": "Tiwi Reef" }
 			  ]},
 		{"name": "Djibouti", "id": "Djibouti" },
-		{"name": "Bahrain", "id": "Bahrain" },
-		{"name": "Philippines", "id": "Philippines", "locationID": [
-			{"name": "Donsol", "id": "Donsol" },
-			{"name": "Cebu", "id": "Cebu" }
-		] }
+		{"name": "Bahrain", "id": "Bahrain" }
 	] }
 
   ]
