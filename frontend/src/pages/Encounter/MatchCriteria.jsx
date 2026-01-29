@@ -102,7 +102,7 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
                 const result = await store.newMatch.buildNewMatchPayload();
                 console.log(JSON.stringify(result, null, 2));
                 if (result.status === 200) {
-                  const url = `/iaResults.jsp?taskId=${result?.data?.taskId}`;
+                  const url = `/react/match-results?taskId=${result?.data?.taskId}`;
                   window.open(url, "_blank");
                   store.modals.setOpenMatchCriteriaModal(false);
                 } else {

@@ -101,7 +101,7 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
                 return '<span class="disabled">no matchable detection</span>';
             } else if (mode == 'funcStart') {
                 //registerTaskId(iaStatus.taskId);
-                //wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
+                //wildbook.openInTab('../react/match-results?taskId=' + iaStatus.taskId);
                 return;
             }
     // allow results page only if detection is complete or there is a verifiable identification status
@@ -110,7 +110,7 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
                 return 'match results';
             } else if (mode == 'funcStart') {
                 registerTaskId(iaStatus.taskId);
-                wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
+                wildbook.openInTab('../react/match-results?taskId=' + iaStatus.taskId);
                 return;
             }
         }
