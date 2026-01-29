@@ -543,7 +543,7 @@ public class TwitterBot {
         Map<String, String> vars = new HashMap<String, String>();
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("MATCH_URL",
-            CommonConfiguration.getServerURL(context) + "/iaResults.jsp?taskId=" + taskId);
+            CommonConfiguration.getServerURL(context) + "/react/match-results?taskId=" + taskId);
         taskTweeted.add(taskId);
         if ((annotPairDict == null) || (annotPairDict.optJSONArray("review_pair_list") == null) ||
             (annotPairDict.getJSONArray("review_pair_list").length() < 1)) {

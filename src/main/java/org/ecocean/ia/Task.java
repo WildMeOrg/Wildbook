@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
@@ -209,6 +210,11 @@ public class Task implements java.io.Serializable {
 
     public Task getParent() {
         return parent;
+    }
+
+    public String getParentId() {
+        if (parent == null) return null;
+        return parent.getId();
     }
 
     public int numChildren() {
@@ -578,7 +584,7 @@ public class Task implements java.io.Serializable {
         else { status = newStatus; }
     }
 
-    public java.lang.Long getCompletionDateInMilliseconds() { return completionDateInMilliseconds; }
+    public Long getCompletionDateInMilliseconds() { return completionDateInMilliseconds; }
 
     // this will set all date stuff based on ms since epoch
     public void setCompletionDateInMilliseconds(Long ms) {
@@ -593,5 +599,137 @@ public class Task implements java.io.Serializable {
         if (message == null) { queueResumeMessage = null; } else {
             queueResumeMessage = message;
         }
+    }
+
+    public JSONObject getMatchingSetFilter() {
+        if (getParameters() == null) return null;
+        return getParameters().optJSONObject("matchingSetFilter");
+    }
+
+    public JSONObject getIdentificationMethodInfo() {
+        if (getParameters() == null) return null;
+        if (getParameters().optJSONObject("ibeis.identification") == null) return null;
+        JSONObject rtn = new JSONObject();
+        // vector/embed flavor
+        if (getParameters().getJSONObject("ibeis.identification").optString("api_endpoint",
+            null) != null) {
+            String modelId = getParameters().getJSONObject("ibeis.identification").optString(
+                "model_id", null);
+            if (modelId == null) {
+                rtn.put("description", "Vector embedding match");
+            } else {
+                rtn.put("description", "Vector embedding match (model: " + modelId + ")");
+                rtn.put("modelId", modelId);
+            }
+            return rtn;
+        }
+        // it seems both of these are in most logs (and are identical), but being safe in case there are
+        // examples in the wild with only one
+        JSONObject conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
+            "query_config_dict");
+        if (conf == null)
+            conf = getParameters().getJSONObject("ibeis.identification").optJSONObject(
+                "queryConfigDict");
+        // we set HotSpotter if pipeline_root is not set here
+        if (conf != null) rtn.put("name", conf.optString("pipeline_root", "HotSpotter"));
+        rtn.put("description",
+            getParameters().getJSONObject("ibeis.identification").optString("description",
+            "unknown algorithm/method"));
+        return rtn;
+    }
+
+    // convenience
+    public List<MatchResult> getMatchResults(Shepherd myShepherd) {
+        return myShepherd.getMatchResults(this);
+    }
+
+    public MatchResult getLatestMatchResult(Shepherd myShepherd) {
+        List<MatchResult> all = myShepherd.getMatchResults(this);
+
+        if (Util.collectionIsEmptyOrNull(all)) return null;
+        return all.get(0);
+    }
+
+    // logs are returned in chronological order here, so if the latest is desired, take the LAST one
+    public List<MatchResult> generateMatchResults(Shepherd myShepherd) {
+        List<MatchResult> mrs = new ArrayList<MatchResult>();
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(this.id, "IBEISIA",
+            myShepherd);
+
+        if (logs == null) return mrs;
+        for (IdentityServiceLog log : logs) {
+            JSONObject res = log.getJsonResult();
+            // in theory this is how we can tell if it is an ident result log versus detection
+            if ((res != null) && (res.optJSONObject("cm_dict") != null)) {
+                try {
+                    MatchResult mr = new MatchResult(log, myShepherd);
+                    System.out.println("[INFO] generateMatchResults() [log t=" +
+                        log.getTimestamp() + "] on " + this + " generated: " + mr);
+                    myShepherd.getPM().makePersistent(mr);
+                    mrs.add(mr);
+                } catch (java.io.IOException ex) {
+                    System.out.println("[ERROR] generateMatchResults() [log t=" +
+                        log.getTimestamp() + "] on " + this + " failed: " + ex);
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return mrs;
+    }
+
+    public JSONObject matchResultsJson(int cutoff, Set<String> projectIds, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+
+        rtn.put("id", getId());
+        rtn.put("parentTaskId", getParentId());
+        rtn.put("dateCreated", Util.millisToISO8601String(getCreatedLong()));
+        rtn.put("dateCompleted", Util.millisToISO8601String(getCompletionDateInMilliseconds()));
+        // TODO theory is that we might not need to use/store queryAnnotation on MatchResult as
+        // we should have it here, hence this debugging value ... possible optimization for later
+        if (hasObjectAnnotations()) {
+            JSONArray annotArr = new JSONArray();
+            for (Annotation ann : getObjectAnnotations()) {
+                if (ann != null) annotArr.put(ann.getId());
+            }
+            rtn.put("__taskAnnotations", annotArr);
+        }
+        JSONObject methodInfo = getIdentificationMethodInfo();
+        // we basically use this to determine if we are "identification-like" enough
+        // to display extended details
+        if (methodInfo != null) {
+            rtn.put("method", methodInfo);
+            rtn.put("matchingSetFilter", getMatchingSetFilter());
+            // unsure which of these two things is more accurate or useful; thus including both
+            rtn.put("status", getStatus(myShepherd));
+            rtn.put("statusOverall", getOverallStatus(myShepherd));
+            // we only care about (and importantly try to generate) MatchResults for ident type too
+            MatchResult mr = getLatestMatchResult(myShepherd);
+            if (mr == null) {
+                System.out.println(
+                    "[DEBUG] matchResultsJson() found no MatchResults; generating on " + this);
+                List<MatchResult> mrs = generateMatchResults(myShepherd);
+                rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
+                if (mrs.size() > 0) {
+                    mr = mrs.get(mrs.size() - 1);
+                    rtn.put("_commitShepherd", true);
+                }
+            }
+            if (mr != null)
+                rtn.put("matchResults", mr.jsonForApiGet(cutoff, projectIds, myShepherd));
+        }
+        // now we recurse thru children if applicable
+        if (hasChildren()) {
+            JSONArray charr = new JSONArray();
+            for (Task child : children) {
+                // TODO decide if we need to process child????
+                JSONObject childJson = child.matchResultsJson(cutoff, projectIds, myShepherd);
+                // we have to bubble this up all the way to the toplevel  :/
+                if (childJson.optBoolean("_commitShepherd", false))
+                    rtn.put("_commitShepherd", true);
+                charr.put(childJson);
+            }
+            rtn.put("children", charr);
+        }
+        return rtn;
     }
 }

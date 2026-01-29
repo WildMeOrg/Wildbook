@@ -207,7 +207,7 @@ const BulkImportTask = observer(() => {
       cell: (row) => {
         const arr = row.class;
         if (Array.isArray(arr) && arr.length === 3) {
-          const link = `/iaResults.jsp?taskId=${arr[0]}`;
+          const link = `/react/match-results?taskId=${arr[0]}`;
           return (
             <a href={link} target="_blank" rel="noreferrer">
               {arr[2]} {": "}

@@ -251,7 +251,7 @@ describe("ImageModal", () => {
     fireEvent.click(matchBtn);
 
     expect(global.open).toHaveBeenCalledWith(
-      "/iaResults.jsp?taskId=task-123",
+      "/react/match-results?taskId=task-123",
       "_blank",
     );
   });

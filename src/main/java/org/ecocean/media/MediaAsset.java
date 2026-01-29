@@ -969,7 +969,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
     public JSONObject toSimpleJSONObject() {
         JSONObject j = new JSONObject();
 
-        j.put("id", getId());
+        j.put("id", getIdInt());
         j.put("uuid", getUUID());
         j.put("url", safeURL());
         if ((getMetadata() != null) && (getMetadata().getData() != null) &&

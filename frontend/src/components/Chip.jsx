@@ -28,7 +28,7 @@ function Chip({ children }) {
       Object.entries(data?.projectsForUser || {})?.map((item) => {
         return {
           value: item[0],
-          label: item[1],
+          label: item[1]?.name,
         };
       }) || [];
 

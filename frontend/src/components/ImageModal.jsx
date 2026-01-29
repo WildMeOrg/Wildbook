@@ -978,7 +978,7 @@ export const ImageModal = observer(
                       const taskId = imageStore.encounterAnnotations.filter(
                         (a) => a.id === imageStore.selectedAnnotationId,
                       )?.[0]?.iaTaskId;
-                      window.open(`/iaResults.jsp?taskId=${taskId}`, "_blank");
+                      window.open(`/react/match-results?taskId=${taskId}`, "_blank");
                     }}
                     style={{
                       margin: "5px 0",
