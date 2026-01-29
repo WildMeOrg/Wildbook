@@ -48,7 +48,6 @@ import org.joda.time.LocalDateTime;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import weka.core.pmml.jaxbbindings.TimeSeries;
 
 /**
  * An <code>encounter</code> object stores the complete data for a single sighting/capture report.
