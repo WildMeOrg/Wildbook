@@ -316,7 +316,9 @@ if(request.getUserPrincipal()!=null){
                     if (searchResults.length > 0) {
                         resultsDropdown.innerHTML = searchResults.map(data => {
                             const taxonomy = data.taxonomy ? data.taxonomy : " ";                            
-                            let value = data.displayName || data.id;                            
+                            let value = data.displayName || 
+                              (data.names?.length ? result.names.join(" | ") : null) || 
+                              data.id;                        
                           
                             return "<a href=\"" + "<%= urlLoc %>" + "/individuals.jsp?id=" + data.id + "\" target=\"_blank\">" +
                               "    <div class=\"quick-search-result\" style=\"height: 60px; font-size: 14px\">" +
