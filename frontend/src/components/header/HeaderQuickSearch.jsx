@@ -89,11 +89,7 @@ export default function HeaderQuickSearch() {
           )}
           {!loading &&
             searchResults.map((result, index) => {
-              let value = result.id;
-              value =
-                result.names.find((name) =>
-                  name.toLowerCase().includes(search.toLowerCase()),
-                ) || result.names.join(" | ");
+              let value = result.displayName || result.id;
 
               return (
                 <React.Fragment key={index}>
