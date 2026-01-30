@@ -178,7 +178,7 @@ const MatchProspectTable = ({
   thisEncounterAnnotations,
   thisEncounterImageAsset,
   themeColor,
-  columns,
+  columns = [],
   algorithm,
   methodName,
 }) => {
@@ -268,6 +268,10 @@ const MatchProspectTable = ({
     }, 0);
   };
 
+  if (columns.length === 0) {
+    return <FormattedMessage id="NO_MATCH_RESULT" />;
+  }
+
   return (
     <div className="mb-4" id={sectionId}>
       <div className="d-flex justify-content-between align-items-center mb-2">
@@ -313,7 +317,7 @@ const MatchProspectTable = ({
                 const candidateIndividualDisplayName =
                   candidate.annotation?.individual?.displayName;
 
-                const rowKey = `${candidate.annotation?.id}-${candidate.displayIndex}`;
+                const rowKey = `${candidate.annotation?.id ?? candidate.annotation?.encounter?.id ?? "no-annot"}-${candidate.displayIndex ?? "no-idx"}`;
                 const isRowSelected = isSelected(rowKey);
                 const isRowPreviewed = rowKey === previewedRow?._rowKey;
                 const isRowHovered = rowKey === hoveredRow;
@@ -347,7 +351,11 @@ const MatchProspectTable = ({
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {(Math.trunc(candidate.score * 10000) / 10000).toFixed(4)}
+                      {Number.isFinite(candidate?.score)
+                        ? candidate.score.toLocaleString(undefined, {
+                            maximumFractionDigits: 4,
+                          })
+                        : "—"}
                     </a>
 
                     <button
@@ -360,7 +368,9 @@ const MatchProspectTable = ({
                         window.open(url, "_blank");
                       }}
                     >
-                      {candidateIndividualDisplayName}
+                      {candidateIndividualDisplayName ||
+                        candidateIndividualId ||
+                        "Unknown"}
                     </button>
 
                     <button
@@ -373,7 +383,6 @@ const MatchProspectTable = ({
                         window.open(url, "_blank");
                       }}
                     >
-                      <FormattedMessage id="E" />
                       <ExitIcon width={12} height={12} />
                     </button>
 

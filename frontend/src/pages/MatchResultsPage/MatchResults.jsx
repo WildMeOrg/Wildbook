@@ -13,22 +13,44 @@ import InstructionsModal from "./components/InstructionsModal";
 import InfoIcon from "./icons/InfoIcon";
 import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
+import Select from "react-select";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
   const store = useMemo(() => new MatchResultsStore(), []);
   const [instructionsVisible, setInstructionsVisible] = React.useState(false);
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const taskId = params.get("taskId");
   const projectIdPrefix = params.get("projectIdPrefix");
   const { projectsForUser = {}, identificationRemarks = [] } =
     useSiteSettings() || {};
   const [filterVisible, setFilterVisible] = React.useState(false);
 
-  useEffect(()=> {
-    if(!projectIdPrefix) return;
-    store.setProjectName(projectIdPrefix);
-  }, [projectIdPrefix])
+  const projectOptions = useMemo(() => {
+    return [
+      { value: "", label: "Select a project" },
+      ...Object.entries(projectsForUser).map(([key, value]) => ({
+        value: key,
+        label: value?.name || key,
+      })),
+    ];
+  }, [projectsForUser]);
+
+  const selectedProjectOption = useMemo(() => {
+    return projectOptions.find((o) => o.value === store.projectName) || null;
+  }, [projectOptions, store.projectName]);
+
+  useEffect(() => {
+    if (!projectIdPrefix) return;
+
+    const match = Object.entries(projectsForUser).find(
+      ([, p]) => p?.prefix === projectIdPrefix,
+    );
+    if (!match) return;
+
+    const [projectId] = match;
+    store.setProjectName(projectId);
+  }, [projectIdPrefix, projectsForUser, store]);
 
   useEffect(() => {
     if (taskId) {
@@ -188,24 +210,44 @@ const MatchResults = observer(() => {
             <Form.Label className="me-2 mb-0 small">
               <FormattedMessage id="PROJECT" defaultMessage="Project" />
             </Form.Label>
-            <Form.Select
-              size="sm"
-              value={store.projectName}
-              onChange={(e) => {
-                store.setProjectName(e.target.value);
-              }}
-              style={{ minWidth: "220px", maxWidth: "400px" }}
-            >
-              <option value="">
-                <FormattedMessage id="SELECT_A_PROJECT" />
-              </option>
-              {Object.entries(projectsForUser).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value?.name}
-                </option>
-              ))}
-            </Form.Select>
+            <div style={{ minWidth: "220px", maxWidth: "400px" }}>
+              <Select
+                inputId="project-select"
+                classNamePrefix="react-select"
+                value={selectedProjectOption}
+                options={projectOptions}
+                placeholder={<FormattedMessage id="SELECT_A_PROJECT" />}
+                isClearable
+                isSearchable
+                onChange={(opt) => {
+                  const nextProjectId = opt?.value || "";
+                  store.setProjectName(nextProjectId);
+
+                  if (!nextProjectId) {
+                    const next = new URLSearchParams(params);
+                    next.delete("projectIdPrefix");
+                    setParams(next, { replace: true });
+                  }
+                }}
+                styles={{
+                  container: (base) => ({ ...base, width: "100%" }),
+                  control: (base) => ({
+                    ...base,
+                    minHeight: "31px",
+                    height: "31px",
+                  }),
+                  valueContainer: (base) => ({
+                    ...base,
+                    height: "31px",
+                    padding: "0 8px",
+                  }),
+                  input: (base) => ({ ...base, margin: 0, padding: 0 }),
+                  indicatorsContainer: (base) => ({ ...base, height: "31px" }),
+                }}
+              />
+            </div>
           </Form.Group>
+
           <div
             title="Match Criteria"
             style={{
@@ -222,21 +264,21 @@ const MatchResults = observer(() => {
       {!store.hasResults ? (
         <p className="mt-3">No match results available for this job.</p>
       ) : (
-        store.currentViewData.map(({ taskId, columns, metadata }) => (
+        (store.currentViewData || []).map(({ taskId, columns, metadata }) => (
           <div key={`${store.viewMode}-${taskId}`}>
             <MatchProspectTable
               sectionId={`${store.viewMode}-${taskId}`}
               taskId={taskId}
-              algorithm={metadata.algorithm}
-              numCandidates={metadata.numCandidates}
-              date={metadata.date}
-              thisEncounterImageUrl={metadata.queryImageUrl}
-              thisEncounterAnnotations={[metadata.queryEncounterAnnotation]}
-              thisEncounterImageAsset={metadata.queryEncounterImageAsset}
-              methodName={metadata.methodName}
-              methodDescription={metadata.methodDescription}
-              taskStatus={metadata.taskStatus}
-              taskStatusOverall={metadata.taskStatusOverall}
+              algorithm={metadata?.algorithm}
+              numCandidates={metadata?.numCandidates}
+              date={metadata?.date}
+              thisEncounterImageUrl={metadata?.queryImageUrl}
+              thisEncounterAnnotations={[metadata?.queryEncounterAnnotation]}
+              thisEncounterImageAsset={metadata?.queryEncounterImageAsset}
+              methodName={metadata?.methodName}
+              methodDescription={metadata?.methodDescription}
+              taskStatus={metadata?.taskStatus}
+              taskStatusOverall={metadata?.taskStatusOverall}
               themeColor={themeColor}
               columns={columns}
               selectedMatch={store.selectedMatch}

@@ -34,8 +34,8 @@ export default class MatchResultsStore {
   }
 
   loadData(result) {
-    const annotResults = getAllAnnot(result.matchResultsRoot);
-    const indivResults = getAllIndiv(result.matchResultsRoot);
+    const annotResults = getAllAnnot(result?.matchResultsRoot);
+    const indivResults = getAllIndiv(result?.matchResultsRoot);
 
     if (
       (!annotResults || annotResults.length === 0) &&
@@ -58,6 +58,10 @@ export default class MatchResultsStore {
     const first =
       this._viewMode === "image" ? annotResults[0] : indivResults[0];
 
+    if (!first) {
+      return;
+    }
+
     this._encounterId = first.queryEncounterId;
     this._matchingSetFilter = first.matchingSetFilter;
     this._individualId = first.queryIndividualId;
@@ -67,8 +71,8 @@ export default class MatchResultsStore {
     this._thisEncounterImageUrl = first.queryEncounterImageUrl;
     this._possibleMatchImageUrl = first.annotation?.asset?.url ?? "";
 
-    this._rawAnnots = annotResults;
-    this._rawIndivs = indivResults;
+    this._rawAnnots = annotResults || [];
+    this._rawIndivs = indivResults || [];
     this._hasResults = true;
 
     this.resetSelectionToQuery();
@@ -266,7 +270,7 @@ export default class MatchResultsStore {
       const result = await axios.get(
         `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
       );
-      this.loadData(result.data);
+      this.loadData(result?.data);
     } catch (e) {
       console.error(e);
     } finally {

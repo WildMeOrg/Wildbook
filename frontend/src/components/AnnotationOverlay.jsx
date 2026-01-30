@@ -12,8 +12,8 @@ const InteractiveAnnotationOverlay = forwardRef(
     {
       imageUrl,
       annotations = [],
-      originalWidth,
-      originalHeight,
+      originalWidth = 0,
+      originalHeight = 0,
       rotationInfo = null,
       initialZoom = 1,
       minZoom = 0.5,

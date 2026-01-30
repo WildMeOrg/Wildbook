@@ -764,5 +764,6 @@
   "NO_FILTER_SET_FOR_TASK": "No se aplicaron filtros a esta tarea",
   "FILTER_SET_FOR_TASK": "A continuación se muestran los filtros aplicados a esta tarea",
   "LOCATION_IDS": "IDs de ubicación",
-  "OR_CHOOSE_FROM_RESULTS_BELOW": "o elija de los resultados a continuación"
+  "OR_CHOOSE_FROM_RESULTS_BELOW": "o elija de los resultados a continuación",
+  "NO_MATCH_RESULT": "No hay resultados de coincidencia"
 }

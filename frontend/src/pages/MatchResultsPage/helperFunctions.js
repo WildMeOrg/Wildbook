@@ -1,4 +1,5 @@
 const collectProspects = (node, type, result = []) => {
+  if (!node) return result;
   const hasMethod = !!node.method;
   const methodName = node.method?.name ?? node.method?.description;
   const methodDescription = node.method?.description ?? null;
@@ -9,24 +10,24 @@ const collectProspects = (node, type, result = []) => {
     const common = {
       algorithm: methodName,
       date: node.dateCreated,
-      numberCandidates: node.matchResults.numberCandidates || 0,
+      numberCandidates: node.matchResults?.numberCandidates || 0,
       queryEncounterId:
-        node.matchResults.queryAnnotation?.encounter?.id || null,
+        node.matchResults?.queryAnnotation?.encounter?.id || null,
       matchingSetFilter: node.matchingSetFilter,
       queryIndividualId:
-        node.matchResults.queryAnnotation?.individual?.id || null,
+        node.matchResults?.queryAnnotation?.individual?.id || null,
       queryIndividualDisplayName:
-        node.matchResults.queryAnnotation?.individual?.displayName || null,
+        node.matchResults?.queryAnnotation?.individual?.displayName || null,
       queryEncounterImageAsset:
-        node.matchResults.queryAnnotation?.asset || null,
+        node.matchResults?.queryAnnotation?.asset || null,
       queryEncounterImageUrl:
-        node.matchResults.queryAnnotation?.asset?.url || null,
+        node.matchResults?.queryAnnotation?.asset?.url || null,
       queryEncounterAnnotation: {
-        x: node.matchResults.queryAnnotation?.x,
-        y: node.matchResults.queryAnnotation?.y,
-        width: node.matchResults.queryAnnotation?.width,
-        height: node.matchResults.queryAnnotation?.height,
-        theta: node.matchResults.queryAnnotation?.theta,
+        x: node.matchResults?.queryAnnotation?.x,
+        y: node.matchResults?.queryAnnotation?.y,
+        width: node.matchResults?.queryAnnotation?.width,
+        height: node.matchResults?.queryAnnotation?.height,
+        theta: node.matchResults?.queryAnnotation?.theta,
       },
 
       methodName,

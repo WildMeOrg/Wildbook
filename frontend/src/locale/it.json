@@ -764,5 +764,6 @@
   "NO_FILTER_SET_FOR_TASK": "Nessun filtro è stato applicato a questa attività",
   "FILTER_SET_FOR_TASK": "Di seguito sono riportati i filtri applicati a questa attività",
   "LOCATION_IDS": "ID località",
-  "OR_CHOOSE_FROM_RESULTS_BELOW": "o scegli dai risultati qui sotto"
+  "OR_CHOOSE_FROM_RESULTS_BELOW": "o scegli dai risultati qui sotto",
+  "NO_MATCH_RESULT": "Nessun risultato di corrispondenza"
 }
