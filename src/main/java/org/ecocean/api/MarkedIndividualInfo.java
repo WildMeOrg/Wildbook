@@ -13,6 +13,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.LocationID;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.MultiValue;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.json.JSONArray;
@@ -45,7 +46,7 @@ public class MarkedIndividualInfo extends ApiBase {
 
         if (args[0].equals("individuals") && args[1].equals("info")) {
             if (args[2].equals("next_name")) {
-                results = getNextNames(myShepherd, request);
+                results = getNextNames(myShepherd, request, currentUser);
             }
         }
 
@@ -57,10 +58,11 @@ public class MarkedIndividualInfo extends ApiBase {
         response.getWriter().write(results.toString());
     }
 
-    private JSONObject getNextNames(Shepherd myShepherd, HttpServletRequest request) {
+    private JSONObject getNextNames(Shepherd myShepherd, HttpServletRequest request, User user) {
         JSONObject rtn = new JSONObject("{\"success\": true, \"statusCode\": 200}");
         List<JSONObject> results = new ArrayList<JSONObject>();
         results.addAll(locationNames(request.getParameterValues("locationId")));
+        results.addAll(userNames(myShepherd, user));
         rtn.put("results", new JSONArray(results));
         return rtn;
     }
@@ -95,14 +97,62 @@ public class MarkedIndividualInfo extends ApiBase {
         }
         return rtn;
     }
-/*
-        props= ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
-		System.out.println("Trying to find locationID code");
-        //let's see if the property is defined
-        if (props.getProperty(lcode) != null) {
-          returnString = escapeSpecialRegexChars(props.getProperty(lcode));
 
-          String nextID=MultiValue.nextUnusedValueForKey("*",returnString, myShepherd, "%03d");
+    // this basically needs no args, i guess? based on code from iaResults.jsp
+    private List<JSONObject> userNames(Shepherd myShepherd, User user) {
+        List<JSONObject> rtn = new ArrayList<JSONObject>();
+        if (user == null) return rtn; // snh
+        String nextNameKey = user.getIndividualNameKey();
+        if (nextNameKey == null) return rtn;
+        // if we have a key, we return something, even if no nextName
+        String nextName = MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd);
+        JSONObject results = new JSONObject();
+        results.put("type", "user");
+        results.put("nextNameKey", nextNameKey);
+        results.put("success", true);
+        if (nextName == null) {
+            results.put("nextName", JSONObject.NULL);
+        } else {
+            results.put("nextName", nextName);
+        }
+        rtn.add(results);
+        return rtn;
+    }
+
+
+/* from matchResults.jsp ...
+String projectIdPrefix = request.getParameter("projectIdPrefix");
+String researchProjectName = null;
+String researchProjectUUID = null;
+String nextNameString = "";
+// okay, are we going to use an incremental name from the project side?
+if (Util.stringExists(projectIdPrefix)) {
+	Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
+	if (projectForAutoNaming!=null) {
+		researchProjectName = projectForAutoNaming.getResearchProjectName();
+		researchProjectUUID = projectForAutoNaming.getId();
+		nextNameKey = projectForAutoNaming.getProjectIdPrefix();
+		nextName = projectForAutoNaming.getNextIncrementalIndividualId();
+		usesAutoNames = true;
+		if (usesAutoNames) {
+			if (Util.stringExists(nextNameKey)) {
+				nextNameString += (nextNameKey+": ");
+			}
+			if (Util.stringExists(nextName)) {
+				nextNameString += nextName;
+			}
+		}
+	}
+}
 */
+
+/* 
+    private List<JSONObject> keyNames(String[] keys) {
+        // this is apparently a thing from encounter.jsp but it seems unused ?
+        MultiValue.nextUnusedValueForKey("*",returnString, myShepherd, "%03d");
+    }
+*/
+
+
 
 }
