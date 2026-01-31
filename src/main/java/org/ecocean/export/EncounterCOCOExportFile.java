@@ -32,7 +32,96 @@ public class EncounterCOCOExportFile {
     }
 
     public void writeTo(OutputStream outputStream) throws IOException {
-        // TODO: implement
+        // Collect data
+        Map<String, MediaAsset> mediaAssetMap = collectUniqueMediaAssets();
+        Map<String, Integer> categoryMap = buildCategoryMap();
+        Map<String, Integer> individualIdMap = buildIndividualIdMap();
+
+        // Assign image IDs
+        Map<String, Integer> mediaAssetToImageId = new LinkedHashMap<>();
+        int imageId = 1;
+        for (String uuid : mediaAssetMap.keySet()) {
+            mediaAssetToImageId.put(uuid, imageId++);
+        }
+
+        // Build JSON arrays
+        JSONArray imagesArray = new JSONArray();
+        for (Map.Entry<String, MediaAsset> entry : mediaAssetMap.entrySet()) {
+            MediaAsset ma = entry.getValue();
+            int imgId = mediaAssetToImageId.get(entry.getKey());
+            imagesArray.put(buildImageObject(ma, imgId));
+        }
+
+        JSONArray annotationsArray = new JSONArray();
+        int annotationId = 1;
+        for (Encounter enc : encounters) {
+            if (enc.getAnnotations() == null) continue;
+            for (Annotation ann : enc.getAnnotations()) {
+                if (!isValidAnnotation(ann)) continue;
+                MediaAsset ma = ann.getMediaAsset();
+                int imgId = mediaAssetToImageId.get(ma.getUUID());
+                annotationsArray.put(buildAnnotationObject(ann, annotationId++, imgId,
+                    categoryMap, individualIdMap, enc));
+            }
+        }
+
+        // Build complete COCO JSON
+        JSONObject coco = new JSONObject();
+        coco.put("info", buildInfo(individualIdMap));
+        coco.put("licenses", buildLicenses());
+        coco.put("categories", buildCategories(categoryMap));
+        coco.put("images", imagesArray);
+        coco.put("annotations", annotationsArray);
+
+        // Write tar.gz
+        try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(outputStream);
+             TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzOut)) {
+
+            tarOut.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+
+            // Write annotations.json
+            byte[] jsonBytes = coco.toString(2).getBytes(StandardCharsets.UTF_8);
+            TarArchiveEntry jsonEntry = new TarArchiveEntry("coco-export/annotations.json");
+            jsonEntry.setSize(jsonBytes.length);
+            tarOut.putArchiveEntry(jsonEntry);
+            tarOut.write(jsonBytes);
+            tarOut.closeArchiveEntry();
+
+            // Write images
+            for (Map.Entry<String, MediaAsset> entry : mediaAssetMap.entrySet()) {
+                MediaAsset ma = entry.getValue();
+                try {
+                    byte[] imageBytes = getImageBytes(ma);
+                    if (imageBytes != null) {
+                        TarArchiveEntry imgEntry = new TarArchiveEntry(
+                            "coco-export/images/" + ma.getUUID() + ".jpg");
+                        imgEntry.setSize(imageBytes.length);
+                        tarOut.putArchiveEntry(imgEntry);
+                        tarOut.write(imageBytes);
+                        tarOut.closeArchiveEntry();
+                    }
+                } catch (Exception e) {
+                    System.err.println("Warning: Failed to export image " + ma.getUUID() + ": " + e.getMessage());
+                }
+            }
+
+            tarOut.finish();
+        }
+    }
+
+    /**
+     * Retrieves image bytes from a MediaAsset.
+     */
+    private byte[] getImageBytes(MediaAsset ma) throws IOException {
+        URL url = ma.webURL();
+        if (url == null) return null;
+
+        BufferedImage image = ImageIO.read(url);
+        if (image == null) return null;
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", baos);
+        return baos.toByteArray();
     }
 
     /**
