@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -975,42 +977,16 @@ public class EncounterForm extends HttpServlet {
                         // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
                         tagMap.put(NotificationMailer.EMAIL_NOTRACK,
                             "number=" + enc.getCatalogNumber());
-                        // Email submitter and photographer
-                        if ((enc.getPhotographerEmails() != null) &&
-                            (enc.getPhotographerEmails().size() > 0)) {
-                            List<String> cOther = enc.getPhotographerEmails();
-                            for (String emailTo : cOther) {
-                                String msg = CommonConfiguration.appendEmailRemoveHashString(
-                                    request, "", emailTo, context);
-                                tagMap.put(NotificationMailer.EMAIL_HASH_TAG,
-                                    Encounter.getHashOfEmailString(emailTo));
-                                NotificationMailer mailer = new NotificationMailer(context, null,
-                                    emailTo, "newSubmission", tagMap);
-                                mailer.setUrlScheme(request.getScheme());
-                                es.execute(mailer);
-                            }
-                        }
-                        if ((enc.getSubmitterEmails() != null) &&
-                            (enc.getSubmitterEmails().size() > 0)) {
-                            List<String> cOther = enc.getSubmitterEmails();
-                            for (String emailTo : cOther) {
-                                String msg = CommonConfiguration.appendEmailRemoveHashString(
-                                    request, "", emailTo, context);
-                                tagMap.put(NotificationMailer.EMAIL_HASH_TAG,
-                                    Encounter.getHashOfEmailString(emailTo));
-                                NotificationMailer mailer = new NotificationMailer(context, null,
-                                    emailTo, "newSubmission", tagMap);
-                                mailer.setUrlScheme(request.getScheme());
-                                es.execute(mailer);
-                            }
-                        }
-                        // Email interested others
-                        if ((enc.getInformOthersEmails() != null) &&
-                            (enc.getInformOthersEmails().size() > 0)) {
-                            List<String> cOther = enc.getInformOthersEmails();
-                            for (String emailTo : cOther) {
-                                String msg = CommonConfiguration.appendEmailRemoveHashString(
-                                    request, "", emailTo, context);
+                        // Email submitter, photographer, and interested others (de-duplicated)
+                        Set<String> allRecipients = new HashSet<>();
+                        if (enc.getPhotographerEmails() != null)
+                            allRecipients.addAll(enc.getPhotographerEmails());
+                        if (enc.getSubmitterEmails() != null)
+                            allRecipients.addAll(enc.getSubmitterEmails());
+                        if (enc.getInformOthersEmails() != null)
+                            allRecipients.addAll(enc.getInformOthersEmails());
+                        for (String emailTo : allRecipients) {
+                            if (emailTo != null && !emailTo.trim().isEmpty()) {
                                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG,
                                     Encounter.getHashOfEmailString(emailTo));
                                 NotificationMailer mailer = new NotificationMailer(context, null,
