@@ -1,8 +1,5 @@
 package org.ecocean.export;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
@@ -12,13 +9,14 @@ import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -76,25 +74,11 @@ class EncounterCOCOExportFileTest {
         EncounterCOCOExportFile exportFile = new EncounterCOCOExportFile(encounters, shepherd);
         exportFile.writeTo(baos);
 
-        // Parse tar.gz and extract annotations.json
-        byte[] tarGzBytes = baos.toByteArray();
-        assertTrue(tarGzBytes.length > 0, "Export should produce output");
+        // Parse ZIP and extract annotations.json
+        byte[] zipBytes = baos.toByteArray();
+        assertTrue(zipBytes.length > 0, "Export should produce output");
 
-        String jsonContent = null;
-        try (GzipCompressorInputStream gzIn = new GzipCompressorInputStream(
-                new ByteArrayInputStream(tarGzBytes));
-             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn)) {
-
-            TarArchiveEntry entry;
-            while ((entry = tarIn.getNextTarEntry()) != null) {
-                if (entry.getName().endsWith("annotations.json")) {
-                    byte[] content = tarIn.readAllBytes();
-                    jsonContent = new String(content, StandardCharsets.UTF_8);
-                    break;
-                }
-            }
-        }
-
+        String jsonContent = extractJsonFromZip(zipBytes);
         assertNotNull(jsonContent, "Should contain annotations.json");
 
         // Verify JSON structure
@@ -155,7 +139,7 @@ class EncounterCOCOExportFileTest {
         exportFile.writeTo(baos);
 
         // Extract and verify
-        String jsonContent = extractJsonFromTarGz(baos.toByteArray());
+        String jsonContent = extractJsonFromZip(baos.toByteArray());
         JSONObject coco = new JSONObject(jsonContent);
 
         // Should have no annotations since iaClass was null
@@ -163,15 +147,12 @@ class EncounterCOCOExportFileTest {
         assertEquals(0, coco.getJSONArray("categories").length());
     }
 
-    private String extractJsonFromTarGz(byte[] tarGzBytes) throws Exception {
-        try (GzipCompressorInputStream gzIn = new GzipCompressorInputStream(
-                new ByteArrayInputStream(tarGzBytes));
-             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn)) {
-
-            TarArchiveEntry entry;
-            while ((entry = tarIn.getNextTarEntry()) != null) {
+    private String extractJsonFromZip(byte[] zipBytes) throws Exception {
+        try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
+            ZipEntry entry;
+            while ((entry = zipIn.getNextEntry()) != null) {
                 if (entry.getName().endsWith("annotations.json")) {
-                    return new String(tarIn.readAllBytes(), StandardCharsets.UTF_8);
+                    return new String(zipIn.readAllBytes(), StandardCharsets.UTF_8);
                 }
             }
         }

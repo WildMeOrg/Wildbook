@@ -60,8 +60,8 @@ public class EncounterSearchExportCOCO extends HttpServlet {
             }
 
             // Set response headers
-            response.setContentType("application/gzip");
-            response.setHeader("Content-Disposition", "attachment; filename=\"wildbook-coco-export.tar.gz\"");
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment; filename=\"wildbook-coco-export.zip\"");
 
             // Write export
             OutputStream out = response.getOutputStream();

@@ -1,8 +1,5 @@
 package org.ecocean.export;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
@@ -21,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class EncounterCOCOExportFile {
     private final List<Encounter> encounters;
@@ -73,19 +72,14 @@ public class EncounterCOCOExportFile {
         coco.put("images", imagesArray);
         coco.put("annotations", annotationsArray);
 
-        // Write tar.gz
-        try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(outputStream);
-             TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzOut)) {
-
-            tarOut.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
-
+        // Write ZIP
+        try (ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
             // Write annotations.json
             byte[] jsonBytes = coco.toString(2).getBytes(StandardCharsets.UTF_8);
-            TarArchiveEntry jsonEntry = new TarArchiveEntry("coco-export/annotations.json");
-            jsonEntry.setSize(jsonBytes.length);
-            tarOut.putArchiveEntry(jsonEntry);
-            tarOut.write(jsonBytes);
-            tarOut.closeArchiveEntry();
+            ZipEntry jsonEntry = new ZipEntry("coco-export/annotations.json");
+            zipOut.putNextEntry(jsonEntry);
+            zipOut.write(jsonBytes);
+            zipOut.closeEntry();
 
             // Write images
             for (Map.Entry<String, MediaAsset> entry : mediaAssetMap.entrySet()) {
@@ -93,19 +87,18 @@ public class EncounterCOCOExportFile {
                 try {
                     byte[] imageBytes = getImageBytes(ma);
                     if (imageBytes != null) {
-                        TarArchiveEntry imgEntry = new TarArchiveEntry(
+                        ZipEntry imgEntry = new ZipEntry(
                             "coco-export/images/" + ma.getUUID() + ".jpg");
-                        imgEntry.setSize(imageBytes.length);
-                        tarOut.putArchiveEntry(imgEntry);
-                        tarOut.write(imageBytes);
-                        tarOut.closeArchiveEntry();
+                        zipOut.putNextEntry(imgEntry);
+                        zipOut.write(imageBytes);
+                        zipOut.closeEntry();
                     }
                 } catch (Exception e) {
                     System.err.println("Warning: Failed to export image " + ma.getUUID() + ": " + e.getMessage());
                 }
             }
 
-            tarOut.finish();
+            zipOut.finish();
         }
     }
 
