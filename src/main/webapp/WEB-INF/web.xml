@@ -144,6 +144,7 @@
 				/KinalyzerExport = authc, roles[researcher]
 				/ExportWekaPredictorARFF = authc, roles[admin]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
+				/EncounterSearchExportCOCO = authc, roles[researcher]
 
 				# ===== Search =====
 				/encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
@@ -1685,6 +1686,14 @@
 	<servlet-mapping>
 		<servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
 		<url-pattern>/EncounterAnnotationExportExcelFile</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>EncounterSearchExportCOCO</servlet-name>
+		<servlet-class>org.ecocean.servlet.export.EncounterSearchExportCOCO</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>EncounterSearchExportCOCO</servlet-name>
+		<url-pattern>/EncounterSearchExportCOCO</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
