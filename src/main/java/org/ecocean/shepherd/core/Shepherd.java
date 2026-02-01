@@ -67,11 +67,13 @@ public class Shepherd {
     private String shepherdID = "";
 
     // Constructor to create a new shepherd thread object
-    public Shepherd(String context) {
+    public Shepherd(String context) { this(context, null); }
+
+    public Shepherd(String context, Properties properties) {
         if (pm == null || pm.isClosed()) {
             localContext = context;
             try {
-                pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+                pm = ShepherdPMF.getPMF(localContext, properties).getPersistenceManager();
                 this.shepherdID = Util.generateUUID();
 
                 ShepherdState.setShepherdState(action + "_" + shepherdID, "new");
@@ -1436,8 +1438,9 @@ public class Shepherd {
 
     public LabeledKeyword getLabeledKeyword(String label, String readableName) {
         try {
-            String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \"" +
-                readableName + "\" && this.label == \"" + label + "\"";
+            String filter = String.format(
+                "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \"%s\" && this.label == \"%s\"",
+                readableName, label);
             Query query = pm.newQuery(filter);
             List<Keyword> ans = (List)query.execute();
             LabeledKeyword lk = null;
@@ -2220,7 +2223,8 @@ public class Shepherd {
 
     public List<Organization> getAllCommonOrganizationsForTwoUsers(User user1, User user2) {
         ArrayList<Organization> al = new ArrayList<Organization>();
-        if(user1==null||user2==null) return al;
+
+        if (user1 == null || user2 == null) return al;
         try {
             Query q = getPM().newQuery(
                 "SELECT FROM org.ecocean.Organization WHERE members.contains(user1) && members.contains(user2) && user1.uuid == \""
@@ -2229,12 +2233,10 @@ public class Shepherd {
             Collection results = (Collection)q.execute();
             al = new ArrayList<Organization>(results);
             q.closeAll();
-        }
-        catch (javax.jdo.JDOException x) {
+        } catch (javax.jdo.JDOException x) {
             x.printStackTrace();
             return al;
-        }
-        catch (Exception xe) {
+        } catch (Exception xe) {
             xe.printStackTrace();
             return al;
         }

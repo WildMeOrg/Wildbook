@@ -30,8 +30,13 @@ public class CommonConfiguration {
 
     private static Map<String, Properties> contextToPropsCache = new HashMap<String, Properties>();
 
+    public static void initialize(String context, Properties overrideProps) {
+        contextToPropsCache.put(context, overrideProps);
+    }
+
     private static Properties initialize(String context) {
-        // if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+        // todo: fix caching for the rest
+        if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
         Properties props = loadProps(context);
 
         contextToPropsCache.put(context, props);
