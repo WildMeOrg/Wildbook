@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" monitorInterval="30">
-    <!--
-    status="WARN" - Internal Log4j2 logging level
-    monitorInterval="30" - Auto-reload config every 30 seconds if changed
-    -->
 
     <Properties>
-        <!-- Environment variables with defaults -->
-        <Property name="LOG_DIR">${sys:catalina.base:-/opt/tomcat}/logs</Property>
+        <!-- sys:user.dir included for non-Tomcat build environments -->
+        <Property name="LOG_DIR">
+            ${sys:catalina.base:-${sys:user.dir}}/logs
+        </Property>
         <Property name="SERVICE_NAME">${env:SERVICE_NAME:-wildbook}</Property>
         <Property name="ENVIRONMENT">${env:ENVIRONMENT:-production}</Property>
         <Property name="DOMAIN_NAME">${env:DOMAIN_NAME:-unknown}</Property>
@@ -30,7 +28,6 @@
                      filePattern="${LOG_DIR}/application-%d{yyyy-MM-dd}-%i.json.gz"
                      createOnDemand="false">
 
-            <!-- JSON Template Layout - Most efficient for Loki -->
             <JsonTemplateLayout eventTemplateUri="classpath:EcsLayout.json">
                 <!-- Add custom fields for Loki labels -->
                 <EventTemplateAdditionalField
