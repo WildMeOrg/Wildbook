@@ -21,7 +21,8 @@ org.ecocean.metrics.*,
 org.ecocean.ia.IA,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
-org.json.JSONObject" %>
+org.json.JSONObject,
+java.util.Properties" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!

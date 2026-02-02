@@ -44,7 +44,7 @@ public class LocalAssetStore extends AssetStore {
      *
      * @param webRoot Base web url under which asset paths are appended.  If null, this store offers no web access to assets.
      *
-     * @param wriable True if we are allowed to save files under the root.
+     * @param writable True if we are allowed to save files under the root.
      */
     public LocalAssetStore(final String name, final Path root, final String webRoot,
         final boolean writable) {
@@ -81,7 +81,7 @@ public class LocalAssetStore extends AssetStore {
     public Path root() {
         if (root == null) {
             root = config.getPath(KEY_ROOT);
-            log.info("Asset Store [" + name + "] using root [" + root + "]");
+            log.debug("Asset Store [" + name + "] using root [" + root + "]");
         }
         return root;
     }
@@ -90,7 +90,7 @@ public class LocalAssetStore extends AssetStore {
     public String webRoot() {
         if (webRoot == null) {
             webRoot = config.getString(KEY_WEB_ROOT);
-            log.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
+            log.debug("Asset Store [" + name + "] using web root [" + webRoot + "]");
         }
         return webRoot;
     }

@@ -32,8 +32,8 @@
              org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration,
-             import org.apache.logging.log4j.LogManager,
-             import org.apache.logging.log4j.Logger
+             org.apache.logging.log4j.LogManager,
+             org.apache.logging.log4j.Logger
               "
 %>
 
