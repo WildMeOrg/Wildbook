@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:13.4
+    container_name: db
     healthcheck:
       # More robust check: verify PostgreSQL can actually execute a query
       # pg_isready only checks if accepting connections, not if responsive
@@ -10,8 +11,18 @@ services:
       retries: 3
       start_period: 60s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "postgresql"
+      environment: "production"
+      domain: "${DOMAIN_NAME}"
+      log_type: "database"
+      autoheal: "true"
     user: postgres
     volumes:
       - db-pgdata-var:/var/lib/postgresql/data
@@ -36,11 +47,22 @@ services:
 
   wildbook:
     image: tomcat:9.0.113-jre17-temurin-jammy
+    container_name: wildbook
     depends_on:
       db:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "wildbook"
+      environment: "production"
+      domain: "${DOMAIN_NAME}"
+      log_type: "application"
+      autoheal: "true"
     entrypoint: /docker-entrypoint.sh
     volumes:
       - "$WILDBOOK_BASE_DIR/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/"
@@ -77,6 +99,7 @@ services:
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
+    container_name: opensearch
     healthcheck:
       # Check cluster health and verify status is not "red"
       # Green = all shards allocated, Yellow = primary shards ok, Red = cluster down
@@ -86,8 +109,18 @@ services:
       retries: 3
       start_period: 120s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "opensearch"
+      environment: "production"
+      domain: "${DOMAIN_NAME}"
+      log_type: "search"
+      autoheal: "true"
     volumes:
       - opensearch-var1:/usr/share/opensearch/data
     ulimits:
@@ -124,8 +157,18 @@ services:
       retries: 3
       start_period: 30s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "smtp"
+      environment: "production"
+      domain: "${DOMAIN_NAME}"
+      log_type: "infrastructure"
+      autoheal: "true"
     networks:
       - intranet
     ports:
@@ -141,6 +184,7 @@ services:
 
   nginx:
     image: nginx:1.23.4
+    container_name: nginx
     depends_on:
       - wildbook
     healthcheck:
@@ -152,8 +196,18 @@ services:
       retries: 3
       start_period: 30s
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
-      - autoheal=true
+      logging: "alloy"
+      service: "nginx"
+      environment: "production"
+      domain: "${DOMAIN_NAME}"
+      log_type: "proxy"
+      autoheal: "true"
     volumes:
       - .dockerfiles/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt
