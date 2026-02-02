@@ -35,6 +35,20 @@ WILDBOOK_DB_PASSWORD=development
 #: i.e. jdbc:postgresql://db:5432/${WILDBOOK_DB_NAME}
 WILDBOOK_DB_CONNECTION_URL=jdbc:postgresql://db:5432/wildbook
 
+## logging
+DOMAIN_NAME=flakebook
+HOSTNAME=vm-flakebook
+ENVIRONMENT=development
+
+# Docker paths (Linux native) for Alloy
+DOCKER_SOCKET_PATH=/var/run/docker.sock
+DOCKER_CONTAINERS_PATH=/var/lib/docker/containers
+# dev option for container logs not directly accessible on macOS
+# Alloy will use Docker API instead
+# DOCKER_CONTAINERS_PATH=/tmp/docker-placeholder
+
+LOKI_URL=http://your-loki-server:3100/loki/api/v1/push
+
 # for wbia:
 WBIA_DB_NAME=wbia
 WBIA_DB_USER=wbia
