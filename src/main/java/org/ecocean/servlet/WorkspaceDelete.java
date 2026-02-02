@@ -79,10 +79,6 @@ public class WorkspaceDelete extends HttpServlet {
         }
         if (!locked) {
             myShepherd.commitDBTransaction();
-
-            // log it
-            Logger log = LoggerFactory.getLogger(EncounterDelete.class);
-
             out.println("{status: deleted, originalWorkspaceQuery: " + originalWorkspaceQuery +
                 "}");
         }

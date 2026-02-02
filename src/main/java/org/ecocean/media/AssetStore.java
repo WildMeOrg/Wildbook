@@ -82,7 +82,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
     private static Map<Integer, AssetStore> getMap() {
         if (stores == null) {
-            logger.warn("Asset Stores were not set up!");
+            log.warn("Asset Stores were not set up!");
             return Collections.emptyMap();
         }
         return stores;

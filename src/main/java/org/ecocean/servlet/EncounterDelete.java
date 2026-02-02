@@ -186,7 +186,6 @@ public class EncounterDelete extends HttpServlet {
                     myShepherd.commitDBTransaction();
 
                     // log it
-                    Logger log = LoggerFactory.getLogger(EncounterDelete.class);
                     log.info("Click to restore deleted encounter: <a href=\"" +
                         request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) +
                         "/ResurrectDeletedEncounter?number=" + request.getParameter("number") +
