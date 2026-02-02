@@ -408,6 +408,39 @@
 		}
 	},
 	{ 
+		"name": "TAS-EagleHawk Neck-DGBay", 
+		"id": "TAS-EagleHawk Neck-DGBay", 
+		"locationID": [],
+		"prefix": "TAS-", 
+		"prefixDigitPadding": 4,
+		"geospatialInfo":{
+			"lat": -42.971500, 
+			"long": 147.989306
+		}
+	},
+	{
+		"name": "TAS-Eaglehawk Neck-Fortescue",
+		"id": "TAS-Eaglehawk Neck-Fortescue",
+		"prefix": "TAS-",
+		"prefixDigitPadding": 4,
+		"geospatialInfo": {
+			"lat": -43.136613,
+			"long": 147.969399
+		},
+		"locationID": []
+	},
+	{ 
+		"name": "TAS-Eaglehawk Neck-Waterfall Bay", 
+		"id": "TAS-Eaglehawk Neck-Waterfall Bay", 
+		"locationID": [],
+		"prefix": "TAS-", 
+		"prefixDigitPadding": 4,
+		"geospatialInfo":{
+			"lat": -43.05910978697302,
+			"long": 147.94730243382256
+		}
+	},
+	{ 
 		"name": "TAS-Hobart-Blackmans Bay", 
 		"id": "TAS-Hobart-Blackmans Bay", 
 		"locationID": [],
@@ -427,28 +460,6 @@
 		"geospatialInfo":{
 			"lat": -42.984575,
 			"long": 147.326428
-		}
-	},
-	{ 
-		"name": "TAS-EagleHawk Neck-DGBay", 
-		"id": "TAS-EagleHawk Neck-DGBay", 
-		"locationID": [],
-		"prefix": "TAS-", 
-		"prefixDigitPadding": 4,
-		"geospatialInfo":{
-			"lat": -42.971500, 
-			"long": 147.989306
-		}
-	},
-	{ 
-		"name": "TAS-Eaglehawk Neck-Waterfall Bay", 
-		"id": "TAS-Eaglehawk Neck-Waterfall Bay", 
-		"locationID": [],
-		"prefix": "TAS-", 
-		"prefixDigitPadding": 4,
-		"geospatialInfo":{
-			"lat": -43.05910978697302,
-			"long": 147.94730243382256
 		}
 	},
 	{ 
