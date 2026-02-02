@@ -164,6 +164,42 @@ services:
       - "80:80"
       - "443:443"
 
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    # Run with elevated permissions to access Docker socket
+    user: root
+    volumes:
+      - .dockerfiles/alloy/config.alloy:/etc/alloy/config.alloy
+      - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs:/logs:ro"
+      - alloy-data:/var/lib/alloy
+      # This volume mount will fail gracefully on macOS/Windows
+      - type: bind
+        source: ${DOCKER_CONTAINERS_PATH:-/var/lib/docker/containers}
+        target: /var/lib/docker/containers
+        read_only: true
+        # Note: This mount will fail on macOS/Windows but won't stop the container
+        # Alloy will fall back to using Docker API instead
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"  # Alloy UI for debugging
+    environment:
+      - HOSTNAME=${HOSTNAME}
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      #- LOKI_URL=${LOKI_URL:-http://host.docker.internal:3100/loki/api/v1/push}
+      #- HOSTNAME=${HOSTNAME:-localhost}
+      #- DOMAIN_NAME=${DOMAIN_NAME:-dev}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - intranet
+    restart: unless-stopped
+
   autoheal:
     image: willfarrell/autoheal
     volumes:
@@ -181,3 +217,4 @@ networks:
 volumes:
   db-pgdata-var:
   opensearch-var1:
+  alloy-data:
