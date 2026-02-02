@@ -76,7 +76,7 @@ public class EncounterCOCOExportFile {
         try (ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
             // Write annotations.json
             byte[] jsonBytes = coco.toString(2).getBytes(StandardCharsets.UTF_8);
-            ZipEntry jsonEntry = new ZipEntry("coco-export/annotations/instances.json");
+            ZipEntry jsonEntry = new ZipEntry("coco/annotations/instances.json");
             zipOut.putNextEntry(jsonEntry);
             zipOut.write(jsonBytes);
             zipOut.closeEntry();
@@ -88,7 +88,7 @@ public class EncounterCOCOExportFile {
                     byte[] imageBytes = getImageBytes(ma);
                     if (imageBytes != null) {
                         ZipEntry imgEntry = new ZipEntry(
-                            "coco-export/images/" + ma.getUUID() + ".jpg");
+                            "coco/images/" + ma.getUUID() + ".jpg");
                         zipOut.putNextEntry(imgEntry);
                         zipOut.write(imageBytes);
                         zipOut.closeEntry();
