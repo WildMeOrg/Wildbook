@@ -17,8 +17,7 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
-java.util.Collection,
-java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+java.util.Collection" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!

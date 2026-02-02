@@ -7,8 +7,6 @@
 	org.ecocean.*,
 	org.ecocean.resumableupload.UploadServlet,
 	java.util.Properties,
-	org.slf4j.Logger,
-	org.slf4j.LoggerFactory,
 	org.apache.commons.lang3.StringEscapeUtils,
 	org.apache.commons.io.FileUtils" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>

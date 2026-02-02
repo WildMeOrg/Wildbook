@@ -32,7 +32,8 @@
              org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration,
-             org.slf4j.Logger,org.slf4j.LoggerFactory
+             import org.apache.logging.log4j.LogManager,
+             import org.apache.logging.log4j.Logger
               "
 %>
 
@@ -44,7 +45,7 @@
         response.setDateHeader("Expires", 0); 
         response.setHeader("Pragma", "no-cache"); 
 
-        Logger log = LoggerFactory.getLogger(getClass());
+        Logger log = LogManager.getLogger(getClass());
 
         if (request.getRemoteUser() != null) {
             log.info(request.getRemoteUser() + " logged out.");

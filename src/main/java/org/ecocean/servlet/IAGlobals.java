@@ -12,12 +12,11 @@ import java.io.*;
 import org.ecocean.shepherd.core.Shepherd;
 import org.json.JSONObject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class IAGlobals extends HttpServlet {
-    /** SLF4J logger instance for writing log entries. */
-    public static Logger log = LoggerFactory.getLogger(IAGlobals.class);
+    private static final Logger log = LogManager.getLogger(IAGlobals.class);
 
     public void init(ServletConfig config)
     throws ServletException {
