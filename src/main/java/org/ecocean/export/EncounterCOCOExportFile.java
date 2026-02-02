@@ -76,7 +76,7 @@ public class EncounterCOCOExportFile {
         try (ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
             // Write annotations.json
             byte[] jsonBytes = coco.toString(2).getBytes(StandardCharsets.UTF_8);
-            ZipEntry jsonEntry = new ZipEntry("coco-export/annotations.json");
+            ZipEntry jsonEntry = new ZipEntry("coco-export/annotations/instances.json");
             zipOut.putNextEntry(jsonEntry);
             zipOut.write(jsonBytes);
             zipOut.closeEntry();

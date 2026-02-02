@@ -151,7 +151,7 @@ class EncounterCOCOExportFileTest {
         try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
             ZipEntry entry;
             while ((entry = zipIn.getNextEntry()) != null) {
-                if (entry.getName().endsWith("annotations.json")) {
+                if (entry.getName().endsWith("instances.json")) {
                     return new String(zipIn.readAllBytes(), StandardCharsets.UTF_8);
                 }
             }
