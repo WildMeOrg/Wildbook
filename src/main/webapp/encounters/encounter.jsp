@@ -2341,13 +2341,14 @@ function checkIdDisplay() {
 
 				          if (isOwner || encounterIsPublic){
 
-						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+						            if(request.getUserPrincipal()!=null && (user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-
+									
 						                %>
 						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 						                <%
+					
 						            }
 					                if((user.getAffiliation()!=null)&&(!user.getAffiliation().equals(""))){
 					                %>
@@ -2426,7 +2427,7 @@ function checkIdDisplay() {
 
 				          if (isOwner || encounterIsPublic) {
 
-						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+						            if(request.getUserPrincipal()!=null && (user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
 
@@ -2535,7 +2536,7 @@ function checkIdDisplay() {
 
 				          if (isOwner || encounterCanBeEditedByAnyLoggedInUser) {
 
-						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
+						            if(request.getUserPrincipal()!=null && (user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
 
