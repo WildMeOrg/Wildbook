@@ -67,6 +67,7 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
   const [loadingStates, setLoadingStates] = useState({
     standardFormat: false,
     encounterAnnotation: false,
+    cocoFormat: false,
     obisFormat: false,
     emailAddresses: false,
     googleEarth: false,
@@ -234,6 +235,47 @@ export default function ExportDialog({ open, setOpen, searchQueryId }) {
                             </>
                           ) : (
                             <FormattedMessage id="EXPORT_EXCEL_FILE" />
+                          )}
+                        </Button>
+                      </div>
+                    </Card.Body>
+                  </Card>
+
+                  <Card className="shadow-sm">
+                    <Card.Body>
+                      <Card.Title as="h6" className="mb-1">
+                        <FormattedMessage id="COCO_FORMAT" />
+                      </Card.Title>
+                      <Card.Text className="text-muted small">
+                        <FormattedMessage id="COCO_FORMAT_DESCRIPTION" />
+                      </Card.Text>
+                      <div className="d-flex gap-2">
+                        <Button
+                          className="my-3"
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() =>
+                            handleDownload(
+                              `/EncounterSearchExportCOCO?searchQueryId=${searchQueryId}&regularQuery=true`,
+                              "cocoFormat",
+                            )
+                          }
+                          disabled={loadingStates.cocoFormat}
+                        >
+                          {loadingStates.cocoFormat ? (
+                            <>
+                              <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                                className="me-2"
+                              />
+                              <FormattedMessage id="EXPORTING" />
+                            </>
+                          ) : (
+                            <FormattedMessage id="EXPORT_ZIP_FILE" />
                           )}
                         </Button>
                       </div>
