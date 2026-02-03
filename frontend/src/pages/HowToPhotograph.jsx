@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Alert, Spinner } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
 const HowToPhotograph = () => {
   const [loading, setLoading] = useState(true);
@@ -8,7 +9,6 @@ const HowToPhotograph = () => {
   const pdfUrl = `${process.env.PUBLIC_URL || ""}/files/how-to-photograph.pdf`;
 
   useEffect(() => {
-    // Check if file exists
     fetch(pdfUrl, { method: "HEAD" })
       .then((response) => {
         if (response.ok) {
@@ -31,7 +31,9 @@ const HowToPhotograph = () => {
           <Spinner animation="border" role="status">
             <span className="visually-hidden">Loading...</span>
           </Spinner>
-          <p className="mt-3">Loading document...</p>
+          <p className="mt-3">
+            <FormattedMessage id="LOADING" />
+          </p>
         </div>
       </Container>
     );
@@ -41,8 +43,9 @@ const HowToPhotograph = () => {
     return (
       <Container className="py-4">
         <Alert variant="warning">
-          <Alert.Heading>Unable to Load Document</Alert.Heading>
-          <p>Sorry, the photography guide file could not be found.</p>
+          <Alert.Heading>
+            <FormattedMessage id="FILE_NOT_FOUND" />
+          </Alert.Heading>
         </Alert>
       </Container>
     );
@@ -50,6 +53,13 @@ const HowToPhotograph = () => {
 
   return (
     <Container className="py-4">
+      <h3 className="mb-3">
+        <FormattedMessage id="PHOTOGRAPH_TITLE" />
+      </h3>
+      <p className="text-muted mb-4">
+        <FormattedMessage id="PHOTOGRAPH_DESC" />
+      </p>
+
       <iframe
         title="how-to-photograph-pdf"
         src={pdfUrl}

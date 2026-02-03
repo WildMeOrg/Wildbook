@@ -98,7 +98,7 @@ const authenticatedMenu = (
                   defaultMessage="How to Photograph"
                 />
               ),
-              href: "/photographing.jsp",
+              href: "/react/how-to-photograph",
             },
           ]
         : []),
@@ -394,7 +394,7 @@ const unAuthenticatedMenu = (showclassicsubmit, showHowToPhotograph) => [
                   defaultMessage="How to Photograph"
                 />
               ),
-              href: "/photographing.jsp",
+              href: "/react/how-to-photograph",
             },
           ]
         : []),

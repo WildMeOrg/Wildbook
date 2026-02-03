@@ -623,7 +623,7 @@ if(request.getUserPrincipal()!=null){
                               </ul>
                             </li>
                             <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))) { %>
-                            <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("howToPhotograph")%></a></li>
+                            <li><a href="/react/how-to-photograph" ><%=props.getProperty("howToPhotograph")%></a></li>
 <% } %>
                             <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
                           <%-- <li class="divider"></li> --%>
