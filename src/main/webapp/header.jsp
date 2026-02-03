@@ -602,9 +602,11 @@ if(request.getUserPrincipal()!=null){
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%><span class="svg-placeholder"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("Resources")%><span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
-
+                         
+                          <li><a href="https://wildbook.docs.wildme.org/"><%=props.getProperty("WildbookDocumentation")%></a></li>
+                              
                           <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li class="dropdown-submenu">
@@ -615,18 +617,20 @@ if(request.getUserPrincipal()!=null){
                               </a>
                               
                               <ul class="dropdown-menu">
-                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=privacy_policy">Privacy Policy</a></li>
-                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=terms_of_use">Terms of Use</a></li>
-                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook">Citing Wildbook</a></li>
+                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=privacy_policy"><%=props.getProperty("privacyPolicy")%></a></li>
+                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=terms_of_use"><%=props.getProperty("termsOfUse")%></a></li>
+                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook"><%=props.getProperty("citingWildbook")%></a></li>
                               </ul>
                             </li>
-                            <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                            <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))) { %>
+                            <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("howToPhotograph")%></a></li>
+<% } %>
                             <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
                           <%-- <li class="divider"></li> --%>
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("myData")%> <span class="svg-placeholder"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("Data")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-submenu">
                             <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
@@ -647,6 +651,8 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?submitterID=<%=request.getRemoteUser()%>"><%=props.getProperty("mySightings")%></a></li>
                           <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("myBulkImports")%></a></li>
                           <li><a href="<%=urlLoc %>/react/projects/overview"><%=props.getProperty("myProjects")%></a></li>
+                          <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("individualGallery")%></a></li>
+                          <li><a href="<%=urlLoc %>/react/encounter-search?calendar=true"><%=props.getProperty("encounterCalendar")%></a></li>    
 
                         </ul>
                       </li>
@@ -662,14 +668,14 @@ if(request.getUserPrincipal()!=null){
 
                         </ul>
                       </li>
-                      <li class="dropdown">
+                      <!-- <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("animals")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("individualGallery")%></a></li>
                           <li><a href="<%=urlLoc %>/react/encounter-search?calendar=true"><%=props.getProperty("encounterCalendar")%></a></li>
                         </ul>
-                      </li>
+                      </li> -->
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
