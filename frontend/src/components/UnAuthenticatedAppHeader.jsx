@@ -11,23 +11,20 @@ import Logo from "./svg/Logo";
 
 import HeaderDropdownItems from "./header/HeaderDropdownItems";
 
-export default function UnAuthenticatedAppHeader({ showclassicsubmit }) {
+export default function UnAuthenticatedAppHeader({
+  showclassicsubmit,
+  showHowToPhotograph,
+}) {
   const { visible } = useContext(FooterVisibilityContext);
-  const [dropdownShows, setDropdownShows] = useState({
-    dropdown1: false,
-    dropdown2: false,
-    dropdown3: false,
-  });
-  const [dropdownBorder, setDropdownBorder] = useState("2px solid transparent");
+  const [dropdownShows, setDropdownShows] = useState({});
+  const [dropdownBorder, setDropdownBorder] = useState({});
 
-  const handleMouseEnter = (id) => {
-    setDropdownShows((prev) => ({ ...prev, [id]: true }));
-    setDropdownBorder((prev) => ({ ...prev, [id]: "2px solid white" }));
-  };
-
-  const handleMouseLeave = (id) => {
-    setDropdownShows((prev) => ({ ...prev, [id]: false }));
-    setDropdownBorder((prev) => ({ ...prev, [id]: "2px solid transparent" }));
+  const handleMouseEnterLeave = (id, isEnter) => {
+    setDropdownShows((prev) => ({ ...prev, [id]: isEnter }));
+    setDropdownBorder((prev) => ({
+      ...prev,
+      [id]: isEnter ? "2px solid white" : "2px solid transparent",
+    }));
   };
 
   return (
@@ -61,12 +58,11 @@ export default function UnAuthenticatedAppHeader({ showclassicsubmit }) {
             <Navbar.Brand
               className="d-flex flex-row align-items-center"
               href="/"
-              style={{}}
             >
               <Logo />
               {process.env.SITE_NAME}
             </Navbar.Brand>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" style={{}} />
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav
                 className="mr-auto"
@@ -75,7 +71,10 @@ export default function UnAuthenticatedAppHeader({ showclassicsubmit }) {
                   marginLeft: "auto",
                 }}
               >
-                {unAuthenticatedMenu(showclassicsubmit).map((item, idx) => (
+                {unAuthenticatedMenu(
+                  showclassicsubmit,
+                  showHowToPhotograph,
+                ).map((item, idx) => (
                   <Nav key={idx} className="me-auto">
                     <NavDropdown
                       title={
@@ -86,7 +85,7 @@ export default function UnAuthenticatedAppHeader({ showclassicsubmit }) {
                           <DownIcon />
                         </span>
                       }
-                      id={`basic-nav-dropdown${item}`}
+                      id={`basic-nav-dropdown${idx}`}
                       style={{
                         color: "white",
                         boxSizing: "border-box",
@@ -97,10 +96,10 @@ export default function UnAuthenticatedAppHeader({ showclassicsubmit }) {
                         paddingRight: 5,
                       }}
                       onMouseEnter={() =>
-                        handleMouseEnter(`dropdown${idx + 1}`)
+                        handleMouseEnterLeave(`dropdown${idx + 1}`, true)
                       }
                       onMouseLeave={() =>
-                        handleMouseLeave(`dropdown${idx + 1}`)
+                        handleMouseEnterLeave(`dropdown${idx + 1}`, false)
                       }
                       show={dropdownShows[`dropdown${idx + 1}`]}
                     >
@@ -120,7 +119,6 @@ export default function UnAuthenticatedAppHeader({ showclassicsubmit }) {
                 width: "100px",
                 whiteSpace: "nowrap",
                 padding: 5,
-                // marginRight: "10%",
               }}
               href={`${process.env.PUBLIC_URL}/login`}
             >

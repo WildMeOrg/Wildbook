@@ -12,7 +12,7 @@ export default function HeaderDropdownItems({
   },
 }) {
   const [openSubKey, setOpenSubKey] = useState(null);
-  const [subBg, setSubBg] = useState("transparent");
+  const [subBg, setSubBg] = useState({});
 
   return items.map((subItem, subIndex) => {
     const key = subItem.href || `menu-item-${subIndex}`;
@@ -55,14 +55,14 @@ export default function HeaderDropdownItems({
         style={{
           paddingLeft: 8,
           fontSize: "0.9rem",
-          backgroundColor: subBg,
+          backgroundColor: subBg[subKey] || "transparent",
         }}
         onMouseEnter={() => {
-          setSubBg("#CCF0FF");
+          setSubBg((prev) => ({ ...prev, [subKey]: "#CCF0FF" }));
           setOpenSubKey(subKey);
         }}
         onMouseLeave={() => {
-          setSubBg("white");
+          setSubBg((prev) => ({ ...prev, [subKey]: "white" }));
           setOpenSubKey(null);
         }}
         show={openSubKey === subKey}

@@ -10,6 +10,7 @@ export default function Menu({
   username,
   showclassicsubmit,
   showClassicEncounterSearch,
+  showHowToPhotograph,
 }) {
   const [dropdownShows, setDropdownShows] = useState({});
   const [dropdownBorder, setDropdownBorder] = useState("2px solid transparent");
@@ -28,6 +29,7 @@ export default function Menu({
         username,
         showclassicsubmit,
         showClassicEncounterSearch,
+        showHowToPhotograph,
       ).map((item, idx) => (
         <Nav className="me-auto nav" key={idx}>
           <NavDropdown

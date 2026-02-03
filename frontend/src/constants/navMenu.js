@@ -5,6 +5,7 @@ const authenticatedMenu = (
   username,
   showclassicsubmit,
   showClassicEncounterSearch,
+  showHowToPhotograph,
 ) => [
   {
     Submit: [
@@ -42,7 +43,11 @@ const authenticatedMenu = (
     ],
   },
   {
-    Learn: [
+    MENU_RESOURCES: [
+      {
+        name: <FormattedMessage id="MENU_WILDBOOK_DOCUMENTATION" />,
+        href: `https://wildbook.docs.wildme.org/`,
+      },
       {
         name: (
           <FormattedMessage
@@ -84,20 +89,24 @@ const authenticatedMenu = (
           },
         ],
       },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_HOWTOPHOTOGRAPH"
-            defaultMessage="How to Photograph"
-          />
-        ),
-        href: "/photographing.jsp",
-      },
+      ...(showHowToPhotograph
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_HOWTOPHOTOGRAPH"
+                  defaultMessage="How to Photograph"
+                />
+              ),
+              href: "/photographing.jsp",
+            },
+          ]
+        : []),
     ],
   },
 
   {
-    My_Data: [
+    MENU_DATA: [
       {
         name: (
           <FormattedMessage
@@ -172,10 +181,28 @@ const authenticatedMenu = (
         ),
         href: "/react/projects/overview",
       },
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_ANIMALS_INDIVIDUALGALLERY"
+            defaultMessage="Individual Gallery"
+          />
+        ),
+        href: "/gallery.jsp",
+      },
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_ANIMALS_ANIMALCALENDAR"
+            defaultMessage="Animal Calendar"
+          />
+        ),
+        href: "/react/encounter-search?calendar=true",
+      },
     ],
   },
   {
-    Search: [
+    SEARCH: [
       {
         name: (
           <FormattedMessage
@@ -219,29 +246,7 @@ const authenticatedMenu = (
     ],
   },
   {
-    Animals: [
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_ANIMALS_INDIVIDUALGALLERY"
-            defaultMessage="Individual Gallery"
-          />
-        ),
-        href: "/gallery.jsp",
-      },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_ANIMALS_ANIMALCALENDAR"
-            defaultMessage="Animal Calendar"
-          />
-        ),
-        href: "/react/encounter-search?calendar=true",
-      },
-    ],
-  },
-  {
-    Administer: [
+    ADMINISTER: [
       {
         name: (
           <FormattedMessage
@@ -306,7 +311,7 @@ const authenticatedMenu = (
   },
 ];
 
-const unAuthenticatedMenu = (showclassicsubmit) => [
+const unAuthenticatedMenu = (showclassicsubmit, showHowToPhotograph) => [
   {
     Submit: [
       {
@@ -334,7 +339,11 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
     ],
   },
   {
-    Learn: [
+    MENU_RESOURCES: [
+      {
+        name: <FormattedMessage id="MENU_WILDBOOK_DOCUMENTATION" />,
+        href: `https://wildbook.docs.wildme.org/`,
+      },
       {
         name: (
           <FormattedMessage
@@ -351,7 +360,7 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
             defaultMessage="Contact Us"
           />
         ),
-        href: "/photographing.jsp",
+        href: "/contactus.jsp",
       },
       {
         name: (
@@ -376,20 +385,24 @@ const unAuthenticatedMenu = (showclassicsubmit) => [
           },
         ],
       },
-      {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_HOWTOPHOTOGRAPH"
-            defaultMessage="How to Photograph"
-          />
-        ),
-        href: "/photographing.jsp",
-      },
+      ...(showHowToPhotograph
+        ? [
+            {
+              name: (
+                <FormattedMessage
+                  id="MENU_LEARN_HOWTOPHOTOGRAPH"
+                  defaultMessage="How to Photograph"
+                />
+              ),
+              href: "/photographing.jsp",
+            },
+          ]
+        : []),
     ],
   },
 
   {
-    Animals: [
+    MENU_DATA: [
       {
         name: (
           <FormattedMessage

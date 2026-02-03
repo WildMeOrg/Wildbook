@@ -35,6 +35,7 @@ const PoliciesAndData = lazy(
 export default function AuthenticatedSwitch({
   showclassicsubmit,
   showClassicEncounterSearch,
+  showHowToPhotograph,
 }) {
   const { data } = useGetMe();
   const username = data?.username;
@@ -59,6 +60,7 @@ export default function AuthenticatedSwitch({
           avatar={avatar}
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
+          showHowToPhotograph={showHowToPhotograph}
         />
       </div>
 

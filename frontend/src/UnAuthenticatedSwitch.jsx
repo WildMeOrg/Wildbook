@@ -15,7 +15,10 @@ const ReportConfirm = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportConfirm"),
 );
 
-export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
+export default function UnAuthenticatedSwitch({
+  showclassicsubmit,
+  showHowToPhotograph,
+}) {
   const [header, setHeader] = React.useState(true);
   const location = useLocation();
 
@@ -35,7 +38,10 @@ export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
           backgroundColor: "#303336",
         }}
       >
-        <UnAuthenticatedAppHeader showclassicsubmit={showclassicsubmit} />
+        <UnAuthenticatedAppHeader
+          showclassicsubmit={showclassicsubmit}
+          showHowToPhotograph={showHowToPhotograph}
+        />
       </div>
 
       {/* Main Content */}
