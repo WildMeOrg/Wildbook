@@ -19,6 +19,7 @@
                 <EventTemplateAdditionalField key="service" value="${SERVICE_NAME}"/>
                 <EventTemplateAdditionalField key="environment" value="${ENVIRONMENT}"/>
                 <EventTemplateAdditionalField key="host" value="${HOSTNAME}"/>
+                <EventTemplateAdditionalField key="domain" value="${DOMAIN_NAME}"/>
             </JsonTemplateLayout>
         </Console>
 
@@ -39,6 +40,9 @@
                 <EventTemplateAdditionalField
                         key="host"
                         value="${HOSTNAME}"/>
+                <EventTemplateAdditionalField
+                        key="domain"
+                        value="${DOMAIN_NAME}"/>
             </JsonTemplateLayout>
 
             <!-- Rollover Policies -->

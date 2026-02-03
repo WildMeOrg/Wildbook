@@ -19,8 +19,8 @@ services:
     labels:
       logging: "alloy"
       service: "postgresql"
-      environment: "production"
-      domain: "${DOMAIN_NAME}"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
       log_type: "database"
       autoheal: "true"
     user: postgres
@@ -59,8 +59,8 @@ services:
     labels:
       logging: "alloy"
       service: "wildbook"
-      environment: "production"
-      domain: "${DOMAIN_NAME}"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
       log_type: "application"
       autoheal: "true"
     entrypoint: /docker-entrypoint.sh
@@ -96,6 +96,10 @@ services:
       ADMIN_PASSWORD: "${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}"
       # JAVA_OPTS from old-world wildbook, which gives us 16G heap memory
       JAVA_OPTS: "-Djava.awt.headless=true -Xms16g -Xmx16g"
+      SERVICE_NAME: "${SERVICE_NAME:-wildbook}"
+      ENVIRONMENT: "${ENVIRONMENT:-production}"
+      DOMAIN_NAME: "${DOMAIN_NAME:-unknown}"
+      HOSTNAME: "${HOSTNAME:-localhost}"
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
@@ -117,8 +121,8 @@ services:
     labels:
       logging: "alloy"
       service: "opensearch"
-      environment: "production"
-      domain: "${DOMAIN_NAME}"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
       log_type: "search"
       autoheal: "true"
     volumes:
@@ -165,8 +169,8 @@ services:
     labels:
       logging: "alloy"
       service: "smtp"
-      environment: "production"
-      domain: "${DOMAIN_NAME}"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
       log_type: "infrastructure"
       autoheal: "true"
     networks:
@@ -204,8 +208,8 @@ services:
     labels:
       logging: "alloy"
       service: "nginx"
-      environment: "production"
-      domain: "${DOMAIN_NAME}"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
       log_type: "proxy"
       autoheal: "true"
     volumes:
@@ -245,9 +249,9 @@ services:
     environment:
       - HOSTNAME=${HOSTNAME}
       - DOMAIN_NAME=${DOMAIN_NAME}
-      #- LOKI_URL=${LOKI_URL:-http://host.docker.internal:3100/loki/api/v1/push}
-      #- HOSTNAME=${HOSTNAME:-localhost}
-      #- DOMAIN_NAME=${DOMAIN_NAME:-dev}
+      - LOKI_URL=${LOKI_URL:-http://host.docker.internal:3100/loki/api/v1/push}
+      - LOKI_USERNAME=${LOKI_USERNAME}
+      - LOKI_PASSWORD=${LOKI_PASSWORD}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
