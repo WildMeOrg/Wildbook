@@ -153,6 +153,7 @@ services:
   #  TODO dkim and spf needs to be added/supported
   smtp:
     image: boky/postfix
+    container_name: smtp
     healthcheck:
       # Check if postfix master process is running
       test: [ "CMD-SHELL", "pgrep -x master || exit 1" ]
@@ -223,10 +224,17 @@ services:
       - "443:443"
 
   alloy:
-    image: grafana/alloy:latest
+    image: grafana/alloy:v1.12.2
     container_name: alloy
     # Run with elevated permissions to access Docker socket
     user: root
+    labels:
+      logging: "alloy"
+      service: "alloy"
+      environment: "${ENVIRONMENT:-production}"
+      domain: "${DOMAIN_NAME:-unknown}"
+      log_type: "infrastructure"
+      autoheal: "true"
     volumes:
       - .dockerfiles/alloy/config.alloy:/etc/alloy/config.alloy
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro
