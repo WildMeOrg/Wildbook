@@ -154,7 +154,6 @@
 		<p><br>Encounter Annotation Export <a href="<%=serverUrl%>/EncounterAnnotationExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 
-
 		<p><%=map_props.getProperty("exportedOBIS")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />
 		<%=map_props.getProperty("exportedOBISLocales")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=true"><%=map_props.getProperty("clickHere")%></a>
 		</p>
