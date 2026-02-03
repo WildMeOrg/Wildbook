@@ -29,8 +29,8 @@ services:
       # DB initialization scripts
       - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
       - .dockerfiles/db/postgresql.conf:/etc/postgresql/postgresql.conf
-      # Shared log volume: Alloy reads from /logs/postgresql/
-      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/postgresql:/var/log/postgresql"
+      # Shared with Alloy:
+      - postgresql-logs:/var/log/postgresql
     networks:
       - intranet
     ports:
@@ -244,6 +244,7 @@ services:
       - .dockerfiles/alloy/config.alloy:/etc/alloy/config.alloy
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro
       - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs:/logs:ro"
+      - postgresql-logs:/logs/postgresql:ro
       - alloy-data:/var/lib/alloy
       # This volume mount will fail gracefully on macOS/Windows
       - type: bind
@@ -261,11 +262,11 @@ services:
       - "12345:12345"  # Alloy UI for debugging
     environment:
       - HOSTNAME=${HOSTNAME:-localhost}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - DOMAIN_NAME=${DOMAIN_NAME:-unknown}
       - LOKI_URL=${LOKI_URL:-http://host.docker.internal:3100/loki/api/v1/push}
       - LOKI_USERNAME=${LOKI_USERNAME}
       - LOKI_PASSWORD=${LOKI_PASSWORD}
-      - ENVIRONMENT=${ENVIRONMENT:-production}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -290,3 +291,4 @@ volumes:
   db-pgdata-var:
   opensearch-var1:
   alloy-data:
+  postgresql-logs:
