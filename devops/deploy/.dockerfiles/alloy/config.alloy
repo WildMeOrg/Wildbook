@@ -202,20 +202,31 @@ loki.source.file "nginx_access" {
 loki.process "parse_nginx_access" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  stage.regex {
-    expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+) \"(?P<referer>[^\"]*)\" \"(?P<user_agent>[^\"]*)\""
+  stage.json {
+    expressions = {
+      timestamp              = "",
+      remote_addr            = "",
+      http_method            = "",
+      endpoint               = "",
+      status_code            = "",
+      bytes                  = "",
+      http_referer           = "",
+      http_user_agent        = "",
+      request_time           = "",
+      upstream_response_time = "",
+    }
   }
 
   stage.labels {
     values = {
-      method = "",
-      status = "",
+      http_method = "",
+      status_code = "",
     }
   }
 
   stage.timestamp {
-    source = "time"
-    format = "02/Jan/2006:15:04:05 -0700"
+    source = "timestamp"
+    format = "RFC3339"
   }
 }
 
@@ -242,8 +253,9 @@ loki.source.file "nginx_error" {
 loki.process "parse_nginx_error" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
+  // nginx error_log format: 2026/02/03 10:30:45 [level] PID#TID: ...
   stage.regex {
-    expression = "^\\d{4}/\\d{2}/\\d{2} (?P<time>\\d{2}:\\d{2}:\\d{2}) \\[(?P<level>\\w+)\\]"
+    expression = "^(?P<time>\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}) \\[(?P<level>\\w+)\\]"
   }
 
   stage.labels {
@@ -254,7 +266,7 @@ loki.process "parse_nginx_error" {
 
   stage.timestamp {
     source = "time"
-    format = "2006-01-02 15:04:05"
+    format = "2006/01/02 15:04:05"
   }
 }
 

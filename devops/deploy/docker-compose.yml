@@ -218,6 +218,8 @@ services:
     volumes:
       - .dockerfiles/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt
+      # Shared log volume: Alloy reads from /logs/nginx/
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/nginx:/var/log/nginx"
     networks:
       - intranet
     ports:
