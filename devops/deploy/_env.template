@@ -36,6 +36,8 @@ WILDBOOK_DB_PASSWORD=development
 WILDBOOK_DB_CONNECTION_URL=jdbc:postgresql://db:5432/wildbook
 
 ## logging
+WILDBOOK_LOG_LEVEL=INFO
+
 DOMAIN_NAME=flakebook
 HOSTNAME=vm-flakebook
 ENVIRONMENT=development

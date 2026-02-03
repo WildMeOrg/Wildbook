@@ -10,6 +10,7 @@
         <Property name="ENVIRONMENT">${env:ENVIRONMENT:-production}</Property>
         <Property name="DOMAIN_NAME">${env:DOMAIN_NAME:-unknown}</Property>
         <Property name="HOSTNAME">${env:HOSTNAME:-localhost}</Property>
+        <Property name="LOG_LEVEL">${env:WILDBOOK_LOG_LEVEL:-INFO}</Property>
     </Properties>
 
     <Appenders>
@@ -88,7 +89,7 @@
 
     <Loggers>
         <!-- Application Loggers -->
-        <Logger name="org.ecocean" level="INFO" additivity="false">
+        <Logger name="org.ecocean" level="${LOG_LEVEL}" additivity="false">
             <AppenderRef ref="AsyncJson"/>
             <AppenderRef ref="AsyncError"/>
         </Logger>
@@ -104,7 +105,7 @@
         <Logger name="org.apache.tomcat" level="WARN"/>
 
         <!-- Root Logger -->
-        <Root level="INFO">
+        <Root level="${LOG_LEVEL}">
             <AppenderRef ref="AsyncJson"/>
             <AppenderRef ref="AsyncError"/>
         </Root>

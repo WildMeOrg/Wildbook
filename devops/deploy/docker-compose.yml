@@ -102,6 +102,7 @@ services:
       ENVIRONMENT: "${ENVIRONMENT:-production}"
       DOMAIN_NAME: "${DOMAIN_NAME:-unknown}"
       HOSTNAME: "${HOSTNAME:-localhost}"
+      WILDBOOK_LOG_LEVEL: "${WILDBOOK_LOG_LEVEL:-INFO}"
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
