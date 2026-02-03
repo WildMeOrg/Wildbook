@@ -281,13 +281,16 @@ loki.source.file "postgresql" {
 loki.process "parse_postgresql" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
+  // Matches log_line_prefix = '%m [%p] user=%u db=%d app=%a '
+  // user/db/app may be empty during startup before any connection exists
   stage.regex {
-    expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{3} \\w+) \\[\\d+\\]: \\[(?P<level>\\w+)\\]"
+    expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+) \\[(?P<pid>\\d+)\\] user=(?P<user>\\S*) db=(?P<db>\\S*) app=(?P<app>\\S*) (?P<level>\\w+):"
   }
 
   stage.labels {
     values = {
       level = "",
+      db    = "",
     }
   }
 

@@ -29,6 +29,8 @@ services:
       # DB initialization scripts
       - .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
       - .dockerfiles/db/postgresql.conf:/etc/postgresql/postgresql.conf
+      # Shared log volume: Alloy reads from /logs/postgresql/
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/postgresql:/var/log/postgresql"
     networks:
       - intranet
     ports:
@@ -255,11 +257,12 @@ services:
     ports:
       - "12345:12345"  # Alloy UI for debugging
     environment:
-      - HOSTNAME=${HOSTNAME}
-      - DOMAIN_NAME=${DOMAIN_NAME}
+      - HOSTNAME=${HOSTNAME:-localhost}
+      - DOMAIN_NAME=${DOMAIN_NAME:-unknown}
       - LOKI_URL=${LOKI_URL:-http://host.docker.internal:3100/loki/api/v1/push}
       - LOKI_USERNAME=${LOKI_USERNAME}
       - LOKI_PASSWORD=${LOKI_PASSWORD}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
