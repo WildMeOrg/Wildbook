@@ -48,6 +48,8 @@ DOCKER_CONTAINERS_PATH=/var/lib/docker/containers
 # DOCKER_CONTAINERS_PATH=/tmp/docker-placeholder
 
 LOKI_URL=http://your-loki-server:3100/loki/api/v1/push
+LOKI_USERNAME=your_username
+LOKI_PASSWORD=your_password
 
 # for wbia:
 WBIA_DB_NAME=wbia
