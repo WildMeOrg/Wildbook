@@ -13,7 +13,8 @@ import InstructionsModal from "./components/InstructionsModal";
 import InfoIcon from "./icons/InfoIcon";
 import FilterIcon from "./icons/FilterIcon";
 import MatchCriteriaDrawer from "./components/MatchCriteriaDrawer";
-import Select from "react-select";
+
+import MultiSelectWithCheckbox from "../../components/MultiSelectWithCheckbox";
 
 const MatchResults = observer(() => {
   const themeColor = React.useContext(ThemeColorContext);
@@ -27,18 +28,11 @@ const MatchResults = observer(() => {
   const [filterVisible, setFilterVisible] = React.useState(false);
 
   const projectOptions = useMemo(() => {
-    return [
-      { value: "", label: "Select a project" },
-      ...Object.entries(projectsForUser).map(([key, value]) => ({
-        value: key,
-        label: value?.name || key,
-      })),
-    ];
+    return Object.entries(projectsForUser).map(([key, value]) => ({
+      value: key,
+      label: value?.name || key,
+    }));
   }, [projectsForUser]);
-
-  const selectedProjectOption = useMemo(() => {
-    return projectOptions.find((o) => o.value === store.projectName) || null;
-  }, [projectOptions, store.projectName]);
 
   useEffect(() => {
     if (!projectIdPrefix) return;
@@ -49,7 +43,8 @@ const MatchResults = observer(() => {
     if (!match) return;
 
     const [projectId] = match;
-    store.setProjectName(projectId);
+
+    store.setProjectNames([projectId]);
   }, [projectIdPrefix, projectsForUser, store]);
 
   useEffect(() => {
@@ -210,40 +205,27 @@ const MatchResults = observer(() => {
             <Form.Label className="me-2 mb-0 small">
               <FormattedMessage id="PROJECT" defaultMessage="Project" />
             </Form.Label>
-            <div style={{ minWidth: "220px", maxWidth: "400px" }}>
-              <Select
-                inputId="project-select"
-                classNamePrefix="react-select"
-                value={selectedProjectOption}
-                options={projectOptions}
-                placeholder={<FormattedMessage id="SELECT_A_PROJECT" />}
-                isClearable
-                isSearchable
-                onChange={(opt) => {
-                  const nextProjectId = opt?.value || "";
-                  store.setProjectName(nextProjectId);
 
-                  if (!nextProjectId) {
+            <div style={{ minWidth: "220px", maxWidth: "400px" }}>
+              <MultiSelectWithCheckbox
+                options={projectOptions}
+                value={store.projectNames || []}
+                placeholder={
+                  <FormattedMessage
+                    id="SELECT_PROJECTS"
+                    defaultMessage="Select projects"
+                  />
+                }
+                onChangeCommitted={(projectIds) => {
+                  store.setProjectNames(projectIds);
+
+                  if (!projectIds || projectIds.length === 0) {
                     const next = new URLSearchParams(params);
                     next.delete("projectIdPrefix");
                     setParams(next, { replace: true });
                   }
                 }}
-                styles={{
-                  container: (base) => ({ ...base, width: "100%" }),
-                  control: (base) => ({
-                    ...base,
-                    minHeight: "31px",
-                    height: "31px",
-                  }),
-                  valueContainer: (base) => ({
-                    ...base,
-                    height: "31px",
-                    padding: "0 8px",
-                  }),
-                  input: (base) => ({ ...base, margin: 0, padding: 0 }),
-                  indicatorsContainer: (base) => ({ ...base, height: "31px" }),
-                }}
+                style={{ width: "100%" }}
               />
             </div>
           </Form.Group>
@@ -261,6 +243,7 @@ const MatchResults = observer(() => {
           </div>
         </div>
       </div>
+
       {!store.hasResults ? (
         <p className="mt-3">No match results available for this job.</p>
       ) : (

@@ -9,7 +9,7 @@ export default class MatchResultsStore {
   _matchingSetFilter = {};
   _individualId = null;
   _individualDisplayName = null;
-  _projectName = "";
+  _projectNames = [];
   _numResults = 12;
   _numCandidates = 0;
   _matchDate = null;
@@ -162,8 +162,8 @@ export default class MatchResultsStore {
     return this._individualDisplayName;
   }
 
-  get projectName() {
-    return this._projectName;
+  get projectNames() {
+    return this._projectNames;
   }
 
   get numResults() {
@@ -264,8 +264,10 @@ export default class MatchResultsStore {
     try {
       const params = new URLSearchParams();
       params.set("prospectsSize", String(this.numResults));
-      if (this._projectName) {
-        params.set("projectId", this._projectName);
+      if (this._projectNames && this._projectNames.length > 0) {
+        this._projectNames.forEach((projectId) => {
+          params.append("projectId", projectId);
+        });
       }
       const result = await axios.get(
         `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
@@ -296,10 +298,13 @@ export default class MatchResultsStore {
     this._numResults = n;
   }
 
-  setProjectName(name) {
-    if (this._projectName === name) return;
-    this._projectName = name;
-    if (this._taskId) {
+  setProjectNames(names, { fetch = true } = {}) {
+    const next = Array.isArray(names) ? names : [];
+    if (JSON.stringify(this._projectNames) === JSON.stringify(next)) return;
+
+    this._projectNames = next;
+
+    if (fetch && this._taskId) {
       this.fetchMatchResults();
     }
   }
