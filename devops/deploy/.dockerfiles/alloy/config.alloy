@@ -84,7 +84,14 @@ loki.source.docker "docker_logs" {
 loki.process "parse_logs" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  // Parse all fields from the JSON log line in one stage
+  // Regex runs first: extracts level from plain-text logs (smtp, alloy, etc.).
+  // For JSON logs, stage.json below will overwrite with the authoritative value.
+  stage.regex {
+    expression = "(?i)(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|SEVERE)"
+  }
+
+  // Parse all fields from the JSON log line in one stage.
+  // Overwrites any values already extracted by the regex stage above.
   stage.json {
     expressions = {
       // ECS fields - keys with special chars (like '.' or '@') must be quoted
@@ -116,11 +123,6 @@ loki.process "parse_logs" {
   stage.timestamp {
     source = "timestamp"
     format = "RFC3339"
-  }
-
-  // Fallback: If JSON parsing fails, try regex extraction for plain text logs
-  stage.regex {
-    expression = "(?i)(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|SEVERE)"
   }
 
   // Promote critical, low-cardinality fields to labels for fast querying

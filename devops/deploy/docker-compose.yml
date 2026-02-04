@@ -130,6 +130,7 @@ services:
       autoheal: "true"
     volumes:
       - opensearch-var1:/usr/share/opensearch/data
+      - .dockerfiles/opensearch/log4j2.properties:/usr/share/opensearch/config/log4j2.properties
     ulimits:
       memlock:
         soft: -1
