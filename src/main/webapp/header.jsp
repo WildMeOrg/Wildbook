@@ -668,14 +668,6 @@ if(request.getUserPrincipal()!=null){
 
                         </ul>
                       </li>
-                      <!-- <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("animals")%> <span class="svg-placeholder"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-
-                          <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("individualGallery")%></a></li>
-                          <li><a href="<%=urlLoc %>/react/encounter-search?calendar=true"><%=props.getProperty("encounterCalendar")%></a></li>
-                        </ul>
-                      </li> -->
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
