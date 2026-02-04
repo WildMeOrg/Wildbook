@@ -9,7 +9,7 @@ import InteractiveAnnotationOverlay from "../../../components/AnnotationOverlay"
 import { FormattedMessage, useIntl } from "react-intl";
 import InspectorModal from "./InspectorModal";
 import ExitFullScreenIcon from "../icons/ExitFullScreenIcon";
-import ExitIcon from "../../../components/icons/ExitIcon";
+import EncounterIcon from "../../../components/icons/EncounterIcon";
 
 const styles = {
   matchRow: (selected, themeColor) => ({
@@ -37,23 +37,23 @@ const styles = {
     background: themeColor.wildMeColors.teal100,
     color: themeColor.wildMeColors.teal800,
   }),
-  encounterButton: (themeColor) => ({
-    borderRadius: "5px",
+  encounterButton: () => ({
+    borderRadius: "50%",
     border: "none",
-    padding: "2px 10px",
     fontSize: "1rem",
-    background: themeColor.primaryColors.primary500,
-    color: "white",
     display: "flex",
     alignItems: "center",
     gap: "4px",
+    width: "20px",
+    height: "20px",
+    padding: 0,
+    lineHeight: 0,
   }),
   matchImageCard: {
     position: "relative",
     borderRadius: "8px",
     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
     overflow: "hidden",
-    // height: "400px",
   },
   imageContainer: {
     width: "100%",
@@ -368,9 +368,7 @@ const MatchProspectTable = ({
                         window.open(url, "_blank");
                       }}
                     >
-                      {candidateIndividualDisplayName ||
-                        candidateIndividualId ||
-                        "Unknown"}
+                      {candidateIndividualDisplayName || candidateIndividualId}
                     </button>
 
                     <button
@@ -383,7 +381,7 @@ const MatchProspectTable = ({
                         window.open(url, "_blank");
                       }}
                     >
-                      <ExitIcon width={12} height={12} />
+                      <EncounterIcon />
                     </button>
 
                     <div style={{ flexGrow: 1 }} />

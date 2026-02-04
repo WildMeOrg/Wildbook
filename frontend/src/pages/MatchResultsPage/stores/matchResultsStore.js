@@ -6,6 +6,7 @@ import { getAllAnnot, getAllIndiv } from "../helperFunctions";
 export default class MatchResultsStore {
   _viewMode = "individual"; // "individual" | "image"
   _encounterId = "";
+  _statusOverall = "";
   _matchingSetFilter = {};
   _individualId = null;
   _individualDisplayName = null;
@@ -70,6 +71,7 @@ export default class MatchResultsStore {
     this._numCandidates = first.numberCandidates;
     this._thisEncounterImageUrl = first.queryEncounterImageUrl;
     this._possibleMatchImageUrl = first.annotation?.asset?.url ?? "";
+    this._statusOverall = first.statusOverall;
 
     this._rawAnnots = annotResults || [];
     this._rawIndivs = indivResults || [];
