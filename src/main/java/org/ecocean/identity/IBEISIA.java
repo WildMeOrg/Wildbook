@@ -22,8 +22,6 @@ import org.ecocean.servlet.RestKeyword;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Taxonomy;
-import org.ecocean.TwitterBot;
-import org.ecocean.TwitterUtil;
 import org.ecocean.Util;
 
 import java.util.ArrayList;
@@ -499,11 +497,6 @@ public class IBEISIA {
 
     public static Taxonomy taxonomyFromMediaAsset(Shepherd myShepherd, MediaAsset ma) {
         if (ma == null) return null;
-        if ((ma.getStore() != null) && (ma.getStore() instanceof TwitterAssetStore)) {
-            String tx = TwitterBot.taxonomyStringFromTweet(TwitterUtil.toStatus(
-                TwitterUtil.parentTweet(myShepherd, ma)), myShepherd.getContext());
-            if (tx != null) return new Taxonomy(tx);
-        }
         ArrayList<Annotation> anns = ma.getAnnotations();
         if (anns.size() < 1) return null;
         // here we step thru all annots on this asset but likely there will be only one (trivial)
@@ -842,8 +835,6 @@ public class IBEISIA {
             // return ma.localPath().toString(); //nah, lets skip local and go for "url" flavor?
             if (curl == null) return null;
             return curl.toString();
-        } else if (ma.getStore() instanceof S3AssetStore) {
-            return ma.getParameters();
         } else {
             if (curl == null) return null;
             return curl.toString();
@@ -1718,8 +1709,6 @@ public class IBEISIA {
                     jlog.put("collatedEncounters", je);
                     jlog.put("collatedOccurrence", occ.getOccurrenceID());
                 }
-                jlog.put("twitterBot",
-                    TwitterBot.processDetectionResults(myShepherd, mas, rootDir));  // will do nothing if not twitter-sourced
                 jlog.put("_action", "processedCallbackDetect");
                 if (amap.length() > 0) jlog.put("annotations", amap);
                 if (needReview.length() > 0) jlog.put("needReview", needReview);
@@ -1838,9 +1827,6 @@ public class IBEISIA {
             jlog.put("_infDict", infDict);
             exitIdentificationLoop(infDict, myShepherd);
         }
-        jlog.put("twitterBot",
-            TwitterBot.processIdentificationResults(myShepherd, anns,
-            infDict.optJSONObject("annot_pair_dict"), taskID));
         resolveNames(needNameResolution, j.optJSONObject("cm_dict"), myShepherd);
         log(taskID, null, jlog, myShepherd.getContext());
 
