@@ -116,7 +116,24 @@ loki.process "parse_logs" {
       status_code = "status_code",
       user_agent  = "user_agent",
       domain      = "domain",
+
+      // rsyslog fields (postfix/smtp — alternative names to ECS)
+      severity    = "severity",
+      syslog_ts   = "timestamp",
     }
+  }
+
+  // Coalesce ECS and rsyslog field names into single keys so that
+  // stage.timestamp and stage.labels see consistent values regardless
+  // of JSON schema.  Plain-text logs (where neither JSON stage set
+  // these fields) pass through unchanged.
+  stage.template {
+    source   = "level"
+    template = "{{ if .Value }}{{ .Value }}{{ else }}{{ .severity }}{{ end }}"
+  }
+  stage.template {
+    source   = "timestamp"
+    template = "{{ if .Value }}{{ .Value }}{{ else }}{{ .syslog_ts }}{{ end }}"
   }
 
   // Use the timestamp from the log if available

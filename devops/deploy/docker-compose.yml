@@ -190,6 +190,7 @@ services:
       - "RELAYHOST=${MAIL_RELAYHOST}"
       - "RELAYHOST_USERNAME=${MAIL_RELAYHOST_USERNAME}"
       - "RELAYHOST_PASSWORD=${MAIL_RELAYHOST_PASSWORD}"
+      - "LOG_FORMAT=json"
 
   nginx:
     image: nginx:1.23.4
