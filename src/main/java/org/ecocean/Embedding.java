@@ -206,10 +206,17 @@ public class Embedding implements java.io.Serializable {
     }
 
     // returns final annot id
-    public static String catchUpEmbeddings(Shepherd myShepherd, String startId) {
+    public static JSONObject catchUpEmbeddings(Shepherd myShepherd, String startId) {
         JSONObject embData = SystemValue.getJSONObject(myShepherd, "EMBEDDING_CATCHUP");
 
         if (embData == null) embData = new JSONObject();
+        // this will pick up where last left off, effectively
+        // note: passing zero-uuid will effectively override to start over
+        // TODO prevent duplicate runs by perhaps locking wity SystemValue like indexing
+        if (startId == null) startId = embData.optString("_lastId", null);
+        System.out.println("catchUpEmbeddings: beginning at " + startId + "; slice size=" +
+            BACKGROUND_SLICE_SIZE);
+
         String sql =
             "select \"ANNOTATION\".\"ID\" as \"ID\" from \"ANNOTATION\" left join \"EMBEDDING\" on (\"ANNOTATION\".\"ID\" = \"ANNOTATION_ID\") where \"VECTORFLOATARRAY\" is null";
         if (startId != null) sql += " AND \"ANNOTATION\".\"ID\" > '" + startId + "'";
@@ -220,7 +227,12 @@ public class Embedding implements java.io.Serializable {
         List<Annotation> anns = new ArrayList(c);
         q.closeAll();
         MLService mls = new MLService();
+        String lastId = null;
+        int ct = 0;
         for (Annotation ann : anns) {
+            ct++;
+            System.out.println("catchUpEmbeddings: [" + ct + "]: " + ann);
+            lastId = ann.getId();
             String txStr = ann.getTaxonomyString(myShepherd);
             if (txStr == null) {
                 embData.put(ann.getId(), "null taxonomy");
@@ -237,9 +249,10 @@ public class Embedding implements java.io.Serializable {
                 System.out.println("catchUpEmbeddings: exception " + ann + " -> " + ex);
             }
         }
-        // embData.put("_lastId", xxxx);
+        System.out.println("catchUpEmbeddings: finished with lastId=" + lastId);
+        embData.put("_lastId", lastId);
         SystemValue.set(myShepherd, "EMBEDDING_CATCHUP", embData);
-        return null;
+        return embData;
     }
 
     public static boolean findMatchProspects(JSONObject iaConfig, Task task, Shepherd myShepherd) {
