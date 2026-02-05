@@ -204,7 +204,33 @@
 					"id": "Amboseli Ecosystem",
 					"prefix": "KEN_AMNP_",
 					"prefixDigitPadding": 4,
-					"locationID":[]
+					"locationID":[
+						{
+							"name": "Amboseli Land Owners Conservation Association",
+							"id": "Amboseli Land Owners Conservation Association",
+							"locationID":[]
+						},
+						{
+							"name": "Eselenkei Ranch",
+							"id": "Eselenkei Ranch",
+							"locationID":[]
+						},
+						{
+							"name": "Kimana Sanctuary",
+							"id": "Kimana Sanctuary",
+							"locationID":[]
+						},
+						{
+							"name": "Mailua Community",
+							"id": "Mailua Community",
+							"locationID":[]
+						},
+						{
+							"name": "Olgulului Ranch",
+							"id": "Olgulului Ranch",
+							"locationID":[]
+						}
+					]
 				},
 				{
 					"name": "Athi-Kapiti Plains",
@@ -298,6 +324,28 @@
 						}
 					]
                 },
+				{
+					"name": "Central and Western Kajiado Conservancies",
+					"id": "Central and Western Kajiado Conservancies",
+					"locationID":[
+						{
+							"name": "Kajiado West",
+							"id": "Kajiado West",
+							"locationID":[]
+						},
+						{
+							"name": "Magadi",
+							"id": "Magadi",
+							"locationID":[
+								{
+									"name": "Basecamp Three",
+									"id": "Basecamp Three",
+									"locationID":[]
+								}
+							]
+						}
+					]
+				},
 				{
 					"name": "Garissa",
 					"id": "Garissa",
@@ -1118,6 +1166,11 @@
 							"locationID": []
 						},
 						{
+							"name": "Khaudum National Park",
+							"id": "Khaudum National Park",
+							"locationID":[]
+						},
+						{
 							"name": "Kwandu Conservancy",
 							"id": "Kwandu Conservancy",
 							"locationID": []
@@ -1537,6 +1590,11 @@
 								"long": 25.810768
 							},
 							"locationID": []
+						},
+						{
+							"name": "Sioma Ngwezi National Park",
+							"id": "Sioma Ngwezi National Park",
+							"locationID": []
 						}
 					]
 				},
@@ -1597,6 +1655,27 @@
 					"name": "Imire Conservancy",
 					"id": "Imire Conservancy",
 					"locationID":[]
+				},
+				{
+					"name": "KAZA",
+					"id": "KAZA",
+					"locationID":[
+						{
+							"name": "Matetsi",
+							"id": "Matetsi",
+							"locationID":[]
+						},
+						{
+							"name": "Matobo Hills",
+							"id": "Matobo Hills",
+							"locationID":[]
+						},
+						{
+							"name": "Zambezi National Park",
+							"id": "Zambezi National Park",
+							"locationID":[]
+						}
+					]
 				},
 				{
 					"name": "Save Valley",
