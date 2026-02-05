@@ -6,6 +6,7 @@ import { getAllAnnot, getAllIndiv } from "../helperFunctions";
 export default class MatchResultsStore {
   _viewMode = "individual"; // "individual" | "image"
   _encounterId = "";
+  _encounterLocationId = "";
   _statusOverall = "";
   _matchingSetFilter = {};
   _individualId = null;
@@ -53,6 +54,7 @@ export default class MatchResultsStore {
       this._numCandidates = 0;
       this._matchDate = null;
       this._hasResults = false;
+      this._encounterLocationId = "";
       return;
     }
 
@@ -64,6 +66,7 @@ export default class MatchResultsStore {
     }
 
     this._encounterId = first.queryEncounterId;
+    this._encounterLocationId = first.encounterLocationId;
     this._matchingSetFilter = first.matchingSetFilter;
     this._individualId = first.queryIndividualId;
     this._individualDisplayName = first.queryIndividualDisplayName;
@@ -150,6 +153,10 @@ export default class MatchResultsStore {
 
   get encounterId() {
     return this._encounterId;
+  }
+
+  get encounterLocationId() {
+    return this._encounterLocationId;
   }
 
   get matchingSetFilter() {

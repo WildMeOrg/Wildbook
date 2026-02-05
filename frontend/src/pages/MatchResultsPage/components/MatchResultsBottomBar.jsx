@@ -433,6 +433,7 @@ const MatchResultsBottomBar = observer(
           loading={store.matchRequestLoading}
           themeColor={themeColor}
           identificationRemarks={identificationRemarks}
+          locationId={store.encounterLocationId}
         />
 
         <NewIndividualCreatedModal

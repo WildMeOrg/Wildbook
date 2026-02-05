@@ -13,6 +13,8 @@ const collectProspects = (node, type, result = []) => {
       numberCandidates: node.matchResults?.numberCandidates || 0,
       queryEncounterId:
         node.matchResults?.queryAnnotation?.encounter?.id || null,
+      encounterLocationId:
+        node.matchResults?.queryAnnotation?.encounter?.locationId || null,
       matchingSetFilter: node.matchingSetFilter,
       queryIndividualId:
         node.matchResults?.queryAnnotation?.individual?.id || null,

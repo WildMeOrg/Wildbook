@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Form, Button } from "react-bootstrap";
+import { Modal, Form, Button, Spinner } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 
 const CreateNewIndividualModal = ({
@@ -12,13 +12,46 @@ const CreateNewIndividualModal = ({
   loading,
   themeColor,
   identificationRemarks = [],
+  locationId = "",
 }) => {
-  const suggestedId = Math.floor(Math.random() * 90000) + 10000;
   const [selectedRemark, setSelectedRemark] = React.useState("");
+  const [suggestedId, setSuggestedId] = React.useState(null);
+  const [loadingSuggestedId, setLoadingSuggestedId] = React.useState(false);
+
+  React.useEffect(() => {
+    if (show && locationId) {
+      setLoadingSuggestedId(true);
+      fetch(
+        `/api/v3/individuals/info/next_name?locationId=${encodeURIComponent(locationId)}`,
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.results && data.results.length > 0) {
+            const successfulResult = data.results.find((r) => r.success);
+            console.log("successfulResult", JSON.stringify(successfulResult));
+            if (successfulResult && successfulResult.nextName) {
+              setSuggestedId(successfulResult.nextName);
+            } else {
+              setSuggestedId(null);
+            }
+          } else {
+            setSuggestedId(null);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch suggested ID:", err);
+          setSuggestedId(null);
+        })
+        .finally(() => {
+          setLoadingSuggestedId(false);
+        });
+    }
+  }, [show, locationId]);
 
   React.useEffect(() => {
     if (!show) {
       setSelectedRemark("");
+      setSuggestedId(null);
     }
   }, [show]);
 
@@ -90,33 +123,37 @@ const CreateNewIndividualModal = ({
             />
           </Form.Group>
 
-          <div className="mb-3">
-            <span className="text-muted">
-              <FormattedMessage
-                id="SUGGESTED_ID"
-                defaultMessage="Suggested ID"
-              />
-              : {suggestedId}
-            </span>{" "}
-            <Button
-              variant="link"
-              size="sm"
-              style={{ color: themeColor.primaryColors.primary500 }}
-              onClick={() => onNameChange(suggestedId.toString())}
-            >
-              <FormattedMessage id="USE_THIS" defaultMessage="Use This" />
-            </Button>
-          </div>
-
-          {/* <Form.Group className="mb-3">
-            <Form.Label>
-              <FormattedMessage id="ALTERNATE_ID" defaultMessage="Alternate ID" />
-            </Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="individual name"
-            />
-          </Form.Group> */}
+          {locationId && (
+            <div className="mb-3">
+              {loadingSuggestedId ? (
+                <span className="text-muted">
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  <FormattedMessage
+                    id="LOADING_SUGGESTED_ID"
+                    defaultMessage="Loading suggested ID..."
+                  />
+                </span>
+              ) : suggestedId ? (
+                <>
+                  <span className="text-muted">
+                    <FormattedMessage
+                      id="SUGGESTED_ID"
+                      defaultMessage="Suggested ID"
+                    />
+                    : {suggestedId}
+                  </span>{" "}
+                  <Button
+                    variant="link"
+                    size="sm"
+                    style={{ color: themeColor.primaryColors.primary500 }}
+                    onClick={() => onNameChange(suggestedId.toString())}
+                  >
+                    <FormattedMessage id="USE_THIS" defaultMessage="Use This" />
+                  </Button>
+                </>
+              ) : null}
+            </div>
+          )}
         </Form>
       </Modal.Body>
 
