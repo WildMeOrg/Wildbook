@@ -2987,7 +2987,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann == null) continue; // really weird that this happens sometimes
             MediaAsset ma = ann.getMediaAsset();
-            if (ma != null) m.add(ma);
+            if ((ma != null) && !m.contains(ma)) m.add(ma);
         }
         return m;
     }
