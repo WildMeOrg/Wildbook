@@ -196,9 +196,22 @@ public class MatchResult implements java.io.Serializable {
 
     private Annotation getAnnotationFromAcmId(String acmId, Shepherd myShepherd) {
         if (acmId == null) return null;
+        Annotation found = findAcmIdInTaskAnnotations(acmId);
+        if (found != null) return found;
         List<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId, true);
+        System.out.println("[WARNING] getAnnotationFromAcmId() failed to find " + acmId +
+            " in task annots; loaded by acmId " + Util.collectionSize(anns) + " annot(s)");
         if ((anns == null) || (anns.size() < 1)) return null;
         return anns.get(0);
+    }
+
+    private Annotation findAcmIdInTaskAnnotations(String acmId) {
+        if ((this.task == null) || (acmId == null)) return null;
+        if (!this.task.hasObjectAnnotations()) return null;
+        for (Annotation ann : this.task.getObjectAnnotations()) {
+            if (acmId.equals(ann.getAcmId())) return ann;
+        }
+        return null;
     }
 
     // if it exists, we just return the thing, other wise we attempt to create it
@@ -336,6 +349,7 @@ public class MatchResult implements java.io.Serializable {
             // TODO add "access" permission value if needed?
             ej.put("id", enc.getId());
             ej.put("taxonomy", enc.getTaxonomyString());
+            ej.put("locationId", enc.getLocationID());
             aj.put("encounter", ej);
             MarkedIndividual indiv = enc.getIndividual();
             if (indiv != null) {
