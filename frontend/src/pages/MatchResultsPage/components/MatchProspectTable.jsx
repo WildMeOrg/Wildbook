@@ -371,18 +371,20 @@ const MatchProspectTable = ({
                       {candidateIndividualDisplayName || candidateIndividualId}
                     </button>
 
-                    <button
-                      type="button"
-                      style={styles.encounterButton(themeColor)}
-                      className="btn btn-sm p-0 px-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const url = `/react/encounter?number=${candidateEncounterId}`;
-                        window.open(url, "_blank");
-                      }}
-                    >
-                      <EncounterIcon />
-                    </button>
+                    {(isRowHovered || isRowSelected) && (
+                      <button
+                        type="button"
+                        style={styles.encounterButton(themeColor)}
+                        className="btn btn-sm p-0 px-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = `/react/encounter?number=${candidateEncounterId}`;
+                          window.open(url, "_blank");
+                        }}
+                      >
+                        <EncounterIcon />
+                      </button>
+                    )}
 
                     <div style={{ flexGrow: 1 }} />
 
