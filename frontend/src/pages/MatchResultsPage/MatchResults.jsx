@@ -26,6 +26,7 @@ const MatchResults = observer(() => {
   const { projectsForUser = {}, identificationRemarks = [] } =
     useSiteSettings() || {};
   const [filterVisible, setFilterVisible] = React.useState(false);
+  const [isInputFocused, setIsInputFocused] = React.useState(false);
 
   const projectOptions = useMemo(() => {
     return Object.entries(projectsForUser).map(([key, value]) => ({
@@ -170,6 +171,8 @@ const MatchResults = observer(() => {
                     store.setNumResults(val === "" ? 1 : Number(val));
                   }
                 }}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     store.fetchMatchResults();
@@ -180,26 +183,29 @@ const MatchResults = observer(() => {
                   paddingRight: "30px",
                 }}
               />
-              <button
-                type="button"
-                onClick={() => store.fetchMatchResults()}
-                style={{
-                  position: "absolute",
-                  right: "4px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  padding: "0 4px",
-                  fontSize: "16px",
-                  color: themeColor.primaryColors.primary500,
-                  lineHeight: "1",
-                }}
-                title="Apply changes"
-              >
-                ✓
-              </button>
+              {isInputFocused && (
+                <button
+                  type="button"
+                  onClick={() => store.fetchMatchResults()}
+                  onMouseDown={(e) => e.preventDefault()}
+                  style={{
+                    position: "absolute",
+                    right: "4px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    padding: "0 4px",
+                    fontSize: "16px",
+                    color: themeColor.primaryColors.primary500,
+                    lineHeight: "1",
+                  }}
+                  title="Apply changes"
+                >
+                  ✓
+                </button>
+              )}
             </div>
           </Form.Group>
 
