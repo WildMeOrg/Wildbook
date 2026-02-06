@@ -26,7 +26,7 @@ export default class MatchResultsStore {
   _rawAnnots = [];
   _rawIndivs = [];
 
-  _loading = true;
+  _loading = false;
   _matchRequestLoading = false;
   _matchRequestError = null;
   _hasResults = false;
@@ -278,10 +278,28 @@ export default class MatchResultsStore {
           params.append("projectId", projectId);
         });
       }
-      const result = await axios.get(
-        `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
-      );
-      this.loadData(result?.data);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      try {
+        const result = await axios.get(
+          `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
+          {
+            signal: controller.signal,
+            timeout: 30000,
+          },
+        );
+
+        clearTimeout(timeoutId);
+        this.loadData(result?.data);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === "AbortError" || error.code === "ECONNABORTED") {
+          console.error("Request timeout");
+        } else {
+          throw error;
+        }
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -293,6 +311,10 @@ export default class MatchResultsStore {
 
   setLoading(loading) {
     this._loading = loading;
+  }
+
+  setHasResults(results) {
+    this._hasResults = results;
   }
 
   setTaskId(id) {

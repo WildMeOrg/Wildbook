@@ -51,6 +51,8 @@ const MatchResults = observer(() => {
     if (taskId) {
       store.setTaskId(taskId);
       store.fetchMatchResults();
+    } else {
+      store.setHasResults(false);
     }
     return () => {
       // store.resetStore();
