@@ -36,6 +36,8 @@ const styles = {
     fontSize: "1rem",
     background: themeColor.wildMeColors.teal100,
     color: themeColor.wildMeColors.teal800,
+    maxWidth: "200px",
+    overflow: "hidden",
   }),
   encounterButton: () => ({
     borderRadius: "50%",
@@ -348,6 +350,8 @@ const MatchProspectTable = ({
                       style={{
                         textDecoration: "none",
                         color: themeColor.primaryColors.primary500,
+                        maxWidth: "150px",
+                        overflow: "hidden",
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
