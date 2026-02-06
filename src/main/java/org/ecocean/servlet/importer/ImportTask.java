@@ -624,7 +624,7 @@ public class ImportTask implements java.io.Serializable {
                 pj.put("detectionPercent", 1.0);
                 pj.put("detectionStatus", "complete");
             } else {
-                if (numAssets > 0) pj.put("detectionPercent", numDetectionComplete / numAssets);
+                if (numAssets > 0) pj.put("detectionPercent", new Double(numDetectionComplete) / new Double(numAssets));
                 pj.put("detectionStatus", "sent");
             }
             if (this.iaTaskRequestedIdentification()) {
