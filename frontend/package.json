@@ -110,7 +110,7 @@
     "terser-webpack-plugin": "^5.3.10",
     "ts-jest": "^27.0.7",
     "unused-webpack-plugin": "^2.4.0",
-    "webpack": "^5.94.0",
+    "webpack": "^5.105.0",
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
