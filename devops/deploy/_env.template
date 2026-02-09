@@ -38,9 +38,10 @@ WILDBOOK_DB_CONNECTION_URL=jdbc:postgresql://db:5432/wildbook
 ## logging
 WILDBOOK_LOG_LEVEL=INFO
 
-DOMAIN_NAME=flakebook
-HOSTNAME=vm-flakebook
+DOMAIN_NAME=devbook.org
+HOSTNAME=vm-devbook
 ENVIRONMENT=development
+SERVICE_NAME=wildbook
 
 # Docker paths (Linux native) for Alloy
 DOCKER_SOCKET_PATH=/var/run/docker.sock

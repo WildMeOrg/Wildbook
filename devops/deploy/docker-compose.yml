@@ -69,7 +69,7 @@ services:
     volumes:
       - "$WILDBOOK_BASE_DIR/wb-docker-deploy/wildbook_docker_webapps/:/usr/local/tomcat/webapps/"
       - "$WILDBOOK_BASE_DIR/wildbook_data_dir/:/usr/local/tomcat/webapps/wildbook_data_dir/"
-      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/:/usr/local/tomcat/logs/"
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/wildbook:/usr/local/tomcat/logs/"
       - /var/run/docker.sock:/var/run/docker.sock
       - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
       - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh

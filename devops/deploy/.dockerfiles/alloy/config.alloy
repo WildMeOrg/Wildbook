@@ -161,7 +161,7 @@ loki.process "parse_logs" {
 // Wildbook Tomcat access logs
 local.file_match "wildbook_access" {
   path_targets = [{
-    __path__    = "/logs/wildbook/access*.log",
+    __path__    = "/logs/wildbook/localhost_access_log*.log",
     job         = "wildbook-access",
     service     = "wildbook",
     log_type    = "access",
@@ -181,20 +181,81 @@ loki.source.file "wildbook_access" {
 loki.process "parse_tomcat_access" {
   forward_to = [loki.write.loki_endpoint.receiver]
 
-  stage.regex {
-    expression = "^(?P<remote_addr>\\S+) \\S+ \\S+ \\[(?P<time>[^\\]]+)\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) (?P<bytes>\\d+)"
+  stage.json {
+    expressions = {
+      timestamp              = "",
+      remote_addr            = "",
+      http_method            = "",
+      endpoint               = "",
+      status_code            = "",
+      bytes                  = "",
+      http_referer           = "",
+      http_user_agent        = "",
+      request_time_ms        = "",
+    }
   }
 
   stage.labels {
     values = {
-      method = "",
-      status = "",
+      http_method = "",
+      status_code = "",
     }
   }
 
   stage.timestamp {
-    source = "time"
-    format = "02/Jan/2006:15:04:05 -0700"
+    source = "timestamp"
+    format = "RFC3339"
+  }
+}
+
+// Tomcat/Catalina server logs — lifecycle, startup, webapp deployment.
+// Differentiated from wildbook application logs via log_type=catalina.
+// catalina.*.log  = engine-level events (startup, shutdown, class loading)
+// localhost.*.log = per-webapp events (deployment, context lifecycle)
+local.file_match "catalina" {
+  path_targets = [{
+    __path__    = "/logs/wildbook/catalina.*.log",
+    job         = "catalina",
+    service     = "wildbook",
+    log_type    = "catalina",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }, {
+    __path__    = "/logs/wildbook/localhost.[0-9]*.log",
+    job         = "catalina",
+    service     = "wildbook",
+    log_type    = "catalina",
+    domain      = env("DOMAIN_NAME"),
+    environment = env("ENVIRONMENT"),
+    host        = env("HOSTNAME"),
+  }]
+
+  sync_period = "5s"
+}
+
+loki.source.file "catalina" {
+  targets    = local.file_match.catalina.targets
+  forward_to = [loki.process.parse_catalina.receiver]
+}
+
+loki.process "parse_catalina" {
+  forward_to = [loki.write.loki_endpoint.receiver]
+
+  // Tomcat JUL format: 15-Jan-2024 10:30:00.123 UTC [thread] LEVEL logger -- message
+  stage.regex {
+    expression = "^(?P<timestamp>\\d{2}-\\w{3}-\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\w+) \\[(?P<thread>[^\\]]+)\\] (?P<level>\\w+) (?P<logger>\\S+)"
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "timestamp"
+    format = "02-Jan-2006 15:04:05.000 MST"
   }
 }
 
