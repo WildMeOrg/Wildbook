@@ -182,8 +182,8 @@ describe("LocationSectionEdit", () => {
   });
 
   test("Tree data is built from siteSettingsData.locationData", () => {
-    const convertToTreeData =
-      require("../../../utils/converToTreeData").default;
+    const convertToTreeDataWithName =
+      require("../../../utils/cconvertToTreeDataWithName").default;
     const store = makeStore({
       siteSettingsData: {
         locationData: { locationID: [{ id: 1, name: "X" }] },
@@ -197,7 +197,7 @@ describe("LocationSectionEdit", () => {
       </Suspense>,
     );
 
-    expect(convertToTreeData).toHaveBeenCalledWith(
+    expect(convertToTreeDataWithName).toHaveBeenCalledWith(
       store.siteSettingsData.locationData.locationID,
       "value",
       "label",
