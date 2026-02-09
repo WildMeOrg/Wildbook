@@ -62,12 +62,19 @@ const LocationFilterMap = observer(({ data, store }) => {
     return result;
   }
 
-  const flattenedData = flattenLocationData(data?.locationData);
-  const locationIDOptions =
-    flattenedData.map((location) => ({
-      value: location.id,
-      label: _.repeat("-", location.depth) + " " + location.name,
-    })) || [];
+  const flattenedData = React.useMemo(
+    () => flattenLocationData(data?.locationData),
+    [data?.locationData],
+  );
+
+  const locationIDOptions = React.useMemo(
+    () =>
+      flattenedData.map((location) => ({
+        value: location.id,
+        label: `${_.repeat("-", location.depth)} ${location.name}`,
+      })),
+    [flattenedData],
+  );
 
   const keyMapping = {
     north: "top_left.lat",
