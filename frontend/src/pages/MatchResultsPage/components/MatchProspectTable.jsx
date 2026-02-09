@@ -356,9 +356,12 @@ const MatchProspectTable = ({
                       onClick={(e) => e.stopPropagation()}
                     >
                       {Number.isFinite(candidate?.score)
-                        ? candidate.score.toLocaleString(undefined, {
-                            maximumFractionDigits: 4,
-                          })
+                        ? Math.max(candidate.score, 0).toLocaleString(
+                            undefined,
+                            {
+                              maximumFractionDigits: 4,
+                            },
+                          )
                         : "—"}
                     </a>
 
