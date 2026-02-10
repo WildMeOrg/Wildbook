@@ -1,0 +1,266 @@
+// ============================================
+// GRAFANA ALLOY CONFIGURATION FOR WILDBOOK
+// WITH TEMPO TRACING SUPPORT
+// ============================================
+
+// --------------------------------------------
+// LOG COLLECTION FROM DOCKER CONTAINERS
+// --------------------------------------------
+
+loki.source.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  targets_refresh_interval = "30s"
+  
+  // Only collect from containers with logging=alloy label
+  labels = {
+    job = "docker",
+  }
+}
+
+// --------------------------------------------
+// LOG PROCESSING PIPELINE
+// --------------------------------------------
+
+loki.process "docker_logs" {
+  forward_to = [loki.write.main.receiver]
+
+  // Extract container metadata as labels
+  stage.docker {}
+
+  // Add standard labels from Docker
+  stage.labels {
+    values = {
+      service     = "container_label_com_docker_compose_service",
+      domain      = "container_label_domain",
+      environment = "container_label_environment",
+    }
+  }
+
+  // Parse JSON logs for Wildbook containers
+  stage.match {
+    selector = "{service=\"wildbook\"}"
+    
+    // Parse the JSON log line
+    stage.json {
+      expressions = {
+        level       = "level",
+        logger      = "loggerName",
+        thread      = "thread",
+        message     = "message",
+        timestamp   = "instant.epochSecond",
+        trace_id    = "contextMap.trace_id",    // Extract trace ID if present
+        span_id     = "contextMap.span_id",     // Extract span ID if present
+        
+        // Extract from contextMap (ThreadContext fields)
+        action      = "contextMap.action",
+        username    = "contextMap.username",
+        user_id     = "contextMap.user_id",
+        client_ip   = "contextMap.client_ip",
+        session_id  = "contextMap.session_id",
+        endpoint    = "contextMap.endpoint",
+        http_method = "contextMap.http_method",
+        request_id  = "contextMap.request_id",
+        duration_ms = "contextMap.duration_ms",
+        error_type  = "contextMap.error_type",
+      }
+    }
+    
+    // Add level as a label for filtering
+    stage.labels {
+      values = {
+        level = "",
+      }
+    }
+    
+    // Set proper timestamp
+    stage.timestamp {
+      source = "timestamp"
+      format = "unix"
+    }
+  }
+
+  // Parse nginx access logs
+  stage.match {
+    selector = "{service=\"nginx\"}"
+    
+    stage.regex {
+      expression = "^(?P<client_ip>[\\w\\.]+) - (?P<user>[\\w-]+) \\[(?P<timestamp>[^\\]]+)\\] \"(?P<method>\\w+) (?P<path>[^ ]+) (?P<protocol>[^\"]+)\" (?P<status>\\d+) (?P<bytes>\\d+)"
+    }
+    
+    stage.labels {
+      values = {
+        method = "",
+        status = "",
+      }
+    }
+    
+    stage.timestamp {
+      source = "timestamp"
+      format = "02/Jan/2006:15:04:05 -0700"
+    }
+  }
+}
+
+// --------------------------------------------
+// SEND LOGS TO LOKI
+// --------------------------------------------
+
+loki.write "main" {
+  endpoint {
+    url = env("LOKI_URL")
+  }
+  
+  // Batch settings for performance
+  batching {
+    batch_size = 1048576  // 1MB
+    batch_wait = "5s"
+  }
+  
+  // External labels added to all logs
+  external_labels = {
+    hostname = env("HOSTNAME"),
+  }
+}
+
+// --------------------------------------------
+// TRACING CONFIGURATION
+// --------------------------------------------
+
+// OpenTelemetry receiver for traces
+otelcol.receiver.otlp "default" {
+  // GRPC receiver
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  // HTTP receiver  
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    traces = [otelcol.processor.batch.default.input]
+  }
+}
+
+// Batch processor for traces
+otelcol.processor.batch "default" {
+  // Batch timeout
+  timeout = "5s"
+  
+  // Maximum batch size
+  send_batch_size = 1000
+
+  output {
+    traces = [otelcol.processor.attributes.default.input]
+  }
+}
+
+// Attributes processor to add metadata
+otelcol.processor.attributes "default" {
+  // Add environment attributes to all spans
+  action {
+    key = "environment"
+    value = env("ENVIRONMENT")
+    action = "upsert"
+  }
+  
+  action {
+    key = "domain"
+    value = env("DOMAIN_NAME")
+    action = "upsert"
+  }
+  
+  action {
+    key = "hostname"
+    value = env("HOSTNAME")
+    action = "upsert"
+  }
+
+  output {
+    traces = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+// Export traces to Tempo
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = env("TEMPO_URL")
+    
+    // Use insecure connection for local development
+    tls {
+      insecure = true
+      insecure_skip_verify = true
+    }
+  }
+}
+
+// --------------------------------------------
+// OPTIONAL: JAEGER RECEIVER
+// --------------------------------------------
+
+// Uncomment to receive Jaeger formatted traces
+// otelcol.receiver.jaeger "default" {
+//   protocols {
+//     grpc {
+//       endpoint = "0.0.0.0:14250"
+//     }
+//     thrift_http {
+//       endpoint = "0.0.0.0:14268"
+//     }
+//     thrift_binary {
+//       endpoint = "0.0.0.0:6831"
+//     }
+//     thrift_compact {
+//       endpoint = "0.0.0.0:6832"
+//     }
+//   }
+//   
+//   output {
+//     traces = [otelcol.processor.batch.default.input]
+//   }
+// }
+
+// --------------------------------------------
+// OPTIONAL: ZIPKIN RECEIVER
+// --------------------------------------------
+
+// Uncomment to receive Zipkin formatted traces
+// otelcol.receiver.zipkin "default" {
+//   endpoint = "0.0.0.0:9411"
+//   
+//   output {
+//     traces = [otelcol.processor.batch.default.input]
+//   }
+// }
+
+// --------------------------------------------
+// OPTIONAL: TRACE SAMPLING
+// --------------------------------------------
+
+// Uncomment to enable trace sampling
+// otelcol.processor.probabilistic_sampler "default" {
+//   // Sample 10% of traces
+//   sampling_percentage = 10
+//   
+//   output {
+//     traces = [otelcol.processor.batch.default.input]
+//   }
+// }
+
+// --------------------------------------------
+// HEALTH CHECK ENDPOINT
+// --------------------------------------------
+
+// Expose health check endpoint
+http "health" {
+  address = "0.0.0.0"
+  port = 12345
+  
+  path "/health" {
+    respond {
+      status = 200
+      body = "Alloy is healthy"
+    }
+  }
+}

@@ -12,8 +12,8 @@ import java.nio.file.Paths;
 import org.ecocean.Util;
 import org.json.JSONObject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * LocalAssetStore references MediaAssets on the current host's filesystem.
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class LocalAssetStore extends AssetStore {
     private static final String KEY_ROOT = "root";
     private static final String KEY_WEB_ROOT = "webroot";
-    private static final Logger logger = LoggerFactory.getLogger(
+    private static final Logger log = LogManager.getLogger(
         org.ecocean.media.LocalAssetStore.class);
     private Path root;
     transient private String webRoot;
@@ -44,7 +44,7 @@ public class LocalAssetStore extends AssetStore {
      *
      * @param webRoot Base web url under which asset paths are appended.  If null, this store offers no web access to assets.
      *
-     * @param wriable True if we are allowed to save files under the root.
+     * @param writable True if we are allowed to save files under the root.
      */
     public LocalAssetStore(final String name, final Path root, final String webRoot,
         final boolean writable) {
@@ -81,7 +81,7 @@ public class LocalAssetStore extends AssetStore {
     public Path root() {
         if (root == null) {
             root = config.getPath(KEY_ROOT);
-            logger.info("Asset Store [" + name + "] using root [" + root + "]");
+            log.debug("Asset Store [" + name + "] using root [" + root + "]");
         }
         return root;
     }
@@ -90,7 +90,7 @@ public class LocalAssetStore extends AssetStore {
     public String webRoot() {
         if (webRoot == null) {
             webRoot = config.getString(KEY_WEB_ROOT);
-            logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
+            log.debug("Asset Store [" + name + "] using web root [" + webRoot + "]");
         }
         return webRoot;
     }
@@ -111,7 +111,7 @@ public class LocalAssetStore extends AssetStore {
         try {
             return new MediaAsset(this, params);
         } catch (IllegalArgumentException e) {
-            logger.warn("Bad path", e);
+            log.warn("Bad path", e);
             return null;
         }
     }
@@ -145,7 +145,7 @@ public class LocalAssetStore extends AssetStore {
         if (params == null) throw new IllegalArgumentException("null path");
         Object p = getParameter(params, "path");
         if (p == null) {
-            logger.warn("pathFromParameters(): Invalid parameters");
+            log.warn("pathFromParameters(): Invalid parameters");
             throw new IllegalArgumentException("null path");
         }
         Path passed = Paths.get(p.toString());
@@ -166,7 +166,7 @@ public class LocalAssetStore extends AssetStore {
         if (subpath == null) throw new IOException("no path passed in parameters");
         Path fullpath = root().resolve(subpath);
         fullpath.getParent().toFile().mkdirs();
-        logger.debug("copying from " + file + " to " + fullpath);
+        log.debug("copying from " + file + " to " + fullpath);
         Files.copy(file.toPath(), fullpath, REPLACE_EXISTING);
         params.put("path", subpath.toString()); // always store it relative, not absolute (in case it was passed in as such)
         if (!createMediaAsset) return null;
@@ -253,10 +253,10 @@ public class LocalAssetStore extends AssetStore {
             } else {
                 url = new URL(webRoot() + path.toString());
             }
-            logger.debug("url: " + url.toString());
+            log.debug("url: " + url.toString());
             return url;
         } catch (MalformedURLException e) {
-            logger.warn("Can't construct web path", e);
+            log.warn("Can't construct web path", e);
             return null;
         }
     }
