@@ -229,10 +229,13 @@ public class Embedding implements java.io.Serializable {
         MLService mls = new MLService();
         String lastId = null;
         int ct = 0;
+        int ok = 0;
+        List<String> runIds = new ArrayList<String>();
         for (Annotation ann : anns) {
             ct++;
             System.out.println("catchUpEmbeddings: [" + ct + "]: " + ann);
             lastId = ann.getId();
+            runIds.add(lastId);
             String txStr = ann.getTaxonomyString(myShepherd);
             if (txStr == null) {
                 embData.put(ann.getId(), "null taxonomy");
@@ -241,6 +244,7 @@ public class Embedding implements java.io.Serializable {
             try {
                 mls.send(ann, txStr, myShepherd);
                 System.out.println("catchUpEmbeddings: completed " + ann);
+                ok++; // send() may have found duplicate and not added new, but we count as ok
                 /// maybe set on embData when we have *no embeddings* but did not have exception??
             } catch (IAException ex) {
                 // certain cases we store in embData, so they *will not be retried later*
@@ -250,6 +254,9 @@ public class Embedding implements java.io.Serializable {
             }
         }
         System.out.println("catchUpEmbeddings: finished with lastId=" + lastId);
+        embData.put("_runCount", ct);
+        embData.put("_runOk", ok);
+        embData.put("_runIds", runIds);
         embData.put("_lastId", lastId);
         SystemValue.set(myShepherd, "EMBEDDING_CATCHUP", embData);
         return embData;
