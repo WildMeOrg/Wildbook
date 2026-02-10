@@ -245,7 +245,8 @@ services:
     volumes:
       - .dockerfiles/alloy/config.alloy:/etc/alloy/config.alloy
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro
-      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs:/logs:ro"
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/wildbook:/logs/wildbook:ro"
+      - "$WILDBOOK_BASE_DIR/wb-docker-deploy/logs/nginx:/logs/nginx:ro"
       - postgresql-logs:/logs/postgresql:ro
       - alloy-data:/var/lib/alloy
       # This volume mount will fail gracefully on macOS/Windows
