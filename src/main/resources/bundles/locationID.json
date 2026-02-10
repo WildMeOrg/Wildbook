@@ -8,6 +8,16 @@
 			"locationID": []
 		},
 		{
+			"name": "Bosnia and Herzegovina",
+			"id": "Bosnia and Herzegovina",
+			"locationID": []
+		},
+		{
+			"name": "Croatia",
+			"id": "Croatia",
+			"locationID": []
+		},
+		{
 			"name": "France",
 			"id": "France",
 			"locationID": [
@@ -897,6 +907,21 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "Italy",
+			"id":"Italy",
+			"locationID": []
+		},
+		{
+			"name": "Montenegro",
+			"id": "Montenegro",
+			"locationID": []
+		},
+		{
+			"name": "Slovenia",
+			"id": "Slovenia",
+			"locationID": []
 		},
 		{
 			"name": "Switzerland",
