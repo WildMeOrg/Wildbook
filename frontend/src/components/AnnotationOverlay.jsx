@@ -16,7 +16,7 @@ const InteractiveAnnotationOverlay = forwardRef(
       originalHeight = 0,
       rotationInfo = null,
       initialZoom = 1,
-      minZoom = 0.5,
+      minZoom = 1,
       maxZoom = 3,
       zoomStep = 0.25,
       showAnnotations: showAnnotationsProp,
