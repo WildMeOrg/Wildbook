@@ -276,6 +276,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
         term={"terms"}
         filterKey={"Haplotype"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroupMultiSelect
@@ -288,6 +289,7 @@ const BiologicalSamplesAndAnalysesFilter = ({ data, store }) => {
         filterId={"geneticSex"}
         filterKey={"Genetic Sex"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <BioMeasurements

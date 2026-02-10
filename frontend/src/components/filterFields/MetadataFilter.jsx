@@ -67,6 +67,7 @@ export default function MetadataFilter({ data, store }) {
         field="state"
         filterKey={"Encounter State"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <SubmitterFilter store={store} />
@@ -81,6 +82,7 @@ export default function MetadataFilter({ data, store }) {
         filterId="organizations"
         filterKey={"Organization"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
       <FormGroupMultiSelect
         isMulti={true}
@@ -92,6 +94,7 @@ export default function MetadataFilter({ data, store }) {
         filterId="projects"
         filterKey={"Project Name"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
       <FormGroupMultiSelect
         isMulti={true}
@@ -103,6 +106,7 @@ export default function MetadataFilter({ data, store }) {
         filterId="importTaskSourceName"
         filterKey={"Bulk Import Task"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
       <FormGroupMultiSelect
         isMulti={true}
@@ -114,6 +118,7 @@ export default function MetadataFilter({ data, store }) {
         filterId="assignedUsername"
         filterKey={"Assigned User"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
     </div>
   );

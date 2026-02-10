@@ -41,6 +41,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         term="terms"
         filterKey="individualSex"
         store={store}
+        loading={store.siteSettingsLoading}
       />
       <FormGroupMultiSelect
         isMulti={true}
@@ -52,6 +53,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         filterId={"individualTaxonomy"}
         filterKey={"Individual Taxonomy"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
     </div>
   );

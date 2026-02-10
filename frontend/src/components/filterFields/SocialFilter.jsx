@@ -26,18 +26,35 @@ const SocialFilter = observer(({ data, store }) => {
       };
     }) || [];
 
-  const socialGroupFormValue = store.formFilters?.find(
-    (filter) => filter.filterId.includes("individualSocialUnits"))?.query?.term;
-  const socialGroupANDChecked = socialGroupFormValue && ("individualSocialUnits" in socialGroupFormValue) ? true : isUnitChecked;
-  const formValuesSoialGroup = store.formFilters.filter(item => item.filterId.includes("individualSocialUnits"));
-  const socialGroupValue = formValuesSoialGroup?.map(item => item.query?.term?.individualSocialUnits);
+  const socialGroupFormValue = store.formFilters?.find((filter) =>
+    filter.filterId.includes("individualSocialUnits"),
+  )?.query?.term;
+  const socialGroupANDChecked =
+    socialGroupFormValue && "individualSocialUnits" in socialGroupFormValue
+      ? true
+      : isUnitChecked;
+  const formValuesSoialGroup = store.formFilters.filter((item) =>
+    item.filterId.includes("individualSocialUnits"),
+  );
+  const socialGroupValue = formValuesSoialGroup?.map(
+    (item) => item.query?.term?.individualSocialUnits,
+  );
 
-  const socialRelationshipFormValue = store.formFilters?.find(
-    (filter) => filter.filterId.includes("individualRelationshipRoles"))?.query?.term;
-  const socialRelationshipANDChecked = socialRelationshipFormValue && ("individualRelationshipRoles" in socialRelationshipFormValue) ? true : isRoleChecked;
-  const formValuesRole = store.formFilters.filter(item => item.filterId.includes("individualRelationshipRoles"));
-  const socialRelationshipValue = formValuesRole?.map(item => item.query?.term?.individualRelationshipRoles);
-  
+  const socialRelationshipFormValue = store.formFilters?.find((filter) =>
+    filter.filterId.includes("individualRelationshipRoles"),
+  )?.query?.term;
+  const socialRelationshipANDChecked =
+    socialRelationshipFormValue &&
+    "individualRelationshipRoles" in socialRelationshipFormValue
+      ? true
+      : isRoleChecked;
+  const formValuesRole = store.formFilters.filter((item) =>
+    item.filterId.includes("individualRelationshipRoles"),
+  );
+  const socialRelationshipValue = formValuesRole?.map(
+    (item) => item.query?.term?.individualRelationshipRoles,
+  );
+
   return (
     <div>
       <h4>
@@ -111,6 +128,7 @@ const SocialFilter = observer(({ data, store }) => {
           filterId={"individualSocialUnits"}
           filterKey={"Social Group Unit"}
           store={store}
+          loading={store.siteSettingsLoading}
         />
       )}
 
@@ -159,6 +177,7 @@ const SocialFilter = observer(({ data, store }) => {
           filterId={"individualRelationshipRoles"}
           filterKey={"Relationship Role"}
           store={store}
+          loading={store.siteSettingsLoading}
         />
       )}
     </div>

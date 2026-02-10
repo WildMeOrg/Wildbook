@@ -1,4 +1,4 @@
-import React  from "react";
+import React from "react";
 import { FormattedMessage } from "react-intl";
 import Form from "react-bootstrap/Form";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
@@ -38,13 +38,17 @@ const ImageLabelFilter = observer(({ data, store }) => {
 
   const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
-  const keywordsFormValue = store.formFilters?.find(
-    (filter) => filter.filterId.includes("mediaAssetKeywords"))?.query?.term;
-  const keywordsANDChecked = keywordsFormValue && ("mediaAssetKeywords" in keywordsFormValue) ? true : isChecked_keyword;
-  const formValues = store.formFilters.filter(item => item.filterId.includes("mediaAssetKeywords"));
-  const value = formValues?.map(item => item.query?.term?.mediaAssetKeywords);
-
-
+  const keywordsFormValue = store.formFilters?.find((filter) =>
+    filter.filterId.includes("mediaAssetKeywords"),
+  )?.query?.term;
+  const keywordsANDChecked =
+    keywordsFormValue && "mediaAssetKeywords" in keywordsFormValue
+      ? true
+      : isChecked_keyword;
+  const formValues = store.formFilters.filter((item) =>
+    item.filterId.includes("mediaAssetKeywords"),
+  );
+  const value = formValues?.map((item) => item.query?.term?.mediaAssetKeywords);
 
   return (
     <div>
@@ -59,8 +63,11 @@ const ImageLabelFilter = observer(({ data, store }) => {
           type="checkbox"
           id="custom-checkbox"
           label={label}
-          checked={store.formFilters?.find(
-            (filter) => filter.filterId === "numberMediaAssets")?.query?.range?.numberMediaAssets?.gte === 1}
+          checked={
+            store.formFilters?.find(
+              (filter) => filter.filterId === "numberMediaAssets",
+            )?.query?.range?.numberMediaAssets?.gte === 1
+          }
           onChange={(e) => {
             if (e.target.checked) {
               console.log(1);
@@ -76,8 +83,7 @@ const ImageLabelFilter = observer(({ data, store }) => {
                 },
                 "Number Media Assets",
               );
-            }
-            else {
+            } else {
               store.removeFilter("numberMediaAssets");
             }
           }}
@@ -127,6 +133,7 @@ const ImageLabelFilter = observer(({ data, store }) => {
           term="terms"
           filterKey="Media Asset Keywords"
           store={store}
+          loading={store.siteSettingsLoading}
         />
       )}
 
@@ -142,6 +149,7 @@ const ImageLabelFilter = observer(({ data, store }) => {
         field={"annotationViewpoints"}
         filterKey={"View Point"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroupMultiSelect
@@ -154,6 +162,7 @@ const ImageLabelFilter = observer(({ data, store }) => {
         term="terms"
         filterKey={"IA Class"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
     </div>
   );

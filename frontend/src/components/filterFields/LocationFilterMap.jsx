@@ -158,6 +158,7 @@ const LocationFilterMap = observer(({ data, store }) => {
         field="locationId"
         filterKey="Location ID"
         store={store}
+        loading={store.siteSettingsLoading}
       />
     </div>
   );

@@ -13,6 +13,9 @@ export default function LocationFilterText({ store }) {
       };
     }) || [];
 
+  console.log("store.siteSettingsLoading", store.siteSettingsLoading);
+  console.log("countries.length", JSON.stringify(countries.length));
+
   return (
     <div className="mt-3">
       <FormGroupText
@@ -21,7 +24,7 @@ export default function LocationFilterText({ store }) {
         field="verbatimLocality"
         filterId={"verbatimLocality"}
         filterKey="Verbatim Location"
-        store={store} 
+        store={store}
       />
 
       <FormGroupMultiSelect
@@ -33,6 +36,7 @@ export default function LocationFilterText({ store }) {
         field="country"
         filterKey="Country"
         store={store}
+        loading={store.siteSettingsLoading}
       />
     </div>
   );

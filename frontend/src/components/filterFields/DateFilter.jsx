@@ -153,6 +153,7 @@ const DateFilter = observer(({ data, store }) => {
         field="verbatimEventDate"
         filterKey="Verbatim Event Date"
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <>

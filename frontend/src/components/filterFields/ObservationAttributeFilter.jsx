@@ -74,6 +74,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         term="terms"
         filterKey="Sex"
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroupText
@@ -95,6 +96,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         term="terms"
         filterKey="Life Stage"
         store={store}
+        loading={store.siteSettingsLoading}
       />
       <FormGroupMultiSelect
         isMulti={true}
@@ -105,6 +107,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         term="terms"
         filterKey="Living Status"
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroupMultiSelect
@@ -117,6 +120,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         filterId={"Taxonomy"}
         filterKey={"Genus and Species"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroup className="mt-2">
@@ -136,6 +140,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         term="terms"
         filterKey="Behavior"
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroupMultiSelect
@@ -147,6 +152,7 @@ export default function ObservationAttributeFilter({ data, store }) {
         term={"terms"}
         filterKey={"Patterning Code"}
         store={store}
+        loading={store.siteSettingsLoading}
       />
 
       <FormGroup className="mt-2">
