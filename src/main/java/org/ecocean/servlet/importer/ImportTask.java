@@ -20,6 +20,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.Project;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.social.Relationship;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -535,6 +536,13 @@ public class ImportTask implements java.io.Serializable {
                     mark.removeEncounter(enc);
                     // myShepherd.updateDBTransaction();
                     if (mark.getEncounters().size() == 0) {
+                        // remove any relationships involving this individual
+                        ArrayList<Relationship> rels = myShepherd.getAllRelationshipsForMarkedIndividual(mark.getId());
+                        if (rels != null && rels.size() > 0) {
+                            for (Relationship rel : rels) {
+                                myShepherd.getPM().deletePersistent(rel);
+                            }
+                        }
                         // check for social unit membership and remove
                         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
                             mark);
