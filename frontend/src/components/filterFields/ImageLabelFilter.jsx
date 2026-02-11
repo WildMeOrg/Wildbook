@@ -6,6 +6,7 @@ import Description from "../Form/Description";
 import AndSelector from "../AndSelector";
 import LabelledKeywordFilter from "../Form/LabelledKeywordFilter";
 import { observer } from "mobx-react-lite";
+import ContainerWithSpinner from "../ContainerWithSpinner";
 
 const ImageLabelFilter = observer(({ data, store }) => {
   const keywordsOptions =
@@ -124,46 +125,50 @@ const ImageLabelFilter = observer(({ data, store }) => {
           value={value}
         />
       ) : (
-        <FormGroupMultiSelect
-          isMulti={true}
-          noLabel={true}
-          label="FILTER_KEYWORDS"
-          options={keywordsOptions}
-          field="mediaAssetKeywords"
-          term="terms"
-          filterKey="Media Asset Keywords"
-          store={store}
-          loading={store.siteSettingsLoading}
-        />
+        <ContainerWithSpinner loading={store.siteSettingsLoading}>
+          <FormGroupMultiSelect
+            isMulti={true}
+            noLabel={true}
+            label="FILTER_KEYWORDS"
+            options={keywordsOptions}
+            field="mediaAssetKeywords"
+            term="terms"
+            filterKey="Media Asset Keywords"
+            store={store}
+            loading={store.siteSettingsLoading}
+          />
+        </ContainerWithSpinner>
       )}
 
       <LabelledKeywordFilter data={data} store={store} />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        label="FILTER_VIEWPOINT"
-        noDesc={true}
-        options={viewPointOptions}
-        filterId="annotationViewpoints"
-        term="terms"
-        field={"annotationViewpoints"}
-        filterKey={"View Point"}
-        store={store}
-        loading={store.siteSettingsLoading}
-      />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        label="FILTER_IA_CLASS"
-        noDesc={true}
-        options={iaClassOptions}
-        filterId="annotationIAClasses"
-        field={"annotationIAClasses"}
-        term="terms"
-        filterKey={"IA Class"}
-        store={store}
-        loading={store.siteSettingsLoading}
-      />
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          label="FILTER_VIEWPOINT"
+          noDesc={true}
+          options={viewPointOptions}
+          filterId="annotationViewpoints"
+          term="terms"
+          field={"annotationViewpoints"}
+          filterKey={"View Point"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          label="FILTER_IA_CLASS"
+          noDesc={true}
+          options={iaClassOptions}
+          filterId="annotationIAClasses"
+          field={"annotationIAClasses"}
+          term="terms"
+          filterKey={"IA Class"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
     </div>
   );
 });

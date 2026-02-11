@@ -248,7 +248,7 @@ export const ImageSection = observer(({ store }) => {
       filesArray.forEach((file) => {
         flowInstance.addFile(file);
       });
-      e.dataTransfer.clearData();
+      // e.dataTransfer.clearData();
     }
   };
 

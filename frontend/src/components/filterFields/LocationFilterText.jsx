@@ -2,6 +2,7 @@ import React from "react";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import FormGroupText from "../Form/FormGroupText";
+import ContainerWithSpinner from "../ContainerWithSpinner";
 
 export default function LocationFilterText({ store }) {
   const { data } = useGetSiteSettings();
@@ -13,9 +14,6 @@ export default function LocationFilterText({ store }) {
       };
     }) || [];
 
-  console.log("store.siteSettingsLoading", store.siteSettingsLoading);
-  console.log("countries.length", JSON.stringify(countries.length));
-
   return (
     <div className="mt-3">
       <FormGroupText
@@ -26,18 +24,19 @@ export default function LocationFilterText({ store }) {
         filterKey="Verbatim Location"
         store={store}
       />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        label="FILTER_COUNTRY"
-        options={countries}
-        term="terms"
-        field="country"
-        filterKey="Country"
-        store={store}
-        loading={store.siteSettingsLoading}
-      />
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          label="FILTER_COUNTRY"
+          options={countries}
+          term="terms"
+          field="country"
+          filterKey="Country"
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
     </div>
   );
 }

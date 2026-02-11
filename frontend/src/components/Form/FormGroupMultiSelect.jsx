@@ -18,8 +18,6 @@ export default function FormGroupMultiSelect({
 }) {
   const isDisabled = loading;
 
-  console.log("loading", loading);
-
   const displayOptions = loading
     ? [
         {
