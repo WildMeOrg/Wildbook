@@ -98,17 +98,7 @@ public class JavascriptGlobals extends HttpServlet {
         rtn.put("classDefinitions", classDefn);
 
         HashMap uploader = new HashMap();
-        String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
-        if (s3key == null) {
-            uploader.put("type", "local");
-        } else {
-            uploader.put("type", "s3direct");
-            uploader.put("s3_accessKeyId", s3key);
-            uploader.put("s3_secretAccessKey",
-                CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
-            uploader.put("s3_region", CommonConfiguration.getProperty("s3upload_region", context));
-            uploader.put("s3_bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
-        }
+        uploader.put("type", "local");
         rtn.put("uploader", uploader);
 
         LinkedHashMap<String, String> kw = new LinkedHashMap<String, String>();

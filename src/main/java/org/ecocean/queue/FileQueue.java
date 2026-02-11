@@ -15,10 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
-/*
-   File-based queue... not as nice as RabbitMQ but should(!?) work on "most" systems?
- */
-
 public class FileQueue extends Queue {
     private static String TYPE_NAME = "File";
     private static File queueBaseDir = null;
