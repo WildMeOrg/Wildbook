@@ -62,7 +62,7 @@ const Encounter = observer(() => {
   useEffect(() => {
     if (!siteSettings) return;
     store.setSiteSettings(siteSettings);
-    store.setSiteSettingsLoading(true);
+    store.setSiteSettingsLoading(siteSettingsLoading);
   }, [siteSettings, store, siteSettingsLoading]);
 
   const params = new URLSearchParams(window.location.search);

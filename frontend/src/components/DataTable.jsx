@@ -226,7 +226,7 @@ const MyDataTable = observer(
     useEffect(() => {
       if (siteSettingsData) {
         store.setSiteSettingsData(siteSettingsData);
-        store.setSiteSettingsLoading(true);
+        store.setSiteSettingsLoading(siteSettingsLoading);
       }
     }, [siteSettingsData, siteSettingsLoading]);
 
