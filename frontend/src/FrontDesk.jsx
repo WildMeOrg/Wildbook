@@ -29,7 +29,7 @@ export default function FrontDesk() {
   const showClassicEncounterSearch = data?.showClassicEncounters;
   const checkLoginStatus = () => {
     axios
-      .head("/api/v3/user", { timeout: 5000 })
+      .head("/api/v3/user")
       .then((response) => {
         if (response.status === 200) {
           setIsLoggedIn(true);
@@ -39,10 +39,10 @@ export default function FrontDesk() {
       .catch((error) => {
         if (error.response?.status === 401) {
           setIsLoggedIn(false);
+          setLoading(false);
         } else {
           console.warn("Login status check failed (non-401):", error.message);
         }
-        setLoading(false);
       });
   };
 
