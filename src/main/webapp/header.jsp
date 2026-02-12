@@ -603,31 +603,29 @@ if(request.getUserPrincipal()!=null){
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("Resources")%><span class="svg-placeholder"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                         
-                          <li><a href="https://wildbook.docs.wildme.org/"><%=props.getProperty("WildbookDocumentation")%></a></li>
-                              
-                          <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
-                            <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
-                            <li class="dropdown-submenu">
-                              <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook"><%=props.getProperty("policiesAndData")%></a></li> --%>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
-                                  <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
-                                </svg>
-                              </a>
-                              
-                              <ul class="dropdown-menu">
-                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=privacy_policy"><%=props.getProperty("privacyPolicy")%></a></li>
-                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=terms_of_use"><%=props.getProperty("termsOfUse")%></a></li>
-                                <li><a href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook"><%=props.getProperty("citingWildbook")%></a></li>
-                              </ul>
-                            </li>
-                            <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))) { %>
-                            <li><a href="/react/how-to-photograph" ><%=props.getProperty("howToPhotograph")%></a></li>
-<% } %>
-                            <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
-                          <%-- <li class="divider"></li> --%>
+                        <ul class="dropdown-menu" role="menu">  
+                          <li><a href="<%=urlLoc %>/react/about-us"><%=props.getProperty("AboutUs")%></a></li>
+                          <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
+                          <li class="dropdown-submenu">
+                            <a href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook">
+                              <%=props.getProperty("policiesAndData")%>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+                              </svg>
+                            </a>
+                            <ul class="dropdown-menu">
+                              <li><a href="<%=urlLoc %>/react/policies-and-data?section=privacy_policy"><%=props.getProperty("privacyPolicy")%></a></li>
+                              <li><a href="<%=urlLoc %>/react/policies-and-data?section=terms_of_use"><%=props.getProperty("termsOfUse")%></a></li>
+                              <li><a href="<%=urlLoc %>/react/policies-and-data?section=citing_wildbook"><%=props.getProperty("citingWildbook")%></a></li>
+                            </ul>
+                          </li>
+                          <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("showHowToPhotograph", context))) { %>
+                            <li><a href="<%=urlLoc %>/react/how-to-photograph"><%=props.getProperty("howToPhotograph")%></a></li>
+                          <% } %>
+                          <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
+                                                  <%-- <li class="divider"></li> --%>
                         </ul>
+
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("Data")%> <span class="svg-placeholder"></span></a>
