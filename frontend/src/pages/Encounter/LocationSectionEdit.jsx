@@ -5,15 +5,13 @@ import { Alert } from "react-bootstrap";
 import TextInput from "../../components/generalInputs/TextInput";
 import CoordinatesInput from "../../components/generalInputs/CoordinatesInput";
 import { Suspense, lazy } from "react";
-import convertToTreeData from "../../utils/converToTreeData";
+import convertToTreeDataWithName from "../../utils/convertToTreeDataWithName";
 import { FormattedMessage } from "react-intl";
 
 const TreeSelect = lazy(() => import("antd/es/tree-select"));
 export const LocationSectionEdit = observer(({ store }) => {
-  const locationOptions = convertToTreeData(
+  const locationOptions = convertToTreeDataWithName(
     store.siteSettingsData?.locationData?.locationID,
-    "value",
-    "label",
   );
 
   return (
