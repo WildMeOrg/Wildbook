@@ -381,6 +381,7 @@ const MatchProspectTable = ({
                     {(isRowHovered || isRowSelected) && (
                       <button
                         type="button"
+                        title="Open Encounter Page"
                         style={styles.encounterButton(themeColor)}
                         className="btn btn-sm p-0 px-2"
                         onClick={(e) => {

@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import ThemeColorContext from "../../ThemeColorProvider";
 
-export default function EncounterIcon({ height = 24, width = 24 }) {
+export default function EncounterIcon({ height = 28, width = 28 }) {
   const themeColor = useContext(ThemeColorContext);
   return (
     <div>
