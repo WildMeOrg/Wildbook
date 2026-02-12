@@ -17,14 +17,27 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
   const theme = useContext(ThemeColorContext);
   const [currentPage, setCurrentPage] = useState(0);
   const [pagedData, setPagedData] = useState([]);
+  const [dataset, setDataset] = useState([]);
 
   const pageCount = Math.ceil(data.length / perPage);
 
   useEffect(() => {
+    if (dataset.length === 0) {
+      const indexedData = data.map((row, index) => ({
+        ...row,
+        tableID: row.tableID ?? index + 1,
+      }));
+      setDataset(indexedData);
+      setCurrentPage(0);
+    }
+    setPagedData([...dataset].slice(0, perPage));
+  }, [data]);
+
+  useEffect(() => {
     const start = currentPage * perPage;
     const end = start + perPage;
-    setPagedData(data.slice(start, end));
-  }, [data, currentPage, perPage]);
+    setPagedData([...dataset].slice(start, end));
+  }, [dataset, currentPage]);
 
   const userColumns = columns.map((col) => ({
     id: col.selector,
@@ -34,9 +47,24 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     cell: col.cell || ((row) => row[col.selector] || "-"),
   }));
 
+  const dataSortFunction = (column, sortDirection) => {
+    let sortedData = [...dataset].sort((rowA, rowB) => {
+      let comparison = 0;
+
+      if (column.selector(rowA) > column.selector(rowB)) {
+        comparison = 1;
+      } else if (column.selector(rowA) < column.selector(rowB)) {
+        comparison = -1;
+      }
+
+      return sortDirection === "desc" ? comparison * -1 : comparison;
+    });
+    setDataset(sortedData);
+  };
+
   const conditionalRowStyles = [
     {
-      when: (row) => row.tableID % 2 === 0,
+      when: (row) => (dataset.indexOf(row) % perPage) % 2 === 0,
       style: {
         backgroundColor: "#ffffff",
         "&:hover": {
@@ -45,7 +73,7 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
       },
     },
     {
-      when: (row) => row.tableID % 2 !== 0,
+      when: (row) => (dataset.indexOf(row) % perPage) % 2 !== 0,
       style: {
         backgroundColor: "#f2f2f2",
         "&:hover": {
@@ -55,18 +83,15 @@ const SimpleDataTable = ({ columns = [], data = [], perPage = 10 }) => {
     },
   ];
 
-  const dataWithIndex = pagedData.map((row, index) => ({
-    ...row,
-    tableID: row.tableID ?? currentPage * perPage + index + 1,
-  }));
-
   return (
     <div className="container mt-3">
       <DataTable
         columns={userColumns}
-        data={dataWithIndex}
+        data={pagedData}
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
+        onSort={dataSortFunction}
+        keyField="tableID"
         highlightOnHover
       />
       <Row className="mt-3 d-flex justify-content-center">
