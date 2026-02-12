@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
-import Map from "../Map";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import Description from "../Form/Description";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import _ from "lodash-es";
 import { observer } from "mobx-react-lite";
+const LazyMap = lazy(() => import("../Map"));
 
 const LocationFilterMap = observer(({ data, store }) => {
   const [bounds, setBounds] = useState(null);
@@ -58,16 +58,23 @@ const LocationFilterMap = observer(({ data, store }) => {
         }
       });
     }
-    traverse(data.locationID, 0);
+    traverse(data.locationID || [], 0);
     return result;
   }
 
-  const flattenedData = flattenLocationData(data?.locationData);
-  const locationIDOptions =
-    flattenedData.map((location) => ({
-      value: location.id,
-      label: _.repeat("-", location.depth) + " " + location.name,
-    })) || [];
+  const flattenedData = React.useMemo(
+    () => flattenLocationData(data?.locationData),
+    [data?.locationData],
+  );
+
+  const locationIDOptions = React.useMemo(
+    () =>
+      flattenedData.map((location) => ({
+        value: location.id,
+        label: `${_.repeat("-", location.depth)} ${location.name}`,
+      })),
+    [flattenedData],
+  );
 
   const keyMapping = {
     north: "top_left.lat",
@@ -144,11 +151,13 @@ const LocationFilterMap = observer(({ data, store }) => {
           );
         })}
       </div>
-      <Map
-        bounds={bounds}
-        setBounds={setBounds}
-        setTempBounds={setTempBounds}
-      />
+      <Suspense fallback={<div style={{ height: 400 }}>Loading map…</div>}>
+        <LazyMap
+          bounds={bounds}
+          setBounds={setBounds}
+          setTempBounds={setTempBounds}
+        />
+      </Suspense>
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
