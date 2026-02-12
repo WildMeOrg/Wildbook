@@ -49,13 +49,8 @@ const authenticatedMenu = (
         href: `https://wildbook.docs.wildme.org/`,
       },
       {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_ABOUTWILDBOOK"
-            defaultMessage="About Wildbook"
-          />
-        ),
-        href: "/overview.jsp",
+        name: <FormattedMessage id="ABOUT_US" />,
+        href: "/react/about-us",
       },
       {
         name: (
@@ -345,13 +340,8 @@ const unAuthenticatedMenu = (showclassicsubmit, showHowToPhotograph) => [
         href: `https://wildbook.docs.wildme.org/`,
       },
       {
-        name: (
-          <FormattedMessage
-            id="MENU_LEARN_ABOUTWILDBOOK"
-            defaultMessage="About Wildbook"
-          />
-        ),
-        href: "/overview.jsp",
+        name: <FormattedMessage id="ABOUT_US" />,
+        href: "/react/about-us",
       },
       {
         name: (

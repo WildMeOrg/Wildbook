@@ -6,6 +6,7 @@ import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import Footer from "./components/Footer";
 import useGetMe from "./models/auth/users/useGetMe";
 import HowToPhotograph from "./pages/HowToPhotograph";
+import AboutUs from "./pages/AboutUs";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -80,6 +81,7 @@ export default function AuthenticatedSwitch({
             <Route path="/profile" element={<Profile />} />
             <Route path="/policies-and-data" element={<PoliciesAndData />} />
             <Route path="/how-to-photograph" element={<HowToPhotograph />} />
+            <Route path="/about-us" element={<AboutUs />} />
             <Route path="/projects/overview" element={<ProjectList />} />
             <Route path="/home" element={<Home />} />
             <Route path="/report" element={<ReportEncounter />} />

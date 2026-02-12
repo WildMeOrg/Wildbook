@@ -604,6 +604,7 @@ if(request.getUserPrincipal()!=null){
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("Resources")%><span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">  
+                           <li><a href="https://wildbook.docs.wildme.org/"><%=props.getProperty("WildbookDocumentation")%></a></li>
                           <li><a href="<%=urlLoc %>/react/about-us"><%=props.getProperty("AboutUs")%></a></li>
                           <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                           <li class="dropdown-submenu">

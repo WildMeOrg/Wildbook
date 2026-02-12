@@ -5,6 +5,7 @@ import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import EncounterPageViewOnly from "./pages/Encounter/EncounterPageViewOnly";
 import PoliciesAndData from "./pages/PoliciesAndData/PoliciesAndData";
 import HowToPhotograph from "./pages/HowToPhotograph";
+import AboutUs from "./pages/AboutUs";
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -63,6 +64,7 @@ export default function UnAuthenticatedSwitch({
             />
             <Route path="/encounter" element={<EncounterPageViewOnly />} />
             <Route path="/policies-and-data" element={<PoliciesAndData />} />
+            <Route path="/about-us" element={<AboutUs />} />
             <Route path="/how-to-photograph" element={<HowToPhotograph />} />
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
