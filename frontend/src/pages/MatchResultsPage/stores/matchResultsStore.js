@@ -1,0 +1,611 @@
+import { makeAutoObservable } from "mobx";
+import axios from "axios";
+import { MAX_ROWS_PER_COLUMN } from "../constants";
+import { getAllAnnot, getAllIndiv } from "../helperFunctions";
+
+export default class MatchResultsStore {
+  _viewMode = "individual"; // "individual" | "image"
+  _encounterId = "";
+  _encounterLocationId = "";
+  _statusOverall = "";
+  _matchingSetFilter = {};
+  _individualId = null;
+  _individualDisplayName = null;
+  _projectNames = [];
+  _numResults = 12;
+  _numCandidates = 0;
+  _matchDate = null;
+  _thisEncounterImageUrl = "";
+  _possibleMatchImageUrl = "";
+  _selectedMatchImageUrlByAlgo = new Map();
+  _selectedMatch = [];
+  _taskId = null;
+  _newIndividualName = "";
+
+  // raw data from API, before grouping / processing
+  _rawAnnots = [];
+  _rawIndivs = [];
+
+  _loading = false;
+  _matchRequestLoading = false;
+  _matchRequestError = null;
+  _hasResults = false;
+
+  constructor() {
+    makeAutoObservable(this, {}, { autoBind: true });
+  }
+
+  loadData(result) {
+    const annotResults = getAllAnnot(result?.matchResultsRoot);
+    const indivResults = getAllIndiv(result?.matchResultsRoot);
+
+    if (
+      (!annotResults || annotResults.length === 0) &&
+      (!indivResults || indivResults.length === 0)
+    ) {
+      this._rawAnnots = [];
+      this._rawIndivs = [];
+      this._encounterId = null;
+      this._matchingSetFilter = {};
+      this._individualId = null;
+      this._individualDisplayName = null;
+      this._thisEncounterImageUrl = "";
+      this._possibleMatchImageUrl = "";
+      this._numCandidates = 0;
+      this._matchDate = null;
+      this._hasResults = false;
+      this._encounterLocationId = "";
+      return;
+    }
+
+    const first =
+      this._viewMode === "image" ? annotResults[0] : indivResults[0];
+
+    if (!first) {
+      return;
+    }
+
+    this._encounterId = first.queryEncounterId;
+    this._encounterLocationId = first.encounterLocationId;
+    this._matchingSetFilter = first.matchingSetFilter;
+    this._individualId = first.queryIndividualId;
+    this._individualDisplayName = first.queryIndividualDisplayName;
+    this._matchDate = first.date;
+    this._numCandidates = first.numberCandidates;
+    this._thisEncounterImageUrl = first.queryEncounterImageUrl;
+    this._possibleMatchImageUrl = first.annotation?.asset?.url ?? "";
+    this._statusOverall = first.statusOverall;
+
+    this._rawAnnots = annotResults || [];
+    this._rawIndivs = indivResults || [];
+    this._hasResults = true;
+
+    this.resetSelectionToQuery();
+  }
+
+  _processData(rawData) {
+    // 1. group by task
+    const groupedByTask = new Map();
+    for (const item of rawData) {
+      const taskId = item.taskId || "unknown-task";
+      if (!groupedByTask.has(taskId)) groupedByTask.set(taskId, []);
+      groupedByTask.get(taskId).push(item);
+    }
+
+    //2. divide to columns
+    const sections = [];
+
+    for (const [taskId, items] of groupedByTask) {
+      const sorted = items;
+
+      const columns = [];
+      for (let i = 0; i < sorted.length; i += MAX_ROWS_PER_COLUMN) {
+        const columnData = sorted
+          .slice(i, i + MAX_ROWS_PER_COLUMN)
+          .map((data, index) => ({
+            ...data,
+            displayIndex: i + index + 1,
+          }));
+        columns.push(columnData);
+      }
+
+      const first = sorted[0] || {};
+      sections.push({
+        taskId,
+        columns,
+        metadata: {
+          numCandidates: first.numberCandidates,
+          date: first.date,
+          queryImageUrl:
+            first.queryEncounterImageAsset?.url || first.queryEncounterImageUrl,
+          queryEncounterImageAsset: first.queryEncounterImageAsset,
+          queryEncounterAnnotation: first.queryEncounterAnnotation,
+          methodName: first.methodName,
+          methodDescription: first.methodDescription,
+          taskStatus: first.taskStatus,
+          taskStatusOverall: first.taskStatusOverall,
+          algorithm: first.algorithm,
+        },
+      });
+    }
+    return sections;
+  }
+
+  // --- computed data for UI ---
+
+  get processedAnnots() {
+    return this._processData(this._rawAnnots);
+  }
+
+  get processedIndivs() {
+    return this._processData(this._rawIndivs);
+  }
+
+  get currentViewData() {
+    return this._viewMode === "individual"
+      ? this.processedIndivs
+      : this.processedAnnots;
+  }
+
+  get viewMode() {
+    return this._viewMode;
+  }
+
+  get encounterId() {
+    return this._encounterId;
+  }
+
+  get encounterLocationId() {
+    return this._encounterLocationId;
+  }
+
+  get matchingSetFilter() {
+    return this._matchingSetFilter;
+  }
+
+  get individualId() {
+    return this._individualId;
+  }
+
+  get individualDisplayName() {
+    return this._individualDisplayName;
+  }
+
+  get projectNames() {
+    return this._projectNames;
+  }
+
+  get numResults() {
+    return this._numResults;
+  }
+
+  get numCandidates() {
+    return this._numCandidates;
+  }
+
+  get matchDate() {
+    return this._matchDate;
+  }
+
+  get thisEncounterImageUrl() {
+    return this._thisEncounterImageUrl;
+  }
+
+  get possibleMatchImageUrl() {
+    return this._possibleMatchImageUrl;
+  }
+
+  get loading() {
+    return this._loading;
+  }
+
+  get matchRequestLoading() {
+    return this._matchRequestLoading;
+  }
+
+  get matchRequestError() {
+    return this._matchRequestError;
+  }
+
+  get hasResults() {
+    return this._hasResults;
+  }
+
+  get newIndividualName() {
+    return this._newIndividualName;
+  }
+
+  get taskId() {
+    return this._taskId;
+  }
+
+  get selectedMatch() {
+    return this._selectedMatch;
+  }
+
+  get uniqueIndividualIds() {
+    const ids = new Set();
+
+    if (this._individualId) {
+      ids.add(this._individualId);
+    }
+
+    this._selectedMatch.forEach((match) => {
+      if (match.individualId) {
+        ids.add(match.individualId);
+      }
+    });
+
+    return Array.from(ids);
+  }
+
+  get querySelectionItem() {
+    if (!this._encounterId) return null;
+    return {
+      encounterId: this._encounterId,
+      individualId: this._individualId || null,
+      individualDisplayName: this.individualDisplayName || null,
+    };
+  }
+
+  get selectedIncludingQuery() {
+    const selected = Array.isArray(this._selectedMatch)
+      ? this._selectedMatch
+      : [];
+    const q = this.querySelectionItem;
+    if (!q) return selected;
+
+    const withoutQueryDup = selected.filter(
+      (m) => m?.encounterId && m.encounterId !== q.encounterId,
+    );
+
+    return [q, ...withoutQueryDup];
+  }
+
+  // actions
+
+  async fetchMatchResults() {
+    if (!this._taskId) return;
+
+    this.setLoading(true);
+    this._hasResults = false;
+
+    try {
+      const params = new URLSearchParams();
+      params.set("prospectsSize", String(this.numResults));
+      if (this._projectNames && this._projectNames.length > 0) {
+        this._projectNames.forEach((projectId) => {
+          params.append("projectId", projectId);
+        });
+      }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      try {
+        const result = await axios.get(
+          `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
+          {
+            signal: controller.signal,
+            timeout: 30000,
+          },
+        );
+
+        clearTimeout(timeoutId);
+        this.loadData(result?.data);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === "AbortError" || error.code === "ECONNABORTED") {
+          console.error("Request timeout");
+        } else {
+          throw error;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  // setters and actions
+
+  setLoading(loading) {
+    this._loading = loading;
+  }
+
+  setHasResults(results) {
+    this._hasResults = results;
+  }
+
+  setTaskId(id) {
+    this._taskId = id;
+  }
+
+  setViewMode(mode) {
+    this._viewMode = mode;
+  }
+
+  setNumResults(n) {
+    this._numResults = n;
+  }
+
+  setProjectNames(names, { fetch = true } = {}) {
+    const next = Array.isArray(names) ? names : [];
+    if (JSON.stringify(this._projectNames) === JSON.stringify(next)) return;
+
+    this._projectNames = next;
+
+    if (fetch && this._taskId) {
+      this.fetchMatchResults();
+    }
+  }
+
+  setNewIndividualName(name) {
+    this._newIndividualName = name;
+  }
+
+  async handleCreateNewIndividual(selectedRemark) {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
+
+    try {
+      const newName = (this._newIndividualName || "").trim();
+      if (!newName) {
+        this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
+        return { ok: false, error: "ENTER_INDIVIDUAL_NAME" };
+      }
+
+      const encounterIds = Array.from(
+        new Set(
+          this.selectedIncludingQuery
+            .filter((m) => !m.individualId)
+            .map((m) => m.encounterId),
+        ),
+      );
+
+      const patchOps = [
+        { op: "replace", path: "individualId", value: newName },
+      ];
+
+      if (selectedRemark && selectedRemark.trim() !== "") {
+        patchOps.push({
+          op: "replace",
+          path: "identificationRemarks",
+          value: selectedRemark,
+        });
+      }
+
+      for (const id of encounterIds) {
+        await axios.patch(
+          `/api/v3/encounters/${encodeURIComponent(id)}`,
+          patchOps,
+          {
+            headers: {
+              "Content-Type": "application/json-patch+json",
+              Accept: "application/json",
+            },
+          },
+        );
+      }
+
+      this.resetSelectionToQuery();
+      return { ok: true };
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
+      return { ok: false, error: "CREATE_NEW_INDIVIDUAL_FAILED" };
+    } finally {
+      this._matchRequestLoading = false;
+    }
+  }
+
+  setSelectedMatch(
+    selected,
+    key,
+    encounterId,
+    individualId,
+    individualDisplayName,
+  ) {
+    if (!key || !encounterId) return;
+
+    if (selected) {
+      if (this._selectedMatch.some((m) => m.key === key)) return;
+      this._selectedMatch = [
+        ...this._selectedMatch,
+        {
+          key,
+          encounterId,
+          individualId: individualId || null,
+          individualDisplayName: individualDisplayName || null,
+        },
+      ];
+    } else {
+      this._selectedMatch = this._selectedMatch.filter((m) => m.key !== key);
+    }
+  }
+
+  clearSelection() {
+    this._selectedMatch = [];
+    this._matchRequestError = null;
+  }
+
+  // merge functions
+
+  //no further action needed, two cases:
+  //1. query encounter has individual ID, no match result selected -- in this case we display set match for xxx
+  //2. all encounters have same individual ID
+  handleNoFurtherActionNeeded() {
+    this.clearSelection();
+    return { ok: true, noop: true };
+  }
+
+  //confirm no match
+  async handleConfirmNoMatch() {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
+
+    try {
+      const newName = (this._newIndividualName || "").trim();
+      if (!newName) {
+        this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
+        return null;
+      }
+
+      const encounterIds = Array.from(
+        new Set(
+          this.selectedIncludingQuery.map((m) => m.encounterId).filter(Boolean),
+        ),
+      );
+
+      const patchOps = [{ op: "replace", path: "/individual", value: newName }];
+
+      for (const id of encounterIds) {
+        await axios.patch(
+          `/api/v3/encounters/${encodeURIComponent(id)}`,
+          patchOps,
+          {
+            headers: {
+              "Content-Type": "application/json-patch+json",
+              Accept: "application/json",
+            },
+          },
+        );
+      }
+
+      this._newIndividualName = "";
+      this.resetSelectionToQuery();
+      return { ok: true };
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = "PATCH_FAILED";
+      return null;
+    } finally {
+      this._matchRequestLoading = false;
+    }
+  }
+
+  //one individual
+  async handleMatch() {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
+
+    try {
+      const all = this.selectedIncludingQuery;
+
+      const uniqueIndividuals = Array.from(
+        new Set(all.map((m) => m?.individualId).filter(Boolean)),
+      );
+
+      if (uniqueIndividuals.length !== 1) {
+        this._matchRequestError = "MATCH_REQUIRES_SINGLE_INDIVIDUAL";
+        return null;
+      }
+
+      const targetIndividualId = uniqueIndividuals[0];
+
+      const unnamedEncounterIds = Array.from(
+        new Set(
+          all
+            .filter((m) => m?.encounterId && !m?.individualId)
+            .map((m) => m.encounterId)
+            .filter(Boolean),
+        ),
+      );
+
+      const params = new URLSearchParams();
+      if (this._encounterId) params.set("number", this._encounterId);
+      if (this._taskId) params.set("taskId", this._taskId);
+      params.set("individualID", targetIndividualId);
+
+      unnamedEncounterIds
+        .filter((id) => id !== this._encounterId)
+        .forEach((id) => params.append("encOther", id));
+
+      const url = `/iaResultsSetID.jsp?${params.toString()}`;
+
+      const res = await axios.get(url, {
+        headers: { Accept: "application/json" },
+      });
+      this.resetSelectionToQuery();
+      return res.data;
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = "MATCH_FAILED";
+      return null;
+    } finally {
+      this._matchRequestLoading = false;
+    }
+  }
+
+  //merge two individuals and encounters
+  async handleMerge() {
+    this._matchRequestLoading = true;
+    this._matchRequestError = null;
+
+    try {
+      const all = this.selectedIncludingQuery;
+
+      const uniqueIndividuals = Array.from(
+        new Set(all.map((m) => m?.individualId).filter(Boolean)),
+      );
+
+      if (uniqueIndividuals.length !== 2) {
+        this._matchRequestError = "MERGE_REQUIRES_TWO_INDIVIDUALS";
+        return null;
+      }
+
+      const [individualA, individualB] = uniqueIndividuals;
+
+      const unnamedEncounterIds = Array.from(
+        new Set(
+          all
+            .filter((m) => m?.encounterId && !m?.individualId)
+            .map((m) => m.encounterId)
+            .filter(Boolean),
+        ),
+      );
+
+      const params = new URLSearchParams();
+      params.set("individualA", individualA);
+      params.set("individualB", individualB);
+      unnamedEncounterIds.forEach((id) => params.append("encounterId", id));
+
+      const url = `/merge.jsp?${params.toString()}`;
+      window.open(url, "_blank");
+
+      this.resetSelectionToQuery();
+      return { ok: true };
+    } catch (e) {
+      console.error(e);
+      this._matchRequestError = "MERGE_FAILED";
+      return null;
+    } finally {
+      this._matchRequestLoading = false;
+    }
+  }
+
+  resetSelectionToQuery() {
+    this._selectedMatch = [];
+    this._matchRequestError = null;
+  }
+
+  get matchingState() {
+    const all = this.selectedIncludingQuery;
+
+    const uniqueIndividuals = Array.from(
+      new Set(all.map((m) => m?.individualId).filter(Boolean)),
+    );
+
+    const allHaveIndividual =
+      all.length > 0 && all.every((m) => m?.encounterId && m?.individualId);
+
+    if (uniqueIndividuals.length === 0) return "no_individuals";
+    if (uniqueIndividuals.length === 1) {
+      return allHaveIndividual
+        ? "no_further_action_needed"
+        : "single_individual";
+    }
+    if (uniqueIndividuals.length === 2) return "two_individuals";
+    return "too_many_individuals";
+  }
+}
