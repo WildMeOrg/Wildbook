@@ -72,18 +72,33 @@
                 </ul>
               </li>
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                  aria-expanded="false">Learn<span class="svg-placeholder"></span></a>
-                <ul class="dropdown-menu" role="menu">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                  Resources<span class="svg-placeholder"></span>
+                </a>
 
-                  <li class="dropdown"><a href="overview.jsp">Overview</a></li>
-                  <li><a href="contactus.jsp">Contact Us</a></li>
-                  <li><a href="/react/citation">Citing Flukebook</a></li>
-                  <li><a href="/react/how-to-photograph">How to photograph</a></li>
+                <ul class="dropdown-menu" role="menu">
+                  <li class="dropdown"><a href="https://wildbook.docs.wildme.org/">Wildbook Documentation</a></li>
+                  <li><a href="/react/about-us">About Us</a></li>
+                  <li><a href="/contactus.jsp">Contact Us</a></li>
+                  <li class="dropdown-submenu">
+                    <a href="/react/policies-and-data?section=citing_wildbook">
+                      policies And Data
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                          class="bi bi-chevron-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                              d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+                      </svg>
+                    </a>
+                    <ul class="dropdown-menu">
+                      <li><a href="/react/policies-and-data?section=privacy_policy">privacyPolicy</a></li>
+                      <li><a href="/react/policies-and-data?section=terms_of_use">"termsOfUse"</a></li>
+                      <li><a href="/react/policies-and-data?section=citing_wildbook">"citingWildbook"</a></li>
+                    </ul>
+                  </li>
                 </ul>
               </li>
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">My Data
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Data
                   <span class="svg-placeholder"></span></a>
                 <ul class="dropdown-menu" role="menu">
                   <li class="dropdown-submenu">
@@ -103,10 +118,8 @@
                           Unapproved Animals"</a></li>
                       <li><a href="/react/encounter-search?username=USER_NAME&state=unidentifiable">
                           My Unidentifiable Animals </a></li>
-
                     </ul>
                   </li>
-
                   <li><a href="individualSearchResults.jsp?username=USER_NAME">My Individuals</a></li>
                   <li><a href="occurrenceSearchResults.jsp?submitterID=USER_NAME">My Sightings</a></li>
                   <li><a href="imports.jsp">My BulkImports</a></li>
