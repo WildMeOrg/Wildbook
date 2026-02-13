@@ -1718,9 +1718,7 @@ export class BulkImportStore {
         const prefixKey = `Encounter.project${idx}.projectIdPrefix`;
         const nameKey = `Encounter.project${idx}.researchProjectName`;
 
-        // const prefixVal = String(row[prefixKey] ?? "").trim();
-        // const nameVal = String(row[nameKey] ?? "").trim();
-        const norm = (v) => (v === 0 ? "" : String(v ?? "").trim());
+        const norm = (v) => String(v ?? "").trim();
 
         const prefixVal = norm(row[prefixKey]);
         const nameVal = norm(row[nameKey]);
