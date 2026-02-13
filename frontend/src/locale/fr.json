@@ -418,6 +418,8 @@
   "BULK_IMPORT_INSTRUCTIONS_NEED_HELP_DOCS": "Consultez {wildbookDocsLink} pour le dépannage ou contactez le support",
   "BULK_IMPORT_INSTRUCTIONS_WILDBOOK_DOCS": "Docs Wildbook",
   "BULK_IMPORT_INSTRUCTIONS_CLOSE_BUTTON": "Fermer",
+  "BULKIMPORT_ERROR_REQUIRE_RPEFIX": "préfixe d’identifiant de projet requis manquant",
+  "BULKIMPORT_ERROR_REQUIRE_NAME": "nom du projet de recherche requis manquant",
   "PHOTOS_UPLOADED_TITLE": "photos téléchargées : {count}",
   "PHOTOS_UPLOADED": "photos téléchargées",
   "PHOTOS_FAILED": "échecs photos",
