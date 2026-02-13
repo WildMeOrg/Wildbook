@@ -1650,6 +1650,79 @@ export class BulkImportStore {
         }
       });
     });
+
+    const prefixRe = /^Encounter\.project(\d+)\.projectIdPrefix$/;
+    const nameRe = /^Encounter\.project(\d+)\.researchProjectName$/;
+
+    const prefixIdx = new Set();
+    const nameIdx = new Set();
+
+    this._columnsDef.forEach((col) => {
+      let m = prefixRe.exec(col);
+      if (m) prefixIdx.add(m[1]);
+
+      m = nameRe.exec(col);
+      if (m) nameIdx.add(m[1]);
+    });
+
+    const allIdx = new Set([...prefixIdx, ...nameIdx]);
+
+    const ensureRowErrorMap = (rowIndex) => {
+      if (!errors[rowIndex]) errors[rowIndex] = {};
+      return errors[rowIndex];
+    };
+
+    allIdx.forEach((idx) => {
+      const hasPrefixCol = prefixIdx.has(idx);
+      const hasNameCol = nameIdx.has(idx);
+
+      if (hasPrefixCol === hasNameCol) return;
+
+      const prefixKey = `Encounter.project${idx}.projectIdPrefix`;
+      const nameKey = `Encounter.project${idx}.researchProjectName`;
+
+      const row0 = ensureRowErrorMap(0);
+
+      if (!hasPrefixCol && hasNameCol) {
+        row0[nameKey] = "BULKIMPORT_ERROR_REQUIRE_RPEFIX";
+      }
+
+      if (hasPrefixCol && !hasNameCol) {
+        row0[prefixKey] = "BULKIMPORT_ERROR_REQUIRE_NAME";
+      }
+    });
+
+    this._spreadsheetData.forEach((row, rowIndex) => {
+      allIdx.forEach((idx) => {
+        if (!prefixIdx.has(idx) || !nameIdx.has(idx)) return;
+
+        const prefixKey = `Encounter.project${idx}.projectIdPrefix`;
+        const nameKey = `Encounter.project${idx}.researchProjectName`;
+
+        // const prefixVal = String(row[prefixKey] ?? "").trim();
+        // const nameVal = String(row[nameKey] ?? "").trim();
+        const norm = (v) => (v === 0 ? "" : String(v ?? "").trim());
+
+        const prefixVal = norm(row[prefixKey]);
+        const nameVal = norm(row[nameKey]);
+
+        const hasPrefixVal = prefixVal !== "";
+        const hasNameVal = nameVal !== "";
+
+        if (hasPrefixVal !== hasNameVal) {
+          const rowErr = ensureRowErrorMap(rowIndex);
+
+          if (!hasPrefixVal && hasNameVal) {
+            rowErr[nameKey] = "BULKIMPORT_ERROR_REQUIRE_RPEFIX";
+          }
+
+          if (hasPrefixVal && !hasNameVal) {
+            rowErr[prefixKey] = "BULKIMPORT_ERROR_REQUIRE_NAME";
+          }
+        }
+      });
+    });
+
     this._cachedValidation = { errors, warnings };
     return this._cachedValidation;
   }
