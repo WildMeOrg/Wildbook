@@ -6,6 +6,8 @@ import { getAllAnnot, getAllIndiv } from "../helperFunctions";
 export default class MatchResultsStore {
   _viewMode = "individual"; // "individual" | "image"
   _encounterId = "";
+  _annotResults = [];
+  _indivResults = [];
   _encounterLocationId = "";
   _statusOverall = "";
   _matchingSetFilter = {};
@@ -35,13 +37,13 @@ export default class MatchResultsStore {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
-  loadData(result) {
-    const annotResults = getAllAnnot(result?.matchResultsRoot);
-    const indivResults = getAllIndiv(result?.matchResultsRoot);
+  loadData(results) {
+    this._annotResults = getAllAnnot(results?.matchResultsRoot);
+    this._indivResults = getAllIndiv(results?.matchResultsRoot);
 
     if (
-      (!annotResults || annotResults.length === 0) &&
-      (!indivResults || indivResults.length === 0)
+      (!this._annotResults || this._annotResults.length === 0) &&
+      (!this._indivResults || this._indivResults.length === 0)
     ) {
       this._rawAnnots = [];
       this._rawIndivs = [];
@@ -59,11 +61,13 @@ export default class MatchResultsStore {
     }
 
     const first =
-      this._viewMode === "image" ? annotResults[0] : indivResults[0];
+      (this._viewMode === "image"
+        ? this._annotResults[0]
+        : this._indivResults[0]) ||
+      this._indivResults[0] ||
+      this._annotResults[0];
 
-    if (!first) {
-      return;
-    }
+    if (!first) return;
 
     this._encounterId = first.queryEncounterId;
     this._encounterLocationId = first.encounterLocationId;
@@ -76,9 +80,13 @@ export default class MatchResultsStore {
     this._possibleMatchImageUrl = first.annotation?.asset?.url ?? "";
     this._statusOverall = first.statusOverall;
 
-    this._rawAnnots = annotResults || [];
-    this._rawIndivs = indivResults || [];
-    this._hasResults = true;
+    this._rawAnnots = Array.isArray(this._annotResults)
+      ? this._annotResults
+      : [];
+    this._rawIndivs = Array.isArray(this._indivResults)
+      ? this._indivResults
+      : [];
+    this._hasResults = this._rawAnnots.length > 0 || this._rawIndivs.length > 0;
 
     this.resetSelectionToQuery();
   }
