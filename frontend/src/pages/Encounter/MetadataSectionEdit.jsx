@@ -3,8 +3,10 @@ import { observer } from "mobx-react-lite";
 import SelectInput from "../../components/generalInputs/SelectInput";
 import { Alert } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
+import ContainerWithSpinner from "../../components/ContainerWithSpinner";
 
 export const MetadataSectionEdit = observer(({ store }) => {
+  const siteSettingsLoading = Boolean(store?.siteSettingsLoading);
   return (
     <div>
       <h6 className="mt-2 mb-2">
@@ -33,22 +35,24 @@ export const MetadataSectionEdit = observer(({ store }) => {
           ""
         )}
       </h6>
-      <SelectInput
-        label="ASSIGNED_USER"
-        value={store.getFieldValue("metadata", "submitterID") ?? ""}
-        onChange={(v) => store.setFieldValue("metadata", "submitterID", v)}
-        options={
-          store.siteSettingsData?.users
-            ?.filter((item) => item.username)
-            .map((item) => {
-              return {
-                value: item.username,
-                label: item.username,
-              };
-            }) || []
-        }
-        className="mb-3"
-      />
+      <ContainerWithSpinner loading={siteSettingsLoading}>
+        <SelectInput
+          label="ASSIGNED_USER"
+          value={store.getFieldValue("metadata", "submitterID") ?? ""}
+          onChange={(v) => store.setFieldValue("metadata", "submitterID", v)}
+          options={
+            store.siteSettingsData?.users
+              ?.filter((item) => item.username)
+              .map((item) => {
+                return {
+                  value: item.username,
+                  label: item.username,
+                };
+              }) || []
+          }
+          className="mb-3"
+        />
+      </ContainerWithSpinner>
       {store.errors.hasSectionError("metadata") && (
         <Alert variant="danger">
           {store.errors.getSectionErrors("metadata").join(";")}

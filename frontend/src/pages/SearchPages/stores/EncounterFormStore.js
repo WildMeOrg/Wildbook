@@ -9,6 +9,7 @@ class EncounterFormStore {
   _activeStep = 0;
 
   _siteSettingsData = null;
+  _siteSettingsLoading = true;
 
   _loadingAll = false;
   _selectedRows = [];
@@ -48,6 +49,13 @@ class EncounterFormStore {
   }
   setSiteSettingsData(data) {
     this._siteSettingsData = data;
+  }
+
+  get siteSettingsLoading() {
+    return this._siteSettingsLoading;
+  }
+  setSiteSettingsLoading(loading) {
+    this._siteSettingsLoading = loading;
   }
 
   get formFilters() {
