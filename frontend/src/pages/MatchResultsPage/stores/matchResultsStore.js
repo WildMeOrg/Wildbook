@@ -15,10 +15,6 @@ export default class MatchResultsStore {
   _individualDisplayName = null;
   _projectNames = [];
   _numResults = 12;
-  _numCandidates = 0;
-  _matchDate = null;
-  _thisEncounterImageUrl = "";
-  _possibleMatchImageUrl = "";
   _selectedMatchImageUrlByAlgo = new Map();
   _selectedMatch = [];
   _taskId = null;
@@ -51,13 +47,16 @@ export default class MatchResultsStore {
       this._matchingSetFilter = {};
       this._individualId = null;
       this._individualDisplayName = null;
-      this._thisEncounterImageUrl = "";
-      this._possibleMatchImageUrl = "";
-      this._numCandidates = 0;
-      this._matchDate = null;
       this._hasResults = false;
       this._encounterLocationId = "";
       return;
+    }
+
+    if (!this._annotResults || this._annotResults.length === 0) {
+      this._viewMode = "individual";
+    }
+    if (!this._indivResults || this._indivResults.length === 0) {
+      this._viewMode = "image";
     }
 
     const first =
@@ -74,10 +73,6 @@ export default class MatchResultsStore {
     this._matchingSetFilter = first.matchingSetFilter;
     this._individualId = first.queryIndividualId;
     this._individualDisplayName = first.queryIndividualDisplayName;
-    this._matchDate = first.date;
-    this._numCandidates = first.numberCandidates;
-    this._thisEncounterImageUrl = first.queryEncounterImageUrl;
-    this._possibleMatchImageUrl = first.annotation?.asset?.url ?? "";
     this._statusOverall = first.statusOverall;
 
     this._rawAnnots = Array.isArray(this._annotResults)
@@ -185,22 +180,6 @@ export default class MatchResultsStore {
 
   get numResults() {
     return this._numResults;
-  }
-
-  get numCandidates() {
-    return this._numCandidates;
-  }
-
-  get matchDate() {
-    return this._matchDate;
-  }
-
-  get thisEncounterImageUrl() {
-    return this._thisEncounterImageUrl;
-  }
-
-  get possibleMatchImageUrl() {
-    return this._possibleMatchImageUrl;
   }
 
   get loading() {
@@ -439,9 +418,7 @@ export default class MatchResultsStore {
 
   // merge functions
 
-  //no further action needed, two cases:
-  //1. query encounter has individual ID, no match result selected -- in this case we display set match for xxx
-  //2. all encounters have same individual ID
+  //no further action needed
   handleNoFurtherActionNeeded() {
     this.clearSelection();
     return { ok: true, noop: true };

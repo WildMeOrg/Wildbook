@@ -252,8 +252,8 @@ const MatchResults = observer(() => {
         </div>
       </div>
 
-      {!store.hasResults ? (
-        <p className="mt-3">No match results available for this job.</p>
+      {!store.hasResults || store.currentViewData.length === 0 ? (
+        <p className="mt-3">No match results available.</p>
       ) : (
         (store.currentViewData || []).map(({ taskId, columns, metadata }) => (
           <div key={`${store.viewMode}-${taskId}`}>
