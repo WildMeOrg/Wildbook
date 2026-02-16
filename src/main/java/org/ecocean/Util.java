@@ -1252,4 +1252,18 @@ public class Util {
     public static List<String> getIdentificationRemarksValues() {
         return Arrays.asList("Unmatched first encounter", "Visual inspection", "Pattern match");
     }
+
+    // this is meant to be a temporary replacement for an old library which we are dropping.
+    // it is only used in a couple ancient jsps related to spotmapping
+    // for details: https://github.com/WildMeOrg/Wildbook/issues/1346#issuecomment-3712415060
+    // TODO this can be dropped when those jsps are no longer needed
+    public static java.awt.Dimension hackSanselanGetImageSize(File file, String filename)
+    throws IOException {
+        java.awt.Dimension dim = new java.awt.Dimension();
+        JSONObject attr = org.ecocean.media.AssetStore.extractMetadataAttributes(file);
+        // optInt will truncate values that are floats
+        dim.setSize(attr.optInt("width"), attr.optInt("height"));
+        return dim;
+    }
+
 }
