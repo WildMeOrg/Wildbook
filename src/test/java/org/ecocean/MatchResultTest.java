@@ -88,7 +88,7 @@ class MatchResultTest {
         annList.add(ann);
         when(task.getObjectAnnotations()).thenReturn(annList);
 
-        MatchResult mr = new MatchResult(task, annList, numCand);
+        MatchResult mr = new MatchResult(task, annList, numCand, false, null);
         assertTrue(mr.getNumberCandidates() == numCand);
         assertTrue(mr.numberProspects() == 1);
         // FIXME someday we need to figure out indiv-vector-search

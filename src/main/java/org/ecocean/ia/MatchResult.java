@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,13 +65,17 @@ public class MatchResult implements java.io.Serializable {
         this.createFromJsonResult(jsonResult, myShepherd);
     }
 
-    // FIXME will need scores and other stuff here? currently scores from vectors all
-    // seem to be 0.0 but the ordering seems best-to-worst, so we skip scores for now
-    public MatchResult(Task task, List<Annotation> annots, int numberCandidates)
+    // opensearch doc scores with vectors seem to be 0.0 but the ordering seems best-to-worst,
+    // so we generally trust the score *for annot/image* however scoreByIndividual will weight
+    // scores by how many times the individual appears
+    public MatchResult(Task task, List<Annotation> annots, int numberCandidates,
+        boolean scoreByIndividual, Shepherd myShepherd)
     throws IOException {
         this();
         this.task = task;
-        this.createFromProspectAnnotations(annots, numberCandidates);
+        this.numberCandidates = numberCandidates;
+        this.setQueryAnnotationFromTask();
+        this.populateProspects(annots, scoreByIndividual, myShepherd);
     }
 
     public int getNumberCandidates() {
@@ -90,15 +95,6 @@ public class MatchResult implements java.io.Serializable {
             throw new IOException("could not get json result");
         }
         createFromJsonResult(res, myShepherd);
-    }
-
-    // this is for vector-based list of matches (annots)
-    // scores skipped for now: see note on MatchResult() constructor above
-    public void createFromProspectAnnotations(List<Annotation> annots, int numberCandidates)
-    throws IOException {
-        this.numberCandidates = numberCandidates;
-        this.populateProspects(annots);
-        this.setQueryAnnotationFromTask();
     }
 
     public Annotation setQueryAnnotationFromTask()
@@ -181,17 +177,55 @@ public class MatchResult implements java.io.Serializable {
     }
 
     // we just have a list of annots which matched (e.g. via vectors in opensearch)
-    private int populateProspects(List<Annotation> annots)
+    private int populateProspects(List<Annotation> annots, boolean scoreByIndividual,
+        Shepherd myShepherd)
     throws IOException {
         if (Util.collectionIsEmptyOrNull(annots)) return 0;
         if (this.prospects == null)
             this.prospects = new HashSet<MatchResultProspect>();
-        for (Annotation ann : annots) {
-            // seems vector scoring is all 0.0 for now
-            // inspect asset is null for vector matching i guess?
-            this.prospects.add(new MatchResultProspect(ann, 0.0d, "annot", null));
+        if (scoreByIndividual) {
+            _populateProspectsByIndividual(annots, myShepherd);
+        } else {
+            for (Annotation ann : annots) {
+                this.prospects.add(new MatchResultProspect(ann, 0.0d, "annot", null));
+            }
         }
-        return annots.size();
+        return this.prospects.size();
+    }
+
+    private void _populateProspectsByIndividual(List<Annotation> annots, Shepherd myShepherd) {
+        Map<MarkedIndividual, List<Annotation> > tally = new HashMap<MarkedIndividual,
+            List<Annotation> >();
+
+        for (Annotation ann : annots) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            // i think we just ignore if no enc/indiv
+            if (enc == null) continue;
+            MarkedIndividual indiv = enc.getIndividual();
+            if (indiv == null) continue;
+            if (!tally.containsKey(indiv)) tally.put(indiv, new ArrayList<Annotation>());
+            tally.get(indiv).add(ann);
+        }
+        if (tally.size() < 1) return; // no individuals i guess?
+
+        // this sorts by most annots (per indiv) highest to lowest
+        List<Map.Entry<MarkedIndividual,
+            List<Annotation> > > sorted = new ArrayList<>(tally.entrySet());
+        // Collections.sort(sorted, new Comparator<Map.Entry<MarkedIndividual, List<Annotation>>>() {
+        sorted.sort(new Comparator<Map.Entry<MarkedIndividual, List<Annotation> > >() {
+            public int compare(Map.Entry<MarkedIndividual, List<Annotation> > one,
+            Map.Entry<MarkedIndividual, List<Annotation> > two) {
+                // we reverse order here so we get largest first
+                return Integer.compare(two.getValue().size(), one.getValue().size());
+            }
+        });
+        int most = sorted.get(0).getValue().size(); // top num of annots
+        for (Map.Entry<MarkedIndividual, List<Annotation> > ent : sorted) {
+            double score = ent.getValue().size() / most;
+            // the ent value (annot List) should always have at least one annot, so we use first one
+            this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv",
+                null));
+        }
     }
 
     private Annotation getAnnotationFromAcmId(String acmId, Shepherd myShepherd) {
