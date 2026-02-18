@@ -12,17 +12,16 @@ export default function HeaderDropdownItems({
   },
 }) {
   const [openSubKey, setOpenSubKey] = useState(null);
-  const [subBg, setSubBg] = useState({});
 
   return items.map((subItem, subIndex) => {
-    const key = subItem.href || `menu-item-${subIndex}`;
+    const baseKey = `${subItem.href || subItem.name || "menu-item"}-${subIndex}`;
     const hasSub = Array.isArray(subItem.sub) && subItem.sub.length > 0;
-    const subKey = `${key}__sub`;
+    const subKey = `${baseKey}__sub`;
 
     if (!hasSub) {
       return (
         <NavDropdown.Item
-          key={key}
+          key={baseKey}
           href={subItem.href}
           style={dropdownItemStyle}
         >
@@ -31,44 +30,66 @@ export default function HeaderDropdownItems({
       );
     }
 
+    const isOpen = openSubKey === subKey;
+
     return (
       <NavDropdown
         key={subKey}
         className="header-dropdown"
-        title={
-          <a
-            style={dropdownTitleLinkStyle}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              window.location.href = subItem.href;
-            }}
-            href={subItem.href}
-          >
-            {subItem.name}
-            <span style={{ paddingLeft: "34px" }}>
-              <RightIcon />
-            </span>
-          </a>
-        }
         drop="end"
         style={{
           paddingLeft: 8,
           fontSize: "0.9rem",
-          backgroundColor: subBg[subKey] || "transparent",
+          backgroundColor: isOpen ? "#CCF0FF" : "transparent",
         }}
         onMouseEnter={() => {
-          setSubBg((prev) => ({ ...prev, [subKey]: "#CCF0FF" }));
           setOpenSubKey(subKey);
         }}
         onMouseLeave={() => {
-          setSubBg((prev) => ({ ...prev, [subKey]: "white" }));
           setOpenSubKey(null);
         }}
-        show={openSubKey === subKey}
+        show={isOpen}
+        title={
+          <div className="d-flex align-items-center justify-content-between">
+            <a
+              style={dropdownTitleLinkStyle}
+              href={subItem.href}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              {subItem.name}
+            </a>
+
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label="open submenu"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setOpenSubKey((prev) => (prev === subKey ? null : subKey));
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpenSubKey((prev) => (prev === subKey ? null : subKey));
+                }
+              }}
+              style={{
+                paddingLeft: 12,
+                cursor: "pointer",
+                color: dropdownTitleLinkStyle?.color || "black",
+              }}
+            >
+              <RightIcon />
+            </span>
+          </div>
+        }
       >
         {subItem.sub.map((leaf, leafIndex) => {
-          const leafKey = leaf.href || `${subKey}-leaf-${leafIndex}`;
+          const leafKey = `${leaf.href || leaf.name || "leaf"}-${leafIndex}`;
           return (
             <NavDropdown.Item
               key={leafKey}
