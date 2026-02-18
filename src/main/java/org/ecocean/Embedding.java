@@ -294,7 +294,7 @@ public class Embedding implements java.io.Serializable {
 /*  FOR FUTURE EXPANSION when merged with MatchResults branch FIXME (also uncomment import at top)
             try {
                 // we build this even if empty, cuz that means we got results; just not nice ones
-                MatchResult mr = new MatchResult(subTask, prospects, numberCandidates);
+                MatchResult mr = new MatchResult(subTask, prospects, numberCandidates, myShepherd);
                 System.out.println("findMatchProspects() created " + mr + " on " + subTask);
                 myShepherd.getPM().makePersistent(mr);
             } catch (IOException ex) {
