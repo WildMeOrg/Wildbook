@@ -178,7 +178,6 @@ if (request.getParameter("acmId") != null) {
 								MediaAsset ma = ann.getMediaAsset();
 								if (ma != null) {
 									JSONObject jm = ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject());
-	                                if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
 	                                jm.put("rotation", rotationInfo(ma));
 							        jann.put("asset", jm);
 								}
