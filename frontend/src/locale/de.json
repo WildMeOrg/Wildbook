@@ -419,7 +419,7 @@
   "BULK_IMPORT_INSTRUCTIONS_NEED_HELP_DOCS": "Sieh dir die {wildbookDocsLink} an oder kontaktiere den Support",
   "BULK_IMPORT_INSTRUCTIONS_WILDBOOK_DOCS": "Wildbook-Dokumentation",
   "BULK_IMPORT_INSTRUCTIONS_CLOSE_BUTTON": "Schließen",
-  "BULKIMPORT_ERROR_REQUIRE_RPEFIX": "manca il prefisso ID progetto obbligatorio",
+  "BULKIMPORT_ERROR_REQUIRE_PREFIX": "manca il prefisso ID progetto obbligatorio",
   "BULKIMPORT_ERROR_REQUIRE_NAME": "manca il nome del progetto di ricerca obbligatorio",
   "PHOTOS_UPLOADED_TITLE": "hochgeladene Fotos: {count}",
   "PHOTOS_UPLOADED": "Fotos hochgeladen",

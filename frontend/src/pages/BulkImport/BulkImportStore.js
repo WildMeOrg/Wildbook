@@ -1684,7 +1684,7 @@ export class BulkImportStore {
       const row0 = ensureRowErrorMap(0);
 
       if (!hasPrefixCol && hasNameCol) {
-        row0[nameKey] = "BULKIMPORT_ERROR_REQUIRE_RPEFIX";
+        row0[nameKey] = "BULKIMPORT_ERROR_REQUIRE_PREFIX";
       }
 
       if (hasPrefixCol && !hasNameCol) {
@@ -1711,7 +1711,7 @@ export class BulkImportStore {
           const rowErr = ensureRowErrorMap(rowIndex);
 
           if (!hasPrefixVal && hasNameVal) {
-            rowErr[nameKey] = "BULKIMPORT_ERROR_REQUIRE_RPEFIX";
+            rowErr[nameKey] = "BULKIMPORT_ERROR_REQUIRE_PREFIX";
           }
 
           if (hasPrefixVal && !hasNameVal) {
