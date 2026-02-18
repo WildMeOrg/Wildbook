@@ -130,8 +130,7 @@ export const MatchCriteriaModal = observer(function MatchCriteriaModal({
                 (store?.newMatch?.annotationIds?.length ?? 0) === 0
               }
               onClick={async () => {
-                const result = await store.newMatch.buildNewMatchPayload();
-                console.log(JSON.stringify(result, null, 2));
+                const result = await store?.newMatch?.buildNewMatchPayload();
                 if (result.status === 200) {
                   const url = `/react/match-results?taskId=${result?.data?.taskId}`;
                   window.open(url, "_blank");
