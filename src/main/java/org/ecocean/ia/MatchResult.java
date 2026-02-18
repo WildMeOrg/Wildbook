@@ -69,13 +69,15 @@ public class MatchResult implements java.io.Serializable {
     // so we generally trust the score *for annot/image* however scoreByIndividual will weight
     // scores by how many times the individual appears
     public MatchResult(Task task, List<Annotation> annots, int numberCandidates,
-        boolean scoreByIndividual, Shepherd myShepherd)
+        Shepherd myShepherd)
     throws IOException {
         this();
         this.task = task;
         this.numberCandidates = numberCandidates;
         this.setQueryAnnotationFromTask();
-        this.populateProspects(annots, scoreByIndividual, myShepherd);
+        // we populate prospects with both annot and indiv (per legacy) and it gets seperated out later
+        this.populateProspects(annots, false, myShepherd);
+        this.populateProspects(annots, true, myShepherd);
     }
 
     public int getNumberCandidates() {
@@ -207,20 +209,30 @@ public class MatchResult implements java.io.Serializable {
             tally.get(indiv).add(ann);
         }
         if (tally.size() < 1) return; // no individuals i guess?
+        System.out.println(">>>>>>>> tally=" + tally);
 
         // this sorts by most annots (per indiv) highest to lowest
         List<Map.Entry<MarkedIndividual,
             List<Annotation> > > sorted = new ArrayList<>(tally.entrySet());
+        System.out.println(">>>>>>>> sorted[pre]=" + sorted);
         // Collections.sort(sorted, new Comparator<Map.Entry<MarkedIndividual, List<Annotation>>>() {
         sorted.sort(new Comparator<Map.Entry<MarkedIndividual, List<Annotation> > >() {
             public int compare(Map.Entry<MarkedIndividual, List<Annotation> > one,
             Map.Entry<MarkedIndividual, List<Annotation> > two) {
                 // we reverse order here so we get largest first
+                System.out.println(">>>>>>> two.key=" + two.getKey());
+                System.out.println(">>>>>>> two.value=" + two.getValue());
+                System.out.println(">>>>>>> one.key=" + one.getKey());
+                System.out.println(">>>>>>> one.value=" + one.getValue());
                 return Integer.compare(two.getValue().size(), one.getValue().size());
             }
         });
+        System.out.println(">>>>>>>> sorted[post]=" + sorted);
         int most = sorted.get(0).getValue().size(); // top num of annots
+        System.out.println(">>>>>>>> most=" + most);
         for (Map.Entry<MarkedIndividual, List<Annotation> > ent : sorted) {
+            System.out.println(">>>>>>>> mapEntry key=" + ent.getKey());
+            System.out.println(">>>>>>>> mapEntry value=" + ent.getValue());
             double score = ent.getValue().size() / most;
             // the ent value (annot List) should always have at least one annot, so we use first one
             this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv",
