@@ -7,27 +7,10 @@ import java.lang.Math;
 import java.net.URI;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import java.util.Vector;
 
 import javax.jdo.Query;
 
@@ -60,6 +43,7 @@ import org.ecocean.Util.MeasurementDesc;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.LocalDateTime;
 
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
@@ -1444,7 +1428,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
         org.json.JSONObject sp = astore.createParameters(fullPath);
-        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName); // note: this really only applies to S3 AssetStores, but shouldnt hurt
+        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);
                                                                           // others?
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma == null) {
@@ -2323,10 +2307,10 @@ public class Encounter extends Base implements java.io.Serializable {
             if (hour > -1) { localHour = hour; }
             int myMinutes = 0;
             try { myMinutes = Integer.parseInt(minutes); } catch (Exception e) {}
-            GregorianCalendar gc = new GregorianCalendar(year, localMonth, localDay, localHour,
-                myMinutes);
-
-            return new Long(gc.getTimeInMillis());
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            Calendar calendar = Calendar.getInstance(tz);
+            calendar.set(year, localMonth, localDay, localHour, myMinutes);
+            return new Long(calendar.getTimeInMillis());
         }
         return null;
     }
@@ -2340,7 +2324,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
     // this will set all date stuff based on ms since epoch
     public void setDateInMilliseconds(long ms) {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
         cal.setTimeInMillis(ms);
         this.year = cal.get(Calendar.YEAR);
@@ -4268,6 +4252,7 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeBooleanField("isTrivial", ann.isTrivial());
                     jgen.writeNumberField("theta", ann.getTheta());
                     jgen.writeArrayFieldStart("boundingBox");
+                    Feature ft = ann.getFeature(); // attempt force loading features for getBbox()
                     int[] bbox = ann.getBbox();
                     if (bbox != null)
                         for (int i : bbox) {

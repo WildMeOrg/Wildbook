@@ -17,6 +17,7 @@ import {
   setValueAtPath,
   deleteValueAtPath,
   expandOperations,
+  setEncounterState,
 } from "./helperFunctions";
 import NewMatchStore from "./NewMatchStore";
 import ImageModalStore from "./ImageModalStore";
@@ -27,6 +28,7 @@ class EncounterStore {
   _encounterData = null;
 
   _siteSettingsData = null;
+  _siteSettingsLoading = true;
 
   _access = "read";
 
@@ -326,6 +328,32 @@ class EncounterStore {
 
   setIndividualOptions(options) {
     this._individualOptions = options;
+  }
+
+  async changeEncounterState(nextState) {
+    if (!nextState || nextState === "loading") return;
+    if (!this._encounterData?.id) return;
+    this.errors.setFieldError("header", "state", null);
+    try {
+      await setEncounterState(nextState, this._encounterData.id);
+      await this.refreshEncounterData();
+    } catch (error) {
+      const data = error?.response?.data;
+      const msg = this._intl.formatMessage({
+        id: "ENCOUNTER_UPDATE_STATE_ERROR",
+        defaultMessage: "Failed to update state",
+      });
+      const serverMsg =
+        Array.isArray(data?.errors) && data.errors.length
+          ? data.errors
+              .map((e) => e.details || e.code || "INVALID")
+              .filter(Boolean)
+              .join("; ")
+          : null;
+
+      this.errors.setFieldError("header", "state", serverMsg || msg);
+      toast.error(msg);
+    }
   }
 
   async addNewPerson() {
@@ -817,6 +845,14 @@ class EncounterStore {
     );
   }
 
+  get siteSettingsLoading() {
+    return this._siteSettingsLoading;
+  }
+
+  setSiteSettingsLoading(siteSettingsLoading) {
+    this._siteSettingsLoading = siteSettingsLoading;
+  }
+
   resetSectionDraft(sectionName) {
     this._sectionDrafts.set(sectionName, {});
   }
@@ -954,25 +990,27 @@ class EncounterStore {
   async patchMeasurements() {
     const tasks = [];
     let hasErrors = false;
+
     for (const m of this.measurementValues) {
-      if (m.value == null || m.value === "") {
-        this.errors.setFieldError(
-          "measurement",
-          m.type,
-          "value cannot be empty",
-        );
-        continue;
-      }
-      const payload = {
-        op: "replace",
-        path: "measurements",
-        value: {
-          type: m.type,
-          units: m.units,
-          value: m.value,
-          samplingProtocol: m.samplingProtocol,
-        },
-      };
+      const isEmpty = m.value == null || m.value === "";
+
+      const payload = isEmpty
+        ? {
+            op: "remove",
+            path: "measurements",
+            value: m.type,
+          }
+        : {
+            op: "replace",
+            path: "measurements",
+            value: {
+              type: m.type,
+              units: m.units,
+              value: m.value,
+              samplingProtocol: m.samplingProtocol,
+            },
+          };
+
       tasks.push(
         axios
           .patch(`/api/v3/encounters/${this.encounterData.id}`, [payload], {
@@ -983,12 +1021,15 @@ class EncounterStore {
             this.errors.setFieldError(
               "measurement",
               m.type,
-              "Failed to save measurement",
+              isEmpty
+                ? "Failed to remove measurement"
+                : "Failed to save measurement",
             );
             throw err;
           }),
       );
     }
+
     if (tasks.length > 0) {
       await Promise.allSettled(tasks);
     }

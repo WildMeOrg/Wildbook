@@ -1,5 +1,7 @@
 package org.ecocean.export;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -36,6 +38,7 @@ public class EncounterAnnotationExportFile {
     private int numNameCols = 0;
     private int numSubmitters = 0;
     private int numSocialUnits = 1;
+    private int numKeywords;
 
     private List<String> measurementColTitles = new ArrayList<String>();
 
@@ -48,27 +51,26 @@ public class EncounterAnnotationExportFile {
         String formattedDate = fmt.print(timeNow);
 
         // set up the files
-        this.name = "AnnotnExp_" + formattedDate + ".xlsx";
-    }
-
-    // this would be a static method of above subclass if java allowed that
-    public static ExportColumn newEasyColumn(String classDotFieldNameHeader,
-        List<ExportColumn> columns)
-    throws ClassNotFoundException, NoSuchMethodException {
-        return ExportColumn.newEasyColumn(classDotFieldNameHeader, columns);
+        this.name = "AnnotnExp_" + formattedDate + ".csv";
     }
 
     public String getName() { return name; }
+    public HiddenEncReporter writeToStream(OutputStream fileOut)
+    throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
+        IllegalAccessException, IOException {
+        try (OutputStreamWriter streamWriter = new OutputStreamWriter(fileOut);
+        CSVPrinter sheet = new CSVPrinter(streamWriter, CSVFormat.EXCEL)) {
+            return writeToStream(sheet);
+        }
+    }
 
-    public void writeToStream(OutputStream fileOut)
+    private HiddenEncReporter writeToStream(CSVPrinter sheet)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
         IllegalAccessException, IOException {
         String context = ServletUtilities.getContext(request);
-        Vector rEncounters;
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request,
             "year descending, month descending, day descending");
-
-        rEncounters = queryResult.getResult();
+        Vector rEncounters = queryResult.getResult();
         int numMatchingEncounters = rEncounters.size();
 
         // Security: categorize hidden encounters with the initializer
@@ -79,10 +81,6 @@ public class EncounterAnnotationExportFile {
 
         // so we know how many name columns we need
 
-        // business logic start here
-        Workbook wb = new XSSFWorkbook(); // Create a new workbook
-        Sheet sheet = wb.createSheet("Search Results");
-        Sheet hiddenSheet = wb.createSheet("Hidden Data Report");
         Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
         Method maLocalPath = MediaAsset.class.getMethod("localPath", null);
         Method maImgUrl = MediaAsset.class.getMethod("webURL", null);
@@ -104,7 +102,7 @@ public class EncounterAnnotationExportFile {
         Method occurrenceComments = Occurrence.class.getMethod("getCommentsExport");
         List<ExportColumn> columns = new ArrayList<ExportColumn>();
 
-        newEasyColumn("Occurrence.occurrenceID", columns);
+        ExportColumn.newEasyColumn("Occurrence.occurrenceID", columns);
 
         // added new Column for Encounter weburl
         // method is null as we current approach does not support parameters
@@ -133,21 +131,21 @@ public class EncounterAnnotationExportFile {
             "IndividualSummary.lifeStage", markedIndividualLifeStageName, columns);
 
         // encounter information
-        newEasyColumn("Encounter.genus", columns);
-        newEasyColumn("Encounter.specificEpithet", columns);
-        newEasyColumn("Encounter.verbatimLocality", columns);
-        newEasyColumn("Encounter.decimalLatitude", columns);
-        newEasyColumn("Encounter.decimalLongitude", columns);
-        newEasyColumn("Encounter.country", columns);
-        newEasyColumn("Encounter.locationID", columns);
-        newEasyColumn("Encounter.year", columns);
-        newEasyColumn("Encounter.month", columns);
-        newEasyColumn("Encounter.day", columns);
-        newEasyColumn("Encounter.hour", columns);
-        newEasyColumn("Encounter.minutes", columns);
-        newEasyColumn("Encounter.sex", columns);
-        newEasyColumn("Encounter.lifeStage", columns);
-        newEasyColumn("Encounter.occurrenceRemarks", columns);
+        ExportColumn.newEasyColumn("Encounter.genus", columns);
+        ExportColumn.newEasyColumn("Encounter.specificEpithet", columns);
+        ExportColumn.newEasyColumn("Encounter.verbatimLocality", columns);
+        ExportColumn.newEasyColumn("Encounter.decimalLatitude", columns);
+        ExportColumn.newEasyColumn("Encounter.decimalLongitude", columns);
+        ExportColumn.newEasyColumn("Encounter.country", columns);
+        ExportColumn.newEasyColumn("Encounter.locationID", columns);
+        ExportColumn.newEasyColumn("Encounter.year", columns);
+        ExportColumn.newEasyColumn("Encounter.month", columns);
+        ExportColumn.newEasyColumn("Encounter.day", columns);
+        ExportColumn.newEasyColumn("Encounter.hour", columns);
+        ExportColumn.newEasyColumn("Encounter.minutes", columns);
+        ExportColumn.newEasyColumn("Encounter.sex", columns);
+        ExportColumn.newEasyColumn("Encounter.lifeStage", columns);
+        ExportColumn.newEasyColumn("Encounter.occurrenceRemarks", columns);
         ExportColumn OccurrenceComments = new ExportColumn(Occurrence.class, "Occurrence.comments",
             occurrenceComments, columns);
         for (int subNum = 0; subNum < numSocialUnits; subNum++) {
@@ -186,17 +184,17 @@ public class EncounterAnnotationExportFile {
             "Encounter.photographer0.fullName", FullName, columns);
         photographerNameCol.setMaNum(0);
 
-        newEasyColumn("Encounter.state", columns);
+        ExportColumn.newEasyColumn("Encounter.state", columns);
 
-        ExportColumn keywordCol = new ExportColumn(Keyword.class, "Reference keyword",
+        ExportColumn refKeywordCol = new ExportColumn(Keyword.class, "Reference keyword",
             keywordGetName, columns);
-        keywordCol.setKwNum(0);
-        keywordCol.setMaNum(0);
+        refKeywordCol.setKwNum(0);
+        refKeywordCol.setMaNum(0);
 
         // ExportColumn maPathK = new ExportColumn(User.class, submitterAffiliationName, submitterAffiliation, columns);
 
         // newEasyColumn("Encounter.catalogNumber", columns);
-        newEasyColumn("Encounter.alternateID", columns);
+        ExportColumn.newEasyColumn("Encounter.alternateID", columns);
         for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
             String imageUrl = "Encounter.mediaAsset" + maNum + ".imageUrl";
             String bBox = "Annotation" + maNum + ".bbox";
@@ -204,7 +202,21 @@ public class EncounterAnnotationExportFile {
             ExportColumn maimageUrlK = new ExportColumn(MediaAsset.class, imageUrl, maImgUrl,
                 columns);
             maimageUrlK.setMaNum(maNum);
-
+            for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
+                String keywordColName = "Encounter.mediaAsset" + maNum + ".keyword" + kwNum;
+                ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName,
+                    keywordGetName, columns);
+                keywordCol.setMaNum(maNum);
+                keywordCol.setKwNum(kwNum);
+            }
+            List<String> labels = myShepherd.getAllKeywordLabels();
+            for (String label : labels) {
+                String keywordColName = "Encounter.mediaAsset" + maNum + "." + label;
+                ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName,
+                    labeledKeywordGetValue, columns);
+                keywordCol.setMaNum(maNum);
+                keywordCol.setLabeledKwName(label);
+            }
             ExportColumn aanBboxK = new ExportColumn(Annotation.class, bBox, annBbox, columns);
             aanBboxK.setMaNum(maNum);
 
@@ -238,8 +250,11 @@ public class EncounterAnnotationExportFile {
         for (ExportColumn exportCol : columns) {
             exportCol.writeHeaderLabel(sheet);
         }
-        // Excel export =========================================================
+        sheet.printRecord();
+
+        // CSV export =========================================================
         int row = 0;
+        int numColumns = columns.size();
         for (int i = 0; i < numMatchingEncounters && i < ROW_LIMIT; i++) {
             // get the Encounter and check if user
             // has permission otherwise hide the encounter
@@ -247,6 +262,10 @@ public class EncounterAnnotationExportFile {
             Encounter enc = (Encounter)rEncounters.get(i);
             if (hiddenData.contains(enc)) continue;
             row++;
+
+            // Initialize row array - each column writes to its own index
+            String[] rowData = new String[numColumns];
+            Arrays.fill(rowData, "");
 
             // get attached objects
             Occurrence occ = myShepherd.getOccurrence(enc);
@@ -266,114 +285,127 @@ public class EncounterAnnotationExportFile {
                     // added new column which holds the encounter url
                     if (exportCol.header.contains("Encounter.sourceUrl")) {
                         String EncUrl = Encounter.getWebUrl(enc.getCatalogNumber(), request);
-                        exportCol.writeLabel(EncUrl, row, sheet);
+                        exportCol.writeLabel(EncUrl, row, rowData);
                     } else {
-                        exportCol.writeLabel(enc, row, sheet);
+                        exportCol.writeLabel(enc, row, rowData);
                     }
                 } else if (exportCol.isFor(Occurrence.class))
-                    exportCol.writeLabel(occ, row, sheet);
+                    exportCol.writeLabel(occ, row, rowData);
                 else if (exportCol.isFor(MarkedIndividual.class))
-                    exportCol.writeLabel(ind, row, sheet);
+                    exportCol.writeLabel(ind, row, rowData);
                 else if (exportCol.isFor(MultiValue.class)) {
                     MultiValueExportColumn multiValCol = (MultiValueExportColumn)exportCol;
-                    multiValCol.writeLabel(sortedNameKeys, names, row, sheet);
+                    multiValCol.writeLabel(sortedNameKeys, names, row, rowData);
                 } else if (exportCol.isFor(MediaAsset.class)) {
                     int num = exportCol.getMaNum();
-                    if (num >= mas.size()) continue;
-                    MediaAsset ma = mas.get(num);
-                    if (ma == null) continue; // on to next column
-                    exportCol.writeLabel(ma, row, sheet);
+                    if (num >= mas.size()) {
+                        exportCol.writeLabel(null, row, rowData);
+                    } else {
+                        exportCol.writeLabel(mas.get(num), row, rowData);
+                    }
                 } else if (exportCol.isFor(Annotation.class)) {
                     int num = exportCol.getMaNum();
-                    if (num >= mas.size()) continue;
-                    MediaAsset ma = mas.get(num);
-                    if (ma == null) continue;
-                    List<Annotation> anns = enc.getAnnotations(ma);
-                    for (int annNum = 0; annNum < anns.size(); annNum++) {
-                        Annotation ann = anns.get(annNum);
-                        if (ann.getMatchAgainst()) {
-                            exportCol.writeLabel(ann, row, sheet);
+                    if (num >= mas.size()) {
+                        exportCol.writeLabel(null, row, rowData);
+                    } else {
+                        MediaAsset ma = mas.get(num);
+                        List<Annotation> anns = enc.getAnnotations(ma);
+                        Object result = null;
+                        for (Annotation ann : anns) {
+                            if (ann.getMatchAgainst()) {
+                                result = ann;
+                            }
                         }
+                        exportCol.writeLabel(result, row, rowData);
                     }
                 } else if (exportCol.isFor(User.class)) {
                     int num = exportCol.getMaNum();
                     User user = null;
                     if (exportCol.header.contains("photographer")) {
-                        if (num >= photographers.size()) continue;
-                        user = photographers.get(num);
+                        if (num < photographers.size()) {
+                            user = photographers.get(num);
+                        }
                     } else {
-                        if (num >= submitters.size()) continue;
-                        user = submitters.get(num);
+                        if (num < submitters.size()) {
+                            user = submitters.get(num);
+                        }
                     }
-                    exportCol.writeLabel(user, row, sheet);
+                    exportCol.writeLabel(user, row, rowData);
                 } else if (exportCol.isFor(SocialUnit.class)) {
                     int num = exportCol.getMaNum();
-                    if (socialUnits == null || num >= socialUnits.size()) continue;
-                    SocialUnit social = socialUnits.get(num);
-                    exportCol.writeLabel(social, row, sheet);
+                    if (socialUnits != null && num < socialUnits.size()) {
+                        SocialUnit social = socialUnits.get(num);
+                        exportCol.writeLabel(social, row, rowData);
+                    } else {
+                        exportCol.writeLabel(null, row, rowData);
+                    }
                 }
                 // add labeled keywords
                 else if (exportCol.isFor(LabeledKeyword.class)) {
                     int maNum = exportCol.getMaNum();
-                    if (maNum >= mas.size()) continue;
-                    MediaAsset ma = mas.get(maNum);
-                    if (ma == null) continue; // on to next column
-                    // String kwNum = exportCol.getLabeledKwName();
-                    // if (kwNum >= ma.numKeywords()) continue;
-                    String lkwValue = ma.getLabeledKeywordValue(exportCol.getlabeledKwName());
-                    if (lkwValue == null) continue;
-                    LabeledKeyword lkw = myShepherd.getLabeledKeyword(exportCol.getlabeledKwName(),
-                        lkwValue);
-                    if (lkw == null) continue;
-                    exportCol.writeLabel(lkw, row, sheet);
+                    LabeledKeyword lkw = null;
+                    if (maNum < mas.size()) {
+                        MediaAsset ma = mas.get(maNum);
+                        String lkwValue = ma.getLabeledKeywordValue(exportCol.getlabeledKwName());
+                        lkw = myShepherd.getLabeledKeyword(exportCol.getlabeledKwName(), lkwValue);
+                    }
+                    exportCol.writeLabel(lkw, row, rowData);
                 }
                 // end add labeled keywords
                 else if (exportCol.isFor(Keyword.class)) {
-                    boolean keywordFound = false;
-                    for (MediaAsset ma : mas) {
-                        for (Keyword kw : ma.getKeywordsStrict()) {
-                            if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
-                                exportCol.writeLabel(kw, row, sheet);
-                                keywordFound = true;
-                                break;
+                    Keyword keyword = null;
+                    if (Objects.equals(exportCol.header, "Reference keyword")) {
+                        for (MediaAsset ma : mas) {
+                            for (Keyword kw : ma.getKeywordsStrict()) {
+                                if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
+                                    keyword = kw;
+                                    break;
+                                }
+                            }
+                            if (keyword != null) break;
+                        }
+                    } else {
+                        int maNum = exportCol.getMaNum();
+                        MediaAsset ma;
+                        if (maNum < mas.size() && (ma = mas.get(maNum)) != null) {
+                            int kwNum = exportCol.getKwNum();
+                            if (kwNum < ma.numKeywordsStrict() && kwNum != -1) {
+                                keyword = ma.getKeywordStrict(kwNum);
                             }
                         }
-                        if (keywordFound) break;
                     }
+                    exportCol.writeLabel(keyword, row, rowData);
                 } else if (exportCol.isFor(Measurement.class)) {
                     int measurementNumber = exportCol.getMeasurementNum();
-                    if (measurementNumber < 0) continue;
                     if (enc.getMeasurements() != null && enc.getMeasurements().size() > 0 &&
-                        measurementNumber < enc.getMeasurements().size()) {
+                        measurementNumber < enc.getMeasurements().size() &&
+                        measurementNumber >= 0) {
                         String whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList =
                             sortedMeasurementColTitles.get(measurementNumber);
                         Measurement currentMeasurement = enc.getMeasurement(
                             whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.replace(
                             "Encounter.measurement.", ""));
-                        if (currentMeasurement == null) continue;
-                        exportCol.writeLabel(currentMeasurement, row, sheet);
+                        exportCol.writeLabel(currentMeasurement, row, rowData);
                     }
                 } else
-                    System.out.println(
-                        "EncounterAnnotationExportExcelFile: no object found for class " +
+                    System.out.println("EncounterAnnotationExportFile: no object found for class " +
                         exportCol.getDeclaringClass());
             }
+            // Write the complete row at once
+            sheet.printRecord((Object[])rowData);
         } // end for loop iterating encounters
 
-        // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
-        hiddenData.writeHiddenDataReport(hiddenSheet);
-
-        wb.write(fileOut); // Write the workbook to the OutputStream
         // Note: Don't close fileOut - let the caller manage stream lifecycle
-        wb.close(); // Close the workbook
 
-        // end Excel export and business logic ===============================================
-        System.out.println("Done with EncounterAnnotationExportExcelFile. We hid " +
-            hiddenData.size() + " encounters.");
+        // end CSV export and business logic ===============================================
+        System.out.println("Done with EncounterAnnotationExportFile. We hid " + hiddenData.size() +
+            " encounters.");
+
+        return hiddenData;
     }
 
     void setMediaAssetCounts(Vector rEncounters, Shepherd myShepherd) {
-        System.out.println("EncounterAnnotationExportExcelFile: setting environment vars for " +
+        System.out.println("EncounterAnnotationExportFile: setting environment vars for " +
             Math.max(rEncounters.size(), ROW_LIMIT) + " encs.");
         int maxNumMedia = 0;
         int maxNumKeywords = 0;
@@ -427,8 +459,8 @@ public class EncounterAnnotationExportFile {
         numNameCols = maxNumNames;
         numSubmitters = maxSubmitters;
         numSocialUnits = maxSocialUnits;
-        System.out.println(
-            "EncounterAnnotationExportExcelFile: environment vars numMediaAssetCols = " +
+        numKeywords = maxNumKeywords;
+        System.out.println("EncounterAnnotationExportFile: environment vars numMediaAssetCols = " +
             numMediaAssetCols + "; maxNumKeywords = " + maxNumKeywords + " and maxNumNames = " +
             numNameCols);
     }
