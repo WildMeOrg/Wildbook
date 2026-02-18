@@ -43,13 +43,14 @@ export const IdentifySectionEdit = observer(({ store }) => {
             setSuggestedId(null);
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error("Failed to fetch suggested ID:", error);
           setSuggestedId(null);
         });
     } else {
       setSuggestedId(null);
     }
-  }, [store.locationId]);
+  }, [store?.encounterData?.locationId]);
 
   return (
     <div>
@@ -96,38 +97,36 @@ export const IdentifySectionEdit = observer(({ store }) => {
         minChars={2}
       />
 
-      {store.getFieldValue("identify", "individualId") && (
-        <div className="mb-2 mt-2">
-          {suggestedId ? (
-            <>
-              <span className="text-muted">
-                <FormattedMessage id="SUGGESTED_ID" />: {suggestedId}
-              </span>{" "}
-              <Button
-                variant="link"
-                size="sm"
-                style={{
-                  color: store.themeColor?.primaryColors?.primary500,
-                  textDecoration: "none",
-                }}
-                onClick={() => {
-                  const newOption = {
-                    value: suggestedId,
-                    label: suggestedId,
-                  };
-                  store.setIndividualOptions([
-                    newOption,
-                    ...(store.individualOptions || []),
-                  ]);
-                  store.setFieldValue("identify", "individualId", suggestedId);
-                }}
-              >
-                <FormattedMessage id="USE_THIS" />
-              </Button>
-            </>
-          ) : null}
-        </div>
-      )}
+      <div className="mb-2 mt-2">
+        {suggestedId ? (
+          <>
+            <span className="text-muted">
+              <FormattedMessage id="SUGGESTED_ID" />: {suggestedId}
+            </span>{" "}
+            <Button
+              variant="link"
+              size="sm"
+              style={{
+                color: store.themeColor?.primaryColors?.primary500,
+                textDecoration: "none",
+              }}
+              onClick={() => {
+                const newOption = {
+                  value: suggestedId,
+                  label: suggestedId,
+                };
+                store.setIndividualOptions([
+                  newOption,
+                  ...(store.individualOptions || []),
+                ]);
+                store.setFieldValue("identify", "individualId", suggestedId);
+              }}
+            >
+              <FormattedMessage id="USE_THIS" />
+            </Button>
+          </>
+        ) : null}
+      </div>
       <TextInput
         label="ALTERNATE_ID"
         value={store.getFieldValue("identify", "otherCatalogNumbers") ?? ""}

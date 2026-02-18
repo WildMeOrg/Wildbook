@@ -11,14 +11,16 @@ export const IdentifySectionReview = observer(({ store }) => {
           <FormattedMessage id="IDENTIFIED_AS" />
           {":"}
         </h6>
-        <a
-          href={`/individuals.jsp?id=${store.getFieldValue("identify", "individualId")}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-decoration-none"
-        >
-          {store.getFieldValue("identify", "individualDisplayName")}
-        </a>
+        {!!store.getFieldValue("identify", "individualDisplayName") && (
+          <a
+            href={`/individuals.jsp?id=${store.getFieldValue("identify", "individualId")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-decoration-none"
+          >
+            {store.getFieldValue("identify", "individualDisplayName")}
+          </a>
+        )}
       </div>
       <AttributesAndValueComponent
         attributeId="MATCHED_BY"
