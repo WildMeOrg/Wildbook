@@ -34,7 +34,6 @@ const SECTION_PARAM_TO_KEY = {
   terms_of_use: "TERMS_OF_USE",
   citing_wildbook: "CITING_WILDBOOK",
 
-  // tolerant
   PRIVACY_POLICY: "PRIVACY_POLICY",
   TERMS_OF_USE: "TERMS_OF_USE",
   CITING_WILDBOOK: "CITING_WILDBOOK",
@@ -94,7 +93,10 @@ export default function PoliciesAndData() {
 
     const sp = new URLSearchParams(location.search);
     sp.set("section", KEY_TO_SECTION_PARAM[key] || key);
-    navigate({ pathname: location.pathname, search: sp.toString() }, { replace: true });
+    navigate(
+      { pathname: location.pathname, search: sp.toString() },
+      { replace: true },
+    );
   };
 
   useEffect(() => {
@@ -114,7 +116,11 @@ export default function PoliciesAndData() {
 
       const localUrl = publicPath(`/files/${active.baseName}_${locale}.pdf`);
       const enUrl = publicPath(`/files/${active.baseName}_en.pdf`);
-      const picked = (await exists(localUrl)) ? localUrl : (await exists(enUrl)) ? enUrl : null;
+      const picked = (await exists(localUrl))
+        ? localUrl
+        : (await exists(enUrl))
+          ? enUrl
+          : null;
 
       if (!cancelled) {
         setPdfUrl(picked);
@@ -126,57 +132,6 @@ export default function PoliciesAndData() {
       cancelled = true;
     };
   }, [active.baseName, locale, isPdf]);
-
-  const handleDownload = async () => {
-    if (!pdfUrl) return;
-
-    try {
-      const res = await fetch(pdfUrl);
-      if (!res.ok) throw new Error("download failed");
-
-      const blob = await res.blob();
-      const objUrl = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = objUrl;
-      a.download = `${active.baseName}_${locale}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      URL.revokeObjectURL(objUrl);
-    } catch {
-      window.open(pdfUrl, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const handlePrint = (e) => {
-    if (!pdfUrl) return;
-    const w = window.open(pdfUrl, "_blank", "noopener,noreferrer");
-    if (!w) return;
-
-    const tryPrint = () => {
-      try {
-        w.focus();
-        w.print();
-      } catch {
-        console.error(e);
-       }
-    };
-
-    w.addEventListener?.("load", tryPrint);
-    setTimeout(tryPrint, 800);
-  };
-
-  const iconBtnStyle = {
-    color: theme?.primaryColors?.primary500,
-    textDecoration: "none",
-  };
-
-  const iconStyle = {
-    fontSize: 20,
-    fontWeight: 600,
-  };
 
   return (
     <Container className="mt-5 px-0 px-md-3">
@@ -190,7 +145,9 @@ export default function PoliciesAndData() {
             <ListGroup variant="flush">
               {SECTIONS.map((s) => {
                 const isActive = s.key === activeKey;
-                const color = isActive ? theme.primaryColors.primary500 : "GrayText";
+                const color = isActive
+                  ? theme.primaryColors.primary500
+                  : "GrayText";
 
                 return (
                   <ListGroup.Item
@@ -209,7 +166,11 @@ export default function PoliciesAndData() {
                       <FormattedMessage id={s.labelId} defaultMessage={s.key} />
                     </span>
 
-                    <i className="bi bi-chevron-right" aria-hidden="true" style={{ color }} />
+                    <i
+                      className="bi bi-chevron-right"
+                      aria-hidden="true"
+                      style={{ color }}
+                    />
                   </ListGroup.Item>
                 );
               })}
@@ -217,36 +178,8 @@ export default function PoliciesAndData() {
           </div>
         </Col>
 
-        <Col xs={12} md={10} lg={10} >
-          <div style={{overflowX: "auto" }}>
-            {/* {!isPdf && (
-              <div className="d-flex px-3 py-2">
-                <div className="d-flex gap-4" style={{ marginLeft: "auto" }}>
-                  <Button
-                    variant="link"
-                    onClick={handlePrint}
-                    disabled={!pdfUrl || loading}
-                    title="Print"
-                    className="p-0"
-                    style={iconBtnStyle}
-                  >
-                    <i className="bi bi-printer" style={iconStyle} />
-                  </Button>
-
-                  <Button
-                    variant="link"
-                    onClick={handleDownload}
-                    disabled={!pdfUrl || loading}
-                    title="Download"
-                    className="p-0"
-                    style={iconBtnStyle}
-                  >
-                    <i className="bi bi-download" style={iconStyle} />
-                  </Button>
-                </div>
-              </div>
-            )} */}
-
+        <Col xs={12} md={10} lg={10}>
+          <div style={{ overflowX: "auto" }}>
             {!isPdf && ActiveComponent && <ActiveComponent />}
 
             {isPdf && (
@@ -259,7 +192,8 @@ export default function PoliciesAndData() {
 
                 {!loading && !pdfUrl && (
                   <div className="p-3 text-muted">
-                    PDF not found for <b>{locale}</b>. Put files in <code>public/files</code>.
+                    PDF not found for <b>{locale}</b>. Put files in{" "}
+                    <code>public/files</code>.
                   </div>
                 )}
 
