@@ -197,6 +197,13 @@ const ImageCard = observer(({ store = {} }) => {
     }
   };
 
+  const maxArea = React.useMemo(() => {
+    return rects.reduce(
+      (max, r) => Math.max(max, (r.width || 0) * (r.height || 0)),
+      1,
+    );
+  }, [rects]);
+
   return (
     <div
       className="d-flex flex-column justify-content-between mt-3 position-relative mb-3"
@@ -270,6 +277,12 @@ const ImageCard = observer(({ store = {} }) => {
               };
             }
 
+            const area = (rect.width || 0) * (rect.height || 0);
+            const score = 1 - area / maxArea;
+            const baseZ = 10 + Math.round(score * 1000);
+            const finalZ =
+              rect.annotationId === clickedAnnotation?.id ? 2000 : baseZ;
+
             return (
               <div
                 id={`rect-${index}`}
@@ -294,8 +307,7 @@ const ImageCard = observer(({ store = {} }) => {
                   transform: `rotate(${(newRect.rotation * 180) / Math.PI}deg)`,
                   transformOrigin: "center",
                   cursor: "pointer",
-                  zIndex:
-                    newRect.annotationId === clickedAnnotation?.id ? 2000 : 10,
+                  zIndex: finalZ,
                   backgroundColor:
                     newRect.annotationId === clickedAnnotation?.id
                       ? "rgba(240, 11, 11, 0.3)"
