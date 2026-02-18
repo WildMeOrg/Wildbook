@@ -6,6 +6,7 @@ import { FormLabel, FormGroup } from "react-bootstrap";
 import { observer } from "mobx-react-lite";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
+import ContainerWithSpinner from "../ContainerWithSpinner";
 
 const FMT = "YYYY-MM-DD";
 const toDayjs = (s) => (s ? dayjs(s) : null);
@@ -143,18 +144,19 @@ const DateFilter = observer(({ data, store }) => {
           </FormGroup>
         </div>
       </>
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        noDesc
-        label="FILTER_VERBATIM_EVENT_DATE"
-        options={verbatimeventdateOptions}
-        term="terms"
-        field="verbatimEventDate"
-        filterKey="Verbatim Event Date"
-        store={store}
-      />
-
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          noDesc
+          label="FILTER_VERBATIM_EVENT_DATE"
+          options={verbatimeventdateOptions}
+          term="terms"
+          field="verbatimEventDate"
+          filterKey="Verbatim Event Date"
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
       <>
         <FormLabel className="mt-3">
           <FormattedMessage id="FILTER_ENCOUNTER_SUBMISSION_DATE" />

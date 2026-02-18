@@ -1,4 +1,4 @@
-import React  from "react";
+import React from "react";
 import { FormattedMessage } from "react-intl";
 import Form from "react-bootstrap/Form";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
@@ -6,6 +6,7 @@ import Description from "../Form/Description";
 import AndSelector from "../AndSelector";
 import LabelledKeywordFilter from "../Form/LabelledKeywordFilter";
 import { observer } from "mobx-react-lite";
+import ContainerWithSpinner from "../ContainerWithSpinner";
 
 const ImageLabelFilter = observer(({ data, store }) => {
   const keywordsOptions =
@@ -38,13 +39,17 @@ const ImageLabelFilter = observer(({ data, store }) => {
 
   const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
-  const keywordsFormValue = store.formFilters?.find(
-    (filter) => filter.filterId.includes("mediaAssetKeywords"))?.query?.term;
-  const keywordsANDChecked = keywordsFormValue && ("mediaAssetKeywords" in keywordsFormValue) ? true : isChecked_keyword;
-  const formValues = store.formFilters.filter(item => item.filterId.includes("mediaAssetKeywords"));
-  const value = formValues?.map(item => item.query?.term?.mediaAssetKeywords);
-
-
+  const keywordsFormValue = store.formFilters?.find((filter) =>
+    filter.filterId.includes("mediaAssetKeywords"),
+  )?.query?.term;
+  const keywordsANDChecked =
+    keywordsFormValue && "mediaAssetKeywords" in keywordsFormValue
+      ? true
+      : isChecked_keyword;
+  const formValues = store.formFilters.filter((item) =>
+    item.filterId.includes("mediaAssetKeywords"),
+  );
+  const value = formValues?.map((item) => item.query?.term?.mediaAssetKeywords);
 
   return (
     <div>
@@ -59,8 +64,11 @@ const ImageLabelFilter = observer(({ data, store }) => {
           type="checkbox"
           id="custom-checkbox"
           label={label}
-          checked={store.formFilters?.find(
-            (filter) => filter.filterId === "numberMediaAssets")?.query?.range?.numberMediaAssets?.gte === 1}
+          checked={
+            store.formFilters?.find(
+              (filter) => filter.filterId === "numberMediaAssets",
+            )?.query?.range?.numberMediaAssets?.gte === 1
+          }
           onChange={(e) => {
             if (e.target.checked) {
               console.log(1);
@@ -76,8 +84,7 @@ const ImageLabelFilter = observer(({ data, store }) => {
                 },
                 "Number Media Assets",
               );
-            }
-            else {
+            } else {
               store.removeFilter("numberMediaAssets");
             }
           }}
@@ -118,43 +125,50 @@ const ImageLabelFilter = observer(({ data, store }) => {
           value={value}
         />
       ) : (
-        <FormGroupMultiSelect
-          isMulti={true}
-          noLabel={true}
-          label="FILTER_KEYWORDS"
-          options={keywordsOptions}
-          field="mediaAssetKeywords"
-          term="terms"
-          filterKey="Media Asset Keywords"
-          store={store}
-        />
+        <ContainerWithSpinner loading={store.siteSettingsLoading}>
+          <FormGroupMultiSelect
+            isMulti={true}
+            noLabel={true}
+            label="FILTER_KEYWORDS"
+            options={keywordsOptions}
+            field="mediaAssetKeywords"
+            term="terms"
+            filterKey="Media Asset Keywords"
+            store={store}
+            loading={store.siteSettingsLoading}
+          />
+        </ContainerWithSpinner>
       )}
 
       <LabelledKeywordFilter data={data} store={store} />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        label="FILTER_VIEWPOINT"
-        noDesc={true}
-        options={viewPointOptions}
-        filterId="annotationViewpoints"
-        term="terms"
-        field={"annotationViewpoints"}
-        filterKey={"View Point"}
-        store={store}
-      />
-
-      <FormGroupMultiSelect
-        isMulti={true}
-        label="FILTER_IA_CLASS"
-        noDesc={true}
-        options={iaClassOptions}
-        filterId="annotationIAClasses"
-        field={"annotationIAClasses"}
-        term="terms"
-        filterKey={"IA Class"}
-        store={store}
-      />
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          label="FILTER_VIEWPOINT"
+          noDesc={true}
+          options={viewPointOptions}
+          filterId="annotationViewpoints"
+          term="terms"
+          field={"annotationViewpoints"}
+          filterKey={"View Point"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
+      <ContainerWithSpinner loading={store.siteSettingsLoading}>
+        <FormGroupMultiSelect
+          isMulti={true}
+          label="FILTER_IA_CLASS"
+          noDesc={true}
+          options={iaClassOptions}
+          filterId="annotationIAClasses"
+          field={"annotationIAClasses"}
+          term="terms"
+          filterKey={"IA Class"}
+          store={store}
+          loading={store.siteSettingsLoading}
+        />
+      </ContainerWithSpinner>
     </div>
   );
 });

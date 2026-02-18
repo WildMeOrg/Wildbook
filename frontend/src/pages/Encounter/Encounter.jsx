@@ -41,7 +41,8 @@ import Alert from "react-bootstrap/Alert";
 
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
-  const { data: siteSettings } = useGetSiteSettings();
+  const { data: siteSettings, loading: siteSettingsLoading } =
+    useGetSiteSettings();
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);
   const intl = useIntl();
@@ -61,7 +62,8 @@ const Encounter = observer(() => {
   useEffect(() => {
     if (!siteSettings) return;
     store.setSiteSettings(siteSettings);
-  }, [siteSettings, store]);
+    store.setSiteSettingsLoading(siteSettingsLoading);
+  }, [siteSettings, store, siteSettingsLoading]);
 
   const params = new URLSearchParams(window.location.search);
   const encounterId = params.get("number");
@@ -300,21 +302,29 @@ const Encounter = observer(() => {
           </Modal.Body>
         </Modal>
       )}
-      <ContactInfoModal
-        isOpen={store.modals.openContactInfoModal}
-        onClose={() => store.modals.setOpenContactInfoModal(false)}
-        store={store}
-      />
-      <EncounterHistoryModal
-        isOpen={store.modals.openEncounterHistoryModal}
-        onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
-        store={store}
-      />
-      <MatchCriteriaModal
-        store={store}
-        isOpen={store.modals.openMatchCriteriaModal}
-        onClose={() => store.modals.setOpenMatchCriteriaModal(false)}
-      />
+
+      {store.modals.openContactInfoModal && (
+        <ContactInfoModal
+          isOpen={store.modals.openContactInfoModal}
+          onClose={() => store.modals.setOpenContactInfoModal(false)}
+          store={store}
+        />
+      )}
+      {store.modals.openEncounterHistoryModal && (
+        <EncounterHistoryModal
+          isOpen={store.modals.openEncounterHistoryModal}
+          onClose={() => store.modals.setOpenEncounterHistoryModal(false)}
+          store={store}
+        />
+      )}
+      {store.modals.openMatchCriteriaModal && (
+        <MatchCriteriaModal
+          store={store}
+          isOpen={store.modals.openMatchCriteriaModal}
+          onClose={() => store.modals.setOpenMatchCriteriaModal(false)}
+        />
+      )}
+
       <Row>
         <Col md={6}>
           <h2>

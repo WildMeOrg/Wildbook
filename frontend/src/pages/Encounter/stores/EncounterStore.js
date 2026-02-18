@@ -28,6 +28,7 @@ class EncounterStore {
   _encounterData = null;
 
   _siteSettingsData = null;
+  _siteSettingsLoading = true;
 
   _access = "read";
 
@@ -842,6 +843,14 @@ class EncounterStore {
         label: data,
       }),
     );
+  }
+
+  get siteSettingsLoading() {
+    return this._siteSettingsLoading;
+  }
+
+  setSiteSettingsLoading(siteSettingsLoading) {
+    this._siteSettingsLoading = siteSettingsLoading;
   }
 
   resetSectionDraft(sectionName) {
