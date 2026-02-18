@@ -150,6 +150,13 @@ export const ImageModal = observer(
     const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
     const [tip, setTip] = React.useState({ show: false, x: 0, y: 0, text: "" });
 
+    const maxArea = React.useMemo(() => {
+      return rects.reduce(
+        (max, r) => Math.max(max, (r.width || 0) * (r.height || 0)),
+        1,
+      );
+    }, [rects]);
+
     return (
       <div
         id="image-modal"
@@ -387,6 +394,15 @@ export const ImageModal = observer(
                             height: rect.height / scaleY,
                           };
                         }
+
+                        const area = (rect.width || 0) * (rect.height || 0);
+                        const score = 1 - area / maxArea;
+                        const baseZ = 10 + Math.round(score * 1000);
+                        const finalZ =
+                          rect.annotationId === imageStore.selectedAnnotationId
+                            ? 2000
+                            : baseZ;
+
                         return (
                           <div
                             id={`annotation-rect-${index}`}
@@ -412,6 +428,7 @@ export const ImageModal = observer(
                               border: "2px solid red",
                               transform: `rotate(${rect.rotation}rad)`,
                               cursor: "pointer",
+                              zIndex: finalZ,
                               backgroundColor:
                                 rect.annotationId ===
                                 imageStore.selectedAnnotationId
