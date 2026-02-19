@@ -28,6 +28,7 @@ export default class MatchResultsStore {
   _matchRequestLoading = false;
   _matchRequestError = null;
   _hasResults = false;
+  _fetchSeq = 0;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -132,6 +133,26 @@ export default class MatchResultsStore {
       });
     }
     return sections;
+  }
+
+  clearResults() {
+    this._annotResults = [];
+    this._indivResults = [];
+
+    this._rawAnnots = [];
+    this._rawIndivs = [];
+
+    this._encounterId = null;
+    this._encounterLocationId = "";
+    this._matchingSetFilter = {};
+    this._individualId = null;
+    this._individualDisplayName = null;
+    this._statusOverall = "";
+    this._viewMode = "individual";
+    this._newIndividualName = "";
+    this._hasResults = false;
+
+    this.resetSelectionToQuery();
   }
 
   // --- computed data for UI ---
@@ -250,47 +271,37 @@ export default class MatchResultsStore {
   }
 
   // actions
-
   async fetchMatchResults() {
     if (!this._taskId) return;
+    const seq = ++this._fetchSeq;
 
     this.setLoading(true);
-    this._hasResults = false;
+    this.clearResults();
 
     try {
       const params = new URLSearchParams();
       params.set("prospectsSize", String(this.numResults));
-      if (this._projectNames && this._projectNames.length > 0) {
-        this._projectNames.forEach((projectId) => {
-          params.append("projectId", projectId);
-        });
-      }
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      try {
-        const result = await axios.get(
-          `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
-          {
-            signal: controller.signal,
-            timeout: 30000,
-          },
+      if (Array.isArray(this._projectNames) && this._projectNames.length > 0) {
+        this._projectNames.forEach((projectId) =>
+          params.append("projectId", projectId),
         );
-
-        clearTimeout(timeoutId);
-        this.loadData(result?.data);
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error.name === "AbortError" || error.code === "ECONNABORTED") {
-          console.error("Request timeout");
-        } else {
-          throw error;
-        }
       }
+
+      const result = await axios.get(
+        `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
+      );
+      if (seq !== this._fetchSeq) return;
+
+      this.loadData(result?.data);
     } catch (e) {
+      if (seq !== this._fetchSeq) return;
       console.error(e);
+      this.clearResults();
     } finally {
-      this.setLoading(false);
+      if (seq === this._fetchSeq) {
+        this.setLoading(false);
+      }
     }
   }
 
@@ -422,51 +433,6 @@ export default class MatchResultsStore {
   handleNoFurtherActionNeeded() {
     this.clearSelection();
     return { ok: true, noop: true };
-  }
-
-  //confirm no match
-  async handleConfirmNoMatch() {
-    this._matchRequestLoading = true;
-    this._matchRequestError = null;
-
-    try {
-      const newName = (this._newIndividualName || "").trim();
-      if (!newName) {
-        this._matchRequestError = "ENTER_INDIVIDUAL_NAME";
-        return null;
-      }
-
-      const encounterIds = Array.from(
-        new Set(
-          this.selectedIncludingQuery.map((m) => m.encounterId).filter(Boolean),
-        ),
-      );
-
-      const patchOps = [{ op: "replace", path: "/individual", value: newName }];
-
-      for (const id of encounterIds) {
-        await axios.patch(
-          `/api/v3/encounters/${encodeURIComponent(id)}`,
-          patchOps,
-          {
-            headers: {
-              "Content-Type": "application/json-patch+json",
-              Accept: "application/json",
-            },
-          },
-        );
-      }
-
-      this._newIndividualName = "";
-      this.resetSelectionToQuery();
-      return { ok: true };
-    } catch (e) {
-      console.error(e);
-      this._matchRequestError = "PATCH_FAILED";
-      return null;
-    } finally {
-      this._matchRequestLoading = false;
-    }
   }
 
   //one individual

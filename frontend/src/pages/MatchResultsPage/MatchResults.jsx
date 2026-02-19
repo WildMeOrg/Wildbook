@@ -53,11 +53,8 @@ const MatchResults = observer(() => {
       store.setTaskId(taskId);
       store.fetchMatchResults();
     } else {
-      store.setHasResults(false);
+      store.clearResults();
     }
-    return () => {
-      // store.resetStore();
-    };
   }, [taskId, store]);
 
   if (store.loading) {
