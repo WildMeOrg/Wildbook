@@ -35,6 +35,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.metrics.Prometheus;
 import org.ecocean.queue.QueueUtil;
 import org.ecocean.shepherd.core.Shepherd;
+import org.json.JSONObject;
 
 public class MetricsBot {
     private static long collectorStartTime = 0l;
@@ -109,11 +110,11 @@ public class MetricsBot {
 
         myShepherd.setAction("MetricsBot_buildGauge_" + name);
         myShepherd.beginDBTransaction();
+        Query q = null;
         try {
             Long myValue = null;
-            Query q = myShepherd.getPM().newQuery(filter);
+            q = myShepherd.getPM().newQuery(filter);
             myValue = (Long)q.execute();
-            q.closeAll();
             if (myValue != null) {
                 line = name + "," + myValue.toString() + "," + "gauge" + "," + help;
             }
@@ -124,20 +125,32 @@ public class MetricsBot {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            if (q != null) q.closeAll();
             myShepherd.rollbackAndClose();
         }
         // System.out.println("   -- Done: "+ line);
         return line;
     }
 
+    // Helper method to safely parse label from buildGauge result
+    private static String parseLabelFromGauge(String gaugeResult, String prefix) {
+        if (gaugeResult == null) return null;
+        StringTokenizer str = new StringTokenizer(gaugeResult, ",");
+        if (str.countTokens() < 2) return null;
+        return prefix + str.nextToken() + ":" + str.nextToken() + ",";
+    }
+
     public static void refreshMetrics(String context) {
-        // clear old metrics
-        CollectorRegistry.defaultRegistry.clear();
+        // NOTE: We no longer clear the registry at the start.
+        // Instead, we build all metrics into the CSV first, then atomically
+        // swap by clearing and reloading only after successful CSV write.
+        // This prevents blank /metrics responses during refresh.
 
         // first, make sure metrics file exists
         // if not, create it
         File metricsFile = new File(csvFile);
         File metricsDir = metricsFile.getParentFile();
+        File tempFile = new File(csvFile + ".tmp");
         try {
             if (!metricsDir.exists()) {
                 boolean created = metricsDir.mkdirs();
@@ -150,11 +163,11 @@ public class MetricsBot {
 
             // execute queries to get metrics
 
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.media.MediaAsset",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.media.MediaAsset",
                 "wildbook_mediaassets_total", "Number of media assets", context));
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Occurrence",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.Occurrence",
                 "wildbook_sightings_total", "Number of sightings", context));
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Annotation",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.Annotation",
                 "wildbook_annotations_total", "Number of annotations", context));
 
             // User-related
@@ -179,41 +192,42 @@ public class MetricsBot {
             }
             String encLabels = "";
             String indyLabels = "";
-            for (String tax : taxa) {
-                StringTokenizer str = new StringTokenizer(tax, " ");
-                if (str.countTokens() > 1) {
-                    String genus = str.nextToken();
-                    String specificEpithet = str.nextToken();
-                    if (str.hasMoreTokens()) specificEpithet += " " + str.nextToken();
-                    String indyLabelTemp = buildGauge(
-                        "SELECT count(this) FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.specificEpithet == '"
-                        + specificEpithet.replaceAll("_", " ") + "'",
-                        (genus + "_" + specificEpithet.replaceAll(" ", "_")),
-                        "Number of marked individuals (" + genus + " " + specificEpithet + ")",
-                        context);
-                    StringTokenizer strIndy = new StringTokenizer(indyLabelTemp, ",");
-                    indyLabels += "species_" + strIndy.nextToken() + ":" + strIndy.nextToken() +
-                        ",";
+            if (taxa != null) {
+                for (String tax : taxa) {
+                    StringTokenizer str = new StringTokenizer(tax, " ");
+                    if (str.countTokens() > 1) {
+                        String genus = str.nextToken();
+                        String specificEpithet = str.nextToken();
+                        if (str.hasMoreTokens()) specificEpithet += " " + str.nextToken();
+                        String indyLabelTemp = buildGauge(
+                            "SELECT count(this) FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.specificEpithet == '"
+                            + specificEpithet.replaceAll("_", " ") + "'",
+                            (genus + "_" + specificEpithet.replaceAll(" ", "_")),
+                            "Number of marked individuals (" + genus + " " + specificEpithet + ")",
+                            context);
+                        String indyLabel = parseLabelFromGauge(indyLabelTemp, "species_");
+                        if (indyLabel != null) indyLabels += indyLabel;
 
-                    String encLabelTemp = buildGauge(
-                        "SELECT count(this) FROM org.ecocean.Encounter where specificEpithet == '" +
-                        specificEpithet.replaceAll("_", " ") + "'",
-                        (genus + "_" + specificEpithet.replaceAll(" ", "_")),
-                        "Number of encounters (" + genus + " " + specificEpithet + ")", context);
-                    StringTokenizer encIndy = new StringTokenizer(encLabelTemp, ",");
-                    encLabels += "species_" + encIndy.nextToken() + ":" + encIndy.nextToken() + ",";
+                        String encLabelTemp = buildGauge(
+                            "SELECT count(this) FROM org.ecocean.Encounter where specificEpithet == '" +
+                            specificEpithet.replaceAll("_", " ") + "'",
+                            (genus + "_" + specificEpithet.replaceAll(" ", "_")),
+                            "Number of encounters (" + genus + " " + specificEpithet + ")", context);
+                        String encLabel = parseLabelFromGauge(encLabelTemp, "species_");
+                        if (encLabel != null) encLabels += encLabel;
+                    }
                 }
             }
             String indyLabelTemp = buildGauge(
                 "SELECT count(this) FROM org.ecocean.MarkedIndividual", "*",
                 "Number of marked individuals", context);
-            StringTokenizer strIndy = new StringTokenizer(indyLabelTemp, ",");
-            indyLabels += "species_" + strIndy.nextToken() + ":" + strIndy.nextToken() + ",";
+            String indyLabelParsed = parseLabelFromGauge(indyLabelTemp, "species_");
+            if (indyLabelParsed != null) indyLabels += indyLabelParsed;
 
             String encLabelTemp = buildGauge("SELECT count(this) FROM org.ecocean.Encounter", "*",
                 "Number of encounters", context);
-            StringTokenizer encIndy = new StringTokenizer(encLabelTemp, ",");
-            encLabels += "species_" + encIndy.nextToken() + ":" + encIndy.nextToken() + ",";
+            String encLabelParsed = parseLabelFromGauge(encLabelTemp, "species_");
+            if (encLabelParsed != null) encLabels += encLabelParsed;
             if (encLabels.equals("")) encLabels = null;
             else if (encLabels.endsWith(",")) {
                 encLabels = "\"" + encLabels.substring(0, (encLabels.length() - 1)) + "\"";
@@ -222,48 +236,75 @@ public class MetricsBot {
             else if (indyLabels.endsWith(",")) {
                 indyLabels = "\"" + indyLabels.substring(0, (indyLabels.length() - 1)) + "\"";
             }
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.Encounter",
                 "wildbook_encounters_total", "Number of encounters", context, encLabels));
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual",
                 "wildbook_individuals_total", "Number of marked individuals", context, indyLabels));
+
+            // Database vs OpenSearch sync drift metrics
+            try {
+                // Encounter sync drift
+                long dbEncounterCount = getDatabaseCount("org.ecocean.Encounter", context);
+                long osEncounterCount = getOpenSearchIndexCount("encounter");
+                if (dbEncounterCount >= 0 && osEncounterCount >= 0) {
+                    long encounterDrift = dbEncounterCount - osEncounterCount;
+                    csvLines.add("wildbook_encounters_db_count," + dbEncounterCount + ",gauge,Database encounter count");
+                    csvLines.add("wildbook_encounters_opensearch_count," + osEncounterCount + ",gauge,OpenSearch encounter count");
+                    csvLines.add("wildbook_encounters_sync_drift," + encounterDrift + ",gauge,Encounter count difference (DB minus OpenSearch)");
+                    System.out.println("MetricsBot: Encounter sync - DB: " + dbEncounterCount + " OS: " + osEncounterCount + " Drift: " + encounterDrift);
+                }
+
+                // Individual sync drift
+                long dbIndividualCount = getDatabaseCount("org.ecocean.MarkedIndividual", context);
+                long osIndividualCount = getOpenSearchIndexCount("individual");
+                if (dbIndividualCount >= 0 && osIndividualCount >= 0) {
+                    long individualDrift = dbIndividualCount - osIndividualCount;
+                    csvLines.add("wildbook_individuals_db_count," + dbIndividualCount + ",gauge,Database individual count");
+                    csvLines.add("wildbook_individuals_opensearch_count," + osIndividualCount + ",gauge,OpenSearch individual count");
+                    csvLines.add("wildbook_individuals_sync_drift," + individualDrift + ",gauge,Individual count difference (DB minus OpenSearch)");
+                    System.out.println("MetricsBot: Individual sync - DB: " + dbIndividualCount + " OS: " + osIndividualCount + " Drift: " + individualDrift);
+                }
+            } catch (Exception syncEx) {
+                System.out.println("MetricsBot: Error calculating sync drift metrics: " + syncEx.getMessage());
+            }
 
             // User analysis
             String userLabels = "";
             String dayLabel = buildGauge(
                 "SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > " +
                 oneDayAgo, "lastDayLogin", "Number of users logging in (24 hours)", context);
-            StringTokenizer str1 = new StringTokenizer(dayLabel, ",");
-            userLabels += "login_" + str1.nextToken() + ":" + str1.nextToken() + ",";
+            String dayLabelParsed = parseLabelFromGauge(dayLabel, "login_");
+            if (dayLabelParsed != null) userLabels += dayLabelParsed;
 
             String weekLabel = buildGauge(
                 "SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > " +
                 oneWeekAgo, "lastWeekLogin", "Number of users logging in (Last 7 days)", context);
-            StringTokenizer str2 = new StringTokenizer(weekLabel, ",");
-            userLabels += "login_" + str2.nextToken() + ":" + str2.nextToken() + ",";
+            String weekLabelParsed = parseLabelFromGauge(weekLabel, "login_");
+            if (weekLabelParsed != null) userLabels += weekLabelParsed;
 
             String monthLabel = buildGauge(
                 "SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > " +
                 oneMonthAgo, "lastMonthLogin", "Number of users logging in (Last 30 days)",
                 context);
-            StringTokenizer str3 = new StringTokenizer(monthLabel, ",");
-            userLabels += "login_" + str3.nextToken() + ":" + str3.nextToken() + ",";
+            String monthLabelParsed = parseLabelFromGauge(monthLabel, "login_");
+            if (monthLabelParsed != null) userLabels += monthLabelParsed;
 
             String yearLabel = buildGauge(
                 "SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > " +
                 oneYearAgo, "lastYearLogin", "Number of users logging in (Last 365 days)", context);
-            StringTokenizer str4 = new StringTokenizer(yearLabel, ",");
-            userLabels += "login_" + str4.nextToken() + ":" + str4.nextToken() + ",";
+            String yearLabelParsed = parseLabelFromGauge(yearLabel, "login_");
+            if (yearLabelParsed != null) userLabels += yearLabelParsed;
 
             String userLabelTemp = buildGauge(
                 "SELECT count(this) FROM org.ecocean.User WHERE username != null && lastLogin > 0",
                 "*", "Number of users", context);
-            StringTokenizer str5 = new StringTokenizer(userLabelTemp, ",");
-            userLabels += "login_" + str5.nextToken() + ":" + str5.nextToken() + ",";
+            String userLabelParsed = parseLabelFromGauge(userLabelTemp, "login_");
+            if (userLabelParsed != null) userLabels += userLabelParsed;
             if (userLabels.equals("")) userLabels = null;
             else if (userLabels.endsWith(",")) {
                 userLabels = "\"" + userLabels.substring(0, (userLabels.length() - 1)) + "\"";
             }
-            csvLines.add(buildGauge(
+            addLineIfNotNull(csvLines, buildGauge(
                 "SELECT count(this) FROM org.ecocean.User WHERE username != null && lastLogin > 0",
                 "wildbook_users_total", "Number of users", context, userLabels));
 
@@ -271,34 +312,34 @@ public class MetricsBot {
             String contributorsLabels = "";
             String allContribLabel = buildGauge("SELECT count(this) FROM org.ecocean.User", "*",
                 "Number of data contributors", context);
-            StringTokenizer str6 = new StringTokenizer(allContribLabel, ",");
-            contributorsLabels += "contributor_" + str6.nextToken() + ":" + str6.nextToken() + ",";
+            String allContribParsed = parseLabelFromGauge(allContribLabel, "contributor_");
+            if (allContribParsed != null) contributorsLabels += allContribParsed;
 
             String publicContribLabel = buildGauge(
                 "SELECT count(this) FROM org.ecocean.User WHERE username == null", "public",
                 "Number of public data contributors", context);
-            StringTokenizer str7 = new StringTokenizer(publicContribLabel, ",");
-            contributorsLabels += "contributor_" + str7.nextToken() + ":" + str7.nextToken() + ",";
+            String publicContribParsed = parseLabelFromGauge(publicContribLabel, "contributor_");
+            if (publicContribParsed != null) contributorsLabels += publicContribParsed;
             if (contributorsLabels.equals("")) contributorsLabels = null;
             else if (contributorsLabels.endsWith(",")) {
                 contributorsLabels = "\"" + contributorsLabels.substring(0,
                     (contributorsLabels.length() - 1)) + "\"";
             }
-            csvLines.add(buildGauge(
+            addLineIfNotNull(csvLines, buildGauge(
                 "SELECT count(this) FROM org.ecocean.User WHERE username == null",
                 "wildbook_datacontributors_total", "Number of public data contributors", context,
                 contributorsLabels));
-            
+
             //Issue 532 - find number Encounters owned by User 'public'
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == 'public'",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == 'public'",
                     "wildbook_encounters_public_owned_total", "Number of public owned encounters", context, encLabels));
-            
+
             //Issue 532 - number of encounters submitted by researcher: encounters submitted by accounts that have researcher role
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == role.username && role.rolename=='researcher' VARIABLES org.ecocean.Role role",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == role.username && role.rolename=='researcher' VARIABLES org.ecocean.Role role",
                     "wildbook_encounters_researcher_owned_total", "Number of researcher owned encounters", context, encLabels));
-            
+
             //Issue 532 - number of encounters submitted by citizen scientist: encounters submitted by accounts that do not have a role
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == null || submitterID == 'public' || !(select distinct username from org.ecocean.Role where rolename=='researcher').contains(submitterID)",
+            addLineIfNotNull(csvLines, buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == null || submitterID == 'public' || !(select distinct username from org.ecocean.Role where rolename=='researcher').contains(submitterID)",
                     "wildbook_encounters_citsci_contributed_total", "Number of citizen science contributed encounters", context, encLabels));
 
 
@@ -335,23 +376,101 @@ public class MetricsBot {
                         "gauge" + "," + "WBIA job queue turnaround time for ID tasks");
                 }
             }
-            // write the file
-            // set up the output stream
-            FileOutputStream fos = new FileOutputStream(csvFile);
+            // write the file atomically: write to temp file first, then rename
+            // This prevents partial reads if /metrics is requested during write
+            FileOutputStream fos = new FileOutputStream(tempFile);
             OutputStreamWriter outp = new OutputStreamWriter(fos);
             for (String line : csvLines) {
-                outp.write(line + "\n");
+                if (line != null) {
+                    outp.write(line + "\n");
+                }
             }
             outp.close();
             fos.close();
             outp = null;
 
-            // now reload metrics
-            Prometheus metricsExtractor = new Prometheus();
-            metricsExtractor.getValues();
+            // Atomic rename: move temp file to final location
+            // Delete old file first if it exists
+            if (metricsFile.exists()) {
+                metricsFile.delete();
+            }
+            boolean renamed = tempFile.renameTo(metricsFile);
+            if (!renamed) {
+                System.out.println("WARNING: MetricsBot could not atomically rename temp file to " + csvFile);
+                // Fallback: copy content if rename fails (can happen across filesystems)
+                java.nio.file.Files.copy(tempFile.toPath(), metricsFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                tempFile.delete();
+            }
+
+            // Now that CSV is safely written, clear and reload the Prometheus registry
+            // This is the only place where we clear the registry, ensuring /metrics
+            // always has data (either old or new, never empty)
+            synchronized (CollectorRegistry.defaultRegistry) {
+                CollectorRegistry.defaultRegistry.clear();
+                Prometheus metricsExtractor = new Prometheus();
+                metricsExtractor.getValues();
+            }
+            System.out.println("MetricsBot.refreshMetrics completed successfully");
         } catch (Exception f) {
-            System.out.println("Exception in MetricsBot!");
+            // On any exception, we do NOT clear the registry, so old metrics remain available
+            System.out.println("Exception in MetricsBot.refreshMetrics - old metrics preserved!");
             f.printStackTrace();
+        } finally {
+            // Clean up temp file if it still exists (e.g., if exception occurred)
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    // Helper method to add a line to csvLines only if it's not null
+    private static void addLineIfNotNull(ArrayList<String> csvLines, String line) {
+        if (line != null) {
+            csvLines.add(line);
+        }
+    }
+
+    // Helper method to get total document count from an OpenSearch index
+    private static long getOpenSearchIndexCount(String indexName) {
+        try {
+            OpenSearch os = new OpenSearch();
+            // Query with size=0 to just get count, not documents
+            JSONObject query = new JSONObject();
+            query.put("query", new JSONObject().put("match_all", new JSONObject()));
+            JSONObject result = os.queryPit(indexName, query, 0, 0, null, null);
+
+            // Extract total count from response: hits.total.value
+            JSONObject hits = result.optJSONObject("hits");
+            if (hits != null) {
+                JSONObject total = hits.optJSONObject("total");
+                if (total != null) {
+                    return total.optLong("value", -1);
+                }
+                // Some versions return total as a number directly
+                return hits.optLong("total", -1);
+            }
+        } catch (Exception e) {
+            System.out.println("MetricsBot.getOpenSearchIndexCount(" + indexName + ") failed: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    // Helper method to get database count for a class
+    private static long getDatabaseCount(String className, String context) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MetricsBot_dbCount_" + className);
+        myShepherd.beginDBTransaction();
+        try {
+            Query q = myShepherd.getPM().newQuery("SELECT count(this) FROM " + className);
+            Long count = (Long) q.execute();
+            q.closeAll();
+            return count != null ? count : -1;
+        } catch (Exception e) {
+            System.out.println("MetricsBot.getDatabaseCount(" + className + ") failed: " + e.getMessage());
+            return -1;
+        } finally {
+            myShepherd.rollbackAndClose();
         }
     }
 
@@ -383,62 +502,43 @@ public class MetricsBot {
         // Task loading
         long TwoFourHours = 1000 * 60 * 60 * 24;
 
-        csvLines.add(buildGauge(
+        addLineIfNotNull(csvLines, buildGauge(
             (
             "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && created > "
             + (System.currentTimeMillis() - TwoFourHours)),
             "wildbook_identification_tasks_added_last24",
             "Number of child identification tasks added last 24 hours", context));
-        csvLines.add(buildGauge(
+        addLineIfNotNull(csvLines, buildGauge(
             (
             "SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf('ibeis.detection') > -1  && (children == null || (children.contains(child) && child.parameters.indexOf('ibeis.detection') == -1)) && created > "
             + (System.currentTimeMillis() - TwoFourHours)) + " VARIABLES org.ecocean.ia.Task child",
             "wildbook_detection_tasks_added_last24",
             "Number of detection tasks added last 24 hours", context));
-        csvLines.add(buildGauge(
+        addLineIfNotNull(csvLines, buildGauge(
             (
             "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && parameters.indexOf('fastlane') > -1 && created > "
             + (System.currentTimeMillis() - TwoFourHours)),
             "wildbook_fastlane_identification_tasks_added_last24",
             "Number of fastlane child identification tasks added last 24 hours", context));
-        csvLines.add(buildGauge(
+        addLineIfNotNull(csvLines, buildGauge(
             (
             "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && parameters.indexOf('fastlane') > -1 && completionDateInMilliseconds > "
             + (System.currentTimeMillis() - TwoFourHours)),
             "wildbook_fastlane_identification_tasks_completed_last24",
             "Number of fastlane child identification tasks completed last 24 hours", context));
 
-        // Hotspotter, PieTwo, PieOne
-        csvLines.add(buildGauge(
+        // Hotspotter, PieTwo, MiewID
+        addLineIfNotNull(csvLines, buildGauge(
             "SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"sv_on\"')>-1",
             "wildbook_tasks_hotspotter", "Number of tasks using Hotspotter algorithm", context));
-        csvLines.add(buildGauge(
-            "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Pie')>-1 && parameters.indexOf('PieTwo')==-1",
-            "wildbook_tasks_pieOne", "Number of tasks using PieOne algorithm", context));
-        csvLines.add(buildGauge(
+        addLineIfNotNull(csvLines, buildGauge(
             "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('PieTwo')>-1",
             "wildbook_tasks_pieTwo", "Number of tasks using PieTwo algorithm", context));
+		addLineIfNotNull(csvLines, buildGauge(
+            "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('MiewId')>-1",
+            "wildbook_tasks_pieTwo", "Number of tasks using MiewId algorithm", context));
 
-        // CurvRankTwoDorsal, CurveRankTwoFluke, OC_WDTW
-        csvLines.add(buildGauge(
-            "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('CurvRankTwoDorsal')>-1",
-            "wildbook_tasks_curveRankTwoDorsal",
-            "Number of tasks using CurveRankTwoDorsal algorithm", context));
-        csvLines.add(buildGauge(
-            "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('CurvRankTwoFluke')>-1",
-            "wildbook_tasks_curveRankTwoFluke", "Number of tasks using CurveRankTwoFluke algorithm",
-            context));
-        csvLines.add(buildGauge(
-            "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('OC_WDTW')>-1",
-            "wildbook_tasks_oc_wdtw", "Number of tasks using OC_WDTW algorithm", context));
 
-        // Finfindr, Deepsense
-        csvLines.add(buildGauge(
-            "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Finfindr')>-1",
-            "wildbook_tasks_finFindr", "Number of tasks using FinFindr algorithm", context));
-        csvLines.add(buildGauge(
-            "SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.toLowerCase().indexOf('deepsense')>-1",
-            "wildbook_tasks_deepsense", "Number of tasks using Deepsense algorithm", context));
 
         // add queue information
         try {
@@ -470,16 +570,16 @@ public class MetricsBot {
             String idCompleteFilter =
                 "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "
                 + (System.currentTimeMillis() - TwoFourHours);
+            Query qD = null;
+            Query qID = null;
             try {
                 Long detectValue = null;
                 Long idValue = null;
-                Query qD = myShepherd.getPM().newQuery(detectionsCompleteFilter);
+                qD = myShepherd.getPM().newQuery(detectionsCompleteFilter);
                 detectValue = (Long)qD.execute();
-                qD.closeAll();
                 if (detectValue != null) numDetectionCompletedLast24 = detectValue.intValue();
-                Query qID = myShepherd.getPM().newQuery(idCompleteFilter);
+                qID = myShepherd.getPM().newQuery(idCompleteFilter);
                 idValue = (Long)qID.execute();
-                qID.closeAll();
                 if (idValue != null)
                     numIDCompletedLast24 = idValue.intValue() - detectValue.intValue();
                 csvLines.add("wildbook_identification_tasks_completed_last24, " +
@@ -493,6 +593,9 @@ public class MetricsBot {
                 badArg.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (qD != null) qD.closeAll();
+                if (qID != null) qID.closeAll();
             }
             IAJsonProperties iaConfig = new IAJsonProperties();
             List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);
@@ -524,7 +627,7 @@ public class MetricsBot {
                     allowedIAClasses += " )";
                     String filter = filter3 + " && objectAnnotations.contains(annot) " +
                         allowedIAClasses + " VARIABLES org.ecocean.Annotation annot";
-                    csvLines.add(buildGauge(filter, "wildbook_tasks_idSpecies_" + scientificName,
+                    addLineIfNotNull(csvLines, buildGauge(filter, "wildbook_tasks_idSpecies_" + scientificName,
                         "Number of ID tasks by species " + scientificName, context));
                 }
             }
@@ -532,10 +635,14 @@ public class MetricsBot {
             // WB-1968: filter to only users who have logged in
             // List<User> users = myShepherd.getAllUsers();
             String filterTasksUsers = "SELECT FROM org.ecocean.User where lastLogin > 0";
-            Query filterTasksUsersQuery = myShepherd.getPM().newQuery(filterTasksUsers);
-            Collection c = (Collection)filterTasksUsersQuery.execute();
-            List<User> users = new ArrayList<User>(c);
-            filterTasksUsersQuery.closeAll();
+            Query filterTasksUsersQuery = null;
+            try {
+                filterTasksUsersQuery = myShepherd.getPM().newQuery(filterTasksUsers);
+                Collection c = (Collection)filterTasksUsersQuery.execute();
+                List<User> users = new ArrayList<User>(c);
+            } finally {
+                if (filterTasksUsersQuery != null) filterTasksUsersQuery.closeAll();
+            }
             // end WB-1968
 
         } catch (Exception exy) { exy.printStackTrace(); } finally {
