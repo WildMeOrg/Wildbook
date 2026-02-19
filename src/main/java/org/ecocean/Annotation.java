@@ -1254,10 +1254,6 @@ public class Annotation extends Base implements java.io.Serializable {
                 enc.setState(CommonConfiguration.getProperty("encounterState0",
                     myShepherd.getContext()));
             }
-            // this taxonomy only works when its twitter-sourced data cuz otherwise this is just null
-            enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd,
-                TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
-
             return enc;
         }
         /* TODO: evaluate what of these notes are necessary

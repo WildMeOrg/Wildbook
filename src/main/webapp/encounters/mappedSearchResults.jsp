@@ -480,23 +480,6 @@ if (request.getQueryString() != null) {
 
    <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
    </a></li>
-   <li><a
-     href="projectManagement.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("projectManagement")%>
-   </a></li>
-   <li><a
-     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("matchingImages")%>
-   </a></li>
-   <li><a class="active"><%=map_props.getProperty("mappedResults") %>
-   </a></li>
-   <li><a
-     href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
-   </a></li>
-      <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
-   </a></li>
-         <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("export")%>
-   </a></li>
 
  </ul>
 

@@ -221,12 +221,14 @@ const MyDataTable = observer(
       }
     }, [store.selectedRows.length, store.projectBannerStatusCode]);
 
-    const { data: siteSettingsData } = useGetSiteSettings();
+    const { data: siteSettingsData, loading: siteSettingsLoading } =
+      useGetSiteSettings();
     useEffect(() => {
       if (siteSettingsData) {
         store.setSiteSettingsData(siteSettingsData);
+        store.setSiteSettingsLoading(siteSettingsLoading);
       }
-    }, [siteSettingsData]);
+    }, [siteSettingsData, siteSettingsLoading]);
 
     useEffect(() => {
       setData(tableData.map((row, index) => ({ tableID: index, ...row })));
