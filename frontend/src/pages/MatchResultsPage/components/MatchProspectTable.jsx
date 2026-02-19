@@ -264,11 +264,13 @@ const MatchProspectTable = ({
 
   const openFullscreen = () => {
     setFullscreenOpen(true);
-    setTimeout(() => {
-      fsLeftRef.current?.reset?.();
-      fsRightRef.current?.reset?.();
-    }, 0);
   };
+
+  React.useEffect(() => {
+    if (!fullscreenOpen) return;
+    fsLeftRef.current?.reset?.();
+    fsRightRef.current?.reset?.();
+  }, [fullscreenOpen]);
 
   if (columns.length === 0) {
     return <FormattedMessage id="NO_MATCH_RESULT" />;
@@ -319,6 +321,9 @@ const MatchProspectTable = ({
                 const candidateIndividualDisplayName =
                   candidate.annotation?.individual?.displayName;
 
+                const canOpenEncounter = Boolean(candidateEncounterId);
+                const canOpenIndividual = Boolean(candidateIndividualId);
+
                 const rowKey = `${candidate.annotation?.id ?? candidate.annotation?.encounter?.id ?? "no-annot"}-${candidate.displayIndex ?? "no-idx"}`;
                 const isRowSelected = isSelected(rowKey);
                 const isRowPreviewed = rowKey === previewedRow?._rowKey;
@@ -344,7 +349,11 @@ const MatchProspectTable = ({
                     </span>
 
                     <a
-                      href={`/react/encounter?number=${candidateEncounterId}`}
+                      href={
+                        canOpenEncounter
+                          ? `/react/encounter?number=${encodeURIComponent(candidateEncounterId)}`
+                          : "#"
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -353,7 +362,10 @@ const MatchProspectTable = ({
                         maxWidth: "150px",
                         overflow: "hidden",
                       }}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!canOpenEncounter) e.preventDefault();
+                      }}
                     >
                       {Number.isFinite(candidate?.score)
                         ? Math.max(candidate.score, 0).toLocaleString(
@@ -371,7 +383,8 @@ const MatchProspectTable = ({
                       className="btn btn-sm p-0 px-2"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const url = `/individuals.jsp?id=${candidateIndividualId}`;
+                        if (!canOpenIndividual) return;
+                        const url = `/individuals.jsp?id=${encodeURIComponent(candidateIndividualId)}`;
                         window.open(url, "_blank");
                       }}
                     >
@@ -386,7 +399,8 @@ const MatchProspectTable = ({
                         className="btn btn-sm p-0 px-2"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const url = `/react/encounter?number=${candidateEncounterId}`;
+                          if (!canOpenEncounter) return;
+                          const url = `/react/encounter?number=${encodeURIComponent(candidateEncounterId)}`;
                           window.open(url, "_blank");
                         }}
                       >

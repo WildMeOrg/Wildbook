@@ -24,7 +24,10 @@ const CreateNewIndividualModal = ({
       fetch(
         `/api/v3/individuals/info/next_name?locationId=${encodeURIComponent(locationId)}`,
       )
-        .then((res) => res.json())
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
         .then((data) => {
           if (data.success && data.results && data.results.length > 0) {
             const successfulResult = data.results.find((r) => r.success);
