@@ -365,6 +365,49 @@
              			 }}
 
             ]},
+              
+            {"name": "Mexico", "id": "Mexico",
+             "geospatialInfo":{
+             			 	"lat":30.796294,
+             			 	"long":-116.227019
+             			 }, "locationID":[
+
+                {"name": "Mexico- Isla Coronado", "id": "Mexico- Isla Coronado",
+             "geospatialInfo":{
+             			 	"lat":32.417478,
+             			 	"long":-117.259282
+             			 }},
+
+                {"name": "Mexico- Natividad Island", "id": "Mexico- Natividad Island",
+             "geospatialInfo":{
+             			 	"lat":27.879860,
+             			 	"long":-115.181394
+             			 }},
+
+                {"name": "Mexico- El Rosario", "id": "Mexico- El Rosario",
+             "geospatialInfo":{
+             			 	"lat":29.833333,
+             			 	"long":-115.783333
+             			 }},
+
+                {"name": "Mexico- Bajo 240 San Quintin", "id": "Mexico- Bajo 240 San Quintin",
+             "geospatialInfo":{
+             			 	"lat":30.350636,
+             			 	"long":-116.089120
+             			 }},
+                 
+                 {"name": "Mexico- Ensenada Arbolitos Port Reef", "id": "Mexico- Ensenada Arbolitos Port Reef",
+             "geospatialInfo":{
+             			 	"lat":31.694219,
+             			 	"long":-116.678432
+             			 }},
+                 {"name": "Mexico- Todos Santos Island", "id": "Mexico- Todos Santos Island",
+             "geospatialInfo":{
+             			 	"lat":31.804988,
+             			 	"long":-116.800035
+             			 }}
+
+            ]},
 
             {"name": "Naples", "id": "Naples"},
 
