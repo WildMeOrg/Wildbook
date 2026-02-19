@@ -26,6 +26,7 @@ import org.json.JSONObject;
 public class Annotation extends Base implements java.io.Serializable {
     public Annotation() {}
     private String id;
+    public static final int KNN_K_DISTANCE_VALUE = 4;
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
         { "up", "up", "up", "up", "up", "up", "up", "up", }, {
             "upfront", "upfrontright", "upright", "upbackright", "upback", "upbackleft", "upleft",
@@ -1120,7 +1121,7 @@ public class Annotation extends Base implements java.io.Serializable {
         JSONObject knn = new JSONObject("{\"knn\": {\"embeddings.vector\": {}}}");
         knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("vector",
             new JSONArray(emb.vectorToFloatArray()));
-        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", 5);
+        knn.getJSONObject("knn").getJSONObject("embeddings.vector").put("k", KNN_K_DISTANCE_VALUE);
         must.put(knn);
         if (method != null)
             must.put(new JSONObject("{\"term\": {\"embeddings.method\":\"" + method + "\"}}"));
@@ -1514,9 +1515,9 @@ public class Annotation extends Base implements java.io.Serializable {
                     cloneEncounter = true;
                 }
             }
-            //handle multiple parts case, such as a pre-existing elphant+head 
+            // handle multiple parts case, such as a pre-existing elphant+head
             // and a new elephant+head added in a single image
-            else{
+            else {
                 List<Annotation> encAnnots = enc.getAnnotations(ma);
                 System.out.println("DEBUG Annotation.createFromApi(): encAnnots = " + encAnnots);
                 // we see if we have a non-part annot, which would force us to clone (parts we ignore)
