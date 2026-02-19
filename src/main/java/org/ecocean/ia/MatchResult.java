@@ -223,7 +223,7 @@ public class MatchResult implements java.io.Serializable {
         });
         int most = sorted.get(0).getValue().size(); // top num of annots
         for (Map.Entry<MarkedIndividual, List<Annotation> > ent : sorted) {
-            double score = ent.getValue().size() / most;
+            double score = new Double(ent.getValue().size()) / new Double(most);
             // the ent value (annot List) should always have at least one annot, so we use first one
             this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv",
                 null));
