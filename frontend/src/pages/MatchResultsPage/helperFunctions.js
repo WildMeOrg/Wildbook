@@ -42,8 +42,9 @@ const collectProspects = (node, type, result = []) => {
       hasResults: true,
     };
 
+    const safeProspects = prospects.filter((p) => p && typeof p === "object");
     result.push(
-      ...prospects.map((item) => ({
+      ...safeProspects.map((item) => ({
         ...item,
         ...common,
       })),
@@ -57,7 +58,7 @@ const collectProspects = (node, type, result = []) => {
   return result;
 };
 
-export const getAllIndiv = (node, result) =>
+export const getAllIndiv = (node, result = []) =>
   collectProspects(node, "indiv", result);
-export const getAllAnnot = (node, result) =>
+export const getAllAnnot = (node, result = []) =>
   collectProspects(node, "annot", result);
