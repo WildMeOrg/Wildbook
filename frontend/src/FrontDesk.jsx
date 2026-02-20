@@ -27,6 +27,7 @@ export default function FrontDesk() {
   const { data } = useGetSiteSettings();
   const showclassicsubmit = data?.showClassicSubmit;
   const showClassicEncounterSearch = data?.showClassicEncounters;
+  const showHowToPhotograph = data?.showHowToPhotograph;
   const checkLoginStatus = () => {
     axios
       .head("/api/v3/user")
@@ -103,6 +104,7 @@ export default function FrontDesk() {
         <AuthenticatedSwitch
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
+          showHowToPhotograph={showHowToPhotograph}
         />
       </AuthContext.Provider>
     );
@@ -111,7 +113,10 @@ export default function FrontDesk() {
   return (
     <AuthContext.Provider value={{ isLoggedIn }}>
       <GoogleTagManager />
-      <UnauthenticatedSwitch showclassicsubmit={showclassicsubmit} />
+      <UnauthenticatedSwitch
+        showclassicsubmit={showclassicsubmit}
+        showHowToPhotograph={showHowToPhotograph}
+      />
     </AuthContext.Provider>
   );
 }
