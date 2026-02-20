@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.Embedding;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.media.MediaAsset;
@@ -349,6 +350,8 @@ public class IA {
             aj.put("annotationIds", annArr);
             String baseUrl = getBaseURL(context);
             for (int i = 0; i < opts.size(); i++) {
+                // if this is a vector-based matching option, this will just do the job and be done
+                if (Embedding.findMatchProspects(opts.get(i), tasks.get(i), myShepherd)) continue;
                 JSONObject qjob = new JSONObject();
                 qjob.put("identify", aj);
                 qjob.put("taskId", tasks.get(i).getId());
@@ -418,7 +421,6 @@ public class IA {
             if (fastlane) topTask.addParameter("fastlane", true);
             myShepherd.storeNewTask(topTask);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
-
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
             if ((mlist != null) && (mlist.length() > 0)) {
                 System.out.println("MLIST: " + mlist);
