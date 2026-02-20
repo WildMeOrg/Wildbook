@@ -392,18 +392,13 @@ public class EncounterCOCOExportFile {
         img.put("height", (int) ma.getHeight());
         img.put("uuid", ma.getUUID());
 
-        // Optional fields
-        if (ma.getDateTime() != null) {
-            img.put("date_captured", ma.getDateTime().toString());
-        }
+        // Always include all fields - use null for missing values so every record
+        // has the same schema (enables NaN counting in EDA instead of probing for missing keys)
+        img.put("date_captured", ma.getDateTime() != null ? ma.getDateTime().toString() : JSONObject.NULL);
         Double lat = ma.getLatitude();
         Double lon = ma.getLongitude();
-        if (lat != null) {
-            img.put("gps_lat_captured", lat);
-        }
-        if (lon != null) {
-            img.put("gps_lon_captured", lon);
-        }
+        img.put("gps_lat_captured", lat != null ? lat : JSONObject.NULL);
+        img.put("gps_lon_captured", lon != null ? lon : JSONObject.NULL);
         return img;
     }
 
@@ -449,9 +444,7 @@ public class EncounterCOCOExportFile {
         annJson.put("uuid", ann.getId());
 
         String viewpoint = ann.getViewpoint();
-        if (viewpoint != null) {
-            annJson.put("viewpoint", viewpoint);
-        }
+        annJson.put("viewpoint", viewpoint != null ? viewpoint : JSONObject.NULL);
 
         annJson.put("theta", ann.getTheta());
 
@@ -472,6 +465,11 @@ public class EncounterCOCOExportFile {
             annJson.put("name", JSONObject.NULL);
         }
         annJson.put("individual_ids", individualIds);
+
+        // Encounter info
+        String locationId = enc.getLocationID();
+        annJson.put("location_id", locationId != null ? locationId : JSONObject.NULL);
+        annJson.put("encounter_id", enc.getCatalogNumber());
 
         return annJson;
     }
