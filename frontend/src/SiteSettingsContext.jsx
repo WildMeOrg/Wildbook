@@ -10,11 +10,11 @@ export const SiteSettingsProvider = ({ children }) => {
   if (isLoading) return <LoadingScreen />;
 
   if (error) {
-    console.error("Failed to load site settings:", error);
+    console.error("Error fetching site settings:", error);
   }
 
   return (
-    <SiteSettingsContext.Provider value={data}>
+    <SiteSettingsContext.Provider value={data ?? {}}>
       {children}
     </SiteSettingsContext.Provider>
   );
@@ -22,7 +22,7 @@ export const SiteSettingsProvider = ({ children }) => {
 
 export const useSiteSettings = () => {
   const context = useContext(SiteSettingsContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useSiteSettings must be used within SiteSettingsProvider");
   }
   return context;
