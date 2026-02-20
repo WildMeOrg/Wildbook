@@ -54,7 +54,7 @@ jobs:
 
       # Upload test results and coverage
       - name: Upload coverage results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-results
           path: |
