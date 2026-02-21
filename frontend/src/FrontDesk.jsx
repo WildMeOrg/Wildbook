@@ -13,7 +13,6 @@ import {
   sessionWarningTime,
   sessionCountdownTime,
 } from "./constants/sessionWarning";
-// import useGetSiteSettings from "./models/useGetSiteSettings";
 import useDocumentTitle from "./hooks/useDocumentTitle";
 import { useSiteSettings } from "./SiteSettingsContext";
 
