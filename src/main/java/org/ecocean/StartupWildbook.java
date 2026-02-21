@@ -10,6 +10,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.ecocean.grid.GridManager;
 import org.ecocean.grid.MatchGraphCreationThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.ia.IAPluginManager;
@@ -175,7 +176,7 @@ public class StartupWildbook implements ServletContextListener {
         IAPluginManager.startup(sce);
         // NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
         if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            createMatchGraph();
+            loadMatchGraphOrRebuild(sContext, context);
         }
         // TODO: set strategy for the following (genericize starting "all" consumers, make configurable, move to WildbookIAM.startup, move to plugins, or other)
         startIAQueues(context);
@@ -403,6 +404,9 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("* StartupWildbook destroyed called for: " +
             servletContextInfo(sContext));
 
+        if (CommonConfiguration.useSpotPatternRecognition(context)) {
+            saveMatchGraph(sContext, context);
+        }
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         MetricsBot.cleanup();
@@ -414,6 +418,39 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("Entering createMatchGraph StartupWildbook method.");
         ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
         es.execute(new MatchGraphCreationThread());
+    }
+
+    /**
+     * Try loading the matchGraph from disk cache. If the cache exists and loads
+     * successfully, rebuild the TETRA index from it (fast). Otherwise fall back
+     * to the full DB rebuild via MatchGraphCreationThread.
+     */
+    public static void loadMatchGraphOrRebuild(ServletContext sContext, String context) {
+        try {
+            String dataDir = CommonConfiguration.getDataDirectory(sContext, context).getAbsolutePath();
+            String cacheFile = GridManager.getCacheFilePath(dataDir);
+            if (new File(cacheFile).exists() && GridManager.cacheRead(cacheFile)) {
+                System.out.println("INFO: matchGraph loaded from cache, building TETRA index...");
+                ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
+                es.execute(new org.ecocean.grid.tetra.TetraIndexCreationThread());
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("WARNING: Could not load matchGraph cache, rebuilding from DB: " +
+                e.getMessage());
+        }
+        // Fall back to full DB rebuild (which also indexes TETRA incrementally)
+        createMatchGraph();
+    }
+
+    public static void saveMatchGraph(ServletContext sContext, String context) {
+        try {
+            String dataDir = CommonConfiguration.getDataDirectory(sContext, context).getAbsolutePath();
+            String cacheFile = GridManager.getCacheFilePath(dataDir);
+            GridManager.cacheWrite(cacheFile);
+        } catch (Exception e) {
+            System.out.println("WARNING: Could not save matchGraph cache: " + e.getMessage());
+        }
     }
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {

@@ -14,6 +14,9 @@ import org.ecocean.SuperSpot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.util.TreeMap;
 
 // a class...
@@ -285,15 +288,8 @@ public class EncounterLite implements java.io.Serializable {
                 }
             }
             // System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
-            for (int i = 0; i < newTriangles.size(); i++) {
-                SpotTriangle tempTriangle = (SpotTriangle)newTriangles.get(i);
-                // old sizelim computation
-                if (tempTriangle.D13 / newSpan >= Sizelim) {
-                    // System.out.println("Removing large triangle: "+tempTriangle.D13+" "+newSpan+" "+tempTriangle.D13/newSpan);
-                    newTriangles.remove(i);
-                    i--;
-                }
-            }
+            final double newSpanFinal = newSpan;
+            newTriangles.removeIf(t -> ((SpotTriangle)t).D13 / newSpanFinal >= Sizelim);
             if (newClosePairDist < (3 * epsilon)) {
                 System.out.println(
                     "WARNING!!!! Spots in the new encounter are too close together to support this high of an epsilon value!!!");
@@ -331,19 +327,8 @@ public class EncounterLite implements java.io.Serializable {
                 }
             }
             // System.out.println("     I found "+baseTriangles.size()+" base encounter triangles.\n Filtering for Sizelim...");
-            for (int i = 0; i < baseTriangles.size(); i++) {
-                SpotTriangle tempTriangle = (SpotTriangle)baseTriangles.get(i);
-                // old way
-                if (tempTriangle.D13 / baseSpan >= Sizelim) {
-                    // new way
-                    // if (tempTriangle.D13/baseSpan < Sizelim) {
-                    // System.out.println("Removing large triangle: "+tempTriangle.D13+" "+baseSpan+" "+tempTriangle.D13/baseSpan);
-                    baseTriangles.remove(i);
-                    i--;
-                } else {
-                    // System.out.println("Keeping: "+i+" "+tempTriangle.D13+" "+baseSpan+" "+tempTriangle.D13/baseSpan);
-                }
-            }
+            final double baseSpanFinal = baseSpan;
+            baseTriangles.removeIf(t -> ((SpotTriangle)t).D13 / baseSpanFinal >= Sizelim);
             // System.out.println("     Now using "+baseTriangles.size()+" base encounter triangles.");
             // System.out.println("newSpan "+newSpan+" baseSpan "+baseSpan);
             // System.out.println("     baseClosePairDist is "+baseClosePairDist);
@@ -376,7 +361,6 @@ public class EncounterLite implements java.io.Serializable {
             // VmatchesB are the matched triangles of this encounter
             ArrayList VmatchesB = new ArrayList(5000);
             ArrayList bestSums = new ArrayList(5000);
-            double holdingMatch = 0;
             boolean matched;
             int arrayL = tArray.length;
             int baseArrayL = baseArray.length;
@@ -384,9 +368,21 @@ public class EncounterLite implements java.io.Serializable {
             // encounter's triangles
             double RA, RB, CA, CB;
             double tRA2, tRB2, tCA2, tCB2;
-            double RotA, rotdiff, bestrot;
-            double sqrttR2sum, Rdiff2, Cdiff2, sumdiffs, bestsum, besttol;
+            double RotA, rotdiff;
+            double Rdiff2, Cdiff2, sumdiffs, bestsum;
             int bestiter2 = 0;
+
+            // Precompute max tR2 across all base triangles for conservative binary search window
+            double maxBaseTR2 = 0;
+            for (int i = 0; i < baseArrayL; i++) {
+                if (baseArray[i].tR2 > maxBaseTR2) maxBaseTR2 = baseArray[i].tR2;
+            }
+            // Extract base R values into a primitive array for fast binary search
+            double[] baseRValues = new double[baseArrayL];
+            for (int i = 0; i < baseArrayL; i++) {
+                baseRValues[i] = baseArray[i].R;
+            }
+
             for (int iter1 = 0; iter1 < arrayL; iter1++) {
                 matched = false;
                 bestsum = 99999;
@@ -395,46 +391,42 @@ public class EncounterLite implements java.io.Serializable {
                 CA = tArray[iter1].C;
                 tCA2 = tArray[iter1].tC2;
                 RotA = tArray[iter1].getMyVertexOneRotationInRadians();
-                for (int iter2 = 0; iter2 < baseArrayL; iter2++) {
+
+                // Conservative window using max base tolerance
+                double maxTolerance = Math.sqrt(tRA2 + maxBaseTR2);
+                double lowR = RA - maxTolerance;
+                double highR = RA + maxTolerance;
+
+                // Binary search for first base triangle in window
+                int lowIdx = Arrays.binarySearch(baseRValues, lowR);
+                if (lowIdx < 0) lowIdx = -(lowIdx + 1);
+
+                for (int iter2 = lowIdx; iter2 < baseArrayL; iter2++) {
                     RB = baseArray[iter2].R;
+                    if (RB > highR) break; // past window, done
                     tRB2 = baseArray[iter2].tR2;
-                    sqrttR2sum = Math.sqrt(tRA2 + tRB2);
-                    // System.out.println(iter1+" "+iter2+" RB "+RB+" RA-sqrttR2sum "+(RA-sqrttR2sum)+" RA+sqrttR2sum "+(RA+sqrttR2sum));
-                    if ((RB > (RA - sqrttR2sum)) && (RB < (RA + sqrttR2sum))) {
-                        // System.out.println("Testing...");
+                    // Exact check using squared comparison: (RA-RB)^2 < tRA2+tRB2
+                    double rDiff = RA - RB;
+                    double tR2sum = tRA2 + tRB2;
+                    if (rDiff * rDiff < tR2sum) {
                         CB = baseArray[iter2].C;
                         tCB2 = baseArray[iter2].tC2;
-                        Rdiff2 = (RA - RB) * (RA - RB) / (tRA2 + tRB2);
+                        Rdiff2 = rDiff * rDiff / tR2sum;
                         Cdiff2 = (CA - CB) * (CA - CB) / (tCA2 + tCB2);
                         rotdiff = Math.abs(RotA -
                             baseArray[iter2].getMyVertexOneRotationInRadians()) /
                             allowedRotationDiff;
                         if ((Rdiff2 < 1.0) && (Cdiff2 < 1.0) && (rotdiff < 1.0)) {
                             sumdiffs = Rdiff2 + Cdiff2 + (rotdiff * rotdiff);
-                            // System.out.println("Match: "+iter1+" "+iter2+" RA "+RA+" RB "+RB+" CA "+CA+" CB "+CB+" CWA "+tArray[iter1].clockwise+"
-                            // CWB "+baseArray[iter2].clockwise+" "+sumdiffs);
-                            // System.out.println("PerA "+tArray[iter1].logPerimeter+" PerB "+baseArray[iter2].logPerimeter);
-                            // added the requirement here that matched trianlges be of the same orientation - jah 1/19/04
                             if (sumdiffs < bestsum) {
-                                // check to make sure that the triangles are not extreme rotations of each other
-
-                                // System.out.println("angle of rotation diff is:
-                                // "+Math.toDegrees(tArray[iter1].getMyVertexOneRotationInRadians()-baseArray[iter2].getMyVertexOneRotationInRadians()));
                                 matched = true;
                                 bestiter2 = iter2;
                                 bestsum = sumdiffs;
-                                // VmatchesA.add(tArray[iter1]);
-                                // VmatchesB.add(baseArray[iter2]);
-                                // }
                             }
                         }
                     }
                 }
                 if (matched) {
-                    // System.out.println("Best iter2:"+bestiter2);
-                    // System.out.println("Match: "+bestsum+" "+tArray[iter1].R+" "+baseArray[bestiter2].R+" "+tArray[iter1].C+"
-                    // "+baseArray[bestiter2].C+" "+tArray[iter1].D13/newSpan+" "+baseArray[bestiter2].D13/baseSpan+" "+tArray[iter1].clockwise+"
-                    // "+baseArray[bestiter2].clockwise+" "+iter1+" "+bestiter2);
                     VmatchesA.add(tArray[iter1]);
                     VmatchesB.add(baseArray[bestiter2]);
                     bestSums.add(new Double(bestsum));
@@ -552,40 +544,27 @@ public class EncounterLite implements java.io.Serializable {
                 } else {
                     multiple = 2;
                 }
-                // now discard nonmatches
-                int logMremovals = 0;
-                int leftsideRemovals = 0, rightsideRemovals = 0;
-                for (int iter6 = 0; iter6 < logM.size(); iter6++) {
+                // now discard nonmatches - collect indices to keep, then rebuild
+                int origSize = logM.size();
+                ArrayList newLogM = new ArrayList(origSize);
+                ArrayList newVmatchesA = new ArrayList(origSize);
+                ArrayList newVmatchesB = new ArrayList(origSize);
+                ArrayList newBestSums = new ArrayList(origSize);
+                for (int iter6 = 0; iter6 < origSize; iter6++) {
                     if (Math.abs(((Double)logM.get(iter6)).doubleValue() - meanLogM) >
                         (multiple * stdDeviationLogM)) {
-                        if (leftSideHeavy && (((Double)logM.get(iter6)).doubleValue() < meanLogM)) {
-                            leftsideRemovals++;
-                        } else if (rightSideHeavy &&
-                            (((Double)logM.get(iter6)).doubleValue() > meanLogM)) {
-                            rightsideRemovals++;
-                        } else if (leftSideHeavy &&
-                            (((Double)logM.get(iter6)).doubleValue() > meanLogM)) {
-                            rightsideRemovals++;
-                        } else if (rightSideHeavy &&
-                            (((Double)logM.get(iter6)).doubleValue() < meanLogM)) {
-                            leftsideRemovals++;
-                        }
-                        logM.remove(iter6);
-                        VmatchesA.remove(iter6);
-                        VmatchesB.remove(iter6);
-                        bestSums.remove(iter6);
                         haveMadeChange = true;
-                        iter6--;
-                        logMremovals++;
+                    } else {
+                        newLogM.add(logM.get(iter6));
+                        newVmatchesA.add(VmatchesA.get(iter6));
+                        newVmatchesB.add(VmatchesB.get(iter6));
+                        newBestSums.add(bestSums.get(iter6));
                     }
                 }
-                // System.out.print("     left heavy? "+leftSideHeavy+"   ");
-                // System.out.print("     right heavy? "+rightSideHeavy+"   ");
-                // System.out.println("     Balanced? "+balanced+"   ");
-                // System.out.println("     Removed "+logMremovals+" triangles on logM filter pass "+numIterations+" with a filter/multiple value of
-                // "+multiple);
-                // System.out.println("          leftsideRemovals="+leftsideRemovals+"     rightsideRemovals="+rightsideRemovals);
-                // System.out.println("          N+ is "+nPLUS+" and N- is "+nMINUS);
+                logM = newLogM;
+                VmatchesA = newVmatchesA;
+                VmatchesB = newVmatchesB;
+                bestSums = newBestSums;
                 if (!haveMadeChange) {
                     stillIterate = false;
                 }
@@ -604,19 +583,28 @@ public class EncounterLite implements java.io.Serializable {
                 mF = nPLUS + nMINUS - mT;
 
                 oldStdDeviationLogM = stdDeviationLogM;
-                // System.out.println("          Going into the next round with mT, mF: "+mT+","+mF);
             }
-            for (int iter8 = 0; iter8 < VmatchesA.size(); iter8++) {
-                if (((SpotTriangle)VmatchesA.get(iter8)).clockwise !=
-                    ((SpotTriangle)VmatchesB.get(iter8)).clockwise) {
-                    logM.remove(iter8);
-                    VmatchesA.remove(iter8);
-                    VmatchesB.remove(iter8);
-                    bestSums.remove(iter8);
-                    iter8--;
+            // Remove opposite-orientation triangles - collect and rebuild
+            {
+                int sz = VmatchesA.size();
+                ArrayList keepLogM = new ArrayList(sz);
+                ArrayList keepA = new ArrayList(sz);
+                ArrayList keepB = new ArrayList(sz);
+                ArrayList keepSums = new ArrayList(sz);
+                for (int iter8 = 0; iter8 < sz; iter8++) {
+                    if (((SpotTriangle)VmatchesA.get(iter8)).clockwise ==
+                        ((SpotTriangle)VmatchesB.get(iter8)).clockwise) {
+                        keepLogM.add(logM.get(iter8));
+                        keepA.add(VmatchesA.get(iter8));
+                        keepB.add(VmatchesB.get(iter8));
+                        keepSums.add(bestSums.get(iter8));
+                    }
                 }
+                logM = keepLogM;
+                VmatchesA = keepA;
+                VmatchesB = keepB;
+                bestSums = keepSums;
             }
-            // System.out.println("Going into scoring with "+VmatchesA.size()+" matching triangles.");
             if (VmatchesA.size() == 0) {
                 return (new MatchObject(belongsToMarkedIndividual, 0, 0, encounterNumber));
             }
@@ -889,20 +877,8 @@ public class EncounterLite implements java.io.Serializable {
                 }
             }
             // System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
-            for (int i = 0; i < newTriangles.size(); i++) {
-                SpotTriangle tempTriangle = (SpotTriangle)newTriangles.get(i);
-                // old working sizelim filter
-                if (tempTriangle.D13 / newSpan >= Sizelim) {
-                    // new sizelim second pass
-                    // if (tempTriangle.D13/newSpan < Sizelim) {
-
-                    // System.out.println("Removing large triangle: "+tempTriangle.D13+" "+newSpan+" "+tempTriangle.D13/newSpan);
-                    newTriangles.remove(i);
-                    i--;
-                }
-            }
-            // System.out.println("     Now using "+newTriangles.size()+" new encounter triangles.");
-            // System.out.println("     newClosePairDist is "+newClosePairDist);
+            final double newSpanFinal = newSpan;
+            newTriangles.removeIf(t -> ((SpotTriangle)t).D13 / newSpanFinal >= Sizelim);
             if (newClosePairDist < (3 * epsilon)) {
                 System.out.println(
                     "WARNING!!!! Spots in the new encounter are too close together to support this high of an epsilon value!!!");
@@ -983,17 +959,25 @@ public class EncounterLite implements java.io.Serializable {
             // VmatchesB are the matched triangles of this encounter
             ArrayList VmatchesB = new ArrayList(5000);
             ArrayList bestSums = new ArrayList(5000);
-            double holdingMatch = 0;
             boolean matched;
             int arrayL = tArray.length;
             int baseArrayL = baseArray.length;
-            // below, 'A' refers to tArray which is the array of the new encounter triangles, 'B' to baseArray which is the array of this database
-            // encounter's triangles
             double RA, RB, CA, CB;
             double tRA2, tRB2, tCA2, tCB2;
-            double RotA, rotdiff, bestrot;
-            double sqrttR2sum, Rdiff2, Cdiff2, sumdiffs, bestsum, besttol;
+            double RotA, rotdiff;
+            double Rdiff2, Cdiff2, sumdiffs, bestsum;
             int bestiter2 = 0;
+
+            // Precompute max tR2 across all base triangles for conservative binary search window
+            double maxBaseTR2 = 0;
+            for (int i = 0; i < baseArrayL; i++) {
+                if (baseArray[i].tR2 > maxBaseTR2) maxBaseTR2 = baseArray[i].tR2;
+            }
+            double[] baseRValues = new double[baseArrayL];
+            for (int i = 0; i < baseArrayL; i++) {
+                baseRValues[i] = baseArray[i].R;
+            }
+
             for (int iter1 = 0; iter1 < arrayL; iter1++) {
                 matched = false;
                 bestsum = 99999;
@@ -1002,56 +986,43 @@ public class EncounterLite implements java.io.Serializable {
                 CA = tArray[iter1].C;
                 tCA2 = tArray[iter1].tC2;
                 RotA = tArray[iter1].getMyVertexOneRotationInRadians();
-                for (int iter2 = 0; iter2 < baseArrayL; iter2++) {
+
+                double maxTolerance = Math.sqrt(tRA2 + maxBaseTR2);
+                double lowR = RA - maxTolerance;
+                double highR = RA + maxTolerance;
+                int lowIdx = Arrays.binarySearch(baseRValues, lowR);
+                if (lowIdx < 0) lowIdx = -(lowIdx + 1);
+
+                for (int iter2 = lowIdx; iter2 < baseArrayL; iter2++) {
                     RB = baseArray[iter2].R;
+                    if (RB > highR) break;
                     tRB2 = baseArray[iter2].tR2;
-                    sqrttR2sum = Math.sqrt(tRA2 + tRB2);
-                    // System.out.println(iter1+" "+iter2+" RB "+RB+" RA-sqrttR2sum "+(RA-sqrttR2sum)+" RA+sqrttR2sum "+(RA+sqrttR2sum));
-                    if ((RB > (RA - sqrttR2sum)) && (RB < (RA + sqrttR2sum))) {
-                        // System.out.println("Testing...");
+                    double rDiff = RA - RB;
+                    double tR2sum = tRA2 + tRB2;
+                    if (rDiff * rDiff < tR2sum) {
                         CB = baseArray[iter2].C;
                         tCB2 = baseArray[iter2].tC2;
-                        Rdiff2 = (RA - RB) * (RA - RB) / (tRA2 + tRB2);
+                        Rdiff2 = rDiff * rDiff / tR2sum;
                         Cdiff2 = (CA - CB) * (CA - CB) / (tCA2 + tCB2);
                         rotdiff = Math.abs(RotA -
                             baseArray[iter2].getMyVertexOneRotationInRadians()) /
                             allowedRotationDiff;
                         if ((Rdiff2 < 1.0) && (Cdiff2 < 1.0) && (rotdiff < 1.0)) {
                             sumdiffs = Rdiff2 + Cdiff2 + (rotdiff * rotdiff);
-                            // System.out.println("Match: "+iter1+" "+iter2+" RA "+RA+" RB "+RB+" CA "+CA+" CB "+CB+" CWA "+tArray[iter1].clockwise+"
-                            // CWB "+baseArray[iter2].clockwise+" "+sumdiffs);
-                            // System.out.println("PerA "+tArray[iter1].logPerimeter+" PerB "+baseArray[iter2].logPerimeter);
-                            // added the requirement here that matched trianlges be of the same orientation - jah 1/19/04
                             if (sumdiffs < bestsum) {
-                                // if ((sumdiffs<bestsum)&&(tArray[iter1].clockwise==baseArray[iter2].clockwise)) {
-                                // if (tArray[iter1].clockwise==baseArray[iter2].clockwise) {
-
-                                // check to make sure that the triangles are not extreme rotations of each other
-                                // if(Math.abs((tArray[iter1].getMyVertexOneRotationInRadians()-baseArray[iter2].getMyVertexOneRotationInRadians()))<allowedRotationDiff)
-                                // {
-
-                                // System.out.println("angle of rotation diff is:
-                                // "+Math.toDegrees(tArray[iter1].getMyVertexOneRotationInRadians()-baseArray[iter2].getMyVertexOneRotationInRadians()));
                                 matched = true;
                                 bestiter2 = iter2;
                                 bestsum = sumdiffs;
-
-                                // }
                             }
                         }
                     }
                 }
                 if (matched) {
-                    // System.out.println("Best iter2:"+bestiter2);
-                    // System.out.println("Match: "+bestsum+" "+tArray[iter1].R+" "+baseArray[bestiter2].R+" "+tArray[iter1].C+"
-                    // "+baseArray[bestiter2].C+" "+tArray[iter1].D13/newSpan+" "+baseArray[bestiter2].D13/baseSpan+" "+tArray[iter1].clockwise+"
-                    // "+baseArray[bestiter2].clockwise+" "+iter1+" "+bestiter2);
                     VmatchesA.add(tArray[iter1]);
                     VmatchesB.add(baseArray[bestiter2]);
                     bestSums.add(new Double(bestsum));
                 }
             }
-            // System.out.println("I am now about to start filtering with "+VmatchesA.size()+" triangles!");
             // now begin filtering
             ArrayList logM = new ArrayList(VmatchesA.size());
             int nPLUS = 0;
@@ -1156,40 +1127,27 @@ public class EncounterLite implements java.io.Serializable {
                 } else {
                     multiple = 2;
                 }
-                // now discard nonmatches
-                int logMremovals = 0;
-                int leftsideRemovals = 0, rightsideRemovals = 0;
-                for (int iter6 = 0; iter6 < logM.size(); iter6++) {
+                // now discard nonmatches - collect indices to keep, then rebuild
+                int origSize = logM.size();
+                ArrayList newLogM = new ArrayList(origSize);
+                ArrayList newVmatchesA = new ArrayList(origSize);
+                ArrayList newVmatchesB = new ArrayList(origSize);
+                ArrayList newBestSums = new ArrayList(origSize);
+                for (int iter6 = 0; iter6 < origSize; iter6++) {
                     if (Math.abs(((Double)logM.get(iter6)).doubleValue() - meanLogM) >
                         (multiple * stdDeviationLogM)) {
-                        if (leftSideHeavy && (((Double)logM.get(iter6)).doubleValue() < meanLogM)) {
-                            leftsideRemovals++;
-                        } else if (rightSideHeavy &&
-                            (((Double)logM.get(iter6)).doubleValue() > meanLogM)) {
-                            rightsideRemovals++;
-                        } else if (leftSideHeavy &&
-                            (((Double)logM.get(iter6)).doubleValue() > meanLogM)) {
-                            rightsideRemovals++;
-                        } else if (rightSideHeavy &&
-                            (((Double)logM.get(iter6)).doubleValue() < meanLogM)) {
-                            leftsideRemovals++;
-                        }
-                        logM.remove(iter6);
-                        VmatchesA.remove(iter6);
-                        VmatchesB.remove(iter6);
-                        bestSums.remove(iter6);
                         haveMadeChange = true;
-                        iter6--;
-                        logMremovals++;
+                    } else {
+                        newLogM.add(logM.get(iter6));
+                        newVmatchesA.add(VmatchesA.get(iter6));
+                        newVmatchesB.add(VmatchesB.get(iter6));
+                        newBestSums.add(bestSums.get(iter6));
                     }
                 }
-                // System.out.print("     left heavy? "+leftSideHeavy+"   ");
-                // System.out.print("     right heavy? "+rightSideHeavy+"   ");
-                // System.out.println("     Balanced? "+balanced+"   ");
-                // System.out.println("     Removed "+logMremovals+" triangles on logM filter pass "+numIterations+" with a filter/multiple value of
-                // "+multiple);
-                // System.out.println("          leftsideRemovals="+leftsideRemovals+"     rightsideRemovals="+rightsideRemovals);
-                // System.out.println("          N+ is "+nPLUS+" and N- is "+nMINUS);
+                logM = newLogM;
+                VmatchesA = newVmatchesA;
+                VmatchesB = newVmatchesB;
+                bestSums = newBestSums;
                 if (!haveMadeChange) {
                     stillIterate = false;
                 }
@@ -1208,19 +1166,28 @@ public class EncounterLite implements java.io.Serializable {
                 mF = nPLUS + nMINUS - mT;
 
                 oldStdDeviationLogM = stdDeviationLogM;
-                // System.out.println("          Going into the next round with mT, mF: "+mT+","+mF);
             }
-            for (int iter8 = 0; iter8 < VmatchesA.size(); iter8++) {
-                if (((SpotTriangle)VmatchesA.get(iter8)).clockwise !=
-                    ((SpotTriangle)VmatchesB.get(iter8)).clockwise) {
-                    logM.remove(iter8);
-                    VmatchesA.remove(iter8);
-                    VmatchesB.remove(iter8);
-                    bestSums.remove(iter8);
-                    iter8--;
+            // Remove opposite-orientation triangles - collect and rebuild
+            {
+                int sz = VmatchesA.size();
+                ArrayList keepLogM = new ArrayList(sz);
+                ArrayList keepA = new ArrayList(sz);
+                ArrayList keepB = new ArrayList(sz);
+                ArrayList keepSums = new ArrayList(sz);
+                for (int iter8 = 0; iter8 < sz; iter8++) {
+                    if (((SpotTriangle)VmatchesA.get(iter8)).clockwise ==
+                        ((SpotTriangle)VmatchesB.get(iter8)).clockwise) {
+                        keepLogM.add(logM.get(iter8));
+                        keepA.add(VmatchesA.get(iter8));
+                        keepB.add(VmatchesB.get(iter8));
+                        keepSums.add(bestSums.get(iter8));
+                    }
                 }
+                logM = keepLogM;
+                VmatchesA = keepA;
+                VmatchesB = keepB;
+                bestSums = keepSums;
             }
-            // System.out.println("Going into scoring with "+VmatchesA.size()+" matching triangles.");
             if (VmatchesA.size() == 0) {
                 return scores;
             }
@@ -1626,5 +1593,79 @@ public class EncounterLite implements java.io.Serializable {
         if (this.getGenus().equals(el.getGenus()) &&
             this.getSpecificEpithet().equals(el.getSpecificEpithet())) return true;
         return false;
+    }
+
+    /**
+     * Serialize this EncounterLite to a JSONObject for disk caching.
+     */
+    public JSONObject toJSONObject() {
+        JSONObject j = new JSONObject();
+        j.put("encounterNumber", encounterNumber);
+        j.put("belongsToMarkedIndividual", belongsToMarkedIndividual);
+        j.put("date", date);
+        j.put("sex", sex);
+        j.put("size", size);
+        if (genus != null) j.put("genus", genus);
+        if (specificEpithet != null) j.put("specificEpithet", specificEpithet);
+        if (submitterID != null) j.put("submitterID", submitterID);
+        if (locationID != null) j.put("locationID", locationID);
+        if (spotsX != null) {
+            j.put("spotsX", new JSONArray(spotsX));
+            j.put("spotsY", new JSONArray(spotsY));
+        }
+        if (rightSpotsX != null) {
+            j.put("rightSpotsX", new JSONArray(rightSpotsX));
+            j.put("rightSpotsY", new JSONArray(rightSpotsY));
+        }
+        if (leftReferenceSpotsX != null) {
+            j.put("leftReferenceSpotsX", new JSONArray(leftReferenceSpotsX));
+            j.put("leftReferenceSpotsY", new JSONArray(leftReferenceSpotsY));
+        }
+        if (rightReferenceSpotsX != null) {
+            j.put("rightReferenceSpotsX", new JSONArray(rightReferenceSpotsX));
+            j.put("rightReferenceSpotsY", new JSONArray(rightReferenceSpotsY));
+        }
+        return j;
+    }
+
+    /**
+     * Deserialize an EncounterLite from a JSONObject (produced by toJSONObject).
+     */
+    public static EncounterLite fromJSONObject(JSONObject j) {
+        EncounterLite el = new EncounterLite();
+        el.encounterNumber = j.optString("encounterNumber", "");
+        el.belongsToMarkedIndividual = j.optString("belongsToMarkedIndividual", "");
+        el.date = j.optString("date", "");
+        el.sex = j.optString("sex", "Unknown");
+        el.size = j.optDouble("size", 0.0);
+        el.genus = j.optString("genus", null);
+        el.specificEpithet = j.optString("specificEpithet", null);
+        el.submitterID = j.optString("submitterID", null);
+        el.locationID = j.optString("locationID", null);
+        if (j.has("spotsX")) {
+            el.spotsX = jsonArrayToDoubleArray(j.getJSONArray("spotsX"));
+            el.spotsY = jsonArrayToDoubleArray(j.getJSONArray("spotsY"));
+        }
+        if (j.has("rightSpotsX")) {
+            el.rightSpotsX = jsonArrayToDoubleArray(j.getJSONArray("rightSpotsX"));
+            el.rightSpotsY = jsonArrayToDoubleArray(j.getJSONArray("rightSpotsY"));
+        }
+        if (j.has("leftReferenceSpotsX")) {
+            el.leftReferenceSpotsX = jsonArrayToDoubleArray(j.getJSONArray("leftReferenceSpotsX"));
+            el.leftReferenceSpotsY = jsonArrayToDoubleArray(j.getJSONArray("leftReferenceSpotsY"));
+        }
+        if (j.has("rightReferenceSpotsX")) {
+            el.rightReferenceSpotsX = jsonArrayToDoubleArray(j.getJSONArray("rightReferenceSpotsX"));
+            el.rightReferenceSpotsY = jsonArrayToDoubleArray(j.getJSONArray("rightReferenceSpotsY"));
+        }
+        return el;
+    }
+
+    private static double[] jsonArrayToDoubleArray(JSONArray arr) {
+        double[] result = new double[arr.length()];
+        for (int i = 0; i < arr.length(); i++) {
+            result[i] = arr.getDouble(i);
+        }
+        return result;
     }
 }
