@@ -20,6 +20,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.Project;
 import org.ecocean.security.Collaboration;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.social.Relationship;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -492,8 +493,11 @@ public class ImportTask implements java.io.Serializable {
         if ((id == null) || (user == null)) throw new IOException("must provide id and user");
         ImportTask itask = myShepherd.getImportTask(id);
         if (itask == null) throw new IOException("invalid ImportTask id=" + id);
-        if (!Collaboration.canUserAccessImportTask(itask, myShepherd.getContext(),
-            user.getUsername()))
+        boolean isOwner = itask.getCreator() != null && user.getId().equals(itask.getCreator().getId());
+        boolean isOrgAdmin = user.hasRoleByName("orgAdmin", myShepherd)
+            && itask.getCreator() != null
+            && !myShepherd.getAllCommonOrganizationsForTwoUsers(user, itask.getCreator()).isEmpty();
+        if (!user.isAdmin(myShepherd) && !isOwner && !isOrgAdmin)
             throw new IOException("user does not have privileges to delete task");
         Util.mark("ImportTask.deleteWithRelated(" + id + ") started");
         try {
@@ -532,6 +536,13 @@ public class ImportTask implements java.io.Serializable {
                     mark.removeEncounter(enc);
                     // myShepherd.updateDBTransaction();
                     if (mark.getEncounters().size() == 0) {
+                        // remove any relationships involving this individual
+                        ArrayList<Relationship> rels = myShepherd.getAllRelationshipsForMarkedIndividual(mark.getId());
+                        if (rels != null && rels.size() > 0) {
+                            for (Relationship rel : rels) {
+                                myShepherd.getPM().deletePersistent(rel);
+                            }
+                        }
                         // check for social unit membership and remove
                         List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(
                             mark);
