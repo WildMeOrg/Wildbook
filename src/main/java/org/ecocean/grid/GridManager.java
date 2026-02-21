@@ -3,6 +3,7 @@ package org.ecocean.grid;
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 // import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
+import org.ecocean.grid.tetra.TetraIndexManager;
 import org.ecocean.shepherd.core.Shepherd;
 
 // import org.ecocean.servlet.ServletUtilities;
@@ -42,12 +43,12 @@ public class GridManager {
 
     // public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
-    // Modified Groth algorithm parameters (optimized via GrothParameterSweepTest)
+    // Modified Groth algorithm parameters
     private String epsilon = "0.008";
-    private String R = "6.8";
-    private String Sizelim = "0.671";
-    private String maxTriangleRotation = "22.5";
-    private String C = "1.146";
+    private String R = "49.8";
+    private String Sizelim = "0.998";
+    private String maxTriangleRotation = "12.33";
+    private String C = "0.998";
     private String secondRun = "true";
 
     private static ConcurrentHashMap<String,
@@ -56,7 +57,6 @@ public class GridManager {
     private static int numLeftPatterns = 0;
 
     private static boolean creationThread = false;
-    private static volatile boolean matchGraphReady = false;
 
     // hold incompleted scanWorkItems
     private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -579,21 +579,11 @@ public class GridManager {
         return numProcessors;
     }
 
-    public static boolean isMatchGraphReady() { return matchGraphReady; }
-    public static void setMatchGraphReady(boolean ready) { matchGraphReady = ready; }
-
     public static ConcurrentHashMap<String, EncounterLite> getMatchGraph() { return matchGraph; }
     public static void addMatchGraphEntry(String elID, EncounterLite el) {
         matchGraph.put(elID, el);
         resetPatternCounts();
-    }
-
-    /**
-     * Bulk insert without triggering resetPatternCounts() on each call.
-     * Call resetPatternCounts() once after all entries are added.
-     */
-    public static void addMatchGraphEntryBulk(String elID, EncounterLite el) {
-        matchGraph.put(elID, el);
+        TetraIndexManager.getInstance().indexEncounterLite(elID, el);
     }
 
     public static void removeMatchGraphEntry(String elID) {
@@ -601,6 +591,7 @@ public class GridManager {
             matchGraph.remove(elID);
         }
         resetPatternCounts();
+        TetraIndexManager.getInstance().removeEncounter(elID);
     }
 
     public static EncounterLite getMatchGraphEncounterLiteEntry(String elID) {
@@ -627,7 +618,7 @@ public class GridManager {
      * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare
      * against.
      */
-    public static synchronized void resetPatternCounts() {
+    private static synchronized void resetPatternCounts() {
         numLeftPatterns = 0;
         numRightPatterns = 0;
         speciesCountsMapLeft = new ConcurrentHashMap<String, Long>();
@@ -708,7 +699,6 @@ public class GridManager {
      */
     public static boolean cacheRead(String filepath) throws IOException {
         long t = System.currentTimeMillis();
-        matchGraphReady = false;
         String content = Util.readFromFile(filepath);
         JSONObject root = Util.stringToJSONObject(content);
         if (root == null) {
@@ -734,7 +724,6 @@ public class GridManager {
             matchGraph.put(key, el);
         }
         resetPatternCounts();
-        matchGraphReady = true;
         System.out.println("INFO: GridManager.cacheRead() complete with " + matchGraph.size() +
             " entries in " + (System.currentTimeMillis() - t) + "ms");
         return true;
