@@ -23,8 +23,8 @@ const MatchResults = observer(() => {
   const [params, setParams] = useSearchParams();
   const taskId = params.get("taskId");
   const projectIdPrefix = params.get("projectIdPrefix");
-  const { projectsForUser = {}, identificationRemarks = [] } =
-    useSiteSettings() || {};
+  const { data: { projectsForUser = {}, identificationRemarks = [] } = {} } =
+    useSiteSettings();
   const [filterVisible, setFilterVisible] = React.useState(false);
   const [isInputFocused, setIsInputFocused] = React.useState(false);
 

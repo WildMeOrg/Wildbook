@@ -1,20 +1,14 @@
 import React, { createContext, useContext } from "react";
 import useGetSiteSettings from "./models/useGetSiteSettings";
-import LoadingScreen from "./components/LoadingScreen";
 
 const SiteSettingsContext = createContext(null);
 
 export const SiteSettingsProvider = ({ children }) => {
   const { data, isLoading, error } = useGetSiteSettings();
-
-  if (isLoading) return <LoadingScreen />;
-
-  if (error) {
-    console.error("Error fetching site settings:", error);
-  }
-
   return (
-    <SiteSettingsContext.Provider value={data ?? {}}>
+    <SiteSettingsContext.Provider
+      value={{ data: data ?? {}, isLoading, error }}
+    >
       {children}
     </SiteSettingsContext.Provider>
   );

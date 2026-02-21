@@ -25,7 +25,7 @@ export default function FrontDesk() {
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const data = useSiteSettings();
+  const { data } = useSiteSettings();
   const showclassicsubmit = data?.showClassicSubmit;
   const showClassicEncounterSearch = data?.showClassicEncounters;
   const checkLoginStatus = () => {
