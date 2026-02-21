@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -94,6 +93,7 @@ public class HybridMatchServlet extends HttpServlet {
                 return;
             }
 
+            // ArrayList required by TetraQueryEngine.match() and Encounter.getSpots() API
             ArrayList<SuperSpot> querySpots = rightScan ?
                 enc.getRightSpots() : enc.getSpots();
 
@@ -201,10 +201,10 @@ public class HybridMatchServlet extends HttpServlet {
 
                         VertexPointMatch[] scores = mo.getScores();
                         try {
-                            for (int k = 0; k < scores.length; k++) {
+                            for (VertexPointMatch score : scores) {
                                 Element spot = enc1.addElement("spot");
-                                spot.addAttribute("x", String.valueOf(scores[k].getOldX()));
-                                spot.addAttribute("y", String.valueOf(scores[k].getOldY()));
+                                spot.addAttribute("x", String.valueOf(score.getOldX()));
+                                spot.addAttribute("y", String.valueOf(score.getOldY()));
                             }
                         } catch (NullPointerException npe) {}
 
@@ -225,21 +225,21 @@ public class HybridMatchServlet extends HttpServlet {
                         enc2.addAttribute("locationID", enc.getLocationID());
 
                         try {
-                            for (int j = 0; j < scores.length; j++) {
+                            for (VertexPointMatch score : scores) {
                                 Element spot = enc2.addElement("spot");
-                                spot.addAttribute("x", String.valueOf(scores[j].getNewX()));
-                                spot.addAttribute("y", String.valueOf(scores[j].getNewY()));
+                                spot.addAttribute("x", String.valueOf(score.getNewX()));
+                                spot.addAttribute("y", String.valueOf(score.getNewY()));
                             }
                         } catch (NullPointerException npe) {}
 
                         // Keywords in common
                         List<String> keywords = myShepherd.getKeywordsInCommon(
                             mo.getEncounterNumber(), encNumber);
-                        if (keywords != null && keywords.size() > 0) {
+                        if (keywords != null && !keywords.isEmpty()) {
                             Element kws = match.addElement("keywords");
-                            for (int y = 0; y < keywords.size(); y++) {
+                            for (String kwName : keywords) {
                                 Element keyword = kws.addElement("keyword");
-                                keyword.addAttribute("name", keywords.get(y));
+                                keyword.addAttribute("name", kwName);
                             }
                         }
                     }
