@@ -182,9 +182,10 @@ public class SiteSettings extends ApiBase {
             settings.put("keywordId", kwIdArr);
 
             // we map to a Set here so we keep values unique (remove duplicates: issue 1279)
-            Map<String,Set<String>> allLK = new HashMap<String, Set<String>>();
+            Map<String, Set<String> > allLK = new HashMap<String, Set<String> >();
             for (LabeledKeyword lkw : myShepherd.getAllLabeledKeywords()) {
-                if (!allLK.containsKey(lkw.getLabel())) allLK.put(lkw.getLabel(), new HashSet<String>());
+                if (!allLK.containsKey(lkw.getLabel()))
+                    allLK.put(lkw.getLabel(), new HashSet<String>());
                 allLK.get(lkw.getLabel()).add(lkw.getValue());
             }
             JSONObject lkeyword = new JSONObject();
@@ -294,7 +295,11 @@ public class SiteSettings extends ApiBase {
                 ArrayList<Project> projs = myShepherd.getProjectsForUser(currentUser);
                 if (projs != null) {
                     for (Project proj : projs) {
-                        jp.put(proj.getId(), proj.getResearchProjectName());
+                        JSONObject info = new JSONObject();
+                        info.put("id", proj.getId());
+                        info.put("name", proj.getResearchProjectName());
+                        info.put("prefix", proj.getProjectIdPrefix());
+                        jp.put(proj.getId(), info);
                     }
                 }
                 settings.put("projectsForUser", jp);

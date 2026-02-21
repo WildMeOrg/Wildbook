@@ -2,6 +2,9 @@ package org.ecocean.api;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
@@ -11,6 +14,7 @@ import org.json.JSONObject;
 
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
@@ -24,6 +28,9 @@ public class GenericObject extends ApiBase {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
+        // normally false for GET, but some deep behavior creates objects on-the-fly
+        // and therefore needs to commit to db
+        boolean commitShepherd = false;
         Shepherd myShepherd = new Shepherd(context);
 
         myShepherd.setAction("api.GenericObject.doGet");
@@ -89,6 +96,46 @@ public class GenericObject extends ApiBase {
                     }
                 }
                 break;
+            case "tasks":
+                if (currentUser == null) {
+                    rtn.put("statusCode", 401);
+                    rtn.put("error", "access denied");
+                } else {
+                    if ((args.length > 2) && ("match-results".equals(args[2]))) {
+                        Task task = myShepherd.getTask(args[1]);
+                        if (task == null) {
+                            rtn.put("statusCode", 404);
+                            rtn.put("error", "not found");
+                        } else {
+                            // TODO do we have security on match results ??
+                            int prospectsSize = org.ecocean.ia.MatchResult.DEFAULT_PROSPECTS_CUTOFF;
+                            Set<String> projectIds = null;
+                            String[] pvals = request.getParameterValues("projectId");
+                            if ((pvals != null) && (pvals.length > 0))
+                                projectIds = new HashSet<String>(Arrays.asList(
+                                    request.getParameterValues("projectId")));
+                            try {
+                                // note: negative size means all of them (no cutoff)
+                                prospectsSize = Integer.parseInt(request.getParameter(
+                                    "prospectsSize"));
+                            } catch (NumberFormatException ex) {}
+                            rtn.put("prospectsSize", prospectsSize);
+                            JSONObject mrJson = task.matchResultsJson(prospectsSize, projectIds,
+                                myShepherd);
+                            rtn.put("projectIds", projectIds);
+                            rtn.put("matchResultsRoot", mrJson);
+                            rtn.put("success", true);
+                            rtn.put("statusCode", 200);
+                            // this means we created on-the-fly some MatchResult(s) that need persisting
+                            commitShepherd = (mrJson != null) &&
+                                mrJson.optBoolean("_commitShepherd", false);
+                            if (commitShepherd) myShepherd.commitDBTransaction();
+                        }
+                    } else {
+                        throw new ApiException("invalid tasks operation");
+                    }
+                }
+                break;
             default:
                 throw new ApiException("bad class");
             }
@@ -97,7 +144,11 @@ public class GenericObject extends ApiBase {
             rtn.put("errors", apiEx.getErrors());
             rtn.put("debug", apiEx.toString());
         } finally {
-            myShepherd.rollbackAndClose();
+            if (commitShepherd) {
+                myShepherd.closeDBTransaction();
+            } else {
+                myShepherd.rollbackAndClose();
+            }
         }
         response.setStatus(rtn.optInt("statusCode", 500));
         response.setCharacterEncoding("UTF-8");

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { IntlProvider } from "react-intl";
 import messagesEn from "./locale/en.json";
 import messagesEs from "./locale/es.json";
@@ -14,7 +14,9 @@ import LocaleContext from "./IntlProvider";
 import FooterVisibilityContext from "./FooterVisibilityContext";
 import Cookies from "js-cookie";
 import FilterContext from "./FilterContextProvider";
+import { SiteSettingsProvider } from "./SiteSettingsContext";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const messageMap = {
@@ -24,16 +26,20 @@ function App() {
     it: messagesIt,
     de: messagesDe,
   };
+
   const initialLocale = Cookies.get("wildbookLangCode") || "en";
   const [locale, setLocale] = useState(initialLocale);
+
   const [visible, setVisible] = useState(true);
+
   const containerStyle = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
   };
 
-  const queryClient = new QueryClient();
+  const queryClientRef = useRef(null);
+  if (!queryClientRef.current) queryClientRef.current = new QueryClient();
 
   const handleLocaleChange = (newLocale) => {
     setLocale(newLocale);
@@ -59,7 +65,7 @@ function App() {
     : "/";
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClientRef.current}>
       <LocaleContext.Provider
         value={{ locale, onLocaleChange: handleLocaleChange }}
       >
@@ -73,27 +79,32 @@ function App() {
               defaultLocale="en"
               messages={messageMap[locale]}
             >
-              <FooterVisibilityContext.Provider value={{ visible, setVisible }}>
-                <FilterContext.Provider
-                  value={{ filters, updateFilter, resetFilters }}
+              <SiteSettingsProvider>
+                <FooterVisibilityContext.Provider
+                  value={{ visible, setVisible }}
                 >
-                  <FrontDesk
-                    adminUserInitialized={true}
-                    setLocale={setLocale}
-                  />
-                  <ToastContainer
-                    position="top-right"
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                  />
-                </FilterContext.Provider>
-              </FooterVisibilityContext.Provider>
+                  <FilterContext.Provider
+                    value={{ filters, updateFilter, resetFilters }}
+                  >
+                    <FrontDesk
+                      adminUserInitialized={true}
+                      setLocale={setLocale}
+                    />
+
+                    <ToastContainer
+                      position="top-right"
+                      autoClose={3000}
+                      hideProgressBar={false}
+                      newestOnTop={false}
+                      closeOnClick
+                      rtl={false}
+                      pauseOnFocusLoss
+                      draggable
+                      pauseOnHover
+                    />
+                  </FilterContext.Provider>
+                </FooterVisibilityContext.Provider>
+              </SiteSettingsProvider>
             </IntlProvider>
           </BrowserRouter>
         </div>

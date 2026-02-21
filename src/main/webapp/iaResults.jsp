@@ -2009,7 +2009,7 @@ function isProjectSelected() {
 
 $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
-	let reloadURL = "../iaResults.jsp?taskId="+taskId;
+	let reloadURL = "../react/match-results?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
 	// replace reserved pound sign in incremental ID's
 	selectedProject = selectedProject.replaceAll("#", "%23");

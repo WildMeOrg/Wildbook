@@ -68,5 +68,42 @@ alter table "TASK" alter column "PARAMETERS" type text;
 		</field>
 	</class>
 
+	<class name="MatchResult" identity-type="application">
+		<field name="id" primary-key="true">
+        		<column length="36"/>
+		</field>
+		<field name="created">
+                	<column jdbc-type="BIGINT" allows-null="false"/>
+			<index name="MATCHRESULT_CREATED_idx" />
+		</field>
+
+      		<field name="task" persistence-modifier="persistent" element-type="org.ecocean.ia.Task">
+			<column allows-null="false" />
+		</field>
+
+		<field name="prospects" default-fetch-group="false" mapped-by="matchResult">
+			<collection element-type="org.ecocean.ia.MatchResultProspect" dependent-element="false" />
+		</field>
+
+      		<field name="queryAnnotation" persistence-modifier="persistent" element-type="org.ecocean.Annotation">
+			<column allows-null="false" />
+		</field>
+
+		<field name="candidates">
+			<collection element-type="org.ecocean.Annotation"/>
+			<join />
+		</field>
+	</class>
+
+	<class name="MatchResultProspect">
+      		<field name="annotation" persistence-modifier="persistent" element-type="org.ecocean.Annotation">
+			<column allows-null="false" />
+		</field>
+      		<field name="asset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" />
+		<field name="matchResult" dependent-element="false" >
+			<column name="MATCHRESULT_ID" />
+		</field>
+	</class>
+
     </package>
 </jdo>

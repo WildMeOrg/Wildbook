@@ -16,6 +16,7 @@ import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
+import org.ecocean.ia.MatchResult;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.movement.Path;
@@ -2799,6 +2800,32 @@ public class Shepherd {
         Collection c = (Collection)q.execute();
         List<Task> all = new ArrayList(c);
         q.closeAll();
+        return all;
+    }
+
+    public MatchResult getMatchResult(String id) {
+        MatchResult mr = null;
+
+        try {
+            mr = (MatchResult)(pm.getObjectById(pm.newObjectIdInstance(MatchResult.class, id),
+                true));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return mr;
+    }
+
+    public List<MatchResult> getMatchResults(Task task) {
+        List<MatchResult> all = new ArrayList<MatchResult>();
+
+        if (task == null) return all;
+        String filter = "SELECT FROM org.ecocean.ia.MatchResult WHERE task.id == '" + task.getId() +
+            "'";
+        Query query = pm.newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection)query.execute();
+        if (c != null) all = new ArrayList<MatchResult>(c);
+        query.closeAll();
         return all;
     }
 

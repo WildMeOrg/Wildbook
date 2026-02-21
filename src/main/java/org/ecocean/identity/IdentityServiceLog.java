@@ -294,6 +294,16 @@ public class IdentityServiceLog implements java.io.Serializable {
         myShepherd.getPM().makePersistent(l);
     }
  */
+    public JSONObject getJsonResult() {
+        JSONObject status = getStatusJson();
+
+        if (status == null) return null;
+        if (status.optJSONObject("_response") == null) return null;
+        if (status.getJSONObject("_response").optJSONObject("response") == null) return null;
+        return status.getJSONObject("_response").getJSONObject("response").optJSONObject(
+                   "json_result");
+    }
+
     public JSONObject toJSONObject() {
         return toJSONObject(false);
     }

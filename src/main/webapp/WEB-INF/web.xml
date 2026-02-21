@@ -423,6 +423,10 @@
 		<servlet-name>ApiBaseObject</servlet-name>
 		<url-pattern>/api/v3/encounters/*</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiGenericObject</servlet-name>
+		<url-pattern>/api/v3/tasks/*</url-pattern>
+	</servlet-mapping>
 
 	<servlet-mapping>
 		<servlet-name>ApiBaseObject</servlet-name>
