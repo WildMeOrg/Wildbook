@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -74,7 +75,7 @@ public class TetraHashIndex implements java.io.Serializable {
                                 spotX, spotY, i, j, k, l, numBins);
                             TetraHashEntry entry = new TetraHashEntry(encounterId, pattern);
                             table.computeIfAbsent(pattern.getHashKey(),
-                                x -> new ArrayList<>()).add(entry);
+                                x -> new CopyOnWriteArrayList<>()).add(entry);
                             patternCount++;
                         }
                     }
@@ -112,7 +113,7 @@ public class TetraHashIndex implements java.io.Serializable {
                 TetraPattern pattern = reservoir[idx];
                 TetraHashEntry entry = new TetraHashEntry(encounterId, pattern);
                 table.computeIfAbsent(pattern.getHashKey(),
-                    x -> new ArrayList<>()).add(entry);
+                    x -> new CopyOnWriteArrayList<>()).add(entry);
             }
             indexedEncounters.put(encounterId, patternCount);
         }
@@ -144,7 +145,9 @@ public class TetraHashIndex implements java.io.Serializable {
      */
     public List<TetraHashEntry> lookup(long hashKey) {
         List<TetraHashEntry> result = table.get(hashKey);
-        return (result != null) ? result : new ArrayList<>();
+        // CopyOnWriteArrayList iterators are snapshot-safe, but return a copy
+        // to prevent callers from holding a reference to the internal bucket
+        return (result != null) ? new ArrayList<>(result) : new ArrayList<>();
     }
 
     /**
