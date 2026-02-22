@@ -32,12 +32,12 @@ class GrothOptimizationTest {
         return new File(CSV_PATH).exists();
     }
 
-    // Groth optimized parameters (from Kingen & Holmberg 2019)
+    // Groth optimized parameters (from GrothParameterSweepTest coordinate descent)
     private static final double GROTH_EPSILON = 0.008;
-    private static final double GROTH_R = 49.8;
-    private static final double GROTH_SIZELIM = 0.998;
-    private static final double GROTH_MAX_ROTATION = 12.33;
-    private static final double GROTH_C = 0.998;
+    private static final double GROTH_R = 6.8;
+    private static final double GROTH_SIZELIM = 0.671;
+    private static final double GROTH_MAX_ROTATION = 22.5;
+    private static final double GROTH_C = 1.146;
 
     // Data structures
     private static Map<String, ArrayList<SuperSpot>> encounterSpots;
