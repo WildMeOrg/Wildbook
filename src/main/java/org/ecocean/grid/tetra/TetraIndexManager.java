@@ -23,6 +23,7 @@ public class TetraIndexManager {
     private TetraHashIndex rightIndex;
     private TetraConfig config;
     private TetraQueryEngine queryEngine;
+    private volatile boolean ready = false;
 
     private TetraIndexManager() {
         config = new TetraConfig();
@@ -41,8 +42,16 @@ public class TetraIndexManager {
     /**
      * Build index from the existing GridManager matchGraph.
      * Called at startup by TetraIndexCreationThread.
+     * Clears existing indices before rebuilding to prevent duplicate entries.
      */
     public void buildFromMatchGraph() {
+        ready = false;
+
+        // Clear and recreate indices to prevent duplicates on repeated builds
+        leftIndex = new TetraHashIndex(config.getNumBins());
+        rightIndex = new TetraHashIndex(config.getNumBins());
+        queryEngine = new TetraQueryEngine(leftIndex, rightIndex, config);
+
         ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
         int total = matchGraph.size();
         int count = 0;
@@ -56,6 +65,7 @@ public class TetraIndexManager {
             }
         }
 
+        ready = true;
         long elapsed = System.currentTimeMillis() - start;
         log.info("TETRA index build complete in " + elapsed + "ms. Left: " +
             leftIndex.getNumIndexedEncounters() + " encounters, Right: " +
@@ -107,13 +117,13 @@ public class TetraIndexManager {
     }
 
     /**
-     * Normalize coordinates by dividing by the max value.
-     * Same normalization used in EncounterLite.getPointsForBestMatch().
+     * Normalize coordinates by dividing by the max absolute value.
+     * Uses absolute values to handle negative coordinates correctly.
      */
     private void normalize(double[] x, double[] y) {
         double max = 0;
-        for (double v : x) max = Math.max(max, v);
-        for (double v : y) max = Math.max(max, v);
+        for (double v : x) max = Math.max(max, Math.abs(v));
+        for (double v : y) max = Math.max(max, Math.abs(v));
         if (max > 0) {
             for (int i = 0; i < x.length; i++) x[i] /= max;
             for (int i = 0; i < y.length; i++) y[i] /= max;
@@ -123,12 +133,20 @@ public class TetraIndexManager {
     public TetraQueryEngine getQueryEngine() { return queryEngine; }
 
     /**
-     * Returns true if any encounters have been indexed.
-     * During startup, the index builds incrementally via GridManager hooks.
+     * Returns true after buildFromMatchGraph() has completed.
+     * Prevents queries against a partially built index during startup.
      */
     public boolean isReady() {
-        return leftIndex.getNumIndexedEncounters() > 0 ||
-               rightIndex.getNumIndexedEncounters() > 0;
+        return ready;
+    }
+
+    /**
+     * Explicitly set the readiness flag.
+     * Used by MatchGraphCreationThread after incremental indexing completes,
+     * since buildFromMatchGraph() is not called in that code path.
+     */
+    public void setReady(boolean ready) {
+        this.ready = ready;
     }
 
     public TetraHashIndex getLeftIndex() { return leftIndex; }

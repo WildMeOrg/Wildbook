@@ -39,6 +39,9 @@ public class TetraConfig implements java.io.Serializable {
         if (props.containsKey("tetraMaxPatternsPerEncounter"))
             config.maxPatternsPerEncounter = Integer.parseInt(
                 props.getProperty("tetraMaxPatternsPerEncounter"));
+        if (props.containsKey("tetraMaxQueryPatterns"))
+            config.maxQueryPatterns = Integer.parseInt(
+                props.getProperty("tetraMaxQueryPatterns"));
         return config;
     }
 
