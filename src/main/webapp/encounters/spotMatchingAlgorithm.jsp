@@ -527,7 +527,7 @@ $(document).ready(function() {
   					<a href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a> algorithms.
 
     				<div id="formDiv">
-      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="../HybridMatch">
+      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="../GrothMatch">
       						<input name="encounterNumber" type="hidden" value="<%=encNum%>" />
         						<table width="200px">
           							<tr>

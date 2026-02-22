@@ -3,7 +3,6 @@ package org.ecocean.grid;
 // import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 // import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
-import org.ecocean.grid.tetra.TetraIndexManager;
 import org.ecocean.shepherd.core.Shepherd;
 
 // import org.ecocean.servlet.ServletUtilities;
@@ -583,7 +582,6 @@ public class GridManager {
     public static void addMatchGraphEntry(String elID, EncounterLite el) {
         matchGraph.put(elID, el);
         resetPatternCounts();
-        TetraIndexManager.getInstance().indexEncounterLite(elID, el);
     }
 
     public static void removeMatchGraphEntry(String elID) {
@@ -591,7 +589,6 @@ public class GridManager {
             matchGraph.remove(elID);
         }
         resetPatternCounts();
-        TetraIndexManager.getInstance().removeEncounter(elID);
     }
 
     public static EncounterLite getMatchGraphEncounterLiteEntry(String elID) {
