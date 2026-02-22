@@ -4,7 +4,6 @@ import org.ecocean.SuperSpot;
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.MatchObject;
-import org.ecocean.grid.VertexPointMatch;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -50,14 +49,16 @@ public class TetraQueryEngine {
         int n = querySpots.size();
         if (n < config.getMinSpots()) return Collections.emptyList();
 
-        // Extract and normalize spot coordinates
+        // Extract and normalize spot coordinates (using absolute values
+        // to handle negative coordinates correctly)
         double[] spotX = new double[n];
         double[] spotY = new double[n];
         double maxCoord = 0;
         for (int i = 0; i < n; i++) {
             spotX[i] = querySpots.get(i).getCentroidX();
             spotY[i] = querySpots.get(i).getCentroidY();
-            maxCoord = Math.max(maxCoord, Math.max(spotX[i], spotY[i]));
+            maxCoord = Math.max(maxCoord,
+                Math.max(Math.abs(spotX[i]), Math.abs(spotY[i])));
         }
         if (maxCoord > 0) {
             for (int i = 0; i < n; i++) {
@@ -111,8 +112,7 @@ public class TetraQueryEngine {
             VoteAccumulator acc = ranked.get(r).getValue();
 
             MatchObject mo = buildMatchObject(
-                acc, candidateEncId, querySpots, spotX, spotY,
-                totalQueryPatterns, rightScan);
+                acc, candidateEncId, totalQueryPatterns);
             results.add(mo);
         }
 
@@ -125,72 +125,31 @@ public class TetraQueryEngine {
     }
 
     /**
-     * Builds a MatchObject compatible with existing display code.
+     * Builds a MatchObject from TETRA vote counts.
+     * TETRA's edge-sorted hashing does not preserve spot correspondence,
+     * so we only populate vote-count-based scores — no spot-pair matching.
+     * Accurate spot correspondence is provided by the Groth refinement
+     * step in HybridMatchServlet.
      */
     private MatchObject buildMatchObject(VoteAccumulator acc,
                                           String candidateEncId,
-                                          ArrayList<SuperSpot> querySpots,
-                                          double[] normSpotX,
-                                          double[] normSpotY,
-                                          int totalQueryPatterns,
-                                          boolean rightScan) {
-        // Build spot-pair scores from vote accumulator
-        Map<String, Integer> spotPairVotes = acc.getSpotPairVotes();
-        ArrayList<VertexPointMatch> scores = new ArrayList<>();
-        double totalPoints = 0;
-
-        // Look up candidate encounter from matchGraph for catalog spot coords
+                                          int totalQueryPatterns) {
         EncounterLite el = GridManager.getMatchGraphEncounterLiteEntry(candidateEncId);
-        ArrayList catalogSpots = null;
-        if (el != null) {
-            catalogSpots = rightScan ? el.getRightSpots() : el.getSpots();
-        }
-
-        for (Map.Entry<String, Integer> pair : spotPairVotes.entrySet()) {
-            String[] parts = pair.getKey().split(":");
-            int qIdx = Integer.parseInt(parts[0]);
-            int cIdx = Integer.parseInt(parts[1]);
-
-            double newX = querySpots.get(qIdx).getCentroidX();
-            double newY = querySpots.get(qIdx).getCentroidY();
-
-            double oldX = 0, oldY = 0;
-            if (catalogSpots != null && cIdx < catalogSpots.size()) {
-                SuperSpot cs = (SuperSpot) catalogSpots.get(cIdx);
-                oldX = cs.getCentroidX();
-                oldY = cs.getCentroidY();
-            }
-
-            int points = pair.getValue();
-            scores.add(new VertexPointMatch(newX, newY, oldX, oldY, points));
-            totalPoints += points;
-        }
-
-        // Sort scores descending by points
-        scores.sort((a, b) -> Integer.compare(b.getPoints(), a.getPoints()));
-
-        // Build point breakdown string
-        StringBuilder pb = new StringBuilder();
-        for (VertexPointMatch vpm : scores) {
-            if (pb.length() > 0) pb.append("|");
-            pb.append(vpm.getPoints());
-        }
-
-        double matchValue = totalPoints;
-        double adjustedMatchValue = (totalQueryPatterns > 0) ?
-            totalPoints / totalQueryPatterns : 0;
-
         String indName = (el != null) ? el.getBelongsToMarkedIndividual() : "N/A";
         String date = (el != null) ? el.getDate() : "";
+
+        double matchValue = acc.getVoteCount();
+        double adjustedMatchValue = (totalQueryPatterns > 0) ?
+            matchValue / totalQueryPatterns : 0;
 
         return new MatchObject(
             indName,
             matchValue,
             adjustedMatchValue,
             acc.getVoteCount(),
-            scores,
+            new ArrayList<>(),
             candidateEncId,
-            pb.toString(),
+            String.valueOf(acc.getVoteCount()),
             new double[0],
             "Unknown",
             date,

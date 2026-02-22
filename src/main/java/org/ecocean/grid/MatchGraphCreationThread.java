@@ -1,6 +1,7 @@
 package org.ecocean.grid;
 
 import org.ecocean.Encounter;
+import org.ecocean.grid.tetra.TetraIndexManager;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 
@@ -16,9 +17,6 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     String context = "context0";
     String jdoql = "SELECT FROM org.ecocean.Encounter";
     boolean finished = false;
-
-    private static final int BATCH_SIZE = 500;
-
     /**
      * Constructor to create a new thread object
      */
@@ -41,7 +39,6 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     }
 
     public void createThem() {
-        long startTime = System.currentTimeMillis();
         System.out.println("Starting MatchGraphCreationThread!");
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MatchGraphCreationThread.class");
@@ -65,48 +62,43 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
             numEncs);
         myShepherd.rollbackDBTransaction();
 
-        GridManager.setMatchGraphReady(false);
+        // gm.initializeNodes((int)(numEncs*2/3));
         gm.resetMatchGraphWithInitialCapacity(numEncs);
 
+        // Query query=null;
         try {
-            int count = 0;
-            myShepherd.beginDBTransaction();
+            // query=myShepherd.getPM().newQuery(jdoql);
+            // Collection c = (Collection) (query.execute());
+            // System.out.println("Num scans to do: "+c.size());
+            // Iterator encounters = c.iterator();
 
+            int count = 0;
             for (int i = 0; i < numEncs; i++) {
+                myShepherd.beginDBTransaction();
                 Encounter enc = myShepherd.getEncounter(encNumbers.get(i));
                 if (((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) ||
                     ((enc.getSpots() != null) && (enc.getSpots().size() > 0))) {
                     EncounterLite el = new EncounterLite(enc);
-                    GridManager.addMatchGraphEntryBulk(enc.getCatalogNumber(), el);
+                    gm.addMatchGraphEntry(enc.getCatalogNumber(), el);
                     count++;
                 }
-
-                // Batch: rollback and re-begin every BATCH_SIZE to release JDO cache
-                if ((i + 1) % BATCH_SIZE == 0) {
-                    myShepherd.rollbackDBTransaction();
-                    myShepherd.beginDBTransaction();
-                    System.out.println("MatchGraphCreationThread progress: " +
-                        (i + 1) + "/" + numEncs + " (" + count + " with spots)");
-                }
+                myShepherd.rollbackDBTransaction();
             }
-            myShepherd.rollbackDBTransaction();
-
-            // Single resetPatternCounts at the end instead of N times during load
-            GridManager.resetPatternCounts();
-
+            // myShepherd.rollbackDBTransaction();
             finished = true;
-            GridManager.setMatchGraphReady(true);
-            long elapsed = System.currentTimeMillis() - startTime;
-            System.out.println("Ending MatchGraphCreationThread! " + count +
-                " encounters loaded in " + elapsed + "ms");
+            // Signal TETRA index readiness since encounters were indexed
+            // incrementally via addMatchGraphEntry → indexEncounterLite
+            TetraIndexManager.getInstance().setReady(true);
         } catch (Exception e) {
             System.out.println(
                 "I failed while constructing the EncounterLites in MatchGraphCreationThread.");
             e.printStackTrace();
             myShepherd.rollbackDBTransaction();
         } finally {
+            // if(query!=null){query.closeAll();}
             myShepherd.closeDBTransaction();
         }
+        System.out.println("Ending MatchGraphCreationThread!");
     }
 
     public boolean isFinished() {
