@@ -56,6 +56,7 @@ public class GridManager {
     private static int numLeftPatterns = 0;
 
     private static boolean creationThread = false;
+    private static volatile boolean matchGraphReady = false;
 
     // hold incompleted scanWorkItems
     private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -578,10 +579,21 @@ public class GridManager {
         return numProcessors;
     }
 
+    public static boolean isMatchGraphReady() { return matchGraphReady; }
+    public static void setMatchGraphReady(boolean ready) { matchGraphReady = ready; }
+
     public static ConcurrentHashMap<String, EncounterLite> getMatchGraph() { return matchGraph; }
     public static void addMatchGraphEntry(String elID, EncounterLite el) {
         matchGraph.put(elID, el);
         resetPatternCounts();
+    }
+
+    /**
+     * Bulk insert without triggering resetPatternCounts() on each call.
+     * Call resetPatternCounts() once after all entries are added.
+     */
+    public static void addMatchGraphEntryBulk(String elID, EncounterLite el) {
+        matchGraph.put(elID, el);
     }
 
     public static void removeMatchGraphEntry(String elID) {
@@ -615,7 +627,7 @@ public class GridManager {
      * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare
      * against.
      */
-    private static synchronized void resetPatternCounts() {
+    public static synchronized void resetPatternCounts() {
         numLeftPatterns = 0;
         numRightPatterns = 0;
         speciesCountsMapLeft = new ConcurrentHashMap<String, Long>();
@@ -696,6 +708,7 @@ public class GridManager {
      */
     public static boolean cacheRead(String filepath) throws IOException {
         long t = System.currentTimeMillis();
+        matchGraphReady = false;
         String content = Util.readFromFile(filepath);
         JSONObject root = Util.stringToJSONObject(content);
         if (root == null) {
@@ -721,6 +734,7 @@ public class GridManager {
             matchGraph.put(key, el);
         }
         resetPatternCounts();
+        matchGraphReady = true;
         System.out.println("INFO: GridManager.cacheRead() complete with " + matchGraph.size() +
             " entries in " + (System.currentTimeMillis() - t) + "ms");
         return true;

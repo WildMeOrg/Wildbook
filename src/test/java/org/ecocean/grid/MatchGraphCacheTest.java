@@ -1,9 +1,13 @@
 package org.ecocean.grid;
 
+import org.ecocean.SuperSpot;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 import java.util.ArrayList;
 
@@ -233,5 +237,137 @@ class MatchGraphCacheTest {
         assertEquals(0.2, spotArray[0].getCentroidY(), 1e-9);
         assertEquals(0.7, spotArray[4].getCentroidX(), 1e-9);
         assertEquals(0.4, spotArray[4].getCentroidY(), 1e-9);
+    }
+
+    @Test
+    void testMatchGraphReadinessFlag() {
+        // Initially not ready
+        GridManager.setMatchGraphReady(false);
+        assertFalse(GridManager.isMatchGraphReady(),
+            "matchGraph should not be ready before loading");
+
+        // After manual set, should be ready
+        GridManager.setMatchGraphReady(true);
+        assertTrue(GridManager.isMatchGraphReady(),
+            "matchGraph should be ready after setMatchGraphReady(true)");
+
+        // Reset for other tests
+        GridManager.setMatchGraphReady(false);
+    }
+
+    @Test
+    void testReadinessLifecycle() {
+        GridManager gm = GridManagerFactory.getGridManager();
+
+        // 1. Start not ready
+        GridManager.setMatchGraphReady(false);
+        assertFalse(GridManager.isMatchGraphReady());
+
+        // 2. Simulate successful cache load — readiness set true
+        gm.resetMatchGraphWithInitialCapacity(2);
+        JSONObject el1Json = makeElJson("enc-life-1", "ind-1", "2024-01-01", "male", 2.0,
+            new double[]{1.0, 2.0, 3.0, 4.0}, new double[]{1.1, 2.1, 3.1, 4.1}, null, null);
+        GridManager.addMatchGraphEntryBulk("enc-life-1", EncounterLite.fromJSONObject(el1Json));
+        GridManager.resetPatternCounts();
+        GridManager.setMatchGraphReady(true);
+        assertTrue(GridManager.isMatchGraphReady(), "Should be ready after load");
+        assertEquals(1, GridManager.getMatchGraph().size());
+
+        // 3. Simulate rebuild start — readiness must go false before clearing
+        GridManager.setMatchGraphReady(false);
+        gm.resetMatchGraphWithInitialCapacity(10);
+        assertFalse(GridManager.isMatchGraphReady(),
+            "Should NOT be ready during rebuild");
+        assertEquals(0, GridManager.getMatchGraph().size());
+
+        // 4. Simulate rebuild failure — readiness stays false
+        // (catch block does not set ready = true)
+        assertFalse(GridManager.isMatchGraphReady(),
+            "Should remain not ready after failed rebuild");
+
+        // 5. Simulate successful rebuild — readiness set true again
+        JSONObject el2Json = makeElJson("enc-life-2", "ind-2", "2024-06-01", "female", 3.0,
+            new double[]{5.0, 6.0, 7.0, 8.0}, new double[]{5.1, 6.1, 7.1, 8.1}, null, null);
+        GridManager.addMatchGraphEntryBulk("enc-life-2", EncounterLite.fromJSONObject(el2Json));
+        GridManager.resetPatternCounts();
+        GridManager.setMatchGraphReady(true);
+        assertTrue(GridManager.isMatchGraphReady(), "Should be ready after successful rebuild");
+
+        // Cleanup
+        GridManager.setMatchGraphReady(false);
+        gm.resetMatchGraphWithInitialCapacity(0);
+    }
+
+    @Test
+    void testGrothMatchAgainstLoadedMatchGraph() {
+        // Build a small matchGraph with known spots
+        GridManager gm = GridManagerFactory.getGridManager();
+        gm.resetMatchGraphWithInitialCapacity(10);
+
+        // Create 3 catalog encounters with distinct spot patterns
+        double[][] patterns = {
+            {0.1, 0.2, 0.5, 0.8, 0.9},  // enc-cat-1
+            {0.1, 0.2, 0.5, 0.8, 0.9},  // enc-cat-2 (same pattern, different individual)
+            {0.3, 0.4, 0.6, 0.7, 0.95}, // enc-cat-3 (different pattern)
+        };
+        double[][] yCoords = {
+            {0.1, 0.3, 0.5, 0.7, 0.9},
+            {0.1, 0.3, 0.5, 0.7, 0.9},
+            {0.2, 0.4, 0.6, 0.8, 0.85},
+        };
+        String[] ids = {"enc-cat-1", "enc-cat-2", "enc-cat-3"};
+
+        for (int i = 0; i < 3; i++) {
+            JSONObject elJson = makeElJson(ids[i], "ind-" + i, "2024-01-0" + (i + 1),
+                "Unknown", 0.0, patterns[i], yCoords[i], null, null);
+            GridManager.addMatchGraphEntry(ids[i], EncounterLite.fromJSONObject(elJson));
+        }
+        GridManager.setMatchGraphReady(true);
+
+        assertEquals(3, GridManager.getMatchGraph().size());
+        assertTrue(GridManager.isMatchGraphReady());
+
+        // Query with the same pattern as enc-cat-1/2 — they should score highest
+        SuperSpot[] querySpots = new SuperSpot[5];
+        double[] qx = {0.1, 0.2, 0.5, 0.8, 0.9};
+        double[] qy = {0.1, 0.3, 0.5, 0.7, 0.9};
+        for (int i = 0; i < 5; i++) {
+            querySpots[i] = new SuperSpot(qx[i], qy[i]);
+        }
+
+        // Run Groth against the matchGraph (same logic as GrothMatchServlet Phase 2)
+        double epsilon = 0.008, R = 6.8, Sizelim = 0.671, maxRot = 22.5, C = 1.146;
+        List<MatchObject> results = new java.util.ArrayList<>();
+        for (var entry : GridManager.getMatchGraph().entrySet()) {
+            EncounterLite el = entry.getValue();
+            MatchObject mo = el.getPointsForBestMatch(
+                querySpots, epsilon, R, Sizelim, maxRot, C, true, false);
+            mo.encounterNumber = entry.getKey();
+            results.add(mo);
+        }
+
+        MatchObject[] matchArray = results.toArray(new MatchObject[0]);
+        Arrays.sort(matchArray, new MatchComparator());
+
+        // enc-cat-1 and enc-cat-2 should have identical best scores (same pattern)
+        // enc-cat-3 should score lower
+        assertEquals(3, matchArray.length);
+        double score1 = matchArray[0].getMatchValue() * matchArray[0].getAdjustedMatchValue();
+        double score3 = matchArray[2].getMatchValue() * matchArray[2].getAdjustedMatchValue();
+        assertTrue(score1 >= score3,
+            "Identical patterns should score >= different pattern");
+
+        // Top two should be cat-1 or cat-2 (same pattern)
+        String top1 = matchArray[0].getEncounterNumber();
+        String top2 = matchArray[1].getEncounterNumber();
+        assertTrue(
+            (top1.equals("enc-cat-1") || top1.equals("enc-cat-2")) &&
+            (top2.equals("enc-cat-1") || top2.equals("enc-cat-2")),
+            "Top 2 matches should be the encounters with identical patterns, got: " +
+            top1 + ", " + top2);
+
+        // Cleanup
+        GridManager.setMatchGraphReady(false);
+        gm.resetMatchGraphWithInitialCapacity(0);
     }
 }

@@ -56,6 +56,13 @@ public class GrothMatchServlet extends HttpServlet {
 
         boolean rightScan = "true".equals(request.getParameter("rightSide"));
 
+        // Check that the matchGraph is ready before proceeding
+        if (!GridManager.isMatchGraphReady()) {
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                "The match graph is still loading. Please try again shortly.");
+            return;
+        }
+
         // Read Groth parameters from config
         double epsilon, R, Sizelim, maxTriangleRotation, C;
         try {
@@ -71,55 +78,74 @@ public class GrothMatchServlet extends HttpServlet {
             return;
         }
 
+        // Phase 1: Short DB transaction to load query encounter spots
+        SuperSpot[] queryArray;
+        String encDate, encSex, encIndividualID, encLocation, encLocationID, encSize;
+        {
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("GrothMatchServlet.class");
+            myShepherd.beginDBTransaction();
+            try {
+                Encounter enc = myShepherd.getEncounter(encNumber);
+                if (enc == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                        "Encounter not found: " + encNumber);
+                    return;
+                }
+
+                ArrayList<SuperSpot> querySpots = rightScan ?
+                    enc.getRightSpots() : enc.getSpots();
+
+                if (querySpots == null || querySpots.size() < 4) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                        "Need at least 4 spots for matching. Found: " +
+                        (querySpots == null ? 0 : querySpots.size()));
+                    return;
+                }
+
+                queryArray = querySpots.toArray(new SuperSpot[0]);
+                encDate = enc.getDate();
+                encSex = enc.getSex() != null ? enc.getSex() : "unknown";
+                encIndividualID = ServletUtilities.handleNullString(enc.getIndividualID());
+                encSize = enc.getSizeAsDouble() != null ? enc.getSize() + " meters" : "unknown";
+                encLocation = enc.getLocation();
+                encLocationID = enc.getLocationID();
+            } finally {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+            }
+        }
+
+        // Phase 2: CPU-heavy Groth matching — no DB transaction needed
+        long startTime = System.currentTimeMillis();
+
+        ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
+        List<MatchObject> grothResults = new ArrayList<>();
+
+        for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
+            if (entry.getKey().equals(encNumber)) continue;
+            EncounterLite el = entry.getValue();
+
+            MatchObject mo = el.getPointsForBestMatch(
+                queryArray, epsilon, R, Sizelim, maxTriangleRotation, C,
+                true, rightScan);
+            mo.encounterNumber = entry.getKey();
+            grothResults.add(mo);
+        }
+
+        MatchObject[] matchArray = grothResults.toArray(new MatchObject[0]);
+        Arrays.sort(matchArray, new MatchComparator());
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        log.info("Groth match for " + encNumber + " completed in " + totalTime +
+            "ms (" + matchGraph.size() + " catalog encounters)");
+
+        // Phase 3: Short DB transaction to build XML with encounter details
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("GrothMatchServlet.class");
         myShepherd.beginDBTransaction();
 
         try {
-            Encounter enc = myShepherd.getEncounter(encNumber);
-            if (enc == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Encounter not found: " + encNumber);
-                return;
-            }
-
-            ArrayList<SuperSpot> querySpots = rightScan ?
-                enc.getRightSpots() : enc.getSpots();
-
-            if (querySpots == null || querySpots.size() < 4) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "Need at least 4 spots for matching. Found: " +
-                    (querySpots == null ? 0 : querySpots.size()));
-                return;
-            }
-
-            long startTime = System.currentTimeMillis();
-
-            // Run Groth against all encounters in the matchGraph
-            SuperSpot[] queryArray = querySpots.toArray(new SuperSpot[0]);
-            ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
-            List<MatchObject> grothResults = new ArrayList<>();
-
-            for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
-                if (entry.getKey().equals(encNumber)) continue;
-                EncounterLite el = entry.getValue();
-
-                MatchObject mo = el.getPointsForBestMatch(
-                    queryArray, epsilon, R, Sizelim, maxTriangleRotation, C,
-                    true, rightScan);
-                mo.encounterNumber = entry.getKey();
-                grothResults.add(mo);
-            }
-
-            // Sort by matchValue * adjustedMatchValue descending
-            MatchObject[] matchArray = grothResults.toArray(new MatchObject[0]);
-            Arrays.sort(matchArray, new MatchComparator());
-
-            long totalTime = System.currentTimeMillis() - startTime;
-            log.info("Groth match for " + encNumber + " completed in " + totalTime +
-                "ms (" + matchGraph.size() + " catalog encounters)");
-
-            // Build XML document in WriteOutScanTask format
             Document document = DocumentHelper.createDocument();
             Element root = document.addElement("matchSet");
             root.addAttribute("scanDate", (new java.util.Date()).toString());
@@ -187,18 +213,12 @@ public class GrothMatchServlet extends HttpServlet {
 
                         Element enc2 = match.addElement("encounter");
                         enc2.addAttribute("number", encNumber);
-                        enc2.addAttribute("date", enc.getDate());
-                        enc2.addAttribute("sex",
-                            enc.getSex() != null ? enc.getSex() : "unknown");
-                        enc2.addAttribute("assignedToShark",
-                            ServletUtilities.handleNullString(enc.getIndividualID()));
-                        if (enc.getSizeAsDouble() != null) {
-                            enc2.addAttribute("size", enc.getSize() + " meters");
-                        } else {
-                            enc2.addAttribute("size", "unknown");
-                        }
-                        enc2.addAttribute("location", enc.getLocation());
-                        enc2.addAttribute("locationID", enc.getLocationID());
+                        enc2.addAttribute("date", encDate);
+                        enc2.addAttribute("sex", encSex);
+                        enc2.addAttribute("assignedToShark", encIndividualID);
+                        enc2.addAttribute("size", encSize);
+                        enc2.addAttribute("location", encLocation);
+                        enc2.addAttribute("locationID", encLocationID);
 
                         try {
                             for (VertexPointMatch score : scores) {
@@ -258,7 +278,6 @@ public class GrothMatchServlet extends HttpServlet {
         } catch (Exception e) {
             log.severe("Groth match failed: " + e.getMessage());
             e.printStackTrace();
-            myShepherd.rollbackDBTransaction();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                 "Match failed: " + e.getMessage());
         } finally {
