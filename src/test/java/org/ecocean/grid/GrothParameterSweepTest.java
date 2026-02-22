@@ -1,9 +1,6 @@
 package org.ecocean.grid;
 
 import org.ecocean.SuperSpot;
-import org.ecocean.grid.tetra.TetraConfig;
-import org.ecocean.grid.tetra.TetraHashIndex;
-import org.ecocean.grid.tetra.TetraQueryEngine;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -274,15 +271,9 @@ class GrothParameterSweepTest {
     }
 
     /**
-     * Comparison report: run the same 40 stratified queries with five approaches:
-     *   1. Groth with old Wildbook defaults
-     *   2. Groth with Kingen & Holmberg 2019 literature values
-     *   3. Groth with our coordinate-descent optimized values
-     *   4. TETRA-only (hash-based pre-filter, no Groth refinement)
-     *   5. Hybrid (TETRA pre-filter + Groth refinement with optimized params)
-     *
-     * Groth-only approaches use a random 200-encounter catalog subset per query
-     * (with true matches guaranteed). TETRA and Hybrid search the full catalog.
+     * Comparison report: run the same 40 stratified queries with three Groth
+     * parameter sets (old Wildbook defaults, Kingen & Holmberg 2019, our
+     * coordinate-descent optimized values) and print a side-by-side table.
      *
      * Run with:
      *   mvn test -Dtest=GrothParameterSweepTest#compareParameterSets \
@@ -294,7 +285,7 @@ class GrothParameterSweepTest {
     void compareParameterSets() {
         System.out.println();
         System.out.println("================================================================");
-        System.out.println("  MODIFIED GROTH & HYBRID COMPARISON REPORT");
+        System.out.println("  MODIFIED GROTH PARAMETER COMPARISON REPORT");
         System.out.println("================================================================");
         System.out.println();
         System.out.println("Dataset: " + CSV_PATH);
@@ -302,57 +293,11 @@ class GrothParameterSweepTest {
         System.out.println("Catalog encounters: " + catalog.size());
         System.out.println("Queries: " + queriesAvailable +
             " (stratified: half 2-encounter, half multi-encounter)");
-        System.out.println("Groth catalog subset: " + CATALOG_SIZE +
-            " encounters per query (random with guaranteed true matches)");
-        System.out.println("TETRA/Hybrid catalog: ALL " + catalog.size() +
-            " encounters (full scan via hash index)");
+        System.out.println("Catalog subset per query: " + CATALOG_SIZE + " encounters");
         System.out.println();
 
-        // --- Build TETRA index from the full catalog ---
-        System.out.println("Building TETRA index...");
-        long indexStart = System.nanoTime();
-
-        TetraConfig tetraConfig = new TetraConfig();
-        tetraConfig.setNumBins(25);
-        tetraConfig.setMaxPatternsPerEncounter(500);
-        tetraConfig.setMaxQueryPatterns(1000);
-        tetraConfig.setToleranceEnabled(false);
-        tetraConfig.setMaxRatioDistance(0.1);
-        tetraConfig.setMinVotes(2);
-        tetraConfig.setTopK(200);
-        tetraConfig.setMinSpots(4);
-
-        TetraHashIndex tetraIndex = new TetraHashIndex(tetraConfig.getNumBins());
-
-        for (Map.Entry<String, ArrayList<SuperSpot>> entry : encounterSpots.entrySet()) {
-            ArrayList<SuperSpot> spots = entry.getValue();
-            if (spots.size() < tetraConfig.getMinSpots()) continue;
-
-            double[] sx = new double[spots.size()];
-            double[] sy = new double[spots.size()];
-            double maxCoord = 0;
-            for (int i = 0; i < spots.size(); i++) {
-                sx[i] = spots.get(i).getCentroidX();
-                sy[i] = spots.get(i).getCentroidY();
-                maxCoord = Math.max(maxCoord,
-                    Math.max(Math.abs(sx[i]), Math.abs(sy[i])));
-            }
-            if (maxCoord > 0) {
-                for (int i = 0; i < sx.length; i++) { sx[i] /= maxCoord; sy[i] /= maxCoord; }
-            }
-            tetraIndex.indexEncounter(entry.getKey(), sx, sy,
-                tetraConfig.getMaxPatternsPerEncounter());
-        }
-
-        TetraQueryEngine tetraEngine = new TetraQueryEngine(
-            tetraIndex, tetraIndex, tetraConfig);
-
-        long indexMs = (System.nanoTime() - indexStart) / 1_000_000;
-        System.out.printf("TETRA index built in %,d ms (%d encounters indexed)%n%n",
-            indexMs, tetraIndex.getNumIndexedEncounters());
-
-        // --- 1-3: Groth-only benchmarks (200-encounter subsets) ---
-        System.out.println("Running Groth benchmarks (200-encounter subsets)...");
+        // --- Parameter sets to compare ---
+        System.out.println("Running Groth benchmarks...");
         double[] oldDefaults = runBenchmark(0.01, 8.0, 0.9, 30.0, 0.99);
         System.out.println("  Old defaults complete.");
         double[] kingen = runBenchmark(0.008, 49.8, 0.998, 12.33, 0.998);
@@ -360,262 +305,85 @@ class GrothParameterSweepTest {
         double[] optimized = runBenchmark(0.008, 6.8, 0.671, 22.5, 1.146);
         System.out.println("  Optimized complete.");
 
-        // --- 4: TETRA-only (full catalog) ---
-        System.out.println("Running TETRA-only benchmark (full catalog)...");
-        double[] tetraOnly = runTetraBenchmark(tetraEngine);
-        System.out.println("  TETRA-only complete.");
-
-        // --- 5: Hybrid TETRA+Groth (full catalog) ---
-        System.out.println("Running Hybrid benchmark (full catalog)...");
-        double[] hybrid = runHybridBenchmark(tetraEngine, 0.008, 6.8, 0.671, 22.5, 1.146);
-        System.out.println("  Hybrid complete.");
-
         // --- Print comparison table ---
         int q = (int) oldDefaults[3];
-        int qTetra = (int) tetraOnly[3];
-        int qHybrid = (int) hybrid[3];
 
         System.out.println();
-        System.out.println("===========================================================================================");
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "Metric", "Groth Old", "Groth Kingen", "Groth Opt", "TETRA Only", "Hybrid");
-        System.out.println("===========================================================================================");
+        System.out.println("----------------------------------------------------------------");
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "Metric", "Old Defaults", "Kingen 2019", "Optimized");
+        System.out.println("----------------------------------------------------------------");
 
-        // Approach description
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "Algorithm", "Groth", "Groth", "Groth", "TETRA hash", "TETRA+Groth");
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "Catalog scope", "200 subset", "200 subset", "200 subset",
-            "full " + catalog.size(), "full " + catalog.size());
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "epsilon", "0.01", "0.008", "0.008");
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "R", "8", "49.8", "6.8");
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "Sizelim", "0.9", "0.998", "0.671");
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "maxTriangleRotation", "30", "12.33", "22.5");
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "C", "0.99", "0.998", "1.146");
 
-        System.out.println("-------------------------------------------------------------------------------------------");
+        System.out.println("----------------------------------------------------------------");
 
-        // Parameters
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "epsilon", "0.01", "0.008", "0.008", "n/a", "0.008");
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "R", "8", "49.8", "6.8", "n/a", "6.8");
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "Sizelim", "0.9", "0.998", "0.671", "n/a", "0.671");
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "maxRot", "30", "12.33", "22.5", "n/a", "22.5");
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "C", "0.99", "0.998", "1.146", "n/a", "1.146");
-
-        System.out.println("-------------------------------------------------------------------------------------------");
-
-        // Results
-        System.out.printf("%-24s | %d/%-11d | %d/%-11d | %d/%-11d | %d/%-11d | %d/%-11d%n",
+        System.out.printf("%-28s | %d/%-13d | %d/%-13d | %d/%-13d%n",
             "Rank-1",
-            (int) oldDefaults[0], q, (int) kingen[0], q, (int) optimized[0], q,
-            (int) tetraOnly[0], qTetra, (int) hybrid[0], qHybrid);
-
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
+            (int) oldDefaults[0], q, (int) kingen[0], q, (int) optimized[0], q);
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
             "Rank-1 %",
             String.format("%.1f%%", 100.0 * oldDefaults[0] / q),
             String.format("%.1f%%", 100.0 * kingen[0] / q),
-            String.format("%.1f%%", 100.0 * optimized[0] / q),
-            String.format("%.1f%%", 100.0 * tetraOnly[0] / qTetra),
-            String.format("%.1f%%", 100.0 * hybrid[0] / qHybrid));
-
-        System.out.printf("%-24s | %d/%-11d | %d/%-11d | %d/%-11d | %d/%-11d | %d/%-11d%n",
+            String.format("%.1f%%", 100.0 * optimized[0] / q));
+        System.out.printf("%-28s | %d/%-13d | %d/%-13d | %d/%-13d%n",
             "Rank-5",
-            (int) oldDefaults[1], q, (int) kingen[1], q, (int) optimized[1], q,
-            (int) tetraOnly[1], qTetra, (int) hybrid[1], qHybrid);
-
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
+            (int) oldDefaults[1], q, (int) kingen[1], q, (int) optimized[1], q);
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
             "Rank-5 %",
             String.format("%.1f%%", 100.0 * oldDefaults[1] / q),
             String.format("%.1f%%", 100.0 * kingen[1] / q),
-            String.format("%.1f%%", 100.0 * optimized[1] / q),
-            String.format("%.1f%%", 100.0 * tetraOnly[1] / qTetra),
-            String.format("%.1f%%", 100.0 * hybrid[1] / qHybrid));
-
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
+            String.format("%.1f%%", 100.0 * optimized[1] / q));
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
             "mAP",
             String.format("%.3f", oldDefaults[2]),
             String.format("%.3f", kingen[2]),
-            String.format("%.3f", optimized[2]),
-            String.format("%.3f", tetraOnly[2]),
-            String.format("%.3f", hybrid[2]));
-
-        System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-            "Avg time/query",
+            String.format("%.3f", optimized[2]));
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "Avg time per query",
             String.format("%,.0f ms", oldDefaults[4]),
             String.format("%,.0f ms", kingen[4]),
-            String.format("%,.0f ms", optimized[4]),
-            String.format("%,.0f ms", tetraOnly[4]),
-            String.format("%,.0f ms", hybrid[4]));
+            String.format("%,.0f ms", optimized[4]));
 
-        // Extra detail for hybrid: TETRA time + Groth time
-        if (hybrid.length > 5) {
-            System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-                "  TETRA phase",
-                "", "", "", "",
-                String.format("%,.0f ms", hybrid[5]));
-            System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-                "  Groth phase",
-                "", "", "", "",
-                String.format("%,.0f ms", hybrid[6]));
-            System.out.printf("%-24s | %-14s | %-14s | %-14s | %-14s | %-14s%n",
-                "  Avg candidates",
-                "", "", "", "",
-                String.format("%.0f", hybrid[7]));
-        }
+        double speedupVsOld = oldDefaults[4] / optimized[4];
+        double speedupVsKingen = kingen[4] / optimized[4];
+        System.out.printf("%-28s | %-16s | %-16s | %-16s%n",
+            "Speedup vs Kingen",
+            String.format("%.1fx", kingen[4] / oldDefaults[4]),
+            "1.0x (baseline)",
+            String.format("%.1fx", speedupVsKingen));
 
-        System.out.println("===========================================================================================");
+        System.out.println("----------------------------------------------------------------");
 
-        // Delta summaries
         System.out.println();
-        System.out.println("=== Improvement: Hybrid vs Groth Old Defaults ===");
+        System.out.println("=== Improvement Summary (Optimized vs Old Defaults) ===");
         System.out.printf("Rank-1:  %+.0f queries (%.1f%% -> %.1f%%)%n",
-            hybrid[0] - oldDefaults[0],
-            100.0 * oldDefaults[0] / q, 100.0 * hybrid[0] / qHybrid);
+            optimized[0] - oldDefaults[0],
+            100.0 * oldDefaults[0] / q, 100.0 * optimized[0] / q);
         System.out.printf("mAP:     %+.3f (%.3f -> %.3f)%n",
-            hybrid[2] - oldDefaults[2], oldDefaults[2], hybrid[2]);
-        System.out.printf("Speed:   %.1fx %s (and searches %dx more encounters)%n",
-            oldDefaults[4] / hybrid[4],
-            oldDefaults[4] > hybrid[4] ? "faster" : "slower",
-            catalog.size() / CATALOG_SIZE);
+            optimized[2] - oldDefaults[2], oldDefaults[2], optimized[2]);
+        System.out.printf("Speed:   %.1fx %s%n", speedupVsOld,
+            speedupVsOld > 1 ? "faster" : "slower");
 
         System.out.println();
-        System.out.println("=== Improvement: Hybrid vs Groth Optimized (same params, full catalog) ===");
-        System.out.printf("Catalog: %d encounters (hybrid) vs %d (Groth subset)%n",
-            catalog.size(), CATALOG_SIZE);
-        System.out.printf("Speed:   %,.0f ms (hybrid) vs %,.0f ms (Groth on 200)%n",
-            hybrid[4], optimized[4]);
-        System.out.printf("Note:    Hybrid searches %dx more encounters with comparable accuracy%n",
-            catalog.size() / CATALOG_SIZE);
+        System.out.println("=== Improvement Summary (Optimized vs Kingen 2019) ===");
+        System.out.printf("Rank-1:  %+.0f queries (%.1f%% -> %.1f%%)%n",
+            optimized[0] - kingen[0],
+            100.0 * kingen[0] / q, 100.0 * optimized[0] / q);
+        System.out.printf("mAP:     %+.3f (%.3f -> %.3f)%n",
+            optimized[2] - kingen[2], kingen[2], optimized[2]);
+        System.out.printf("Speed:   %.1fx %s%n", speedupVsKingen,
+            speedupVsKingen > 1 ? "faster" : "slower");
         System.out.println();
-    }
-
-    /**
-     * Run TETRA-only benchmark against the full catalog.
-     * Returns [rank1Hits, rank5Hits, mAP, queriesRun, avgTimeMs].
-     */
-    private double[] runTetraBenchmark(TetraQueryEngine engine) {
-        int rank1Hits = 0;
-        int rank5Hits = 0;
-        double sumAP = 0;
-        long totalTimeNanos = 0;
-        int queriesRun = 0;
-
-        for (String queryEncId : queryEncIds) {
-            ArrayList<SuperSpot> querySpots = encounterSpots.get(queryEncId);
-            if (querySpots == null || querySpots.size() < 4) continue;
-
-            String trueIndId = encounterToIndividual.get(queryEncId);
-            Set<String> trueEncounters = new HashSet<>(
-                individualToEncounters.getOrDefault(trueIndId, Collections.emptyList()));
-            trueEncounters.remove(queryEncId);
-            if (trueEncounters.isEmpty()) continue;
-
-            int numTrueInCatalog = 0;
-            for (String trueEncId : trueEncounters) {
-                if (catalog.containsKey(trueEncId)) numTrueInCatalog++;
-            }
-            if (numTrueInCatalog == 0) continue;
-
-            long startNanos = System.nanoTime();
-            List<MatchObject> results = engine.match(querySpots, false, queryEncId);
-            totalTimeNanos += System.nanoTime() - startNanos;
-
-            int rank = findCorrectRank(results, queryEncId, trueIndId);
-            if (rank == 1) rank1Hits++;
-            if (rank >= 1 && rank <= 5) rank5Hits++;
-
-            double ap = computeAP(results, trueEncounters, numTrueInCatalog);
-            sumAP += ap;
-            queriesRun++;
-        }
-
-        double avgMs = (queriesRun > 0) ?
-            (double) totalTimeNanos / 1_000_000 / queriesRun : 0;
-        double mAP = (queriesRun > 0) ? sumAP / queriesRun : 0;
-        return new double[]{rank1Hits, rank5Hits, mAP, queriesRun, avgMs};
-    }
-
-    /**
-     * Run Hybrid (TETRA pre-filter + Groth refinement) benchmark against the full catalog.
-     * Returns [rank1Hits, rank5Hits, mAP, queriesRun, avgTotalMs,
-     *          avgTetraMs, avgGrothMs, avgCandidates].
-     */
-    private double[] runHybridBenchmark(TetraQueryEngine engine,
-                                         double epsilon, double R, double sizelim,
-                                         double maxRot, double C) {
-        int rank1Hits = 0;
-        int rank5Hits = 0;
-        double sumAP = 0;
-        long totalTetraNanos = 0;
-        long totalGrothNanos = 0;
-        int totalCandidates = 0;
-        int queriesRun = 0;
-
-        for (String queryEncId : queryEncIds) {
-            ArrayList<SuperSpot> querySpots = encounterSpots.get(queryEncId);
-            if (querySpots == null || querySpots.size() < 4) continue;
-
-            String trueIndId = encounterToIndividual.get(queryEncId);
-            Set<String> trueEncounters = new HashSet<>(
-                individualToEncounters.getOrDefault(trueIndId, Collections.emptyList()));
-            trueEncounters.remove(queryEncId);
-            if (trueEncounters.isEmpty()) continue;
-
-            int numTrueInCatalog = 0;
-            for (String trueEncId : trueEncounters) {
-                if (catalog.containsKey(trueEncId)) numTrueInCatalog++;
-            }
-            if (numTrueInCatalog == 0) continue;
-
-            SuperSpot[] queryArray = querySpots.toArray(new SuperSpot[0]);
-
-            // Step 1: TETRA pre-filter
-            long tetraStart = System.nanoTime();
-            List<MatchObject> tetraCandidates = engine.match(querySpots, false, queryEncId);
-            long tetraNanos = System.nanoTime() - tetraStart;
-            totalTetraNanos += tetraNanos;
-
-            // Step 2: Groth refinement on TETRA candidates
-            List<MatchObject> grothResults = new ArrayList<>();
-            long grothStart = System.nanoTime();
-            for (MatchObject tetraMo : tetraCandidates) {
-                String candidateEncId = tetraMo.getEncounterNumber();
-                EncounterLite el = catalog.get(candidateEncId);
-                if (el == null) continue;
-
-                MatchObject mo = el.getPointsForBestMatch(
-                    queryArray, epsilon, R, sizelim, maxRot, C, true, false);
-                mo.encounterNumber = candidateEncId;
-                grothResults.add(mo);
-            }
-            long grothNanos = System.nanoTime() - grothStart;
-            totalGrothNanos += grothNanos;
-
-            totalCandidates += tetraCandidates.size();
-
-            // Sort by Groth matchValue descending
-            grothResults.sort((a, b) -> Double.compare(b.matchValue, a.matchValue));
-
-            int rank = findCorrectRank(grothResults, queryEncId, trueIndId);
-            if (rank == 1) rank1Hits++;
-            if (rank >= 1 && rank <= 5) rank5Hits++;
-
-            double ap = computeAP(grothResults, trueEncounters, numTrueInCatalog);
-            sumAP += ap;
-            queriesRun++;
-        }
-
-        double avgTotalMs = (queriesRun > 0) ?
-            (double) (totalTetraNanos + totalGrothNanos) / 1_000_000 / queriesRun : 0;
-        double avgTetraMs = (queriesRun > 0) ?
-            (double) totalTetraNanos / 1_000_000 / queriesRun : 0;
-        double avgGrothMs = (queriesRun > 0) ?
-            (double) totalGrothNanos / 1_000_000 / queriesRun : 0;
-        double avgCandidates = (queriesRun > 0) ?
-            (double) totalCandidates / queriesRun : 0;
-        double mAP = (queriesRun > 0) ? sumAP / queriesRun : 0;
-        return new double[]{rank1Hits, rank5Hits, mAP, queriesRun, avgTotalMs,
-            avgTetraMs, avgGrothMs, avgCandidates};
     }
 
     private enum ParamIndex { EPSILON, R, SIZELIM, MAX_ROT, C }
