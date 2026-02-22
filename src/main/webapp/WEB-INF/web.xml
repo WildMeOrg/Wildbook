@@ -248,8 +248,7 @@
 				/SubmitSpotsAndTransformImage = authc,roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 				/EncounterRemoveSpots = authc, roles[researcher]
-				/HybridMatch = authc, roles[researcher]
-				/TetraMatch = authc, roles[researcher]
+				/GrothMatch = authc, roles[researcher]
 
 				# ===== Occurrence Management =====
 				/OccurrenceCreate = authc, roles[researcher]
@@ -802,21 +801,12 @@
 	</servlet-mapping>
 
 	<servlet>
-		<servlet-name>TetraMatch</servlet-name>
-		<servlet-class>org.ecocean.servlet.TetraMatchServlet</servlet-class>
+		<servlet-name>GrothMatch</servlet-name>
+		<servlet-class>org.ecocean.servlet.GrothMatchServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>TetraMatch</servlet-name>
-		<url-pattern>/TetraMatch</url-pattern>
-	</servlet-mapping>
-
-	<servlet>
-		<servlet-name>HybridMatch</servlet-name>
-		<servlet-class>org.ecocean.servlet.HybridMatchServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>HybridMatch</servlet-name>
-		<url-pattern>/HybridMatch</url-pattern>
+		<servlet-name>GrothMatch</servlet-name>
+		<url-pattern>/GrothMatch</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

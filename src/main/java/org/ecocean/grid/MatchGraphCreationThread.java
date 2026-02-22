@@ -1,7 +1,6 @@
 package org.ecocean.grid;
 
 import org.ecocean.Encounter;
-import org.ecocean.grid.tetra.TetraIndexManager;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.shepherd.core.Shepherd;
 
@@ -86,9 +85,6 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
             }
             // myShepherd.rollbackDBTransaction();
             finished = true;
-            // Signal TETRA index readiness since encounters were indexed
-            // incrementally via addMatchGraphEntry → indexEncounterLite
-            TetraIndexManager.getInstance().setReady(true);
         } catch (Exception e) {
             System.out.println(
                 "I failed while constructing the EncounterLites in MatchGraphCreationThread.");

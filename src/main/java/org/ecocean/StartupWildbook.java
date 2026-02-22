@@ -422,24 +422,21 @@ public class StartupWildbook implements ServletContextListener {
 
     /**
      * Try loading the matchGraph from disk cache. If the cache exists and loads
-     * successfully, rebuild the TETRA index from it (fast). Otherwise fall back
-     * to the full DB rebuild via MatchGraphCreationThread.
+     * successfully, use it directly. Otherwise fall back to the full DB rebuild
+     * via MatchGraphCreationThread.
      */
     public static void loadMatchGraphOrRebuild(ServletContext sContext, String context) {
         try {
             String dataDir = CommonConfiguration.getDataDirectory(sContext, context).getAbsolutePath();
             String cacheFile = GridManager.getCacheFilePath(dataDir);
             if (new File(cacheFile).exists() && GridManager.cacheRead(cacheFile)) {
-                System.out.println("INFO: matchGraph loaded from cache, building TETRA index...");
-                ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-                es.execute(new org.ecocean.grid.tetra.TetraIndexCreationThread());
+                System.out.println("INFO: matchGraph loaded from cache.");
                 return;
             }
         } catch (Exception e) {
             System.out.println("WARNING: Could not load matchGraph cache, rebuilding from DB: " +
                 e.getMessage());
         }
-        // Fall back to full DB rebuild (which also indexes TETRA incrementally)
         createMatchGraph();
     }
 

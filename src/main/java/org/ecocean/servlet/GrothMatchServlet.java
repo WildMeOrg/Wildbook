@@ -7,8 +7,6 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.SuperSpot;
 import org.ecocean.grid.*;
-import org.ecocean.grid.tetra.TetraIndexManager;
-import org.ecocean.grid.tetra.TetraQueryEngine;
 import org.ecocean.shepherd.core.Shepherd;
 
 import javax.servlet.ServletConfig;
@@ -22,21 +20,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
- * Hybrid TETRA+Groth pattern matching servlet.
- * Uses TETRA hash index as a fast pre-filter to find candidates,
- * then runs the full optimized Groth algorithm on each candidate
- * for accurate scoring. Writes results in the XML format expected
- * by scanEndApplet.jsp and redirects the user there.
+ * Synchronous Modified Groth pattern matching servlet.
+ * Runs the optimized Groth algorithm against the full matchGraph catalog
+ * and writes results in the XML format expected by scanEndApplet.jsp.
  *
  * Parameters:
  *   encounterNumber - the encounter to match (required)
  *   rightSide       - "true" for right-side spots, "false" (default) for left
  */
-public class HybridMatchServlet extends HttpServlet {
-    private static final Logger log = Logger.getLogger(HybridMatchServlet.class.getName());
+public class GrothMatchServlet extends HttpServlet {
+    private static final Logger log = Logger.getLogger(GrothMatchServlet.class.getName());
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -59,13 +56,6 @@ public class HybridMatchServlet extends HttpServlet {
 
         boolean rightScan = "true".equals(request.getParameter("rightSide"));
 
-        TetraIndexManager mgr = TetraIndexManager.getInstance();
-        if (!mgr.isReady()) {
-            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                "TETRA index is not yet ready. The server may still be starting up.");
-            return;
-        }
-
         // Read Groth parameters from config
         double epsilon, R, Sizelim, maxTriangleRotation, C;
         try {
@@ -82,7 +72,7 @@ public class HybridMatchServlet extends HttpServlet {
         }
 
         Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("HybridMatchServlet.class");
+        myShepherd.setAction("GrothMatchServlet.class");
         myShepherd.beginDBTransaction();
 
         try {
@@ -93,7 +83,6 @@ public class HybridMatchServlet extends HttpServlet {
                 return;
             }
 
-            // ArrayList required by TetraQueryEngine.match() and Encounter.getSpots() API
             ArrayList<SuperSpot> querySpots = rightScan ?
                 enc.getRightSpots() : enc.getSpots();
 
@@ -106,42 +95,31 @@ public class HybridMatchServlet extends HttpServlet {
 
             long startTime = System.currentTimeMillis();
 
-            // Step 1: TETRA pre-filter to get candidate encounter IDs
-            TetraQueryEngine engine = mgr.getQueryEngine();
-            List<MatchObject> tetraCandidates = engine.match(querySpots, rightScan, encNumber);
-
-            long tetraTime = System.currentTimeMillis() - startTime;
-            log.info("TETRA pre-filter for " + encNumber + ": " + tetraCandidates.size() +
-                " candidates in " + tetraTime + "ms");
-
-            // Step 2: Run full Groth on each TETRA candidate
+            // Run Groth against all encounters in the matchGraph
             SuperSpot[] queryArray = querySpots.toArray(new SuperSpot[0]);
+            ConcurrentHashMap<String, EncounterLite> matchGraph = GridManager.getMatchGraph();
             List<MatchObject> grothResults = new ArrayList<>();
 
-            for (MatchObject tetraMo : tetraCandidates) {
-                String candidateEncId = tetraMo.getEncounterNumber();
-                EncounterLite el = GridManager.getMatchGraphEncounterLiteEntry(candidateEncId);
-                if (el == null) continue;
+            for (ConcurrentHashMap.Entry<String, EncounterLite> entry : matchGraph.entrySet()) {
+                if (entry.getKey().equals(encNumber)) continue;
+                EncounterLite el = entry.getValue();
 
                 MatchObject mo = el.getPointsForBestMatch(
                     queryArray, epsilon, R, Sizelim, maxTriangleRotation, C,
                     true, rightScan);
-
-                // EncounterLite from matchGraph may not have encounterNumber set
-                mo.encounterNumber = candidateEncId;
+                mo.encounterNumber = entry.getKey();
                 grothResults.add(mo);
             }
 
-            // Step 3: Sort by matchValue * adjustedMatchValue descending
+            // Sort by matchValue * adjustedMatchValue descending
             MatchObject[] matchArray = grothResults.toArray(new MatchObject[0]);
             Arrays.sort(matchArray, new MatchComparator());
 
             long totalTime = System.currentTimeMillis() - startTime;
-            log.info("Hybrid match for " + encNumber + " completed in " + totalTime +
-                "ms (" + tetraTime + "ms TETRA + " + (totalTime - tetraTime) +
-                "ms Groth on " + tetraCandidates.size() + " candidates)");
+            log.info("Groth match for " + encNumber + " completed in " + totalTime +
+                "ms (" + matchGraph.size() + " catalog encounters)");
 
-            // Step 4: Build XML document in WriteOutScanTask format
+            // Build XML document in WriteOutScanTask format
             Document document = DocumentHelper.createDocument();
             Element root = document.addElement("matchSet");
             root.addAttribute("scanDate", (new java.util.Date()).toString());
@@ -182,7 +160,6 @@ public class HybridMatchServlet extends HttpServlet {
                         }
                         match.addAttribute("evaluation", mo.getEvaluation());
 
-                        // First encounter element: the catalog match
                         Encounter firstEnc = myShepherd.getEncounter(mo.getEncounterNumber());
                         if (firstEnc == null) continue;
 
@@ -208,7 +185,6 @@ public class HybridMatchServlet extends HttpServlet {
                             }
                         } catch (NullPointerException npe) {}
 
-                        // Second encounter element: the query encounter
                         Element enc2 = match.addElement("encounter");
                         enc2.addAttribute("number", encNumber);
                         enc2.addAttribute("date", enc.getDate());
@@ -232,7 +208,6 @@ public class HybridMatchServlet extends HttpServlet {
                             }
                         } catch (NullPointerException npe) {}
 
-                        // Keywords in common
                         List<String> keywords = myShepherd.getKeywordsInCommon(
                             mo.getEncounterNumber(), encNumber);
                         if (keywords != null && !keywords.isEmpty()) {
@@ -248,7 +223,7 @@ public class HybridMatchServlet extends HttpServlet {
                 }
             }
 
-            // Step 5: Write XML to encounter directory
+            // Write XML to encounter directory
             String rootWebappPath = getServletContext().getRealPath("/");
             File webappsDir = new File(rootWebappPath).getParentFile();
             File shepherdDataDir = new File(webappsDir,
@@ -263,7 +238,7 @@ public class HybridMatchServlet extends HttpServlet {
 
             File file = new File(thisEncDirString +
                 "/lastFull" + fileAddition + "Scan.xml");
-            log.info("Writing hybrid scan XML to: " + file.getAbsolutePath());
+            log.info("Writing Groth scan XML to: " + file.getAbsolutePath());
 
             FileWriter mywriter = new FileWriter(file);
             org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
@@ -272,7 +247,7 @@ public class HybridMatchServlet extends HttpServlet {
             writer.write(document);
             writer.close();
 
-            // Step 6: Redirect to scanEndApplet.jsp
+            // Redirect to scanEndApplet.jsp
             String redirectUrl = "encounters/scanEndApplet.jsp?number=" + encNumber +
                 "&writeThis=true";
             if (rightScan) {
@@ -281,7 +256,7 @@ public class HybridMatchServlet extends HttpServlet {
             response.sendRedirect(redirectUrl);
 
         } catch (Exception e) {
-            log.severe("Hybrid match failed: " + e.getMessage());
+            log.severe("Groth match failed: " + e.getMessage());
             e.printStackTrace();
             myShepherd.rollbackDBTransaction();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
