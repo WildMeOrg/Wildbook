@@ -792,15 +792,6 @@
 		<url-pattern>/WriteOutScanTask</url-pattern>
 	</servlet-mapping>
 	<servlet>
-		<servlet-name>ScanTaskHandler</servlet-name>
-		<servlet-class>org.ecocean.servlet.ScanTaskHandlerAWS</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ScanTaskHandler</servlet-name>
-		<url-pattern>/ScanTaskHandler</url-pattern>
-	</servlet-mapping>
-
-	<servlet>
 		<servlet-name>GrothMatch</servlet-name>
 		<servlet-class>org.ecocean.servlet.GrothMatchServlet</servlet-class>
 	</servlet>
