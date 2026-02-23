@@ -6,9 +6,7 @@ const SiteSettingsContext = createContext(null);
 export const SiteSettingsProvider = ({ children }) => {
   const { data, isLoading, error } = useGetSiteSettings();
   return (
-    <SiteSettingsContext.Provider
-      value={{ data: data ?? {}, isLoading, error }}
-    >
+    <SiteSettingsContext.Provider value={{ data, isLoading, error }}>
       {children}
     </SiteSettingsContext.Provider>
   );

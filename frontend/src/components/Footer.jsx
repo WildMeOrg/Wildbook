@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import FooterLink from "./footer/FooterLink";
@@ -12,10 +12,15 @@ import {
 } from "../constants/footerMenu";
 
 const Footer = () => {
+  const [version, setVersion] = useState(null);
   const theme = useContext(ThemeColorContext);
   const { visible } = useContext(FooterVisibilityContext);
   const { data } = useSiteSettings();
-  const version = data?.system?.wildbookVersion;
+  useEffect(() => {
+    if (data) {
+      setVersion(data.system?.wildbookVersion);
+    }
+  }, [data]);
   return visible ? (
     <footer
       className="footer py-3 w-100"
