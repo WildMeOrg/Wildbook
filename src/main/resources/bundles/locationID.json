@@ -533,7 +533,12 @@
               {"name":"Bahía de la Paz", "id":"Bahía de la Paz", "locationID":[]},
               {"name": "Baja California", "id":"Baja California", "locationID":[
                 {"name":"Northern Baja California", "id":"Northern Baja California", "locationID":[]},
-                {"name":"Southern Baja California", "id":"Southern Baja California", "locationID":[]}
+                {"name":"Southern Baja California", "id":"Southern Baja California", "locationID":[]},
+              {"name": "Midriff Islands Region", "id": "Midriff Islands Region", "locationID":[
+                {"name": "Sonora", "id": "Sonora", "locationID":[
+                  {"name": "Bahía de Kino", "id": "Bahía de Kino", "locationID":[]}
+                ]}
+              ]}
               ]}
             ]},
             {"name":"Troncones", "id":"Troncones", "locationID":[]},
