@@ -12,7 +12,7 @@ import LocationIcon from "../../components/icons/LocationIcon";
 import AttributesIcon from "../../components/icons/AttributesIcon";
 import ImageCard from "./ImageCard";
 import CardWithEditButton from "../../components/CardWithEditButton";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import PillWithDropdown from "../../components/PillWithDropdown";
 import ContactIcon from "../../components/icons/ContactIcon";
 import HistoryIcon from "../../components/icons/HistoryIcon";
@@ -42,7 +42,7 @@ import Alert from "react-bootstrap/Alert";
 const Encounter = observer(() => {
   const [store] = useState(() => new EncounterStore());
   const { data: siteSettings, loading: siteSettingsLoading } =
-    useGetSiteSettings();
+    useSiteSettings();
   const [encounterValid, setEncounterValid] = useState(true);
   const [encounterDeleted, setEncounterDeleted] = useState(false);
   const intl = useIntl();

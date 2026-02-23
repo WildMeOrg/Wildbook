@@ -4,7 +4,7 @@ import Text from "./Text";
 import { Container } from "react-bootstrap";
 import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from "./BrutalismButton";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 import { Col, Row } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
@@ -18,7 +18,7 @@ export default function FilterPanel({
   setTempFormFilters = () => {},
   store,
 }) {
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const safeSchemas = schemas || [];
   const [clicked, setClicked] = useState(safeSchemas[0]?.id);
   const theme = React.useContext(ThemeContext);

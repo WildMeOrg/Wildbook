@@ -1,8 +1,8 @@
 import React from "react";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 
 function Chip({ children }) {
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
 
   function renderFilter(filter) {
     function getLabelById(options, id) {

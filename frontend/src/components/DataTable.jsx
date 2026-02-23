@@ -12,7 +12,7 @@ import { observer } from "mobx-react-lite";
 import GalleryView from "../pages/SearchPages/searchResultTabs/GalleryView";
 import Select from "react-select";
 import MainButton from "./MainButton";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import { useSiteSettings } from "../SiteSettingsContext";
 
 const customStyles = {
   rows: {
@@ -222,7 +222,7 @@ const MyDataTable = observer(
     }, [store.selectedRows.length, store.projectBannerStatusCode]);
 
     const { data: siteSettingsData, loading: siteSettingsLoading } =
-      useGetSiteSettings();
+      useSiteSettings();
     useEffect(() => {
       if (siteSettingsData) {
         store.setSiteSettingsData(siteSettingsData);

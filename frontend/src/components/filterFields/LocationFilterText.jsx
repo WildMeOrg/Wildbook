@@ -1,11 +1,11 @@
 import React from "react";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import FormGroupText from "../Form/FormGroupText";
 import ContainerWithSpinner from "../ContainerWithSpinner";
 
 export default function LocationFilterText({ store }) {
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   const countries =
     data?.country?.map((data) => {
       return {

@@ -1,11 +1,11 @@
 import React from "react";
 import { Form, Alert } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { useSiteSettings } from "../../SiteSettingsContext";
 import { observer } from "mobx-react-lite";
 
 export const ReportEncounterSpeciesSection = observer(({ store }) => {
-  const { data } = useGetSiteSettings();
+  const { data } = useSiteSettings();
   let speciesList =
     data?.siteTaxonomies?.map((item) => {
       return {
