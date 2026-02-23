@@ -182,8 +182,6 @@ public class EncounterLite implements java.io.Serializable {
     public MatchObject getPointsForBestMatch(SuperSpot[] newspotsTemp, double epsilon, double R,
         double Sizelim, double maxTriangleRotation, double C, boolean secondRun,
         boolean rightScan) {
-        System.out.println("\nNow comparing against encounter " + encounterNumber + " of " +
-            belongsToMarkedIndividual + "...");
         try {
             SuperSpot[] spots = new SuperSpot[0];
             // check to see if this is a right side scan. if false, this is a left-side scan.

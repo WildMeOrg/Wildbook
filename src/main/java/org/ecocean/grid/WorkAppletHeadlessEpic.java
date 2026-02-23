@@ -11,431 +11,302 @@ import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+/**
+ * Headless grid client for distributed Modified Groth pattern matching.
+ * Polls a Wildbook server for scan work items, executes comparisons locally,
+ * and sends results back. Runs as a standalone Java process.
+ *
+ * Usage: java WorkAppletHeadlessEpic <server-url> [num-processors]
+ *   server-url     - Full URL of the Wildbook server (e.g., https://www.whaleshark.org)
+ *   num-processors - Number of threads to use (default: available processors)
+ */
 public class WorkAppletHeadlessEpic {
     private int numComparisons = 0;
-
-    // number of potential matches made by this node
     private int numMatches = 0;
-    private static String version = "1.3";
+    private static final String VERSION = "1.4";
+    private static final long POLL_INTERVAL_MS = 10000;
+    private static final long ERROR_BACKOFF_MS = 30000;
+    private static final int MAX_CONSECUTIVE_ERRORS = 10;
+    private static final int CONNECTION_TIMEOUT_MS = 30000;
+    private static final int READ_TIMEOUT_MS = 60000;
 
     public static ArrayList<String> urlArray = new ArrayList<String>();
+    private volatile boolean running = true;
 
     // polling heartbeat thread
     AppletHeartbeatThread hb;
 
-    // constructor
     public WorkAppletHeadlessEpic() {}
 
-    /*
-     * Obtain a connection to the server to send/receive serialized content
+    public static void main(String[] args) {
+        System.out.println("Starting WorkAppletHeadlessEpic v" + VERSION);
 
-       private URLConnection getConnection(String action, String newEncounterNumber, int groupSize, String nodeID, int numProcessors) throws
-     * IOException {
-       String encNumParam = "";
-       if (!newEncounterNumber.equals("")) {
-        encNumParam = "&newEncounterNumber=" + newEncounterNumber;
-       }
-       URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + action +
-     * encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
-       System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
-       URLConnection con = u.openConnection();
-       con.setDoInput(true);
-       con.setDoOutput(true);
-       con.setUseCaches(false);
-       con.setDefaultUseCaches(false);
-       con.setRequestProperty("Content-type", "application/octet-stream");
-       con.setAllowUserInteraction(false);
-       return con;
-       }
-     */
-    public static void main(String args[]) {
-        urlArray.add("https://www.whaleshark.org");
-
-        // addresses for spotashark-related wildbooks
-        // urlArray.add("http://www.spotashark.com");
-        // urlArray.add("http://ncaquariums.wildbook.org");
-
-        // IP for Bass Server
-        // urlArray.add("http://34.209.17.78");
-        System.out.println("Starting WorkAppletHeadlessEpic");
-
-        // which URLS
-        WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
-        if (args[0] != null) {
-            urlArray.add(args[0]);
-            System.out.println("Performing matching for server: " + args[0]);
+        if (args.length < 1) {
+            System.err.println("Usage: java WorkAppletHeadlessEpic <server-url> [num-processors]");
+            System.err.println("  server-url     - Full URL (e.g., https://www.whaleshark.org)");
+            System.err.println("  num-processors - Thread count (default: available cores)");
+            System.exit(1);
         }
-        // check the number of processors
-        Runtime rt = Runtime.getRuntime();
-        int numProcessors = rt.availableProcessors();
-        if (args[1] != null) {
+
+        urlArray.add(args[0]);
+        System.out.println("Performing matching for server: " + args[0]);
+
+        int numProcessors = Runtime.getRuntime().availableProcessors();
+        if (args.length >= 2) {
             try {
-                numProcessors = new Integer(args[1]).intValue();
-            } catch (Exception e) {
-                System.out.println(
-                    "I couldn't read an Integer for num processors to apply from value: " +
-                    args[1]);
+                numProcessors = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid processor count '" + args[1] +
+                    "', using default: " + numProcessors);
             }
         }
-        a.getGoing(numProcessors);
+
+        WorkAppletHeadlessEpic worker = new WorkAppletHeadlessEpic();
+
+        // Register shutdown hook for graceful cleanup
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutdown signal received, stopping...");
+            worker.running = false;
+        }));
+
+        worker.getGoing(numProcessors);
     }
 
     public void getGoing(int numProcessors) {
         String holdEncNumber = "";
-
-        // check whether this applet is working on a specific task
-        String targeted = "";
-        long startTime = (new GregorianCalendar()).getTimeInMillis();
-
-        // server connection
-        URLConnection con = null;
-
-        // whether this is a right-side pattern scan or a left-side
-        boolean rightScan = false;
+        long startTime = System.currentTimeMillis();
 
         // set up the random identifier for this "node"
-        Random ran = new Random();
-        int nodeIdentifier = ran.nextInt();
-        String nodeID = "Azure_" + (new Integer(nodeIdentifier)).toString();
+        String nodeID = "Grid_" + Math.abs(new Random().nextInt());
+        int consecutiveErrors = 0;
 
-        // if targeted on a specific task, show a percentage bar for progress
-        int b = 0;
-        boolean repeat = true;
+        System.out.println();
+        System.out.println("***Welcome to sharkGrid!***");
+        System.out.println("...I have " + numProcessors + " processor(s) to work with...");
+        System.out.println("...Node ID: " + nodeID);
+
+        int groupSize = 10 * numProcessors;
+        int serverIndex = 0;
+
+        // start the heartbeat
+        hb = new AppletHeartbeatThread(nodeID, numProcessors, urlArray.get(serverIndex), VERSION);
+
+        while (running) {
+            HttpURLConnection httpCon = null;
+            try {
+                long currentTime = System.currentTimeMillis();
+                long runningMinutes = (currentTime - startTime) / 60000;
+
+                ScanWorkItem swi = new ScanWorkItem();
+                Vector workItems = new Vector();
+                Vector workItemResults = new Vector();
+                ObjectInputStream inputFromServlet = null;
+                boolean successfulConnect = false;
+                boolean hasWork = false;
+
+                // ---- Phase 1: Get work items from server ----
+                try {
+                    System.out.println("\n\nLooking for work... (running " +
+                        runningMinutes + " min, " + numComparisons + " comparisons done)");
+
+                    String encNumParam = "&newEncounterNumber=" + holdEncNumber;
+                    URL u = new URL(urlArray.get(serverIndex) +
+                        "/scanAppletSupport?version=" + VERSION + "&nodeIdentifier=" + nodeID +
+                        "&action=getWorkItemGroup" + encNumParam + "&groupSize=" +
+                        groupSize + "&numProcessors=" + numProcessors);
+
+                    httpCon = openConnection(u, urlArray.get(serverIndex));
+                    httpCon.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+                    httpCon.setReadTimeout(READ_TIMEOUT_MS);
+                    httpCon.setDoInput(true);
+                    httpCon.setDoOutput(true);
+                    httpCon.setUseCaches(false);
+                    httpCon.setRequestProperty("Content-type", "application/octet-stream");
+
+                    inputFromServlet = new ObjectInputStream(new BufferedInputStream(
+                        new GZIPInputStream(httpCon.getInputStream())));
+
+                    workItems = (Vector) inputFromServlet.readObject();
+                    if (workItems != null && workItems.size() > 0) {
+                        swi = (ScanWorkItem) workItems.get(0);
+                        successfulConnect = true;
+                        hasWork = swi.getTotalWorkItemsInTask() > 0;
+                    }
+                    consecutiveErrors = 0;
+                } catch (EOFException e) {
+                    // empty response, no work available
+                    consecutiveErrors = 0;
+                } catch (Exception ioe) {
+                    consecutiveErrors++;
+                    System.err.println("Connection error (" + consecutiveErrors + "/" +
+                        MAX_CONSECUTIVE_ERRORS + "): " + ioe.getMessage());
+                    if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+                        System.err.println("Too many consecutive errors, backing off...");
+                        consecutiveErrors = 0;
+                        safeSleep(ERROR_BACKOFF_MS * 3);
+                    } else {
+                        safeSleep(ERROR_BACKOFF_MS);
+                    }
+                    continue;
+                } finally {
+                    closeQuietly(inputFromServlet);
+                    disconnectQuietly(httpCon);
+                    httpCon = null;
+                }
+
+                if (!successfulConnect || !hasWork) {
+                    if (!hasWork && successfulConnect) {
+                        // Server responded but no work available
+                        serverIndex = (serverIndex + 1) % urlArray.size();
+                    }
+                    safeSleep(POLL_INTERVAL_MS);
+                    continue;
+                }
+
+                // ---- Phase 2: Execute comparisons ----
+                int vectorSize = workItems.size();
+                System.out.println("...received " + vectorSize + " comparisons to make...");
+
+                ThreadPoolExecutor threadHandler = new ThreadPoolExecutor(
+                    numProcessors, numProcessors, 0, TimeUnit.SECONDS,
+                    new ArrayBlockingQueue<>(vectorSize + 10));
+
+                for (int q = 0; q < vectorSize; q++) {
+                    ScanWorkItem tempSWI = (ScanWorkItem) workItems.get(q);
+                    try {
+                        threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
+                    } catch (Exception e) {
+                        System.err.println("Failed to submit work item " + q + ": " + e.getMessage());
+                    }
+                }
+
+                threadHandler.shutdown();
+                // Use proper blocking wait instead of busy-wait spin loop
+                boolean completed = threadHandler.awaitTermination(30, TimeUnit.MINUTES);
+                if (!completed) {
+                    System.err.println("WARNING: Thread pool timed out after 30 minutes, " +
+                        threadHandler.getCompletedTaskCount() + "/" + vectorSize + " completed");
+                    threadHandler.shutdownNow();
+                }
+                System.out.println("...all threads done! (" +
+                    workItemResults.size() + " results)...");
+
+                // ---- Phase 3: Send results back ----
+                int resultsSize = workItemResults.size();
+                if (resultsSize > 0) {
+                    boolean sent = sendResults(urlArray.get(serverIndex), nodeID, workItemResults);
+                    if (sent) {
+                        numComparisons += resultsSize;
+                        System.out.println("Total comparisons completed: " + numComparisons);
+                    }
+                }
+
+            } catch (OutOfMemoryError oome) {
+                System.err.println("OUT OF MEMORY! Clearing state and requesting GC...");
+                oome.printStackTrace();
+                System.gc();
+                safeSleep(ERROR_BACKOFF_MS);
+            } catch (Exception e) {
+                System.err.println("Unexpected error in main loop: " + e.getMessage());
+                e.printStackTrace();
+                safeSleep(ERROR_BACKOFF_MS);
+            }
+        } // end while
+
+        System.out.println("WorkAppletHeadlessEpic shutting down. Total comparisons: " +
+            numComparisons);
+        if (hb != null) {
+            hb.setFinished(true);
+        }
+    }
+
+    /**
+     * Send completed work item results back to the server.
+     */
+    private boolean sendResults(String serverUrl, String nodeID, Vector results) {
+        HttpURLConnection finishConnection = null;
+        ObjectOutputStream outputStream = null;
+        InputStream inputStream = null;
 
         try {
-            // keeps track of where we are in the array of machines.
-            int i = 0;
+            URL finishUrl = new URL(serverUrl +
+                "/ScanWorkItemResultsHandler2?group=true&nodeIdentifier=" + nodeID);
+            System.out.println("Sending " + results.size() + " results to: " + finishUrl);
 
-            // let's allocate an object to handle an OutOfMemoryError
-            // URL recoverURL = new URL("http://" + thisURLRoot + "/encounters/sharkGrid.jsp?groupSize=1&autorestart=true" + targeted +
-            // "&numComparisons=" + numComparisons);
+            finishConnection = openConnection(finishUrl, serverUrl);
+            finishConnection.setDoInput(true);
+            finishConnection.setDoOutput(true);
+            finishConnection.setUseCaches(false);
+            finishConnection.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+            finishConnection.setReadTimeout(READ_TIMEOUT_MS);
+            finishConnection.setRequestProperty("Content-Type", "application/octet-stream");
 
-            System.out.println();
-            System.out.println();
-            System.out.println("***Welcome to sharkGrid!***");
-            System.out.println("...I have " + numProcessors + " processor(s) to work with...");
+            outputStream = new ObjectOutputStream(
+                new BufferedOutputStream(new GZIPOutputStream(
+                    finishConnection.getOutputStream())));
+            outputStream.writeObject(results);
+            outputStream.flush();
+            outputStream.close();
+            outputStream = null;
 
-            // set the start groupSize used-i.e. number of scans to tackle in the first returned Vector of work items
-            // this is actually ignored and controlled by the server
-            int groupSize = 10 * numProcessors;
+            inputStream = finishConnection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = reader.readLine();
+            reader.close();
+            inputStream.close();
+            inputStream = null;
 
-            // start the heartbeat that periodically lets' the grid know it's out there
-            String sNodeIdentifier = nodeID;
-
-            // start the heartbeat yo!
-            hb = new AppletHeartbeatThread(sNodeIdentifier, numProcessors, urlArray.get(i),
-                version);
-            // repeating comparison work of the applet
-            while (repeat) {
-                // cleanup anything previously in scope
-                // System.gc();
-
-                try {
-                    long currentTime = (new GregorianCalendar()).getTimeInMillis();
-                    long timeDiff = currentTime - startTime;
-                    long sleepTime = 10000;
-
-                    // allow 55 minutes
-                    // update 2017-11-08 AWS now allows per-second billing, so limit this way down to maximum 180 seconds (two polling intervals)
-                    long allowedDiff = 3 * 60 * 1000;
-                    boolean successfulConnect = true;
-                    ScanWorkItem swi = new ScanWorkItem();
-                    Vector workItems = new Vector();
-                    Vector workItemResults = new Vector();
-                    ObjectInputStream inputFromServlet = null;
-                    try {
-                        // let's get some work from the server
-                        System.out.println("\n\nLooking for some work to do...running time: " +
-                            (currentTime - startTime) / 60000 + " minutes");
-
-                        // con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
-                        String encNumParam = "&newEncounterNumber=" + holdEncNumber;
-
-                        java.net.URL u = new java.net.URL(urlArray.get(i) +
-                            "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID +
-                            "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" +
-                            groupSize + "&numProcessors=" + numProcessors);
-                        System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: " +
-                            u.toString());
-                        if (urlArray.get(i).substring(0, 5).equals("https")) {
-                            con = (HttpsURLConnection)u.openConnection();
-                        } else {
-                            con = (HttpURLConnection)u.openConnection();
-                        }
-                        con.setConnectTimeout(30000);
-                        con.setReadTimeout(30000);
-
-                        con.setDoInput(true);
-                        con.setDoOutput(true);
-                        con.setUseCaches(false);
-                        con.setDefaultUseCaches(false);
-                        con.setRequestProperty("Content-type", "application/octet-stream");
-                        con.setAllowUserInteraction(false);
-
-                        System.out.println("     Opened a URL connection to: " +
-                            con.getURL().toString());
-
-                        // inputFromServlet = new ObjectInputStream(con.getInputStream());
-
-                        try {
-                            inputFromServlet = new ObjectInputStream(new BufferedInputStream(
-                                new GZIPInputStream(con.getInputStream())));
-
-                            workItems = (Vector)inputFromServlet.readObject();
-                            if ((workItems != null) && (workItems.size() > 0)) {
-                                swi = (ScanWorkItem)workItems.get(0);
-                                successfulConnect = true;
-                            } else {
-                                System.out.println(
-                                    "...No work to do... Gonna take a nap then check the next server...");
-
-                                int c = urlArray.size();
-                                if (i == (c - 1)) {
-                                    System.out.println("...Back to the beginning of the Array!...");
-                                    i = 0;
-                                } else {
-                                    System.out.println(
-                                        "...Done I'm done and I'm onto the next one...");
-                                    i += 1;
-                                }
-                                successfulConnect = false;
-                                // if (timeDiff<allowedDiff) {
-
-                                Thread.sleep(sleepTime);
-                                // System.exit(0);
-
-                                // }
-                                /*
-                                   else {
-                                   System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
-                                   inputFromServlet.close();
-                                   System.exit(0);
-
-                                   }
-                                 */
-                            }
-                            inputFromServlet.close();
-                        } catch (EOFException e) {
-                            // no input received
-                            // do nothing
-                        }
-                        inputFromServlet = null;
-                    } catch (Exception ioe) {
-                        if (inputFromServlet != null) inputFromServlet.close();
-                        ioe.printStackTrace();
-                        successfulConnect = false;
-                        // Thread.sleep(60000);
-                        // System.exit(0);
-                        // long currentTime=(new GregorianCalendar()).getTimeInMillis();
-                        // long timeDiff=currentTime-startTime;
-                        if (timeDiff < allowedDiff) {
-                            Thread.sleep(sleepTime);
-                            // System.exit(0);
-                        } else {
-                            // System.exit(0);
-                        }
-                    }
-                    if (successfulConnect) {
-                        // if no work is returned, there are three options
-                        if (swi.getTotalWorkItemsInTask() <= 0) {
-                            try {
-                                // waiting for last workItem to finish elsewhere, wait quietly and check later
-                                // long currentTime=(new GregorianCalendar()).getTimeInMillis();
-                                // long timeDiff=currentTime-startTime;
-                                // if ((swi.getTotalWorkItemsInTask() == -1)&&(timeDiff<allowedDiff)) {
-
-                                Thread.sleep(sleepTime);
-                                // System.exit(0);
-
-                                // }
-                                // else {
-                                // System.exit(0);
-
-                                // }
-                            } catch (NullPointerException npe) {
-                                npe.printStackTrace();
-                                // generic, non-specific applet operation
-                                // just sleep because there are no other tasks to do
-                                // if(!getParameter("encounter").equals("null")) status.setValue(0);
-                                System.out.println("...nothing to do...sleeping...");
-                                groupSize = 10;
-                                // Thread.sleep(90000);
-                                // System.exit(0);
-                            }
-                        }
-                        // otherwise, if we've got work to do
-                        // kick it like Poison!
-                        else {
-                            // lastWorkItemsTime=(new GregorianCalendar()).getTimeInMillis();
-                            int vectorSize = workItems.size();
-                            System.out.println("...received " + vectorSize +
-                                " comparisons to make...");
-
-                            // set up our thread processor for each comparison thread
-                            ArrayBlockingQueue abq = new ArrayBlockingQueue(1000);
-                            // thread pool handling comparison threads
-                            // spawn the thread for each comparison
-                            ThreadPoolExecutor threadHandler = new ThreadPoolExecutor(numProcessors,
-                                numProcessors, 0, TimeUnit.SECONDS, abq);
-                            for (int q = 0; q < vectorSize; q++) {
-                                ScanWorkItem tempSWI = (ScanWorkItem)workItems.get(q);
-
-                                // we also pass in workItemResults, which is a threadsafe vector of the results returned from each thread
-                                try {
-                                    threadHandler.submit(new AppletWorkItemThread(tempSWI,
-                                        workItemResults));
-                                } catch (Exception e) {
-                                    System.out.println(
-                                        "...a thread threw an error, so I'm gonna skip it...");
-                                }
-                            }
-                            System.out.println("...done spawning threads...");
-
-                            // block until all threads are done
-                            long vSize = vectorSize;
-                            while (threadHandler.getCompletedTaskCount() < vSize) {}
-                            System.out.println("...all threads done!...");
-                            threadHandler.shutdown();
-                            // cleanup thread handlers
-                            abq = null;
-                            threadHandler = null;
-
-                            // check the results and make variable changes as needed
-                            int resultsSize = workItemResults.size();
-
-                            System.out.println("Trying to return num results:" + resultsSize);
-                            /**
-                               for (int d = 0; d < resultsSize; d++) {
-                               b++;
-
-                               ScanWorkItemResult swir = (ScanWorkItemResult) workItemResults.get(d);
-                               MatchObject thisResult = swir.getResult();
-                               if ((thisResult.getMatchValue() * thisResult.getAdjustedMatchValue()) >= 115) {
-                                numMatches++;
-                               }
-                               }
-                             */
-                            // if we have results to send, send 'em!
-                            if (resultsSize > 0) {
-                                URL finishScan = new URL(urlArray.get(i) +
-                                    "/ScanWorkItemResultsHandler2?" + "group=true&nodeIdentifier=" +
-                                    nodeID);
-                                System.out.println("Trying to send results to: " +
-                                    finishScan.toString());
-                                URLConnection finishConnection = null;
-                                if (urlArray.get(i).substring(0, 5).equals("https")) {
-                                    finishConnection =
-                                        (HttpsURLConnection)finishScan.openConnection();
-                                } else {
-                                    finishConnection =
-                                        (HttpURLConnection)finishScan.openConnection();
-                                }
-                                // inform the connection that we will send output and accept input
-                                finishConnection.setDoInput(true);
-                                finishConnection.setDoOutput(true);
-
-                                // Don't use a cached version of URL connection.
-                                finishConnection.setUseCaches(false);
-                                finishConnection.setDefaultUseCaches(false);
-
-                                finishConnection.setConnectTimeout(30000);
-                                finishConnection.setReadTimeout(30000);
-
-                                // Specify the content type that we will send binary data
-                                finishConnection.setRequestProperty("Content-Type",
-                                    "application/octet-stream");
-
-                                ObjectOutputStream outputToFinalServlet = null;
-                                InputStream inputStreamFromServlet = null;
-                                String line = "";
-
-                                try {
-                                    // send the results Vector to the servlet using serialization
-
-                                    // outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
-                                    outputToFinalServlet = new ObjectOutputStream(
-                                        new BufferedOutputStream(new GZIPOutputStream(
-                                        finishConnection.getOutputStream())));
-
-                                    // sendObject(outputToFinalServlet, workItemResults);
-                                    System.out.println("     : Sending returned results...");
-                                    // new modification
-                                    // ObjectOutputStream out=null;
-                                    try {
-                                        // out = con;
-                                        outputToFinalServlet.reset();
-                                        if (workItemResults != null) {
-                                            outputToFinalServlet.writeObject(workItemResults);
-                                        }
-                                        outputToFinalServlet.flush();
-                                        outputToFinalServlet.close();
-                                    } catch (Exception e) {
-                                        // if(out!=null)out.close();
-                                        System.out.println(
-                                            "     : Transmission exception in sendObject.");
-                                        e.printStackTrace();
-                                    }
-                                    System.out.println(
-                                        "     : Transmission complete. Waiting for response...");
-
-                                    outputToFinalServlet.close();
-                                    outputToFinalServlet = null;
-
-                                    inputStreamFromServlet = finishConnection.getInputStream();
-                                    BufferedReader in = new BufferedReader(new InputStreamReader(
-                                        inputStreamFromServlet));
-                                    line = in.readLine();
-                                    in.close();
-                                    System.out.println("     : Checkin response received...");
-                                    inputStreamFromServlet.close();
-                                    in = null;
-                                    inputStreamFromServlet = null;
-                                } catch (Exception except) {
-                                    if (outputToFinalServlet != null) {
-                                        outputToFinalServlet.close();
-                                    }
-                                    if (inputStreamFromServlet != null) {
-                                        inputStreamFromServlet.close();
-                                    }
-                                    except.printStackTrace();
-                                }
-                                if (line.equals("success")) {
-                                    System.out.println(
-                                        "Successful transmit to and return code from the servlet.");
-
-                                    numComparisons += (workItemResults.size());
-                                    // recoverURL = new URL("http://" + thisURLRoot + "/encounters/sharkGrid.jsp?groupSize=1&autorestart=true" +
-                                    // targeted + "&numComparisons=" + numComparisons);
-                                } else {
-                                    System.out.println("Unsuccessful results transmit error!");
-                                }
-                            }
-                        }
-                    }
-                    workItems = null;
-                    workItemResults = null;
-                    swi = null;
-                } catch (OutOfMemoryError oome) {
-                    // oome.printStackTrace();
-                    // hb.setFinished(true);
-                    // System.exit(0);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } // end while
-        } catch (Exception mue) {
-            System.out.println(
-                "I hit an Exception while trying to create the recoverURL for OutOfMemoryErrors");
-            // mue.printStackTrace();
-            mue.printStackTrace();
-            System.exit(0);
+            if ("success".equals(line)) {
+                System.out.println("Results accepted by server.");
+                return true;
+            } else {
+                System.err.println("Server rejected results: " + line);
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to send results: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            closeQuietly(outputStream);
+            closeQuietly(inputStream);
+            disconnectQuietly(finishConnection);
         }
-        // System.exit(0);
-    } // end getGoing method
+    }
+
+    /**
+     * Open an HTTP(S) connection based on the server URL scheme.
+     */
+    private static HttpURLConnection openConnection(URL url, String serverUrl) throws IOException {
+        if (serverUrl.startsWith("https")) {
+            return (HttpsURLConnection) url.openConnection();
+        } else {
+            return (HttpURLConnection) url.openConnection();
+        }
+    }
+
+    private static void safeSleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void closeQuietly(Closeable c) {
+        if (c != null) {
+            try { c.close(); } catch (Exception ignored) {}
+        }
+    }
+
+    private static void disconnectQuietly(HttpURLConnection con) {
+        if (con != null) {
+            try { con.disconnect(); } catch (Exception ignored) {}
+        }
+    }
 }
