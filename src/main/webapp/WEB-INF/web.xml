@@ -364,6 +364,11 @@
 
 				# ===== Legacy/Interconnect =====
 				/interconnect/mac/Interconnect.jar = authc, roles[researcher]
+				
+				# ===== Lynx Wildbook customizations =====
+				/EncounterSetHuntingState = authc, roles[researcher]
+				/EncounterSetGovernmentArea = authc, roles[researcher]
+				
 			</param-value>
 		</init-param>
 	</filter>
@@ -1995,5 +2000,29 @@
 		<servlet-name>GenePopExport</servlet-name>
 		<url-pattern>/GenePopExport</url-pattern>
 	</servlet-mapping>
+	
+	
+	<!-- start Lynx Wildbook customizations -->
+	
+	<servlet>
+    <servlet-name>EncounterSetGovernmentArea</servlet-name>
+		<servlet-class>org.ecocean.servlet.EncounterSetGovernmentArea</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>EncounterSetHuntingState</servlet-name>
+		<servlet-class>org.ecocean.servlet.EncounterSetHuntingState</servlet-class>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>EncounterSetGovernmentArea</servlet-name>
+		<url-pattern>/EncounterSetGovernmentArea</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>EncounterSetHuntingState</servlet-name>
+		<url-pattern>/EncounterSetHuntingState</url-pattern>
+	</servlet-mapping>
+  
+	<!-- end Lynx Wildbook customizations -->
+	
 
 </web-app>
