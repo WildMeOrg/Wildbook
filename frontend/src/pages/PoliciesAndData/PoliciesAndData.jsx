@@ -72,6 +72,7 @@ export default function PoliciesAndData() {
   const initialKey = SECTION_PARAM_TO_KEY[sectionParam] || DEFAULT_KEY;
 
   const [activeKey, setActiveKey] = useState(initialKey);
+  const [hoveredKey, setHoveredKey] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -145,6 +146,7 @@ export default function PoliciesAndData() {
             <ListGroup variant="flush">
               {SECTIONS.map((s) => {
                 const isActive = s.key === activeKey;
+                const isHovered = s.key === hoveredKey;
                 const color = isActive
                   ? theme.primaryColors.primary500
                   : "GrayText";
@@ -154,12 +156,18 @@ export default function PoliciesAndData() {
                     key={s.key}
                     action
                     onClick={() => handleSelect(s.key)}
+                    onMouseEnter={() => setHoveredKey(s.key)}
+                    onMouseLeave={() => setHoveredKey(null)}
                     className="d-flex align-items-center justify-content-between px-0 py-3"
                     style={{
-                      background: "transparent",
                       border: "none",
                       cursor: "pointer",
                       color,
+                      background: isHovered
+                        ? theme.primaryColors.primary50
+                        : "transparent",
+                      transition: "background-color 0.15s ease",
+                      borderRadius: "4px",
                     }}
                   >
                     <span className={isActive ? "fw-semibold" : ""}>
