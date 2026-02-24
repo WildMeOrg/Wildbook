@@ -226,10 +226,15 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 					res.put("individualName", indiv.getDisplayName(request, myShepherd));
 					res.put("individualId", indiv.getId());
 					enc.setIndividual(indiv);
-                                        for (Encounter oenc : otherEncs) {
+                    for (Encounter oenc : otherEncs) {
 					    oenc.setIndividual(indiv);
 					    indiv.addEncounter(oenc);
-                                        }
+										
+						//add same logging style as IndividualAddEncounter
+						oenc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + indiv.getDisplayName(request) + ".</p>");
+						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + oenc.getCatalogNumber() + ".</p>");
+						oenc.setMatchedBy("Pattern match");
+                    }
 
 					myShepherd.updateDBTransaction();
                     setImportTaskComplete(myShepherd, enc);
@@ -253,6 +258,10 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
                                 for (Encounter oenc : otherEncs) {
                                     oenc.setIndividual(indiv);
                                     indiv.addEncounter(oenc);
+									//add same logging style as IndividualAddEncounter
+									oenc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + indiv.getDisplayName(request) + ".</p>");
+									indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + oenc.getCatalogNumber() + ".</p>");
+									oenc.setMatchedBy("Pattern match");
                                 }
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
@@ -271,6 +280,12 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
                                 MarkedIndividual oindiv = it.next();
 				enc.setIndividual(oindiv);
 				oindiv.addEncounter(enc);
+				
+				//add same logging style as IndividualAddEncounter
+				enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + oindiv.getDisplayName(request) + ".</p>");
+				oindiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + enc.getCatalogNumber() + ".</p>");
+				enc.setMatchedBy("Pattern match");
+				
 				res.put("individualName", oindiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
 
@@ -279,13 +294,13 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			}
 
 
-			String matchMsg = enc.getMatchedBy();
-			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
-			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg);
-                        for (Encounter oenc : otherEncs) {
-			    oenc.setMatchedBy(matchMsg);
-                        }
+			//String matchMsg = enc.getMatchedBy();
+			//if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+			//matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+			//enc.setMatchedBy(matchMsg);
+            //            for (Encounter oenc : otherEncs) {
+			//    oenc.setMatchedBy(matchMsg);
+            //            }
 
 			if (res.optString("error", null) == null) res.put("success", true);
 

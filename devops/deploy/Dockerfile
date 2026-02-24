@@ -1,5 +1,5 @@
 # Use the base Tomcat image
-FROM tomcat:9.0.85-jre8-temurin-jammy
+FROM tomcat:9.0.113-jre17-temurin-jammy
 
 RUN mkdir -p /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles
 
