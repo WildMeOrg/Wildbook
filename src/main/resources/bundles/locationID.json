@@ -21,6 +21,7 @@
 					{"name": "Eastern Cape", "id":"Eastern Cape", "locationID":[]},
 					{"name": "Free State", "id":"Free State", "locationID":[]},
 					{"name": "Gauteng", "id": "Gauteng", "locationID":[]},
+					{"name": "Kariega Game Reserve", "id": "Kariega Game Reserve", "locationID":[]},
 					{"name": "Kwazulu-Natal", "id": "Kwazulu-Natal", "locationID":[]},
 					{"name": "Limpopo","id": "Limpopo", "locationID":[]},
 					{"name": "Lowveld", "id":"Lowveld", "locationID":[]},
@@ -193,6 +194,9 @@
 			{"name": "Nepal", "id": "Nepal", "locationID":[] },
 			{"name": "Pakistan", "id": "Pakistan", "locationID":[] },
 			{"name": "Tajikistan", "id": "Tajikistan", "locationID":[] },
+			{"name": "Thailand", "id": "Thailand", "locationID":[
+				{"name": "Kuiburi National Park", "id": "Kuiburi National Park", "locationID":[] }
+			] },
 			{"name": "Turkmenistan", "id": "Turkmenistan", "locationID":[] },
 			{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] }
 		]},
