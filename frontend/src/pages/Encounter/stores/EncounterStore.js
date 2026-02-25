@@ -17,6 +17,7 @@ import {
   setValueAtPath,
   deleteValueAtPath,
   expandOperations,
+  setEncounterState,
 } from "./helperFunctions";
 import NewMatchStore from "./NewMatchStore";
 import ImageModalStore from "./ImageModalStore";
@@ -326,6 +327,32 @@ class EncounterStore {
 
   setIndividualOptions(options) {
     this._individualOptions = options;
+  }
+
+  async changeEncounterState(nextState) {
+    if (!nextState || nextState === "loading") return;
+    if (!this._encounterData?.id) return;
+    this.errors.setFieldError("header", "state", null);
+    try {
+      await setEncounterState(nextState, this._encounterData.id);
+      await this.refreshEncounterData();
+    } catch (error) {
+      const data = error?.response?.data;
+      const msg = this._intl.formatMessage({
+        id: "ENCOUNTER_UPDATE_STATE_ERROR",
+        defaultMessage: "Failed to update state",
+      });
+      const serverMsg =
+        Array.isArray(data?.errors) && data.errors.length
+          ? data.errors
+              .map((e) => e.details || e.code || "INVALID")
+              .filter(Boolean)
+              .join("; ")
+          : null;
+
+      this.errors.setFieldError("header", "state", serverMsg || msg);
+      toast.error(msg);
+    }
   }
 
   async addNewPerson() {

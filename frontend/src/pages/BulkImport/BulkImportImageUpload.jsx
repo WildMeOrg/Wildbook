@@ -34,13 +34,22 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const { data } = useGetSiteSettings();
-  const maxSize = data?.maximumMediaSizeMegabytes || defaultMaxMediaSize;
+  const serverMaxSize = data?.maximumMediaSizeMegabytes;
+  const maxSizeForUI =
+    serverMaxSize ?? store.maxImageSizeMB ?? defaultMaxMediaSize;
   const [isProcessingDrop, setIsProcessingDrop] = useState(false);
   const [renderMode, setRenderMode] = useState("grid");
   const THUMBNAIL_THRESHOLD = 50;
-  store.setMaxImageCount(
-    data?.maximumMediaCountEncounter || defaultMaxMediaCount,
-  );
+  useEffect(() => {
+    if (serverMaxSize != null) {
+      store.setMaxImageSizeMB(serverMaxSize);
+    }
+    const maxCount = data?.maximumMediaCountEncounter ?? defaultMaxMediaCount;
+    if (maxCount != null) {
+      store.setMaxImageCount(maxCount);
+    }
+  }, [store, serverMaxSize, data?.maximumMediaCountEncounter]);
+
   const currentCount = store.imagePreview.length;
 
   useEffect(() => {
@@ -57,15 +66,15 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.currentTarget.style.border = "2px dashed #007BFF";
-    // e.dataTransfer.style.backgroundColor = theme.primaryColors.primary100;
   };
 
   useEffect(() => {
     const ref = fileInputRef.current;
     if (!ref) return;
+    if (!data) return;
 
     if (!store.flow) {
-      store.initializeFlow(ref, maxSize);
+      store.initializeFlow(ref);
     } else {
       store.flow.assignBrowse(ref);
     }
@@ -78,7 +87,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
     return () => {
       ref.removeEventListener("change", handleChange);
     };
-  }, [store, maxSize]);
+  }, [store, data]);
 
   useEffect(() => {
     if (store.imagePreview.length > 0) {
@@ -86,7 +95,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
         store.imagePreview.map((preview) => preview.fileName),
       );
       if (store.filesParsed) {
-        store.uploadFilteredFiles(maxSize);
+        store.uploadFilteredFiles();
       }
     }
   }, [store.imagePreview.length, store.filesParsed]);
@@ -118,7 +127,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
     for (let i = 0; i < items.length; i++) {
       const item = items[i].webkitGetAsEntry?.();
       if (item) {
-        store.traverseFileTree(item, maxSize);
+        store.traverseFileTree(item);
       } else {
         const file = items[i].getAsFile();
         if (
@@ -130,7 +139,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
       }
     }
 
-    store.uploadFilteredFiles(maxSize);
+    store.uploadFilteredFiles();
   };
 
   return (
@@ -146,7 +155,7 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
               <FormattedMessage
                 id="BULK_IMPORT_UPLOAD_IMAGE_DESC_PART_1"
                 values={{
-                  maxSize: maxSize,
+                  maxSize: maxSizeForUI,
                   maxImageCount: store.maxImageCount,
                 }}
               />
@@ -288,9 +297,8 @@ export const BulkImportImageUpload = observer(({ store, renderMode1 }) => {
                         </div>
                       )}
                       <div>
-                        {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
-                        {(preview.fileSize / (1024 * 1024)).toFixed(2) >
-                          maxSize && (
+                        {preview.fileSize / (1024 * 1024) >
+                          store.maxImageSizeMB && (
                           <div style={{ color: theme.statusColors.red500 }}>
                             <FormattedMessage id="FILE_SIZE_EXCEEDED" />
                           </div>

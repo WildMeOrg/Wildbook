@@ -41,15 +41,15 @@
       <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
 
       <field name="dateTimeCreated" persistence-modifier="persistent">
-        <column jdbc-type="String" allows-null="true"/>
+        <column jdbc-type="VARCHAR" allows-null="true"/>
       </field>
 
       <field name="dateTimeModified" persistence-modifier="persistent">
-        <column jdbc-type="String" allows-null="true"/>
+        <column jdbc-type="VARCHAR" allows-null="true"/>
       </field>
 
       <field name="date" persistence-modifier="persistent">
-        <column jdbc-type="String" allows-null="true"/>
+        <column jdbc-type="VARCHAR" allows-null="true"/>
       </field>
 
       <field name="observations" persistence-modifier="persistent" default-fetch-group="true">

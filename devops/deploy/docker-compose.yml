@@ -9,6 +9,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    restart: always
     labels:
       - autoheal=true
     user: postgres
@@ -34,7 +35,7 @@ services:
       WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
 
   wildbook:
-    image: tomcat:9.0.85-jre8-temurin-jammy
+    image: tomcat:9.0.113-jre17-temurin-jammy
     depends_on:
       db:
         condition: service_healthy
@@ -84,6 +85,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 120s
+    restart: always
     labels:
       - autoheal=true
     volumes:
@@ -121,6 +123,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    restart: always
     labels:
       - autoheal=true
     networks:
@@ -148,6 +151,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    restart: always
     labels:
       - autoheal=true
     volumes:

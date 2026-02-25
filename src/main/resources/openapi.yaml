@@ -1,0 +1,1389 @@
+openapi: 3.0.3
+info:
+  title: Wildbook v3 API
+  version: 3.0.3
+  description: |
+    API for the Wildbook® photo-identification platform.
+    
+    This API provides endpoints for wildlife data management including encounters,
+    individuals, media assets, and advanced search capabilities.
+    
+    ## Authentication
+    The API uses session-based authentication via Apache Shiro. Users must login
+    via `/api/v3/login` to obtain a session cookie (JSESSIONID).
+    
+    ## ReCAPTCHA
+    Some endpoints (notably encounter creation) require ReCAPTCHA validation
+    for anonymous submissions.
+
+servers:
+  - url: /
+    description: Application server root
+  - url: https://api.wildbook.org
+    description: Production server (example)
+  - url: http://localhost:8080
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User login, logout, and session management
+  - name: User
+    description: User profile and dashboard operations
+  - name: Encounters
+    description: Wildlife encounter management
+  - name: Individuals
+    description: Individual animal management
+  - name: Occurrences
+    description: Occurrence/sighting management
+  - name: Annotations
+    description: Image annotation management
+  - name: MediaAssets
+    description: Image and video asset management
+  - name: Projects
+    description: Research project management
+  - name: Search
+    description: Advanced search operations using OpenSearch/Elasticsearch
+  - name: BulkImport
+    description: Bulk data import operations
+  - name: BulkExport
+    description: Bulk data export operations
+  - name: SiteSettings
+    description: Site configuration and settings
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+      description: Session cookie obtained via login endpoint
+
+  responses:
+    Unauthorized:
+      description: Authentication required or invalid session
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "access denied"
+              statusCode:
+                type: integer
+                example: 401
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "not found"
+              statusCode:
+                type: integer
+                example: 404
+
+    BadRequest:
+      description: Invalid request parameters or data
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              statusCode:
+                type: integer
+                example: 400
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    fieldName:
+                      type: string
+                    code:
+                      type: string
+                    message:
+                      type: string
+              debug:
+                type: string
+                description: Debug information (development only)
+
+    MethodNotAllowed:
+      description: HTTP method not allowed for this endpoint
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "method not allowed"
+              statusCode:
+                type: integer
+                example: 405
+
+  schemas:
+    LoginCredentials:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        redirectUrl:
+          type: string
+          format: uri
+          description: URL to redirect to after successful login (if applicable)
+        # Additional user info fields from User.infoJSONObject()
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        fullName:
+          type: string
+        emailAddress:
+          type: string
+        affiliation:
+          type: string
+        profilePhotoUUID:
+          type: string
+          format: uuid
+        isAdmin:
+          type: boolean
+        organizations:
+          type: array
+          items:
+            type: object
+
+    User:
+      type: object
+      description: User profile information from User.infoJSONObject()
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        fullName:
+          type: string
+        emailAddress:
+          type: string
+        affiliation:
+          type: string
+        profilePhotoUUID:
+          type: string
+          format: uuid
+        isAdmin:
+          type: boolean
+        organizations:
+          type: array
+          items:
+            type: object
+
+    UserHome:
+      type: object
+      description: User dashboard data
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        latestEncounters:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              date:
+                type: string
+                format: date-time
+              numberAnnotations:
+                type: integer
+              taxonomy:
+                type: string
+        latestBulkImportTask:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            dateTimeCreated:
+              type: string
+              format: date-time
+            numberEncounters:
+              type: integer
+            numberMediaAssets:
+              type: integer
+        latestIndividual:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            dateTime:
+              type: string
+              format: date-time
+        latestMatchTask:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            dateTimeCreated:
+              type: string
+              format: date-time
+            encounterId:
+              type: string
+              format: uuid
+              nullable: true
+        projects:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/ProjectSummary'
+
+    ProjectSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        percentComplete:
+          type: number
+          format: double
+        numberEncounters:
+          type: integer
+
+    BaseObjectCreate:
+      type: object
+      description: Payload for creating Encounters, Individuals, Occurrences, or Annotations
+      required:
+        - submissionId
+      properties:
+        submissionId:
+          type: string
+          format: uuid
+          description: UUID linking to uploaded files via ResumableUpload
+        assetFilenames:
+          type: array
+          items:
+            type: string
+          example: ["image1.jpg", "image2.png"]
+          description: List of filenames from the upload session
+        # Additional fields depend on object type (Encounter, Individual, etc.)
+
+    BaseObjectResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        statusCode:
+          type: integer
+        id:
+          type: string
+          format: uuid
+          description: UUID of the created object
+        class:
+          type: string
+          enum: [encounters, individuals, occurrences, annotations]
+        assets:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+              id:
+                type: integer
+              uuid:
+                type: string
+                format: uuid
+              url:
+                type: string
+                format: uri
+        invalidFiles:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+        locationId:
+          type: string
+          description: For encounters only
+        submissionDate:
+          type: string
+          format: date-time
+          description: For encounters only
+        errors:
+          type: array
+          items:
+            type: object
+        debug:
+          type: string
+
+    MediaAssetInfo:
+      type: object
+      properties:
+        success:
+          type: boolean
+        statusCode:
+          type: integer
+        url:
+          type: string
+          format: uri
+        width:
+          type: integer
+        height:
+          type: integer
+        rotationInfo:
+          type: object
+        annotations:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              encounterId:
+                type: string
+                format: uuid
+              encounterTaxonomy:
+                type: string
+              trivial:
+                type: boolean
+              x:
+                type: integer
+              y:
+                type: integer
+              width:
+                type: integer
+              height:
+                type: integer
+
+    SearchQuery:
+      type: object
+      description: OpenSearch/Elasticsearch query body
+      additionalProperties: true
+
+    SearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        searchQueryId:
+          type: string
+          format: uuid
+        hits:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        query:
+          $ref: '#/components/schemas/SearchQuery'
+
+    PatchOperation:
+      type: object
+      description: JSON Patch operation (RFC 6902)
+      required:
+        - op
+        - path
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace, move, copy]
+          description: The operation to perform
+        path:
+          type: string
+          description: |
+            JSON Pointer to the field to modify. Supported paths for Encounters include:
+            individualId, occurrenceId, assets, acousticTag, satelliteTag, metalTags,
+            measurements, annotations, and standard encounter fields (genus, specificEpithet,
+            year, month, day, hour, minutes, sex, lifeStage, country, locationId, verbatimLocality,
+            decimalLatitude, decimalLongitude, behavior, etc.)
+          example: "/locationId"
+        value:
+          description: The value for add/replace operations (type depends on the path)
+        from:
+          type: string
+          description: Source path for move/copy operations
+
+    PatchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        statusCode:
+          type: integer
+        patchResults:
+          type: array
+          items:
+            type: object
+            properties:
+              _patch:
+                type: object
+                description: The original patch operation that was applied
+
+paths:
+  /api/v3/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and create session
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginCredentials'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    enum: [invalid_credentials, login_empty_data]
+
+    get:
+      tags:
+        - Authentication
+      summary: Process login (alternate method)
+      description: Some implementations support GET for login processing
+      operationId: loginGet
+      deprecated: true
+      responses:
+        '200':
+          description: Method supported but POST preferred
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: End user session and invalidate cookie
+      operationId: logout
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+    get:
+      tags:
+        - Authentication
+      summary: User logout (alternate method)
+      description: GET method also supported for logout
+      operationId: logoutGet
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /api/v3/user:
+    head:
+      tags:
+        - User
+      summary: Poll session status
+      description: Lightweight endpoint to check if user is logged in
+      operationId: pollUserSession
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User is authenticated
+          headers:
+            X-User-Id:
+              schema:
+                type: string
+                format: uuid
+              description: Current user's UUID
+        '401':
+          description: Not authenticated
+
+    get:
+      tags:
+        - User
+      summary: Get current user info
+      description: Get profile information for the currently logged-in user
+      operationId: getCurrentUser
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/user/{uuid}:
+    get:
+      tags:
+        - User
+      summary: Get specific user info
+      description: Get profile information for a specific user by UUID
+      operationId: getUserByUuid
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/home:
+    get:
+      tags:
+        - User
+      summary: Get user dashboard data
+      description: Get dashboard data including recent activity
+      operationId: getUserHome
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserHome'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/encounters:
+    post:
+      tags:
+        - Encounters
+      summary: Create new encounter
+      description: |
+        Create a new encounter with associated media assets.
+        Requires ReCAPTCHA validation for anonymous submissions.
+      operationId: createEncounter
+      security:
+        - cookieAuth: []
+        - {}  # Can be anonymous with ReCAPTCHA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseObjectCreate'
+      responses:
+        '200':
+          description: Encounter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: ReCAPTCHA validation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+
+  /api/v3/encounters/{encounterId}:
+    get:
+      tags:
+        - Encounters
+      summary: Get encounter details
+      description: Retrieve details of a specific encounter
+      operationId: getEncounter
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: encounterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Encounter details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Encounters
+      summary: Update encounter fields
+      description: |
+        Apply JSON Patch operations (RFC 6902) to modify encounter fields.
+        Supports operations: add, remove, replace, move, copy.
+
+        Common updatable fields include: genus, specificEpithet, year, month, day,
+        sex, lifeStage, country, locationId, verbatimLocality, decimalLatitude,
+        decimalLongitude, individualId, occurrenceId, behavior, and more.
+
+        Special fields like acousticTag, satelliteTag, metalTags, measurements,
+        and assets can also be modified. Some fields (genus, specificEpithet, year,
+        submitterID) cannot be removed.
+      operationId: patchEncounter
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: encounterId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Encounter UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PatchOperation'
+            examples:
+              updateLocation:
+                summary: Update location
+                value:
+                  - op: replace
+                    path: "/locationId"
+                    value: "new-location-id"
+              addIndividual:
+                summary: Associate with individual
+                value:
+                  - op: add
+                    path: "/individualId"
+                    value: "individual-uuid-here"
+              multipleUpdates:
+                summary: Multiple field updates
+                value:
+                  - op: replace
+                    path: "/sex"
+                    value: "female"
+                  - op: replace
+                    path: "/lifeStage"
+                    value: "adult"
+      responses:
+        '200':
+          description: Patch applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchResponse'
+        '400':
+          description: Invalid patch operation or validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fieldName:
+                          type: string
+                        code:
+                          type: string
+                        message:
+                          type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/individuals:
+    post:
+      tags:
+        - Individuals
+      summary: Create new individual
+      description: Create a new marked individual (requires authentication)
+      operationId: createIndividual
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseObjectCreate'
+      responses:
+        '200':
+          description: Individual created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/individuals/{individualId}:
+    get:
+      tags:
+        - Individuals
+      summary: Get individual details
+      description: Retrieve details of a specific marked individual
+      operationId: getIndividual
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: individualId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Individual UUID
+      responses:
+        '200':
+          description: Individual details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/occurrences:
+    post:
+      tags:
+        - Occurrences
+      summary: Create new occurrence
+      description: Create a new occurrence (requires authentication)
+      operationId: createOccurrence
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseObjectCreate'
+      responses:
+        '200':
+          description: Occurrence created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/occurrences/{occurrenceId}:
+    get:
+      tags:
+        - Occurrences
+      summary: Get occurrence details
+      description: Retrieve details of a specific occurrence
+      operationId: getOccurrence
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: occurrenceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Occurrence UUID
+      responses:
+        '200':
+          description: Occurrence details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/annotations:
+    post:
+      tags:
+        - Annotations
+      summary: Create new annotation
+      description: Create a new annotation (requires authentication)
+      operationId: createAnnotation
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseObjectCreate'
+      responses:
+        '200':
+          description: Annotation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseObjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/annotations/{annotationId}:
+    get:
+      tags:
+        - Annotations
+      summary: Get annotation details
+      description: Retrieve details of a specific annotation
+      operationId: getAnnotation
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: annotationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Annotation UUID
+      responses:
+        '200':
+          description: Annotation details
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/media-assets/{assetId}:
+    get:
+      tags:
+        - MediaAssets
+      summary: Get media asset info
+      description: Get information about a specific media asset including annotations
+      operationId: getMediaAsset
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Media asset ID
+      responses:
+        '200':
+          description: Media asset information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAssetInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/projects:
+    get:
+      tags:
+        - Projects
+      summary: List user projects
+      description: Get list of projects accessible to the current user
+      operationId: listProjects
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/projects/{projectId}:
+    get:
+      tags:
+        - Projects
+      summary: Get project details
+      description: Retrieve details of a specific project
+      operationId: getProject
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project UUID
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/search/{indexName}:
+    post:
+      tags:
+        - Search
+      summary: Search index
+      description: |
+        Execute a search query against the specified index.
+        Note: annotation index requires admin privileges.
+      operationId: searchIndex
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: indexName
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [encounter, individual, occurrence, annotation, sighting, user]
+          description: Name of the index to search
+        - name: from
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Pagination offset
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Number of results to return
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort field
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchQuery'
+      responses:
+        '200':
+          description: Search results
+          headers:
+            X-Wildbook-Total-Hits:
+              schema:
+                type: integer
+              description: Total number of matching documents
+            X-Wildbook-Search-Query-Id:
+              schema:
+                type: string
+                format: uuid
+              description: Stored query ID for reuse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden (admin required for annotation index)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: integer
+                    example: 403
+        '404':
+          description: Unknown index or invalid searchQueryId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          description: Query execution failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "query failed"
+
+  /api/v3/search/{searchQueryId}:
+    get:
+      tags:
+        - Search
+      summary: Execute stored search
+      description: Re-execute a previously stored search query by its UUID
+      operationId: executeStoredSearch
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: searchQueryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of a stored search query
+        - name: from
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Search results
+          headers:
+            X-Wildbook-Total-Hits:
+              schema:
+                type: integer
+            X-Wildbook-Search-Query-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Invalid searchQueryId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/v3/bulk-import:
+    post:
+      tags:
+        - BulkImport
+      summary: Create bulk import task
+      description: Submit data for bulk import processing
+      operationId: createBulkImport
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              # Detailed schema would come from BulkImport.java
+      responses:
+        '200':
+          description: Import task created
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/bulk-import/{taskId}:
+    get:
+      tags:
+        - BulkImport
+      summary: Get import task status
+      description: Get status and details of a bulk import task
+      operationId: getBulkImportStatus
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Import task details
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/bulk-export/{exportId}:
+    get:
+      tags:
+        - BulkExport
+      summary: Export encounter data
+      description: Export encounters and related data in bulk format (requires authentication)
+      operationId: bulkExport
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: exportId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Export identifier or query parameter
+      responses:
+        '200':
+          description: Export data
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/docs:
+    get:
+      tags:
+        - SiteSettings
+      summary: View API documentation (Swagger UI)
+      description: |
+        Interactive API documentation using Swagger UI. Provides a human-readable
+        interface for exploring and testing the API endpoints.
+
+        Features:
+        - Browse all available endpoints
+        - View request/response schemas
+        - Test endpoints directly from the browser (Try it out)
+        - Authenticate and maintain session for testing
+      operationId: getApiDocs
+      responses:
+        '200':
+          description: Swagger UI HTML page
+          content:
+            text/html:
+              schema:
+                type: string
+                format: binary
+
+  /api/v3/docs/openapi.yaml:
+    get:
+      tags:
+        - SiteSettings
+      summary: Get OpenAPI specification (YAML)
+      description: |
+        Retrieve the raw OpenAPI 3.0 specification for this API in YAML format.
+
+        This endpoint is intended for programmatic access by tools like
+        Schemathesis, Postman, or other API testing frameworks.
+      operationId: getApiSpec
+      responses:
+        '200':
+          description: OpenAPI specification
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Specification not found
+        '500':
+          description: Error reading API spec
+
+  /api/v3/site-settings:
+    get:
+      tags:
+        - SiteSettings
+      summary: Get site settings
+      description: Retrieve public site configuration
+      operationId: getSiteSettings
+      responses:
+        '200':
+          description: Site settings
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+    post:
+      tags:
+        - SiteSettings
+      summary: Update site settings
+      description: Update site configuration (admin only)
+      operationId: updateSiteSettings
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Admin privileges required
