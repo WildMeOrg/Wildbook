@@ -168,6 +168,17 @@
 					]
 				},
 				{
+					"name": "GBUSteigerwald",
+					"id": "GBUSteigerwald",
+					"prefix": "STW-",
+					"prefixDigitPadding":4,
+					"geospatialInfo":{
+						"lat": 49.9055352,
+						"long": 10.429871
+					},
+					"locationID":[]
+				},
+				{
 					"name": "Gummersbach",
 					"id": "Gummersbach",
 					"locationID": [
